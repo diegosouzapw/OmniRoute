@@ -74,6 +74,7 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
+  { version: "028", tableName: "batches", description: "batches table" },
   { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
   { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
   { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
@@ -153,6 +154,40 @@ function hasTable(db: Database.Database, tableName: string): boolean {
     .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
     .get(tableName) as { name?: string } | undefined;
   return Boolean(row?.name);
+}
+
+function hasColumn(db: Database.Database, tableName: string, columnName: string): boolean {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
+  return columns.some((column) => column.name === columnName);
+}
+
+function ensureColumn(
+  db: Database.Database,
+  tableName: string,
+  columnName: string,
+  ddl: string
+): void {
+  if (!hasColumn(db, tableName, columnName)) {
+    db.exec(ddl);
+  }
+}
+
+function isApiKeyLifecycleMigration(migration: { version: string; name: string }): boolean {
+  return migration.version === "032";
+}
+
+function applyApiKeyLifecycleMigration(db: Database.Database): void {
+  ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
+  ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
+  ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
+  ensureColumn(db, "api_keys", "key_prefix", "ALTER TABLE api_keys ADD COLUMN key_prefix TEXT");
+  ensureColumn(db, "api_keys", "ip_allowlist", "ALTER TABLE api_keys ADD COLUMN ip_allowlist TEXT");
+  ensureColumn(db, "api_keys", "scopes", "ALTER TABLE api_keys ADD COLUMN scopes TEXT");
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_api_keys_revoked_at ON api_keys(revoked_at);
+    CREATE INDEX IF NOT EXISTS idx_api_keys_expires_at ON api_keys(expires_at);
+  `);
 }
 
 function inferPhysicalSchemaBaseline(db: Database.Database): {
@@ -268,6 +303,25 @@ function reconcileRenumberedMigrations(
       `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
         `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
     );
+
+    // After the compat rewrite, verify the old version slot is now free.
+    // A residual row (from a failed prior run, manual intervention, or edge-case
+    // UPDATE conflict) at the old version would shadow a NEW migration file
+    // placed at that version number — e.g. 028_create_files_and_batches.sql
+    // would be skipped because getAppliedVersions() still sees version "028".
+    const residualRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+      .get(compatibility.fromVersion) as { version: string; name: string } | undefined;
+    if (residualRow) {
+      console.warn(
+        `[Migration] ⚠️  Residual row at version ${compatibility.fromVersion} ` +
+          `(name: "${residualRow.name}") still present after compat rewrite — ` +
+          `removing to unblock new migration at this version slot.`
+      );
+      db.prepare("DELETE FROM _omniroute_migrations WHERE version = ?").run(
+        compatibility.fromVersion
+      );
+    }
   }
 
   return repaired;
@@ -399,10 +453,13 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   let count = 0;
 
   for (const migration of pending) {
-    const sql = fs.readFileSync(migration.path, "utf-8");
-
     const applyMigration = db.transaction(() => {
-      db.exec(sql);
+      if (isApiKeyLifecycleMigration(migration)) {
+        applyApiKeyLifecycleMigration(db);
+      } else {
+        const sql = fs.readFileSync(migration.path, "utf-8");
+        db.exec(sql);
+      }
       db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
         migration.version,
         migration.name

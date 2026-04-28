@@ -35,7 +35,16 @@ export interface ChatRequest {
  * Providers known NOT to support a top-level system-role message.
  * These receive memories injected as the first user message instead.
  */
-const PROVIDERS_WITHOUT_SYSTEM_MESSAGE = new Set(["o1", "o1-mini", "o1-preview"]);
+const PROVIDERS_WITHOUT_SYSTEM_MESSAGE = new Set([
+  "o1",
+  "o1-mini",
+  "o1-preview",
+  "glm", // GLM/ZhipuAI rejects system role (#1701)
+  "glmt", // GLM Thinking variant
+  "glm-cn", // GLM China variant
+  "zai", // Z.AI uses same GLM backend
+  "qianfan", // Baidu ERNIE rejects system role
+]);
 
 /**
  * Returns true when the given provider accepts a system-role message.

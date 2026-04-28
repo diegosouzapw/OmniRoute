@@ -464,19 +464,21 @@ REQUEST_TIMEOUT_MS (global override)
 
 The logging system writes to both stdout and rotated log files. All configuration is read by `src/lib/logEnv.ts`.
 
-| Variable                    | Default                    | Description                                                                  |
-| --------------------------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `APP_LOG_LEVEL`             | `info`                     | Minimum log level: `debug`, `info`, `warn`, `error`.                         |
-| `APP_LOG_FORMAT`            | `text`                     | Output format: `text` (human-readable) or `json` (structured).               |
-| `APP_LOG_TO_FILE`           | `true`                     | Write logs to file alongside stdout.                                         |
-| `APP_LOG_FILE_PATH`         | `logs/application/app.log` | Log file path (relative to project root or `DATA_DIR`).                      |
-| `APP_LOG_MAX_FILE_SIZE`     | `50M`                      | Max file size before rotation. Accepts: `50M`, `1G`, `512K`, or plain bytes. |
-| `APP_LOG_RETENTION_DAYS`    | `7`                        | Days to keep rotated application log files.                                  |
-| `APP_LOG_MAX_FILES`         | `20`                       | Maximum rotated log file backups.                                            |
-| `CALL_LOG_RETENTION_DAYS`   | `7`                        | Days to keep request/call log entries in the database.                       |
-| `CALL_LOG_MAX_ENTRIES`      | `10000`                    | Max call log entries in the in-memory buffer.                                |
-| `CALL_LOGS_TABLE_MAX_ROWS`  | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                     |
-| `PROXY_LOGS_TABLE_MAX_ROWS` | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                    |
+| Variable                                  | Default                    | Description                                                                      |
+| ----------------------------------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| `APP_LOG_LEVEL`                           | `info`                     | Minimum log level: `debug`, `info`, `warn`, `error`.                             |
+| `APP_LOG_FORMAT`                          | `text`                     | Output format: `text` (human-readable) or `json` (structured).                   |
+| `APP_LOG_TO_FILE`                         | `true`                     | Write logs to file alongside stdout.                                             |
+| `APP_LOG_FILE_PATH`                       | `logs/application/app.log` | Log file path (relative to project root or `DATA_DIR`).                          |
+| `APP_LOG_MAX_FILE_SIZE`                   | `50M`                      | Max file size before rotation. Accepts: `50M`, `1G`, `512K`, or plain bytes.     |
+| `APP_LOG_RETENTION_DAYS`                  | `7`                        | Days to keep rotated application log files.                                      |
+| `APP_LOG_MAX_FILES`                       | `20`                       | Maximum rotated log file backups.                                                |
+| `CALL_LOG_RETENTION_DAYS`                 | `7`                        | Days to keep request/call log entries in the database.                           |
+| `CALL_LOG_MAX_ENTRIES`                    | `10000`                    | Max call log entries in the in-memory buffer.                                    |
+| `CALL_LOGS_TABLE_MAX_ROWS`                | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                         |
+| `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS` | `true`                     | Store stream chunks in pipeline artifacts when `call_log_pipeline_enabled=true`. |
+| `CALL_LOG_PIPELINE_MAX_SIZE_KB`           | `512`                      | Max pipeline call log artifact size in KB when `call_log_pipeline_enabled=true`. |
+| `PROXY_LOGS_TABLE_MAX_ROWS`               | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                        |
 
 ---
 

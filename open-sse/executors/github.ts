@@ -1,4 +1,4 @@
-import { BaseExecutor, ExecuteInput } from "./base.ts";
+import { BaseExecutor, ExecuteInput, type ProviderCredentials } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
@@ -7,9 +7,6 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 
 export class GithubExecutor extends BaseExecutor {
-  /** Stashed per-request so buildHeaders() can read the client's x-initiator value. */
-  private _clientHeaders: Record<string, string> | null = null;
-
   constructor() {
     super("github", PROVIDERS.github);
   }
@@ -66,83 +63,64 @@ export class GithubExecutor extends BaseExecutor {
   }
 
   transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
-    const modifiedBody = JSON.parse(JSON.stringify(body));
+    void stream;
+    void credentials;
+
+    const sourceBody = body && typeof body === "object" ? body : {};
+    const modifiedBody = { ...sourceBody };
+
+    if (Array.isArray(sourceBody.messages)) {
+      modifiedBody.messages = sourceBody.messages.map((msg) => {
+        if (!msg || typeof msg !== "object") return msg;
+        const role = typeof msg.role === "string" ? msg.role.toLowerCase() : "";
+        if (role !== "assistant") return msg;
+        if (msg.reasoning_text === undefined && msg.reasoning_content === undefined) return msg;
+        const next = { ...msg };
+        delete next.reasoning_text;
+        delete next.reasoning_content;
+        return next;
+      });
+    }
+
     if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
       modifiedBody.messages = this.injectResponseFormat(
-        modifiedBody.messages,
+        Array.isArray(modifiedBody.messages) ? modifiedBody.messages : [],
         modifiedBody.response_format
       );
       delete modifiedBody.response_format;
     }
 
-    // Strip reasoning_text / reasoning_content from assistant messages.
-    // GitHub Copilot converts these into Anthropic thinking blocks but cannot
-    // supply a valid `signature`, causing upstream 400 errors.
-    if (Array.isArray(modifiedBody.messages)) {
-      for (const msg of modifiedBody.messages) {
-        if (msg.role === "assistant") {
-          delete msg.reasoning_text;
-          delete msg.reasoning_content;
-        }
-      }
+    if (Array.isArray(modifiedBody.tools) && modifiedBody.tools.length > 128) {
+      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
     }
 
     return modifiedBody;
   }
 
   async execute(input: ExecuteInput) {
-    this._clientHeaders = input.clientHeaders ?? null;
-    try {
-      const result = await super.execute(input);
-      if (!result || !result.response) return result;
+    const result = await super.execute(input);
+    if (!result || !result.response) return result;
 
-      if (!input.stream) {
-        // wreq-js clone/text semantics consume the original response body. Materialize
-        // non-streaming responses immediately so downstream code always sees a native
-        // fetch Response with a readable body.
-        const status = result.response.status;
-        const statusText = result.response.statusText;
-        const headers = new Headers(result.response.headers);
-        const payload = await result.response.text();
-        result.response = new Response(payload, { status, statusText, headers });
-        return result;
-      }
-
-      if (!result.response.body) return result;
-
-      const isStreaming = input.stream === true;
-      const contentType = (result.response.headers.get("content-type") || "").toLowerCase();
-      if (isStreaming && result.response.ok && contentType.includes("text/event-stream")) {
-        // Preserve the original response body for downstream error handling.
-        const sourceResponse = result.response.clone();
-        if (!sourceResponse.body) return result;
-
-        const decoder = new TextDecoder();
-        const transformStream = new TransformStream({
-          transform(chunk, controller) {
-            const text = decoder.decode(chunk, { stream: true });
-            if (text.includes("data: [DONE]")) {
-              return;
-            }
-            controller.enqueue(chunk);
-          },
-        });
-
-        const newResponse = new Response(sourceResponse.body.pipeThrough(transformStream), {
-          status: sourceResponse.status,
-          statusText: sourceResponse.statusText,
-          headers: new Headers(sourceResponse.headers),
-        });
-        result.response = newResponse;
-      }
-
+    if (!input.stream) {
+      // wreq-js clone/text semantics consume the original response body. Materialize
+      // non-streaming responses immediately so downstream code always sees a native
+      // fetch Response with a readable body.
+      const status = result.response.status;
+      const statusText = result.response.statusText;
+      const headers = new Headers(result.response.headers);
+      const payload = await result.response.text();
+      result.response = new Response(payload, { status, statusText, headers });
       return result;
-    } finally {
-      this._clientHeaders = null;
     }
+
+    return result;
   }
 
-  buildHeaders(credentials, stream = true) {
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null
+  ): Record<string, string> {
     const token = this.getCopilotToken(credentials) || credentials.accessToken;
 
     // Forward the client's x-initiator header when present. OpenCode and other
@@ -152,8 +130,15 @@ export class GithubExecutor extends BaseExecutor {
     // free, so forwarding the value avoids burning a premium request on every
     // tool-call round-trip.  Fall back to "user" when the header is absent to
     // preserve the existing default behaviour.
-    const ch = this._clientHeaders;
-    const clientInitiator = ch?.["x-initiator"] || ch?.["X-Initiator"];
+    let clientInitiator = clientHeaders?.["x-initiator"] || clientHeaders?.["X-Initiator"];
+    if (!clientInitiator && clientHeaders) {
+      for (const key in clientHeaders) {
+        if (key.toLowerCase() === "x-initiator") {
+          clientInitiator = clientHeaders[key];
+          break;
+        }
+      }
+    }
     const initiator =
       clientInitiator === "agent" || clientInitiator === "user" ? clientInitiator : "user";
 

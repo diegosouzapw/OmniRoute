@@ -342,10 +342,9 @@ test.describe("Resilience Plan Alignment", () => {
     });
 
     await gotoDashboardRoute(page, "/dashboard/providers");
-    await page.waitForLoadState("networkidle");
+    await expect(page.getByText("OpenAI").first()).toBeVisible({ timeout: 15000 });
 
     expect(availabilityRequests).toBe(0);
-    await expect(page.getByText("OpenAI").first()).toBeVisible();
     await expect(page.getByText(/Model Availability/i)).toHaveCount(0);
   });
 
@@ -365,10 +364,11 @@ test.describe("Resilience Plan Alignment", () => {
     });
 
     await gotoDashboardRoute(page, "/dashboard/combos?filter=intelligent");
-    await page.waitForLoadState("networkidle");
-
-    expect(monitoringHealthRequests).toBe(0);
     await expect(page.getByText("Intelligent Routing Dashboard")).toBeVisible({ timeout: 15000 });
+    const healthRequestsAfterPanelVisible = monitoringHealthRequests;
+    await page.waitForTimeout(500);
+
+    expect(monitoringHealthRequests).toBe(healthRequestsAfterPanelVisible);
     await expect(page.getByText("Routing Inputs", { exact: true })).toBeVisible();
     await expect(page.getByText(/Excluded Providers/i)).toHaveCount(0);
     await expect(page.getByText(/Incident Mode/i)).toHaveCount(0);

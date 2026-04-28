@@ -33,6 +33,11 @@ const nextConfig = {
     },
   },
   outputFileTracingRoot: projectRoot,
+  outputFileTracingIncludes: {
+    // Migration SQL files are read via fs.readFileSync at runtime and are NOT
+    // auto-traced by webpack/turbopack — include them explicitly.
+    "/*": ["./src/lib/db/migrations/**/*"],
+  },
   outputFileTracingExcludes: {
     // Planning/task docs are not runtime assets and can break standalone copies
     // when broad fs/path tracing pulls the whole repository into the NFT graph.

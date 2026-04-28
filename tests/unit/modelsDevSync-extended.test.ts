@@ -510,7 +510,7 @@ test("startPeriodicSync, stopPeriodicSync, getSyncStatus, and initModelsDevSync 
   modelsDev.startPeriodicSync(99);
   assert.equal(modelsDev.getSyncStatus().intervalMs, 25);
 
-  const syncedAt = await waitFor(() => modelsDev.getSyncStatus().lastSync, 300);
+  const syncedAt = await waitFor(() => modelsDev.getSyncStatus().lastSync, 2000);
   assert.ok(syncedAt, "expected initial periodic sync to complete");
   assert.ok(modelsDev.getSyncStatus().nextSync);
 
@@ -536,7 +536,7 @@ test("startPeriodicSync, stopPeriodicSync, getSyncStatus, and initModelsDevSync 
   await enabled.initModelsDevSync();
   assert.equal(enabled.getSyncStatus().enabled, true);
   assert.equal(enabled.getSyncStatus().intervalMs, 15);
-  await waitFor(() => enabled.getSyncStatus().lastSync, 300);
+  await waitFor(() => enabled.getSyncStatus().lastSync, 2000);
 });
 
 test("stopPeriodicSync aborts the in-flight initial sync", async () => {

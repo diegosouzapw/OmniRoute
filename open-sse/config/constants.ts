@@ -11,10 +11,16 @@ const upstreamTimeouts = getUpstreamTimeoutConfig(process.env, (message) => {
 // and Undici's bodyTimeout instead of this one-shot startup timer.
 export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 
-// Idle timeout for SSE streams (ms). Closes stream if no data for this duration.
-// Default: 120s balances deep-reasoning pauses with fast zombie stream detection (#473).
-// Extended-thinking models rarely pause >90s between chunks. Override with STREAM_IDLE_TIMEOUT_MS env var.
+// Idle timeout for SSE streams (ms). Before a stream is accepted, the same
+// budget is used to wait for the first useful event so HTTP 200 zombie streams
+// can fail fast and trigger fallback. After startup, it closes streams that go
+// idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
+
+// Timeout for reading the full response body after headers arrive (ms).
+// Prevents indefinite hangs when the upstream sends headers but stalls on the body.
+// Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
+export const FETCH_BODY_TIMEOUT_MS = upstreamTimeouts.fetchBodyTimeoutMs;
 
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.

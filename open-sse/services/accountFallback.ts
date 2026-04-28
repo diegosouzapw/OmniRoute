@@ -345,6 +345,12 @@ export function recordModelLockoutFailure(
   const now = Date.now();
   cleanupModelLockKey(key, now);
 
+  // For daily quota exhaustion (quota_exhausted), set cooldown until tomorrow 00:00
+  // Use exactCooldownMs to bypass exponential backoff, ensuring precise lock until midnight
+  if (reason === "quota_exhausted" && typeof options.exactCooldownMs !== "number") {
+    options = { ...options, exactCooldownMs: getMsUntilTomorrow() };
+  }
+
   const resetAfterMs = getFailureWindowMs(profile);
   const previous = modelFailureState.get(key);
   const withinWindow = previous && now - previous.lastFailureAt <= previous.resetAfterMs;
@@ -407,7 +413,7 @@ export function hasPerModelQuota(
     return connectionPassthroughModels;
   }
   if (!provider) return false;
-  if (provider === "gemini") return true;
+  if (provider === "gemini" || provider === "github") return true;
   if (getPassthroughProviders().has(provider)) return true;
   if (isCompatibleProvider(provider)) return true;
   return false;
@@ -770,11 +776,12 @@ export function classifyError(status, errorText) {
  * @returns {number} Milliseconds until tomorrow
  */
 export function getMsUntilTomorrow(): number {
-  const now = new Date();
-  const tomorrow = new Date(now);
+  const nowMs = Date.now();
+  const now = new Date(nowMs);
+  const tomorrow = new Date(nowMs);
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
-  const ms = tomorrow.getTime() - now.getTime();
+  const ms = tomorrow.getTime() - nowMs;
   // Guard against DST edge cases: if ms is negative (shouldn't happen) or
   // unreasonably large (>25h due to spring-forward), cap at 24 hours.
   return ms > 0 && ms <= 25 * 60 * 60 * 1000 ? ms : 24 * 60 * 60 * 1000;

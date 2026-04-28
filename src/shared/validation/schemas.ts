@@ -434,9 +434,9 @@ export const updateSettingsSchema = z.object({
   cloudUrl: z.string().max(500).optional(),
   baseUrl: z.string().max(500).optional(),
   setupComplete: z.boolean().optional(),
-  requireAuthForModels: z.boolean().optional(),
   blockedProviders: z.array(z.string().max(100)).optional(),
   hideHealthCheckLogs: z.boolean().optional(),
+  bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   // Routing settings (#134)
@@ -1708,7 +1708,7 @@ export const cliSettingsEnvSchema = z.object({
 
 export const cliModelConfigSchema = z.object({
   baseUrl: z.string().trim().min(1, "baseUrl and model are required"),
-  apiKey: z.string().optional(),
+  apiKey: z.string().nullable().optional(),
   model: z.string().trim().min(1, "baseUrl and model are required"),
   reasoningEffort: z.enum(["none", "low", "medium", "high", "xhigh"]).optional(),
   wireApi: z.enum(["chat", "responses"]).optional(),
@@ -1729,6 +1729,7 @@ export const guideSettingsSaveSchema = z
     apiKey: z.string().optional(),
     model: z.string().trim().min(1, "Model is required").optional(),
     models: z.array(z.string().trim().min(1, "Models must be non-empty")).min(1).optional(),
+    modelLabels: z.record(z.string(), z.string().trim().min(1)).optional(),
   })
   .refine((data) => !!data.model || !!data.models?.length, {
     message: "Model is required",

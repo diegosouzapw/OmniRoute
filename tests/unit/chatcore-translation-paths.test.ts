@@ -1,3 +1,4 @@
+// @ts-nocheck
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -48,6 +49,8 @@ const originalFetch = globalThis.fetch;
 const originalResponsesToOpenAI = getRequestTranslator(FORMATS.OPENAI_RESPONSES, FORMATS.OPENAI);
 const originalSetTimeout = globalThis.setTimeout;
 const originalBackgroundConfig = getBackgroundDegradationConfig();
+const originalCallLogPipelineCaptureStreamChunks =
+  process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS;
 
 function noopLog() {
   return {
@@ -56,6 +59,15 @@ function noopLog() {
     warn() {},
     error() {},
   };
+}
+
+function restorePipelineCaptureEnv() {
+  if (originalCallLogPipelineCaptureStreamChunks === undefined) {
+    delete process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS;
+  } else {
+    process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS =
+      originalCallLogPipelineCaptureStreamChunks;
+  }
 }
 
 function toPlainHeaders(headers) {
@@ -312,7 +324,7 @@ async function invokeChatCore({
       return responseFactory(captured, calls);
     }
 
-    const upstreamStream = String(headers.accept || "")
+    const upstreamStream = String(headers.Accept || headers.accept || "")
       .toLowerCase()
       .includes("text/event-stream");
     if (responseFormat === "claude") return buildClaudeResponse(upstreamStream);
@@ -353,6 +365,7 @@ async function invokeChatCore({
 
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
+  restorePipelineCaptureEnv();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
@@ -360,10 +373,34 @@ test.afterEach(async () => {
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
+  restorePipelineCaptureEnv();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("chatCore can disable pipeline stream chunk capture through environment", async () => {
+  process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS = "false";
+  await settingsDb.updateSettings({ call_log_pipeline_enabled: true });
+
+  const { result } = await invokeChatCore({
+    accept: "text/event-stream",
+    body: {
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [{ role: "user", content: "stream without chunk logging" }],
+    },
+  });
+
+  assert.equal(result.success, true);
+  await result.response.text();
+  await waitForAsyncSideEffects();
+
+  const detail = await waitFor(getLatestCallLog);
+  assert.ok(detail, "expected call log detail to be persisted");
+  assert.ok(detail.pipelinePayloads, "expected pipeline payloads when capture is enabled");
+  assert.equal((detail.pipelinePayloads as any).streamChunks, undefined);
 });
 
 test("chatCore keeps Responses-native Codex payloads in native passthrough mode", async () => {
@@ -387,7 +424,7 @@ test("chatCore keeps Responses-native Codex payloads in native passthrough mode"
   assert.match(call.url, /\/responses$/);
   assert.equal(call.body.input, "ship it");
   assert.equal(call.body.instructions, "custom system prompt");
-  assert.equal(call.body.store, true);
+  assert.equal(call.body.store, false);
   assert.deepEqual(call.body.metadata, { source: "codex-client" });
   assert.equal("messages" in call.body, false);
 });
@@ -1412,37 +1449,46 @@ test("chatCore redirects background utility tasks to a cheaper mapped model", as
 });
 
 test("chatCore retries Qwen quota 429 responses before succeeding", async () => {
-  globalThis.setTimeout = (callback, _ms, ...args) => {
-    callback(...args);
-    return 0;
-  };
-
-  const { calls, result } = await invokeChatCore({
-    provider: "qwen",
-    model: "qwen3-coder",
-    body: {
-      model: "qwen3-coder",
-      stream: false,
-      messages: [{ role: "user", content: "retry the quota hit" }],
-    },
-    responseFactory(_captured, seenCalls) {
-      if (seenCalls.length === 1) {
-        return new Response(
-          JSON.stringify({ error: { message: "You exceeded your current quota for Qwen." } }),
-          {
-            status: 429,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+  const originalSetTimeout = globalThis.setTimeout;
+  try {
+    (globalThis as any).setTimeout = (callback: any, ms: any, ...args: any[]) => {
+      // Only make Qwen retry delays (≤5s) synchronous; let longer timeouts (e.g. body read) use real setTimeout
+      if (typeof ms === "number" && ms > 5000) {
+        return originalSetTimeout(callback, ms, ...args);
       }
-      return buildOpenAIResponse(false, "qwen recovered");
-    },
-  });
+      callback(...args);
+      return 0 as any;
+    };
 
-  const payload = (await result.response.json()) as any;
-  assert.equal(result.success, true);
-  assert.equal(calls.length, 2);
-  assert.equal(payload.choices[0].message.content, "qwen recovered");
+    const { calls, result } = await invokeChatCore({
+      provider: "qwen",
+      model: "qwen3-coder",
+      body: {
+        model: "qwen3-coder",
+        stream: false,
+        messages: [{ role: "user", content: "retry the quota hit" }],
+      },
+      responseFactory(_captured, seenCalls) {
+        if (seenCalls.length === 1) {
+          return new Response(
+            JSON.stringify({ error: { message: "You exceeded your current quota for Qwen." } }),
+            {
+              status: 429,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+        return buildOpenAIResponse(false, "qwen recovered");
+      },
+    });
+
+    const payload = (await result.response.json()) as any;
+    assert.equal(result.success, true);
+    assert.equal(calls.length, 2);
+    assert.equal(payload.choices[0].message.content, "qwen recovered");
+  } finally {
+    globalThis.setTimeout = originalSetTimeout;
+  }
 });
 
 test("chatCore injects fallback user for Qwen OAuth requests without user", async () => {

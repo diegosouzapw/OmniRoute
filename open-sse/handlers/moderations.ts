@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 /**
  * Moderation Handler
  *
@@ -58,14 +58,14 @@ export async function handleModeration({ body, credentials }) {
         status: res.status,
         headers: {
           "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": getCorsOrigin(),
+          ...CORS_HEADERS,
         },
       });
     }
 
     const data = await res.json();
     return Response.json(data, {
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+      headers: { ...CORS_HEADERS },
     });
   } catch (err) {
     return errorResponse(500, `Moderation request failed: ${err.message}`);

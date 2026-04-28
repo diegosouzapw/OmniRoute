@@ -1,6 +1,7 @@
 /**
  * Vision Bridge helper functions for image processing.
  */
+import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
 
 /**
  * Provider to environment variable mapping for API key resolution.
@@ -111,14 +112,9 @@ export function resolveImageAsDataUri(imageUrl: string): string {
 }
 
 async function fetchRemoteImageAsDataUri(imageUrl: string, signal: AbortSignal): Promise<string> {
-  const response = await fetch(imageUrl, { signal });
-  if (!response.ok) {
-    throw new Error(`Vision image fetch error ${response.status}`);
-  }
-
-  const mediaType = response.headers.get("content-type")?.split(";")[0]?.trim() || "image/png";
-  const bytes = Buffer.from(await response.arrayBuffer());
-  return `data:${mediaType};base64,${bytes.toString("base64")}`;
+  const remoteImage = await fetchRemoteImage(imageUrl, { signal });
+  const mediaType = remoteImage.contentType.split(";")[0]?.trim() || "image/png";
+  return `data:${mediaType};base64,${remoteImage.buffer.toString("base64")}`;
 }
 
 async function normalizeVisionImageInput(

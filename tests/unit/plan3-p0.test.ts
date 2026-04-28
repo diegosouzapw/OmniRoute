@@ -40,6 +40,12 @@ test("getModelInfoCore resolves gpt-5.5 to codex", async () => {
   assert.equal(info.model, "gpt-5.5");
 });
 
+test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("gpt-5.5-medium", {});
+  assert.equal(info.provider, "codex");
+  assert.equal(info.model, "gpt-5.5-medium");
+});
+
 test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
   const info = await getModelInfoCore("cx/gpt-5.5", {});
   assert.equal(info.provider, "codex");
@@ -67,10 +73,10 @@ test("getModelInfoCore resolves explicit gpt-5.5 Codex model", async () => {
 test("getModelInfoCore returns explicit ambiguity metadata for ambiguous unprefixed model", async () => {
   const info = await getModelInfoCore("claude-haiku-4.5", {});
   assert.equal(info.provider, null);
-  assert.equal(info.errorType, "ambiguous_model");
-  assert.match(info.errorMessage, /Ambiguous model/i);
-  assert.ok(Array.isArray(info.candidateProviders));
-  assert.ok(info.candidateProviders.length >= 2);
+  assert.equal((info as any).errorType, "ambiguous_model");
+  assert.match((info as any).errorMessage, /Ambiguous model/i);
+  assert.ok(Array.isArray((info as any).candidateProviders));
+  assert.ok((info as any).candidateProviders.length >= 2);
 });
 
 test("getModelInfoCore canonicalizes github legacy alias with explicit provider prefix", async () => {
@@ -95,8 +101,8 @@ test("DefaultExecutor uses x-api-key for kimi-coding-apikey", () => {
   const executor = new DefaultExecutor("kimi-coding-apikey");
   const headers = executor.buildHeaders({ apiKey: "sk-kimi-test" }, true);
 
-  assert.equal(headers["x-api-key"], "sk-kimi-test");
-  assert.equal(headers.Authorization, undefined);
+  assert.equal((headers as any)["x-api-key"], "sk-kimi-test");
+  assert.equal((headers as any).Authorization, undefined);
 });
 
 test("DefaultExecutor execute honors connection-level custom User-Agent", async () => {
@@ -105,7 +111,7 @@ test("DefaultExecutor execute honors connection-level custom User-Agent", async 
   let capturedHeaders = null;
 
   globalThis.fetch = async (_url, init = {}) => {
-    capturedHeaders = init.headers || null;
+    capturedHeaders = (init as any).headers || null;
     return new Response(JSON.stringify({ id: "chatcmpl-test" }), { status: 200 });
   };
 
@@ -138,7 +144,8 @@ test("CodexExecutor forces stream=true for upstream compatibility", () => {
   const transformed = executor.transformRequest(
     "gpt-5.1-codex",
     { model: "gpt-5.1-codex", input: [], stream: false },
-    false
+    false,
+    {}
   );
   assert.equal(transformed.stream, true);
 });
@@ -187,7 +194,8 @@ test("CodexExecutor maps fast service tier to priority", () => {
   const transformed = executor.transformRequest(
     "gpt-5.1-codex",
     { model: "gpt-5.1-codex", input: [], service_tier: "fast" },
-    true
+    true,
+    {}
   );
   assert.equal(transformed.service_tier, "priority");
 });
@@ -296,13 +304,14 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
       _nativeCodexPassthrough: true,
       stream: false,
     },
-    false
+    false,
+    {}
   );
 
   assert.equal(transformed.stream, true);
   assert.equal(transformed.service_tier, "priority");
   assert.equal(transformed.instructions, "custom system prompt");
-  assert.equal(transformed.store, true);
+  assert.equal(transformed.store, false);
   assert.deepEqual(transformed.metadata, { source: "codex-client" });
   assert.equal(transformed.reasoning.effort, "high");
   assert.equal(transformed.reasoning_effort, undefined);

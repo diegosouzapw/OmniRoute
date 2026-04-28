@@ -23,12 +23,32 @@ import {
   createStructuredSSECollector,
   buildStreamSummaryFromEvents,
 } from "./streamPayloadCollector.ts";
-import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
+import { STREAM_IDLE_TIMEOUT_MS, FETCH_BODY_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
 import {
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
 import { buildErrorBody } from "./error.ts";
+
+/**
+ * Race a response body read against a timeout.
+ * Prevents indefinite hangs when the upstream sends headers but stalls on the body.
+ */
+export function withBodyTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = FETCH_BODY_TIMEOUT_MS
+): Promise<T> {
+  if (timeoutMs <= 0) return promise;
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
+      err.name = "BodyTimeoutError";
+      reject(err);
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
 
 export { COLORS, formatSSE };
 

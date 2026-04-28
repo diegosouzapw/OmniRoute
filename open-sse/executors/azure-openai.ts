@@ -1,14 +1,15 @@
 import { DefaultExecutor } from "./default.ts";
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 
 const DEFAULT_API_VERSION = "2024-12-01-preview";
 
 function normalizeAzureBaseUrl(rawBaseUrl?: string | null): string {
-  const normalized = (rawBaseUrl || "").trim().replace(/\/+$/, "");
+  const normalized = stripTrailingSlashes((rawBaseUrl || "").trim());
   if (!normalized) return "";
 
   return normalized
     .replace(/\/openai$/i, "")
-    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions.*$/i, "");
+    .replace(/\/openai\/deployments\/[^/]+\/chat\/completions[^/]*$/i, "");
 }
 
 export class AzureOpenAIExecutor extends DefaultExecutor {

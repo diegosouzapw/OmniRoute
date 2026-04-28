@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
 import { getProviderCredentials, extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import {
@@ -24,7 +23,6 @@ import {
 } from "@omniroute/open-sse/services/searchCache.ts";
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": CORS_ORIGIN,
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "*",
 };
@@ -103,18 +101,6 @@ export async function POST(request: Request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
   }
   const body = validation.data;
-
-  // Optional API key validation
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
 
   // Enforce API key policies — use "search" as model identifier for consistent policy config
   const policy = await enforceApiKeyPolicy(request, "search");

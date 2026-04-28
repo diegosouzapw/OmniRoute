@@ -582,13 +582,62 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
   assert.equal((requestBodies[1] as any).output_config, undefined);
 });
 
-test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {
+test("DefaultExecutor.transformRequest injects OpenAI stream usage and preserves model ids with slashes", () => {
   const executor = new DefaultExecutor("openai");
   const body = { model: "zai-org/GLM-5-FP8", messages: [{ role: "user", content: "hi" }] };
   const result = executor.transformRequest("zai-org/GLM-5-FP8", body, true, {});
 
-  assert.equal(result, body);
+  assert.notEqual(result, body);
   assert.equal(result.model, "zai-org/GLM-5-FP8");
+  assert.deepEqual((result as any).stream_options, { include_usage: true });
+  assert.equal((body as any).stream_options, undefined);
+});
+
+test("DefaultExecutor.transformRequest only injects stream usage for OpenAI chat targets", () => {
+  const openAICompat = new DefaultExecutor("openai-compatible-test");
+  const openAIResponsesCompat = new DefaultExecutor("openai-compatible-responses-test");
+
+  const chatBody = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };
+  const responsesBody = { model: "gpt-4.1", input: "hi" };
+
+  const chatResult = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  });
+  const responsesResult = openAIResponsesCompat.transformRequest("gpt-4.1", responsesBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  });
+
+  assert.deepEqual((chatResult as any).stream_options, { include_usage: true });
+  assert.equal((responsesResult as any).stream_options, undefined);
+});
+
+test("DefaultExecutor.transformRequest strips stream_options from Anthropic-compatible targets", () => {
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  const anthropicCcCompat = new DefaultExecutor("anthropic-compatible-cc-test");
+
+  const anthropicBody = {
+    model: "claude-sonnet-4-6",
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 1,
+    stream_options: { include_usage: true },
+  };
+  const ccBody = {
+    model: "claude-sonnet-4-6",
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 1,
+  };
+
+  const anthropicResult = anthropicCompat.transformRequest(
+    "claude-sonnet-4-6",
+    anthropicBody,
+    true,
+    {}
+  );
+  const ccResult = anthropicCcCompat.transformRequest("claude-sonnet-4-6", ccBody, true, {});
+
+  assert.notEqual(anthropicResult, anthropicBody);
+  assert.equal((anthropicResult as any).stream_options, undefined);
+  assert.equal((ccResult as any).stream_options, undefined);
 });
 
 test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {

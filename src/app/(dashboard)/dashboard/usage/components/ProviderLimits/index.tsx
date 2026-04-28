@@ -611,9 +611,10 @@ export default function ProviderLimits() {
                     <div className="text-xs text-text-muted italic">{quota.message}</div>
                   ) : quota?.quotas?.length > 0 ? (
                     quota.quotas.map((q, i) => {
-                      const remainingPercentage = q.unlimited
+                      const remainingPercentageRaw = q.unlimited
                         ? 100
                         : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+                      const remainingPercentage = Math.round(remainingPercentageRaw);
                       const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
                       const shortName = formatQuotaLabel(q.name);

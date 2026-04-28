@@ -10,7 +10,66 @@ import { PROVIDERS } from "../config/constants.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
-import { websocket } from "wreq-js";
+import { CORS_HEADERS } from "../utils/cors.ts";
+import { createRequire } from "module";
+
+// ─── wreq-js lazy loader ───────────────────────────────────────────────────
+// wreq-js is a Rust-native module that requires platform-specific .node binaries.
+// Loading it eagerly crashes the server when the binary is missing (pnpm, Docker
+// Alpine, unsupported architectures). We lazy-load with try/catch to gracefully
+// fall back to HTTP transport when the WebSocket transport is unavailable.
+const _wreqRequire = createRequire(import.meta.url);
+
+type WreqWebSocket = {
+  send: (data: string) => void;
+  close: (code?: number, reason?: string) => void;
+  onmessage: ((event: { data: unknown }) => void) | null;
+  onerror: ((event: { message?: string }) => void) | null;
+  onclose: (() => void) | null;
+};
+type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
+
+let _websocketFn: WebsocketFn | null = null;
+let _wreqChecked = false;
+let _websocketOverride: WebsocketFn | null | undefined;
+
+function getCodexWebSocketTransport(): WebsocketFn | null {
+  if (_websocketOverride !== undefined) return _websocketOverride;
+  if (_wreqChecked) return _websocketFn;
+  _wreqChecked = true;
+  try {
+    const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
+    _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
+  } catch {
+    _websocketFn = null;
+  }
+  return _websocketFn;
+}
+
+export function __setCodexWebSocketTransportForTesting(
+  websocket: WebsocketFn | null | undefined
+): void {
+  _websocketOverride = websocket;
+}
+
+function codexWebSocketUnavailableResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      error: {
+        code: "wreq_unavailable",
+        message:
+          "Codex WebSocket transport unavailable: wreq-js native module is missing for this platform",
+      },
+    }),
+    {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        ...CORS_HEADERS,
+      },
+    }
+  );
+}
 
 // ─── T09: Codex vs Spark Scope-Aware Rate Limiting ────────────────────────
 // Codex has two independent quota pools: "codex" (standard) and "spark" (premium).
@@ -170,6 +229,26 @@ const EFFORT_ORDER = ["none", "low", "medium", "high", "xhigh"] as const;
 type EffortLevel = (typeof EFFORT_ORDER)[number];
 const CODEX_FAST_WIRE_VALUE = "priority";
 const CODEX_RESPONSES_WS_URL = "wss://chatgpt.com/backend-api/codex/responses";
+
+function splitCodexReasoningSuffix(model: unknown): {
+  baseModel: string;
+  effort: EffortLevel | null;
+} {
+  const modelId = typeof model === "string" ? model : "";
+  for (const level of EFFORT_ORDER) {
+    if (modelId.endsWith(`-${level}`)) {
+      return {
+        baseModel: modelId.slice(0, -`-${level}`.length),
+        effort: level,
+      };
+    }
+  }
+  return { baseModel: modelId, effort: null };
+}
+
+export function getCodexUpstreamModel(model: unknown): string {
+  return splitCodexReasoningSuffix(model).baseModel;
+}
 
 function stringifyCodexInstructionContent(content: unknown): string {
   if (typeof content === "string") {
@@ -438,16 +517,16 @@ function consumeResponsesStoreMarker(body: Record<string, unknown>): unknown {
   return marker;
 }
 
-function isCodexResponsesWebSocketRequired(model: string, credentials: unknown): boolean {
-  const normalizedModel = String(model || "")
-    .trim()
-    .toLowerCase();
-  if (normalizedModel === "gpt-5.5") return true;
+export function isCodexResponsesWebSocketRequired(_model: string, credentials: unknown): boolean {
+  // OmniRoute is an HTTP→SSE gateway — WebSocket transport is unnecessary and
+  // breaks when upstream requests go through an HTTP proxy (403 on WS upgrade).
+  // Default to the standard HTTP Responses SSE endpoint for all Codex models.
+  // Users who need WebSocket can opt in via the provider codexTransport setting.
   const providerSpecificData =
     credentials && typeof credentials === "object"
       ? (credentials as { providerSpecificData?: Record<string, unknown> }).providerSpecificData
       : null;
-  return providerSpecificData?.codexTransport === "websocket";
+  return !!(providerSpecificData?.codexTransport === "websocket" && getCodexWebSocketTransport());
 }
 
 function toStatusCode(value: unknown): number | null {
@@ -595,7 +674,7 @@ export class CodexExecutor extends BaseExecutor {
       true,
       input.credentials
     )) as Record<string, unknown>;
-    transformedBody.model = input.model;
+    transformedBody.model = getCodexUpstreamModel(transformedBody.model || input.model);
     delete transformedBody.stream;
     delete transformedBody.stream_options;
 
@@ -604,9 +683,19 @@ export class CodexExecutor extends BaseExecutor {
       ...transformedBody,
     });
 
+    const websocketFn = getCodexWebSocketTransport();
+    if (!websocketFn) {
+      return {
+        response: codexWebSocketUnavailableResponse(),
+        url,
+        headers,
+        transformedBody,
+      };
+    }
+
     const encoder = new TextEncoder();
     let closed = false;
-    let ws: Awaited<ReturnType<typeof websocket>> | null = null;
+    let ws: WreqWebSocket | null = null;
     let streamController: ReadableStreamDefaultController<Uint8Array> | null = null;
 
     const closeUpstream = (reason: string) => {
@@ -684,7 +773,7 @@ export class CodexExecutor extends BaseExecutor {
         input.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
-          ws = await websocket(toWebSocketUrl(url), {
+          ws = await websocketFn(toWebSocketUrl(url), {
             browser: "chrome_142",
             os: "windows",
             headers,
@@ -796,7 +885,7 @@ export class CodexExecutor extends BaseExecutor {
     // session_id header — enables prompt cache affinity on the Codex backend.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
     // Ref: openai/codex codex-api/src/requests/headers.rs build_conversation_headers()
-    const cacheSessionId = this.getPromptCacheSessionId(credentials);
+    const cacheSessionId = this.getPromptCacheSessionId(credentials, null);
     if (cacheSessionId) {
       headers["session_id"] = cacheSessionId;
     }
@@ -806,12 +895,22 @@ export class CodexExecutor extends BaseExecutor {
 
   /**
    * Derive a stable session ID for prompt cache affinity.
-   * Uses workspaceId (chatgpt account ID) as the cache partition key.
-   * This mirrors the official Codex client's use of conversation_id for
-   * prompt_cache_key and session_id header.
+   * Priority: per-conversation session_id/conversation_id from request body → workspaceId.
+   * The official Codex client uses conversation_id (a unique UUID per session), NOT
+   * the account-wide workspaceId. Using workspaceId caps cache hit-rate at ~49%
+   * because all conversations share the same cache partition. (#1643)
    * Ref: openai/codex core/src/client.rs line 853
    */
-  private getPromptCacheSessionId(credentials): string | null {
+  private getPromptCacheSessionId(
+    credentials,
+    body: Record<string, unknown> | null
+  ): string | null {
+    // Prefer per-session identifiers from the client request body
+    const sessionId = body?.session_id ?? body?.conversation_id;
+    if (typeof sessionId === "string" && sessionId.length > 0) {
+      return sessionId;
+    }
+    // Fall back to workspaceId (account-wide) — better than nothing
     return credentials?.providerSpecificData?.workspaceId || null;
   }
 
@@ -896,29 +995,36 @@ export class CodexExecutor extends BaseExecutor {
       }
     } else {
       // Translated: use CODEX_DEFAULT_INSTRUCTIONS as fallback when no system
-      // prompt was provided by the client (safety net for bare requests).
+      // prompt was provided by the client, BUT only if tools are requested.
+      // Injecting tool instructions on bare requests causes Harmony leaks (#1686).
+      const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
       if (
         !body.instructions ||
         (typeof body.instructions === "string" && body.instructions.trim() === "")
       ) {
-        body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+        if (hasTools) {
+          body.instructions = CODEX_DEFAULT_INSTRUCTIONS;
+        } else {
+          delete body.instructions;
+        }
       }
     }
 
-    // Store: The Codex API defaults store to false when not specified.
-    // Proxy clients (e.g. OpenClaw) rely on response chaining via previous_response_id,
-    // which requires store=true so that response items are persisted.
-    // If the client explicitly sets store, respect it. Otherwise default to true.
+    // Store: The Codex OAuth backend rejects store=true with
+    // "Store must be set to false". Default to false unless the provider
+    // explicitly opts in (e.g. API-key accounts that support persistence).
+    // Ref: sub2api openai_codex_transform.go line 75-80
     const explicitStoreSetting =
       credentials?.providerSpecificData &&
       typeof credentials.providerSpecificData === "object" &&
       !Array.isArray(credentials.providerSpecificData)
         ? credentials.providerSpecificData.openaiStoreEnabled
         : undefined;
-    if (explicitStoreSetting === false) {
-      body.store = false;
-    } else if (body.store === undefined) {
+    if (explicitStoreSetting === true) {
       body.store = true;
+    } else {
+      // backend rejects store=true ("Store must be set to false"), so default to false.
+      body.store = false;
     }
 
     // Codex Responses only supports function tools with non-empty names.
@@ -936,16 +1042,13 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    const effortLevels = ["none", "low", "medium", "high", "xhigh"];
     let modelEffort: string | null = null;
     let cleanModel = typeof body.model === "string" ? body.model : model;
-    for (const level of effortLevels) {
-      if (typeof cleanModel === "string" && cleanModel.endsWith(`-${level}`)) {
-        modelEffort = level;
-        body.model = cleanModel.slice(0, -`-${level}`.length);
-        cleanModel = body.model;
-        break;
-      }
+    const splitModel = splitCodexReasoningSuffix(cleanModel);
+    if (splitModel.effort) {
+      modelEffort = splitModel.effort;
+      body.model = splitModel.baseModel;
+      cleanModel = body.model;
     }
 
     const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);
@@ -985,8 +1088,9 @@ export class CodexExecutor extends BaseExecutor {
     // The official Codex client sets this to conversation_id (a stable UUID per session).
     // Ref: openai/codex core/src/client.rs line 853:
     //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
+    // IMPORTANT: Capture session/conversation IDs BEFORE deletion below (#1643).
     if (!body.prompt_cache_key) {
-      const cacheSessionId = this.getPromptCacheSessionId(credentials);
+      const cacheSessionId = this.getPromptCacheSessionId(credentials, body);
       if (cacheSessionId) {
         body.prompt_cache_key = cacheSessionId;
       }

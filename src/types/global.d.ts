@@ -28,7 +28,6 @@ declare namespace NodeJS {
     OMNIROUTE_DISABLE_BACKGROUND_SERVICES?: string;
     OMNIROUTE_PORT?: string;
     PRICING_SYNC_ENABLED?: string;
-    REQUIRE_API_KEY?: string;
     NODE_ENV?: "development" | "production" | "test";
   }
 }

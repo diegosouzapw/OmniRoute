@@ -6,6 +6,7 @@ import { createKeySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import * as log from "@/sse/utils/logger";
 
 function parsePagination(request: Request) {
   const url = new URL(request.url);
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
       allowKeyReveal: isApiKeyRevealEnabled(),
     });
   } catch (error) {
-    console.log("Error fetching keys:", error);
+    log.error("keys", "Error fetching keys", error);
     return NextResponse.json({ error: "Failed to fetch keys" }, { status: 500 });
   }
 }
@@ -84,7 +85,7 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.log("Error creating key:", error);
+    log.error("keys", "Error creating key", error);
     return NextResponse.json({ error: "Failed to create key" }, { status: 500 });
   }
 }
@@ -100,6 +101,6 @@ async function syncKeysToCloudIfEnabled() {
     const machineId = await getConsistentMachineId();
     await syncToCloud(machineId);
   } catch (error) {
-    console.log("Error syncing keys to cloud:", error);
+    log.error("keys", "Error syncing keys to cloud", error);
   }
 }

@@ -3,12 +3,14 @@ import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
   extractApiKey,
-  isValidApiKey,
 } from "../services/auth";
 import {
   getRuntimeProviderProfile,
   shouldMarkAccountExhaustedFrom429,
   clearModelLock,
+  lockModel,
+  recordModelLockoutFailure,
+  isDailyQuotaExhausted,
 } from "@omniroute/open-sse/services/accountFallback.ts";
 import { getModelInfo, getComboForModel } from "../services/model";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -177,26 +179,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     log.debug("AUTH", "No API key provided (local mode)");
   }
 
-  // Optional strict API key mode for /v1 endpoints (require key on every request).
   const isComboLiveTest = request.headers?.get?.("x-internal-test") === "combo-health-check";
-  if (process.env.REQUIRE_API_KEY === "true" && !isComboLiveTest) {
-    if (!apiKey) {
-      log.warn("AUTH", "Missing API key while REQUIRE_API_KEY=true");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      log.warn("AUTH", "Invalid API key while REQUIRE_API_KEY=true");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  } else if (apiKey && !isComboLiveTest) {
-    // Client sent a Bearer key — it must exist in DB (otherwise reject to avoid "key ignored" confusion).
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      log.warn("AUTH", "API key not found or invalid (must be created in API Manager)");
-      return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-    }
-  }
 
   if (!modelStr) {
     log.warn("CHAT", "Missing model");
@@ -394,6 +377,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
               config: relayConfig,
             }
           : undefined,
+      signal: request?.signal ?? null,
     });
 
     // ── Global Fallback Provider (#689) ────────────────────────────────────
@@ -763,6 +747,12 @@ async function handleSingleModelChat(
         return result.response;
       }
 
+      if (result.errorType === "stream_readiness_timeout") {
+        // Stream readiness timeout is an upstream stall, not an account/quota failure.
+        // Do NOT mark the account as unavailable or trip the circuit breaker.
+        return result.response;
+      }
+
       // Emergency fallback for budget exhaustion (402 / billing / quota keywords):
       // reroute to a free model (default provider/model: nvidia + openai/gpt-oss-120b) exactly once.
       if (!runtimeOptions.emergencyFallbackTried) {
@@ -827,18 +817,55 @@ async function handleSingleModelChat(
         }
       }
 
-      // 6. Mark account as quota-exhausted on 429 response
-      // For providers that route quota/cooldown at model scope, a 429 on one model
-      // does not mean the whole connection is exhausted.
-      const passthroughModels = credentials.providerSpecificData?.passthroughModels;
-      if (
-        result.status === 429 &&
-        shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
-      ) {
-        markAccountExhaustedFrom429(credentials.connectionId, provider);
+      // 6. Daily quota error check - must be executed before markAccountUnavailable
+      // Check if it's a daily quota exhausted error (e.g., ModelScope/Kimi "today's quota for model")
+      // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
+      let dailyQuotaExhausted = false;
+      const errorStr = String(result.error || "");
+      if (result.status === 429 && isDailyQuotaExhausted(errorStr)) {
+        // Parse which model is quota-limited
+        const match = errorStr.match(/today's quota for model ([^,]+)/);
+        const limitedModel = match ? match[1].trim() : model;
+
+        // Lock this model on this connection until tomorrow 00:00
+        const lockResult = recordModelLockoutFailure(
+          provider,
+          credentials.connectionId,
+          limitedModel,
+          "quota_exhausted",
+          result.status,
+          0,
+          providerProfile
+        );
+
+        log.info(
+          "MODEL_DAILY_QUOTA",
+          JSON.stringify({
+            connection: credentials.connectionId.slice(0, 8),
+            model: limitedModel,
+            cooldownMs: lockResult.cooldownMs,
+            failureCount: lockResult.failureCount,
+          })
+        );
+
+        dailyQuotaExhausted = true;
       }
 
-      // 7. Fallback to next account
+      // 7. Mark account as quota-exhausted on 429 response (non-daily-quota errors)
+      // For providers that route quota/cooldown at model scope, a 429 on one model
+      // does not mean the whole connection is exhausted.
+      // Daily quota errors are handled above; only process regular rate_limit here
+      if (!dailyQuotaExhausted) {
+        const passthroughModels = credentials.providerSpecificData?.passthroughModels;
+        if (
+          result.status === 429 &&
+          shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
+        ) {
+          markAccountExhaustedFrom429(credentials.connectionId, provider);
+        }
+      }
+
+      // 8. Fallback to next account
       const { shouldFallback, cooldownMs } = await markAccountUnavailable(
         credentials.connectionId,
         result.status,

@@ -61,7 +61,6 @@ export const webRuntimeEnvSchema = z.object({
   API_KEY_SECRET: optionalTrimmedString,
   INITIAL_PASSWORD: optionalTrimmedString,
   AUTH_COOKIE_SECURE: optionalBooleanEnv,
-  REQUIRE_API_KEY: optionalBooleanEnv,
   PRICING_SYNC_ENABLED: optionalBooleanEnv,
   OMNIROUTE_DISABLE_BACKGROUND_SERVICES: optionalBooleanEnv,
   CLOUD_URL: optionalHttpUrl,

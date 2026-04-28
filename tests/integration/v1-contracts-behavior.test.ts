@@ -8,7 +8,7 @@ test("contract: /api/v1 OPTIONS exposes CORS and allowed methods", async () => {
   const response = await OPTIONS();
 
   assert.equal(response.status, 200);
-  assert.ok(response.headers.has("Access-Control-Allow-Origin"));
+  assert.ok(response.headers.has("Access-Control-Allow-Methods"));
 });
 
 test("contract: /api/v1/embeddings OPTIONS exposes POST/GET/OPTIONS", async () => {
@@ -44,8 +44,8 @@ test("contract: /api/v1 and /api/v1/models return consistent model IDs", async (
   assert.ok(Array.isArray(v1Body.data));
   assert.ok(Array.isArray(v1ModelsBody.data));
 
-  const v1Ids = [...new Set(v1Body.data.map((item) => item.id))].sort();
-  const v1ModelsIds = [...new Set(v1ModelsBody.data.map((item) => item.id))].sort();
+  const v1Ids = [...new Set(v1Body.data.map((item: any) => item.id))].sort();
+  const v1ModelsIds = [...new Set(v1ModelsBody.data.map((item: any) => item.id))].sort();
 
   assert.deepEqual(v1Ids, v1ModelsIds);
 });

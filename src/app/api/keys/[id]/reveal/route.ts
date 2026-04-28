@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiKeyById } from "@/lib/localDb";
 import { isApiKeyRevealEnabled } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import * as log from "@/sse/utils/logger";
 
 // GET /api/keys/[id]/reveal - Reveal full API key for explicit copy actions
 export async function GET(request, { params }) {
@@ -22,7 +23,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({ key: key.key });
   } catch (error) {
-    console.log("Error revealing key:", error);
+    log.error("keys", "Error revealing key", error);
     return NextResponse.json({ error: "Failed to reveal key" }, { status: 500 });
   }
 }

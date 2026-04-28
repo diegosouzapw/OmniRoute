@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import {
@@ -9,7 +8,6 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
@@ -26,6 +24,7 @@ import {
   enrichCatalogModelEntry,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -80,6 +79,59 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+function extractBearer(headers: Headers): string | null {
+  const authHeader = headers.get("authorization") || headers.get("Authorization");
+  if (!authHeader?.trim().toLowerCase().startsWith("bearer ")) return null;
+  return authHeader.trim().slice(7).trim() || null;
+}
+
+async function validateCatalogBearer(apiKey: string): Promise<boolean> {
+  const { validateApiKey } = await import("@/lib/db/apiKeys");
+  return validateApiKey(apiKey);
+}
+
+async function getModelCatalogAuthRejection(
+  request: Request,
+  settings: Record<string, any>,
+  headers: Record<string, string>
+): Promise<Response | null> {
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired())) return null;
+
+  const bearer = extractBearer(request.headers);
+  if (bearer) {
+    if (await validateCatalogBearer(bearer)) return null;
+    return Response.json(
+      {
+        error: {
+          message: "Invalid API key",
+          type: "invalid_api_key",
+          code: "invalid_api_key",
+        },
+      },
+      {
+        status: 401,
+        headers,
+      }
+    );
+  }
+
+  if (await isDashboardSessionAuthenticated(request)) return null;
+
+  return Response.json(
+    {
+      error: {
+        message: "Authentication required",
+        type: "invalid_api_key",
+        code: "invalid_api_key",
+      },
+    },
+    {
+      status: 401,
+      headers,
+    }
+  );
 }
 
 function buildAliasMaps() {
@@ -142,39 +194,20 @@ function buildAliasMaps() {
  */
 export async function getUnifiedModelsResponse(
   request: Request,
-  corsHeaders: Record<string, string> = {
-    "Access-Control-Allow-Origin": CORS_ORIGIN,
-  }
+  corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    // Issue #100: Optionally require authentication for /models (security hardening)
-    // When enabled, unauthenticated requests get 401 with proper error response.
-    // Supports API key (Bearer token) for external clients and JWT cookie for dashboard.
     let settings: Record<string, any> = {};
     try {
       settings = await getSettings();
     } catch {}
-    if (settings.requireAuthForModels === true) {
-      if (!(await isAuthenticated(request))) {
-        return Response.json(
-          {
-            error: {
-              message: "Authentication required",
-              type: "invalid_request_error",
-              code: "invalid_api_key",
-            },
-          },
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              ...diagnosticHeaders,
-            },
-          }
-        );
-      }
-    }
+
+    const authRejection = await getModelCatalogAuthRejection(request, settings, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
 
@@ -706,10 +739,9 @@ export async function getUnifiedModelsResponse(
     }
 
     // Filter by API key permissions if requested
-    const authHeader = request.headers.get("authorization");
+    const apiKey = extractBearer(request.headers);
     let finalModels = models;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const apiKey = authHeader.slice(7);
+    if (apiKey) {
       const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
 
       const filtered = [];

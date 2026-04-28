@@ -11,7 +11,7 @@ import Input from "./Input";
  * Cursor Auth Modal
  * Auto-detect and import token from Cursor IDE's local SQLite database
  */
-export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
+export default function CursorAuthModal({ isOpen, onSuccess, onClose, reauthConnection: _ }) {
   const t = useTranslations("cursorAuthModal");
   const [accessToken, setAccessToken] = useState("");
   const [machineId, setMachineId] = useState("");

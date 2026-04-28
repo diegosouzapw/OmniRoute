@@ -6,7 +6,7 @@ type GotoDashboardRouteOptions = {
 };
 
 const DEFAULT_TIMEOUT_MS = 300_000;
-const APP_ROUTE_PATTERN = /\/(login|dashboard)(\/.*)?$/;
+const APP_ROUTE_PATTERN = /\/(login|dashboard)(\/[^?#]*)?([?#].*)?$/;
 const E2E_PASSWORD =
   process.env.OMNIROUTE_E2E_PASSWORD || process.env.INITIAL_PASSWORD || "omniroute-e2e-password";
 
@@ -73,6 +73,12 @@ async function getDashboardAuthState(page: Page) {
   });
 }
 
+function isAtRequestedRoute(page: Page, requestedUrl: string) {
+  const current = new URL(page.url());
+  const requested = new URL(requestedUrl, current.origin);
+  return current.pathname === requested.pathname && current.search === requested.search;
+}
+
 export async function gotoDashboardRoute(
   page: Page,
   url: string,
@@ -104,6 +110,12 @@ export async function gotoDashboardRoute(
         await page.goto("/login", { waitUntil, timeout: timeoutMs });
         await waitForAppRoute(page, timeoutMs);
         await loginIfNeeded(page, timeoutMs);
+        await page.goto(url, { waitUntil, timeout: timeoutMs });
+        await waitForAppRoute(page, timeoutMs);
+        await finishOnboardingIfNeeded(page, timeoutMs);
+      }
+
+      if (!isAtRequestedRoute(page, url)) {
         await page.goto(url, { waitUntil, timeout: timeoutMs });
         await waitForAppRoute(page, timeoutMs);
         await finishOnboardingIfNeeded(page, timeoutMs);

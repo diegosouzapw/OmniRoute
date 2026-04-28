@@ -118,7 +118,7 @@ test("auth login route records failed password attempts", async () => {
   assert.equal(event.actor, "anonymous");
   assert.equal(event.status, "failed");
   assert.equal(event.requestId, "req-auth-failed");
-  assert.deepEqual(event.metadata, { reason: "invalid_password" });
+  assert.deepEqual(event.metadata, { reason: "invalid_password", lockedOut: false });
 });
 
 test("provider create/update/delete routes emit sanitized credential audit events", async () => {

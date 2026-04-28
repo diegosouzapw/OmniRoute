@@ -24,69 +24,33 @@ import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 
 const GROK_CHAT_API = "https://grok.com/rest/app-chat/conversations/new";
 const GROK_USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 
 // ─── Model mappings ─────────────────────────────────────────────────────────
-// Maps OmniRoute model IDs → [grokModel, modelMode]
+// Grok Web exposes UI modes, not stable public model IDs. Keep OmniRoute model
+// IDs mapped directly to Grok's modeId field.
 
 interface GrokModelInfo {
-  grokModel: string;
-  modelMode: string;
+  modeId: string;
   isThinking: boolean;
 }
 
 const MODEL_MAP: Record<string, GrokModelInfo> = {
-  "grok-3": { grokModel: "grok-3", modelMode: "MODEL_MODE_GROK_3", isThinking: false },
-  "grok-3-mini": {
-    grokModel: "grok-3",
-    modelMode: "MODEL_MODE_GROK_3_MINI_THINKING",
-    isThinking: true,
-  },
-  "grok-3-thinking": {
-    grokModel: "grok-3",
-    modelMode: "MODEL_MODE_GROK_3_THINKING",
-    isThinking: true,
-  },
-  "grok-4": { grokModel: "grok-4", modelMode: "MODEL_MODE_GROK_4", isThinking: false },
-  "grok-4-mini": {
-    grokModel: "grok-4-mini",
-    modelMode: "MODEL_MODE_GROK_4_MINI_THINKING",
-    isThinking: true,
-  },
-  "grok-4-thinking": {
-    grokModel: "grok-4",
-    modelMode: "MODEL_MODE_GROK_4_THINKING",
-    isThinking: true,
-  },
-  "grok-4.3": {
-    grokModel: "grok-4-3-thinking-1129",
-    modelMode: "MODEL_MODE_GROK_4_3_THINKING",
-    isThinking: true,
-  },
-  "grok-4-heavy": { grokModel: "grok-4", modelMode: "MODEL_MODE_HEAVY", isThinking: true },
-  "grok-4.1-mini": {
-    grokModel: "grok-4-1-thinking-1129",
-    modelMode: "MODEL_MODE_GROK_4_1_MINI_THINKING",
-    isThinking: true,
-  },
-  "grok-4.1-fast": {
-    grokModel: "grok-4-1-thinking-1129",
-    modelMode: "MODEL_MODE_FAST",
-    isThinking: false,
-  },
-  "grok-4.1-expert": {
-    grokModel: "grok-4-1-thinking-1129",
-    modelMode: "MODEL_MODE_EXPERT",
-    isThinking: true,
-  },
-  "grok-4.1-thinking": {
-    grokModel: "grok-4-1-thinking-1129",
-    modelMode: "MODEL_MODE_GROK_4_1_THINKING",
-    isThinking: true,
-  },
-  "grok-4.2": { grokModel: "grok-420", modelMode: "MODEL_MODE_GROK_420", isThinking: false },
-  "grok-4.20": { grokModel: "grok-420", modelMode: "MODEL_MODE_GROK_420", isThinking: false },
-  "grok-4.20-beta": { grokModel: "grok-420", modelMode: "MODEL_MODE_GROK_420", isThinking: false },
+  auto: { modeId: "auto", isThinking: false },
+  fast: { modeId: "fast", isThinking: false },
+  expert: { modeId: "expert", isThinking: true },
+  heavy: { modeId: "heavy", isThinking: true },
+  "grok-420-computer-use-sa": { modeId: "grok-420-computer-use-sa", isThinking: true },
+
+  // Legacy aliases retained for manually-entered model IDs.
+  "grok-4": { modeId: "auto", isThinking: false },
+  "grok-4.1-fast": { modeId: "fast", isThinking: false },
+  "grok-4.1-expert": { modeId: "expert", isThinking: true },
+  "grok-4-heavy": { modeId: "heavy", isThinking: true },
+  "grok-4.20": { modeId: "expert", isThinking: true },
+  "grok-4.20-heavy": { modeId: "heavy", isThinking: true },
+  "grok-4.3": { modeId: "grok-420-computer-use-sa", isThinking: true },
+  "grok-4-3-thinking-1129": { modeId: "grok-420-computer-use-sa", isThinking: true },
 };
 
 // ─── Statsig ID generation ──────────────────────────────────────────────────
@@ -549,12 +513,12 @@ export class GrokWebExecutor extends BaseExecutor {
       return { response: errResp, url: GROK_CHAT_API, headers: {}, transformedBody: body };
     }
 
-    // Resolve model → Grok internal model/mode
+    // Resolve model → Grok Web mode
     const modelInfo = MODEL_MAP[model];
     if (!modelInfo) {
-      log?.info?.("GROK-WEB", `Unmapped model ${model}, defaulting to grok-4.1-fast`);
+      log?.info?.("GROK-WEB", `Unmapped model ${model}, defaulting to auto mode`);
     }
-    const { grokModel, modelMode, isThinking } = modelInfo || MODEL_MAP["grok-4.1-fast"];
+    const { modeId, isThinking } = modelInfo || MODEL_MAP.auto;
 
     // Parse OpenAI messages → single Grok message string
     const message = parseOpenAIMessages(messages);
@@ -571,8 +535,7 @@ export class GrokWebExecutor extends BaseExecutor {
     // Build Grok request payload
     const grokPayload: Record<string, unknown> = {
       temporary: true,
-      modelName: grokModel,
-      modelMode: modelMode,
+      modeId,
       message: message,
       fileAttachments: [],
       imageAttachments: [],
@@ -617,7 +580,7 @@ export class GrokWebExecutor extends BaseExecutor {
       Origin: "https://grok.com",
       Pragma: "no-cache",
       Referer: "https://grok.com/",
-      "Sec-Ch-Ua": '"Google Chrome";v="136", "Chromium";v="136", "Not(A:Brand";v="24"',
+      "Sec-Ch-Ua": '"Google Chrome";v="147", "Chromium";v="147", "Not(A:Brand";v="24"',
       "Sec-Ch-Ua-Mobile": "?0",
       "Sec-Ch-Ua-Platform": '"macOS"',
       "Sec-Fetch-Dest": "empty",
@@ -639,10 +602,7 @@ export class GrokWebExecutor extends BaseExecutor {
     // Apply upstream extra headers
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    log?.info?.(
-      "GROK-WEB",
-      `Query to ${model} (grok=${grokModel}, mode=${modelMode}), len=${message.length}`
-    );
+    log?.info?.("GROK-WEB", `Query to ${model} (modeId=${modeId}), len=${message.length}`);
 
     // Apply fetch timeout
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);

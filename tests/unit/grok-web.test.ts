@@ -288,8 +288,9 @@ test("Request: payload has correct model mapping", async () => {
       signal: AbortSignal.timeout(10000),
       log: null,
     });
-    assert.equal(cap.body.modelName, "grok-4-1-thinking-1129");
-    assert.equal(cap.body.modelMode, "MODEL_MODE_EXPERT");
+    assert.equal(cap.body.modeId, "expert");
+    assert.equal("modelName" in cap.body, false);
+    assert.equal("modelMode" in cap.body, false);
     assert.equal(cap.body.temporary, true);
   } finally {
     cap.restore();
@@ -308,8 +309,9 @@ test("Request: grok-4-heavy maps to heavy mode", async () => {
       signal: AbortSignal.timeout(10000),
       log: null,
     });
-    assert.equal(cap.body.modelName, "grok-4");
-    assert.equal(cap.body.modelMode, "MODEL_MODE_HEAVY");
+    assert.equal(cap.body.modeId, "heavy");
+    assert.equal("modelName" in cap.body, false);
+    assert.equal("modelMode" in cap.body, false);
   } finally {
     cap.restore();
   }
@@ -350,14 +352,17 @@ test("Message parsing: combines system + history + user", async () => {
 
 test("Provider registry: grok-web has correct models", async () => {
   const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
-  const models = PROVIDER_MODELS["grok-web"];
-  assert.ok(models, "grok-web should be in PROVIDER_MODELS");
-  assert.equal(models.length, 4, `Expected 4 models, got ${models.length}`);
+  const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
+  const models = PROVIDER_MODELS["gw"];
+  assert.ok(models, "gw should be in PROVIDER_MODELS");
+  assert.equal(models.length, 5, `Expected 5 models, got ${models.length}`);
   const ids = models.map((m: any) => m.id);
+  assert.ok(ids.includes("auto"));
   assert.ok(ids.includes("fast"));
   assert.ok(ids.includes("expert"));
   assert.ok(ids.includes("heavy"));
   assert.ok(ids.includes("grok-420-computer-use-sa"));
+  assert.equal(getRegistryEntry("grok-web")?.passthroughModels, true);
 });
 
 // ─── Statsig header ─────────────────────────────────────────────────────────

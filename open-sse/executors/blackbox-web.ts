@@ -344,7 +344,7 @@ export class BlackboxWebExecutor extends BaseExecutor {
         offlineMode: false,
       },
       session: null,
-      isPremium: false,
+      isPremium: credentials.providerSpecificData?.isPremium ?? true,
       teamAccount: "",
       subscriptionCache: null,
       beastMode: false,

@@ -178,7 +178,12 @@ export default function CodexToolCard({
         setMessage({ type: "success", text: t("settingsApplied") });
         checkCodexStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedApplySettings") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedApplySettings"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -198,7 +203,12 @@ export default function CodexToolCard({
         setSelectedModel("");
         checkCodexStatus();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedResetSettings") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedResetSettings"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -246,7 +256,12 @@ export default function CodexToolCard({
         setNewProfileName("");
         fetchProfiles();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedSaveProfile") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedSaveProfile"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -270,7 +285,12 @@ export default function CodexToolCard({
         checkCodexStatus();
         fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedActivateProfile") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedActivateProfile"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -318,7 +338,12 @@ export default function CodexToolCard({
         checkCodexStatus();
         fetchBackups();
       } else {
-        setMessage({ type: "error", text: data.error || t("failedRestore") });
+        setMessage({
+          type: "error",
+          text:
+            (typeof data.error === "string" ? data.error : data.error?.message) ||
+            t("failedRestore"),
+        });
       }
     } catch (error) {
       setMessage({ type: "error", text: error.message });

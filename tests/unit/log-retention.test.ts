@@ -187,3 +187,30 @@ test("getCallLogsTableMaxRows returns configured value", async () => {
   assert.equal(getCallLogsTableMaxRows(), 5);
   assert.equal(getProxyLogsTableMaxRows(), 5);
 });
+
+test("call log pipeline env helpers parse stream chunk flag and size cap", async () => {
+  const originalCapture = process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS;
+  const originalMaxSize = process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB;
+  const { getCallLogPipelineCaptureStreamChunks, getCallLogPipelineMaxSizeBytes } =
+    await import("../../src/lib/logEnv.ts");
+
+  try {
+    process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS = "false";
+    process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = "256";
+
+    assert.equal(getCallLogPipelineCaptureStreamChunks(), false);
+    assert.equal(getCallLogPipelineMaxSizeBytes(), 256 * 1024);
+  } finally {
+    if (originalCapture === undefined) {
+      delete process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS;
+    } else {
+      process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS = originalCapture;
+    }
+
+    if (originalMaxSize === undefined) {
+      delete process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB;
+    } else {
+      process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB = originalMaxSize;
+    }
+  }
+});

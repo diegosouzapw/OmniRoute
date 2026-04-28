@@ -65,7 +65,6 @@ export function checkBodySize(request: Request, limit: number = MAX_BODY_BYTES):
           status: 413,
           headers: {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": process.env.CORS_ORIGIN || "*",
           },
         }
       );

@@ -55,7 +55,9 @@ function deviceIdFor(cookie: string): string {
   if (!id) {
     // Synthesize a UUID v4-shaped string from a SHA-256 of the cookie. Stable,
     // deterministic per cookie, no PII (the cookie's already secret).
-    const h = createHash("sha256").update(cookie).digest("hex");
+    // Not a password hash — SHA-256 is used to derive a stable UUID from the
+    // session cookie for device-id fingerprinting. The output is a cache key.
+    const h = createHash("sha256").update(cookie).digest("hex"); // lgtm[js/insufficient-password-hash]
     id =
       `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-` +
       `${((parseInt(h.slice(16, 17), 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-` +
@@ -122,7 +124,9 @@ function cookieKey(cookie: string): string {
   // birthday-paradox collision could surface one user's cached accessToken
   // to another's request. 64 bits is overkill for the 200-entry cache but
   // costs essentially nothing.
-  return createHash("sha256").update(cookie).digest("hex").slice(0, 16);
+  // Not a password hash — SHA-256 is used to derive a short, collision-resistant
+  // cache key from the session cookie. The output is a map lookup key.
+  return createHash("sha256").update(cookie).digest("hex").slice(0, 16); // lgtm[js/insufficient-password-hash]
 }
 
 function tokenLookup(cookie: string): TokenEntry | null {

@@ -1,7 +1,9 @@
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+
 export const BEDROCK_DEFAULT_BASE_URL = "https://bedrock-mantle.us-east-1.api.aws/v1";
 
 function normalizeBaseUrl(value: string | null | undefined): string {
-  return (value || "").trim().replace(/\/+$/, "");
+  return stripTrailingSlashes((value || "").trim());
 }
 
 function isBedrockRuntimeHost(hostname: string): boolean {
@@ -38,7 +40,7 @@ export function normalizeBedrockBaseUrl(value: string | null | undefined): strin
 
   try {
     const parsed = new URL(stripped);
-    const pathname = parsed.pathname.replace(/\/+$/, "");
+    const pathname = stripTrailingSlashes(parsed.pathname);
 
     if (isBedrockMantleHost(parsed.hostname)) {
       if (!pathname || pathname === "/" || pathname === "/openai" || pathname === "/openai/v1") {
@@ -60,7 +62,7 @@ export function normalizeBedrockBaseUrl(value: string | null | undefined): strin
 
     parsed.search = "";
     parsed.hash = "";
-    return parsed.toString().replace(/\/+$/, "");
+    return stripTrailingSlashes(parsed.toString());
   } catch {
     if (stripped.endsWith("/openai")) {
       return `${stripped}/v1`;

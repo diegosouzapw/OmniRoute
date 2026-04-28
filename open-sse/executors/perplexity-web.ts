@@ -9,9 +9,9 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 
 const PPLX_SSE_ENDPOINT = "https://www.perplexity.ai/rest/sse/perplexity_ask";
-const PPLX_API_VERSION = "2.18";
+const PPLX_API_VERSION = "client-1.11.0";
 const PPLX_USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 
 const MODEL_MAP: Record<string, [string, string]> = {
   "pplx-auto": ["concise", "pplx_pro"],

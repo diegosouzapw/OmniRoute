@@ -803,6 +803,15 @@ test("shouldFallbackComboBadRequest only flags known provider-scoped 400 pattern
   assert.equal(shouldFallbackComboBadRequest(400, "无法响应该请求"), true);
   // Generic "please check" should NOT match (was too broad before)
   assert.equal(shouldFallbackComboBadRequest(400, "请检查您的参数"), false);
+  // Anthropic thinking block signature errors (#1696)
+  assert.equal(
+    shouldFallbackComboBadRequest(
+      400,
+      "[400]: messages.31.content.0: Invalid `signature` in `thinking` block"
+    ),
+    true
+  );
+  assert.equal(shouldFallbackComboBadRequest(400, "Invalid signature in thinking block"), true);
 });
 
 test("handleComboChat accepts binary and Responses-style 200 bodies but falls through malformed success payloads", async () => {

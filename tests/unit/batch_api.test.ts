@@ -696,68 +696,6 @@ test("Batch processor fails orphaned finalizing batches during startup recovery"
   }
 });
 
-test("Batch list route rejects missing API key when REQUIRE_API_KEY is enabled", async () => {
-  const previous = process.env.REQUIRE_API_KEY;
-  process.env.REQUIRE_API_KEY = "true";
-
-  try {
-    const response = await batchesRoute.GET(new Request("http://localhost/api/v1/batches"));
-    const json = await response.json();
-
-    assert.strictEqual(response.status, 401);
-    assert.strictEqual(json.error.message, "Missing API key");
-  } finally {
-    process.env.REQUIRE_API_KEY = previous ?? "false";
-  }
-});
-
-test("Files list route rejects invalid API key when REQUIRE_API_KEY is enabled", async () => {
-  const previous = process.env.REQUIRE_API_KEY;
-  process.env.REQUIRE_API_KEY = "true";
-
-  try {
-    const response = await filesRoute.GET(
-      new Request("http://localhost/api/v1/files", {
-        headers: { Authorization: "Bearer invalid-test-key" },
-      })
-    );
-    const json = await response.json();
-
-    assert.strictEqual(response.status, 401);
-    assert.strictEqual(json.error.message, "Invalid API key");
-  } finally {
-    process.env.REQUIRE_API_KEY = previous ?? "false";
-  }
-});
-
-test("Files upload route rejects invalid API key even when auth is optional", async () => {
-  const previous = process.env.REQUIRE_API_KEY;
-  process.env.REQUIRE_API_KEY = "false";
-
-  try {
-    const formData = new FormData();
-    formData.set("purpose", "batch");
-    formData.set(
-      "file",
-      new File([Buffer.from('{"ok":true}\n')], "input.jsonl", { type: "application/json" })
-    );
-
-    const response = await filesRoute.POST(
-      new Request("http://localhost/api/v1/files", {
-        method: "POST",
-        headers: { Authorization: "Bearer invalid-test-key" },
-        body: formData,
-      })
-    );
-    const json = await response.json();
-
-    assert.strictEqual(response.status, 401);
-    assert.strictEqual(json.error.message, "Invalid API key");
-  } finally {
-    process.env.REQUIRE_API_KEY = previous ?? "false";
-  }
-});
-
 test("Files upload route stores multipart content", async () => {
   const fileContent = '{"custom_id":"req-1"}\n';
   const formData = new FormData();
@@ -794,7 +732,7 @@ test("Files and batches routes expose explicit CORS preflight handlers", async (
     assert.strictEqual(typeof route.OPTIONS, "function");
     const response = await route.OPTIONS();
     assert.strictEqual(response.status, 204);
-    assert.strictEqual(response.headers.get("Access-Control-Allow-Origin"), "*");
+    assert.strictEqual(response.headers.get("Access-Control-Allow-Origin"), null);
     assert.match(
       String(response.headers.get("Access-Control-Allow-Headers") || ""),
       /Authorization/i

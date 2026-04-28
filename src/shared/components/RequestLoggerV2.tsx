@@ -17,6 +17,7 @@ import {
   maskAccount,
   formatApiKeyLabel,
 } from "@/shared/utils/formatting";
+import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 
 // Quick filter categories - status-based only (providers are dynamic from data)
 const STATUS_FILTERS = [
@@ -114,6 +115,7 @@ function getCacheSourceMeta(cacheSource: unknown) {
 
 export default function RequestLoggerV2() {
   const t = useTranslations("requestLogger");
+  const { emailsVisible } = useEmailPrivacyStore();
 
   // Get translated status filters
   const statusFilters = useMemo(
@@ -795,7 +797,7 @@ export default function RequestLoggerV2() {
                           className="px-3 py-2 text-text-muted truncate max-w-[120px]"
                           title={log.account}
                         >
-                          {maskAccount(log.account)}
+                          {maskAccount(log.account, emailsVisible)}
                         </td>
                       )}
                       {visibleColumns.apiKey && (

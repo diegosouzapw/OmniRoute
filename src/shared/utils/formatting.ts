@@ -65,12 +65,14 @@ export function maskSegment(value, start = 2, end = 2) {
 /**
  * Mask an email or account string for display.
  * @param {string} account - Account identifier (email or username)
+ * @param {boolean} emailsVisible - Whether to show full email (true) or mask it (false)
  * @returns {string}
  */
-export function maskAccount(account) {
+export function maskAccount(account, emailsVisible) {
   if (!account || account === "-") return "-";
   const atIdx = account.indexOf("@");
   if (atIdx > 3) {
+    if (emailsVisible) return account;
     return account.slice(0, 3) + "***" + account.slice(atIdx);
   }
   if (account.length > 8) {
