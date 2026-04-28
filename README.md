@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/diegosouzapw-omniroute-badge.png)](https://mseep.ai/app/diegosouzapw-omniroute)
+
 # 🚀 OmniRoute — The Free AI Gateway
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
