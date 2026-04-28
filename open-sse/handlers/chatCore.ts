@@ -1819,6 +1819,21 @@ export async function handleChatCore({
       normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
+
+      // Fix #1719: Strip output_config.format for non-Anthropic Claude-compatible providers.
+      // Third-party Claude endpoints (MiniMax, DeepSeek via aggregators) reject this field
+      // with 400 errors since they don't support Anthropic's structured output / json_schema.
+      if (
+        provider !== "claude" &&
+        translatedBody.output_config &&
+        typeof translatedBody.output_config === "object"
+      ) {
+        const oc = translatedBody.output_config as Record<string, unknown>;
+        delete oc.format;
+        if (Object.keys(oc).length === 0) {
+          delete translatedBody.output_config;
+        }
+      }
     } else {
       translatedBody = { ...body };
 
