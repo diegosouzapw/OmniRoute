@@ -257,6 +257,21 @@ describe("API Routes — dashboard and tool consumers", () => {
     assertRouteMethods("src/app/api/usage/call-logs/[id]/route.ts", ["GET"]);
   });
 
+  it("keeps the active request payload modal on opaque theme surfaces", () => {
+    const activeRequests = readProjectFile("src/shared/components/ActiveRequestsPanel.tsx");
+    const globals = readProjectFile("src/app/globals.css");
+
+    assert.ok(activeRequests, "ActiveRequestsPanel should exist");
+    assert.ok(globals, "globals.css should exist");
+    assert.match(globals, /--color-card:\s+#ffffff/);
+    assert.match(globals, /--color-card:\s+#161b22/);
+    assert.match(globals, /--color-card:\s+var\(--color-card\)/);
+    assert.match(activeRequests, /rounded-xl border border-border bg-surface/);
+    assert.match(activeRequests, /rounded-2xl[^"]*bg-surface/);
+    assert.doesNotMatch(activeRequests, /bg-card\/70/);
+    assert.doesNotMatch(activeRequests, /rounded-2xl[^"]*bg-card/);
+  });
+
   it("keeps usage quota wired through A2A and MCP tools", () => {
     const quotaSkill = readProjectFile("src/lib/a2a/skills/quotaManagement.ts");
     const mcpAdvancedTools = readProjectFile("open-sse/mcp-server/tools/advancedTools.ts");
