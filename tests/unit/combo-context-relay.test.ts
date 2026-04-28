@@ -177,14 +177,13 @@ test("handleComboChat context-relay skips unavailable models and falls through t
   assert.deepEqual(calls, ["openai/gpt-4o-mini"]);
 });
 
-test("handleComboChat context-relay skips targets that report an open provider circuit breaker", async () => {
+test("handleComboChat context-relay treats provider circuit breaker responses as ordinary target failures", async () => {
   const combo = {
     name: "relay-breaker",
     strategy: "context-relay",
     models: ["codex/gpt-5.4", "openai/gpt-4o-mini"],
     config: { maxRetries: 0 },
   };
-  const log = createLog();
   const calls = [];
 
   const result = await handleComboChat({
@@ -200,16 +199,13 @@ test("handleComboChat context-relay skips targets that report an open provider c
       return okResponse();
     },
     isModelAvailable: async () => true,
-    log,
+    log: createLog(),
     settings: null,
     allCombos: null,
   });
 
   assert.equal(result.ok, true);
   assert.deepEqual(calls, ["codex/gpt-5.4", "openai/gpt-4o-mini"]);
-  assert.ok(
-    log.entries.some((entry) => String(entry.msg).includes("provider circuit breaker OPEN"))
-  );
 });
 
 test("handleComboChat context-relay persists a handoff when codex quota reaches the warning threshold", async () => {

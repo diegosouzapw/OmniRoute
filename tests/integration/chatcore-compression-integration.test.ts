@@ -49,6 +49,7 @@ test("chatCore integration: compressContext called proactively when context exce
   // Use the same pattern as test 3 which successfully tests compression
   const body = {
     model,
+    stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
       { role: "user", content: "x".repeat(50000) },
@@ -62,11 +63,12 @@ test("chatCore integration: compressContext called proactively when context exce
   };
 
   // Create provider connection
-  const connectionId = await providersDb.createProviderConnection({
+  const connection = await providersDb.createProviderConnection({
     provider,
     apiKey: "test-key",
     isActive: true,
   });
+  const connectionId = connection.id;
 
   // Mock fetch to capture the request
   let capturedBody: any = null;
@@ -125,6 +127,7 @@ test("chatCore integration: compressContext NOT called when context is below 85%
   const smallMessage = "Hello, how are you?";
   const body = {
     model,
+    stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
       { role: "user", content: smallMessage },
@@ -138,11 +141,12 @@ test("chatCore integration: compressContext NOT called when context is below 85%
   );
 
   // Create provider connection
-  const connectionId = await providersDb.createProviderConnection({
+  const connection = await providersDb.createProviderConnection({
     provider,
     apiKey: "test-key",
     isActive: true,
   });
+  const connectionId = connection.id;
 
   // Mock fetch to capture the request
   let capturedBody: any = null;
@@ -195,6 +199,7 @@ test("chatCore integration: compression preserves message structure", async () =
 
   const body = {
     model,
+    stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
       { role: "user", content: "x".repeat(50000) },
@@ -206,11 +211,12 @@ test("chatCore integration: compression preserves message structure", async () =
   };
 
   // Create provider connection
-  const connectionId = await providersDb.createProviderConnection({
+  const connection = await providersDb.createProviderConnection({
     provider,
     apiKey: "test-key",
     isActive: true,
   });
+  const connectionId = connection.id;
 
   // Mock fetch to capture the request
   let capturedBody: any = null;
@@ -267,6 +273,7 @@ test("chatCore integration: compression handles tool messages", async () => {
   const longToolOutput = "x".repeat(10000);
   const body = {
     model,
+    stream: false,
     messages: [
       { role: "system", content: "You are helpful." },
       { role: "user", content: "Run the tool" },
@@ -277,11 +284,12 @@ test("chatCore integration: compression handles tool messages", async () => {
   };
 
   // Create provider connection
-  const connectionId = await providersDb.createProviderConnection({
+  const connection = await providersDb.createProviderConnection({
     provider,
     apiKey: "test-key",
     isActive: true,
   });
+  const connectionId = connection.id;
 
   // Mock fetch to capture the request
   let capturedBody: any = null;
@@ -333,11 +341,12 @@ test("chatCore integration: combo requests run proactive compression before Kiro
   const provider = "kiro";
   const model = "claude-sonnet-4.5";
 
-  const connectionId = await providersDb.createProviderConnection({
+  const connection = await providersDb.createProviderConnection({
     provider,
     apiKey: "test-key",
     isActive: true,
   });
+  const connectionId = connection.id;
 
   await combosDb.createCombo({
     name: "test-kiro-compression-combo",
