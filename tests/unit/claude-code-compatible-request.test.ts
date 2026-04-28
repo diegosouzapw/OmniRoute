@@ -164,6 +164,26 @@ test("buildClaudeCodeCompatibleRequest prefers existing Claude top-level system 
   ]);
 });
 
+test("buildClaudeCodeCompatibleRequest does not duplicate an existing default system skeleton", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    claudeBody: {
+      system: [
+        {
+          type: "text",
+          text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+        },
+      ],
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-sonnet-4-6",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.system.length, 1);
+  assert.match((payload.system[0] as any).text, /Claude Agent SDK/);
+});
+
 test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-control stripping", () => {
   const stripped = buildClaudeCodeCompatibleRequest({
     claudeBody: {

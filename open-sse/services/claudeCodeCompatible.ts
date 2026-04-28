@@ -567,10 +567,7 @@ function buildClaudeCodeCompatibleSystemBlocks({
     return preparedBlock;
   });
 
-  const hasDefaultSystemBlock = preparedCustomSystemBlocks.some(
-    (block) =>
-      block.type === "text" && block.text === CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS[0].text
-  );
+  const hasDefaultSystemBlock = containsDefaultSystemSkeleton(preparedCustomSystemBlocks);
 
   if (hasDefaultSystemBlock) return preparedCustomSystemBlocks;
 
@@ -578,6 +575,21 @@ function buildClaudeCodeCompatibleSystemBlocks({
     ...CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS.map((block) => ({ ...block })),
     ...preparedCustomSystemBlocks,
   ];
+}
+
+function containsDefaultSystemSkeleton(blocks: Array<Record<string, unknown>>) {
+  const skeleton = CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS;
+  if (skeleton.length === 0) return true;
+  if (blocks.length < skeleton.length) return false;
+
+  return blocks.some((_, startIndex) =>
+    skeleton.every((defaultBlock, offset) => {
+      const candidateBlock = blocks[startIndex + offset];
+      if (!candidateBlock) return false;
+
+      return Object.entries(defaultBlock).every(([key, value]) => candidateBlock[key] === value);
+    })
+  );
 }
 
 function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefined) {

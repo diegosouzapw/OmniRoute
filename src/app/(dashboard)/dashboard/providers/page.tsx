@@ -1764,6 +1764,10 @@ function AddCcCompatibleModal({ isOpen, addLabel, onClose, onCreated }) {
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<"success" | "failed" | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const hasRequiredFields = Boolean(
+    formData.name.trim() && formData.prefix.trim() && formData.baseUrl.trim()
+  );
+  const canValidate = Boolean(checkKey.trim() && formData.baseUrl.trim());
 
   useEffect(() => {
     if (isOpen) {
@@ -1773,7 +1777,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, onClose, onCreated }) {
   }, [isOpen]);
 
   const handleSubmit = async () => {
-    if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;
+    if (!hasRequiredFields) return;
     setSubmitting(true);
     try {
       const res = await fetch("/api/provider-nodes", {
@@ -1903,7 +1907,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, onClose, onCreated }) {
           <div className="pt-6">
             <Button
               onClick={handleValidate}
-              disabled={!checkKey || validating || !formData.baseUrl.trim()}
+              disabled={!canValidate || validating}
               variant="secondary"
             >
               {validating ? t("checking") : t("check")}
@@ -1916,16 +1920,7 @@ function AddCcCompatibleModal({ isOpen, addLabel, onClose, onCreated }) {
           </Badge>
         )}
         <div className="flex gap-2">
-          <Button
-            onClick={handleSubmit}
-            fullWidth
-            disabled={
-              !formData.name.trim() ||
-              !formData.prefix.trim() ||
-              !formData.baseUrl.trim() ||
-              submitting
-            }
-          >
+          <Button onClick={handleSubmit} fullWidth disabled={!hasRequiredFields || submitting}>
             {submitting ? t("creating") : t("add")}
           </Button>
           <Button onClick={onClose} variant="ghost" fullWidth>
