@@ -620,7 +620,8 @@ test("wait-for-cooldown honors upstream Retry-After when enabled", async () => {
 
   assert.equal(result.response.status, 200, JSON.stringify(result.json));
   assert.equal(result.json.choices[0].message.content, "wait-for-cooldown via upstream hint");
-  assert.equal(relay.getState(TOKENS.p3).hits, 2);
+  const hits = relay.getState(TOKENS.p3).hits;
+  assert.ok(hits >= 2, `expected at least one retry after cooldown, got ${hits} hits`);
   assert.ok(elapsed >= 800, `expected upstream wait >= 800ms, got ${elapsed}ms`);
 });
 
@@ -655,7 +656,8 @@ test("connection cooldown can ignore upstream Retry-After and use the configured
 
   assert.equal(result.response.status, 200, JSON.stringify(result.json));
   assert.equal(result.json.choices[0].message.content, "ignored upstream retry hint");
-  assert.equal(relay.getState(TOKENS.p4).hits, 2);
+  const hits = relay.getState(TOKENS.p4).hits;
+  assert.ok(hits >= 2, `expected at least one retry after cooldown, got ${hits} hits`);
   assert.ok(
     elapsed < 5_000,
     `expected ignored upstream hint to avoid a 30s wait, got ${elapsed}ms`

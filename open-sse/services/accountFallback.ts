@@ -1016,7 +1016,8 @@ export function checkFallbackError(
       };
     }
 
-    // Generic 400 — same request will likely fail on all accounts; don't fallback.
+    // Generic 400 is not account-fallback-worthy. Combo routing may still try a
+    // different provider/model because combo fallback is target-level orchestration.
     return { shouldFallback: false, cooldownMs: 0, reason: RateLimitReason.UNKNOWN };
   }
 
