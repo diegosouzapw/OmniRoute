@@ -120,8 +120,8 @@ export default function ActiveRequestsPanel() {
       </div>
 
       {selectedRow && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-[2px]">
-          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-surface shadow-[0_24px_80px_rgba(15,23,42,0.24)] dark:border-white/10 dark:shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm">
+          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
               <div>
                 <h4 className="text-lg font-semibold text-text-main">

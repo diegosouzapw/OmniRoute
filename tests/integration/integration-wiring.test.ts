@@ -267,9 +267,15 @@ describe("API Routes — dashboard and tool consumers", () => {
     assert.match(globals, /--color-card:\s+#161b22/);
     assert.match(globals, /--color-card:\s+var\(--color-card\)/);
     assert.match(activeRequests, /rounded-xl border border-border bg-surface/);
-    assert.match(activeRequests, /rounded-2xl[^"]*bg-surface/);
+    assert.match(activeRequests, /backdrop-blur-sm/);
+    assert.match(
+      activeRequests,
+      /rounded-2xl[^"]*border border-border[^"]*bg-surface[^"]*shadow-2xl/
+    );
     assert.doesNotMatch(activeRequests, /bg-card\/70/);
     assert.doesNotMatch(activeRequests, /rounded-2xl[^"]*bg-card/);
+    assert.doesNotMatch(activeRequests, /shadow-\[/);
+    assert.doesNotMatch(activeRequests, /border-black\/10/);
   });
 
   it("keeps usage quota wired through A2A and MCP tools", () => {
