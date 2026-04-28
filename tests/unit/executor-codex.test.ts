@@ -385,6 +385,51 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
   }
 });
 
+test("CodexExecutor.transformRequest preserves namespace MCP tools and hosted tool types", () => {
+  // Regression: PR #1581 đã vô tình xoá nhánh `namespace` + whitelist hosted tools
+  // trong normalizeCodexTools, khiến MCP tool group (vd. mcp__atlassian__) bị strip
+  // trước khi forward lên Codex Responses API. Test này khoá lại hành vi đúng.
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.4",
+    {
+      model: "gpt-5.4",
+      input: [],
+      tools: [
+        { type: "function", name: "exec_command", parameters: { type: "object" } },
+        {
+          type: "namespace",
+          name: "mcp__atlassian__",
+          description: "Tools in the mcp__atlassian__ namespace.",
+          tools: [
+            { type: "function", name: "jira_get_issue", parameters: { type: "object" } },
+            { type: "function", name: "jira_search", parameters: { type: "object" } },
+          ],
+        },
+        { type: "image_generation", output_format: "png" },
+        { type: "web_search" },
+        { type: "unknown_hosted_tool" },
+      ],
+      tool_choice: { type: "function", name: "jira_get_issue" },
+    },
+    false,
+    {}
+  );
+
+  const types = (result.tools as Array<Record<string, unknown>>).map((tool) => tool.type);
+  assert.deepEqual(types, ["function", "namespace", "image_generation", "web_search"]);
+
+  const namespaceTool = (result.tools as Array<Record<string, unknown>>).find(
+    (tool) => tool.type === "namespace"
+  );
+  assert.equal((namespaceTool as { name: string }).name, "mcp__atlassian__");
+  assert.equal(((namespaceTool as { tools: unknown[] }).tools ?? []).length, 2);
+
+  // tool_choice trỏ vào sub-tool của namespace phải được giữ nguyên (không bị xoá
+  // do tên nằm trong namespace.tools[*].name đã được đăng ký vào validToolNames).
+  assert.deepEqual(result.tool_choice, { type: "function", name: "jira_get_issue" });
+});
+
 test("CodexExecutor maps Codex websocket error events to response.failed SSE", () => {
   const raw = JSON.stringify({
     type: "error",

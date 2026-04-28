@@ -413,6 +413,23 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
   }
 }
 
+// Responses-API hosted tool types that OpenAI/Codex executes server-side.
+// These arrive shaped as `{ type, ...params }` with no `function` object and no `name` —
+// e.g. Codex CLI injects `{ type: "image_generation", output_format: "png" }` or
+// `{ type: "namespace", name: "mcp__atlassian__", tools: [...] }` for MCP tool groups.
+// Keep them through `normalizeCodexTools` so upstream can execute them.
+const CODEX_HOSTED_TOOL_TYPES: ReadonlySet<string> = new Set([
+  "image_generation",
+  "web_search",
+  "web_search_preview",
+  "file_search",
+  "computer",
+  "computer_use_preview",
+  "code_interpreter",
+  "mcp",
+  "local_shell",
+]);
+
 function normalizeCodexTools(body: Record<string, unknown>): void {
   if (!Array.isArray(body.tools)) return;
 
@@ -423,7 +440,33 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
     }
 
     const tool = toolValue as Record<string, unknown>;
-    if (tool.type !== "function") {
+    const toolType = typeof tool.type === "string" ? tool.type : "";
+
+    // Preserve namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+    // Codex API supports them natively; register sub-tool names for tool_choice validation.
+    if (toolType === "namespace") {
+      if (Array.isArray(tool.tools)) {
+        for (const st of tool.tools as unknown[]) {
+          if (st && typeof st === "object" && !Array.isArray(st)) {
+            const subTool = st as Record<string, unknown>;
+            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+            if (name) validToolNames.add(name);
+          }
+        }
+      }
+      return true;
+    }
+
+    if (toolType !== "function") {
+      const hasFunctionObject = tool.function && typeof tool.function === "object";
+      const hasName = typeof tool.name === "string";
+      if (!toolType || hasFunctionObject || hasName) {
+        return false;
+      }
+      if (CODEX_HOSTED_TOOL_TYPES.has(toolType)) {
+        return true;
+      }
+      console.debug(`[Codex] dropping unknown hosted tool type: ${toolType}`);
       return false;
     }
 
