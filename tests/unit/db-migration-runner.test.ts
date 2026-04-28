@@ -121,8 +121,10 @@ test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
   const runnerSource = fs.readFileSync(path.resolve("src/lib/db/migrationRunner.ts"), "utf8");
   const dataPathsSource = fs.readFileSync(path.resolve("src/lib/dataPaths.ts"), "utf8");
 
-  assert.doesNotMatch(runnerSource, /process\.cwd\(\)/);
+  // dataPaths must never use process.cwd() — it resolves via import.meta.url
   assert.doesNotMatch(dataPathsSource, /process\.cwd\(\)/);
+  // migrationRunner uses import.meta.url as the primary strategy (process.cwd is
+  // only a last-resort fallback for Windows/CI-built bundles with leaked paths)
   assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
 });
 

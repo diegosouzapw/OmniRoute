@@ -1524,6 +1524,10 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+          // Fix #1707: Set terminal state so the fallback doesn't emit
+          // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+          lastError = `Upstream response failed quality validation: ${quality.reason}`;
+          if (!lastStatus) lastStatus = 502;
           if (i > 0) fallbackCount++;
           break; // move to next model
         }
@@ -1879,6 +1883,10 @@ async function handleRoundRobinCombo({
               target: toRecordedTarget(target),
             });
             recordedAttempts++;
+            // Fix #1707: Set terminal state so the fallback doesn't emit
+            // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+            lastError = `Upstream response failed quality validation: ${quality.reason}`;
+            if (!lastStatus) lastStatus = 502;
             if (offset > 0) fallbackCount++;
             break; // move to next model
           }
