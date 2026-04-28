@@ -46,7 +46,23 @@ export function getGitHubCopilotChatHeaders(
   };
 }
 
-function normalizeStainlessPlatform(platform: string = process.platform): string {
+function getRuntimePlatform(): string {
+  return typeof process !== "undefined" && typeof process.platform === "string"
+    ? process.platform
+    : "unknown";
+}
+
+function getRuntimeArch(): string {
+  return typeof process !== "undefined" && typeof process.arch === "string" ? process.arch : "unknown";
+}
+
+function getRuntimeVersion(): string {
+  return typeof process !== "undefined" && typeof process.version === "string"
+    ? process.version
+    : "unknown";
+}
+
+function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): string {
   const normalized = platform.toLowerCase();
   if (normalized.includes("ios")) return "iOS";
   if (normalized === "android") return "Android";
@@ -58,7 +74,7 @@ function normalizeStainlessPlatform(platform: string = process.platform): string
   return normalized ? `Other:${normalized}` : "Unknown";
 }
 
-function normalizeStainlessArch(arch: string = process.arch): string {
+function normalizeStainlessArch(arch: string = getRuntimeArch()): string {
   if (arch === "x32") return "x32";
   if (arch === "x86_64" || arch === "x64") return "x64";
   if (arch === "arm") return "arm";
@@ -69,7 +85,7 @@ function normalizeStainlessArch(arch: string = process.arch): string {
 export function getQwenCliUserAgent(version = QWEN_CLI_VERSION): string {
   // Qwen Code builds this from the runtime process values. Keep it runtime-derived so
   // packaged deployments use their own platform/architecture instead of a maintainer's host.
-  return `QwenCode/${version} (${process.platform}; ${process.arch})`;
+  return `QwenCode/${version} (${getRuntimePlatform()}; ${getRuntimeArch()})`;
 }
 
 export function getGitHubCopilotInternalUserHeaders(authorization: string): Record<string, string> {
@@ -106,7 +122,7 @@ export function getQwenOauthHeaders(): Record<string, string> {
     "X-Stainless-Package-Version": QWEN_STAINLESS_PACKAGE_VERSION,
     "X-Stainless-Retry-Count": QWEN_STAINLESS_RETRY_COUNT,
     "X-Stainless-Runtime": QWEN_STAINLESS_RUNTIME,
-    "X-Stainless-Runtime-Version": process.version,
+    "X-Stainless-Runtime-Version": getRuntimeVersion(),
     Connection: "keep-alive",
     "Accept-Language": QWEN_ACCEPT_LANGUAGE,
     "Sec-Fetch-Mode": QWEN_SEC_FETCH_MODE,

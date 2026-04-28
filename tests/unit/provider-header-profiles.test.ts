@@ -69,3 +69,24 @@ test("provider header profiles expose dedicated refresh, qwen, qoder, kiro and c
   assert.equal(cursorHeaders["x-cursor-user-agent"], `Cursor/${CURSOR_REGISTRY_VERSION}`);
   assert.equal(cursorHeaders["x-cursor-client-version"], CURSOR_REGISTRY_VERSION);
 });
+
+test("provider header profiles tolerate browser-like process shims", async () => {
+  const originalPlatform = process.platform;
+  const originalArch = process.arch;
+  const originalVersion = process.version;
+
+  Object.defineProperty(process, "platform", { value: undefined, configurable: true });
+  Object.defineProperty(process, "arch", { value: undefined, configurable: true });
+  Object.defineProperty(process, "version", { value: undefined, configurable: true });
+
+  try {
+    assert.equal(getQwenCliUserAgent(), `QwenCode/${QWEN_CLI_VERSION} (unknown; unknown)`);
+    const qwenHeaders = getQwenOauthHeaders();
+    assert.equal(qwenHeaders["User-Agent"], `QwenCode/${QWEN_CLI_VERSION} (unknown; unknown)`);
+    assert.equal(qwenHeaders["X-Stainless-Runtime-Version"], "unknown");
+  } finally {
+    Object.defineProperty(process, "platform", { value: originalPlatform, configurable: true });
+    Object.defineProperty(process, "arch", { value: originalArch, configurable: true });
+    Object.defineProperty(process, "version", { value: originalVersion, configurable: true });
+  }
+});
