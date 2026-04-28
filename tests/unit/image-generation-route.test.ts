@@ -6,15 +6,19 @@ import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-image-route-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "image-route-test-api-key-secret";
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
+const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 
 const originalFetch = globalThis.fetch;
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
+  apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -38,6 +42,7 @@ test.beforeEach(async () => {
 
 test.after(() => {
   globalThis.fetch = originalFetch;
+  apiKeysDb.resetApiKeyState();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -110,4 +115,26 @@ test("v1 image generation POST still requires prompts for text-input models", as
 
   assert.equal(response.status, 400);
   assert.match(body.error.message, /Prompt is required for image model: openai\/gpt-image-2/);
+});
+
+test("v1 image edit POST enforces disabled API key policy", async () => {
+  const createdKey = await apiKeysDb.createApiKey("Disabled image edit key", "machine-image-edit");
+  await apiKeysDb.updateApiKeyPermissions(createdKey.id, { isActive: false });
+
+  const formData = new FormData();
+  formData.set("prompt", "make the background lighter");
+  formData.set("model", "cgpt-web/gpt-5.3-instant");
+  formData.set("image", new File([new Uint8Array([1, 2, 3])], "source.png", { type: "image/png" }));
+
+  const response = await imageEditRoute.POST(
+    new Request("http://localhost/api/v1/images/edits", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${createdKey.key}` },
+      body: formData,
+    })
+  );
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 403);
+  assert.match(body.error.message, /disabled/);
 });

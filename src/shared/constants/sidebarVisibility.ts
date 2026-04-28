@@ -22,6 +22,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings",
   "docs",
   "issues",
+  "changelog",
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
@@ -92,6 +93,7 @@ const HELP_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "bug_report",
     external: true,
   },
+  { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog", icon: "campaign" },
 ];
 
 export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [

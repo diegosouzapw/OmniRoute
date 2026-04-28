@@ -136,6 +136,7 @@
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "react-is": "^19.2.5",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.7.0",
     "selfsigned": "^5.5.0",
     "tls-client-node": "^0.1.13",
