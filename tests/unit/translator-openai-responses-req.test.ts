@@ -313,6 +313,21 @@ test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
   assert.equal((result as any).store, false);
 });
 
+test("Chat -> Responses normalizes reasoning_effort max to xhigh", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.5",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "max",
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual((result as any).reasoning, { effort: "xhigh" });
+  assert.equal((result as any).reasoning_effort, undefined);
+});
+
 test("Chat -> Responses filters orphan function_call_output items and leaves empty instructions when absent", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-4o",

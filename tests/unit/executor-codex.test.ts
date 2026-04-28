@@ -201,6 +201,25 @@ test("CodexExecutor.transformRequest injects default instructions, clamps reason
   assert.equal(result.stream_options, undefined);
 });
 
+test("CodexExecutor.transformRequest normalizes max reasoning_effort to xhigh", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      model: "gpt-5.5",
+      input: [],
+      reasoning_effort: "max",
+    },
+    false,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+
+  assert.equal(result.reasoning.effort, "xhigh");
+  assert.equal(result.reasoning_effort, undefined);
+});
+
 test("CodexExecutor.transformRequest sends neutral instructions for bare chat requests", () => {
   const executor = new CodexExecutor();
   const body = {

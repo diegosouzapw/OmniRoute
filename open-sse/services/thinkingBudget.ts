@@ -224,7 +224,8 @@ function setCustomBudget(body, budget) {
     };
   }
 
-  // OpenAI reasoning_effort mapping (T11: add 'max' tier for full budget)
+  // OpenAI reasoning_effort mapping.
+  // GPT-5/Codex accepts xhigh for the top tier; keep full budget aligned.
   if (result.reasoning_effort !== undefined || result.reasoning !== undefined) {
     if (budget <= 0) {
       delete result.reasoning_effort;
@@ -236,7 +237,7 @@ function setCustomBudget(body, budget) {
     } else if (budget < 131072) {
       result.reasoning_effort = "high";
     } else {
-      result.reasoning_effort = "max"; // T11: full budget → "max"
+      result.reasoning_effort = "xhigh";
     }
   }
 

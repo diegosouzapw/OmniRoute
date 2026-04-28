@@ -212,7 +212,7 @@ test("Claude -> OpenAI maps thinking.budget_tokens to reasoning_effort buckets",
     { budget: 8192, expected: "medium" },
     { budget: 10240, expected: "medium" },
     { budget: 65536, expected: "high" },
-    { budget: 131072, expected: "max" },
+    { budget: 131072, expected: "xhigh" },
   ];
 
   for (const { budget, expected } of buckets) {
@@ -226,6 +226,19 @@ test("Claude -> OpenAI maps thinking.budget_tokens to reasoning_effort buckets",
     );
     assert.equal(result.reasoning_effort, expected, `budget ${budget} should map to ${expected}`);
   }
+});
+
+test("Claude -> OpenAI normalizes output_config.effort=max to xhigh", () => {
+  const result = claudeToOpenAIRequest(
+    "gpt-5",
+    {
+      messages: [{ role: "user", content: "hi" }],
+      output_config: { effort: "max" },
+    },
+    false
+  );
+
+  assert.equal(result.reasoning_effort, "xhigh");
 });
 
 test("Claude -> OpenAI ignores disabled thinking and leaves reasoning_effort unset", () => {
