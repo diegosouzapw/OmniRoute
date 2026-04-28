@@ -281,10 +281,35 @@ function getVoiceList(providerId: string) {
 
 /** Parse a human-readable error from the API error response */
 function parseApiError(raw: any, statusCode: number): { message: string; isCredentials: boolean } {
+  const readErrorMessage = (value: any): string | null => {
+    if (!value) return null;
+    if (typeof value === "string") return value;
+    if (Array.isArray(value)) {
+      const messages = value
+        .map((entry: any) => readErrorMessage(entry))
+        .filter((entry: string | null): entry is string => Boolean(entry));
+      if (messages.length > 0) return messages.join(", ");
+      return null;
+    }
+    if (typeof value.message === "string") return value.message;
+    if (typeof value.detail === "string") return value.detail;
+    if (Array.isArray(value.errors)) {
+      const messages = value.errors
+        .map((entry: any) => readErrorMessage(entry))
+        .filter((entry: string | null): entry is string => Boolean(entry));
+      if (messages.length > 0) return messages.join(", ");
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return null;
+    }
+  };
+
   const msg =
-    raw?.error?.message ||
+    readErrorMessage(raw?.error) ||
+    readErrorMessage(raw?.errors) ||
     raw?.err_msg ||
-    raw?.error ||
     raw?.message ||
     raw?.detail ||
     (typeof raw === "string" ? raw : null) ||

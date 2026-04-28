@@ -354,7 +354,7 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
       requestCapture = {
         url: stringUrl,
         headers: options.headers,
-        body: JSON.parse(String(options.body || "{}")),
+        body: options.body,
       };
 
       return new Response(JSON.stringify({ image: "c3RhYmlsaXR5LWltYWdl" }), {
@@ -383,10 +383,65 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
     assert.equal(result.success, true);
     assert.equal(requestCapture.url, "https://api.stability.ai/v2beta/stable-image/edit/inpaint");
     assert.equal(requestCapture.headers.Authorization, "Bearer stability-key");
-    assert.equal(requestCapture.body.image, "BAU=");
-    assert.equal(requestCapture.body.mask, "AA==");
-    assert.equal(requestCapture.body.output_format, "png");
+    assert.equal(requestCapture.headers.Accept, "application/json");
+    assert.equal(requestCapture.headers["Content-Type"], undefined);
+    assert.ok(requestCapture.body instanceof FormData);
+    assert.equal(requestCapture.body.get("prompt"), "replace the sky with aurora");
+    assert.equal(requestCapture.body.get("negative_prompt"), "rain");
+    assert.equal(requestCapture.body.get("output_format"), "png");
+    assert.equal((requestCapture.body.get("image") as Blob).size, 2);
+    assert.equal((requestCapture.body.get("mask") as Blob).size, 1);
     assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWltYWdl");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration sends Stability AI text generation as multipart form data", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCapture;
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://api.stability.ai/v2beta/stable-image/generate/core") {
+      requestCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        body: options.body,
+      };
+
+      return new Response(JSON.stringify({ image: "c3RhYmlsaXR5LWNvcmU=" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "stability-ai/stable-image-core",
+        prompt: "city near beach",
+        size: "1024x1024",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "stability-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(requestCapture.url, "https://api.stability.ai/v2beta/stable-image/generate/core");
+    assert.equal(requestCapture.headers.Authorization, "Bearer stability-key");
+    assert.equal(requestCapture.headers.Accept, "application/json");
+    assert.equal(requestCapture.headers["Content-Type"], undefined);
+    assert.ok(requestCapture.body instanceof FormData);
+    assert.equal(requestCapture.body.get("prompt"), "city near beach");
+    assert.equal(requestCapture.body.get("mode"), "text-to-image");
+    assert.equal(requestCapture.body.get("aspect_ratio"), "1:1");
+    assert.equal(requestCapture.body.get("output_format"), "png");
+    assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWNvcmU=");
   } finally {
     globalThis.fetch = originalFetch;
   }

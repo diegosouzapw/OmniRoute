@@ -37,6 +37,55 @@ test("toJsonErrorPayload: wraps plain objects under error key", () => {
   });
 });
 
+test("toJsonErrorPayload: extracts provider errors arrays into message strings", () => {
+  assert.deepEqual(
+    toJsonErrorPayload({
+      errors: ["content-type must be multipart/form-data"],
+      name: "bad request",
+    }),
+    {
+      error: {
+        message: "content-type must be multipart/form-data",
+        type: "upstream_error",
+        code: "upstream_error",
+        details: {
+          errors: ["content-type must be multipart/form-data"],
+          name: "bad request",
+        },
+      },
+    }
+  );
+});
+
+test("toJsonErrorPayload: normalizes object entries in provider errors arrays", () => {
+  assert.deepEqual(
+    toJsonErrorPayload({
+      errors: [
+        { message: "first provider error" },
+        { detail: "second provider error" },
+        { code: "invalid_request", field: "prompt" },
+      ],
+      name: "bad request",
+    }),
+    {
+      error: {
+        message:
+          'first provider error, second provider error, {"code":"invalid_request","field":"prompt"}',
+        type: "upstream_error",
+        code: "upstream_error",
+        details: {
+          errors: [
+            { message: "first provider error" },
+            { detail: "second provider error" },
+            { code: "invalid_request", field: "prompt" },
+          ],
+          name: "bad request",
+        },
+      },
+    }
+  );
+});
+
 test("toJsonErrorPayload: parses JSON strings recursively", () => {
   const raw = JSON.stringify({ error: { message: "nested json", code: "bad_request" } });
   assert.deepEqual(toJsonErrorPayload(raw), {

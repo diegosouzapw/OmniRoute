@@ -68,6 +68,7 @@ import {
 } from "@omniroute/open-sse/config/runway.ts";
 import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
+import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
 const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
@@ -672,34 +673,7 @@ async function validateAssemblyAIProvider({ apiKey, providerSpecificData = {} }:
 }
 
 async function validateNanoBananaProvider({ apiKey, providerSpecificData = {} }: any) {
-  try {
-    // NanoBanana doesn't expose a lightweight validation endpoint,
-    // so we send a minimal generate request that will succeed or fail on auth.
-    const response = await validationWrite(
-      "https://api.nanobananaapi.ai/api/v1/nanobanana/generate",
-      {
-        method: "POST",
-        headers: applyCustomUserAgent(
-          {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          providerSpecificData
-        ),
-        body: JSON.stringify({
-          prompt: "test",
-          model: "nanobanana-flash",
-        }),
-      }
-    );
-    // Auth errors → 401/403; anything else (even 400 bad request) means auth passed
-    if (response.status === 401 || response.status === 403) {
-      return { valid: false, error: "Invalid API key" };
-    }
-    return { valid: true, error: null };
-  } catch (error: any) {
-    return toValidationErrorResult(error);
-  }
+  return validateImageProviderApiKey({ provider: "nanobanana", apiKey, providerSpecificData });
 }
 
 async function validateElevenLabsProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2722,6 +2696,16 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,
+    "fal-ai": ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "fal-ai", apiKey, providerSpecificData }),
+    "stability-ai": ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "stability-ai", apiKey, providerSpecificData }),
+    "black-forest-labs": ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "black-forest-labs", apiKey, providerSpecificData }),
+    recraft: ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "recraft", apiKey, providerSpecificData }),
+    topaz: ({ apiKey, providerSpecificData }: any) =>
+      validateImageProviderApiKey({ provider: "topaz", apiKey, providerSpecificData }),
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
     "aws-polly": validateAwsPollyProvider,
