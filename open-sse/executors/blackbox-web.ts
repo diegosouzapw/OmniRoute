@@ -12,6 +12,17 @@ const BLACKBOX_DEFAULT_COOKIE = "next-auth.session-token";
 const BLACKBOX_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36";
 
+const SESSION_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
+
+type CachedSession = {
+  sessionData: Record<string, unknown> | null;
+  subscriptionCache: Record<string, unknown> | null;
+  teamAccount: string;
+  fetchedAt: number;
+};
+
+const sessionCache = new Map<string, CachedSession>();
+
 type BlackboxMessage = {
   id: string;
   role: "user" | "assistant";
@@ -297,51 +308,72 @@ export class BlackboxWebExecutor extends BaseExecutor {
       "User-Agent": BLACKBOX_USER_AGENT,
     };
 
-    // Fetch session + subscription — Blackbox requires these in the request body
+    // Fetch session + subscription — Blackbox requires these in the request body.
+    // Cached per cookie to avoid redundant round-trips on every request.
     let sessionData: Record<string, unknown> | null = null;
     let subscriptionCache: Record<string, unknown> | null = null;
     let teamAccount = "";
 
-    try {
-      const sessionRes = await fetch("https://app.blackbox.ai/api/auth/session", {
-        method: "GET",
-        headers: { ...baseHeaders, Accept: "application/json" },
-        signal: AbortSignal.timeout(10_000),
-      });
-      sessionData = sessionRes.ok ? ((await sessionRes.json()) as Record<string, unknown>) : null;
-      const email = (sessionData as any)?.user?.email as string | undefined;
-      teamAccount = email || "";
-      log?.debug?.("BLACKBOX-WEB", `Session email: ${email ?? "none"}`);
+    const cacheKey = cookieHeader;
+    const cached = sessionCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < SESSION_CACHE_TTL_MS) {
+      sessionData = cached.sessionData;
+      subscriptionCache = cached.subscriptionCache;
+      teamAccount = cached.teamAccount;
+      log?.debug?.("BLACKBOX-WEB", `Session cache hit (${teamAccount || "no email"})`);
+    } else {
+      const sideSignal = signal
+        ? mergeAbortSignals(signal, AbortSignal.timeout(10_000))
+        : AbortSignal.timeout(10_000);
 
-      if (email) {
-        const subRes = await fetch("https://app.blackbox.ai/api/check-subscription", {
-          method: "POST",
-          headers: { ...baseHeaders, "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-          signal: AbortSignal.timeout(10_000),
+      try {
+        const sessionRes = await fetch("https://app.blackbox.ai/api/auth/session", {
+          method: "GET",
+          headers: { ...baseHeaders, Accept: "application/json" },
+          signal: sideSignal,
         });
-        const rawSub = subRes.ok ? ((await subRes.json()) as Record<string, unknown>) : null;
-        if (rawSub) {
-          subscriptionCache = {
-            status: rawSub.hasActiveSubscription ? "PREMIUM" : "FREE",
-            customerId: rawSub.customerId ?? null,
-            expiryTimestamp: rawSub.expiryTimestamp ?? null,
-            lastChecked: Date.now(),
-            isTrialSubscription: rawSub.isTrialSubscription ?? false,
-            hasPaymentVerificationFailure: false,
-            verificationFailureTimestamp: null,
-            requiresAuthentication: false,
-            isTeam: rawSub.isTeam ?? false,
-            numSeats: rawSub.numSeats ?? 1,
-            provider: rawSub.provider ?? null,
-            previouslySubscribed: rawSub.previouslySubscribed ?? false,
-            activeInsuffientCredits: rawSub.activeInsuffientCredits ?? false,
-          };
-          log?.debug?.("BLACKBOX-WEB", `Subscription: ${subscriptionCache.status}`);
+        sessionData = sessionRes.ok ? ((await sessionRes.json()) as Record<string, unknown>) : null;
+        const email = (sessionData as any)?.user?.email as string | undefined;
+        teamAccount = email || "";
+        log?.debug?.("BLACKBOX-WEB", `Session email: ${email ?? "none"}`);
+
+        if (email) {
+          const subRes = await fetch("https://app.blackbox.ai/api/check-subscription", {
+            method: "POST",
+            headers: { ...baseHeaders, "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+            signal: sideSignal,
+          });
+          const rawSub = subRes.ok ? ((await subRes.json()) as Record<string, unknown>) : null;
+          if (rawSub) {
+            subscriptionCache = {
+              status: rawSub.hasActiveSubscription ? "PREMIUM" : "FREE",
+              customerId: rawSub.customerId ?? null,
+              expiryTimestamp: rawSub.expiryTimestamp ?? null,
+              lastChecked: Date.now(),
+              isTrialSubscription: rawSub.isTrialSubscription ?? false,
+              hasPaymentVerificationFailure: false,
+              verificationFailureTimestamp: null,
+              requiresAuthentication: false,
+              isTeam: rawSub.isTeam ?? false,
+              numSeats: rawSub.numSeats ?? 1,
+              provider: rawSub.provider ?? null,
+              previouslySubscribed: rawSub.previouslySubscribed ?? false,
+              activeInsuffientCredits: rawSub.activeInsuffientCredits ?? false,
+            };
+            log?.debug?.("BLACKBOX-WEB", `Subscription: ${subscriptionCache.status}`);
+          }
         }
+
+        sessionCache.set(cacheKey, {
+          sessionData,
+          subscriptionCache,
+          teamAccount,
+          fetchedAt: Date.now(),
+        });
+      } catch (diagErr) {
+        log?.debug?.("BLACKBOX-WEB", `Session/subscription fetch failed (non-fatal): ${diagErr}`);
       }
-    } catch (diagErr) {
-      log?.debug?.("BLACKBOX-WEB", `Session/subscription fetch failed (non-fatal): ${diagErr}`);
     }
 
     const headers: Record<string, string> = {
@@ -396,7 +428,9 @@ export class BlackboxWebExecutor extends BaseExecutor {
         offlineMode: false,
       },
       session: sessionData,
-      isPremium: credentials.providerSpecificData?.isPremium ?? true,
+      isPremium: subscriptionCache
+        ? subscriptionCache.status === "PREMIUM"
+        : (credentials.providerSpecificData?.isPremium ?? true),
       teamAccount,
       subscriptionCache,
       beastMode: false,
