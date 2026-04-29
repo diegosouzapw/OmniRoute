@@ -81,7 +81,7 @@ export default function HealthPage() {
 
   const fetchDbHealth = useCallback(async () => {
     try {
-      const res = await fetch("/api/v1/db/health");
+      const res = await fetch("/api/db/health");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setDbHealth(json);
@@ -138,7 +138,7 @@ export default function HealthPage() {
   const handleRepairDb = async () => {
     setRepairingDb(true);
     try {
-      const res = await fetch("/api/v1/db/health", { method: "POST" });
+      const res = await fetch("/api/db/health", { method: "POST" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setDbHealth(json);

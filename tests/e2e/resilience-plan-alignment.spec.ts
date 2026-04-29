@@ -167,7 +167,7 @@ async function mockHealthPageApis(page: Page) {
     });
   });
 
-  await page.route("**/api/v1/db/health", async (route) => {
+  await page.route("**/api/db/health", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",

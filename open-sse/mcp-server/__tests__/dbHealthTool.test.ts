@@ -38,33 +38,19 @@ describe("omniroute_db_health_check MCP tool", () => {
     expect(dbHealthCheckInput.safeParse({ autoRepair: "yes" }).success).toBe(false);
   });
 
-  it("dispatches to /api/v1/db/health using POST when autoRepair=true", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        isHealthy: false,
-        issues: [{ type: "broken_reference", table: "combos", description: "broken", count: 1 }],
-        repairedCount: 1,
-        backupCreated: true,
-        autoRepair: true,
-        checkedAt: new Date().toISOString(),
-      }),
-    });
-
+  it("runs the database repair flow directly when autoRepair=true", async () => {
     const result = await client.callTool({
       name: "omniroute_db_health_check",
       arguments: { autoRepair: true },
     });
 
     expect(result.isError).toBeFalsy();
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/v1/db/health"),
-      expect.objectContaining({ method: "POST" })
-    );
+    expect(mockFetch).not.toHaveBeenCalled();
 
     const content = result.content[0] as { type: string; text: string };
     const payload = JSON.parse(content.text);
-    expect(payload.repairedCount).toBe(1);
-    expect(payload.backupCreated).toBe(true);
+    expect(payload.autoRepair).toBe(true);
+    expect(payload).toHaveProperty("repairedCount");
+    expect(payload).toHaveProperty("backupCreated");
   });
 });

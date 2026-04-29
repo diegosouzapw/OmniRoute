@@ -21,6 +21,7 @@
 import { logToolCall } from "../audit.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
+import { runManagedDbHealthCheck } from "../../../src/lib/db/core.ts";
 import {
   getComboModelProvider,
   getComboModelString,
@@ -893,11 +894,7 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
   const autoRepair = args.autoRepair === true;
 
   try {
-    const result = toRecord(
-      await apiFetch("/api/v1/db/health", {
-        method: autoRepair ? "POST" : "GET",
-      })
-    );
+    const result = runManagedDbHealthCheck({ autoRepair });
 
     await logToolCall(
       "omniroute_db_health_check",

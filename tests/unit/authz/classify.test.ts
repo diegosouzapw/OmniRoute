@@ -153,6 +153,7 @@ const cases: Case[] = [
     expectedClass: "MANAGEMENT",
   },
   { name: "/api/keys MANAGEMENT", path: "/api/keys", expectedClass: "MANAGEMENT" },
+  { name: "/api/db/health MANAGEMENT", path: "/api/db/health", expectedClass: "MANAGEMENT" },
   { name: "/api/settings MANAGEMENT", path: "/api/settings", expectedClass: "MANAGEMENT" },
   { name: "/api/audit MANAGEMENT", path: "/api/audit", expectedClass: "MANAGEMENT" },
 
