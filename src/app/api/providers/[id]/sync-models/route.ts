@@ -58,6 +58,41 @@ function isManagedSyncedModel(model: unknown) {
   return source === "api-sync" || source === "auto-sync" || source === "imported";
 }
 
+function getErrorMessageFromPayload(payload: JsonRecord): string | null {
+  const error = payload.error;
+  if (typeof error === "string" && error.trim().length > 0) {
+    return error.trim();
+  }
+
+  const errorRecord = asRecord(error);
+  return toNonEmptyString(errorRecord.message) || toNonEmptyString(payload.message);
+}
+
+async function readJsonResponse(response: Response): Promise<{
+  data: JsonRecord;
+  parseError: string | null;
+}> {
+  const body = await response.text();
+  if (!body.trim()) {
+    return {
+      data: {},
+      parseError: "Empty response body from /models",
+    };
+  }
+
+  try {
+    return {
+      data: asRecord(JSON.parse(body)),
+      parseError: null,
+    };
+  } catch {
+    return {
+      data: {},
+      parseError: "Invalid JSON response from /models",
+    };
+  }
+}
+
 function summarizeModelChanges(previousModels: unknown, nextModels: unknown) {
   const previousList = Array.isArray(previousModels) ? previousModels : [];
   const nextList = Array.isArray(nextModels) ? nextModels : [];
@@ -204,9 +239,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const modelsRes = await fetchProviderModelsForSync(request, id);
 
     const duration = Date.now() - start;
-    const modelsData = await modelsRes.json();
+    const { data: modelsData, parseError } = await readJsonResponse(modelsRes);
+    const payloadError = getErrorMessageFromPayload(modelsData);
 
-    if (!modelsRes.ok) {
+    if (!modelsRes.ok || parseError) {
+      const responseStatus = modelsRes.ok ? 502 : modelsRes.status;
+      const logError = payloadError || parseError || `HTTP ${modelsRes.status}`;
+      const responseError = payloadError || parseError || "Failed to fetch models";
       // Log the failed attempt
       await saveCallLog({
         method: "GET",
@@ -217,13 +256,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         sourceFormat: "-",
         connectionId: id,
         duration,
-        error: modelsData.error || `HTTP ${modelsRes.status}`,
+        error: logError,
         requestType: "model-sync",
+        ...(parseError
+          ? {
+              responseBody: {
+                upstreamStatus: modelsRes.status,
+                parseError,
+              },
+            }
+          : {}),
       });
 
       return NextResponse.json(
-        { error: modelsData.error || "Failed to fetch models" },
-        { status: modelsRes.status }
+        {
+          error: responseError,
+          ...(parseError ? { upstreamStatus: modelsRes.status } : {}),
+        },
+        { status: responseStatus }
       );
     }
 

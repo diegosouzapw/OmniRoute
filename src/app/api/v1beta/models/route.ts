@@ -71,10 +71,11 @@ export async function GET() {
       console.error("[v1beta/models] Error fetching synced Gemini models:", err);
     }
 
+    const existingNames = new Set(models.map((model) => (model as any).name));
+
     // Synced/imported models for non-Gemini providers
     try {
       const syncedModelsMap = await getAllSyncedAvailableModels();
-      const existingNames = new Set(models.map((model) => (model as any).name));
       for (const [providerId, syncedModels] of Object.entries(syncedModelsMap)) {
         if (providerId === "gemini") continue;
         if (!Array.isArray(syncedModels)) continue;
@@ -126,8 +127,10 @@ export async function GET() {
             provider: providerId,
             model: String(m.id),
           });
+          const name = `models/${providerId}/${m.id}`;
+          if (existingNames.has(name)) continue;
           models.push({
-            name: `models/${providerId}/${m.id}`,
+            name,
             displayName: m.name || m.id,
             ...(typeof m.description === "string" ? { description: m.description } : {}),
             supportedGenerationMethods: ["generateContent"],
@@ -143,6 +146,7 @@ export async function GET() {
               ? { thinking: true }
               : {}),
           });
+          existingNames.add(name);
         }
       }
     } catch {

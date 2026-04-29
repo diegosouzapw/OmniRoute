@@ -251,6 +251,45 @@ test("model sync route falls back to the upstream HTTP status when the models pa
   assert.equal(logs[0].error, "HTTP 429");
 });
 
+test("model sync route reports invalid JSON /models responses without losing upstream status", async () => {
+  await resetStorage();
+
+  const connection = await providersDb.createProviderConnection({
+    provider: "openrouter",
+    authType: "apikey",
+    name: "Invalid JSON Sync",
+    apiKey: "test-key",
+  });
+
+  globalThis.fetch = async (url) => {
+    assert.equal(
+      String(url),
+      `http://localhost/api/providers/${connection.id}/models?refresh=true`
+    );
+    return new Response("<html>bad gateway</html>", {
+      status: 200,
+      headers: { "content-type": "text/html" },
+    });
+  };
+
+  const response = await modelSyncRoute.POST(
+    new Request(`http://localhost/api/providers/${connection.id}/sync-models`, {
+      method: "POST",
+      headers: scheduler.buildModelSyncInternalHeaders(),
+    }),
+    { params: { id: connection.id } }
+  );
+  const body = (await response.json()) as any;
+  const logs = await callLogs.getCallLogs({ model: "model-sync", limit: 10 });
+
+  assert.equal(response.status, 502);
+  assert.equal(body.error, "Invalid JSON response from /models");
+  assert.equal(body.upstreamStatus, 200);
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].status, 200);
+  assert.equal(logs[0].error, "Invalid JSON response from /models");
+});
+
 test("model sync route preserves previously synced models when the upstream omits the models list", async () => {
   await resetStorage();
 
