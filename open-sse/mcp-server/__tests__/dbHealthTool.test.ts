@@ -7,8 +7,14 @@ import { MCP_TOOL_MAP, dbHealthCheckInput } from "../schemas/tools.ts";
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
+const mockRunManagedDbHealthCheck = vi.hoisted(() => vi.fn());
+
 vi.mock("../audit.ts", () => ({
   logToolCall: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../../src/lib/db/core.ts", () => ({
+  runManagedDbHealthCheck: mockRunManagedDbHealthCheck,
 }));
 
 describe("omniroute_db_health_check MCP tool", () => {
@@ -16,6 +22,15 @@ describe("omniroute_db_health_check MCP tool", () => {
 
   beforeEach(async () => {
     mockFetch.mockReset();
+    mockRunManagedDbHealthCheck.mockReset();
+    mockRunManagedDbHealthCheck.mockReturnValue({
+      isHealthy: false,
+      issues: [{ type: "broken_reference", table: "combos", description: "broken", count: 1 }],
+      repairedCount: 1,
+      backupCreated: true,
+      autoRepair: true,
+      checkedAt: new Date().toISOString(),
+    });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const server = createMcpServer();
     await server.connect(serverTransport);
@@ -46,11 +61,12 @@ describe("omniroute_db_health_check MCP tool", () => {
 
     expect(result.isError).toBeFalsy();
     expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockRunManagedDbHealthCheck).toHaveBeenCalledWith({ autoRepair: true });
 
     const content = result.content[0] as { type: string; text: string };
     const payload = JSON.parse(content.text);
     expect(payload.autoRepair).toBe(true);
-    expect(payload).toHaveProperty("repairedCount");
-    expect(payload).toHaveProperty("backupCreated");
+    expect(payload.repairedCount).toBe(1);
+    expect(payload.backupCreated).toBe(true);
   });
 });

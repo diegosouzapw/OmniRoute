@@ -21,7 +21,6 @@
 import { logToolCall } from "../audit.ts";
 import { normalizeQuotaResponse } from "../../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
-import { runManagedDbHealthCheck } from "../../../src/lib/db/core.ts";
 import {
   getComboModelProvider,
   getComboModelString,
@@ -894,6 +893,7 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
   const autoRepair = args.autoRepair === true;
 
   try {
+    const { runManagedDbHealthCheck } = await import("../../../src/lib/db/core.ts");
     const result = runManagedDbHealthCheck({ autoRepair });
 
     await logToolCall(
