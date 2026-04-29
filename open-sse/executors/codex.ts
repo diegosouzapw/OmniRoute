@@ -11,13 +11,15 @@ import {
 } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import {
-  applyCodexClientIdentityHeaders,
-  applyCodexClientMetadata,
-  createCodexClientIdentity,
   getCodexClientVersion,
   getCodexUserAgent,
   normalizeCodexSessionId,
 } from "../config/codexClient.ts";
+import {
+  applyCodexClientIdentityHeaders,
+  applyCodexClientMetadata,
+  createCodexClientIdentity,
+} from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
