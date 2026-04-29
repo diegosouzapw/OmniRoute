@@ -274,18 +274,57 @@ function getLimiter(provider, connectionId, model = null) {
  * @param {string} connectionId - Connection ID
  * @param {string} model - Model name (optional, for per-model limits)
  * @param {Function} fn - The async function to execute (e.g., executor.execute)
+ * @param {AbortSignal} signal - Optional abort signal to cancel waiting
  * @returns {Promise<unknown>} Result of fn()
  */
-export async function withRateLimit(provider, connectionId, model, fn) {
+export async function withRateLimit(provider, connectionId, model, fn, signal = null) {
   if (!enabledConnections.has(connectionId)) {
     return fn();
+  }
+
+  if (signal?.aborted) {
+    const reason = signal.reason;
+    if (reason instanceof Error) throw reason;
+    const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
+    err.name = "AbortError";
+    throw err;
   }
 
   const limiter = getLimiter(provider, connectionId, model);
   const maxWaitMs = currentRequestQueueSettings.maxWaitMs;
   const scheduleOpts = maxWaitMs && maxWaitMs > 0 ? { expiration: maxWaitMs } : {};
+
   try {
-    return await limiter.schedule(scheduleOpts, fn);
+    if (signal) {
+      let abortListener: (() => void) | undefined;
+      const abortPromise = new Promise<never>((_, reject) => {
+        const onAbort = () => {
+          const reason = signal.reason;
+          const err =
+            reason instanceof Error
+              ? reason
+              : new Error(typeof reason === "string" ? reason : "The operation was aborted");
+          err.name = "AbortError";
+          reject(err);
+        };
+        if (signal.aborted) {
+          onAbort();
+          return;
+        }
+        abortListener = onAbort;
+        signal.addEventListener("abort", abortListener, { once: true });
+      });
+
+      try {
+        return await Promise.race([limiter.schedule(scheduleOpts, fn), abortPromise]);
+      } finally {
+        if (abortListener) {
+          signal.removeEventListener("abort", abortListener);
+        }
+      }
+    } else {
+      return await limiter.schedule(scheduleOpts, fn);
+    }
   } catch (err) {
     // Bottleneck throws when a job exceeds its expiration timeout.
     // Surface as a clear rate-limit timeout so callers can fallback.

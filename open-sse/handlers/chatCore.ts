@@ -2162,67 +2162,78 @@ export async function handleChatCore({
         accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
           ? await acquireAccountSemaphore(accountSemaphoreKey, {
               maxConcurrency: accountSemaphoreMaxConcurrency,
+              signal: streamController.signal,
             })
           : () => {};
 
       try {
-        const rawResult = await withRateLimit(provider, connectionId, modelToCall, async () => {
-          let attempts = 0;
-          const maxAttempts = provider === "qwen" ? 3 : 1;
+        const rawResult = await withRateLimit(
+          provider,
+          connectionId,
+          modelToCall,
+          async () => {
+            let attempts = 0;
+            const maxAttempts = provider === "qwen" ? 3 : 1;
 
-          while (attempts < maxAttempts) {
-            const res = await executor.execute({
-              model: modelToCall,
-              body: bodyToSend,
-              stream: upstreamStream,
-              credentials: executionCredentials,
-              signal: streamController.signal,
-              log,
-              extendedContext,
-              upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
-              clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
-              onCredentialsRefreshed,
-            });
+            while (attempts < maxAttempts) {
+              const res = await executor.execute({
+                model: modelToCall,
+                body: bodyToSend,
+                stream: upstreamStream,
+                credentials: executionCredentials,
+                signal: streamController.signal,
+                log,
+                extendedContext,
+                upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
+                clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
+                onCredentialsRefreshed,
+              });
 
-            // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
-            if (provider === "qwen" && res.response.status === 429 && attempts < maxAttempts - 1) {
-              const bodyPeek = await res.response
-                .clone()
-                .text()
-                .catch(() => "");
-              if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
-                const delay = 1500 * (attempts + 1);
-                log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
-                await new Promise((r) => setTimeout(r, delay));
-                attempts++;
-                continue;
+              // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
+              if (
+                provider === "qwen" &&
+                res.response.status === 429 &&
+                attempts < maxAttempts - 1
+              ) {
+                const bodyPeek = await res.response
+                  .clone()
+                  .text()
+                  .catch(() => "");
+                if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
+                  const delay = 1500 * (attempts + 1);
+                  log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                  await new Promise((r) => setTimeout(r, delay));
+                  attempts++;
+                  continue;
+                }
               }
-            }
 
-            // For streaming: release the semaphore when the client drains or cancels the stream.
-            if (stream) {
-              const originalBody = res.response.body;
-              if (!originalBody) {
-                acquireAccountSemaphoreRelease();
-                return res;
+              // For streaming: release the semaphore when the client drains or cancels the stream.
+              if (stream) {
+                const originalBody = res.response.body;
+                if (!originalBody) {
+                  acquireAccountSemaphoreRelease();
+                  return res;
+                }
+
+                return {
+                  ...res,
+                  response: new Response(
+                    wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
+                    {
+                      status: res.response.status,
+                      statusText: res.response.statusText,
+                      headers: res.response.headers,
+                    }
+                  ),
+                };
               }
 
-              return {
-                ...res,
-                response: new Response(
-                  wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
-                  {
-                    status: res.response.status,
-                    statusText: res.response.statusText,
-                    headers: res.response.headers,
-                  }
-                ),
-              };
+              return res;
             }
-
-            return res;
-          }
-        });
+          },
+          streamController.signal
+        );
 
         if (stream) {
           return rawResult;

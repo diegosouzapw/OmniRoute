@@ -28,6 +28,7 @@ interface AccountGate {
 export interface AcquireAccountSemaphoreOptions {
   maxConcurrency?: number | null;
   timeoutMs?: number;
+  signal?: AbortSignal | null;
 }
 
 export interface AccountSemaphoreStatsEntry {
@@ -168,16 +169,32 @@ function createSemaphoreTimeoutError(
   return error;
 }
 
+function makeAbortError(signal: AbortSignal): Error {
+  const reason = signal.reason;
+  if (reason instanceof Error) return reason;
+  const err = new Error(typeof reason === "string" ? reason : "The operation was aborted");
+  err.name = "AbortError";
+  return err;
+}
+
 /**
  * Acquire a slot for a provider/model/account tuple.
  * Returns an idempotent release function that is safe to call in finally blocks.
  */
 export function acquire(
   semaphoreKey: string,
-  { maxConcurrency = null, timeoutMs = DEFAULT_TIMEOUT_MS }: AcquireAccountSemaphoreOptions = {}
+  {
+    maxConcurrency = null,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal = null,
+  }: AcquireAccountSemaphoreOptions = {}
 ): Promise<() => void> {
   if (isBypassed(maxConcurrency)) {
     return Promise.resolve(createNoopReleaseFn());
+  }
+
+  if (signal?.aborted) {
+    return Promise.reject(makeAbortError(signal));
   }
 
   const gate = ensureGate(semaphoreKey, maxConcurrency);
@@ -189,7 +206,16 @@ export function acquire(
   }
 
   return new Promise((resolve, reject) => {
+    let abortListener: (() => void) | null = null;
+
+    const cleanup = () => {
+      if (abortListener && signal) {
+        signal.removeEventListener("abort", abortListener);
+      }
+    };
+
     const timer = setTimeout(() => {
+      cleanup();
       const nextGate = gates.get(semaphoreKey);
       if (!nextGate) {
         reject(createSemaphoreTimeoutError(semaphoreKey, timeoutMs));
@@ -209,7 +235,49 @@ export function acquire(
     }, timeoutMs);
 
     timer.unref?.();
-    gate.queue.push({ resolve, reject, timer });
+
+    const queueItem: QueuedAcquire = {
+      resolve: (release) => {
+        cleanup();
+        resolve(release);
+      },
+      reject: (error) => {
+        cleanup();
+        reject(error);
+      },
+      timer,
+    };
+
+    gate.queue.push(queueItem);
+
+    if (signal) {
+      abortListener = () => {
+        cleanup();
+        clearTimeout(timer);
+
+        const nextGate = gates.get(semaphoreKey);
+        if (!nextGate) {
+          reject(makeAbortError(signal));
+          return;
+        }
+
+        const queueIndex = nextGate.queue.findIndex((item) => item.timer === timer);
+        if (queueIndex !== -1) {
+          nextGate.queue.splice(queueIndex, 1);
+        }
+
+        if (nextGate.running === 0 && nextGate.queue.length === 0) {
+          scheduleCleanup(semaphoreKey);
+        }
+
+        reject(makeAbortError(signal));
+      };
+      if (signal.aborted) {
+        abortListener();
+      } else {
+        signal.addEventListener("abort", abortListener);
+      }
+    }
   });
 }
 
