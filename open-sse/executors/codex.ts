@@ -514,7 +514,7 @@ function getResponsesSubpath(endpointPath: unknown): string | null {
   return match[1] || "";
 }
 
-function isCompactResponsesEndpoint(endpointPath: unknown): boolean {
+export function isCompactResponsesEndpoint(endpointPath: unknown): boolean {
   return getResponsesSubpath(endpointPath)?.toLowerCase() === "/compact";
 }
 

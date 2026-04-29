@@ -85,6 +85,7 @@ import {
   parseCodexQuotaHeaders,
   getCodexModelScope,
   getCodexDualWindowCooldownMs,
+  isCompactResponsesEndpoint,
 } from "../executors/codex.ts";
 import { invalidateCodexQuotaCache } from "../services/codexQuotaFetcher.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";
@@ -391,16 +392,6 @@ export function shouldUseNativeCodexPassthrough({
   while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
   const segments = normalizedEndpoint.split("/");
   return segments.includes("responses");
-}
-
-function isResponsesCompactEndpoint(endpointPath?: string | null): boolean {
-  const pathname = String(endpointPath || "").split("?")[0] || "";
-  const segments = pathname
-    .split("/")
-    .map((part) => part.trim().toLowerCase())
-    .filter(Boolean);
-  const responsesIndex = segments.lastIndexOf("responses");
-  return responsesIndex >= 0 && segments[responsesIndex + 1] === "compact";
 }
 
 function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
@@ -1351,9 +1342,10 @@ export async function handleChatCore({
 
   // Codex /responses/compact is JSON-only: Codex CLI does not send stream=false,
   // so route shape must override the usual Accept/header fallback.
-  const stream = isResponsesCompactEndpoint(endpointPath)
-    ? false
-    : resolveStreamFlag(body?.stream, acceptHeader);
+  const stream =
+    nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
+      ? false
+      : resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
