@@ -52,7 +52,8 @@ export function scrubProxyAndFingerprintHeaders(
 ): Record<string, string> {
   const cleaned: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
-    if (!HEADERS_TO_REMOVE.includes(key.toLowerCase())) {
+    const lowerKey = key.toLowerCase();
+    if (!lowerKey.startsWith("x-omniroute-") && !HEADERS_TO_REMOVE.includes(lowerKey)) {
       cleaned[key] = value;
     }
   }
