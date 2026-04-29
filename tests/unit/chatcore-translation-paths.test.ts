@@ -1789,10 +1789,7 @@ test("chatCore rejects malformed non-streaming JSON payloads", async () => {
 
   assert.equal(result.success, false);
   assert.equal(result.status, 502);
-  assert.equal(
-    result.error,
-    `Invalid JSON response from provider (error: Expected property name or '}' in JSON at position 1 (line 1 column 2)): {oops`
-  );
+  assert.equal(result.error, "Invalid JSON response from provider");
 });
 
 test("chatCore falls back after an empty-content success response", async () => {

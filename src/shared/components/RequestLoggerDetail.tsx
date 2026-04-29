@@ -45,6 +45,8 @@ function PayloadSection({ title, json, onCopy }) {
 
 // ─── Detail Modal ───────────────────────────────────────────────────────────
 
+type StreamChunks = Record<string, string | string[]>;
+
 export default function RequestLoggerDetail({
   log,
   detail,
@@ -116,7 +118,7 @@ export default function RequestLoggerDetail({
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
   const streamChunksText = (() => {
     if (!debugEnabled || !detail?.pipelinePayloads?.streamChunks) return null;
-    let chunks: any = detail.pipelinePayloads.streamChunks;
+    let chunks: StreamChunks = detail.pipelinePayloads.streamChunks;
 
     // If stored as a JSON string, try to parse it so we can render joined raw chunks
     if (typeof chunks === "string") {
