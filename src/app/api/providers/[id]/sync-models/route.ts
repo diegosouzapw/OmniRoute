@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
+import { getSyncedAvailableModelsForConnection } from "@/lib/db/models";
 import {
   importManagedModels,
   type ManagedModelImportMode,
 } from "@/lib/providerModels/managedModelImport";
-import { GET as getProviderModels } from "../models/route";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
   buildModelSyncInternalHeaders,
   isModelSyncInternalRequest,
 } from "@/shared/services/modelSyncScheduler";
+import { GET as getProviderModels } from "../models/route";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -29,8 +30,8 @@ function normalizeModelForComparison(model: unknown) {
   const rawSource = toNonEmptyString(record.source)?.toLowerCase();
   const source =
     rawSource === "api-sync" || rawSource === "auto-sync" || rawSource === "imported"
-      ? "api-sync"
-      : rawSource || "auto-sync";
+      ? "imported"
+      : rawSource || "manual";
   const apiFormat = toNonEmptyString(record.apiFormat) || "chat-completions";
   const supportedEndpoints = Array.isArray(record.supportedEndpoints)
     ? Array.from(
@@ -161,10 +162,11 @@ async function fetchProviderModelsForSync(request: Request, connectionId: string
 /**
  * POST /api/providers/[id]/sync-models
  *
- * Fetches the model list from a provider's /models endpoint and replaces the
- * full custom models list for that provider while refreshing the per-connection
- * discovery cache. Successful syncs only write a call log when the fetched
- * channel actually changes the stored model list.
+ * Fetches the model list from a provider's /models endpoint, stores discovered
+ * models in the per-connection available-model cache, and removes matching
+ * upstream-discovered rows from the provider's custom model list. Successful
+ * syncs only write a call log when the fetched channel or custom model cleanup
+ * changes stored model state.
  *
  * Used by:
  * - modelSyncScheduler (auto-sync on interval)
@@ -194,6 +196,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     logProvider = toNonEmptyString(connection.provider) || "unknown";
     channelLabel = getModelSyncChannelLabel(connection);
+    const previousSyncedAvailableModelsForConnection = await getSyncedAvailableModelsForConnection(
+      logProvider,
+      id
+    );
 
     const modelsRes = await fetchProviderModelsForSync(request, id);
 
@@ -236,14 +242,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       connectionId: id,
       fetchedModels,
       mode,
+      previousSyncedAvailableModels: previousSyncedAvailableModelsForConnection,
     });
 
     const effectiveAvailableModels =
       discoveredModels.length > 0 ? discoveredModels : syncedAvailableModels;
-    const modelChanges =
-      mode === "sync"
-        ? summarizeModelChanges(previousSyncedAvailableModels, effectiveAvailableModels)
-        : summarizeModelChanges(previousModels, persistedModels);
+    const modelChanges = summarizeModelChanges(
+      previousSyncedAvailableModels,
+      effectiveAvailableModels
+    );
+    const customModelChanges = summarizeModelChanges(previousModels, persistedModels);
     const syncedModelsCount =
       effectiveAvailableModels.length > 0
         ? effectiveAvailableModels.length
@@ -255,8 +263,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     ).size;
     const importedCount = importedChanges.added;
     const updatedCount = importedChanges.updated;
+    const shouldLog = modelChanges.total > 0 || customModelChanges.total > 0;
 
-    if (modelChanges.total > 0) {
+    if (shouldLog) {
       await saveCallLog({
         method: "GET",
         path: `/api/providers/${id}/models`,
@@ -274,6 +283,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           provider: logProvider,
           channel: channelLabel,
           modelChanges,
+          customModelChanges,
           importedCount,
           updatedCount,
           mode,
@@ -289,10 +299,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       availableModelsCount,
       syncedAliases,
       modelChanges,
+      customModelChanges,
       importedCount,
       updatedCount,
       importedChanges,
-      logged: modelChanges.total > 0,
+      logged: shouldLog,
       models: persistedModels,
       importedModels,
     });

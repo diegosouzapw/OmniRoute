@@ -460,7 +460,7 @@ interface CooldownTimerProps {
 
 function getModelSourceBadgeClass(source?: string): string {
   switch (normalizeModelCatalogSource(source)) {
-    case "api-sync":
+    case "imported":
       return "border-sky-500/30 bg-sky-500/10 text-sky-300";
     case "custom":
       return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
@@ -1041,12 +1041,12 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
-  // and user-managed custom/imported models without duplicating IDs.
+  // and user-managed custom models without duplicating IDs.
   const models = useMemo(() => {
     if (providerId === "gemini") {
       return syncedAvailableModels.map((model: any) => ({
         ...model,
-        source: model?.source === "api-sync" ? "api-sync" : "api-sync",
+        source: "imported",
       }));
     }
 
@@ -1061,7 +1061,7 @@ export default function ProviderDetailPage() {
       .map((model: any) => ({
         id: model.id,
         name: model.name || model.id,
-        source: "api-sync",
+        source: "imported",
       }));
     const knownIds = new Set([...registryIds, ...syncedExtras.map((model: any) => model.id)]);
     const customExtras = modelMeta.customModels
@@ -1069,7 +1069,7 @@ export default function ProviderDetailPage() {
       .map((cm: any) => ({
         id: cm.id,
         name: cm.name || cm.id,
-        source: cm.source === "api-sync" ? "api-sync" : "custom",
+        source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
       }));
     return [...builtInModels, ...syncedExtras, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
@@ -2097,6 +2097,9 @@ export default function ProviderDetailPage() {
         typeof data.importedChanges?.total === "number"
           ? data.importedChanges.total
           : importedCount;
+      const totalChangedCount =
+        changedCount +
+        (typeof data.customModelChanges?.total === "number" ? data.customModelChanges.total : 0);
 
       if (importedModels.length === 0) {
         setImportProgress((prev) => ({
@@ -2113,7 +2116,7 @@ export default function ProviderDetailPage() {
           ],
           importedCount,
         }));
-        if (changedCount > 0) {
+        if (totalChangedCount > 0) {
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -2142,7 +2145,7 @@ export default function ProviderDetailPage() {
         importedCount,
       }));
 
-      if (changedCount > 0) {
+      if (totalChangedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);

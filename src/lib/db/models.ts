@@ -234,6 +234,10 @@ function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
+function toNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
 function getKeyValue(row: unknown): { key: string | null; value: string | null } {
   const record = asRecord(row);
   return {
@@ -378,7 +382,7 @@ export async function addCustomModel(
 }
 
 /**
- * Replace the entire custom models list for a provider (used by auto-sync).
+ * Replace the entire custom models list for a provider.
  * Preserves per-model compatibility overrides for models that still exist.
  */
 export async function replaceCustomModels(
@@ -397,7 +401,7 @@ export async function replaceCustomModels(
   { allowEmpty = false }: { allowEmpty?: boolean } = {}
 ) {
   // Guard: skip destructive clear when the caller hasn't explicitly opted in.
-  // This prevents auto-sync from wiping manually-imported models when the
+  // This prevents callers from wiping manually added models when the
   // upstream /models endpoint fails, times out, or returns an empty list.
   if (models.length === 0 && !allowEmpty) {
     const existing = await getCustomModels(providerId);
@@ -520,12 +524,63 @@ export async function removeCustomModel(providerId: string, modelId: string) {
 export interface SyncedAvailableModel {
   id: string;
   name: string;
-  source: "api-sync";
+  source: "imported";
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
   outputTokenLimit?: number;
   description?: string;
   supportsThinking?: boolean;
+}
+
+type SyncedAvailableModelInput = Omit<SyncedAvailableModel, "source"> & {
+  source?: string;
+};
+
+function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | null {
+  const record = asRecord(model);
+  const id =
+    toNonEmptyString(record.id) || toNonEmptyString(record.name) || toNonEmptyString(record.model);
+  if (!id) return null;
+
+  const name =
+    toNonEmptyString(record.name) ||
+    toNonEmptyString(record.displayName) ||
+    toNonEmptyString(record.model) ||
+    id;
+  const supportedEndpoints = Array.isArray(record.supportedEndpoints)
+    ? Array.from(
+        new Set(
+          record.supportedEndpoints
+            .map((endpoint) => toNonEmptyString(endpoint))
+            .filter((endpoint): endpoint is string => Boolean(endpoint))
+        )
+      ).sort()
+    : undefined;
+
+  return {
+    id,
+    name,
+    source: "imported",
+    ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
+    ...(typeof record.inputTokenLimit === "number"
+      ? { inputTokenLimit: record.inputTokenLimit }
+      : {}),
+    ...(typeof record.outputTokenLimit === "number"
+      ? { outputTokenLimit: record.outputTokenLimit }
+      : {}),
+    ...(typeof record.description === "string" ? { description: record.description } : {}),
+    ...(record.supportsThinking === true ? { supportsThinking: true } : {}),
+  };
+}
+
+function normalizeSyncedAvailableModels(models: unknown): SyncedAvailableModel[] {
+  if (!Array.isArray(models)) return [];
+  const deduped = new Map<string, SyncedAvailableModel>();
+  for (const model of models) {
+    const normalized = normalizeSyncedAvailableModel(model);
+    if (normalized) deduped.set(normalized.id, normalized);
+  }
+  return Array.from(deduped.values());
 }
 
 /**
@@ -544,7 +599,7 @@ export async function getSyncedAvailableModelsForConnection(
   if (!value) return [];
   try {
     const models = JSON.parse(value);
-    return Array.isArray(models) ? models : [];
+    return normalizeSyncedAvailableModels(models);
   } catch {
     return [];
   }
@@ -566,7 +621,7 @@ export async function getSyncedAvailableModels(
   for (const row of rows) {
     const { key, value } = getKeyValue(row);
     if (!key || value === null) continue;
-    const models: SyncedAvailableModel[] = JSON.parse(value);
+    const models = normalizeSyncedAvailableModels(JSON.parse(value));
     for (const m of models) {
       if (m.id) map.set(m.id, m);
     }
@@ -591,7 +646,7 @@ export async function getAllSyncedAvailableModels(): Promise<
     if (!key || value === null) continue;
     const providerId = key.split(":")[0];
     if (!byProvider.has(providerId)) byProvider.set(providerId, new Map());
-    const models: SyncedAvailableModel[] = JSON.parse(value);
+    const models = normalizeSyncedAvailableModels(JSON.parse(value));
     const map = byProvider.get(providerId)!;
     for (const m of models) {
       if (m.id) map.set(m.id, m);
@@ -611,18 +666,19 @@ export async function getAllSyncedAvailableModels(): Promise<
 export async function replaceSyncedAvailableModelsForConnection(
   providerId: string,
   connectionId: string,
-  models: SyncedAvailableModel[]
+  models: SyncedAvailableModelInput[]
 ): Promise<SyncedAvailableModel[]> {
   const db = getDbInstance();
   const key = `${providerId}:${connectionId}`;
-  if (models.length === 0) {
+  const normalizedModels = normalizeSyncedAvailableModels(models);
+  if (normalizedModels.length === 0) {
     db.prepare("DELETE FROM key_value WHERE namespace = 'syncedAvailableModels' AND key = ?").run(
       key
     );
   } else {
     db.prepare(
       "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('syncedAvailableModels', ?, ?)"
-    ).run(key, JSON.stringify(models));
+    ).run(key, JSON.stringify(normalizedModels));
   }
   backupDbFile("pre-write");
   // Return the full unioned list for the provider

@@ -1,5 +1,9 @@
 import { PROVIDER_MODELS } from "@/shared/constants/models";
-import { getAllCustomModels, getSyncedAvailableModels } from "@/lib/db/models";
+import {
+  getAllCustomModels,
+  getAllSyncedAvailableModels,
+  getSyncedAvailableModels,
+} from "@/lib/db/models";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { getSyncedCapabilities } from "@/lib/modelsDevSync";
 
@@ -65,6 +69,45 @@ export async function GET() {
       }
     } catch (err) {
       console.error("[v1beta/models] Error fetching synced Gemini models:", err);
+    }
+
+    // Synced/imported models for non-Gemini providers
+    try {
+      const syncedModelsMap = await getAllSyncedAvailableModels();
+      const existingNames = new Set(models.map((model) => (model as any).name));
+      for (const [providerId, syncedModels] of Object.entries(syncedModelsMap)) {
+        if (providerId === "gemini") continue;
+        if (!Array.isArray(syncedModels)) continue;
+        for (const m of syncedModels) {
+          if (!m || typeof m.id !== "string") continue;
+          const name = `models/${providerId}/${m.id}`;
+          if (existingNames.has(name)) continue;
+          const resolved = getResolvedModelCapabilities({
+            provider: providerId,
+            model: m.id,
+          });
+          models.push({
+            name,
+            displayName: m.name || m.id,
+            ...(typeof m.description === "string" ? { description: m.description } : {}),
+            supportedGenerationMethods: ["generateContent"],
+            inputTokenLimit:
+              typeof m.inputTokenLimit === "number"
+                ? m.inputTokenLimit
+                : resolved.maxInputTokens || resolved.contextWindow || 128000,
+            outputTokenLimit:
+              typeof m.outputTokenLimit === "number"
+                ? m.outputTokenLimit
+                : resolved.maxOutputTokens || 8192,
+            ...(m.supportsThinking === true || resolved.supportsThinking === true
+              ? { thinking: true }
+              : {}),
+          });
+          existingNames.add(name);
+        }
+      }
+    } catch {
+      // Synced models are optional — skip on error
     }
 
     // Custom models (use stored metadata from provider APIs)
