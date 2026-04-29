@@ -295,6 +295,39 @@ function buildOpenAIResponsesSSE({
   );
 }
 
+function buildOpenAIResponsesJson({
+  text = "responses compacted from codex",
+  model = "gpt-5.5",
+  usage = null,
+} = {}) {
+  return new Response(
+    JSON.stringify({
+      id: "resp_compact",
+      object: "response",
+      status: "completed",
+      model,
+      output: [
+        {
+          id: "msg_compact",
+          type: "message",
+          role: "assistant",
+          content: [{ type: "output_text", text, annotations: [] }],
+        },
+      ],
+      output_text: text,
+      usage: usage || {
+        input_tokens: 90,
+        output_tokens: 15,
+        total_tokens: 105,
+      },
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
+
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   process.env.REQUIRE_API_KEY = "false";
@@ -529,6 +562,48 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.equal(callLog.tokens.cacheRead, 40);
   assert.equal(callLog.tokens.cacheWrite, 11);
   assert.equal(callLog.tokens.reasoning, 13);
+});
+
+test("chat pipeline treats Codex /responses/compact as non-streaming JSON", async () => {
+  await seedConnection("codex", { apiKey: "sk-codex-compact" });
+  const fetchCalls = [];
+
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+    return buildOpenAIResponsesJson();
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses/compact",
+      headers: { Accept: "text/event-stream" },
+      body: {
+        model: "codex/gpt-5.5",
+        input: "Compact this session",
+      },
+    })
+  );
+
+  const json = (await response.json()) as { object?: string; output_text?: string };
+  const callLog = await waitFor(() => getLatestCallLog());
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  assert.match(fetchCalls[0].url, /\/responses\/compact$/);
+  assert.equal(fetchCalls[0].headers.Accept, "application/json");
+  assert.equal(fetchCalls[0].body.stream, undefined);
+  assert.equal(fetchCalls[0].body.store, undefined);
+  assert.equal(json.object, "response");
+  assert.equal(json.output_text, "responses compacted from codex");
+
+  assert.ok(callLog, "expected a compact call log row to be created");
+  assert.equal(callLog.provider, "codex");
+  assert.equal(callLog.path, "/v1/responses/compact");
+  assert.equal(callLog.status, 200);
 });
 
 test("chat pipeline serves repeated /v1/responses requests as MISS then HIT and logs cache hits separately", async () => {

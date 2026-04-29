@@ -393,6 +393,16 @@ export function shouldUseNativeCodexPassthrough({
   return segments.includes("responses");
 }
 
+function isResponsesCompactEndpoint(endpointPath?: string | null): boolean {
+  const pathname = String(endpointPath || "").split("?")[0] || "";
+  const segments = pathname
+    .split("/")
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean);
+  const responsesIndex = segments.lastIndexOf("responses");
+  return responsesIndex >= 0 && segments[responsesIndex + 1] === "compact";
+}
+
 function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
   if (!body || !Array.isArray(body.tools)) return null;
 
@@ -1339,7 +1349,11 @@ export async function handleChatCore({
     delete b.streaming;
   }
 
-  const stream = resolveStreamFlag(body?.stream, acceptHeader);
+  // Codex /responses/compact is JSON-only: Codex CLI does not send stream=false,
+  // so route shape must override the usual Accept/header fallback.
+  const stream = isResponsesCompactEndpoint(endpointPath)
+    ? false
+    : resolveStreamFlag(body?.stream, acceptHeader);
   const settings = await getCachedSettings();
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
