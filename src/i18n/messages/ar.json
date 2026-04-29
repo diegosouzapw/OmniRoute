@@ -1728,6 +1728,7 @@
     "disableCloud": "تعطيل السحابة",
     "enableCloud": "تمكين السحابة",
     "modelsAcrossEndpoints": "نماذج {models} عبر نقاط النهاية {endpoints}",
+    "loadingModels": "Loading available models...",
     "chatDesc": "الدردشة المتدفقة وغير المتدفقة مع جميع مقدمي الخدمة",
     "embeddings": "التضمين",
     "embeddingsDesc": "تضمينات نصية للبحث وخطوط أنابيب RAG",

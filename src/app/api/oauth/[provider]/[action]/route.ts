@@ -81,6 +81,8 @@ export async function GET(
       }
 
       const authData = generateAuthData(provider, null);
+      const startUrl = searchParams.get("startUrl");
+      const region = searchParams.get("region") || "us-east-1";
 
       // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
@@ -95,7 +97,24 @@ export async function GET(
         provider === "kilocode"
       ) {
         // GitHub, Kiro/Amazon Q, Kimi Coding, and KiloCode don't use PKCE for device code
-        deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
+        if ((provider === "kiro" || provider === "amazon-q") && startUrl) {
+          const providerOverrideConfig = {
+            ...providerData.config,
+            startUrl,
+            region,
+            skipIssuerUrlForRegistration: true,
+            registerClientUrl: `https://oidc.${region}.amazonaws.com/client/register`,
+            deviceAuthUrl: `https://oidc.${region}.amazonaws.com/device_authorization`,
+            tokenUrl: `https://oidc.${region}.amazonaws.com/token`,
+            ssoOidcEndpoint: `https://oidc.${region}.amazonaws.com`,
+          };
+
+          deviceData = await runWithProxyContext(proxy, () =>
+            (requestDeviceCode as any)(provider, null, providerOverrideConfig)
+          );
+        } else {
+          deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
+        }
       } else {
         // Qwen and other providers use PKCE
         deviceData = await runWithProxyContext(proxy, () =>

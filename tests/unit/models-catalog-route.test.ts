@@ -354,21 +354,21 @@ test("v1 models catalog includes synced Gemini models and duplicates audio model
       {
         id: "gemini-audio-live",
         name: "Gemini Audio Live",
-        source: "api-sync",
+        source: "imported",
         supportedEndpoints: ["audio"],
         inputTokenLimit: 4096,
       },
       {
         id: "text-embedding-004",
         name: "Text Embedding 004",
-        source: "api-sync",
+        source: "imported",
         supportedEndpoints: ["embeddings"],
         inputTokenLimit: 2048,
       },
       {
         id: "gemini-hidden",
         name: "Gemini Hidden",
-        source: "api-sync",
+        source: "imported",
         supportedEndpoints: ["chat"],
       },
     ]
@@ -402,7 +402,7 @@ test("v1 models catalog keeps Gemini chat models untyped when synced endpoints a
     {
       id: "gemini-2.5-pro-live",
       name: "Gemini 2.5 Pro Live",
-      source: "api-sync",
+      source: "imported",
       inputTokenLimit: 8192,
     },
   ]);
@@ -430,7 +430,7 @@ test("v1 models catalog includes synced non-Gemini provider models from discover
     {
       id: "glm-5.1",
       name: "GLM 5.1",
-      source: "api-sync",
+      source: "imported",
       supportedEndpoints: ["chat"],
       inputTokenLimit: 262144,
     },

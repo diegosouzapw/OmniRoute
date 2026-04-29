@@ -1728,6 +1728,7 @@
     "disableCloud": "Inaktivera Cloud",
     "enableCloud": "Aktivera Cloud",
     "modelsAcrossEndpoints": "{models} modeller över {endpoints} slutpunkter",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Strömmande och icke-strömmande chatt med alla leverantörer",
     "embeddings": "Inbäddningar",
     "embeddingsDesc": "Textinbäddningar för sök- och RAG-pipelines",

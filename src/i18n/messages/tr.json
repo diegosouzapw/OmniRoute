@@ -1728,6 +1728,7 @@
     "disableCloud": "Bulutu Devre Dışı Bırak",
     "enableCloud": "Bulutu Etkinleştir",
     "modelsAcrossEndpoints": "{endpoints} uç noktada {models} model",
+    "loadingModels": "Kullanılabilir modeller yükleniyor...",
     "chatDesc": "Tüm sağlayıcılarla akışlı ve akışsız sohbet",
     "embeddings": "Embedding'ler",
     "embeddingsDesc": "Arama ve RAG iş akışları için metin embedding'leri",

@@ -1728,6 +1728,7 @@
     "disableCloud": "Dezactivați Cloud",
     "enableCloud": "Activați Cloud",
     "modelsAcrossEndpoints": "{models} modele în {endpoints} puncte finale",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Chat în flux și non-stream cu toți furnizorii",
     "embeddings": "Înglobări",
     "embeddingsDesc": "Încorporare de text pentru conductele de căutare și RAG",

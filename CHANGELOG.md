@@ -4,6 +4,73 @@
 
 ---
 
+## [3.7.5] — 2026-04-29
+
+### ✨ New Features
+
+- **feat(tunnels):** integrate native ngrok tunnel support with dashboard UI parity (#1753)
+
+### 🐛 Bug Fixes
+
+- **fix(models):** apply blocked providers filter to non-chat catalog models (image, embedding, audio, etc.) (#1752)
+- **fix(antigravity):** stabilize streaming payload parsing and deduplicate usage/model metadata refreshes (#1748)
+- **fix(antigravity):** normalize Gemini bridge payloads — sanitize tool names, cap output tokens, and fix thinking budget (#1769)
+- **fix(sse):** propagate AbortSignal to pre-fetch semaphore and rate-limit awaits to prevent memory leaks (#1771)
+- **fix(models):** fix model sync import handling — separate synced models from custom models to prevent data loss (#1755)
+- **fix(codex):** improve VS Code Copilot /responses reasoning and tool follow-ups (#1750)
+- **fix(memory):** resolve build issues and implement memory UPSERT logic to prevent duplicate entries (#1763)
+- **fix(kiro):** support organization IDC OAuth with regional endpoints and refresh (#1754)
+- **fix(combo):** include 429 in provider circuit breaker to stop infinite retry loops on exhausted quotas (#1767)
+- **fix(claude):** respect client-set thinking/effort params — only inject adaptive thinking and high effort when the client hasn't explicitly set them, preventing forced quota drain on Claude Max accounts (#1761)
+
+### 🛠️ Maintenance
+
+- **chore(docs):** add MseeP.ai security assessment badge to README (#1727)
+- **chore(xiaomi):** update Xiaomi provider model list (#1759)
+- **chore(db):** move DB health endpoint to management API (#1757)
+- **chore(ui):** speed up endpoint initial render with background task loading (#1760)
+- **chore(workflows):** add strict PR contributor credit policy to prevent future merge credit loss
+
+### 🏆 Community Contributors Acknowledgment
+
+We identified that **37 community PRs** across past releases (v3.4.0 → v3.7.4) were manually integrated into release branches but closed instead of properly merged through GitHub, preventing contributors from receiving merge credit on their profiles. We sincerely apologize for this oversight and have since updated our workflows to ensure this never happens again.
+
+**The following contributors had their code and ideas integrated across multiple releases without proper merge credit. Thank you for your invaluable contributions to OmniRoute:**
+
+| Contributor                                            | Contributions (PRs)                                                      |
+| :----------------------------------------------------- | :----------------------------------------------------------------------- |
+| [@rdself](https://github.com/rdself)                   | #1742, #1357, #1356, #1089, #1069, #904, #880, #875, #853, #851, #974    |
+| [@oyi77](https://github.com/oyi77)                     | #1411, #1021, #990, #926, #908, #883, #881, #868, #862, #859, #850, #983 |
+| [@benzntech](https://github.com/benzntech)             | #1677, #1444, #1440, #1437, #1435                                        |
+| [@clousky2020](https://github.com/clousky2020)         | #1644, #1408                                                             |
+| [@christopher-s](https://github.com/christopher-s)     | #885, #868, #992                                                         |
+| [@kang-heewon](https://github.com/kang-heewon)         | #1235, #884                                                              |
+| [@backryun](https://github.com/backryun)               | #1627, #1358, #1722                                                      |
+| [@tombii](https://github.com/tombii)                   | #900, #856                                                               |
+| [@slewis3600](https://github.com/slewis3600)           | #1624                                                                    |
+| [@dhaern](https://github.com/dhaern)                   | #1647                                                                    |
+| [@JasonLandbridge](https://github.com/JasonLandbridge) | #1626                                                                    |
+| [@hartmark](https://github.com/hartmark)               | #1500                                                                    |
+| [@herjarsa](https://github.com/herjarsa)               | #1480                                                                    |
+| [@andruwa13](https://github.com/andruwa13)             | #1457                                                                    |
+| [@i1hwan](https://github.com/i1hwan)                   | #1386                                                                    |
+| [@xandr0s](https://github.com/xandr0s)                 | #1376                                                                    |
+| [@RaviTharuma](https://github.com/RaviTharuma)         | #1188                                                                    |
+| [@wlfonseca](https://github.com/wlfonseca)             | #1016                                                                    |
+| [@only4copilot](https://github.com/only4copilot)       | #1039, #855                                                              |
+| [@AndrewDragonIV](https://github.com/AndrewDragonIV)   | #898                                                                     |
+| [@dt418](https://github.com/dt418)                     | #896                                                                     |
+| [@willbnu](https://github.com/willbnu)                 | #882                                                                     |
+| [@defhouse](https://github.com/defhouse)               | #906                                                                     |
+| [@mercs2910](https://github.com/mercs2910)             | #1001                                                                    |
+| [@zen0bit](https://github.com/zen0bit)                 | #912                                                                     |
+| [@razllivan](https://github.com/razllivan)             | #987                                                                     |
+| [@foxy1402](https://github.com/foxy1402)               | #934                                                                     |
+| [@knopki](https://github.com/knopki)                   | #1434                                                                    |
+| [@dail45](https://github.com/dail45)                   | #1413                                                                    |
+
+---
+
 ## [3.7.4] — 2026-04-28
 
 ### ✨ New Features

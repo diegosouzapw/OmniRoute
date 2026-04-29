@@ -1728,6 +1728,7 @@
     "disableCloud": "Wyłącz chmurę",
     "enableCloud": "Włącz chmurę",
     "modelsAcrossEndpoints": "{models} modele w {endpoints} punktach końcowych",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Czat strumieniowy i niestreamingowy ze wszystkimi dostawcami",
     "embeddings": "Osadzenia",
     "embeddingsDesc": "Osadzanie tekstu dla potoków wyszukiwania i RAG",

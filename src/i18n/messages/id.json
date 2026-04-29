@@ -1728,6 +1728,7 @@
     "disableCloud": "Nonaktifkan Awan",
     "enableCloud": "Aktifkan Awan",
     "modelsAcrossEndpoints": "{models} model di seluruh titik akhir {endpoints}",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Obrolan streaming & non-streaming dengan semua penyedia",
     "embeddings": "Penyematan",
     "embeddingsDesc": "Penyematan teks untuk saluran pencarian & RAG",

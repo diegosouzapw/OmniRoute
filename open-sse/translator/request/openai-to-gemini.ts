@@ -186,7 +186,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
         if (systemText) {
           if (!result.systemInstruction) {
             result.systemInstruction = {
-              role: "user",
+              role: "system",
               parts: [{ text: systemText }],
             };
           } else {
@@ -413,7 +413,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
     if (envelope.request.systemInstruction?.parts) {
       envelope.request.systemInstruction.parts.unshift(defaultPart);
     } else {
-      envelope.request.systemInstruction = { role: "user", parts: [defaultPart] };
+      envelope.request.systemInstruction = { role: "system", parts: [defaultPart] };
     }
 
     // Add toolConfig for Antigravity
@@ -449,6 +449,28 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
+  const requestedMaxOutputTokens =
+    typeof claudeRequest.max_tokens === "number" && Number.isFinite(claudeRequest.max_tokens)
+      ? claudeRequest.max_tokens
+      : 4096;
+  const generationConfig: GeminiGenerationConfig = {
+    temperature: claudeRequest.temperature || 1,
+    maxOutputTokens: capMaxOutputTokens(cleanModel, requestedMaxOutputTokens),
+  };
+  const thinkingBudget =
+    claudeRequest.thinking?.type === "enabled" &&
+    typeof claudeRequest.thinking.budget_tokens === "number" &&
+    Number.isFinite(claudeRequest.thinking.budget_tokens)
+      ? Math.floor(claudeRequest.thinking.budget_tokens)
+      : null;
+
+  if (thinkingBudget && thinkingBudget > 0) {
+    generationConfig.thinkingConfig = {
+      thinkingBudget: capThinkingBudget(cleanModel, thinkingBudget),
+      includeThoughts: true,
+    };
+  }
+
   const envelope: CloudCodeEnvelope = {
     project: projectId,
     model: cleanModel,
@@ -458,10 +480,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     request: {
       sessionId: generateSessionId(),
       contents: [],
-      generationConfig: {
-        temperature: claudeRequest.temperature || 1,
-        maxOutputTokens: claudeRequest.max_tokens || 4096,
-      },
+      generationConfig,
     },
   };
 
@@ -555,7 +574,7 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
     }
   }
 
-  envelope.request.systemInstruction = { role: "user", parts: systemParts };
+  envelope.request.systemInstruction = { role: "system", parts: systemParts };
 
   const changedToolNameMap = buildChangedToolNameMap(toolNameMap);
   if (changedToolNameMap) {

@@ -46,6 +46,10 @@ test("cloakAntigravityToolPayload cloaks custom tools, preserves native tools an
   assert.ok(names.includes(`workspace_read${AG_TOOL_SUFFIX}`));
   assert.ok(names.includes("run_command"));
   assert.ok(names.includes("browser_subagent"));
+  assert.ok(names.includes("mcp_sequential_thinking_sequentialthinking"));
+  for (const name of names) {
+    assert.match(name, /^[a-zA-Z0-9_]+$/);
+  }
   assert.equal(
     result.body.request.contents[0].parts[0].functionCall.name,
     `workspace_read${AG_TOOL_SUFFIX}`

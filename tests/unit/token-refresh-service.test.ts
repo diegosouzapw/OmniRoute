@@ -464,6 +464,47 @@ test("refreshKiroToken uses the AWS OIDC flow when client credentials are presen
   });
 });
 
+test("refreshKiroToken uses stored region for AWS OIDC refresh without authMethod", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-aws-access",
+        refreshToken: "kiro-aws-refresh-next",
+        expiresIn: 900,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-refresh",
+        {
+          clientId: "aws-client",
+          clientSecret: "aws-secret",
+          region: "ap-southeast-1",
+        },
+        log
+      );
+
+      assert.deepEqual(result, {
+        accessToken: "kiro-aws-access",
+        refreshToken: "kiro-aws-refresh-next",
+        expiresIn: 900,
+      });
+    }
+  );
+
+  assert.equal(calls[0].url, "https://oidc.ap-southeast-1.amazonaws.com/token");
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    clientId: "aws-client",
+    clientSecret: "aws-secret",
+    refreshToken: "kiro-refresh",
+    grantType: "refresh_token",
+  });
+});
+
 test("refreshKiroToken falls back to the social-auth refresh endpoint", async () => {
   const log = createLog();
   const calls: any[] = [];

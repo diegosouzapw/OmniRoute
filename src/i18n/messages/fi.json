@@ -1728,6 +1728,7 @@
     "disableCloud": "Poista Cloud käytöstä",
     "enableCloud": "Ota Cloud käyttöön",
     "modelsAcrossEndpoints": "{models} mallit {endpoints} päätepisteen välillä",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Suoratoisto ja ei-striimaus chat kaikkien palveluntarjoajien kanssa",
     "embeddings": "Upotukset",
     "embeddingsDesc": "Tekstin upotukset haku- ja RAG-putkistoja varten",

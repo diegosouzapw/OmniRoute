@@ -63,10 +63,46 @@ type TailscaleTunnelStatus = {
   pid: number | null;
 };
 
+type NgrokTunnelPhase =
+  | "unsupported"
+  | "not_installed"
+  | "stopped"
+  | "needs_auth"
+  | "starting"
+  | "running"
+  | "error";
+
+type NgrokTunnelStatus = {
+  supported: boolean;
+  installed: boolean;
+  running: boolean;
+  publicUrl: string | null;
+  apiUrl: string | null;
+  targetUrl: string;
+  phase: NgrokTunnelPhase;
+  lastError: string | null;
+};
+
 type TunnelNotice = {
   type: "success" | "error" | "info";
   message: string;
 };
+
+type EndpointTunnelVisibility = {
+  showCloudflaredTunnel: boolean;
+  showTailscaleFunnel: boolean;
+};
+
+const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
+  showCloudflaredTunnel: true,
+  showTailscaleFunnel: true,
+};
+
+function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown>) {
+  void task().catch((error) => {
+    console.log(`Error running endpoint background task (${taskName}):`, error);
+  });
+}
 
 export default function APIPageClient({ machineId }) {
   const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
@@ -76,6 +112,7 @@ export default function APIPageClient({ machineId }) {
 
   // Endpoints / models state
   const [allModels, setAllModels] = useState([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [expandedEndpoint, setExpandedEndpoint] = useState(null);
 
   // Cloud sync state
@@ -105,6 +142,11 @@ export default function APIPageClient({ machineId }) {
   const [tailscalePassword, setTailscalePassword] = useState("");
   const [showCloudflaredTunnel, setShowCloudflaredTunnel] = useState(true);
   const [showTailscaleFunnel, setShowTailscaleFunnel] = useState(true);
+  const [ngrokStatus, setNgrokStatus] = useState<NgrokTunnelStatus | null>(null);
+  const [ngrokBusy, setNgrokBusy] = useState(false);
+  const [ngrokNotice, setNgrokNotice] = useState<TunnelNotice | null>(null);
+  const [ngrokToken, setNgrokToken] = useState("");
+  const [showNgrokTunnel, setShowNgrokTunnel] = useState(true);
 
   const { copied, copy } = useCopyToClipboard();
 
@@ -201,20 +243,66 @@ export default function APIPageClient({ machineId }) {
     [translateOrFallback]
   );
 
+  const fetchNgrokStatus = useCallback(
+    async (silent = false) => {
+      try {
+        const res = await fetch("/api/tunnels/ngrok", { cache: "no-store" });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          throw new Error(
+            data?.error || translateOrFallback("ngrokRequestFailed", "Failed to load ngrok status")
+          );
+        }
+
+        setNgrokStatus(data);
+        return data as NgrokTunnelStatus;
+      } catch (error) {
+        if (!silent) {
+          setNgrokNotice({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : translateOrFallback("ngrokRequestFailed", "Failed to load ngrok status"),
+          });
+        }
+        return null;
+      }
+    },
+    [translateOrFallback]
+  );
+
   useEffect(() => {
-    Promise.allSettled([
-      loadCloudSettings(),
-      fetchModels(),
-      fetchProtocolStatus(),
-      fetchSearchProviders(),
-      fetchCloudflaredStatus(true),
-      fetchTailscaleStatus(true),
-    ]).finally(() => {
+    let mounted = true;
+
+    const loadPage = async () => {
+      const tunnelVisibility = await loadCloudSettings(() => mounted);
+
+      if (!mounted) return;
       setLoading(false);
-    });
-  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
+
+      runEndpointBackgroundTask("models", fetchModels);
+      runEndpointBackgroundTask("protocol-status", fetchProtocolStatus);
+      runEndpointBackgroundTask("search-providers", fetchSearchProviders);
+
+      if (tunnelVisibility.showCloudflaredTunnel) {
+        runEndpointBackgroundTask("cloudflared-status", () => fetchCloudflaredStatus(true));
+      }
+      if (tunnelVisibility.showTailscaleFunnel) {
+        runEndpointBackgroundTask("tailscale-status", () => fetchTailscaleStatus(true));
+      }
+      runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
+    };
+
+    void loadPage();
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus, fetchNgrokStatus]);
 
   const fetchModels = async () => {
+    setModelsLoading(true);
     try {
       const res = await fetch("/v1/models");
       if (res.ok) {
@@ -223,6 +311,8 @@ export default function APIPageClient({ machineId }) {
       }
     } catch (e) {
       console.log("Error fetching models:", e);
+    } finally {
+      setModelsLoading(false);
     }
   };
 
@@ -273,6 +363,16 @@ export default function APIPageClient({ machineId }) {
     };
   }, [allModels]);
 
+  const totalEndpointModelCount = useMemo(
+    () => Object.values(endpointData).reduce((acc, models) => acc + models.length, 0),
+    [endpointData]
+  );
+
+  const availableEndpointCount = useMemo(
+    () => Object.values(endpointData).filter((models) => models.length > 0).length + 2,
+    [endpointData]
+  );
+
   const postCloudAction = async (action, timeoutMs = CLOUD_ACTION_TIMEOUT_MS) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -295,11 +395,22 @@ export default function APIPageClient({ machineId }) {
     }
   };
 
-  const loadCloudSettings = async () => {
+  const loadCloudSettings = async (
+    shouldApplyState: () => boolean = () => true
+  ): Promise<EndpointTunnelVisibility> => {
     try {
       const res = await fetch("/api/settings");
       if (res.ok) {
         const data = await res.json();
+        const tunnelVisibility = {
+          showCloudflaredTunnel: data.hideEndpointCloudflaredTunnel !== true,
+          showTailscaleFunnel: data.hideEndpointTailscaleFunnel !== true,
+        };
+
+        if (!shouldApplyState()) {
+          return tunnelVisibility;
+        }
+
         setCloudEnabled(data.cloudEnabled || false);
         if (typeof data.cloudConfigured === "boolean") {
           setCloudConfigured(data.cloudConfigured);
@@ -310,12 +421,25 @@ export default function APIPageClient({ machineId }) {
         if (data.machineId) {
           setResolvedMachineId(data.machineId);
         }
-        setShowCloudflaredTunnel(data.hideEndpointCloudflaredTunnel !== true);
-        setShowTailscaleFunnel(data.hideEndpointTailscaleFunnel !== true);
+        setShowCloudflaredTunnel(tunnelVisibility.showCloudflaredTunnel);
+        setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
+
+        if (!tunnelVisibility.showCloudflaredTunnel) {
+          setCloudflaredStatus(null);
+          setCloudflaredNotice(null);
+        }
+        if (!tunnelVisibility.showTailscaleFunnel) {
+          setTailscaleStatus(null);
+          setTailscaleNotice(null);
+        }
+
+        return tunnelVisibility;
       }
     } catch (error) {
       console.log("Error loading cloud settings:", error);
     }
+
+    return DEFAULT_TUNNEL_VISIBILITY;
   };
 
   const handleCloudToggle = (checked) => {
@@ -358,11 +482,15 @@ export default function APIPageClient({ machineId }) {
   useEffect(() => {
     const interval = setInterval(() => {
       void fetchProtocolStatus();
-      void fetchCloudflaredStatus(true);
-      void fetchTailscaleStatus(true);
+      if (showCloudflaredTunnel) {
+        void fetchCloudflaredStatus(true);
+      }
+      if (showTailscaleFunnel) {
+        void fetchTailscaleStatus(true);
+      }
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchCloudflaredStatus, fetchTailscaleStatus]);
+  }, [fetchCloudflaredStatus, fetchTailscaleStatus, showCloudflaredTunnel, showTailscaleFunnel]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -499,6 +627,52 @@ export default function APIPageClient({ machineId }) {
     } finally {
       setCloudflaredBusy(false);
       await fetchCloudflaredStatus(true);
+    }
+  };
+
+  const handleNgrokAction = async (action: "enable" | "disable") => {
+    setNgrokBusy(true);
+    setNgrokNotice(null);
+
+    try {
+      const res = await fetch("/api/tunnels/ngrok", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, authToken: action === "enable" ? ngrokToken : undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error || translateOrFallback("ngrokRequestFailed", "Failed to update ngrok tunnel")
+        );
+      }
+
+      if (data?.status) {
+        setNgrokStatus(data.status);
+      }
+
+      setNgrokNotice({
+        type: "success",
+        message:
+          action === "enable"
+            ? translateOrFallback("ngrokStarted", "ngrok tunnel started")
+            : translateOrFallback("ngrokStopped", "ngrok tunnel stopped"),
+      });
+      if (action === "enable") {
+        setNgrokToken("");
+      }
+    } catch (error) {
+      setNgrokNotice({
+        type: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : translateOrFallback("ngrokRequestFailed", "Failed to update ngrok tunnel"),
+      });
+    } finally {
+      setNgrokBusy(false);
+      await fetchNgrokStatus(true);
     }
   };
 
@@ -689,7 +863,7 @@ export default function APIPageClient({ machineId }) {
       setTailscaleBusy(false);
       await fetchTailscaleStatus(true);
     }
-  }, [fetchTailscaleStatus, translateOrFallback]);
+  }, [fetchTailscaleStatus, tailscalePassword, translateOrFallback]);
 
   const handleTailscaleInstall = useCallback(async () => {
     setTailscaleInstallBusy(true);
@@ -890,6 +1064,42 @@ export default function APIPageClient({ machineId }) {
     "tailscaleUrlNotice",
     "Uses your Tailscale .ts.net address. Login and Funnel approval may be required on first use."
   );
+
+  const ngrokPhase = ngrokStatus?.phase || "not_installed";
+  const ngrokPhaseMeta: Record<NgrokTunnelPhase, { label: string; className: string }> = {
+    running: {
+      label: translateOrFallback("ngrokRunning", "Running"),
+      className: "bg-green-500/10 border-green-500/30 text-green-400",
+    },
+    starting: {
+      label: translateOrFallback("ngrokStarting", "Starting"),
+      className: "bg-blue-500/10 border-blue-500/30 text-blue-400",
+    },
+    stopped: {
+      label: translateOrFallback("ngrokStoppedState", "Stopped"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    needs_auth: {
+      label: translateOrFallback("ngrokNeedsAuth", "Needs Auth"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    not_installed: {
+      label: translateOrFallback("ngrokNotInstalled", "Not installed"),
+      className: "bg-surface border-border/70 text-text-muted",
+    },
+    unsupported: {
+      label: translateOrFallback("ngrokUnsupported", "Unsupported"),
+      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
+    },
+    error: {
+      label: translateOrFallback("ngrokError", "Error"),
+      className: "bg-red-500/10 border-red-500/30 text-red-400",
+    },
+  };
+  const ngrokActionLabel = ngrokStatus?.running
+    ? translateOrFallback("ngrokDisable", "Stop Tunnel")
+    : translateOrFallback("ngrokEnable", "Enable Tunnel");
+  const ngrokUrlNotice = translateOrFallback("ngrokUrlNotice", "Creates a public ngrok tunnel.");
 
   return (
     <div className="flex flex-col gap-8">
@@ -1229,6 +1439,120 @@ export default function APIPageClient({ machineId }) {
             </div>
           </div>
         )}
+
+        {showNgrokTunnel && (
+          <div
+            className={`${showCloudflaredTunnel || showTailscaleFunnel ? "mt-4 " : ""}rounded-xl border border-border/70 bg-surface/40 p-4`}
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold">
+                      {translateOrFallback("ngrokTitle", "ngrok Tunnel")}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-medium ${ngrokPhaseMeta[ngrokPhase].className}`}
+                    >
+                      {ngrokPhaseMeta[ngrokPhase].label}
+                    </span>
+                  </div>
+                </div>
+
+                {ngrokStatus?.supported !== false && (
+                  <Button
+                    size="sm"
+                    variant={ngrokStatus?.running ? "secondary" : "primary"}
+                    icon={ngrokStatus?.running ? "public_off" : "public"}
+                    onClick={() => handleNgrokAction(ngrokStatus?.running ? "disable" : "enable")}
+                    loading={ngrokBusy}
+                    className={
+                      ngrokStatus?.running
+                        ? "border-border/70! text-text-muted! hover:text-text!"
+                        : "bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
+                    }
+                  >
+                    {ngrokActionLabel}
+                  </Button>
+                )}
+              </div>
+
+              {ngrokNotice && (
+                <div
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                    ngrokNotice.type === "success"
+                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                      : ngrokNotice.type === "info"
+                        ? "border-blue-500/30 bg-blue-500/10 text-blue-400"
+                        : "border-red-500/30 bg-red-500/10 text-red-400"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {ngrokNotice.type === "success"
+                      ? "check_circle"
+                      : ngrokNotice.type === "info"
+                        ? "info"
+                        : "error"}
+                  </span>
+                  <span className="flex-1">{ngrokNotice.message}</span>
+                  <button
+                    onClick={() => setNgrokNotice(null)}
+                    className="rounded p-0.5 transition-colors hover:bg-white/10"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                </div>
+              )}
+
+              <p className="text-xs text-text-muted">{ngrokUrlNotice}</p>
+              {ngrokStatus?.phase === "needs_auth" && (
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-text-muted">
+                    {translateOrFallback(
+                      "ngrokAuthTokenLabel",
+                      "Authtoken (Required if NGROK_AUTHTOKEN not set)"
+                    )}
+                  </label>
+                  <Input
+                    type="password"
+                    value={ngrokToken}
+                    onChange={(event) => setNgrokToken(event.target.value)}
+                    placeholder={translateOrFallback(
+                      "ngrokAuthTokenPlaceholder",
+                      "Enter your ngrok authtoken"
+                    )}
+                    disabled={ngrokBusy}
+                    className="font-mono text-sm"
+                  />
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={ngrokStatus?.apiUrl || ""}
+                  readOnly
+                  placeholder="https://your-tunnel.ngrok-free.app/v1"
+                  className="flex-1 min-w-0 font-mono text-sm"
+                />
+                <Button
+                  variant="secondary"
+                  icon={copied === "ngrok_url" ? "check" : "content_copy"}
+                  onClick={() => ngrokStatus?.apiUrl && copy(ngrokStatus.apiUrl, "ngrok_url")}
+                  disabled={!ngrokStatus?.apiUrl}
+                  className="shrink-0 self-start sm:self-auto"
+                >
+                  {copied === "ngrok_url" ? tc("copied") : tc("copy")}
+                </Button>
+              </div>
+              {ngrokStatus?.lastError && (
+                <p className="text-xs text-red-400">
+                  {translateOrFallback("ngrokLastError", "Last error: {error}", {
+                    error: ngrokStatus.lastError,
+                  })}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card>
@@ -1258,24 +1582,12 @@ export default function APIPageClient({ machineId }) {
             <div>
               <h2 className="text-lg font-semibold">{t("available")}</h2>
               <p className="text-sm text-text-muted">
-                {t("modelsAcrossEndpoints", {
-                  models: Object.values(endpointData).reduce(
-                    (acc, models) => acc + models.length,
-                    0
-                  ),
-                  endpoints:
-                    [
-                      endpointData.chat,
-                      endpointData.embeddings,
-                      endpointData.images,
-                      endpointData.video,
-                      endpointData.rerank,
-                      endpointData.audioTranscription,
-                      endpointData.audioSpeech,
-                      endpointData.moderation,
-                      endpointData.music,
-                    ].filter((a) => a.length > 0).length + 2,
-                })}
+                {modelsLoading
+                  ? translateOrFallback("loadingModels", "Loading available models...")
+                  : t("modelsAcrossEndpoints", {
+                      models: totalEndpointModelCount,
+                      endpoints: availableEndpointCount,
+                    })}
               </p>
             </div>
           </div>
@@ -1304,6 +1616,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Responses API */}
@@ -1325,6 +1638,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Legacy Completions */}
@@ -1346,6 +1660,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
             </div>
           </div>
@@ -1376,6 +1691,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Image Generation */}
@@ -1394,6 +1710,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Audio Transcription */}
@@ -1414,6 +1731,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Audio Speech (TTS) */}
@@ -1432,6 +1750,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Music Generation */}
@@ -1451,6 +1770,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Video Generation */}
@@ -1470,6 +1790,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
             </div>
           </div>
@@ -1541,6 +1862,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* Moderations */}
@@ -1559,6 +1881,7 @@ export default function APIPageClient({ machineId }) {
                 copy={copy}
                 copied={copied}
                 baseUrl={currentEndpoint}
+                modelsLoading={modelsLoading}
               />
 
               {/* List Models */}
@@ -2078,6 +2401,7 @@ function EndpointSection({
   copy,
   copied,
   baseUrl,
+  modelsLoading = false,
 }) {
   const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
@@ -2111,7 +2435,7 @@ function EndpointSection({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{title}</span>
             <span className="text-xs px-2 py-0.5 rounded-full bg-surface text-text-muted font-medium">
-              {t("modelsCount", { count: models.length })}
+              {modelsLoading ? "..." : t("modelsCount", { count: models.length })}
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">{description}</p>
@@ -2143,35 +2467,44 @@ function EndpointSection({
           </div>
 
           {/* Models grouped by provider */}
-          <div className="flex flex-col gap-2">
-            {grouped.map(([providerId, providerModels]) => (
-              <div key={providerId}>
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className="size-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: providerColor(providerId) }}
-                  />
-                  <span className="text-xs font-semibold text-text-main">
-                    {providerName(providerId)}
-                  </span>
-                  <span className="text-xs text-text-muted">
-                    ({(providerModels as any).length})
-                  </span>
-                </div>
-                <div className="ml-5 flex flex-wrap gap-1.5">
-                  {(providerModels as any).map((m) => (
-                    <span
-                      key={m.id}
-                      className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"
-                      title={m.id}
-                    >
-                      {m.root || m.id.split("/").pop()}
+          {modelsLoading ? (
+            <div className="flex items-center gap-2 rounded-lg border border-border/70 bg-surface/40 px-3 py-2 text-xs text-text-muted">
+              <span className="material-symbols-outlined animate-spin text-sm">
+                progress_activity
+              </span>
+              <span>{t("loadingModels")}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {grouped.map(([providerId, providerModels]) => (
+                <div key={providerId}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div
+                      className="size-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: providerColor(providerId) }}
+                    />
+                    <span className="text-xs font-semibold text-text-main">
+                      {providerName(providerId)}
                     </span>
-                  ))}
+                    <span className="text-xs text-text-muted">
+                      ({(providerModels as any).length})
+                    </span>
+                  </div>
+                  <div className="ml-5 flex flex-wrap gap-1.5">
+                    {(providerModels as any).map((m) => (
+                      <span
+                        key={m.id}
+                        className="text-xs px-2 py-0.5 rounded-md bg-surface/80 text-text-muted font-mono"
+                        title={m.id}
+                      >
+                        {m.root || m.id.split("/").pop()}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -2191,4 +2524,5 @@ EndpointSection.propTypes = {
   copy: PropTypes.func.isRequired,
   copied: PropTypes.string,
   baseUrl: PropTypes.string.isRequired,
+  modelsLoading: PropTypes.bool,
 };

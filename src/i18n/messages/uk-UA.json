@@ -1728,6 +1728,7 @@
     "disableCloud": "Вимкнути хмару",
     "enableCloud": "Увімкнути хмару",
     "modelsAcrossEndpoints": "{models} моделей через {endpoints} кінцевих точок",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Потоковий і непотоковий чат з усіма провайдерами",
     "embeddings": "Вбудовування",
     "embeddingsDesc": "Вбудовування тексту для конвеєрів пошуку та RAG",

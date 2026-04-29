@@ -27,7 +27,7 @@ const AG_DEFAULT_TOOL_NAMES = [
 
 const AG_DECOY_TOOL_NAMES = [
   ...AG_DEFAULT_TOOL_NAMES,
-  "mcp_sequential-thinking_sequentialthinking",
+  "mcp_sequential_thinking_sequentialthinking",
 ] as const;
 
 export const AG_DEFAULT_TOOLS = new Set<string>(AG_DEFAULT_TOOL_NAMES);

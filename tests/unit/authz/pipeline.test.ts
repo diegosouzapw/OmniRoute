@@ -174,6 +174,20 @@ test("runAuthzPipeline allows dashboard sessions to read model catalog aliases",
   assert.equal(response.headers.get("x-omniroute-route-class"), "CLIENT_API");
 });
 
+test("runAuthzPipeline allows dashboard sessions to reach DB health management API", async () => {
+  await forceAuthRequired();
+
+  const response = await pipeline.runAuthzPipeline(
+    request("http://localhost/api/db/health", {
+      headers: { cookie: await dashboardCookie() },
+    }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
 test("runAuthzPipeline refreshes dashboard JWTs near expiry", async () => {
   await forceAuthRequired();
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);

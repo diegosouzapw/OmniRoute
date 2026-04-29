@@ -1728,6 +1728,7 @@
     "disableCloud": "Felhő letiltása",
     "enableCloud": "Felhő engedélyezése",
     "modelsAcrossEndpoints": "{models} modellek {endpoints} végpontokon keresztül",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Streaming és nem streaming csevegés minden szolgáltatóval",
     "embeddings": "Beágyazások",
     "embeddingsDesc": "Szövegbeágyazások keresési és RAG-folyamatokhoz",

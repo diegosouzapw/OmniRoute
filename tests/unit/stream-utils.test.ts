@@ -797,7 +797,7 @@ test("createSSETransformStreamWithLogger flushes Responses API terminal events o
 
   assert.match(text, /response\.created/);
   assert.match(text, /response\.completed/);
-  assert.match(text, /\[DONE\]/);
+  assert.doesNotMatch(text, /\[DONE\]/);
 });
 
 test("createPassthroughStreamWithLogger reuses passthrough mode helpers", async () => {

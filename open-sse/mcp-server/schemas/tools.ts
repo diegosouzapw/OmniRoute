@@ -882,7 +882,7 @@ export const dbHealthCheckTool: McpToolDefinition<
   scopes: ["read:health", "write:resilience"],
   auditLevel: "full",
   phase: 2,
-  sourceEndpoints: ["/api/v1/db/health"],
+  sourceEndpoints: ["/api/db/health"],
 };
 
 // --- Tool 19: omniroute_sync_pricing ---

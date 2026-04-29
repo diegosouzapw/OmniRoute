@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { getAllCustomModels, getPricing } from "@/lib/localDb";
+import { getAllCustomModels, getAllSyncedAvailableModels, getPricing } from "@/lib/localDb";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -20,8 +20,9 @@ function asModelArray(value: unknown): Array<{ id?: string; name?: string }> {
  * GET /api/pricing/models
  * Returns the full model catalog merged from three sources:
  *  1. providerRegistry (hardcoded)
- *  2. customModels (DB — user-added or imported via /models)
- *  3. pricing data (DB — models with pricing configured but not in sources 1/2)
+ *  2. syncedAvailableModels (DB — discovered/imported from provider /models)
+ *  3. customModels (DB — manually added models)
+ *  4. pricing data (DB — models with pricing configured but not in sources 1/2/3)
  */
 export async function GET() {
   try {
@@ -46,25 +47,14 @@ export async function GET() {
       };
     }
 
-    // ── 2. Custom models (DB) ───────────────────────────────────────
-    let customModelsMap: Record<string, unknown> = {};
-    try {
-      customModelsMap = asRecord(await getAllCustomModels());
-    } catch {
-      /* DB may not be ready */
-    }
-
-    for (const [providerId, rawModels] of Object.entries(customModelsMap)) {
-      const models = asModelArray(rawModels);
-      // Resolve alias — check if a registry entry maps this providerId
-      let alias = providerId;
+    const resolveAlias = (providerId: string) => {
       for (const entry of Object.values(REGISTRY)) {
-        if (entry.id === providerId) {
-          alias = entry.alias || entry.id;
-          break;
-        }
+        if (entry.id === providerId) return entry.alias || entry.id;
       }
+      return providerId;
+    };
 
+    const ensureCatalogProvider = (providerId: string, alias: string) => {
       if (!catalog[alias]) {
         catalog[alias] = {
           id: providerId,
@@ -75,25 +65,52 @@ export async function GET() {
           models: [],
         };
       }
+      return catalog[alias];
+    };
 
-      const existingIds = new Set(catalog[alias].models.map((m) => m.id));
+    const appendDbModels = (providerId: string, rawModels: unknown) => {
+      const models = asModelArray(rawModels);
+      const alias = resolveAlias(providerId);
+      const providerCatalog = ensureCatalogProvider(providerId, alias);
+      const existingIds = new Set(providerCatalog.models.map((m) => m.id));
+
       for (const model of models) {
         const modelId = typeof model.id === "string" ? model.id : null;
-        if (!modelId || existingIds.has(modelId)) {
-          continue;
-        }
-        if (!existingIds.has(modelId)) {
-          catalog[alias].models.push({
-            id: modelId,
-            name: typeof model.name === "string" && model.name.trim() ? model.name : modelId,
-            custom: true,
-          });
-          existingIds.add(modelId);
-        }
+        if (!modelId || existingIds.has(modelId)) continue;
+        providerCatalog.models.push({
+          id: modelId,
+          name: typeof model.name === "string" && model.name.trim() ? model.name : modelId,
+          custom: true,
+        });
+        existingIds.add(modelId);
       }
+    };
+
+    // ── 2. Synced available models (DB) ─────────────────────────────
+    let syncedModelsMap: Record<string, unknown> = {};
+    try {
+      syncedModelsMap = asRecord(await getAllSyncedAvailableModels());
+    } catch {
+      /* DB may not be ready */
     }
 
-    // ── 3. Pricing-only models (DB) ─────────────────────────────────
+    for (const [providerId, rawModels] of Object.entries(syncedModelsMap)) {
+      appendDbModels(providerId, rawModels);
+    }
+
+    // ── 3. Custom models (DB) ───────────────────────────────────────
+    let customModelsMap: Record<string, unknown> = {};
+    try {
+      customModelsMap = asRecord(await getAllCustomModels());
+    } catch {
+      /* DB may not be ready */
+    }
+
+    for (const [providerId, rawModels] of Object.entries(customModelsMap)) {
+      appendDbModels(providerId, rawModels);
+    }
+
+    // ── 4. Pricing-only models (DB) ─────────────────────────────────
     let pricingData: Record<string, any> = {};
     try {
       pricingData = await getPricing();

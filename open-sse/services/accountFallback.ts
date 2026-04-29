@@ -56,7 +56,7 @@ type ModelFailureState = {
 
 // Provider-level failure tracking for circuit breaker behavior
 // Error codes that count toward provider-level failure threshold
-const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
+const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead

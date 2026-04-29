@@ -1728,6 +1728,7 @@
     "disableCloud": "クラウドを無効にする",
     "enableCloud": "クラウドを有効にする",
     "modelsAcrossEndpoints": "{endpoints} エンドポイントにわたる {models} モデル",
+    "loadingModels": "Loading available models...",
     "chatDesc": "すべてのプロバイダーとのストリーミングおよび非ストリーミング チャット",
     "embeddings": "埋め込み",
     "embeddingsDesc": "検索および RAG パイプライン用のテキスト埋め込み",

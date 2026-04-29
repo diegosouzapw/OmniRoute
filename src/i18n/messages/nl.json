@@ -1728,6 +1728,7 @@
     "disableCloud": "Schakel Cloud uit",
     "enableCloud": "Schakel Cloud in",
     "modelsAcrossEndpoints": "{models} modellen voor {endpoints} eindpunten",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Streaming & non-streaming chat met alle providers",
     "embeddings": "Inbedding",
     "embeddingsDesc": "Tekstinsluitingen voor zoek- en RAG-pijplijnen",

@@ -28,6 +28,15 @@ import { FORMATS } from "../../open-sse/translator/formats.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { getReasoningCache, setReasoningCache } from "../../src/lib/db/reasoningCache.ts";
 import { DELETE, GET } from "../../src/app/api/cache/reasoning/route.ts";
+import { updateSettings } from "../../src/lib/db/settings";
+
+before(async () => {
+  await updateSettings({ requireLogin: false });
+});
+
+after(async () => {
+  await updateSettings({ requireLogin: true });
+});
 
 describe("Reasoning Replay Cache — Service Layer", () => {
   before(() => {

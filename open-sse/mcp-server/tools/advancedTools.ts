@@ -893,11 +893,8 @@ export async function handleDbHealthCheck(args: { autoRepair?: boolean }) {
   const autoRepair = args.autoRepair === true;
 
   try {
-    const result = toRecord(
-      await apiFetch("/api/v1/db/health", {
-        method: autoRepair ? "POST" : "GET",
-      })
-    );
+    const { runManagedDbHealthCheck } = await import("../../../src/lib/db/core.ts");
+    const result = runManagedDbHealthCheck({ autoRepair });
 
     await logToolCall(
       "omniroute_db_health_check",

@@ -224,7 +224,7 @@ test("OpenAI -> Gemini request maps messages, merged system instructions, tools 
     false
   );
 
-  assert.equal((result as any).systemInstruction.role, "user");
+  assert.equal((result as any).systemInstruction.role, "system");
   assert.deepEqual((result as any).systemInstruction.parts, [
     { text: "Rule A" },
     { text: "Rule B" },
@@ -558,11 +558,15 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
 
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
+  assert.equal((result as any).request?.systemInstruction.role, "system");
   assert.equal(
     (result as any).request?.systemInstruction.parts[0].text,
     ANTIGRAVITY_DEFAULT_SYSTEM
   );
   assert.equal((result as any).request?.systemInstruction.parts[1].text, "Project rules");
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 8192);
+  assert.equal((result as any).request?.generationConfig.temperature, 1);
+  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
 
   const modelTurn = result.request.contents.find(
     (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
@@ -624,6 +628,7 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
 
   const sanitizedToolName = (result as any).request?.tools[0].functionDeclarations[0].name;
   assert.equal(sanitizedToolName.length, 64);
+  assert.match(sanitizedToolName, /^[a-zA-Z0-9_]+$/);
   assert.equal((result as any)._toolNameMap.get(sanitizedToolName), longToolName);
 
   const modelTurn = result.request.contents.find(
@@ -637,4 +642,23 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
   );
   assert.ok(toolTurn, "expected a tool response turn");
   assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
+});
+
+test("OpenAI -> Antigravity Claude bridge clamps output tokens and keeps thinking budget separate", () => {
+  const result = openaiToAntigravityRequest(
+    "claude-3-7-sonnet",
+    {
+      messages: [{ role: "user", content: "Summarize this" }],
+      max_completion_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false,
+    { projectId: "proj-claude-thinking" } as any
+  );
+
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 8192);
+  assert.deepEqual((result as any).request?.generationConfig.thinkingConfig, {
+    thinkingBudget: 131072,
+    includeThoughts: true,
+  });
 });

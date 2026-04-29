@@ -1728,6 +1728,7 @@
     "disableCloud": "השבת את הענן",
     "enableCloud": "אפשר ענן",
     "modelsAcrossEndpoints": "מודלים {models} על פני {endpoints} נקודות קצה",
+    "loadingModels": "Loading available models...",
     "chatDesc": "צ'אט בסטרימינג ושלא בסטרימינג עם כל הספקים",
     "embeddings": "הטבעות",
     "embeddingsDesc": "הטמעת טקסט עבור חיפוש וצינורות RAG",

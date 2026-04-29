@@ -1335,13 +1335,17 @@
         }
       }
     },
-    "autoConfiguredTab": "Auto Configured Tab",
-    "toolCategoriesDesc": "Tool Categories Desc",
-    "allToolsTab": "All Tools Tab",
-    "guidedClientsTab": "Guided Clients Tab",
-    "mitmClientsTab": "Mitm Clients Tab",
-    "toolCategories": "Tool Categories",
-    "visibleToolsCount": "Visible Tools Count"
+    "autoConfiguredTab": "自动配置",
+    "toolCategoriesDesc": "配置 AI 编程助手通过 OmniRoute 路由",
+    "allToolsTab": "所有工具",
+    "guidedClientsTab": "引导客户端",
+    "mitmClientsTab": "MITM 客户端",
+    "customCliTab": "自定义 CLI",
+    "toolCategories": "工具分类",
+    "visibleToolsCount": "{count} 个工具可用",
+    "installationGuide": "安装指南",
+    "whenToUseLabel": "何时使用",
+    "openToolDocs": "打开工具文档"
   },
   "combos": {
     "title": "组合",
@@ -1826,6 +1830,7 @@
     "disableCloud": "禁用云端",
     "enableCloud": "启用云端",
     "modelsAcrossEndpoints": "{endpoints} 个端点共提供 {models} 个模型",
+    "loadingModels": "正在加载可用模型...",
     "chatDesc": "支持所有提供商的流式与非流式聊天",
     "embeddings": "Embeddings",
     "embeddingsDesc": "用于搜索和 RAG 流程的文本向量",
@@ -4324,7 +4329,9 @@
     "addMemory": "添加记忆",
     "type": "类型",
     "key": "键",
+    "keyPlaceholder": "例如：user_preference_theme",
     "content": "内容",
+    "contentPlaceholder": "例如：偏好深色模式",
     "created": "创建时间",
     "actions": "操作",
     "delete": "删除",
@@ -4332,7 +4339,16 @@
     "episodic": "情景型",
     "procedural": "程序型",
     "semantic": "语义型",
-    "a": "A"
+    "previous": "上一页",
+    "next": "下一页",
+    "pageInfo": "第 {page} 页，共 {totalPages} 页（共 {total} 条）",
+    "checkingHealth": "检查中...",
+    "checkHealth": "检查健康",
+    "pipelineOk": "Pipeline 正常 ({latencyMs}ms)",
+    "pipelineError": "Pipeline 错误",
+    "healthUnknown": "健康状态未知",
+    "cancel": "取消",
+    "save": "保存"
   },
   "skills": {
     "title": "技能",

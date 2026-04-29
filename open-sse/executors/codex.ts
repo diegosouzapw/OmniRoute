@@ -10,8 +10,18 @@ import {
   CODEX_DEFAULT_INSTRUCTIONS,
 } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
+import {
+  getCodexClientVersion,
+  getCodexUserAgent,
+  normalizeCodexSessionId,
+} from "../config/codexClient.ts";
+import {
+  applyCodexClientIdentityHeaders,
+  applyCodexClientMetadata,
+  createCodexClientIdentity,
+} from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { getRememberedResponseFunctionCalls } from "../services/responsesToolCallState.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { createRequire } from "module";
@@ -253,68 +263,11 @@ export function getCodexUpstreamModel(model: unknown): string {
   return splitCodexReasoningSuffix(model).baseModel;
 }
 
-function stringifyCodexInstructionContent(content: unknown): string {
-  if (typeof content === "string") {
-    return content.trim();
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((part) => {
-        if (typeof part === "string") return part.trim();
-        if (!part || typeof part !== "object") return "";
-        const record = part as Record<string, unknown>;
-        if (typeof record.text === "string") return record.text.trim();
-        if (typeof record.content === "string") return record.content.trim();
-        return "";
-      })
-      .filter(Boolean)
-      .join("\n")
-      .trim();
-  }
-
-  return "";
-}
-
-function hoistSystemMessagesToInstructions(body: Record<string, unknown>): void {
-  if (!Array.isArray(body.input)) return;
-
-  const systemChunks: string[] = [];
-  const filteredInput = body.input.filter((itemValue) => {
-    if (!itemValue || typeof itemValue !== "object" || Array.isArray(itemValue)) {
-      return true;
-    }
-
-    const item = itemValue as Record<string, unknown>;
-    const role = typeof item.role === "string" ? item.role : "";
-    const type = typeof item.type === "string" ? item.type : "";
-    const isSystemMessage = role === "system" && (!type || type === "message");
-    if (!isSystemMessage) {
-      return true;
-    }
-
-    const text = stringifyCodexInstructionContent(item.content);
-    if (text) {
-      systemChunks.push(text);
-    }
-    return false;
-  });
-
-  if (systemChunks.length === 0) return;
-
-  const existingInstructions =
-    typeof body.instructions === "string" ? body.instructions.trim() : "";
-  body.instructions = existingInstructions
-    ? `${systemChunks.join("\n\n")}\n\n${existingInstructions}`
-    : systemChunks.join("\n\n");
-  body.input = filteredInput;
-}
-
 /**
  * Convert role=system messages in `input` to role=developer.
  *
  * GPT-5 models support the `developer` role in input, but reject `system`.
- * Unlike hoistSystemMessagesToInstructions(), this keeps the content inside
+ * This keeps the content inside
  * the `input` array where it benefits from OpenAI's automatic prompt caching.
  *
  * OpenAI's prompt caching matches on the serialized prefix of the `input` array
@@ -359,16 +312,62 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *   3. Strips the "id" field from any object in input whose id matches a
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
- *   4. Always deletes previous_response_id (endpoint doesn't persist responses)
+ *   4. Rehydrates missing function_call items for stateful tool-output follow-ups
+ *      using locally remembered response state, then deletes previous_response_id
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   const hasInput = Array.isArray(body.input) && body.input.length > 0;
+  const inputItems = Array.isArray(body.input) ? body.input : [];
+  const previousResponseId =
+    typeof body.previous_response_id === "string" ? body.previous_response_id : "";
+  const inputFunctionCallIds = new Set<string>();
+  const inputFunctionCallOutputIds = new Set<string>();
 
-  // Always strip previous_response_id IF we have input.
-  // The /codex/responses endpoint does not persist responses, so any reference
-  // to a previous response would cause a 404. However, if input is missing (e.g. Cursor
-  // trying to continue generation), stripping it leaves the payload empty causing a 400 Schema error.
-  // We leave it intact so Codex returns 404, which correctly triggers Cursor's fallback to resend history.
+  for (const item of inputItems) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    const type = typeof record.type === "string" ? record.type : "";
+    const callId = typeof record.call_id === "string" ? record.call_id : "";
+    if (!callId) continue;
+    if (type === "function_call") {
+      inputFunctionCallIds.add(callId);
+      continue;
+    }
+    if (type === "function_call_output") {
+      inputFunctionCallOutputIds.add(callId);
+    }
+  }
+
+  const missingFunctionCallIds = [...inputFunctionCallOutputIds].filter(
+    (callId) => !inputFunctionCallIds.has(callId)
+  );
+
+  if (hasInput && previousResponseId && missingFunctionCallIds.length > 0) {
+    const rememberedFunctionCalls = getRememberedResponseFunctionCalls(previousResponseId);
+    const injectedFunctionCalls = rememberedFunctionCalls
+      .filter((functionCall) => missingFunctionCallIds.includes(functionCall.call_id))
+      .filter((functionCall) => !inputFunctionCallIds.has(functionCall.call_id))
+      .map((functionCall) => ({
+        type: "function_call",
+        call_id: functionCall.call_id,
+        name: functionCall.name,
+        arguments: functionCall.arguments,
+      }));
+
+    if (injectedFunctionCalls.length > 0) {
+      body.input = [...injectedFunctionCalls, ...inputItems];
+      for (const functionCall of injectedFunctionCalls) {
+        inputFunctionCallIds.add(functionCall.call_id);
+      }
+    }
+  }
+
+  // Strip previous_response_id whenever the request already carries input items.
+  // Codex rejects this field outright, so stateful follow-up turns must be made
+  // self-contained via the local function_call replay above.
+  //
+  // If input is missing entirely (e.g. Cursor trying to continue generation), keep
+  // previous_response_id so upstream can decide whether to fall back.
   if (hasInput) {
     delete body.previous_response_id;
   }
@@ -711,21 +710,40 @@ export class CodexExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    if (!isCodexResponsesWebSocketRequired(input.model, input.credentials)) {
-      return super.execute(input);
+    const sessionId = this.getPromptCacheSessionId(
+      input.credentials,
+      input.body as Record<string, unknown> | null
+    );
+    const identity = createCodexClientIdentity(
+      sessionId,
+      input.credentials?.providerSpecificData ?? null
+    );
+    const credentials = identity
+      ? {
+          ...input.credentials,
+          providerSpecificData: {
+            ...(input.credentials?.providerSpecificData || {}),
+            codexClientIdentity: identity,
+          },
+        }
+      : input.credentials;
+    const nextInput = { ...input, credentials };
+
+    if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
+      return super.execute(nextInput);
     }
 
     const url = CODEX_RESPONSES_WS_URL;
-    const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
-    mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+    const headers = normalizeCodexWsHeaders(this.buildHeaders(nextInput.credentials, true));
+    mergeUpstreamExtraHeaders(headers, nextInput.upstreamExtraHeaders);
 
     const transformedBody = (await this.transformRequest(
-      input.model,
-      input.body,
+      nextInput.model,
+      nextInput.body,
       true,
-      input.credentials
+      nextInput.credentials
     )) as Record<string, unknown>;
-    transformedBody.model = getCodexUpstreamModel(transformedBody.model || input.model);
+    transformedBody.model = getCodexUpstreamModel(transformedBody.model || nextInput.model);
     delete transformedBody.stream;
     delete transformedBody.stream_options;
 
@@ -760,7 +778,7 @@ export class CodexExecutor extends BaseExecutor {
     let abortHandler: (() => void) | null = null;
     const removeAbortListener = () => {
       if (!abortHandler) return;
-      input.signal?.removeEventListener("abort", abortHandler);
+      nextInput.signal?.removeEventListener("abort", abortHandler);
       abortHandler = null;
     };
 
@@ -821,7 +839,7 @@ export class CodexExecutor extends BaseExecutor {
         abortHandler = () => {
           finishStream({ reason: "client_aborted" });
         };
-        input.signal?.addEventListener("abort", abortHandler, { once: true });
+        nextInput.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
           ws = await websocketFn(toWebSocketUrl(url), {
@@ -830,7 +848,7 @@ export class CodexExecutor extends BaseExecutor {
             headers,
           });
           if (closed) return;
-          if (input.signal?.aborted) {
+          if (nextInput.signal?.aborted) {
             finishStream({ reason: "client_aborted" });
             return;
           }
@@ -928,6 +946,7 @@ export class CodexExecutor extends BaseExecutor {
     if (workspaceId) {
       headers["chatgpt-account-id"] = workspaceId;
     }
+    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -940,6 +959,7 @@ export class CodexExecutor extends BaseExecutor {
     if (cacheSessionId) {
       headers["session_id"] = cacheSessionId;
     }
+    applyCodexClientIdentityHeaders(headers, clientIdentity);
 
     return headers;
   }
@@ -956,13 +976,17 @@ export class CodexExecutor extends BaseExecutor {
     credentials,
     body: Record<string, unknown> | null
   ): string | null {
+    const promptCacheKey = normalizeCodexSessionId(body?.prompt_cache_key);
+    if (promptCacheKey) return promptCacheKey;
+
     // Prefer per-session identifiers from the client request body
     const sessionId = body?.session_id ?? body?.conversation_id;
-    if (typeof sessionId === "string" && sessionId.length > 0) {
-      return sessionId;
+    const normalizedSessionId = normalizeCodexSessionId(sessionId);
+    if (normalizedSessionId) {
+      return normalizedSessionId;
     }
     // Fall back to workspaceId (account-wide) — better than nothing
-    return credentials?.providerSpecificData?.workspaceId || null;
+    return normalizeCodexSessionId(credentials?.providerSpecificData?.workspaceId) || null;
   }
 
   /**
@@ -1136,6 +1160,11 @@ export class CodexExecutor extends BaseExecutor {
     // whether the request came via native passthrough or translation.
     delete body.max_tokens;
     delete body.max_output_tokens;
+    // VS Code Copilot BYOK Responses requests include `truncation` (for example
+    // "auto" or "disabled"). The Codex /responses backend currently rejects this
+    // field entirely with 400 Unsupported parameter: truncation, so strip it for
+    // both native passthrough and translated requests.
+    delete body.truncation;
     delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
     // Inject prompt_cache_key for Codex prompt caching.
@@ -1149,6 +1178,7 @@ export class CodexExecutor extends BaseExecutor {
         body.prompt_cache_key = cacheSessionId;
       }
     }
+    applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
 
     // Delete session_id and conversation_id from the body.
     // These are often injected by OmniRoute's fallback logic for store=true,

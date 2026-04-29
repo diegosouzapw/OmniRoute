@@ -1728,6 +1728,7 @@
     "disableCloud": "Huwag paganahin ang Cloud",
     "enableCloud": "Paganahin ang Cloud",
     "modelsAcrossEndpoints": "{models} na mga modelo sa {endpoints} na mga endpoint",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Streaming at non-streaming na chat sa lahat ng provider",
     "embeddings": "Mga pag-embed",
     "embeddingsDesc": "Mga text embed para sa paghahanap at RAG pipeline",

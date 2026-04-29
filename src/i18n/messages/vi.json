@@ -1728,6 +1728,7 @@
     "disableCloud": "Tắt đám mây",
     "enableCloud": "Kích hoạt đám mây",
     "modelsAcrossEndpoints": "{models} mô hình trên {endpoints} điểm cuối",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Trò chuyện trực tuyến và không phát trực tuyến với tất cả các nhà cung cấp",
     "embeddings": "Nhúng",
     "embeddingsDesc": "Nhúng văn bản cho đường dẫn tìm kiếm & RAG",

@@ -1728,6 +1728,7 @@
     "disableCloud": "Zakázat cloud",
     "enableCloud": "Povolit cloud",
     "modelsAcrossEndpoints": "{models} modelů napříč koncovými body {endpoints}",
+    "loadingModels": "Načítání dostupných modelů...",
     "chatDesc": "Streamovací i nestreamovací chat se všemi poskytovateli",
     "embeddings": "Vkládání",
     "embeddingsDesc": "Vkládání textu pro vyhledávání a RAG kanály",

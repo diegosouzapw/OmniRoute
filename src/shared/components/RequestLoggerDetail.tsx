@@ -45,14 +45,23 @@ function PayloadSection({ title, json, onCopy }) {
 
 // ─── Detail Modal ───────────────────────────────────────────────────────────
 
-export default function RequestLoggerDetail({ log, detail, loading, onClose, onCopy }) {
+type StreamChunks = Record<string, string | string[]>;
+
+export default function RequestLoggerDetail({
+  log,
+  detail,
+  loading,
+  debugEnabled,
+  onClose,
+  onCopy,
+}) {
   // Close on Escape key
   useEffect(() => {
     const handler = (e) => {
       if (e.key === "Escape") onClose();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    globalThis.addEventListener("keydown", handler);
+    return () => globalThis.removeEventListener("keydown", handler);
   }, [onClose]);
 
   const statusStyle = getStatusStyle(log.status);
@@ -63,6 +72,9 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     text: "#fff",
     label: (log.provider || "-").toUpperCase(),
   };
+
+  const providerStatus = detail?.pipelinePayloads?.providerResponse?.status;
+  const hasStatusDiscrepancy = providerStatus && providerStatus !== log.status;
 
   const formatDate = (iso) => {
     try {
@@ -104,6 +116,36 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
     : [];
   const requestJson = detail?.requestBody ? toPrettyJson(detail.requestBody) : null;
   const responseJson = detail?.responseBody ? toPrettyJson(detail.responseBody) : null;
+  const streamChunksText = (() => {
+    if (!debugEnabled || !detail?.pipelinePayloads?.streamChunks) return null;
+    let chunks: StreamChunks = detail.pipelinePayloads.streamChunks;
+
+    // If stored as a JSON string, try to parse it so we can render joined raw chunks
+    if (typeof chunks === "string") {
+      try {
+        const parsed = JSON.parse(chunks);
+        chunks = parsed;
+      } catch {
+        // Keep as string and return raw text (don't JSON-stringify)
+        return chunks;
+      }
+    }
+
+    if (chunks && typeof chunks === "object") {
+      try {
+        return Object.entries(chunks)
+          .map(([stage, arr]) => {
+            const joined = Array.isArray(arr) ? arr.join("") : String(arr);
+            return `--- ${stage} ---\n${joined}`;
+          })
+          .join("\n\n");
+      } catch {
+        return toPrettyJson(chunks);
+      }
+    }
+
+    return null;
+  })();
   const detailIssue =
     detail?.detailState === "missing"
       ? "Detailed payload artifact is no longer available for this log entry."
@@ -144,14 +186,28 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
         {/* Modal Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
           <div className="flex items-center gap-3">
-            <span
-              className="inline-block px-2.5 py-1 rounded text-xs font-bold"
-              style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
-            >
-              {log.status}
-            </span>
-            <span className="font-bold text-lg">{log.method}</span>
-            <span className="text-text-muted font-mono text-sm">{log.path}</span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block px-2.5 py-1 rounded text-xs font-bold"
+                  style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
+                >
+                  {log.status}
+                </span>
+                {hasStatusDiscrepancy && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-bg-subtle border border-border text-text-muted">
+                    Upstream: {providerStatus}
+                  </span>
+                )}
+                <span className="font-bold text-lg">{log.method}</span>
+              </div>
+              {hasStatusDiscrepancy && (
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                  OmniRoute returned {log.status} even though provider returned {providerStatus}
+                </span>
+              )}
+            </div>
+            <span className="text-text-muted font-mono text-sm self-center ml-2">{log.path}</span>
           </div>
           <button
             onClick={onClose}
@@ -332,6 +388,14 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
                     onCopy={() => onCopy(section.json)}
                   />
                 ))}
+
+              {streamChunksText && (
+                <PayloadSection
+                  title="Event Stream (Debug)"
+                  json={streamChunksText}
+                  onCopy={() => onCopy(streamChunksText)}
+                />
+              )}
 
               {payloadSections.length === 0 && responseJson && (
                 <PayloadSection

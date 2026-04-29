@@ -77,15 +77,78 @@ function rowToMemory(row: MemoryRow): Memory {
 }
 
 /**
- * Create a new memory entry
+ * Find existing memory by apiKeyId and key (for UPSERT logic)
+ */
+function findExistingMemory(
+  db: ReturnType<typeof getDbInstance>,
+  apiKeyId: string,
+  key: string
+): MemoryRow | undefined {
+  if (!key) return undefined;
+  const stmt = db.prepare(
+    "SELECT * FROM memories WHERE api_key_id = ? AND key = ? ORDER BY created_at DESC LIMIT 1"
+  );
+  return stmt.get(apiKeyId, key) as MemoryRow | undefined;
+}
+
+/**
+ * Create a new memory entry (UPSERT: updates existing if same apiKeyId + key)
  */
 export async function createMemory(
   memory: Omit<Memory, "id" | "createdAt" | "updatedAt">
 ): Promise<Memory> {
   const db = getDbInstance();
-  const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
+  // Check for existing memory with same apiKeyId + key (UPSERT logic)
+  const existing = memory.key ? findExistingMemory(db, memory.apiKeyId, memory.key) : undefined;
+
+  if (existing) {
+    // UPDATE existing record
+    const updatedMetadata = { ...parseJSON(existing.metadata), ...memory.metadata };
+    const stmt = db.prepare(
+      "UPDATE memories SET content = ?, metadata = ?, updated_at = ?, session_id = ?, type = ?, expires_at = ? WHERE id = ?"
+    );
+    stmt.run(
+      memory.content,
+      JSON.stringify(updatedMetadata),
+      now,
+      memory.sessionId,
+      memory.type,
+      memory.expiresAt ?? null,
+      existing.id
+    );
+
+    const updatedMemory: Memory = {
+      id: String(existing.id),
+      apiKeyId: memory.apiKeyId,
+      sessionId: memory.sessionId,
+      type: memory.type,
+      key: memory.key,
+      content: memory.content,
+      metadata: updatedMetadata,
+      createdAt: new Date(String(existing.created_at)),
+      updatedAt: new Date(now),
+      expiresAt: memory.expiresAt ?? null,
+    };
+
+    // Invalidate and update cache
+    invalidateMemoryCache(existing.id);
+    evictIfNeeded(_memoryCache);
+    _memoryCache.set(existing.id, { value: updatedMemory, timestamp: Date.now() });
+
+    log.info("memory.updated", {
+      apiKeyId: memory.apiKeyId,
+      type: memory.type,
+      id: existing.id,
+      key: memory.key,
+    });
+
+    return updatedMemory;
+  }
+
+  // INSERT new record if not exists
+  const id = crypto.randomUUID();
   const stmt = db.prepare(
     "INSERT INTO memories (id, api_key_id, session_id, type, key, content, metadata, created_at, updated_at, expires_at) " +
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"

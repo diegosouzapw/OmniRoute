@@ -405,7 +405,7 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
 
 // Provider-level failure circuit breaker tests
 test("isProviderFailureCode correctly identifies provider-wide transient error codes", () => {
-  assert.equal(isProviderFailureCode(429), false);
+  assert.equal(isProviderFailureCode(429), true);
   assert.equal(isProviderFailureCode(408), true);
   assert.equal(isProviderFailureCode(500), true);
   assert.equal(isProviderFailureCode(502), true);

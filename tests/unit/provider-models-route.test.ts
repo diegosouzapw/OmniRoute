@@ -461,7 +461,7 @@ test("provider models route caches discovered opencode-go models per connection"
   assert.equal(firstResponse.status, 200);
   assert.equal(firstBody.source, "api");
   assert.deepEqual(firstBody.models, [{ id: "glm-5.1", name: "GLM 5.1" }]);
-  assert.deepEqual(cachedModels, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+  assert.deepEqual(cachedModels, [{ id: "glm-5.1", name: "GLM 5.1", source: "imported" }]);
 
   globalThis.fetch = async () => {
     throw new Error("cached route should not hit upstream");
@@ -472,7 +472,7 @@ test("provider models route caches discovered opencode-go models per connection"
 
   assert.equal(cachedResponse.status, 200);
   assert.equal(cachedBody.source, "cache");
-  assert.deepEqual(cachedBody.models, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+  assert.deepEqual(cachedBody.models, [{ id: "glm-5.1", name: "GLM 5.1", source: "imported" }]);
   assert.equal(fetchCalls, 1);
 });
 
@@ -481,7 +481,7 @@ test("provider models route falls back to cached models when a refresh fails", a
     apiKey: "opencode-go-key",
   });
   await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
-    { id: "cached-go", name: "Cached Go", source: "api-sync" },
+    { id: "cached-go", name: "Cached Go", source: "imported" },
   ]);
   let fetchCalls = 0;
 
@@ -496,7 +496,7 @@ test("provider models route falls back to cached models when a refresh fails", a
   assert.equal(response.status, 200);
   assert.equal(body.source, "cache");
   assert.match(body.warning, /cached catalog/i);
-  assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "api-sync" }]);
+  assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "imported" }]);
   assert.equal(fetchCalls, 1);
 });
 
@@ -505,7 +505,7 @@ test("provider models route clears cached discovery when a refresh returns no re
     apiKey: "opencode-go-key",
   });
   await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
-    { id: "cached-go", name: "Cached Go", source: "api-sync" },
+    { id: "cached-go", name: "Cached Go", source: "imported" },
   ]);
 
   globalThis.fetch = async () => {

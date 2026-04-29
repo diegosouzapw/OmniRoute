@@ -1728,6 +1728,7 @@
     "disableCloud": "클라우드 비활성화",
     "enableCloud": "클라우드 활성화",
     "modelsAcrossEndpoints": "{endpoints} 엔드포인트 전반의 {models} 모델",
+    "loadingModels": "Loading available models...",
     "chatDesc": "모든 제공업체와의 스트리밍 및 비스트리밍 채팅",
     "embeddings": "임베딩",
     "embeddingsDesc": "검색 및 RAG 파이프라인을 위한 텍스트 임베딩",

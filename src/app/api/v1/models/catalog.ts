@@ -478,6 +478,17 @@ export async function getUnifiedModelsResponse(
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
+      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || provider;
+
+      // FIX #1752: Ensure blocked providers are not returned for non-chat models
+      if (
+        blockedProviders.has(alias) ||
+        blockedProviders.has(canonicalProviderId) ||
+        blockedProviders.has(provider)
+      ) {
+        return false;
+      }
+
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
 

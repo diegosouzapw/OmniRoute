@@ -513,11 +513,7 @@ export async function refreshKiroToken(
     // AWS SSO OIDC (Builder ID or IDC)
     // If clientId and clientSecret exist, assume AWS SSO OIDC (default to builder-id if authMethod not specified)
     if (clientId && clientSecret) {
-      const isIDC = authMethod === "idc";
-      const endpoint =
-        isIDC && region
-          ? `https://oidc.${region}.amazonaws.com/token`
-          : "https://oidc.us-east-1.amazonaws.com/token";
+      const endpoint = `https://oidc.${region || "us-east-1"}.amazonaws.com/token`;
 
       const response = await runWithProxyContext(proxyConfig, () =>
         fetch(endpoint, {

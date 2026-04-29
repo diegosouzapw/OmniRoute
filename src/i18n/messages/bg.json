@@ -1728,6 +1728,7 @@
     "disableCloud": "Деактивиране на облака",
     "enableCloud": "Активиране на облака",
     "modelsAcrossEndpoints": "{models} модели в {endpoints} крайни точки",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Поточно и нестрийминг чат с всички доставчици",
     "embeddings": "Вграждания",
     "embeddingsDesc": "Текстови вграждания за търсене и RAG тръбопроводи",

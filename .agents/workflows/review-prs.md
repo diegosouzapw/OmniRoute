@@ -4,6 +4,25 @@ description: Analyze open Pull Requests from the project's GitHub repository, ge
 
 # /review-prs — PR Review & Analysis Workflow
 
+## ⛔ ABSOLUTE PROHIBITION — Read Before Anything Else
+
+> **NEVER close a contributor's PR if you intend to use ANY of their code, ideas, or fixes.**
+>
+> **NEVER manually integrate contributor code into a release branch and then close their PR.**
+>
+> These actions are **STRICTLY FORBIDDEN** under all circumstances:
+>
+> 1. ❌ Closing a PR and cherry-picking/copying its code into a release branch
+> 2. ❌ Closing a PR "because of conflicts" and re-implementing the same fix yourself
+> 3. ❌ Closing a PR and committing a "similar" solution inspired by it
+> 4. ❌ Using `gh pr close` on any PR whose content was or will be used
+>
+> **Why**: Closing a PR after taking the contributor's work means they get ZERO credit on GitHub — no "Merged" badge, no contribution graph entry, no public record. This is effectively stealing their contribution. An audit found this happened to **37 PRs** in the past.
+>
+> **The ONLY acceptable flow**: Resolve conflicts IN the contributor's branch, push fixes TO their branch, then merge THEIR PR via `gh pr merge`. See Step 7 and Step 8 for the exact procedure.
+>
+> **When to close a PR**: ONLY when the user (repository owner) explicitly requests it, OR when the PR is clearly spam/malicious, OR when the author themselves asks to close it. In ALL other cases, leave it open.
+
 ## Overview
 
 This workflow fetches all open PRs from the project's GitHub repository, performs a critical analysis of each one, generates a detailed report, and waits for user approval before proceeding with implementation. **All improvements are committed on the current release branch** (`release/vX.Y.Z`).

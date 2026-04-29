@@ -1728,6 +1728,7 @@
     "disableCloud": "बादल अक्षम करें",
     "enableCloud": "क्लाउड सक्षम करें",
     "modelsAcrossEndpoints": "{models} मॉडल {endpoints} समापन बिंदु पर",
+    "loadingModels": "Loading available models...",
     "chatDesc": "सभी प्रदाताओं के साथ स्ट्रीमिंग और गैर-स्ट्रीमिंग चैट",
     "embeddings": "एंबेडिंग",
     "embeddingsDesc": "खोज और RAG पाइपलाइनों के लिए टेक्स्ट एम्बेडिंग",

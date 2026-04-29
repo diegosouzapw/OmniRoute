@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
@@ -47,32 +47,35 @@ export default function OAuthModal({
   const deviceVerificationUrl =
     deviceData?.verification_uri_complete || deviceData?.verification_uri || "";
 
-  // State for client-only values to avoid hydration mismatch
-  const [isLocalhost, setIsLocalhost] = useState(false);
-  const [placeholderUrl, setPlaceholderUrl] = useState("/callback?code=...");
+  // Client-only runtime values
+  const runtimeLocation = useMemo(() => {
+    if (typeof window === "undefined") {
+      return {
+        isLocalhost: false,
+        isTrueLocalhost: false,
+        placeholderUrl: "/callback?code=...",
+      };
+    }
+
+    const hostname = window.location.hostname;
+    const isLocal =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+    const isTrulyLocal = hostname === "localhost" || hostname === "127.0.0.1";
+
+    return {
+      isLocalhost: isLocal,
+      isTrueLocalhost: isTrulyLocal,
+      placeholderUrl: `${window.location.origin}/callback?code=...`,
+    };
+  }, []);
+
+  const { isLocalhost, isTrueLocalhost, placeholderUrl } = runtimeLocation;
   const callbackProcessedRef = useRef(false);
   const flowStartedRef = useRef(false);
-
-  // Detect if running on true localhost vs LAN IP (client-side only)
-  // - True localhost (127.0.0.1/localhost): popup auto-callback works
-  // - LAN IPs (192.168.x, 10.x, 172.x): redirect URI uses localhost but callback
-  //   won't resolve back to the VPS, so use manual paste mode
-  const [isTrueLocalhost, setIsTrueLocalhost] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const isLocal =
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname.startsWith("192.168.") ||
-        hostname.startsWith("10.") ||
-        /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
-      const isTrulyLocal = hostname === "localhost" || hostname === "127.0.0.1";
-      setIsLocalhost(isLocal);
-      setIsTrueLocalhost(isTrulyLocal);
-      setPlaceholderUrl(`${window.location.origin}/callback?code=...`);
-    }
-  }, []);
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
 
@@ -217,7 +220,22 @@ export default function OAuthModal({
         setIsDeviceCode(true);
         setStep("waiting");
 
-        const res = await fetch(`/api/oauth/${provider}/device-code`);
+        const deviceCodeUrl = new URL(`/api/oauth/${provider}/device-code`, window.location.origin);
+        if (
+          (provider === "kiro" || provider === "amazon-q") &&
+          idcConfig &&
+          typeof idcConfig === "object"
+        ) {
+          const idc = idcConfig as { startUrl?: string; region?: string };
+          if (typeof idc.startUrl === "string" && idc.startUrl.trim()) {
+            deviceCodeUrl.searchParams.set("startUrl", idc.startUrl.trim());
+          }
+          if (typeof idc.region === "string" && idc.region.trim()) {
+            deviceCodeUrl.searchParams.set("region", idc.region.trim());
+          }
+        }
+
+        const res = await fetch(deviceCodeUrl.toString());
         const data = await res.json();
         if (!res.ok) {
           const errMsg =
@@ -237,7 +255,11 @@ export default function OAuthModal({
         // Start polling - pass extraData for Kiro (contains _clientId, _clientSecret)
         const extraData =
           provider === "kiro" || provider === "amazon-q"
-            ? { _clientId: data._clientId, _clientSecret: data._clientSecret }
+            ? {
+                _clientId: data._clientId,
+                _clientSecret: data._clientSecret,
+                _region: data._region,
+              }
             : null;
         startPolling(data.device_code, data.codeVerifier, data.interval || 5, extraData);
         return;
@@ -379,7 +401,15 @@ export default function OAuthModal({
       setError(err.message);
       setStep("error");
     }
-  }, [provider, isLocalhost, isTrueLocalhost, startPolling, onSuccess, reauthConnection]);
+  }, [
+    provider,
+    isLocalhost,
+    isTrueLocalhost,
+    startPolling,
+    onSuccess,
+    reauthConnection,
+    idcConfig,
+  ]);
 
   // Reset guard when modal closes
   useEffect(() => {

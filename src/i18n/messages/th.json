@@ -1728,6 +1728,7 @@
     "disableCloud": "ปิดการใช้งานคลาวด์",
     "enableCloud": "เปิดใช้งานคลาวด์",
     "modelsAcrossEndpoints": "{models} โมเดลข้ามจุดสิ้นสุด {endpoints}",
+    "loadingModels": "Loading available models...",
     "chatDesc": "การแชทแบบสตรีมมิงและไม่สตรีมกับผู้ให้บริการทั้งหมด",
     "embeddings": "การฝัง",
     "embeddingsDesc": "การฝังข้อความสำหรับการค้นหาและไปป์ไลน์ RAG",

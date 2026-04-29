@@ -1832,6 +1832,7 @@
     "disableCloud": "Disable Cloud",
     "enableCloud": "Enable Cloud",
     "modelsAcrossEndpoints": "{models} models across {endpoints} endpoints",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Streaming & non-streaming chat with all providers",
     "embeddings": "Embeddings",
     "embeddingsDesc": "Text embeddings for search & RAG pipelines",

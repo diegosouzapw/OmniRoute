@@ -1728,6 +1728,7 @@
     "disableCloud": "Lumpuhkan Cloud",
     "enableCloud": "Dayakan Cloud",
     "modelsAcrossEndpoints": "{models} model merentas {endpoints} titik akhir",
+    "loadingModels": "Loading available models...",
     "chatDesc": "Sembang penstriman & bukan penstriman dengan semua pembekal",
     "embeddings": "Embeddings",
     "embeddingsDesc": "Pembenaman teks untuk carian & saluran paip RAG",

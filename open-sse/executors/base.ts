@@ -527,17 +527,25 @@ export class BaseExecutor {
 
           const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
 
-          if (supportsAdaptiveThinking && !tb.thinking) {
+          // Fix #1761: Only inject adaptive thinking/high effort if the client didn't
+          // explicitly set these fields. This allows users to opt-out by sending
+          // `thinking: null` or `output_config: { effort: "low" }` to prevent forced
+          // quota drain on Claude Max accounts.
+          const originalBody = body as Record<string, unknown>;
+          const clientExplicitThinking = originalBody?.thinking !== undefined;
+          const clientExplicitEffort = originalBody?.output_config !== undefined;
+
+          if (supportsAdaptiveThinking && !tb.thinking && !clientExplicitThinking) {
             tb.thinking = { type: "adaptive" };
           }
 
-          if (supportsAdaptiveThinking && !tb.context_management) {
+          if (supportsAdaptiveThinking && !tb.context_management && !clientExplicitThinking) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
-          if (supportsAdaptiveThinking && !tb.output_config) {
+          if (supportsAdaptiveThinking && !tb.output_config && !clientExplicitEffort) {
             tb.output_config = { effort: "high" };
           }
 
