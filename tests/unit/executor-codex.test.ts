@@ -13,6 +13,10 @@ import {
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
+  clearRememberedResponseFunctionCallsForTesting,
+  rememberResponseFunctionCalls,
+} from "../../open-sse/services/responsesToolCallState.ts";
+import {
   DEFAULT_THINKING_CONFIG,
   setThinkingBudgetConfig,
   ThinkingMode,
@@ -22,6 +26,7 @@ import { CODEX_CHAT_DEFAULT_INSTRUCTIONS } from "../../open-sse/config/codexInst
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
   __setCodexWebSocketTransportForTesting(undefined);
+  clearRememberedResponseFunctionCallsForTesting();
 });
 
 async function withEnv(entries: Record<string, string | undefined>, fn: () => any) {
@@ -294,6 +299,48 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
   assert.equal(result._omnirouteResponsesStore, undefined);
   assert.equal(result.store, true);
   assert.equal(result.previous_response_id, "resp_prev_123");
+});
+
+test("CodexExecutor.transformRequest rehydrates missing function_call items for stateful tool outputs", () => {
+  const executor = new CodexExecutor();
+  rememberResponseFunctionCalls("resp_prev_tool_123", [
+    {
+      type: "function_call",
+      call_id: "call_tool_123",
+      name: "workspace_read_file",
+      arguments: "{\"path\":\"README.md\"}",
+    },
+  ]);
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_tool_123",
+    input: [
+      {
+        type: "function_call_output",
+        call_id: "call_tool_123",
+        output: "{\"ok\":true}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.store, false);
+  assert.deepEqual(result.input[0], {
+    type: "function_call",
+    call_id: "call_tool_123",
+    name: "workspace_read_file",
+    arguments: "{\"path\":\"README.md\"}",
+  });
+  assert.deepEqual(result.input[1], {
+    type: "function_call_output",
+    call_id: "call_tool_123",
+    output: "{\"ok\":true}",
+  });
 });
 
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
