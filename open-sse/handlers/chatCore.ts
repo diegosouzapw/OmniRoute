@@ -3505,6 +3505,7 @@ export async function handleChatCore({
     clientResponseFormat === FORMATS.OPENAI &&
     !isResponsesEndpoint &&
     !isDroidCLI;
+  const streamStateBody = finalBody || body;
 
   if (needsResponsesTranslation) {
     // Provider returns openai-responses, translate to openai (Chat Completions) that clients expect
@@ -3517,7 +3518,7 @@ export async function handleChatCore({
       responseToolNameMap,
       model,
       connectionId,
-      body,
+      streamStateBody,
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure
@@ -3533,7 +3534,7 @@ export async function handleChatCore({
       responseToolNameMap,
       model,
       connectionId,
-      body,
+      streamStateBody,
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure
@@ -3546,7 +3547,7 @@ export async function handleChatCore({
       responseToolNameMap,
       model,
       connectionId,
-      body,
+      streamStateBody,
       onStreamComplete,
       apiKeyInfo,
       handleStreamFailure,

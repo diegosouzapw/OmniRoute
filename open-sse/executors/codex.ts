@@ -21,7 +21,11 @@ import {
   createCodexClientIdentity,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import { getRememberedResponseFunctionCalls } from "../services/responsesToolCallState.ts";
+import {
+  getRememberedFunctionCallsByIds,
+  getRememberedResponseConversationItems,
+  getRememberedResponseFunctionCalls,
+} from "../services/responsesToolCallState.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { createRequire } from "module";
@@ -296,6 +300,23 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
+function buildRecoveredToolContextMessage(
+  droppedItems: Array<Record<string, unknown>>
+): Record<string, unknown> {
+  return {
+    type: "message",
+    role: "user",
+    content: [
+      {
+        type: "input_text",
+        text:
+          "Recovered tool context from the previous turn. Continue using this context instead of calling the same tools again unless you must.\n" +
+          JSON.stringify(droppedItems),
+      },
+    ],
+  };
+}
+
 /**
  * Strip server-generated item IDs from the input array.
  *
@@ -312,18 +333,30 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
  *   3. Strips the "id" field from any object in input whose id matches a
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
- *   4. Rehydrates missing function_call items for stateful tool-output follow-ups
- *      using locally remembered response state, then deletes previous_response_id
+ *   4. Expands locally remembered conversation snapshots for stateful follow-ups
+ *      when the upstream backend rejects previous_response_id
+ *   5. Falls back to rehydrating missing function_call items if only the older
+ *      tool-call state is available
+ *   6. Filters orphaned function_call/function_call_output items when one side
+ *      of the tool exchange is still missing after local replay/fallback repair
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
   const hasInput = Array.isArray(body.input) && body.input.length > 0;
   const inputItems = Array.isArray(body.input) ? body.input : [];
   const previousResponseId =
     typeof body.previous_response_id === "string" ? body.previous_response_id : "";
+  const rememberedConversationItems =
+    hasInput && previousResponseId
+      ? getRememberedResponseConversationItems(previousResponseId)
+      : [];
+
+  if (rememberedConversationItems.length > 0) {
+    body.input = [...rememberedConversationItems, ...inputItems];
+  }
   const inputFunctionCallIds = new Set<string>();
   const inputFunctionCallOutputIds = new Set<string>();
 
-  for (const item of inputItems) {
+  for (const item of Array.isArray(body.input) ? body.input : []) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const record = item as Record<string, unknown>;
     const type = typeof record.type === "string" ? record.type : "";
@@ -344,9 +377,15 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
 
   if (hasInput && previousResponseId && missingFunctionCallIds.length > 0) {
     const rememberedFunctionCalls = getRememberedResponseFunctionCalls(previousResponseId);
-    const injectedFunctionCalls = rememberedFunctionCalls
+    const globallyRememberedFunctionCalls = getRememberedFunctionCallsByIds(missingFunctionCallIds);
+    const injectedFunctionCalls = [...rememberedFunctionCalls, ...globallyRememberedFunctionCalls]
       .filter((functionCall) => missingFunctionCallIds.includes(functionCall.call_id))
       .filter((functionCall) => !inputFunctionCallIds.has(functionCall.call_id))
+      .filter(
+        (functionCall, index, allFunctionCalls) =>
+          allFunctionCalls.findIndex((candidate) => candidate.call_id === functionCall.call_id) ===
+          index
+      )
       .map((functionCall) => ({
         type: "function_call",
         call_id: functionCall.call_id,
@@ -362,14 +401,91 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
     }
   }
 
-  // Strip previous_response_id whenever the request already carries input items.
-  // Codex rejects this field outright, so stateful follow-up turns must be made
-  // self-contained via the local function_call replay above.
-  //
-  // If input is missing entirely (e.g. Cursor trying to continue generation), keep
-  // previous_response_id so upstream can decide whether to fall back.
-  if (hasInput) {
-    delete body.previous_response_id;
+  const finalFunctionCallIds = new Set<string>();
+  const finalFunctionCallOutputIds = new Set<string>();
+  if (Array.isArray(body.input)) {
+    for (const item of body.input) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const record = item as Record<string, unknown>;
+      const type = typeof record.type === "string" ? record.type : "";
+      const callId = typeof record.call_id === "string" ? record.call_id : "";
+      if (!callId) continue;
+      if (type === "function_call") {
+        finalFunctionCallIds.add(callId);
+        continue;
+      }
+      if (type === "function_call_output") {
+        finalFunctionCallOutputIds.add(callId);
+      }
+    }
+  }
+
+  const droppedOrphanFunctionCallIds: string[] = [];
+  const droppedOrphanFunctionCallOutputIds: string[] = [];
+  const droppedOrphanItems: Array<Record<string, unknown>> = [];
+  if (Array.isArray(body.input)) {
+    body.input = body.input.filter((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        return true;
+      }
+
+      const record = item as Record<string, unknown>;
+      const callId = typeof record.call_id === "string" ? record.call_id : "";
+      if (!callId) {
+        return true;
+      }
+
+      if (record.type === "function_call") {
+        if (finalFunctionCallOutputIds.has(callId)) {
+          return true;
+        }
+
+        droppedOrphanFunctionCallIds.push(callId);
+        droppedOrphanItems.push({ ...record });
+        return false;
+      }
+
+      if (record.type === "function_call_output") {
+        if (finalFunctionCallIds.has(callId)) {
+          return true;
+        }
+
+        droppedOrphanFunctionCallOutputIds.push(callId);
+        droppedOrphanItems.push({ ...record });
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  if (droppedOrphanFunctionCallIds.length > 0) {
+    console.warn(
+      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallIds.length} orphan function_call item(s): ${droppedOrphanFunctionCallIds.join(", ")}`
+    );
+  }
+
+  if (droppedOrphanFunctionCallOutputIds.length > 0) {
+    console.warn(
+      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallOutputIds.length} orphan function_call_output item(s): ${droppedOrphanFunctionCallOutputIds.join(", ")}`
+    );
+  }
+
+  if (
+    Array.isArray(body.input) &&
+    body.input.length === 0 &&
+    droppedOrphanItems.length > 0
+  ) {
+    body.input = [buildRecoveredToolContextMessage(droppedOrphanItems)];
+    console.warn(
+      `[Codex] stripStoredItemReferences: synthesized recovery message from ${droppedOrphanItems.length} dropped orphan tool item(s)`
+    );
+  }
+
+  // Codex rejects previous_response_id for passthrough requests.
+  delete body.previous_response_id;
+  if (Array.isArray(body.input) && body.input.length === 0) {
+    delete body.input;
   }
 
   if (!Array.isArray(body.input)) return;
@@ -1150,10 +1266,8 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body.reasoning_effort;
 
-    // previous_response_id: always stripped by stripStoredItemReferences().
-    // The /codex/responses endpoint does not persist responses, so any reference
-    // to a previous response ID would cause a 404. This matches the behavior of
-    // both the official Codex CLI (sets None) and CLIProxyAPI (deletes the field).
+    // previous_response_id is expanded into a self-contained local replay when
+    // input is present because Codex rejects that parameter upstream.
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
     // Codex API rejects both max_tokens and max_output_tokens regardless of
@@ -1182,13 +1296,9 @@ export class CodexExecutor extends BaseExecutor {
 
     // Delete session_id and conversation_id from the body.
     // These are often injected by OmniRoute's fallback logic for store=true,
-    // but the upstream Codex API strictly rejects them as unsupported parameters
-    // UNLESS the request lacks input entirely (where they are required to avoid a 400 Schema Error).
+    // but the upstream Codex API strictly rejects them as unsupported parameters.
     delete body.session_id;
-    const hasInput = Array.isArray(body.input) && body.input.length > 0;
-    if (hasInput) {
-      delete body.conversation_id;
-    }
+    delete body.conversation_id;
 
     if (nativeCodexPassthrough) {
       return body;

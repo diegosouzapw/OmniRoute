@@ -28,7 +28,10 @@ import {
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
-import { rememberResponseFunctionCalls } from "../services/responsesToolCallState.ts";
+import {
+  rememberResponseConversationState,
+  rememberResponseFunctionCalls,
+} from "../services/responsesToolCallState.ts";
 import { buildErrorBody } from "./error.ts";
 
 /**
@@ -54,6 +57,48 @@ export function withBodyTimeout<T>(
 export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
+
+function buildResponsesOutputItemKey(item: unknown): string | null {
+  if (!item || typeof item !== "object" || Array.isArray(item)) {
+    return null;
+  }
+
+  const record = item as JsonRecord;
+  const type = typeof record.type === "string" ? record.type : "";
+  const id = typeof record.id === "string" ? record.id : "";
+  const callId = typeof record.call_id === "string" ? record.call_id : "";
+  const outputIndex = typeof record.output_index === "number" ? record.output_index : "";
+  const name = typeof record.name === "string" ? record.name : "";
+
+  if (!type && !id && !callId) {
+    return null;
+  }
+
+  return `${type}:${id}:${callId}:${outputIndex}:${name}`;
+}
+
+function pushUniqueResponsesOutputItems(target: unknown[], items: readonly unknown[]) {
+  const seen = new Set<string>();
+
+  for (const existingItem of target) {
+    const key = buildResponsesOutputItemKey(existingItem);
+    if (key) {
+      seen.add(key);
+    }
+  }
+
+  for (const item of items) {
+    const key = buildResponsesOutputItemKey(item);
+    if (key && seen.has(key)) {
+      continue;
+    }
+
+    target.push(item);
+    if (key) {
+      seen.add(key);
+    }
+  }
+}
 
 type StreamLogger = {
   appendProviderChunk?: (value: string) => void;
@@ -524,7 +569,9 @@ export function createSSEStream(options: StreamOptions = {}) {
   // used to backfill `response.completed.response.output` when upstream returns it
   // empty (which happens when `store: false` — see backfillResponsesCompletedOutput).
   const passthroughResponsesOutputItems: unknown[] = [];
+  const passthroughResponsesPendingFunctionCalls = new Map<string, JsonRecord>();
   let passthroughResponsesId: string | null = null;
+  let passthroughResponsesCurrentFunctionCallKey: string | null = null;
   const passthroughResponsesReasoningSummarySeen = new Set<string>();
   const streamStartedAt = Date.now();
 
@@ -949,12 +996,94 @@ export function createSSEStream(options: StreamOptions = {}) {
                       passthroughResponsesReasoningSummarySeen.add(reasoningKey);
                     }
                   }
+                  if (parsed.type === "response.output_item.added" && parsed.item?.type === "function_call") {
+                    const item =
+                      parsed.item && typeof parsed.item === "object" && !Array.isArray(parsed.item)
+                        ? { ...(parsed.item as JsonRecord) }
+                        : null;
+                    const pendingKey =
+                      item && typeof item.id === "string"
+                        ? item.id
+                        : item && typeof item.call_id === "string"
+                          ? item.call_id
+                          : null;
+                    if (item && pendingKey) {
+                      if (typeof item.arguments !== "string") {
+                        item.arguments = "";
+                      }
+                      passthroughResponsesPendingFunctionCalls.set(pendingKey, item);
+                      passthroughResponsesCurrentFunctionCallKey = pendingKey;
+                    }
+                  }
+                  if (parsed.type === "response.function_call_arguments.delta") {
+                    const pendingKey =
+                      typeof parsed.item_id === "string"
+                        ? parsed.item_id
+                        : passthroughResponsesCurrentFunctionCallKey;
+                    const pending = pendingKey
+                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      : undefined;
+                    if (pending && typeof parsed.delta === "string") {
+                      const previousArgs = typeof pending.arguments === "string" ? pending.arguments : "";
+                      pending.arguments = previousArgs + parsed.delta;
+                    }
+                  }
+                  if (parsed.type === "response.function_call_arguments.done") {
+                    const pendingKey =
+                      typeof parsed.item_id === "string"
+                        ? parsed.item_id
+                        : passthroughResponsesCurrentFunctionCallKey;
+                    const pending = pendingKey
+                      ? passthroughResponsesPendingFunctionCalls.get(pendingKey)
+                      : undefined;
+                    if (pending) {
+                      if (typeof parsed.arguments === "string") {
+                        pending.arguments = parsed.arguments;
+                      }
+                      pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [pending]);
+                    }
+                  }
                   // Capture each completed output item so the final
                   // response.completed snapshot can be backfilled when upstream
                   // returns an empty `output` (happens with store: false).
                   if (parsed.type === "response.output_item.done" && parsed.item) {
                     emitSyntheticResponsesReasoningSummary(controller, parsed);
-                    passthroughResponsesOutputItems.push(parsed.item);
+                    pushUniqueResponsesOutputItems(passthroughResponsesOutputItems, [parsed.item]);
+                    if (parsed.item?.type === "function_call") {
+                      const pendingKey =
+                        typeof parsed.item.id === "string"
+                          ? parsed.item.id
+                          : typeof parsed.item.call_id === "string"
+                            ? parsed.item.call_id
+                            : null;
+                      if (pendingKey) {
+                        passthroughResponsesPendingFunctionCalls.delete(pendingKey);
+                        if (passthroughResponsesCurrentFunctionCallKey === pendingKey) {
+                          passthroughResponsesCurrentFunctionCallKey = null;
+                        }
+                      }
+                    }
+                  }
+                  if (
+                    parsed.type === "response.completed" &&
+                    Array.isArray(parsed.response?.output) &&
+                    parsed.response.output.length > 0
+                  ) {
+                    pushUniqueResponsesOutputItems(
+                      passthroughResponsesOutputItems,
+                      parsed.response.output
+                    );
+                  }
+                  if (
+                    parsed.type === "response.completed" &&
+                    passthroughResponsesPendingFunctionCalls.size > 0
+                  ) {
+                    pushUniqueResponsesOutputItems(
+                      passthroughResponsesOutputItems,
+                      [...passthroughResponsesPendingFunctionCalls.values()]
+                    );
+                    passthroughResponsesPendingFunctionCalls.clear();
+                    passthroughResponsesCurrentFunctionCallKey = null;
                   }
                   // Two transport-level fixes for Responses passthrough:
                   //   1) Strip echoed `instructions` + `tools` from lifecycle
@@ -1412,6 +1541,20 @@ export function createSSEStream(options: StreamOptions = {}) {
               });
             }
             clearPendingPassthroughEvent();
+
+            if (passthroughResponsesId) {
+              const requestInput =
+                body &&
+                typeof body === "object" &&
+                Array.isArray((body as JsonRecord).input)
+                  ? ((body as JsonRecord).input as unknown[])
+                  : [];
+              rememberResponseConversationState(
+                passthroughResponsesId,
+                requestInput,
+                passthroughResponsesOutputItems
+              );
+            }
 
             if (passthroughResponsesId && passthroughResponsesOutputItems.length > 0) {
               rememberResponseFunctionCalls(

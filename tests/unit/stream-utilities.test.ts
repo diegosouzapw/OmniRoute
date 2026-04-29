@@ -133,6 +133,53 @@ test("createPassthroughStreamWithLogger synthesizes reasoning summary events fro
   assert.match(result, /event: response\.output_item\.done/);
 });
 
+test("createPassthroughStreamWithLogger backfills completed output from function_call arguments events", async () => {
+  const transform = createPassthroughStreamWithLogger(
+    "codex",
+    null,
+    null,
+    "gpt-5.5-low",
+    null,
+    null,
+    null,
+    null,
+    null,
+    "openai-responses"
+  );
+
+  const writer = transform.writable.getWriter();
+  await writer.write(
+    new TextEncoder().encode(
+      [
+        'data: {"type":"response.created","response":{"id":"resp_fc_1"}}',
+        'event: response.output_item.added',
+        'data: {"type":"response.output_item.added","response_id":"resp_fc_1","output_index":0,"item":{"id":"fc_call_1","type":"function_call","call_id":"call_1","name":"workspace_read_file","arguments":""}}',
+        'event: response.function_call_arguments.done',
+        'data: {"type":"response.function_call_arguments.done","response_id":"resp_fc_1","output_index":0,"item_id":"fc_call_1","arguments":"{\"path\":\"README.md\"}"}',
+        'event: response.completed',
+        'data: {"type":"response.completed","response":{"id":"resp_fc_1","status":"completed","output":[],"usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}',
+        "",
+      ].join("\n")
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value);
+  }
+
+  assert.match(result, /event: response\.completed/);
+  assert.match(result, /"type":"function_call"/);
+  assert.match(result, /"call_id":"call_1"/);
+  assert.match(result, /"arguments":"\\{\\\"path\\\":\\\"README\.md\\\"\\}"/);
+});
+
 test("createStreamController returns valid controller", () => {
   let completeLogged = false;
   let disconnectLogged = false;

@@ -14,6 +14,7 @@ import {
 } from "../../open-sse/executors/codex.ts";
 import {
   clearRememberedResponseFunctionCallsForTesting,
+  rememberResponseConversationState,
   rememberResponseFunctionCalls,
 } from "../../open-sse/services/responsesToolCallState.ts";
 import {
@@ -300,7 +301,6 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
   assert.equal(result.store, true);
   assert.equal(result.previous_response_id, "resp_prev_123");
 });
-
 test("CodexExecutor.transformRequest strips store from compact requests even when store is enabled", () => {
   const executor = new CodexExecutor();
   const body = {
@@ -323,6 +323,74 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   assert.equal(result.store, undefined);
   assert.equal(result.stream, undefined);
   assert.equal(result.instructions, "keep this");
+});
+
+test("CodexExecutor.transformRequest expands remembered conversation state for stateful tool outputs", () => {
+  const executor = new CodexExecutor();
+  rememberResponseConversationState(
+    "resp_prev_tool_123",
+    [
+      {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: "Read README.md and summarize it.",
+          },
+        ],
+      },
+    ],
+    [
+      {
+        type: "function_call",
+        call_id: "call_tool_123",
+        name: "workspace_read_file",
+        arguments: "{\"path\":\"README.md\"}",
+      },
+    ]
+  );
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_tool_123",
+    input: [
+      {
+        type: "function_call_output",
+        call_id: "call_tool_123",
+        output: "{\"ok\":true}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.store, false);
+  assert.equal(result.input.length, 3);
+  assert.deepEqual(result.input[0], {
+    type: "message",
+    role: "user",
+    content: [
+      {
+        type: "input_text",
+        text: "Read README.md and summarize it.",
+      },
+    ],
+  });
+  assert.deepEqual(result.input[1], {
+    type: "function_call",
+    call_id: "call_tool_123",
+    name: "workspace_read_file",
+    arguments: "{\"path\":\"README.md\"}",
+  });
+  assert.deepEqual(result.input[2], {
+    type: "function_call_output",
+    call_id: "call_tool_123",
+    output: "{\"ok\":true}",
+  });
 });
 
 test("CodexExecutor.transformRequest rehydrates missing function_call items for stateful tool outputs", () => {
@@ -364,6 +432,162 @@ test("CodexExecutor.transformRequest rehydrates missing function_call items for 
     type: "function_call_output",
     call_id: "call_tool_123",
     output: '{"ok":true}',
+  });
+});
+
+test("CodexExecutor.transformRequest filters orphaned function_call_output items after replay repair", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_orphan_123",
+    input: [
+      {
+        type: "function_call",
+        call_id: "call_valid_123",
+        name: "workspace_read_file",
+        arguments: "{\"path\":\"README.md\"}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_valid_123",
+        output: "{\"ok\":true}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_orphan_123",
+        output: "{\"stale\":true}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(
+    result.input.filter((item) => item.type === "function_call_output").length,
+    1
+  );
+  assert.equal(result.input.find((item) => item.type === "function_call_output")?.call_id, "call_valid_123");
+});
+
+test("CodexExecutor.transformRequest filters orphaned function_call items after replay repair", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_orphan_call_123",
+    input: [
+      {
+        type: "function_call",
+        call_id: "call_valid_456",
+        name: "workspace_read_file",
+        arguments: "{\"path\":\"README.md\"}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_valid_456",
+        output: "{\"ok\":true}",
+      },
+      {
+        type: "function_call",
+        call_id: "call_orphan_456",
+        name: "workspace_search",
+        arguments: "{\"query\":\"Authorization\"}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.input.filter((item) => item.type === "function_call").length, 1);
+  assert.equal(result.input.find((item) => item.type === "function_call")?.call_id, "call_valid_456");
+});
+
+test("CodexExecutor.transformRequest synthesizes a recovery message when orphan cleanup empties input", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    conversation_id: "conv_empty_after_cleanup",
+    session_id: "sess_empty_after_cleanup",
+    previous_response_id: "resp_prev_empty_after_cleanup",
+    input: [
+      {
+        type: "function_call",
+        call_id: "call_orphan_only_1",
+        name: "workspace_search",
+        arguments: "{\"query\":\"auth\"}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_orphan_only_2",
+        output: "{\"matches\":1}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.conversation_id, undefined);
+  assert.equal(result.session_id, undefined);
+  assert.equal(result.prompt_cache_key, "conv_empty_after_cleanup");
+  assert.equal(Array.isArray(result.input), true);
+  assert.equal(result.input.length, 1);
+  assert.deepEqual(result.input[0].type, "message");
+  assert.deepEqual(result.input[0].role, "user");
+  assert.match(result.input[0].content[0].text, /Recovered tool context from the previous turn/);
+  assert.match(result.input[0].content[0].text, /call_orphan_only_1/);
+  assert.match(result.input[0].content[0].text, /call_orphan_only_2/);
+});
+
+test("CodexExecutor.transformRequest repairs orphan function_call_output from global remembered call_id cache", () => {
+  const executor = new CodexExecutor();
+  rememberResponseFunctionCalls("resp_older_tool_123", [
+    {
+      type: "function_call",
+      call_id: "call_old_123",
+      name: "workspace_search",
+      arguments: "{\"query\":\"Authorization\"}",
+    },
+  ]);
+
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_without_that_call",
+    input: [
+      {
+        type: "function_call_output",
+        call_id: "call_old_123",
+        output: "{\"matches\":1}",
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.deepEqual(result.input[0], {
+    type: "function_call",
+    call_id: "call_old_123",
+    name: "workspace_search",
+    arguments: "{\"query\":\"Authorization\"}",
+  });
+  assert.deepEqual(result.input[1], {
+    type: "function_call_output",
+    call_id: "call_old_123",
+    output: "{\"matches\":1}",
   });
 });
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
