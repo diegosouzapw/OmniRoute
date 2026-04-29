@@ -4,6 +4,7 @@ import {
   importManagedModels,
   type ManagedModelImportMode,
 } from "@/lib/providerModels/managedModelImport";
+import { GET as getProviderModels } from "../models/route";
 import { saveCallLog } from "@/lib/usage/callLogs";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
@@ -117,6 +118,46 @@ function getModelSyncChannelLabel(connection: unknown) {
   );
 }
 
+async function fetchProviderModelsForSync(request: Request, connectionId: string) {
+  // Construct a safe localhost URL from the incoming request's origin.
+  // The route only accepts authenticated or internal-scheduler requests,
+  // and the path is hardcoded — no user-controlled URL components reach fetch.
+  const SAFE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
+  const incomingUrl = new URL(request.url);
+  const safeOrigin = SAFE_HOSTS.has(incomingUrl.hostname)
+    ? incomingUrl.origin
+    : `http://127.0.0.1:${process.env.PORT || "20128"}`;
+  const modelsPath = `/api/providers/${encodeURIComponent(connectionId)}/models?refresh=true`;
+  const headers = {
+    cookie: request.headers.get("cookie") || "",
+    ...buildModelSyncInternalHeaders(),
+  };
+
+  try {
+    return await fetch(new URL(modelsPath, safeOrigin).href, {
+      method: "GET",
+      cache: "no-store",
+      headers,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `[ModelSync] Internal /models self-fetch failed for ${connectionId.slice(
+        0,
+        8
+      )}; falling back to in-process route: ${message}`
+    );
+
+    return getProviderModels(
+      new Request(new URL(modelsPath, "http://localhost").href, {
+        method: "GET",
+        headers,
+      }),
+      { params: { id: connectionId } }
+    );
+  }
+}
+
 /**
  * POST /api/providers/[id]/sync-models
  *
@@ -154,24 +195,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     logProvider = toNonEmptyString(connection.provider) || "unknown";
     channelLabel = getModelSyncChannelLabel(connection);
 
-    // Fetch models from the existing /api/providers/[id]/models endpoint.
-    // Construct a safe localhost URL from the incoming request's origin.
-    // The route only accepts authenticated or internal-scheduler requests,
-    // and the path is hardcoded — no user-controlled URL components reach fetch.
-    const SAFE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
-    const incomingUrl = new URL(request.url);
-    const safeOrigin = SAFE_HOSTS.has(incomingUrl.hostname)
-      ? incomingUrl.origin
-      : `http://127.0.0.1:${process.env.PORT || "20128"}`;
-    const modelsPath = `/api/providers/${encodeURIComponent(id)}/models?refresh=true`;
-    const modelsRes = await fetch(new URL(modelsPath, safeOrigin).href, {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        cookie: request.headers.get("cookie") || "",
-        ...buildModelSyncInternalHeaders(),
-      },
-    });
+    const modelsRes = await fetchProviderModelsForSync(request, id);
 
     const duration = Date.now() - start;
     const modelsData = await modelsRes.json();
@@ -200,9 +224,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const fetchedModels = modelsData.models || [];
     const {
       previousModels,
+      previousSyncedAvailableModels,
       persistedModels,
       importedModels,
       discoveredModels,
+      syncedAvailableModels,
       syncedAliases,
       importedChanges,
     } = await importManagedModels({
@@ -212,13 +238,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       mode,
     });
 
-    const modelChanges = summarizeModelChanges(previousModels, persistedModels);
+    const effectiveAvailableModels =
+      discoveredModels.length > 0 ? discoveredModels : syncedAvailableModels;
+    const modelChanges =
+      mode === "sync"
+        ? summarizeModelChanges(previousSyncedAvailableModels, effectiveAvailableModels)
+        : summarizeModelChanges(previousModels, persistedModels);
     const syncedModelsCount =
-      discoveredModels.length > 0
-        ? discoveredModels.length
+      effectiveAvailableModels.length > 0
+        ? effectiveAvailableModels.length
         : persistedModels.filter((model) => isManagedSyncedModel(model)).length;
     const availableModelsCount = new Set(
-      [...persistedModels, ...discoveredModels]
+      [...persistedModels, ...effectiveAvailableModels]
         .map((model) => toNonEmptyString(asRecord(model).id))
         .filter((modelId): modelId is string => Boolean(modelId))
     ).size;

@@ -1,5 +1,6 @@
 import {
   getCustomModels,
+  getSyncedAvailableModelsForConnection,
   replaceCustomModels,
   replaceSyncedAvailableModelsForConnection,
   type SyncedAvailableModel,
@@ -18,7 +19,7 @@ export type ManagedModelImportMode = "merge" | "sync";
 export type ManagedImportedModel = {
   id: string;
   name: string;
-  source: "api-sync";
+  source: "api-sync" | "imported";
   apiFormat: "chat-completions";
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
@@ -41,7 +42,8 @@ function normalizeManagedSource(source: unknown): string {
 
 function normalizeImportedModels(
   providerId: string,
-  fetchedModels: unknown
+  fetchedModels: unknown,
+  source: ManagedImportedModel["source"] = "imported"
 ): ManagedImportedModel[] {
   const discovered = normalizeDiscoveredModels(fetchedModels);
   const registryIds = new Set(getModelsByProviderId(providerId).map((model: any) => model.id));
@@ -51,7 +53,7 @@ function normalizeImportedModels(
     .map((model) => ({
       id: model.id,
       name: model.name || model.id,
-      source: "api-sync",
+      source,
       apiFormat: "chat-completions",
       ...(Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length > 0
         ? { supportedEndpoints: model.supportedEndpoints }
@@ -69,7 +71,7 @@ function normalizeImportedModels(
 
 function isManagedDiscoveredSource(source: unknown): boolean {
   const normalized = toNonEmptyString(source)?.toLowerCase();
-  return normalized === "api-sync" || normalized === "auto-sync" || normalized === "imported";
+  return normalized === "api-sync" || normalized === "auto-sync";
 }
 
 function summarizeImportedChanges(
@@ -137,7 +139,15 @@ export async function importManagedModels({
   mode: ManagedModelImportMode;
 }) {
   const previousModels = (await getCustomModels(providerId)) as JsonRecord[];
-  const candidateImportedModels = normalizeImportedModels(providerId, fetchedModels);
+  const previousSyncedAvailableModels = await getSyncedAvailableModelsForConnection(
+    providerId,
+    connectionId
+  );
+  const candidateImportedModels = normalizeImportedModels(
+    providerId,
+    fetchedModels,
+    mode === "merge" ? "imported" : "api-sync"
+  );
   const importedIds = new Set(candidateImportedModels.map((model) => model.id));
 
   const nextModelsMap = new Map<string, JsonRecord>();
@@ -154,8 +164,10 @@ export async function importManagedModels({
     }
   }
 
-  for (const model of candidateImportedModels) {
-    nextModelsMap.set(model.id, model);
+  if (mode === "merge") {
+    for (const model of candidateImportedModels) {
+      nextModelsMap.set(model.id, model);
+    }
   }
 
   const persistedModels = (await replaceCustomModels(
@@ -170,11 +182,12 @@ export async function importManagedModels({
       outputTokenLimit?: number;
       description?: string;
       supportsThinking?: boolean;
-    }>
+    }>,
+    { allowEmpty: mode === "sync" }
   )) as JsonRecord[];
 
   const discoveredModels = normalizeDiscoveredModels(fetchedModels);
-  let syncedAvailableModels: SyncedAvailableModel[] = [];
+  let syncedAvailableModels: SyncedAvailableModel[] = previousSyncedAvailableModels;
   if (discoveredModels.length > 0) {
     syncedAvailableModels = await replaceSyncedAvailableModelsForConnection(
       providerId,
@@ -184,13 +197,11 @@ export async function importManagedModels({
   }
 
   let syncedAliases = 0;
-  if (usesManagedAvailableModels(providerId)) {
+  if (usesManagedAvailableModels(providerId) && (mode === "merge" || discoveredModels.length > 0)) {
     const aliasSync = await syncManagedAvailableModelAliases(
       providerId,
       mode === "sync"
-        ? persistedModels
-            .map((model) => toNonEmptyString(model.id))
-            .filter((modelId): modelId is string => Boolean(modelId))
+        ? discoveredModels.map((model) => model.id)
         : candidateImportedModels.map((model) => model.id),
       { pruneMissing: mode === "sync" }
     );
@@ -202,6 +213,7 @@ export async function importManagedModels({
 
   return {
     previousModels,
+    previousSyncedAvailableModels,
     persistedModels,
     importedModels,
     discoveredModels,
