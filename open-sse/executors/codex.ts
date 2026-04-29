@@ -10,7 +10,14 @@ import {
   CODEX_DEFAULT_INSTRUCTIONS,
 } from "../config/codexInstructions.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
+import {
+  applyCodexClientIdentityHeaders,
+  applyCodexClientMetadata,
+  createCodexClientIdentity,
+  getCodexClientVersion,
+  getCodexUserAgent,
+  normalizeCodexSessionId,
+} from "../config/codexClient.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
@@ -253,68 +260,11 @@ export function getCodexUpstreamModel(model: unknown): string {
   return splitCodexReasoningSuffix(model).baseModel;
 }
 
-function stringifyCodexInstructionContent(content: unknown): string {
-  if (typeof content === "string") {
-    return content.trim();
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((part) => {
-        if (typeof part === "string") return part.trim();
-        if (!part || typeof part !== "object") return "";
-        const record = part as Record<string, unknown>;
-        if (typeof record.text === "string") return record.text.trim();
-        if (typeof record.content === "string") return record.content.trim();
-        return "";
-      })
-      .filter(Boolean)
-      .join("\n")
-      .trim();
-  }
-
-  return "";
-}
-
-function hoistSystemMessagesToInstructions(body: Record<string, unknown>): void {
-  if (!Array.isArray(body.input)) return;
-
-  const systemChunks: string[] = [];
-  const filteredInput = body.input.filter((itemValue) => {
-    if (!itemValue || typeof itemValue !== "object" || Array.isArray(itemValue)) {
-      return true;
-    }
-
-    const item = itemValue as Record<string, unknown>;
-    const role = typeof item.role === "string" ? item.role : "";
-    const type = typeof item.type === "string" ? item.type : "";
-    const isSystemMessage = role === "system" && (!type || type === "message");
-    if (!isSystemMessage) {
-      return true;
-    }
-
-    const text = stringifyCodexInstructionContent(item.content);
-    if (text) {
-      systemChunks.push(text);
-    }
-    return false;
-  });
-
-  if (systemChunks.length === 0) return;
-
-  const existingInstructions =
-    typeof body.instructions === "string" ? body.instructions.trim() : "";
-  body.instructions = existingInstructions
-    ? `${systemChunks.join("\n\n")}\n\n${existingInstructions}`
-    : systemChunks.join("\n\n");
-  body.input = filteredInput;
-}
-
 /**
  * Convert role=system messages in `input` to role=developer.
  *
  * GPT-5 models support the `developer` role in input, but reject `system`.
- * Unlike hoistSystemMessagesToInstructions(), this keeps the content inside
+ * This keeps the content inside
  * the `input` array where it benefits from OpenAI's automatic prompt caching.
  *
  * OpenAI's prompt caching matches on the serialized prefix of the `input` array
@@ -711,21 +661,37 @@ export class CodexExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
-    if (!isCodexResponsesWebSocketRequired(input.model, input.credentials)) {
-      return super.execute(input);
+    const sessionId = this.getPromptCacheSessionId(
+      input.credentials,
+      input.body as Record<string, unknown> | null
+    );
+    const identity = createCodexClientIdentity(sessionId, input.credentials?.providerSpecificData ?? null);
+    const credentials = identity
+      ? {
+          ...input.credentials,
+          providerSpecificData: {
+            ...(input.credentials?.providerSpecificData || {}),
+            codexClientIdentity: identity,
+          },
+        }
+      : input.credentials;
+    const nextInput = { ...input, credentials };
+
+    if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
+      return super.execute(nextInput);
     }
 
     const url = CODEX_RESPONSES_WS_URL;
-    const headers = normalizeCodexWsHeaders(this.buildHeaders(input.credentials, true));
-    mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+    const headers = normalizeCodexWsHeaders(this.buildHeaders(nextInput.credentials, true));
+    mergeUpstreamExtraHeaders(headers, nextInput.upstreamExtraHeaders);
 
     const transformedBody = (await this.transformRequest(
-      input.model,
-      input.body,
+      nextInput.model,
+      nextInput.body,
       true,
-      input.credentials
+      nextInput.credentials
     )) as Record<string, unknown>;
-    transformedBody.model = getCodexUpstreamModel(transformedBody.model || input.model);
+    transformedBody.model = getCodexUpstreamModel(transformedBody.model || nextInput.model);
     delete transformedBody.stream;
     delete transformedBody.stream_options;
 
@@ -760,7 +726,7 @@ export class CodexExecutor extends BaseExecutor {
     let abortHandler: (() => void) | null = null;
     const removeAbortListener = () => {
       if (!abortHandler) return;
-      input.signal?.removeEventListener("abort", abortHandler);
+      nextInput.signal?.removeEventListener("abort", abortHandler);
       abortHandler = null;
     };
 
@@ -821,7 +787,7 @@ export class CodexExecutor extends BaseExecutor {
         abortHandler = () => {
           finishStream({ reason: "client_aborted" });
         };
-        input.signal?.addEventListener("abort", abortHandler, { once: true });
+        nextInput.signal?.addEventListener("abort", abortHandler, { once: true });
 
         try {
           ws = await websocketFn(toWebSocketUrl(url), {
@@ -830,7 +796,7 @@ export class CodexExecutor extends BaseExecutor {
             headers,
           });
           if (closed) return;
-          if (input.signal?.aborted) {
+          if (nextInput.signal?.aborted) {
             finishStream({ reason: "client_aborted" });
             return;
           }
@@ -928,6 +894,7 @@ export class CodexExecutor extends BaseExecutor {
     if (workspaceId) {
       headers["chatgpt-account-id"] = workspaceId;
     }
+    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -940,6 +907,7 @@ export class CodexExecutor extends BaseExecutor {
     if (cacheSessionId) {
       headers["session_id"] = cacheSessionId;
     }
+    applyCodexClientIdentityHeaders(headers, clientIdentity);
 
     return headers;
   }
@@ -956,13 +924,17 @@ export class CodexExecutor extends BaseExecutor {
     credentials,
     body: Record<string, unknown> | null
   ): string | null {
+    const promptCacheKey = normalizeCodexSessionId(body?.prompt_cache_key);
+    if (promptCacheKey) return promptCacheKey;
+
     // Prefer per-session identifiers from the client request body
     const sessionId = body?.session_id ?? body?.conversation_id;
-    if (typeof sessionId === "string" && sessionId.length > 0) {
-      return sessionId;
+    const normalizedSessionId = normalizeCodexSessionId(sessionId);
+    if (normalizedSessionId) {
+      return normalizedSessionId;
     }
     // Fall back to workspaceId (account-wide) — better than nothing
-    return credentials?.providerSpecificData?.workspaceId || null;
+    return normalizeCodexSessionId(credentials?.providerSpecificData?.workspaceId) || null;
   }
 
   /**
@@ -1146,6 +1118,7 @@ export class CodexExecutor extends BaseExecutor {
         body.prompt_cache_key = cacheSessionId;
       }
     }
+    applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
 
     // Delete session_id and conversation_id from the body.
     // These are often injected by OmniRoute's fallback logic for store=true,
