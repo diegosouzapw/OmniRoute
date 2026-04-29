@@ -438,11 +438,10 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
 function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number {
   const requested = body.max_tokens ?? body.max_completion_tokens;
-  const requestedNumber =
-    typeof requested === "number" && Number.isFinite(requested) && requested > 0
-      ? Math.floor(requested)
-      : null;
-  return Math.min(requestedNumber ?? ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS, ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS);
+  if (typeof requested === "number" && Number.isFinite(requested) && requested >= 1) {
+    return Math.min(Math.floor(requested), ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS);
+  }
+  return ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS;
 }
 
 function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null, sourceBody = {}) {
