@@ -2491,7 +2491,7 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
 
 async function validateBlackboxWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
-    const cookieHeader = normalizeSessionCookieHeader(apiKey, "__Secure-authjs.session-token");
+    const cookieHeader = normalizeSessionCookieHeader(apiKey, "next-auth.session-token");
     const sessionHeaders = applyCustomUserAgent(
       {
         Accept: "application/json",

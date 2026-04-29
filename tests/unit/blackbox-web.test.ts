@@ -148,7 +148,76 @@ test("Error: 401 returns auth error", async () => {
     assert.equal(result.response.status, 401);
     const json = (await result.response.json()) as any;
     assert.match(json.error.message, /auth failed/i);
-    assert.match(json.error.message, /session cookie/i);
+    assert.match(json.error.message, /session/i);
+  } finally {
+    restore();
+  }
+});
+
+test("In-band subscription error in response body returns 402", async () => {
+  const upgradeMessage =
+    "You have not upgraded your account. " +
+    "[Please upgrade to a premium plan to continue](https://app.blackbox.ai/pricing?ref=upgrade-required).";
+  const restore = mockFetch(200, upgradeMessage);
+  try {
+    const executor = new BlackboxWebExecutor();
+    const result = await executor.execute({
+      model: "anthropic/claude-sonnet-4",
+      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "bb-session-token" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 402);
+    const json = (await result.response.json()) as any;
+    assert.equal(json.error.code, "BLACKBOX_SUBSCRIPTION_REQUIRED");
+    assert.match(json.error.message, /premium subscription/i);
+  } finally {
+    restore();
+  }
+});
+
+test("In-band auth error in response body returns 401", async () => {
+  const restore = mockFetch(200, "Please login to continue.");
+  try {
+    const executor = new BlackboxWebExecutor();
+    const result = await executor.execute({
+      model: "openai/gpt-5.4",
+      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "bb-session-token" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 401);
+    const json = (await result.response.json()) as any;
+    assert.equal(json.error.code, "BLACKBOX_AUTH_REQUIRED");
+    assert.match(json.error.message, /session/i);
+  } finally {
+    restore();
+  }
+});
+
+test("In-band rate limit error in response body returns 429", async () => {
+  const restore = mockFetch(200, "Rate limit exceeded. Try again later.");
+  try {
+    const executor = new BlackboxWebExecutor();
+    const result = await executor.execute({
+      model: "openai/gpt-5.4",
+      body: { messages: [{ role: "user", content: "hi" }], stream: false },
+      stream: false,
+      credentials: { apiKey: "bb-session-token" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 429);
+    const json = (await result.response.json()) as any;
+    assert.equal(json.error.code, "BLACKBOX_RATE_LIMIT");
+    assert.match(json.error.message, /rate limited/i);
   } finally {
     restore();
   }
@@ -192,11 +261,11 @@ test("Error: empty messages returns 400", async () => {
 test("Cookie normalization supports raw tokens, prefixed tokens and full headers", () => {
   assert.equal(
     normalizeBlackboxCookieHeader("raw-session-token"),
-    "__Secure-authjs.session-token=raw-session-token"
+    "next-auth.session-token=raw-session-token"
   );
   assert.equal(
     normalizeBlackboxCookieHeader("cookie:raw-session-token"),
-    "__Secure-authjs.session-token=raw-session-token"
+    "next-auth.session-token=raw-session-token"
   );
   assert.equal(
     normalizeBlackboxCookieHeader("__Secure-authjs.session-token=token; other=value"),
@@ -218,7 +287,7 @@ test("Request: posts to correct Blackbox endpoint with normalized cookie", async
     });
 
     assert.equal(cap.url, "https://app.blackbox.ai/api/chat");
-    assert.equal(cap.headers.Cookie, "__Secure-authjs.session-token=raw-session-token");
+    assert.equal(cap.headers.Cookie, "next-auth.session-token=raw-session-token");
     assert.equal(cap.headers.Origin, "https://app.blackbox.ai");
     assert.match(String(cap.headers.Referer), /^https:\/\/app\.blackbox\.ai\/chat\//);
   } finally {
