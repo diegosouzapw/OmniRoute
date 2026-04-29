@@ -564,7 +564,7 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
     ANTIGRAVITY_DEFAULT_SYSTEM
   );
   assert.equal((result as any).request?.systemInstruction.parts[1].text, "Project rules");
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 8192);
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 16384);
   assert.equal((result as any).request?.generationConfig.temperature, 1);
   assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
 
@@ -644,7 +644,7 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
   assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
 });
 
-test("OpenAI -> Antigravity Claude bridge clamps output tokens and keeps thinking budget separate", () => {
+test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap without forwarding thinking", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -656,9 +656,22 @@ test("OpenAI -> Antigravity Claude bridge clamps output tokens and keeps thinkin
     { projectId: "proj-claude-thinking" } as any
   );
 
-  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 8192);
-  assert.deepEqual((result as any).request?.generationConfig.thinkingConfig, {
-    thinkingBudget: 131072,
-    includeThoughts: true,
-  });
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 16384);
+  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+});
+
+test("OpenAI -> Antigravity Claude bridge preserves lower requested output despite reasoning effort", () => {
+  const result = openaiToAntigravityRequest(
+    "claude-3-7-sonnet",
+    {
+      messages: [{ role: "user", content: "Short answer" }],
+      max_completion_tokens: 1000,
+      reasoning_effort: "high",
+    },
+    false,
+    { projectId: "proj-claude-short" } as any
+  );
+
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 1000);
+  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
 });

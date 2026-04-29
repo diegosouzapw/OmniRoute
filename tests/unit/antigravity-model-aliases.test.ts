@@ -7,6 +7,7 @@ import {
   toClientAntigravityModelId,
 } from "../../open-sse/config/antigravityModelAliases.ts";
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
+import { openaiToAntigravityRequest } from "../../open-sse/translator/request/openai-to-gemini.ts";
 
 test("resolveAntigravityModelId maps the documented Antigravity aliases to upstream IDs", () => {
   assert.equal(resolveAntigravityModelId("gemini-3-pro-preview"), "gemini-3.1-pro-high");
@@ -56,4 +57,28 @@ test("AntigravityExecutor.transformRequest resolves alias models before dispatch
   );
 
   assert.equal(result.model, "gemini-3.1-pro-high");
+});
+
+test("AntigravityExecutor.transformRequest keeps Claude bridge output cap and strips unsupported thinking", async () => {
+  const executor = new AntigravityExecutor();
+  const bridged = openaiToAntigravityRequest(
+    "claude-sonnet-4-6",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      max_completion_tokens: 32_000,
+      reasoning_effort: "high",
+    },
+    true,
+    { projectId: "project-1" } as any
+  );
+
+  const result = await executor.transformRequest(
+    "antigravity/claude-sonnet-4-6",
+    bridged,
+    true,
+    { projectId: "project-1" }
+  );
+
+  assert.equal(result.request.generationConfig.maxOutputTokens, 16_384);
+  assert.equal(result.request.generationConfig.thinkingConfig, undefined);
 });

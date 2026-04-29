@@ -27,6 +27,12 @@ import {
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 
+// Observed Antigravity wrapper output cap, not an underlying model capability.
+// Keep this bridge-local: capMaxOutputTokens() falls back to OmniRoute's generic
+// 8192 default for unknown Claude-family IDs, while Antigravity currently caps
+// visible output around 16K. See: https://github.com/keisksw/antigravity-output-analysis
+const ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS = 16_384;
+
 type GeminiPart = Record<string, unknown>;
 type GeminiContent = { role: string; parts: GeminiPart[] };
 
@@ -430,7 +436,16 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
   return envelope;
 }
 
-function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null) {
+function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number {
+  const requested = body.max_tokens ?? body.max_completion_tokens;
+  const requestedNumber =
+    typeof requested === "number" && Number.isFinite(requested) && requested > 0
+      ? Math.floor(requested)
+      : null;
+  return Math.min(requestedNumber ?? ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS, ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS);
+}
+
+function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = null, sourceBody = {}) {
   const toolNameMap = new Map<string, string>();
   const sanitizeToolName = (name: string) =>
     sanitizeGeminiToolName(name, {
@@ -449,27 +464,10 @@ function wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials = nu
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
-  const requestedMaxOutputTokens =
-    typeof claudeRequest.max_tokens === "number" && Number.isFinite(claudeRequest.max_tokens)
-      ? claudeRequest.max_tokens
-      : 4096;
   const generationConfig: GeminiGenerationConfig = {
     temperature: claudeRequest.temperature || 1,
-    maxOutputTokens: capMaxOutputTokens(cleanModel, requestedMaxOutputTokens),
+    maxOutputTokens: getAntigravityClaudeOutputTokens(sourceBody),
   };
-  const thinkingBudget =
-    claudeRequest.thinking?.type === "enabled" &&
-    typeof claudeRequest.thinking.budget_tokens === "number" &&
-    Number.isFinite(claudeRequest.thinking.budget_tokens)
-      ? Math.floor(claudeRequest.thinking.budget_tokens)
-      : null;
-
-  if (thinkingBudget && thinkingBudget > 0) {
-    generationConfig.thinkingConfig = {
-      thinkingBudget: capThinkingBudget(cleanModel, thinkingBudget),
-      includeThoughts: true,
-    };
-  }
 
   const envelope: CloudCodeEnvelope = {
     project: projectId,
@@ -590,7 +588,7 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
 
   if (isClaude) {
     const claudeRequest = openaiToClaudeRequestForAntigravity(model, body, stream);
-    return wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials);
+    return wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials, body);
   }
 
   const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
