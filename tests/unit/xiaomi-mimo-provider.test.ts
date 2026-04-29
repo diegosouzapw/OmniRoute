@@ -16,7 +16,7 @@ test("xiaomi-mimo registry uses the current default base URL and MiMo V2 models"
   assert.equal(entry.baseUrl, "https://api.xiaomimimo.com/v1");
   assert.deepEqual(
     entry.models.map((model) => model.id),
-    ["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]
+    ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]
   );
 });
 
@@ -24,7 +24,7 @@ test("xiaomi-mimo executor appends /chat/completions for regional base URLs", ()
   const executor = new DefaultExecutor("xiaomi-mimo");
 
   assert.equal(
-    executor.buildUrl("mimo-v2-pro", true, 0, {
+    executor.buildUrl("mimo-v2.5", true, 0, {
       providerSpecificData: {
         baseUrl: "https://token-plan-ams.xiaomimimo.com/v1",
       },
@@ -33,7 +33,7 @@ test("xiaomi-mimo executor appends /chat/completions for regional base URLs", ()
   );
 
   assert.equal(
-    executor.buildUrl("mimo-v2-pro", true, 0, {
+    executor.buildUrl("mimo-v2.5", true, 0, {
       providerSpecificData: {
         baseUrl: "https://token-plan-cn.xiaomimimo.com/v1/chat/completions",
       },

@@ -1033,7 +1033,7 @@ export const APIKEY_PROVIDERS = {
     icon: "devices",
     color: "#EA580C",
     textIcon: "MM",
-    website: "https://www.mi.com",
+    website: "https://mimo.mi.com",
   },
   "inference-net": {
     id: "inference-net",
@@ -1542,7 +1542,8 @@ export const SEARCH_PROVIDERS = {
     color: "#1A237E",
     textIcon: "SX",
     website: "https://docs.searxng.org",
-    authHint: "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
+    authHint:
+      "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
 };
 
