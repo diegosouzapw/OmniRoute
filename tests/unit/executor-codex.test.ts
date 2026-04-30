@@ -698,6 +698,33 @@ test("CodexExecutor.transformRequest merges Codex installation metadata", () => 
   });
 });
 
+test("CodexExecutor.transformRequest omits client metadata for compact requests", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5",
+    {
+      model: "gpt-5.5",
+      input: [],
+      client_metadata: { existing: "drop" },
+      _nativeCodexPassthrough: true,
+    },
+    false,
+    {
+      requestEndpointPath: "/responses/compact",
+      providerSpecificData: {
+        codexClientIdentity: {
+          sessionId: "session-1",
+          turnId: "turn-1",
+          windowId: "session-1:0",
+          installationId: "11111111-1111-4111-a111-111111111111",
+        },
+      },
+    }
+  );
+
+  assert.equal(result.client_metadata, undefined);
+});
+
 test("CodexExecutor.execute falls back to HTTP when websocket transport is unavailable", async () => {
   __setCodexWebSocketTransportForTesting(null);
   const executor = new CodexExecutor();

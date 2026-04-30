@@ -1146,6 +1146,7 @@ export class CodexExecutor extends BaseExecutor {
     if (isCompactRequest) {
       delete body.stream;
       delete body.stream_options;
+      delete body.client_metadata;
     } else {
       body.stream = true;
     }
@@ -1288,7 +1289,9 @@ export class CodexExecutor extends BaseExecutor {
         body.prompt_cache_key = cacheSessionId;
       }
     }
-    applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
+    if (!isCompactRequest) {
+      applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
+    }
 
     // Delete session_id and conversation_id from the body.
     // These are often injected by OmniRoute's fallback logic for store=true,
