@@ -32,6 +32,7 @@ function makeJsonRpcRequest(body: unknown): NextRequest {
 }
 
 test.beforeEach(async () => {
+  delete process.env.OMNIROUTE_API_KEY;
   await resetStorage();
 });
 
@@ -73,12 +74,34 @@ test("A2A JSON-RPC rejects requests while the endpoint is disabled", async () =>
     })
   );
   const body = (await response.json()) as {
+    id?: string | number | null;
     error?: { code?: number; message?: string };
   };
 
   assert.equal(response.status, 503);
+  assert.equal(body.id, "disabled-check");
   assert.equal(body.error?.code, -32000);
   assert.match(body.error?.message || "", /disabled/i);
+});
+
+test("A2A JSON-RPC checks auth before returning disabled state", async () => {
+  process.env.OMNIROUTE_API_KEY = "test-secret";
+
+  const response = await a2aRoute.POST(
+    makeJsonRpcRequest({
+      jsonrpc: "2.0",
+      id: "unauthorized-disabled-check",
+      method: "message/send",
+      params: { message: { role: "user", content: "hello" } },
+    })
+  );
+  const body = (await response.json()) as {
+    error?: { code?: number; message?: string };
+  };
+
+  assert.equal(response.status, 400);
+  assert.equal(body.error?.code, -32600);
+  assert.match(body.error?.message || "", /Unauthorized/i);
 });
 
 test("A2A status reports online only after enabling the endpoint", async () => {

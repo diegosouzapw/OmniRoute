@@ -441,7 +441,6 @@ export default function APIPageClient({ machineId }) {
         if (!tunnelVisibility.showNgrokTunnel) {
           setNgrokStatus(null);
           setNgrokNotice(null);
-          setNgrokToken("");
         }
 
         return tunnelVisibility;

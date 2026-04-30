@@ -96,13 +96,13 @@ function jsonRpcResult(id: string | number | null, result: unknown) {
   return NextResponse.json({ jsonrpc: "2.0", id, result });
 }
 
-async function rejectIfA2ADisabled() {
+async function rejectIfA2ADisabled(id: string | number | null) {
   const settings = await getSettings();
   if (settings.a2aEnabled === true) return null;
   return NextResponse.json(
     {
       jsonrpc: "2.0",
-      id: null,
+      id,
       error: {
         code: -32000,
         message: "A2A endpoint is disabled. Enable it from the Endpoints page.",
@@ -115,9 +115,6 @@ async function rejectIfA2ADisabled() {
 // ============ Route Handler ============
 
 export async function POST(req: NextRequest) {
-  const disabledResponse = await rejectIfA2ADisabled();
-  if (disabledResponse) return disabledResponse;
-
   // Auth check
   if (!authenticate(req)) {
     return jsonRpcError(null, -32600, "Unauthorized: missing or invalid API key");
@@ -135,6 +132,9 @@ export async function POST(req: NextRequest) {
   if (jsonrpc !== "2.0" || !method) {
     return jsonRpcError(id || null, -32600, "Invalid request: missing jsonrpc or method");
   }
+
+  const disabledResponse = await rejectIfA2ADisabled(id ?? null);
+  if (disabledResponse) return disabledResponse;
 
   const tm = getTaskManager();
 
