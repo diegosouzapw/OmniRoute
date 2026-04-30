@@ -123,16 +123,14 @@ export class CircuitBreaker {
    * @throws {Error} If circuit is OPEN
    */
   async execute(fn) {
+    this._refreshOpenState();
+
     if (this.state === STATE.OPEN) {
-      if (this._shouldAttemptReset()) {
-        this._transition(STATE.HALF_OPEN);
-      } else {
-        throw new CircuitBreakerOpenError(
-          `Circuit breaker "${this.name}" is OPEN. Try again later.`,
-          this.name,
-          this._timeUntilReset()
-        );
-      }
+      throw new CircuitBreakerOpenError(
+        `Circuit breaker "${this.name}" is OPEN. Try again later.`,
+        this.name,
+        this._timeUntilReset()
+      );
     }
 
     if (this.state === STATE.HALF_OPEN && this.halfOpenAllowed <= 0) {
@@ -164,8 +162,10 @@ export class CircuitBreaker {
    * @returns {boolean}
    */
   canExecute() {
+    this._refreshOpenState();
+
     if (this.state === STATE.CLOSED) return true;
-    if (this.state === STATE.OPEN) return this._shouldAttemptReset();
+    if (this.state === STATE.OPEN) return false;
     if (this.state === STATE.HALF_OPEN) return this.halfOpenAllowed > 0;
     return false;
   }
@@ -175,6 +175,8 @@ export class CircuitBreaker {
    * @returns {{ name: string, state: string, failureCount: number, lastFailureTime: number|null }}
    */
   getStatus() {
+    this._refreshOpenState();
+
     return {
       name: this.name,
       state: this.state,
@@ -189,6 +191,8 @@ export class CircuitBreaker {
    * @returns {number}
    */
   getRetryAfterMs() {
+    this._refreshOpenState();
+
     if (this.state === STATE.CLOSED) return 0;
     return this._timeUntilReset();
   }
@@ -247,6 +251,13 @@ export class CircuitBreaker {
   _timeUntilReset() {
     if (!this.lastFailureTime) return 0;
     return Math.max(0, this.resetTimeout - (Date.now() - this.lastFailureTime));
+  }
+
+  _refreshOpenState() {
+    if (this.state === STATE.OPEN && this._shouldAttemptReset()) {
+      this._transition(STATE.HALF_OPEN);
+      this._persistToDb();
+    }
   }
 
   _transition(newState) {

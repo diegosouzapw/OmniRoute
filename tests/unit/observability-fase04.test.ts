@@ -84,6 +84,26 @@ test("CircuitBreaker: transitions to HALF_OPEN after reset timeout", async () =>
   assert.equal(cb.state, STATE.CLOSED);
 });
 
+test("CircuitBreaker: status reads refresh OPEN providers after reset timeout", async () => {
+  const cb = new CircuitBreaker(`test-status-refresh${cbSuffix}`, {
+    failureThreshold: 1,
+    resetTimeout: 10,
+  });
+
+  try {
+    await cb.execute(async () => {
+      throw new Error("fail");
+    });
+  } catch {}
+
+  assert.equal(cb.getStatus().state, STATE.OPEN);
+
+  await new Promise((r) => setTimeout(r, 15));
+
+  assert.equal(cb.getStatus().state, STATE.HALF_OPEN);
+  assert.equal(cb.canExecute(), true);
+});
+
 test("CircuitBreaker: reset() forces back to CLOSED", () => {
   const cb = new CircuitBreaker(`test-reset${cbSuffix}`, { failureThreshold: 1 });
   cb.state = STATE.OPEN;
