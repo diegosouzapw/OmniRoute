@@ -254,17 +254,42 @@ export function clearPendingRequests() {
 
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
 
+const MAX_ROWS = 10000;
+
 /**
  * Returns an object compatible with the old LowDB interface.
  * Only `api/usage/analytics/route.js` uses this — it reads `db.data.history`.
+ *
+ * @param sinceIso - ISO timestamp to filter from (inclusive)
+ * @param limit - Max rows to return (default 10,000)
+ * @param cursor - Timestamp cursor for pagination (exclusive, for next page)
  */
-export async function getUsageDb(sinceIso?: string | null) {
+export async function getUsageDb(sinceIso?: string | null, limit?: number, cursor?: string | null) {
   const db = getDbInstance();
-  const rows = sinceIso
-    ? db
-        .prepare("SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC")
-        .all(sinceIso)
-    : db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all();
+  const maxRows = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : MAX_ROWS;
+
+  let rows;
+  if (cursor) {
+    // Cursor-based pagination (next page after cursor)
+    // Use > cursor to get rows after the last timestamp of previous page (ASC order)
+    rows = sinceIso
+      ? db
+          .prepare(
+            `SELECT * FROM usage_history WHERE timestamp >= ? AND timestamp > ? ORDER BY timestamp ASC LIMIT ?`
+          )
+          .all(sinceIso, cursor, maxRows)
+      : db
+          .prepare(`SELECT * FROM usage_history WHERE timestamp > ? ORDER BY timestamp ASC LIMIT ?`)
+          .all(cursor, maxRows);
+  } else if (sinceIso) {
+    // Initial query with date filter
+    rows = db
+      .prepare(`SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC LIMIT ?`)
+      .all(sinceIso, maxRows);
+  } else {
+    // No filter - get all (with limit)
+    rows = db.prepare(`SELECT * FROM usage_history ORDER BY timestamp ASC LIMIT ?`).all(maxRows);
+  }
 
   const history = rows.map((row) => {
     const r = asRecord(row);
@@ -290,7 +315,10 @@ export async function getUsageDb(sinceIso?: string | null) {
     };
   });
 
-  return { data: { history } };
+  // Provide next cursor if we hit the limit (more rows exist)
+  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+
+  return { data: { history, nextCursor } };
 }
 
 // ──────────────── Save Request Usage ────────────────

@@ -5,13 +5,6 @@ import Link from "next/link";
 import { Card, Button, Input } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { useTranslations } from "next-intl";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
-import { CLI_TOOLS } from "@/shared/constants/cliTools";
-import {
-  CLI_COMPAT_PROVIDER_IDS,
-  CLI_COMPAT_TOGGLE_IDS,
-  normalizeCliCompatProviderId,
-} from "@/shared/constants/cliCompatProviders";
 
 interface AgentInfo {
   id: string;
@@ -66,7 +59,6 @@ export default function AgentsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const [settings, setSettings] = useState<Record<string, any>>({});
   const [newAgent, setNewAgent] = useState({
     name: "",
     binary: "",
@@ -74,7 +66,6 @@ export default function AgentsPage() {
     spawnArgs: "",
   });
   const t = useTranslations("agents");
-  const ts = useTranslations("settings");
 
   const fetchAgents = useCallback(async () => {
     try {
@@ -91,33 +82,7 @@ export default function AgentsPage() {
 
   useEffect(() => {
     fetchAgents();
-    // Also fetch settings for CLI fingerprint
-    fetch("/api/settings")
-      .then((r) => r.json())
-      .then((d) => setSettings(d))
-      .catch(() => {});
   }, [fetchAgents]);
-
-  const updateSetting = async (key: string, value: any) => {
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: value }),
-      });
-      if (res.ok) setSettings((prev) => ({ ...prev, [key]: value }));
-    } catch (err) {
-      console.error("Failed to update setting:", err);
-    }
-  };
-
-  const normalizedCliCompatProviders = Array.from(
-    new Set(
-      (settings.cliCompatProviders || [])
-        .map((providerId: string) => normalizeCliCompatProviderId(providerId))
-        .filter((providerId: string) => CLI_COMPAT_PROVIDER_IDS.includes(providerId))
-    )
-  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -215,19 +180,87 @@ export default function AgentsPage() {
               {t("cliToolsRedirectCta")}
             </Link>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+          <div className="flex flex-wrap items-center gap-1 text-xs">
+            <span className="rounded-full bg-primary/10 px-3 py-1 font-medium text-primary">
               {t("flowOmniRoute")}
             </span>
-            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+            <span className="material-symbols-outlined text-[14px] text-text-muted">
+              arrow_forward
+            </span>
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 font-medium text-amber-600 dark:text-amber-400">
               {t("flowSpawn")}
             </span>
-            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+            <span className="material-symbols-outlined text-[14px] text-text-muted">
+              arrow_forward
+            </span>
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-medium text-emerald-600 dark:text-emerald-400">
               {t("flowLocalBinary")}
             </span>
-            <span className="rounded-full bg-surface/60 px-3 py-1 font-medium text-text-main">
+            <span className="material-symbols-outlined text-[14px] text-text-muted">
+              arrow_forward
+            </span>
+            <span className="rounded-full bg-blue-500/10 px-3 py-1 font-medium text-blue-500">
               {t("flowExecute")}
             </span>
+          </div>
+          <div className="rounded-lg border border-border/30 bg-surface/20 p-4">
+            <div className="flex flex-col items-stretch gap-0 md:flex-row">
+              <div className="flex flex-1 flex-col items-center p-3 text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-text-main/10">
+                  <span className="material-symbols-outlined text-[20px] text-text-main">
+                    devices
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-text-main">{t("flowDiagramClient")}</p>
+                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramClientDesc")}</p>
+              </div>
+              <div className="flex items-center justify-center px-2 py-1 md:py-0">
+                <span className="material-symbols-outlined rotate-90 text-[20px] text-primary md:rotate-0">
+                  arrow_forward
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col items-center rounded-lg border border-primary/20 bg-primary/5 p-3 text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <span className="material-symbols-outlined text-[20px] text-primary">hub</span>
+                </div>
+                <p className="text-xs font-semibold text-primary">{t("flowDiagramOmniRoute")}</p>
+                <p className="mt-0.5 text-[10px] text-text-muted">
+                  {t("flowDiagramOmniRouteDesc")}
+                </p>
+              </div>
+              <div className="flex items-center justify-center px-2 py-1 md:py-0">
+                <span className="material-symbols-outlined rotate-90 text-[20px] text-amber-500 md:rotate-0">
+                  arrow_forward
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col items-center rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+                  <span className="material-symbols-outlined text-[20px] text-amber-600 dark:text-amber-400">
+                    launch
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  {t("flowDiagramSpawn")}
+                </p>
+                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramSpawnDesc")}</p>
+              </div>
+              <div className="flex items-center justify-center px-2 py-1 md:py-0">
+                <span className="material-symbols-outlined rotate-90 text-[20px] text-emerald-500 md:rotate-0">
+                  arrow_forward
+                </span>
+              </div>
+              <div className="flex flex-1 flex-col items-center rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+                  <span className="material-symbols-outlined text-[20px] text-emerald-600 dark:text-emerald-400">
+                    terminal
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  {t("flowDiagramCli")}
+                </p>
+                <p className="mt-0.5 text-[10px] text-text-muted">{t("flowDiagramCliDesc")}</p>
+              </div>
+            </div>
           </div>
           <div className="rounded-lg border border-blue-500/15 bg-surface/40 p-3 text-sm text-text-muted">
             <span className="font-medium text-text-main">{t("cliToolsRedirectTitle")}</span>{" "}
@@ -237,6 +270,67 @@ export default function AgentsPage() {
             </Link>
             .
           </div>
+        </div>
+      </Card>
+
+      <Card className="border-amber-500/20 bg-amber-500/5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                compare_arrows
+              </span>
+            </div>
+            <h3 className="text-sm font-semibold text-text-main">{t("comparisonTitle")}</h3>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-blue-500">
+                  arrow_forward
+                </span>
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                  {t("comparisonCliToolsLabel")}
+                </p>
+              </div>
+              <p className="mb-1 text-sm font-medium text-text-main">
+                {t("comparisonCliToolsTitle")}
+              </p>
+              <p className="text-xs text-text-muted">{t("comparisonCliToolsDesc")}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-blue-500">
+                <span>IDE</span>
+                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <span>OmniRoute</span>
+                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <span>Provider API</span>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-emerald-500">
+                  arrow_back
+                </span>
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                  {t("comparisonAgentsLabel")}
+                </p>
+              </div>
+              <p className="mb-1 text-sm font-medium text-text-main">
+                {t("comparisonAgentsTitle")}
+              </p>
+              <p className="text-xs text-text-muted">{t("comparisonAgentsDesc")}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-emerald-500">
+                <span>Client</span>
+                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <span>OmniRoute</span>
+                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <span>CLI Binary</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-text-muted">{t("comparisonSummary")}</p>
         </div>
       </Card>
 
@@ -305,69 +399,14 @@ export default function AgentsPage() {
             <p className="text-xs text-text-muted">{t("setupGuideCommandMissingDesc")}</p>
           </div>
         </div>
-      </Card>
-
-      {/* CLI Fingerprint Matching */}
-      <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
-              fingerprint
-            </span>
-          </div>
-          <h3 className="text-lg font-semibold">{ts("cliFingerprint")}</h3>
-        </div>
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-text-muted">{ts("cliFingerprintDesc")}</p>
-          <div className="flex flex-wrap gap-2">
-            {CLI_COMPAT_TOGGLE_IDS.map((toggleId) => {
-              const providerId = normalizeCliCompatProviderId(toggleId);
-              const providerMeta = Object.values(AI_PROVIDERS).find((p: any) => p.id === providerId) as any;
-              const toolMeta = CLI_TOOLS[toggleId as keyof typeof CLI_TOOLS] as any;
-              const isEnabled = normalizedCliCompatProviders.includes(providerId);
-              const displayName = toolMeta?.name || providerMeta?.name || toggleId;
-              const icon = providerMeta?.icon || "terminal";
-              const color = providerMeta?.color || "#888";
-              return (
-                <button
-                  key={toggleId}
-                  onClick={() => {
-                    const current = normalizedCliCompatProviders;
-                    const updated = current.includes(providerId)
-                      ? current.filter((p) => p !== providerId)
-                      : [...current, providerId];
-                    updateSetting("cliCompatProviders", updated);
-                  }}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                    isEnabled
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                      : "bg-black/[0.02] dark:bg-white/[0.02] border-transparent text-text-muted hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
-                  }`}
-                >
-                  <span
-                    className="material-symbols-outlined text-[14px]"
-                    style={{ color: isEnabled ? undefined : color }}
-                  >
-                    {isEnabled ? "fingerprint" : icon}
-                  </span>
-                  {displayName}
-                  {isEnabled && (
-                    <span className="material-symbols-outlined text-[12px] text-emerald-500">
-                      check
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {normalizedCliCompatProviders.length > 0 && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">verified</span>
-              {ts("cliFingerprintEnabled", {
-                count: normalizedCliCompatProviders.length,
-              })}
-            </p>
-          )}
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-border/30 bg-surface/20 p-3">
+          <span className="material-symbols-outlined text-[14px] text-text-muted">fingerprint</span>
+          <p className="text-xs text-text-muted">
+            {t("fingerprintSettingsHint")}{" "}
+            <Link href="/dashboard/settings" className="text-primary hover:underline">
+              {t("openSettings")}
+            </Link>
+          </p>
         </div>
       </Card>
 
@@ -419,9 +458,14 @@ export default function AgentsPage() {
               </div>
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-mono">
-                {agent.protocol}
-              </span>
+              <div>
+                <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-mono">
+                  {agent.protocol}
+                </span>
+                {agent.installed && (
+                  <p className="mt-1 text-[10px] text-text-muted">{t("agentUseCaseHint")}</p>
+                )}
+              </div>
               {agent.isCustom && (
                 <button
                   onClick={() => handleRemoveAgent(agent.id)}

@@ -330,7 +330,7 @@ export function openaiToOpenAIResponsesRequest(
     const msg = toRecord(messageValue);
     const role = toString(msg.role);
 
-    if (role === "system") {
+    if (role === "system" || role === "developer") {
       if (!hasSystemMessage) {
         result.instructions = typeof msg.content === "string" ? msg.content : "";
         hasSystemMessage = true;

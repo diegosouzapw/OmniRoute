@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -21,17 +20,19 @@ import {
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
+type SidebarProps = {
+  onClose?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  isMacElectron?: boolean;
+};
+
 export default function Sidebar({
   onClose,
   collapsed = false,
   onToggleCollapse,
   isMacElectron = false,
-}: {
-  onClose?: any;
-  collapsed?: boolean;
-  onToggleCollapse?: any;
-  isMacElectron?: boolean;
-}) {
+}: SidebarProps) {
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const tc = useTranslations("common");
@@ -376,10 +377,3 @@ export default function Sidebar({
     </>
   );
 }
-
-Sidebar.propTypes = {
-  onClose: PropTypes.func,
-  collapsed: PropTypes.bool,
-  onToggleCollapse: PropTypes.func,
-  isMacElectron: PropTypes.bool,
-};

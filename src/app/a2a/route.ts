@@ -12,18 +12,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getTaskManager } from "@/lib/a2a/taskManager";
-import { executeSmartRouting } from "@/lib/a2a/skills/smartRouting";
-import { executeQuotaManagement } from "@/lib/a2a/skills/quotaManagement";
 import { logRoutingDecision } from "@/lib/a2a/routingLogger";
 import { createA2AStream, SSE_HEADERS } from "@/lib/a2a/streaming";
-import { executeA2ATaskWithState } from "@/lib/a2a/taskExecution";
-
-// ============ Skill Registry ============
-
-const SKILL_HANDLERS: Record<string, (task: any) => Promise<any>> = {
-  "smart-routing": executeSmartRouting,
-  "quota-management": executeQuotaManagement,
-};
+import { A2A_SKILL_HANDLERS, executeA2ATaskWithState } from "@/lib/a2a/taskExecution";
+import { getSettings } from "@/lib/db/settings";
 
 type A2AMessage = { role: string; content: string };
 
@@ -95,6 +87,22 @@ function jsonRpcResult(id: string | number | null, result: unknown) {
   return NextResponse.json({ jsonrpc: "2.0", id, result });
 }
 
+async function rejectIfA2ADisabled(id: string | number | null) {
+  const settings = await getSettings();
+  if (settings.a2aEnabled === true) return null;
+  return NextResponse.json(
+    {
+      jsonrpc: "2.0",
+      id,
+      error: {
+        code: -32000,
+        message: "A2A endpoint is disabled. Enable it from the Endpoints page.",
+      },
+    },
+    { status: 503 }
+  );
+}
+
 // ============ Route Handler ============
 
 export async function POST(req: NextRequest) {
@@ -116,6 +124,9 @@ export async function POST(req: NextRequest) {
     return jsonRpcError(id || null, -32600, "Invalid request: missing jsonrpc or method");
   }
 
+  const disabledResponse = await rejectIfA2ADisabled(id ?? null);
+  if (disabledResponse) return disabledResponse;
+
   const tm = getTaskManager();
 
   switch (method) {
@@ -131,7 +142,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const handler = SKILL_HANDLERS[skill];
+      const handler = A2A_SKILL_HANDLERS[skill];
       if (!handler) {
         return jsonRpcError(id, -32601, `Unknown skill: ${skill}`);
       }
@@ -144,18 +155,22 @@ export async function POST(req: NextRequest) {
 
         // Log routing decision
         if (skill === "smart-routing" && result.metadata) {
+          const smartMetadata = result.metadata as {
+            routing_explanation?: string;
+            cost_envelope?: { actual?: number };
+          };
           logRoutingDecision({
             taskType: (params?.metadata?.role as string) || "general",
             comboId: (params?.metadata?.combo as string) || "default",
             providerSelected:
-              result.metadata?.routing_explanation?.match(/"([^"]+)"/)?.[1] || "unknown",
+              smartMetadata.routing_explanation?.match(/"([^"]+)"/)?.[1] || "unknown",
             modelUsed: (params?.metadata?.model as string) || "auto",
             score: 1,
             factors: [],
             fallbacksTriggered: [],
             success: true,
             latencyMs: 0,
-            cost: result.metadata?.cost_envelope?.actual || 0,
+            cost: smartMetadata.cost_envelope?.actual || 0,
           });
         }
 
@@ -183,7 +198,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const handler = SKILL_HANDLERS[skill];
+      const handler = A2A_SKILL_HANDLERS[skill];
       if (!handler) {
         return jsonRpcError(id, -32601, `Unknown skill: ${skill}`);
       }

@@ -1342,10 +1342,7 @@
     "mitmClientsTab": "MITM 客户端",
     "customCliTab": "自定义 CLI",
     "toolCategories": "工具分类",
-    "visibleToolsCount": "{count} 个工具可用",
-    "installationGuide": "安装指南",
-    "whenToUseLabel": "何时使用",
-    "openToolDocs": "打开工具文档"
+    "visibleToolsCount": "{count} 个工具可用"
   },
   "combos": {
     "title": "组合",
@@ -2265,7 +2262,18 @@
     "clientPayload": "Client Request Payload",
     "upstreamPayload": "Upstream Provider Payload",
     "upstreamNotSentYet": "Not sent to upstream yet",
-    "runningRequestDetailMeta": "Account: {account} — Elapsed: {elapsed}"
+    "runningRequestDetailMeta": "Account: {account} — Elapsed: {elapsed}",
+    "consoleViewer": {
+      "fetchFailed": "Failed to fetch logs",
+      "copyFailed": "Failed to copy log entry",
+      "copyLogEntry": "Copy log entry"
+    },
+    "export": "Export",
+    "exporting": "Exporting...",
+    "exportFailed": "Export failed",
+    "timeRange": "Time Range",
+    "lastNHours": "Last {hours}",
+    "defaultRange": "default"
   },
   "onboarding": {
     "welcome": "欢迎",
@@ -2786,7 +2794,9 @@
     "zedImportNetworkError": "Zed Import Network Error",
     "zedImportNone": "Zed Import None",
     "zedImportSuccess": "Zed Import Success",
-    "zedImporting": "Zed Importing"
+    "zedImporting": "Zed Importing",
+    "expiredBadge": "Expired",
+    "expiringSoonBadge": "Expiring Soon"
   },
   "settings": {
     "title": "设置",
@@ -2920,6 +2930,14 @@
     "themeLight": "浅色",
     "themeDark": "深色",
     "themeSystem": "系统",
+    "endpointTunnelVisibility": "端点隧道可见性",
+    "endpointTunnelVisibilityDesc": "隐藏端点页面中的隧道控制项，但不改变隧道运行状态。",
+    "showCloudflareTunnel": "Cloudflare 快速隧道",
+    "showCloudflareTunnelDesc": "在端点页面显示 Cloudflare Quick Tunnel 控制项。",
+    "showTailscaleFunnel": "Tailscale Funnel",
+    "showTailscaleFunnelDesc": "在端点页面显示 Tailscale Funnel 控制项。",
+    "showNgrokTunnel": "ngrok Tunnel",
+    "showNgrokTunnelDesc": "在端点页面显示 ngrok Tunnel 控制项。",
     "sidebarVisibility": "隐藏侧边栏项目",
     "sidebarVisibilityDesc": "可以隐藏任意侧边栏导航项，以减少视觉负担，但不会禁用任何功能",
     "sidebarVisibilityHint": "当某个侧边栏分组中的所有项目都被隐藏时，该分组会自动隐藏",
@@ -4070,7 +4088,9 @@
     "troubleshootingCodexFamily": "对于 GitHub Codex 系列模型，请保持模型名为 `gh/codex-model`；路由器会自动选择 `/responses`。",
     "troubleshootingTestConnection": "在从 IDE 或外部客户端进行测试之前，请使用仪表板 > 提供商 > 测试连接。",
     "troubleshootingCircuitBreaker": "如果提供商显示断路器已打开，请等待冷却或查看运行状况页面以了解详细信息。",
-    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。"
+    "troubleshootingOAuth": "对于 OAuth 提供商，如果 Token 过期，请重新认证，并检查提供商卡片上的状态指示器。",
+    "deployTermuxTitle": "Termux (Android)",
+    "deployTermuxText": "Run OmniRoute headless on Android via Termux. Access the dashboard from your mobile browser."
   },
   "legal": {
     "privacyPolicy": "隐私政策",
@@ -4632,7 +4652,20 @@
     "loadingLogs": "正在加载日志...",
     "noLogs": "暂无日志记录。进行一些API调用以在此处查看它们。",
     "noMatchingLogs": "没有匹配当前筛选器的日志。",
-    "callLogsInfo": "调用日志也保存为JSON文件到{dataDir}，并根据{retentionDays}和{maxEntries}进行轮换。"
+    "callLogsInfo": "调用日志也保存为JSON文件到{dataDir}，并根据{retentionDays}和{maxEntries}进行轮换。",
+    "updatePipelineFailed": "Failed to update pipeline logging",
+    "capturePipeline": "Capture pipeline payloads for new requests",
+    "sortLogs": "Sort logs",
+    "refresh": "Refresh",
+    "columnsLabel": "Columns",
+    "cacheSem": "SEM",
+    "cacheUp": "UP",
+    "semantic": "Semantic",
+    "upstream": "Upstream",
+    "semanticCacheHit": "Semantic cache hit (served by OmniRoute)",
+    "upstreamResponse": "Upstream provider response",
+    "noApiKey": "No API key",
+    "requestedRoutedTitle": "Requested {requested}, routed as {routed}"
   },
   "endpointOptions": {
     "speech": "Speech",
@@ -4653,5 +4686,42 @@
     "codex": "Codex",
     "claude": "Claude",
     "kilo": "Kilo"
+  },
+  "proxyLogger": {
+    "filterAll": "All",
+    "filterErrors": "Errors",
+    "filterSuccess": "Success",
+    "filterTimeout": "Timeout",
+    "colStatus": "Status",
+    "colProxy": "Proxy",
+    "colTls": "TLS",
+    "colType": "Type",
+    "colLevel": "Level",
+    "colProvider": "Provider",
+    "colTarget": "Target",
+    "colLatency": "Latency",
+    "colPublicIp": "Public IP",
+    "colTime": "Time",
+    "recording": "Recording",
+    "paused": "Paused",
+    "searchPlaceholder": "Search host, provider, target, IP...",
+    "allTypes": "All Types",
+    "allLevels": "All Levels",
+    "allProviders": "All Providers",
+    "total": "total",
+    "ok": "OK",
+    "err": "ERR",
+    "timeoutShort": "TMO",
+    "direct": "direct",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "latencyDesc": "Latency ↓",
+    "latencyAsc": "Latency ↑",
+    "refresh": "Refresh",
+    "columns": "Columns",
+    "loadingProxyLogs": "Loading proxy logs...",
+    "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
+    "noMatchingLogs": "No logs match the current filters.",
+    "tlsFingerprint": "Chrome 124 TLS Fingerprint"
   }
 }

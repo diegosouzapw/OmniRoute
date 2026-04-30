@@ -22,6 +22,7 @@ import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
 import VisionBridgeSettingsTab from "./components/VisionBridgeSettingsTab";
+import MitmProxyTab from "./components/MitmProxyTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 
 const tabs = [
@@ -31,6 +32,7 @@ const tabs = [
   { id: "security", labelKey: "security", icon: "shield" },
   { id: "routing", labelKey: "routing", icon: "route" },
   { id: "resilience", labelKey: "resilience", icon: "electrical_services" },
+  { id: "mitm", labelKey: "mitmProxy", icon: "lan" },
   { id: "advanced", labelKey: "advanced", icon: "tune" },
 ];
 
@@ -115,6 +117,8 @@ export default function SettingsPage() {
           )}
 
           {activeTab === "resilience" && <ResilienceTab />}
+
+          {activeTab === "mitm" && <MitmProxyTab />}
 
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">

@@ -1,4 +1,4 @@
--- 032_create_reasoning_cache.sql
+-- 033_create_reasoning_cache.sql
 -- Persistent storage for reasoning_content replay cache.
 -- Enables crash recovery and dashboard visibility for the
 -- Reasoning Replay Cache feature (Issue #1628).

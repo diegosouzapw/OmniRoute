@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import PropTypes from "prop-types";
 import OAuthModal from "./OAuthModal";
 import KiroAuthModal from "./KiroAuthModal";
 import KiroSocialOAuthModal from "./KiroSocialOAuthModal";
+
+type KiroOAuthWrapperProps = {
+  isOpen: boolean;
+  providerInfo?: { id?: string; name?: string } | null;
+  onSuccess?: () => void;
+  onClose: () => void;
+  reauthConnection?: null | { id?: string };
+};
 
 /**
  * Kiro OAuth Wrapper
@@ -16,7 +23,7 @@ export default function KiroOAuthWrapper({
   onSuccess,
   onClose,
   reauthConnection,
-}) {
+}: KiroOAuthWrapperProps) {
   const [authMethod, setAuthMethod] = useState(null); // null | "builder-id" | "idc" | "social" | "import"
   const [socialProvider, setSocialProvider] = useState(null); // "google" | "github"
   const [idcConfig, setIdcConfig] = useState(null);
@@ -106,13 +113,3 @@ export default function KiroOAuthWrapper({
 
   return null;
 }
-
-KiroOAuthWrapper.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  providerInfo: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-  }),
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

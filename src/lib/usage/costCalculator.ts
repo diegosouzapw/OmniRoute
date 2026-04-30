@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Cost Calculator — extracted from usageDb.js (T-15)
  *
@@ -16,10 +15,8 @@
  *   "deepseek-ai/DeepSeek-R1" → "DeepSeek-R1"
  *   "gpt-oss-120b" → "gpt-oss-120b" (no-op)
  *
- * @param {string} model
- * @returns {string}
  */
-export function normalizeModelName(model) {
+export function normalizeModelName(model: string): string {
   if (!model || !model.includes("/")) return model;
   const parts = model.split("/");
   return parts[parts.length - 1];
@@ -48,7 +45,7 @@ function toNumber(value: unknown, fallback = 0): number {
  */
 export function computeCostFromPricing(
   pricing: Record<string, unknown> | null | undefined,
-  tokens: any
+  tokens: Record<string, number | undefined> | null | undefined
 ): number {
   if (!pricing || !tokens) return 0;
   const inputPrice = toNumber(pricing.input, 0);
@@ -77,7 +74,11 @@ export function computeCostFromPricing(
   return cost;
 }
 
-export async function calculateCost(provider, model, tokens) {
+export async function calculateCost(
+  provider: string,
+  model: string,
+  tokens: Record<string, number | undefined> | null | undefined
+): Promise<number> {
   if (!tokens || !provider || !model) return 0;
 
   try {
@@ -97,38 +98,7 @@ export async function calculateCost(provider, model, tokens) {
       pricing && typeof pricing === "object" && !Array.isArray(pricing)
         ? (pricing as Record<string, unknown>)
         : {};
-    const inputPrice = toNumber(pricingRecord.input, 0);
-    const cachedPrice = toNumber(pricingRecord.cached, inputPrice);
-    const outputPrice = toNumber(pricingRecord.output, 0);
-    const reasoningPrice = toNumber(pricingRecord.reasoning, outputPrice);
-    const cacheCreationPrice = toNumber(pricingRecord.cache_creation, inputPrice);
-
-    let cost = 0;
-
-    const inputTokens = tokens.input ?? tokens.prompt_tokens ?? tokens.input_tokens ?? 0;
-    const cachedTokens =
-      tokens.cacheRead ?? tokens.cached_tokens ?? tokens.cache_read_input_tokens ?? 0;
-    const nonCachedInput = Math.max(0, inputTokens - cachedTokens);
-    cost += nonCachedInput * (inputPrice / 1000000);
-
-    if (cachedTokens > 0) {
-      cost += cachedTokens * (cachedPrice / 1000000);
-    }
-
-    const outputTokens = tokens.output ?? tokens.completion_tokens ?? tokens.output_tokens ?? 0;
-    cost += outputTokens * (outputPrice / 1000000);
-
-    const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
-    if (reasoningTokens > 0) {
-      cost += reasoningTokens * (reasoningPrice / 1000000);
-    }
-
-    const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
-    if (cacheCreationTokens > 0) {
-      cost += cacheCreationTokens * (cacheCreationPrice / 1000000);
-    }
-
-    return cost;
+    return computeCostFromPricing(pricingRecord, tokens);
   } catch (error) {
     console.error("Error calculating cost:", error);
     return 0;

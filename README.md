@@ -1060,7 +1060,7 @@ docker compose --profile base up -d
 docker compose --profile cli up -d
 ```
 
-Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL.
+Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL. Endpoint tunnel panels, including Cloudflare, Tailscale, and ngrok, can be shown or hidden from `Settings → Appearance` without changing active tunnel state.
 
 Notes:
 
@@ -1502,24 +1502,24 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 
 ### ☁️ Deployment & Platform
 
-| Feature                        | What It Does                                                          |
-| ------------------------------ | --------------------------------------------------------------------- |
-| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                            |
-| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                 |
-| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles |
-| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls               |
-| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                             |
-| 🧙 **Onboarding Wizard**       | First-run guided setup                                                |
-| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                              |
-| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                   |
-| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security              |
-| 🌐 **i18n (40+ languages)**    | Full dashboard + docs language support with RTL coverage              |
-| 🧹 **Clear All Models**        | One-click model list clearing in provider details                     |
-| 👁️ **Sidebar Controls** 🆕     | Hide components and integrations from Appearance Settings             |
-| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                   |
-| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                              |
-| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`              |
-| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support      |
+| Feature                        | What It Does                                                           |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| 🌐 **Deploy Anywhere**         | Localhost, VPS, Docker, Cloud environments                             |
+| 🚇 **Cloudflare Tunnel** 🆕    | One-click Quick Tunnel integration from the dashboard                  |
+| 🔑 **API Key Model Filtering** | Native /v1/models response filtered via assigned Bearer context roles  |
+| ⚡ **Smart Cache Bypass**      | Configurable TTL heuristics and forced refetch controls                |
+| 🔄 **Backup/Restore**          | Export/import and disaster recovery flows                              |
+| 🧙 **Onboarding Wizard**       | First-run guided setup                                                 |
+| 🔧 **CLI Tools Dashboard**     | One-click setup for popular coding tools                               |
+| 🎮 **Model Playground**        | Test any provider/model/endpoint from the dashboard                    |
+| 🔏 **CLI Fingerprint Toggle**  | Per-provider fingerprint matching in Settings > Security               |
+| 🌐 **i18n (40+ languages)**    | Full dashboard + docs language support with RTL coverage               |
+| 🧹 **Clear All Models**        | One-click model list clearing in provider details                      |
+| 👁️ **Visibility Controls** 🆕  | Hide sidebar items and Endpoint tunnel panels from Appearance Settings |
+| 📋 **Issue Templates**         | Standardized GitHub templates for bugs and features                    |
+| 📂 **Custom Data Directory**   | `DATA_DIR` override for storage location                               |
+| 🌐 **V1 WebSocket Bridge** 🆕  | OpenAI-compatible WebSocket traffic proxied via `/v1/ws`               |
+| 🔑 **Sync Tokens & Bundle** 🆕 | Config sync tokens + versioned bundle endpoint with ETag support       |
 
 ### Feature Deep Dive
 
@@ -1610,6 +1610,9 @@ Useful APIs for automation:
 
 <details>
 <summary><b>🤝 A2A Setup (Agent2Agent)</b></summary>
+
+Enable A2A from **Endpoints → A2A** before sending JSON-RPC tasks. When the toggle is off,
+`/api/a2a/status` reports `disabled` and `POST /a2a` returns HTTP 503.
 
 Discover the agent:
 

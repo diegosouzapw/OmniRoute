@@ -16,6 +16,8 @@ export default function PlaygroundMode() {
   const [targetFormat, setTargetFormat] = useState("openai");
   const [inputContent, setInputContent] = useState("");
   const [outputContent, setOutputContent] = useState("");
+  const [intermediateContent, setIntermediateContent] = useState("");
+  const [translationPath, setTranslationPath] = useState("");
   const [detectedFormat, setDetectedFormat] = useState(null);
   const [translating, setTranslating] = useState(false);
   const [detecting, setDetecting] = useState(false);
@@ -61,28 +63,66 @@ export default function PlaygroundMode() {
 
     setTranslating(true);
     setOutputContent("");
+    setIntermediateContent("");
+    setTranslationPath("");
     try {
       const parsed = JSON.parse(inputContent);
+
+      if (sourceFormat === targetFormat) {
+        setOutputContent(JSON.stringify(parsed, null, 2));
+        setTranslationPath("passthrough");
+        setTranslating(false);
+        return;
+      }
+
+      let intermediate = parsed;
+      let hasIntermediate = false;
+
+      if (sourceFormat !== "openai" && targetFormat !== "openai") {
+        const step1 = await fetch("/api/translator/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            step: "direct",
+            sourceFormat,
+            targetFormat: "openai",
+            body: parsed,
+          }),
+        });
+        const step1Data = await step1.json();
+        if (!step1Data.success) {
+          setOutputContent(JSON.stringify({ error: step1Data.error }, null, 2));
+          return;
+        }
+        intermediate = step1Data.result;
+        setIntermediateContent(JSON.stringify(intermediate, null, 2));
+        hasIntermediate = true;
+      }
+
       const res = await fetch("/api/translator/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           step: "direct",
-          sourceFormat,
+          sourceFormat: hasIntermediate ? "openai" : sourceFormat,
           targetFormat,
-          body: parsed,
+          body: hasIntermediate ? intermediate : parsed,
         }),
       });
       const data = await res.json();
       if (data.success) {
         setOutputContent(JSON.stringify(data.result, null, 2));
+        setTranslationPath(hasIntermediate ? "hub-and-spoke" : "direct");
       } else {
         setOutputContent(JSON.stringify({ error: data.error }, null, 2));
       }
     } catch (err) {
-      setOutputContent(JSON.stringify({ error: err.message }, null, 2));
+      setOutputContent(
+        JSON.stringify({ error: err instanceof Error ? err.message : String(err) }, null, 2)
+      );
+    } finally {
+      setTranslating(false);
     }
-    setTranslating(false);
   };
 
   const loadTemplate = (template) => {
@@ -90,6 +130,8 @@ export default function PlaygroundMode() {
     setInputContent(JSON.stringify(formatData, null, 2));
     setActiveTemplate(template.id);
     setOutputContent("");
+    setIntermediateContent("");
+    setTranslationPath("");
   };
 
   const handleCopy = async (text) => {
@@ -105,6 +147,8 @@ export default function PlaygroundMode() {
     setTargetFormat(sourceFormat);
     setInputContent(outputContent);
     setOutputContent("");
+    setIntermediateContent("");
+    setTranslationPath("");
     setDetectedFormat(null);
   };
 
@@ -194,8 +238,35 @@ export default function PlaygroundMode() {
         </div>
       </Card>
 
+      {translationPath && (
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <span className="material-symbols-outlined text-[14px]">route</span>
+          {translationPath === "hub-and-spoke" ? (
+            <span>
+              {t("translationPathHubSpoke", {
+                source: FORMAT_META[sourceFormat]?.label || sourceFormat,
+                target: FORMAT_META[targetFormat]?.label || targetFormat,
+              })}
+            </span>
+          ) : translationPath === "direct" ? (
+            <span>
+              {t("translationPathDirect", {
+                source: FORMAT_META[sourceFormat]?.label || sourceFormat,
+                target: FORMAT_META[targetFormat]?.label || targetFormat,
+              })}
+            </span>
+          ) : (
+            <span>{t("translationPathPassthrough")}</span>
+          )}
+        </div>
+      )}
+
       {/* Split Editor View */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div
+        className={`grid grid-cols-1 gap-4 ${
+          intermediateContent ? "xl:grid-cols-3" : "lg:grid-cols-2"
+        }`}
+      >
         {/* Input Panel */}
         <Card>
           <div className="p-4 space-y-3">
@@ -257,6 +328,49 @@ export default function PlaygroundMode() {
             </div>
           </div>
         </Card>
+
+        {/* Intermediate Panel */}
+        {intermediateContent && (
+          <Card>
+            <div className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[18px] text-amber-500">hub</span>
+                  <h3 className="text-sm font-semibold text-text-main">
+                    {t("openaiIntermediatePanel")}
+                  </h3>
+                  <Badge variant="warning" size="sm">
+                    Hub
+                  </Badge>
+                </div>
+                <button
+                  onClick={() => handleCopy(intermediateContent)}
+                  className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
+                  title={tc("copy")}
+                >
+                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                </button>
+              </div>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <Editor
+                  height="400px"
+                  defaultLanguage="json"
+                  value={intermediateContent}
+                  theme="vs-dark"
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 12,
+                    lineNumbers: "on",
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    readOnly: true,
+                  }}
+                />
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Output Panel */}
         <Card>

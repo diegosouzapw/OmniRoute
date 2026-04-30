@@ -100,6 +100,15 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
   },
 ] as const;
 
+const LEGACY_VERSION_SLOT_MIGRATIONS = [
+  { version: "028", name: "evals_tables" },
+  { version: "029", name: "webhooks_templates" },
+  { version: "030", name: "mcp_scopes_api_keys" },
+  { version: "031", name: "api_keys_expires" },
+  { version: "032", name: "detailed_logs_warnings" },
+  { version: "033", name: "provider_connections_block_extra_usage" },
+] as const;
+
 const PHYSICAL_SCHEMA_SENTINELS = [
   { version: "028", tableName: "batches", description: "batches table" },
   { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
@@ -197,6 +206,25 @@ function ensureColumn(
   if (!hasColumn(db, tableName, columnName)) {
     db.exec(ddl);
   }
+}
+
+function isProviderConnectionMaxConcurrentMigration(migration: {
+  version: string;
+  name: string;
+}): boolean {
+  return migration.version === "029";
+}
+
+function applyProviderConnectionMaxConcurrentMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "provider_connections",
+    "max_concurrent",
+    "ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER"
+  );
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
+  );
 }
 
 function isApiKeyLifecycleMigration(migration: { version: string; name: string }): boolean {
@@ -368,6 +396,58 @@ function reconcileRenumberedMigrations(
   return repaired;
 }
 
+function rehomeLegacyVersionSlotMigrations(
+  db: Database.Database,
+  files: Array<{ version: string; name: string; path: string }>
+): boolean {
+  let repaired = false;
+  const diskNamesByVersion = new Map(files.map((file) => [file.version, file.name]));
+
+  for (const legacy of LEGACY_VERSION_SLOT_MIGRATIONS) {
+    const diskName = diskNamesByVersion.get(legacy.version);
+    if (!diskName || diskName === legacy.name) {
+      continue;
+    }
+
+    const legacyRow = db
+      .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ? AND name = ?")
+      .get(legacy.version, legacy.name) as { version: string; name: string } | undefined;
+    if (!legacyRow) {
+      continue;
+    }
+
+    const legacyVersion = `legacy-${legacy.version}-${legacy.name}`;
+    const applyRepair = db.transaction(() => {
+      const existingLegacyRow = db
+        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+        .get(legacyVersion) as { version: string } | undefined;
+
+      if (existingLegacyRow) {
+        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
+          legacy.version,
+          legacy.name
+        );
+        return;
+      }
+
+      db.prepare("UPDATE _omniroute_migrations SET version = ? WHERE version = ? AND name = ?").run(
+        legacyVersion,
+        legacy.version,
+        legacy.name
+      );
+    });
+
+    applyRepair();
+    repaired = true;
+    console.warn(
+      `[Migration] Rehomed legacy migration ${legacy.version}_${legacy.name} ` +
+        `to ${legacyVersion} so current ${legacy.version}_${diskName} can apply.`
+    );
+  }
+
+  return repaired;
+}
+
 /**
  * Create a pre-migration backup of the SQLite database using VACUUM INTO.
  * Returns the backup path on success, null on failure.
@@ -410,6 +490,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   ensureMigrationsTable(db);
 
   const files = getMigrationFiles();
+  rehomeLegacyVersionSlotMigrations(db, files);
   reconcileRenumberedMigrations(db, files);
   const applied = getAppliedVersions(db);
   const appliedRecords = getAppliedRecords(db);
@@ -495,7 +576,9 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
 
   for (const migration of pending) {
     const applyMigration = db.transaction(() => {
-      if (isApiKeyLifecycleMigration(migration)) {
+      if (isProviderConnectionMaxConcurrentMigration(migration)) {
+        applyProviderConnectionMaxConcurrentMigration(db);
+      } else if (isApiKeyLifecycleMigration(migration)) {
         applyApiKeyLifecycleMigration(db);
       } else if (isSearchRequestTypeMigration(migration)) {
         applySearchRequestTypeMigration(db);

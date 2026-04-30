@@ -135,6 +135,34 @@ interface EvalSuiteDraft {
   cases: EvalCaseDraft[];
 }
 
+interface ImportedEvalCase {
+  id?: string;
+  name?: string;
+  model?: string;
+  input?: {
+    messages?: Array<{ role?: string; content?: string }>;
+  };
+  expected?: {
+    strategy?: string;
+    value?: string;
+  };
+  tags?: string[];
+}
+
+interface ImportedEvalSuiteFile {
+  name?: string;
+  description?: string;
+  cases?: ImportedEvalCase[];
+}
+
+interface RunAllProgress {
+  current: number;
+  total: number;
+  suiteName: string;
+  completed: number;
+  failedSuites: number;
+}
+
 const STRATEGIES = [
   {
     name: "contains",
@@ -168,13 +196,6 @@ const STRATEGIES = [
     bg: "bg-violet-500/10",
     descriptionKey: "evalsStrategyCustomDescription",
   },
-];
-
-const RESULT_COLUMNS = [
-  { key: "caseName", labelKey: "columnCase" },
-  { key: "status", labelKey: "columnStatus" },
-  { key: "durationMs", labelKey: "columnLatency" },
-  { key: "details", labelKey: "columnDetails" },
 ];
 
 const HISTORY_COLUMNS = [
@@ -213,6 +234,10 @@ function createEmptySuiteDraft(): EvalSuiteDraft {
   };
 }
 
+function normalizeBuilderStrategy(value: unknown): BuilderStrategy {
+  return value === "exact" || value === "regex" ? value : "contains";
+}
+
 function joinPromptMessages(
   messages: Array<{ role: string; content: string }> | undefined,
   role: string
@@ -241,13 +266,91 @@ function suiteToDraft(suite: EvalSuite): EvalSuiteDraft {
                 .filter((message) => message.role !== "system")
                 .map((message) => message.content)
                 .join("\n\n"),
-            strategy:
-              evalCase.expected?.strategy === "exact" || evalCase.expected?.strategy === "regex"
-                ? evalCase.expected.strategy
-                : "contains",
+            strategy: normalizeBuilderStrategy(evalCase.expected?.strategy),
             expectedValue: evalCase.expected?.value || "",
             tags: (evalCase.tags || []).join(", "),
           }))
+        : [createEmptyCaseDraft()],
+  };
+}
+
+function suiteToCloneDraft(
+  suite: EvalSuite,
+  t: (key: string, values?: Record<string, unknown>) => string
+): EvalSuiteDraft {
+  const draft = suiteToDraft(suite);
+  return {
+    name: `${draft.name || suite.id} ${t("suiteBuilderCloneSuffix")}`.trim(),
+    description: draft.description,
+    cases: draft.cases.map((evalCase) => ({
+      ...evalCase,
+      id: createDraftId(),
+      name: evalCase.name ? `${evalCase.name} ${t("suiteBuilderCloneSuffix")}`.trim() : "",
+    })),
+  };
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "";
+}
+
+function getResultExpectedValue(result: EvalResult): string {
+  if (result.details?.expected) return String(result.details.expected);
+  if (result.details?.searchTerm) return String(result.details.searchTerm);
+  if (result.details?.pattern) return String(result.details.pattern);
+  return "—";
+}
+
+function getResultActualValue(result: EvalResult, output?: string): string {
+  const actual = output || result.details?.actual || result.details?.actualSnippet || "";
+  return typeof actual === "string" && actual.trim().length > 0 ? actual : "—";
+}
+
+function createDraftFromImportedSuite(
+  payload: ImportedEvalSuiteFile,
+  fallbackName: string
+): EvalSuiteDraft {
+  const cases = Array.isArray(payload.cases) ? payload.cases : [];
+
+  return {
+    name:
+      typeof payload.name === "string" && payload.name.trim().length > 0
+        ? payload.name.trim()
+        : fallbackName,
+    description: typeof payload.description === "string" ? payload.description : "",
+    cases:
+      cases.length > 0
+        ? cases.map((evalCase, index) => {
+            const importedMessages = evalCase.input?.messages;
+            const messages = Array.isArray(importedMessages)
+              ? importedMessages
+                  .map((message) => ({
+                    role: typeof message.role === "string" ? message.role : "",
+                    content: typeof message.content === "string" ? message.content : "",
+                  }))
+                  .filter((message) => message.role && message.content.trim())
+              : [];
+
+            return {
+              id: createDraftId(),
+              name:
+                typeof evalCase.name === "string" && evalCase.name.trim().length > 0
+                  ? evalCase.name.trim()
+                  : `Case ${index + 1}`,
+              model: typeof evalCase.model === "string" ? evalCase.model : "",
+              systemPrompt: joinPromptMessages(messages, "system"),
+              userPrompt:
+                joinPromptMessages(messages, "user") ||
+                messages
+                  .filter((message) => message.role !== "system")
+                  .map((message) => message.content)
+                  .join("\n\n"),
+              strategy: normalizeBuilderStrategy(evalCase.expected?.strategy),
+              expectedValue:
+                typeof evalCase.expected?.value === "string" ? evalCase.expected.value : "",
+              tags: Array.isArray(evalCase.tags) ? evalCase.tags.join(", ") : "",
+            };
+          })
         : [createEmptyCaseDraft()],
   };
 }
@@ -338,8 +441,11 @@ export default function EvalsTab() {
   const [suiteRuns, setSuiteRuns] = useState<Record<string, EvalSuiteRunState>>({});
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
+  const [runProgress, setRunProgress] = useState<RunAllProgress | null>(null);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [expandedResults, setExpandedResults] = useState<Set<string>>(new Set());
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [suiteDraft, setSuiteDraft] = useState<EvalSuiteDraft>(createEmptySuiteDraft());
@@ -422,6 +528,10 @@ export default function EvalsTab() {
   ];
 
   const compareOptions = targetOptions.filter((option) => option.key !== selectedTargetKey);
+  const runAllPercent =
+    runProgress && runProgress.total > 0
+      ? Math.round((runProgress.completed / runProgress.total) * 100)
+      : 0;
 
   async function refreshDashboard() {
     const response = await fetch("/api/evals");
@@ -444,6 +554,102 @@ export default function EvalsTab() {
   function openEditSuiteBuilder(suite: EvalSuite) {
     setSuiteDraft(suiteToDraft(suite));
     setIsBuilderOpen(true);
+  }
+
+  function handleCloneSuite(suite: EvalSuite) {
+    setSuiteDraft(suiteToCloneDraft(suite, t));
+    setIsBuilderOpen(true);
+  }
+
+  function toggleResultExpansion(resultKey: string) {
+    setExpandedResults((prev) => {
+      const next = new Set(prev);
+      if (next.has(resultKey)) {
+        next.delete(resultKey);
+      } else {
+        next.add(resultKey);
+      }
+      return next;
+    });
+  }
+
+  function handleExportSuite(suite: EvalSuite) {
+    try {
+      const exportPayload = {
+        format: "omniroute.eval-suite.v1",
+        exportedAt: new Date().toISOString(),
+        id: suite.id,
+        name: suite.name || suite.id,
+        description: suite.description || "",
+        source: suite.source || "built-in",
+        cases: (suite.cases || []).map((evalCase) => ({
+          name: evalCase.name || "",
+          model: evalCase.model || "",
+          input: {
+            messages: Array.isArray(evalCase.input?.messages) ? evalCase.input?.messages : [],
+          },
+          expected: {
+            strategy: normalizeBuilderStrategy(evalCase.expected?.strategy),
+            value: evalCase.expected?.value || "",
+          },
+          tags: evalCase.tags || [],
+        })),
+      };
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      const slug =
+        (suite.name || suite.id || "eval-suite")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || "eval-suite";
+      anchor.href = url;
+      anchor.download = `${slug}.eval-suite.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      notify.success(t("suiteExported"), t("notifyEvalTitle", { name: suite.name || suite.id }));
+    } catch (error: unknown) {
+      notify.error(
+        t("notifyEvalRunFailedWithReason", {
+          reason: getErrorMessage(error) || t("suiteExportFailed"),
+        }),
+        t("suiteExportFailed")
+      );
+    }
+  }
+
+  async function handleImportSuite(file: File) {
+    try {
+      const text = await file.text();
+      const payload = JSON.parse(text) as ImportedEvalSuiteFile;
+      if (!payload || typeof payload !== "object" || !Array.isArray(payload.cases)) {
+        throw new Error(t("suiteImportInvalid"));
+      }
+
+      const fallbackName =
+        file.name
+          .replace(/\.eval-suite\.json$/i, "")
+          .replace(/\.json$/i, "")
+          .replace(/[-_]+/g, " ")
+          .trim() || t("suiteBuilderImportedSuite");
+
+      const draft = createDraftFromImportedSuite(payload, fallbackName);
+      setSuiteDraft({
+        ...draft,
+        name: `${draft.name} ${t("suiteBuilderCloneSuffix")}`.trim(),
+      });
+      setIsBuilderOpen(true);
+      notify.success(t("suiteImportReady"), t("notifyEvalTitle", { name: draft.name }));
+    } catch (error: unknown) {
+      notify.error(
+        t("notifyEvalRunFailedWithReason", {
+          reason: getErrorMessage(error) || t("suiteImportInvalid"),
+        }),
+        t("suiteImportFailed")
+      );
+    }
   }
 
   async function handleSaveSuite() {
@@ -584,7 +790,129 @@ export default function EvalsTab() {
     }
   }
 
+  async function handleRunAllSuites() {
+    const suitesToRun = filteredSuites.filter(
+      (suite) => (suite.cases?.length || suite.caseCount || 0) > 0
+    );
+
+    if (suitesToRun.length === 0) {
+      notify.warning(t("notifyNoTestCases"));
+      return;
+    }
+
+    if (compareTargetKey && compareTargetKey === selectedTargetKey) {
+      notify.warning(t("notifySelectDifferentCompareTarget"));
+      return;
+    }
+
+    let completed = 0;
+    let failedSuites = 0;
+    let totalPassed = 0;
+    let totalFailed = 0;
+
+    setRunningAll(true);
+    setRunProgress({
+      current: 0,
+      total: suitesToRun.length,
+      suiteName: "",
+      completed: 0,
+      failedSuites: 0,
+    });
+
+    try {
+      for (const [index, suite] of suitesToRun.entries()) {
+        setRunning(suite.id);
+        setRunProgress({
+          current: index + 1,
+          total: suitesToRun.length,
+          suiteName: suite.name || suite.id,
+          completed,
+          failedSuites,
+        });
+
+        try {
+          const response = await fetch("/api/evals", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              suiteId: suite.id,
+              target: parseTargetKey(selectedTargetKey),
+              ...(compareTargetKey ? { compareTarget: parseTargetKey(compareTargetKey) } : {}),
+              ...(selectedApiKeyId ? { apiKeyId: selectedApiKeyId } : {}),
+            }),
+          });
+
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(
+              payload?.error?.message ||
+                payload?.error ||
+                payload?.message ||
+                t("notifyEvalRunFailed")
+            );
+          }
+
+          const runs = Array.isArray(payload.runs) ? (payload.runs as EvalRun[]) : [];
+          const comparisonScorecard = (payload.scorecard || null) as EvalScorecard | null;
+          setSuiteRuns((prev) => ({
+            ...prev,
+            [suite.id]: {
+              runs,
+              scorecard: comparisonScorecard,
+            },
+          }));
+
+          if (Array.isArray(payload.recentRuns)) {
+            setRecentRuns(payload.recentRuns as EvalRun[]);
+          }
+          if (payload.historyScorecard) {
+            setScorecard(payload.historyScorecard as EvalScorecard);
+          }
+
+          const primaryRun = runs[0];
+          totalPassed += primaryRun?.summary.passed || 0;
+          totalFailed += primaryRun?.summary.failed || 0;
+          completed += 1;
+        } catch (error: unknown) {
+          failedSuites += 1;
+          console.error("[Evals] Run all failed for suite", suite.id, error);
+        } finally {
+          setRunProgress({
+            current: index + 1,
+            total: suitesToRun.length,
+            suiteName: suite.name || suite.id,
+            completed,
+            failedSuites,
+          });
+        }
+      }
+
+      await refreshDashboard();
+      if (failedSuites > 0) {
+        notify.warning(
+          t("runAllCompletedWithFailures", { completed, failedSuites }),
+          t("notifyEvalTitle", { name: t("runAllSuites") })
+        );
+      } else {
+        notify.success(
+          t("runAllCompleted", {
+            suites: completed,
+            passed: totalPassed,
+            failed: totalFailed,
+          }),
+          t("notifyEvalTitle", { name: t("runAllSuites") })
+        );
+      }
+    } finally {
+      setRunning(null);
+      setRunningAll(false);
+      setRunProgress(null);
+    }
+  }
+
   async function handleRunEval(suite: EvalSuite) {
+    if (runningAll) return;
+
     const cases = suite.cases || [];
     if (cases.length === 0) {
       notify.warning(t("notifyNoTestCases"));
@@ -986,10 +1314,74 @@ export default function EvalsTab() {
               <p className="text-xs text-text-muted">{t("evalSuitesHint")}</p>
             </div>
           </div>
-          <Button icon="add" onClick={openNewSuiteBuilder}>
-            {t("suiteBuilderNewSuite")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              className={`inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg border border-black/10 bg-white px-4 text-sm font-medium text-text-main shadow-sm transition-all duration-200 hover:bg-black/5 dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/5 ${
+                running !== null || runningAll ? "pointer-events-none opacity-50" : ""
+              }`}
+            >
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                upload_file
+              </span>
+              {t("importSuite")}
+              <input
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                disabled={running !== null || runningAll}
+                onChange={(event) => {
+                  const file = event.currentTarget.files?.[0];
+                  if (file) {
+                    void handleImportSuite(file);
+                  }
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
+            <Button
+              icon="play_arrow"
+              variant="secondary"
+              disabled={running !== null || runningAll}
+              loading={runningAll}
+              onClick={() => void handleRunAllSuites()}
+            >
+              {runningAll ? t("runAllRunning") : t("runAllSuites")}
+            </Button>
+            <Button
+              icon="add"
+              onClick={openNewSuiteBuilder}
+              disabled={running !== null || runningAll}
+            >
+              {t("suiteBuilderNewSuite")}
+            </Button>
+          </div>
         </div>
+
+        {runProgress && (
+          <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <span className="text-xs font-medium text-text-main">
+                {t("runAllProgress", {
+                  current: runProgress.current,
+                  total: runProgress.total,
+                  name: runProgress.suiteName || t("runAllSuites"),
+                })}
+              </span>
+              <span className="text-xs font-semibold text-primary">{runAllPercent}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${runAllPercent}%` }}
+              />
+            </div>
+            {runProgress.failedSuites > 0 && (
+              <p className="mt-2 text-xs text-amber-400">
+                {t("runAllFailedSuites", { count: runProgress.failedSuites })}
+              </p>
+            )}
+          </div>
+        )}
 
         <FilterBar
           searchValue={search}
@@ -1087,13 +1479,37 @@ export default function EvalsTab() {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon="content_copy"
+                      disabled={running !== null || runningAll}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleCloneSuite(suite);
+                      }}
+                    >
+                      {t("clone")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon="download"
+                      disabled={running !== null || runningAll}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleExportSuite(suite);
+                      }}
+                    >
+                      {t("exportSuite")}
+                    </Button>
                     {suite.source === "custom" && (
                       <>
                         <Button
                           size="sm"
                           variant="secondary"
                           icon="edit"
-                          disabled={running !== null || deletingSuiteId === suite.id}
+                          disabled={running !== null || runningAll || deletingSuiteId === suite.id}
                           onClick={(event) => {
                             event.stopPropagation();
                             openEditSuiteBuilder(suite);
@@ -1105,7 +1521,7 @@ export default function EvalsTab() {
                           size="sm"
                           variant="ghost"
                           icon="delete"
-                          disabled={running !== null || deletingSuiteId === suite.id}
+                          disabled={running !== null || runningAll || deletingSuiteId === suite.id}
                           loading={deletingSuiteId === suite.id}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -1120,7 +1536,7 @@ export default function EvalsTab() {
                       size="sm"
                       variant="primary"
                       loading={isRunning}
-                      disabled={running !== null}
+                      disabled={running !== null || runningAll}
                       onClick={(event) => {
                         event.stopPropagation();
                         void handleRunEval(suite);
@@ -1208,56 +1624,101 @@ export default function EvalsTab() {
                               </div>
                             </div>
 
-                            <DataTable
-                              columns={RESULT_COLUMNS.map((column) => ({
-                                key: column.key,
-                                label: t(column.labelKey),
-                              }))}
-                              data={run.results.map((result, index) => ({
-                                ...result,
-                                id: result.caseId || index,
-                              }))}
-                              renderCell={(row, column) => {
-                                if (column.key === "status") {
-                                  return row.passed ? (
-                                    <span className="text-emerald-400">{t("passedIconLabel")}</span>
-                                  ) : (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-red-400">{t("failedIconLabel")}</span>
-                                      {row.error ? (
-                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-400">
-                                          {t("errorBadge")}
+                            {run.results.length > 0 ? (
+                              <div className="flex max-h-[420px] flex-col gap-2 overflow-auto pr-1">
+                                {run.results.map((result, index) => {
+                                  const resultKey = `${run.id}:${result.caseId || index}`;
+                                  const isResultExpanded = expandedResults.has(resultKey);
+                                  const actualOutput = getResultActualValue(
+                                    result,
+                                    run.outputs?.[result.caseId]
+                                  );
+                                  const expectedOutput = getResultExpectedValue(result);
+
+                                  return (
+                                    <div
+                                      key={resultKey}
+                                      className="overflow-hidden rounded-lg border border-border/20 bg-surface/20"
+                                    >
+                                      <button
+                                        type="button"
+                                        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-surface/30"
+                                        aria-expanded={isResultExpanded}
+                                        aria-label={
+                                          isResultExpanded ? t("collapseResult") : t("expandResult")
+                                        }
+                                        onClick={() => toggleResultExpansion(resultKey)}
+                                      >
+                                        <span className="material-symbols-outlined text-[18px] text-text-muted">
+                                          {isResultExpanded ? "expand_less" : "expand_more"}
                                         </span>
-                                      ) : null}
+                                        <div className="min-w-0">
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <span className="truncate text-sm font-medium text-text-main">
+                                              {result.caseName || result.caseId || "—"}
+                                            </span>
+                                            <span
+                                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                                                result.passed
+                                                  ? "bg-emerald-500/10 text-emerald-400"
+                                                  : "bg-red-500/10 text-red-400"
+                                              }`}
+                                            >
+                                              {result.passed
+                                                ? t("resultPassed")
+                                                : t("resultFailed")}
+                                            </span>
+                                            {result.error ? (
+                                              <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400">
+                                                {t("errorBadge")}
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                          <p className="mt-1 truncate text-xs text-text-muted">
+                                            {getResultDetails(result, t)}
+                                          </p>
+                                        </div>
+                                        <span className="text-xs font-mono text-text-muted">
+                                          {result.durationMs != null
+                                            ? `${result.durationMs}ms`
+                                            : "—"}
+                                        </span>
+                                      </button>
+
+                                      {isResultExpanded && (
+                                        <div className="grid grid-cols-1 gap-3 border-t border-border/20 p-3 lg:grid-cols-2">
+                                          <div>
+                                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                                              {t("expectedOutputLabel")}
+                                            </p>
+                                            <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-md border border-border/20 bg-black/5 p-3 text-xs text-text-main dark:bg-white/5">
+                                              {expectedOutput}
+                                            </pre>
+                                          </div>
+                                          <div>
+                                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                                              {t("actualOutputLabel")}
+                                            </p>
+                                            <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-md border border-border/20 bg-black/5 p-3 text-xs text-text-main dark:bg-white/5">
+                                              {actualOutput}
+                                            </pre>
+                                            {result.error ? (
+                                              <p className="mt-2 text-xs text-red-400">
+                                                {result.error}
+                                              </p>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   );
-                                }
-
-                                if (column.key === "durationMs") {
-                                  return (
-                                    <span className="text-text-muted text-xs font-mono">
-                                      {row.durationMs != null ? `${row.durationMs}ms` : "—"}
-                                    </span>
-                                  );
-                                }
-
-                                if (column.key === "details") {
-                                  return (
-                                    <span className="text-text-muted text-xs truncate max-w-[320px] block">
-                                      {getResultDetails(row as EvalResult, t)}
-                                    </span>
-                                  );
-                                }
-
-                                return (
-                                  <span className="text-sm text-text-main">
-                                    {String(row[column.key] || "—")}
-                                  </span>
-                                );
-                              }}
-                              maxHeight="360px"
-                              emptyMessage={t("noResultsYet")}
-                            />
+                                })}
+                              </div>
+                            ) : (
+                              <div className="rounded-lg border border-border/20 px-4 py-8 text-center text-sm text-text-muted">
+                                {t("noResultsYet")}
+                              </div>
+                            )}
                           </Card>
                         ))}
                       </div>
@@ -1481,6 +1942,35 @@ function SuiteBuilderModal({
     });
   }
 
+  function duplicateCase(caseId: string) {
+    const source = draft.cases.find((entry) => entry.id === caseId);
+    if (!source) return;
+
+    const sourceIndex = draft.cases.findIndex((entry) => entry.id === caseId);
+    const duplicate = {
+      ...source,
+      id: createDraftId(),
+      name: source.name ? `${source.name} ${t("suiteBuilderCloneSuffix")}`.trim() : "",
+    };
+    const nextCases = [...draft.cases];
+    nextCases.splice(sourceIndex + 1, 0, duplicate);
+    onChange({
+      ...draft,
+      cases: nextCases,
+    });
+  }
+
+  function getExpectedPlaceholder(strategy: BuilderStrategy) {
+    if (strategy === "exact") return t("suiteBuilderCaseExpectedPlaceholderExact");
+    if (strategy === "regex") return t("suiteBuilderCaseExpectedPlaceholderRegex");
+    return t("suiteBuilderCaseExpectedPlaceholderContains");
+  }
+
+  function getExpectedHint(strategy: BuilderStrategy) {
+    if (strategy === "regex") return t("suiteBuilderCaseExpectedHintRegex");
+    return undefined;
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -1517,93 +2007,131 @@ function SuiteBuilderModal({
           </div>
         </div>
 
-        {draft.cases.map((draftCase, index) => (
-          <Card key={draftCase.id} className="p-4">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h4 className="text-sm font-semibold text-text-main">
-                  {t("suiteBuilderCaseCardTitle", { index: index + 1 })}
-                </h4>
-                <p className="text-xs text-text-muted">
-                  {t("suiteBuilderCaseCardHint", { index: index + 1 })}
-                </p>
+        {draft.cases.map((draftCase, index) => {
+          const selectedStrategy = editableStrategies.find(
+            (strategy) => strategy.name === draftCase.strategy
+          );
+
+          return (
+            <Card key={draftCase.id} className="p-4">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-text-main">
+                    {t("suiteBuilderCaseCardTitle", { index: index + 1 })}
+                  </h4>
+                  <p className="text-xs text-text-muted">
+                    {t("suiteBuilderCaseCardHint", { index: index + 1 })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon="content_copy"
+                    onClick={() => duplicateCase(draftCase.id)}
+                  >
+                    {t("suiteBuilderDuplicateCase")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon="delete"
+                    onClick={() => removeCase(draftCase.id)}
+                  >
+                    {t("delete")}
+                  </Button>
+                </div>
               </div>
-              <Button variant="ghost" icon="delete" onClick={() => removeCase(draftCase.id)}>
-                {t("delete")}
-              </Button>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Input
-                label={t("suiteBuilderCaseNameLabel")}
-                value={draftCase.name}
-                onChange={(event) => updateCase(draftCase.id, { name: event.target.value })}
-                placeholder={t("suiteBuilderCaseNamePlaceholder")}
-              />
-              <Input
-                label={t("suiteBuilderCaseModelLabel")}
-                value={draftCase.model}
-                onChange={(event) => updateCase(draftCase.id, { model: event.target.value })}
-                placeholder={t("suiteBuilderCaseModelPlaceholder")}
-              />
-              <Input
-                label={t("suiteBuilderCaseTagsLabel")}
-                value={draftCase.tags}
-                onChange={(event) => updateCase(draftCase.id, { tags: event.target.value })}
-                placeholder={t("suiteBuilderCaseTagsPlaceholder")}
-                hint={t("suiteBuilderCaseTagsHint")}
-              />
-              <Select
-                label={t("suiteBuilderCaseStrategyLabel")}
-                value={draftCase.strategy}
-                onChange={(event) =>
-                  updateCase(draftCase.id, { strategy: event.target.value as BuilderStrategy })
-                }
-                options={editableStrategies.map((strategy) => ({
-                  value: strategy.name,
-                  label: t(strategy.labelKey),
-                }))}
-              />
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-4">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-text-main">
-                  {t("suiteBuilderCaseSystemPromptLabel")}
-                </span>
-                <textarea
-                  value={draftCase.systemPrompt}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Input
+                  label={t("suiteBuilderCaseNameLabel")}
+                  value={draftCase.name}
+                  onChange={(event) => updateCase(draftCase.id, { name: event.target.value })}
+                  placeholder={t("suiteBuilderCaseNamePlaceholder")}
+                />
+                <Input
+                  label={t("suiteBuilderCaseModelLabel")}
+                  value={draftCase.model}
+                  onChange={(event) => updateCase(draftCase.id, { model: event.target.value })}
+                  placeholder={t("suiteBuilderCaseModelPlaceholder")}
+                />
+                <Input
+                  label={t("suiteBuilderCaseTagsLabel")}
+                  value={draftCase.tags}
+                  onChange={(event) => updateCase(draftCase.id, { tags: event.target.value })}
+                  placeholder={t("suiteBuilderCaseTagsPlaceholder")}
+                  hint={t("suiteBuilderCaseTagsHint")}
+                />
+                <Select
+                  label={t("suiteBuilderCaseStrategyLabel")}
+                  value={draftCase.strategy}
                   onChange={(event) =>
-                    updateCase(draftCase.id, { systemPrompt: event.target.value })
+                    updateCase(draftCase.id, { strategy: event.target.value as BuilderStrategy })
                   }
-                  rows={3}
-                  placeholder={t("suiteBuilderCaseSystemPromptPlaceholder")}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                  options={editableStrategies.map((strategy) => ({
+                    value: strategy.name,
+                    label: t(strategy.labelKey),
+                  }))}
                 />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-text-main">
-                  {t("suiteBuilderCaseUserPromptLabel")}
-                </span>
-                <textarea
-                  value={draftCase.userPrompt}
-                  onChange={(event) => updateCase(draftCase.id, { userPrompt: event.target.value })}
-                  rows={4}
-                  placeholder={t("suiteBuilderCaseUserPromptPlaceholder")}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                {selectedStrategy && (
+                  <div
+                    className={`flex items-start gap-2 rounded-lg px-3 py-2 ${selectedStrategy.bg}`}
+                  >
+                    <span
+                      className={`material-symbols-outlined mt-0.5 text-[18px] ${selectedStrategy.color}`}
+                    >
+                      {selectedStrategy.icon}
+                    </span>
+                    <p className="text-xs leading-relaxed text-text-muted">
+                      {t(selectedStrategy.descriptionKey)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4">
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-text-main">
+                    {t("suiteBuilderCaseSystemPromptLabel")}
+                  </span>
+                  <textarea
+                    value={draftCase.systemPrompt}
+                    onChange={(event) =>
+                      updateCase(draftCase.id, { systemPrompt: event.target.value })
+                    }
+                    rows={3}
+                    placeholder={t("suiteBuilderCaseSystemPromptPlaceholder")}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-sm font-medium text-text-main">
+                    {t("suiteBuilderCaseUserPromptLabel")}
+                  </span>
+                  <textarea
+                    value={draftCase.userPrompt}
+                    onChange={(event) =>
+                      updateCase(draftCase.id, { userPrompt: event.target.value })
+                    }
+                    rows={4}
+                    placeholder={t("suiteBuilderCaseUserPromptPlaceholder")}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
+                  />
+                </label>
+                <Input
+                  label={t("suiteBuilderCaseExpectedLabel")}
+                  value={draftCase.expectedValue}
+                  onChange={(event) =>
+                    updateCase(draftCase.id, { expectedValue: event.target.value })
+                  }
+                  placeholder={getExpectedPlaceholder(draftCase.strategy)}
+                  hint={getExpectedHint(draftCase.strategy)}
                 />
-              </label>
-              <Input
-                label={t("suiteBuilderCaseExpectedLabel")}
-                value={draftCase.expectedValue}
-                onChange={(event) =>
-                  updateCase(draftCase.id, { expectedValue: event.target.value })
-                }
-                placeholder={t("suiteBuilderCaseExpectedPlaceholder")}
-              />
-            </div>
-          </Card>
-        ))}
+              </div>
+            </Card>
+          );
+        })}
 
         <div className="flex gap-2">
           <Button fullWidth onClick={onSave} disabled={saving}>

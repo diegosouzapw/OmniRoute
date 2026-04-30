@@ -14,7 +14,7 @@ test("system sidebar items place logs before health", () => {
   assert.ok(systemSection, "expected system sidebar section to exist");
   assert.deepEqual(
     systemSection.items.map((item) => item.id),
-    ["logs", "health", "settings"]
+    ["logs", "audit", "webhooks", "health", "settings"]
   );
 });
 
@@ -42,14 +42,14 @@ test("primary sidebar items place limits after cache", () => {
   );
 });
 
-test("sidebar visibility drops stale audit entries from saved settings", () => {
+test("sidebar visibility drops stale entries from saved settings", () => {
   const allSidebarItemIds = sidebarVisibility.SIDEBAR_SECTIONS.flatMap((section) =>
     section.items.map((item) => item.id)
   );
 
-  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("audit"), false);
-  assert.equal(allSidebarItemIds.includes("audit"), false);
-  assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["audit", "logs"]), ["logs"]);
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("auto-combo"), false);
+  assert.equal(allSidebarItemIds.includes("auto-combo"), false);
+  assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo", "logs"]), ["logs"]);
 });
 
 test("help sidebar exposes changelog after docs and issues", () => {
@@ -80,16 +80,11 @@ test("legacy dashboard routes redirect to their consolidated surfaces", async ()
     join(repoRoot, "src/app/(dashboard)/dashboard/auto-combo/page.tsx"),
     "utf8"
   );
-  const auditPage = await readFile(
-    join(repoRoot, "src/app/(dashboard)/dashboard/audit/page.tsx"),
-    "utf8"
-  );
   const usagePage = await readFile(
     join(repoRoot, "src/app/(dashboard)/dashboard/usage/page.tsx"),
     "utf8"
   );
 
   assert.match(autoComboPage, /redirect\("\/dashboard\/combos\?filter=intelligent"\)/);
-  assert.match(auditPage, /redirect\("\/dashboard\/logs\?tab=audit-logs"\)/);
   assert.match(usagePage, /redirect\("\/dashboard\/logs"\)/);
 });

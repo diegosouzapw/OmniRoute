@@ -96,7 +96,8 @@ export async function getMitmStatus(): Promise<{
  */
 export async function startMitm(
   apiKey: string,
-  sudoPassword: string
+  sudoPassword: string,
+  options: { port?: number } = {}
 ): Promise<{ running: true; pid: number | null }> {
   // Check if already running
   if (serverProcess && !serverProcess.killed) {
@@ -119,10 +120,18 @@ export async function startMitm(
 
   // 4. Start MITM server
   console.log("Starting MITM server...");
+  const port =
+    typeof options.port === "number" &&
+    Number.isInteger(options.port) &&
+    options.port > 0 &&
+    options.port <= 65535
+      ? options.port
+      : 443;
   serverProcess = spawn(process.execPath, [MITM_SERVER_PATH], {
     env: {
       ...process.env,
       ROUTER_API_KEY: apiKey,
+      MITM_LOCAL_PORT: String(port),
       NODE_ENV: "production",
     },
     detached: false,

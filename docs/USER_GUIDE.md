@@ -685,6 +685,7 @@ Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 - Managed Quick Tunnels default to HTTP/2 transport to avoid noisy QUIC UDP buffer warnings in constrained containers
 - Set `CLOUDFLARED_PROTOCOL=quic` or `auto` if you want to override the managed transport choice
 - Set `CLOUDFLARED_BIN` if you prefer using a preinstalled `cloudflared` binary instead of the managed download
+- Cloudflare Quick Tunnel, Tailscale Funnel, and ngrok Tunnel panels can be shown or hidden in **Settings → Appearance**. Hiding a panel does not stop a running tunnel.
 
 ### LLM Gateway Intelligence (Phase 9)
 
@@ -837,14 +838,14 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 The settings page is organized into 6 tabs for easy navigation:
 
-| Tab            | Contents                                                                                     |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| **General**    | System storage tools, appearance settings, theme controls, and per-item sidebar visibility   |
-| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking    |
-| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults |
-| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior  |
-| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats            |
-| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                     |
+| Tab            | Contents                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, appearance settings, theme controls, sidebar visibility, and Endpoint tunnel visibility |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking                     |
+| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults                  |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                   |
+| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats                             |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                                      |
 
 ---
 

@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { useTranslations } from "next-intl";
+import TelemetryCard from "./TelemetryCard";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -59,7 +60,6 @@ export default function HealthPage() {
   const [dbHealthError, setDbHealthError] = useState(null);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [telemetry, setTelemetry] = useState(null);
   const [cache, setCache] = useState(null);
   const [signatureCache, setSignatureCache] = useState(null);
   const [degradation, setDegradation] = useState(null);
@@ -91,20 +91,18 @@ export default function HealthPage() {
     }
   }, []);
 
-  // Fetch telemetry, cache, and signature cache stats
+  // Fetch cache, signature cache, and degradation stats.
   const fetchExtras = useCallback(async () => {
     const results = await Promise.allSettled([
-      fetch("/api/telemetry/summary").then((r) => r.json()),
       fetch("/api/cache/stats").then((r) => r.json()),
       fetch("/api/rate-limits").then((r) => r.json()),
       fetch("/api/health/degradation").then((r) => r.json()),
     ]);
-    if (results[0].status === "fulfilled") setTelemetry(results[0].value);
-    if (results[1].status === "fulfilled") setCache(results[1].value);
-    if (results[2].status === "fulfilled" && results[2].value.cacheStats) {
-      setSignatureCache(results[2].value.cacheStats);
+    if (results[0].status === "fulfilled") setCache(results[0].value);
+    if (results[1].status === "fulfilled" && results[1].value.cacheStats) {
+      setSignatureCache(results[1].value.cacheStats);
     }
-    if (results[3].status === "fulfilled") setDegradation(results[3].value);
+    if (results[2].status === "fulfilled") setDegradation(results[2].value);
   }, []);
 
   useEffect(() => {
@@ -246,6 +244,8 @@ export default function HealthPage() {
           {data.status === "healthy" ? t("allOperational") : t("issuesDetected")}
         </span>
       </div>
+
+      <TelemetryCard />
 
       <Card className="p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -617,38 +617,8 @@ export default function HealthPage() {
         </Card>
       )}
 
-      {/* Telemetry Cards — Latency & Prompt Cache */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Latency Card */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">speed</span>
-            {t("latency")}
-          </h3>
-          {telemetry ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP50")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p50)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP95")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p95)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">{t("latencyP99")}</span>
-                <span className="font-mono">{fmtMs(telemetry.p99)}</span>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2 mt-2">
-                <span className="text-text-muted">{t("totalRequests")}</span>
-                <span className="font-mono">{telemetry.totalRequests ?? 0}</span>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-text-muted">{t("noDataYet")}</p>
-          )}
-        </Card>
-
+      {/* Cache Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Prompt Cache Card */}
         <Card className="p-4">
           <h3 className="text-sm font-semibold text-text-muted mb-3 flex items-center gap-2">

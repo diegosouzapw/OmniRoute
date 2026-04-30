@@ -1696,7 +1696,36 @@ export async function handleChatCore({
   ) => {
     const preserveToolResultBlocks = options?.preserveToolResultBlocks === true;
     if (!Array.isArray(payload.messages)) return;
-    const messages = payload.messages as ClaudeMessage[];
+    let messages = payload.messages as ClaudeMessage[];
+
+    // Extract system role messages (Issue #1797)
+    const systemMessages = messages.filter((m) => m.role === "system");
+    if (systemMessages.length > 0) {
+      const extraBlocks: ClaudeContentBlock[] = [];
+      for (const sm of systemMessages) {
+        if (typeof sm.content === "string" && sm.content.length > 0) {
+          extraBlocks.push({ type: "text", text: sm.content });
+        } else if (Array.isArray(sm.content)) {
+          for (const block of sm.content as ClaudeContentBlock[]) {
+            if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
+              extraBlocks.push(block);
+            }
+          }
+        }
+      }
+      if (extraBlocks.length > 0) {
+        const existingSystem = payload.system;
+        if (typeof existingSystem === "string" && existingSystem.length > 0) {
+          payload.system = [{ type: "text", text: existingSystem }, ...extraBlocks];
+        } else if (Array.isArray(existingSystem)) {
+          payload.system = [...(existingSystem as ClaudeContentBlock[]), ...extraBlocks];
+        } else {
+          payload.system = extraBlocks;
+        }
+      }
+      messages = messages.filter((m) => m.role !== "system");
+      payload.messages = messages;
+    }
 
     // Anthropic rejects empty text blocks in native Messages payloads.
     for (const msg of messages) {
@@ -1968,6 +1997,28 @@ export async function handleChatCore({
     finalModelToUpstream = finalModelToUpstream.slice(alias.length + 1);
   }
   translatedBody.model = finalModelToUpstream;
+
+  // #1789: Prevent output_config.effort from overriding effort encoded in model name (Codex)
+  if (provider === "codex" || provider?.startsWith("codex")) {
+    const hasEffortSuffix = finalModelToUpstream.match(/-(low|medium|high|xhigh)$/i);
+    if (
+      hasEffortSuffix &&
+      translatedBody.output_config &&
+      typeof translatedBody.output_config === "object"
+    ) {
+      const oc = translatedBody.output_config as Record<string, unknown>;
+      if (oc.effort) {
+        log?.warn?.(
+          "PARAMS",
+          `Stripped output_config.effort="${oc.effort}" because model "${finalModelToUpstream}" already encodes effort`
+        );
+        delete oc.effort;
+        if (Object.keys(oc).length === 0) {
+          delete translatedBody.output_config;
+        }
+      }
+    }
+  }
 
   // Strip unsupported parameters for reasoning models (o1, o3, etc.)
   const unsupported = getUnsupportedParams(provider, model);

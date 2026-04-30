@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
@@ -14,6 +14,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  BarChart,
+  Bar,
 } from "recharts";
 
 type CostRange = "7d" | "30d" | "90d" | "all";
@@ -24,6 +26,13 @@ interface UsageAnalyticsSummary {
   uniqueModels: number;
   uniqueAccounts: number;
   uniqueApiKeys: number;
+  totalTokens: number;
+  promptTokens: number;
+  completionTokens: number;
+  fallbackCount: number;
+  fallbackRatePct: number;
+  requestedModelCoveragePct: number;
+  streak: number;
 }
 
 interface UsageAnalyticsProviderRow {
@@ -45,11 +54,34 @@ interface UsageAnalyticsTrendRow {
   cost: number;
 }
 
+interface UsageAnalyticsApiKeyRow {
+  apiKey: string;
+  apiKeyId: string | null;
+  apiKeyName: string;
+  requests: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost: number;
+}
+
+interface UsageAnalyticsAccountRow {
+  account: string;
+  totalTokens: number;
+  requests: number;
+  cost: number;
+}
+
 interface UsageAnalyticsPayload {
   summary: UsageAnalyticsSummary;
   byProvider: UsageAnalyticsProviderRow[];
   byModel: UsageAnalyticsModelRow[];
+  byApiKey: UsageAnalyticsApiKeyRow[];
+  byAccount: UsageAnalyticsAccountRow[];
   dailyTrend: UsageAnalyticsTrendRow[];
+  weeklyPattern: Array<{ day: string; avgTokens: number; totalTokens: number }>;
+  activityMap: Record<string, number>;
+  presetSummaries?: Record<string, { totalCost: number }>;
 }
 
 const RANGE_OPTIONS: Array<{ value: CostRange; labelKey: string }> = [
@@ -79,6 +111,104 @@ function createCurrencyFormatter(locale: string) {
   });
 }
 
+function csvCell(value: string | number): string {
+  const text = String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function generateCSV(analytics: UsageAnalyticsPayload, locale: string): string {
+  const currencyFormatter = createCurrencyFormatter(locale);
+  const lines: string[] = [];
+
+  lines.push("# OmniRoute Cost Report");
+  lines.push(`# Generated: ${new Date().toISOString()}`);
+  lines.push("");
+  lines.push("## Summary");
+  lines.push("Metric,Value");
+  lines.push(`Total Cost,${csvCell(currencyFormatter.format(analytics.summary.totalCost))}`);
+  lines.push(`Total Requests,${analytics.summary.totalRequests}`);
+  lines.push(`Unique Models,${analytics.summary.uniqueModels}`);
+  lines.push(`Unique Accounts,${analytics.summary.uniqueAccounts}`);
+  lines.push(`Total Tokens,${analytics.summary.totalTokens}`);
+  lines.push("");
+
+  lines.push("## Daily Cost Trend");
+  lines.push("Date,Cost (USD)");
+  for (const row of analytics.dailyTrend) {
+    lines.push(`${csvCell(row.date)},${row.cost.toFixed(6)}`);
+  }
+  lines.push("");
+
+  lines.push("## Cost by Provider");
+  lines.push("Provider,Requests,Total Tokens,Cost (USD)");
+  for (const row of analytics.byProvider) {
+    lines.push(
+      [row.provider, row.requests, row.totalTokens, row.cost.toFixed(6)].map(csvCell).join(",")
+    );
+  }
+  lines.push("");
+
+  lines.push("## Cost by Model");
+  lines.push("Model,Requests,Total Tokens,Cost (USD)");
+  for (const row of analytics.byModel) {
+    lines.push(
+      [row.model, row.requests, row.totalTokens, row.cost.toFixed(6)].map(csvCell).join(",")
+    );
+  }
+  lines.push("");
+
+  lines.push("## Cost by API Key");
+  lines.push("API Key,Requests,Total Tokens,Cost (USD)");
+  for (const row of analytics.byApiKey || []) {
+    lines.push(
+      [row.apiKeyName || row.apiKey, row.requests, row.totalTokens, row.cost.toFixed(6)]
+        .map(csvCell)
+        .join(",")
+    );
+  }
+  lines.push("");
+
+  lines.push("## Cost by Account");
+  lines.push("Account,Requests,Total Tokens,Cost (USD)");
+  for (const row of analytics.byAccount || []) {
+    lines.push(
+      [row.account, row.requests, row.totalTokens, row.cost.toFixed(6)].map(csvCell).join(",")
+    );
+  }
+
+  return lines.join("\n");
+}
+
+function generateJSON(analytics: UsageAnalyticsPayload): string {
+  return JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      summary: analytics.summary,
+      dailyTrend: analytics.dailyTrend,
+      weeklyPattern: analytics.weeklyPattern,
+      activityMap: analytics.activityMap,
+      byProvider: analytics.byProvider,
+      byModel: analytics.byModel,
+      byApiKey: analytics.byApiKey || [],
+      byAccount: analytics.byAccount || [],
+    },
+    null,
+    2
+  );
+}
+
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function CostOverviewTab() {
   const t = useTranslations("costs");
   const locale = useLocale();
@@ -94,33 +224,37 @@ export default function CostOverviewTab() {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAnalytics = useCallback(
-    async (requestedRange: string) => {
-      const response = await fetch(`/api/usage/analytics?range=${requestedRange}`);
-      if (!response.ok) {
-        throw new Error(t("overviewLoadFailed"));
-      }
-      return (await response.json()) as UsageAnalyticsPayload;
-    },
-    [t]
-  );
-
   useEffect(() => {
     let active = true;
 
     async function loadRange() {
       try {
         setLoading(true);
-        const payload = await fetchAnalytics(range);
+        setSummaryLoading(true);
+        const response = await fetch(
+          `/api/usage/analytics?range=${encodeURIComponent(range)}&presets=1d,7d,30d`
+        );
+        if (!response.ok) {
+          throw new Error(t("overviewLoadFailed"));
+        }
+        const payload = (await response.json()) as UsageAnalyticsPayload;
         if (!active) return;
         setAnalytics(payload);
+        if (payload.presetSummaries) {
+          setPresetCosts({
+            "1d": payload.presetSummaries["1d"]?.totalCost || 0,
+            "7d": payload.presetSummaries["7d"]?.totalCost || 0,
+            "30d": payload.presetSummaries["30d"]?.totalCost || 0,
+          });
+        }
         setError(null);
-      } catch (loadError: any) {
+      } catch (loadError) {
         if (!active) return;
-        setError(loadError?.message || t("overviewLoadFailed"));
+        setError(loadError instanceof Error ? loadError.message : t("overviewLoadFailed"));
       } finally {
         if (active) {
           setLoading(false);
+          setSummaryLoading(false);
         }
       }
     }
@@ -130,38 +264,7 @@ export default function CostOverviewTab() {
     return () => {
       active = false;
     };
-  }, [fetchAnalytics, range, t]);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadPresets() {
-      try {
-        setSummaryLoading(true);
-        const [day, week, month] = await Promise.all([
-          fetchAnalytics("1d"),
-          fetchAnalytics("7d"),
-          fetchAnalytics("30d"),
-        ]);
-        if (!active) return;
-        setPresetCosts({
-          "1d": day.summary?.totalCost || 0,
-          "7d": week.summary?.totalCost || 0,
-          "30d": month.summary?.totalCost || 0,
-        });
-      } finally {
-        if (active) {
-          setSummaryLoading(false);
-        }
-      }
-    }
-
-    void loadPresets();
-
-    return () => {
-      active = false;
-    };
-  }, [fetchAnalytics]);
+  }, [range, t]);
 
   const selectedRangeLabel = t(
     RANGE_OPTIONS.find((option) => option.value === range)?.labelKey || "range30d"
@@ -172,6 +275,13 @@ export default function CostOverviewTab() {
     uniqueModels: 0,
     uniqueAccounts: 0,
     uniqueApiKeys: 0,
+    totalTokens: 0,
+    promptTokens: 0,
+    completionTokens: 0,
+    fallbackCount: 0,
+    fallbackRatePct: 0,
+    requestedModelCoveragePct: 0,
+    streak: 0,
   };
   const providersByCost = [...(analytics?.byProvider || [])]
     .filter((provider) => provider.cost > 0)
@@ -179,8 +289,37 @@ export default function CostOverviewTab() {
   const modelsByCost = [...(analytics?.byModel || [])]
     .filter((model) => model.cost > 0)
     .sort((left, right) => right.cost - left.cost);
+  const apiKeysByCost = [...(analytics?.byApiKey || [])]
+    .filter((apiKey) => apiKey.cost > 0)
+    .sort((left, right) => right.cost - left.cost);
+  const accountsByCost = [...(analytics?.byAccount || [])]
+    .filter((account) => account.cost > 0)
+    .sort((left, right) => right.cost - left.cost);
   const avgCostPerRequest =
     summary.totalRequests > 0 ? summary.totalCost / summary.totalRequests : 0;
+  const dailyTrend = analytics?.dailyTrend || [];
+  const recentDays = dailyTrend.slice(-7);
+  const avgDailyCost =
+    recentDays.length > 0
+      ? recentDays.reduce((sum, day) => sum + (day.cost || 0), 0) / recentDays.length
+      : 0;
+  const today = new Date();
+  const daysRemainingInMonth =
+    new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
+  const projectedMonthEnd =
+    (presetCosts["30d"] || summary.totalCost) + avgDailyCost * daysRemainingInMonth;
+  const trendLength = dailyTrend.length;
+  const halfLength = Math.floor(trendLength / 2);
+  const firstHalf = dailyTrend.slice(0, halfLength);
+  const secondHalf = dailyTrend.slice(halfLength);
+  const firstHalfCost = firstHalf.reduce((sum, day) => sum + (day.cost || 0), 0);
+  const secondHalfCost = secondHalf.reduce((sum, day) => sum + (day.cost || 0), 0);
+  const costChangePct =
+    firstHalfCost > 0
+      ? ((secondHalfCost - firstHalfCost) / firstHalfCost) * 100
+      : secondHalfCost > 0
+        ? 100
+        : 0;
 
   if (loading && !analytics) {
     return <CardSkeleton />;
@@ -202,14 +341,57 @@ export default function CostOverviewTab() {
             <h2 className="text-xl font-bold text-text-main">{t("overviewTitle")}</h2>
             <p className="text-sm text-text-muted mt-1">{t("overviewDescription")}</p>
           </div>
-          <SegmentedControl
-            options={RANGE_OPTIONS.map((option) => ({
-              value: option.value,
-              label: t(option.labelKey),
-            }))}
-            value={range}
-            onChange={(value) => setRange(value as CostRange)}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            {summary.streak > 0 && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                <span className="material-symbols-outlined text-amber-400 text-sm">
+                  local_fire_department
+                </span>
+                <span className="text-sm font-semibold text-amber-400">{summary.streak}</span>
+                <span className="text-xs text-amber-400/70">{t("dayStreak")}</span>
+              </div>
+            )}
+            {analytics && summary.totalCost > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    const csv = generateCSV(analytics, locale);
+                    const dateStr = new Date().toISOString().slice(0, 10);
+                    downloadFile(csv, `omniroute-costs-${range}-${dateStr}.csv`, "text/csv");
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-text-muted hover:text-text-main hover:bg-surface/50 rounded-lg border border-border/30 transition-colors"
+                  title={t("exportCSV")}
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  CSV
+                </button>
+                <button
+                  onClick={() => {
+                    const json = generateJSON(analytics);
+                    const dateStr = new Date().toISOString().slice(0, 10);
+                    downloadFile(
+                      json,
+                      `omniroute-costs-${range}-${dateStr}.json`,
+                      "application/json"
+                    );
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-text-muted hover:text-text-main hover:bg-surface/50 rounded-lg border border-border/30 transition-colors"
+                  title={t("exportJSON")}
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  JSON
+                </button>
+              </div>
+            )}
+            <SegmentedControl
+              options={RANGE_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
+              value={range}
+              onChange={(value) => setRange(value as CostRange)}
+            />
+          </div>
         </div>
       </Card>
 
@@ -261,6 +443,184 @@ export default function CostOverviewTab() {
         </div>
       </Card>
 
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+          {t("tokenUsage")}
+        </h3>
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <CompactMetric
+            label={t("totalTokens")}
+            value={new Intl.NumberFormat(locale, { notation: "compact" }).format(
+              summary.totalTokens || 0
+            )}
+          />
+          <CompactMetric
+            label={t("inputTokens")}
+            value={new Intl.NumberFormat(locale, { notation: "compact" }).format(
+              summary.promptTokens || 0
+            )}
+          />
+          <CompactMetric
+            label={t("outputTokens")}
+            value={new Intl.NumberFormat(locale, { notation: "compact" }).format(
+              summary.completionTokens || 0
+            )}
+          />
+          <CompactMetric
+            label={t("inputOutputRatio")}
+            value={
+              summary.completionTokens > 0
+                ? `${(summary.promptTokens / summary.completionTokens).toFixed(1)}:1`
+                : "-"
+            }
+          />
+        </div>
+      </Card>
+
+      {summary.totalRequests > 0 && (
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+            {t("routingEfficiency")}
+          </h3>
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-text-muted font-semibold">
+                {t("fallbackCount")}
+              </p>
+              <p className="text-lg font-semibold text-text-main mt-1">
+                {new Intl.NumberFormat(locale).format(summary.fallbackCount || 0)}
+              </p>
+              <p className="text-xs text-text-muted mt-1">
+                {t("outOfRequests", {
+                  total: new Intl.NumberFormat(locale).format(summary.totalRequests),
+                })}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-text-muted font-semibold">
+                {t("fallbackRate")}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p
+                  className={`text-lg font-semibold ${
+                    (summary.fallbackRatePct || 0) > 10
+                      ? "text-red-400"
+                      : (summary.fallbackRatePct || 0) > 5
+                        ? "text-amber-400"
+                        : "text-emerald-400"
+                  }`}
+                >
+                  {(summary.fallbackRatePct || 0).toFixed(1)}%
+                </p>
+                <span
+                  className="material-symbols-outlined text-sm"
+                  style={{
+                    color:
+                      (summary.fallbackRatePct || 0) > 10
+                        ? "#f87171"
+                        : (summary.fallbackRatePct || 0) > 5
+                          ? "#fbbf24"
+                          : "#34d399",
+                  }}
+                >
+                  {(summary.fallbackRatePct || 0) > 5 ? "warning" : "check_circle"}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border/20 bg-surface/20 px-4 py-3">
+              <p className="text-xs uppercase tracking-wide text-text-muted font-semibold">
+                {t("modelCoverage")}
+              </p>
+              <p className="text-lg font-semibold text-text-main mt-1">
+                {(summary.requestedModelCoveragePct || 0).toFixed(1)}%
+              </p>
+              <p className="text-xs text-text-muted mt-1">{t("modelCoverageDesc")}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {summary.totalCost > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-sky-400 text-lg">trending_up</span>
+              <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide">
+                {t("monthlyForecast")}
+              </h3>
+            </div>
+            <div className="flex items-end gap-3">
+              <p className="text-3xl font-bold text-sky-400">
+                {currencyFormatter.format(projectedMonthEnd)}
+              </p>
+              <p className="text-xs text-text-muted pb-1">
+                {t("forecastBasis", { days: recentDays.length })}
+              </p>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+              <span>{t("avgDailyCost")}:</span>
+              <span className="font-mono">{currencyFormatter.format(avgDailyCost)}</span>
+              <span>/</span>
+              <span>{t("daysRemaining", { days: daysRemainingInMonth })}</span>
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-violet-400 text-lg">
+                compare_arrows
+              </span>
+              <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide">
+                {t("periodComparison")}
+              </h3>
+            </div>
+            <div className="flex items-end gap-3">
+              <p
+                className={`text-3xl font-bold ${
+                  costChangePct > 0
+                    ? "text-red-400"
+                    : costChangePct < 0
+                      ? "text-emerald-400"
+                      : "text-text-main"
+                }`}
+              >
+                {costChangePct > 0 ? "+" : ""}
+                {costChangePct.toFixed(1)}%
+              </p>
+              <span
+                className={`material-symbols-outlined text-lg pb-1 ${
+                  costChangePct > 0
+                    ? "text-red-400"
+                    : costChangePct < 0
+                      ? "text-emerald-400"
+                      : "text-text-muted"
+                }`}
+              >
+                {costChangePct > 0
+                  ? "arrow_upward"
+                  : costChangePct < 0
+                    ? "arrow_downward"
+                    : "remove"}
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+              <div className="text-text-muted">
+                <p>{t("previousPeriod")}</p>
+                <p className="font-mono text-text-main">
+                  {currencyFormatter.format(firstHalfCost)}
+                </p>
+              </div>
+              <div className="text-text-muted">
+                <p>{t("currentPeriod")}</p>
+                <p className="font-mono text-text-main">
+                  {currencyFormatter.format(secondHalfCost)}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {summary.totalCost <= 0 ? (
         <Card className="p-6">
           <EmptyState
@@ -285,6 +645,8 @@ export default function CostOverviewTab() {
               title={t("topProviders")}
               nameKey="provider"
               valueKey="cost"
+              secondaryKey="totalTokens"
+              secondaryLabel={t("tokens")}
               rows={providersByCost}
               locale={locale}
             />
@@ -292,10 +654,70 @@ export default function CostOverviewTab() {
               title={t("topModels")}
               nameKey="model"
               valueKey="cost"
+              secondaryKey="totalTokens"
+              secondaryLabel={t("tokens")}
               rows={modelsByCost}
               locale={locale}
             />
           </div>
+
+          {(apiKeysByCost.length > 0 || accountsByCost.length > 0) && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {apiKeysByCost.length > 0 && (
+                <CostBreakdownTable
+                  title={t("costByApiKey")}
+                  rows={apiKeysByCost.slice(0, 8)}
+                  columns={[
+                    { key: "apiKeyName", label: t("apiKeyName"), align: "left" },
+                    { key: "requests", label: t("requests"), align: "right", format: "number" },
+                    {
+                      key: "totalTokens",
+                      label: t("tokens"),
+                      align: "right",
+                      format: "compact",
+                    },
+                    { key: "cost", label: t("cost"), align: "right", format: "currency" },
+                  ]}
+                  locale={locale}
+                />
+              )}
+              {accountsByCost.length > 0 && (
+                <CostBreakdownTable
+                  title={t("costByAccount")}
+                  rows={accountsByCost.slice(0, 8)}
+                  columns={[
+                    { key: "account", label: t("account"), align: "left" },
+                    { key: "requests", label: t("requests"), align: "right", format: "number" },
+                    {
+                      key: "totalTokens",
+                      label: t("tokens"),
+                      align: "right",
+                      format: "compact",
+                    },
+                    { key: "cost", label: t("cost"), align: "right", format: "currency" },
+                  ]}
+                  locale={locale}
+                />
+              )}
+            </div>
+          )}
+
+          {summary.totalRequests > 0 && (
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.5fr] gap-4">
+              <WeeklyPatternCard
+                title={t("weeklyUsagePattern")}
+                rows={analytics?.weeklyPattern || []}
+                locale={locale}
+              />
+              <ActivityHeatmap
+                title={t("activityHeatmap")}
+                activityMap={analytics?.activityMap || {}}
+                lessLabel={t("less")}
+                moreLabel={t("more")}
+                locale={locale}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -463,17 +885,154 @@ function CostTrendCard({
   );
 }
 
+function WeeklyPatternCard({
+  title,
+  rows,
+  locale,
+}: {
+  title: string;
+  rows: Array<{ day: string; avgTokens: number; totalTokens: number }>;
+  locale: string;
+}) {
+  const chartData = rows.map((row) => ({
+    day: row.day,
+    tokens: row.avgTokens || 0,
+  }));
+
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+        {title}
+      </h3>
+      <div className="h-[160px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+            <XAxis
+              dataKey="day"
+              tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(value) =>
+                new Intl.NumberFormat(locale, { notation: "compact" }).format(Number(value || 0))
+              }
+              width={40}
+            />
+            <Tooltip
+              formatter={(value: number) =>
+                `${new Intl.NumberFormat(locale).format(value || 0)} tokens`
+              }
+              contentStyle={{
+                background: "var(--surface)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "12px",
+              }}
+            />
+            <Bar dataKey="tokens" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+
+function ActivityHeatmap({
+  title,
+  activityMap,
+  lessLabel,
+  moreLabel,
+  locale,
+}: {
+  title: string;
+  activityMap: Record<string, number>;
+  lessLabel: string;
+  moreLabel: string;
+  locale: string;
+}) {
+  const days: Array<{ date: string; value: number }> = [];
+  const today = new Date();
+  for (let index = 364; index >= 0; index--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - index);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
+    days.push({ date: key, value: activityMap[key] || 0 });
+  }
+
+  const maxValue = Math.max(...days.map((day) => day.value), 1);
+  const getIntensity = (value: number): string => {
+    if (value === 0) return "bg-surface/30";
+    const ratio = value / maxValue;
+    if (ratio < 0.25) return "bg-emerald-900/50";
+    if (ratio < 0.5) return "bg-emerald-700/60";
+    if (ratio < 0.75) return "bg-emerald-500/70";
+    return "bg-emerald-400";
+  };
+
+  const weeks: Array<Array<{ date: string; value: number }>> = [];
+  for (let index = 0; index < days.length; index += 7) {
+    weeks.push(days.slice(index, index + 7));
+  }
+
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+        {title}
+      </h3>
+      <div className="overflow-x-auto">
+        <div className="flex gap-[3px]">
+          {weeks.map((week) => (
+            <div key={week[0]?.date} className="flex flex-col gap-[3px]">
+              {week.map((day) => (
+                <div
+                  key={day.date}
+                  className={`w-[11px] h-[11px] rounded-[2px] ${getIntensity(day.value)}`}
+                  title={`${day.date}: ${
+                    day.value > 0
+                      ? `${new Intl.NumberFormat(locale).format(day.value)} tokens`
+                      : "No activity"
+                  }`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-3 text-[10px] text-text-muted">
+        <span>{lessLabel}</span>
+        <div className="flex gap-[2px]">
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-surface/30" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-900/50" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-700/60" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-500/70" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-emerald-400" />
+        </div>
+        <span>{moreLabel}</span>
+      </div>
+    </Card>
+  );
+}
+
 function TopListCard({
   title,
   rows,
   nameKey,
   valueKey,
+  secondaryKey,
+  secondaryLabel,
   locale,
 }: {
   title: string;
   rows: Array<Record<string, string | number>>;
   nameKey: string;
   valueKey: string;
+  secondaryKey?: string;
+  secondaryLabel?: string;
   locale: string;
 }) {
   const currencyFormatter = createCurrencyFormatter(locale);
@@ -490,11 +1049,100 @@ function TopListCard({
             className="flex items-center justify-between gap-3 rounded-lg border border-border/20 bg-surface/20 px-4 py-3"
           >
             <span className="text-sm text-text-main truncate">{String(row[nameKey])}</span>
-            <span className="text-sm font-mono text-text-muted">
-              {currencyFormatter.format(Number(row[valueKey] || 0))}
-            </span>
+            <div className="flex items-center gap-3 shrink-0">
+              {secondaryKey ? (
+                <span className="text-xs text-text-muted">
+                  {new Intl.NumberFormat(locale, { notation: "compact" }).format(
+                    Number(row[secondaryKey] || 0)
+                  )}{" "}
+                  {secondaryLabel}
+                </span>
+              ) : null}
+              <span className="text-sm font-mono text-text-muted">
+                {currencyFormatter.format(Number(row[valueKey] || 0))}
+              </span>
+            </div>
           </div>
         ))}
+      </div>
+    </Card>
+  );
+}
+
+interface ColumnDef {
+  key: string;
+  label: string;
+  align: "left" | "right";
+  format?: "number" | "compact" | "currency";
+}
+
+function CostBreakdownTable({
+  title,
+  rows,
+  columns,
+  locale,
+}: {
+  title: string;
+  rows: Array<Record<string, string | number | null>>;
+  columns: ColumnDef[];
+  locale: string;
+}) {
+  const currencyFormatter = createCurrencyFormatter(locale);
+
+  function formatValue(value: unknown, format?: ColumnDef["format"]): string {
+    const num = Number(value || 0);
+    switch (format) {
+      case "currency":
+        return currencyFormatter.format(num);
+      case "compact":
+        return new Intl.NumberFormat(locale, { notation: "compact" }).format(num);
+      case "number":
+        return new Intl.NumberFormat(locale).format(num);
+      default:
+        return String(value ?? "-");
+    }
+  }
+
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
+        {title}
+      </h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[11px] text-text-muted uppercase border-b border-border/30">
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  className={`pb-2 font-semibold ${
+                    column.align === "right" ? "text-right" : "text-left"
+                  }`}
+                >
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/20">
+            {rows.map((row) => (
+              <tr key={String(row[columns[0].key])} className="hover:bg-surface/20">
+                {columns.map((column) => (
+                  <td
+                    key={column.key}
+                    className={`py-2 ${
+                      column.align === "right"
+                        ? "text-right font-mono text-text-muted"
+                        : "text-left text-text-main truncate max-w-[200px]"
+                    }`}
+                  >
+                    {formatValue(row[column.key], column.format)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </Card>
   );

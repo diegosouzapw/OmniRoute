@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.7.5",
+  "version": "3.7.6",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -106,7 +106,8 @@
         {
           "target": "AppImage",
           "arch": [
-            "x64"
+            "x64",
+            "arm64"
           ]
         },
         {

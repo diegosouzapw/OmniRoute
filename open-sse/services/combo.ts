@@ -8,6 +8,8 @@ import {
   checkFallbackError,
   formatRetryAfter,
   getRuntimeProviderProfile,
+  recordProviderFailure,
+  isProviderFailureCode,
 } from "./accountFallback.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
@@ -1673,6 +1675,11 @@ export async function handleComboChat({
         result.headers,
         profile
       );
+
+      // Trigger shared provider circuit breaker for 5xx errors and connection failures
+      if (isProviderFailureCode(result.status)) {
+        recordProviderFailure(provider, log);
+      }
 
       // Check if this is a transient error worth retrying on same model
       const isTransient =

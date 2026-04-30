@@ -153,10 +153,11 @@ export function getTelemetrySummary(windowMs = 300000) {
   });
 
   if (recent.length === 0) {
-    return { count: 0, p50: 0, p95: 0, p99: 0, phaseBreakdown: {} };
+    return { count: 0, avg: 0, p50: 0, p95: 0, p99: 0, phaseBreakdown: {} };
   }
 
   const totals = recent.map((h) => h.totalMs).sort((a, b) => a - b);
+  const avg = Math.round(totals.reduce((sum, value) => sum + value, 0) / totals.length);
 
   // Phase breakdown
   const phaseBreakdown = {};
@@ -177,6 +178,7 @@ export function getTelemetrySummary(windowMs = 300000) {
 
   return {
     count: recent.length,
+    avg,
     p50: percentile(totals, 50),
     p95: percentile(totals, 95),
     p99: percentile(totals, 99),

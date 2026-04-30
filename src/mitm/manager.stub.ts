@@ -11,7 +11,11 @@ export const getMitmStatus = async () => ({
   dnsConfigured: false,
   certExists: false,
 });
-export const startMitm = async (_apiKey: string, _sudoPassword: string) => ({
+export const startMitm = async (
+  _apiKey: string,
+  _sudoPassword: string,
+  _options: { port?: number } = {}
+) => ({
   running: false,
   pid: null,
 });

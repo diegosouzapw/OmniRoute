@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import {
   validateBody,
   translatorDetectSchema,
-  translatorSaveSchema,
   translatorSendSchema,
   translatorTranslateSchema,
   cliSettingsEnvSchema,
@@ -24,22 +23,6 @@ test("translatorSendSchema rejects empty body object", () => {
   const validation = validateBody(translatorSendSchema, {
     provider: "openai",
     body: {},
-  });
-  assert.equal(validation.success, false);
-});
-
-test("translatorSaveSchema rejects unsupported file name", () => {
-  const validation = validateBody(translatorSaveSchema, {
-    file: "random.txt",
-    content: "ok",
-  });
-  assert.equal(validation.success, false);
-});
-
-test("translatorSaveSchema rejects non-string content", () => {
-  const validation = validateBody(translatorSaveSchema, {
-    file: "1_req_client.json",
-    content: { raw: true },
   });
   assert.equal(validation.success, false);
 });

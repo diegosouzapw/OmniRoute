@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import PropTypes from "prop-types";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,6 +29,39 @@ type VersionInfo = {
   news?: NewsAnnouncement | null;
 };
 
+type HomePageClientProps = {
+  machineId?: string;
+};
+
+type ProviderSummaryItem = {
+  id: string;
+  provider: {
+    id: string;
+    name: string;
+    color?: string;
+    textIcon?: string;
+    alias?: string;
+  };
+  total: number;
+  connected: number;
+  errors: number;
+  modelCount: number;
+  authType: "free" | "oauth" | "apikey" | string;
+};
+
+type ProviderMetricSummary = {
+  totalRequests?: number;
+  totalSuccesses?: number;
+  successRate?: number;
+  avgLatencyMs?: number;
+};
+
+type ProviderModelSummary = {
+  fullModel: string;
+  alias?: string;
+  model?: string;
+};
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
@@ -43,7 +75,7 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
   return next;
 }
 
-export default function HomePageClient({ machineId }) {
+export default function HomePageClient({ machineId }: HomePageClientProps) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
@@ -774,11 +806,15 @@ export default function HomePageClient({ machineId }) {
   );
 }
 
-HomePageClient.propTypes = {
-  machineId: PropTypes.string,
-};
-
-function ProviderOverviewCard({ item, metrics, onClick }) {
+function ProviderOverviewCard({
+  item,
+  metrics,
+  onClick,
+}: {
+  item: ProviderSummaryItem;
+  metrics?: ProviderMetricSummary;
+  onClick: () => void;
+}) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
 
@@ -839,32 +875,15 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
   );
 }
 
-ProviderOverviewCard.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    provider: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      color: PropTypes.string,
-      textIcon: PropTypes.string,
-      alias: PropTypes.string,
-    }).isRequired,
-    total: PropTypes.number.isRequired,
-    connected: PropTypes.number.isRequired,
-    errors: PropTypes.number.isRequired,
-    modelCount: PropTypes.number.isRequired,
-    authType: PropTypes.string.isRequired,
-  }).isRequired,
-  metrics: PropTypes.shape({
-    totalRequests: PropTypes.number,
-    totalSuccesses: PropTypes.number,
-    successRate: PropTypes.number,
-    avgLatencyMs: PropTypes.number,
-  }),
-  onClick: PropTypes.func.isRequired,
-};
-
-function ProviderModelsModal({ provider, models, onClose }) {
+function ProviderModelsModal({
+  provider,
+  models,
+  onClose,
+}: {
+  provider: ProviderSummaryItem;
+  models: ProviderModelSummary[];
+  onClose: () => void;
+}) {
   const [copiedModel, setCopiedModel] = useState(null);
   const notify = useNotificationStore();
   const router = useRouter();
@@ -966,9 +985,3 @@ function ProviderModelsModal({ provider, models, onClose }) {
     </Modal>
   );
 }
-
-ProviderModelsModal.propTypes = {
-  provider: PropTypes.object.isRequired,
-  models: PropTypes.array.isRequired,
-  onClose: PropTypes.func.isRequired,
-};

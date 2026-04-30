@@ -2,9 +2,79 @@
 
 ## [Unreleased]
 
+---
+
+## [3.7.6] — 2026-04-30
+
 ### ✨ New Features
 
-- **feat:** ongoing development
+- **feat(api-keys):** add rename support in the permissions modal — editable key name field with validation (#1796)
+
+### 🐛 Bug Fixes
+
+- **fix(stability):** resolve codex input validation, enable combo circuit breaker, and fix broken unit tests (#1804, #1805)
+
+### 🏆 Community Contributors Acknowledgment
+
+We identified that **155 community PRs** across the entire project history (from inception through v3.7.5) were manually integrated into release branches but closed instead of properly merged through GitHub, preventing contributors from receiving merge credit on their profiles. We sincerely apologize for this oversight and have since updated our workflows to ensure this never happens again.
+
+**The following contributors had their code and ideas integrated across multiple releases without proper merge credit. Thank you for your invaluable contributions to OmniRoute:**
+
+| Contributor                                                  | PRs (Total) | All Contributions                                                                                                                                                                   |
+| :----------------------------------------------------------- | :---------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [@rdself](https://github.com/rdself)                         |     28      | #542, #705, #717, #737, #738, #841, #851, #853, #875, #880, #888, #891, #903, #904, #974, #1069, #1089, #1196, #1267, #1272, #1299, #1300, #1356, #1357, #1441, #1443, #1549, #1742 |
+| [@oyi77](https://github.com/oyi77)                           |     27      | #644, #672, #700, #850, #859, #862, #868, #874, #881, #883, #908, #926, #931, #983, #990, #1019, #1020, #1021, #1103, #1281, #1286, #1363, #1368, #1377, #1411, #1689, #1717        |
+| [@clousky2020](https://github.com/clousky2020)               |     15      | #1244, #1323, #1365, #1366, #1408, #1442, #1484, #1595, #1598, #1599, #1611, #1618, #1620, #1621, #1644                                                                             |
+| [@benzntech](https://github.com/benzntech)                   |      8      | #158, #1264, #1435, #1436, #1437, #1440, #1444, #1677                                                                                                                               |
+| [@kang-heewon](https://github.com/kang-heewon)               |      5      | #530, #854, #884, #1235, #1574                                                                                                                                                      |
+| [@herjarsa](https://github.com/herjarsa)                     |      4      | #1472, #1474, #1477, #1480                                                                                                                                                          |
+| [@backryun](https://github.com/backryun)                     |      4      | #1358, #1609, #1627, #1722                                                                                                                                                          |
+| [@tombii](https://github.com/tombii)                         |      4      | #708, #856, #900, #1013                                                                                                                                                             |
+| [@christopher-s](https://github.com/christopher-s)           |      3      | #868, #885, #992                                                                                                                                                                    |
+| [@zen0bit](https://github.com/zen0bit)                       |      3      | #561, #650, #912                                                                                                                                                                    |
+| [@k0valik](https://github.com/k0valik)                       |      3      | #554, #587, #596                                                                                                                                                                    |
+| [@zhangqiang8vip](https://github.com/zhangqiang8vip)         |      2      | #470, #575                                                                                                                                                                          |
+| [@wlfonseca](https://github.com/wlfonseca)                   |      2      | #997, #1016                                                                                                                                                                         |
+| [@RaviTharuma](https://github.com/RaviTharuma)               |      2      | #1188, #1277                                                                                                                                                                        |
+| [@prakersh](https://github.com/prakersh)                     |      2      | #419, #480                                                                                                                                                                          |
+| [@payne0420](https://github.com/payne0420)                   |      2      | #1593, #1670                                                                                                                                                                        |
+| [@only4copilot](https://github.com/only4copilot)             |      2      | #855, #1039                                                                                                                                                                         |
+| [@jay77721](https://github.com/jay77721)                     |      2      | #581, #582                                                                                                                                                                          |
+| [@hijak](https://github.com/hijak)                           |      2      | #295, #578                                                                                                                                                                          |
+| [@hartmark](https://github.com/hartmark)                     |      2      | #1494, #1500                                                                                                                                                                        |
+| [@defhouse](https://github.com/defhouse)                     |      2      | #906, #946                                                                                                                                                                          |
+| [@xiaoge1688](https://github.com/xiaoge1688)                 |      1      | #1304                                                                                                                                                                               |
+| [@xandr0s](https://github.com/xandr0s)                       |      1      | #1376                                                                                                                                                                               |
+| [@willbnu](https://github.com/willbnu)                       |      1      | #882                                                                                                                                                                                |
+| [@slewis3600](https://github.com/slewis3600)                 |      1      | #1624                                                                                                                                                                               |
+| [@sergey-v9](https://github.com/sergey-v9)                   |      1      | #594                                                                                                                                                                                |
+| [@razllivan](https://github.com/razllivan)                   |      1      | #987                                                                                                                                                                                |
+| [@nmime](https://github.com/nmime)                           |      1      | #1271                                                                                                                                                                               |
+| [@Moutia-Ben-Yahia](https://github.com/Moutia-Ben-Yahia)     |      1      | #1663                                                                                                                                                                               |
+| [@Mind-Dragon](https://github.com/Mind-Dragon)               |      1      | #467                                                                                                                                                                                |
+| [@mercs2910](https://github.com/mercs2910)                   |      1      | #1001                                                                                                                                                                               |
+| [@MAINER4IK](https://github.com/MAINER4IK)                   |      1      | #196                                                                                                                                                                                |
+| [@luandiasrj](https://github.com/luandiasrj)                 |      1      | #996                                                                                                                                                                                |
+| [@knopki](https://github.com/knopki)                         |      1      | #1434                                                                                                                                                                               |
+| [@kfiramar](https://github.com/kfiramar)                     |      1      | #389                                                                                                                                                                                |
+| [@ken2190](https://github.com/ken2190)                       |      1      | #166                                                                                                                                                                                |
+| [@keith8496](https://github.com/keith8496)                   |      1      | #569                                                                                                                                                                                |
+| [@jonesfernandess](https://github.com/jonesfernandess)       |      1      | #1118                                                                                                                                                                               |
+| [@JasonLandbridge](https://github.com/JasonLandbridge)       |      1      | #1626                                                                                                                                                                               |
+| [@i1hwan](https://github.com/i1hwan)                         |      1      | #1386                                                                                                                                                                               |
+| [@Gorchakov-Pressure](https://github.com/Gorchakov-Pressure) |      1      | #754                                                                                                                                                                                |
+| [@foxy1402](https://github.com/foxy1402)                     |      1      | #934                                                                                                                                                                                |
+| [@dt418](https://github.com/dt418)                           |      1      | #896                                                                                                                                                                                |
+| [@dhaern](https://github.com/dhaern)                         |      1      | #1647                                                                                                                                                                               |
+| [@DavyMassoneto](https://github.com/DavyMassoneto)           |      1      | #211                                                                                                                                                                                |
+| [@dail45](https://github.com/dail45)                         |      1      | #1413                                                                                                                                                                               |
+| [@congvc-dev](https://github.com/congvc-dev)                 |      1      | #1569                                                                                                                                                                               |
+| [@be0hhh](https://github.com/be0hhh)                         |      1      | #1581                                                                                                                                                                               |
+| [@andruwa13](https://github.com/andruwa13)                   |      1      | #1457                                                                                                                                                                               |
+| [@AndrewDragonIV](https://github.com/AndrewDragonIV)         |      1      | #898                                                                                                                                                                                |
+| [@AndersonFirmino](https://github.com/AndersonFirmino)       |      1      | #362                                                                                                                                                                                |
+| [@alexsvdk](https://github.com/alexsvdk)                     |      1      | #1280                                                                                                                                                                               |
+| [@abhinavjnu](https://github.com/abhinavjnu)                 |      1      | #550                                                                                                                                                                                |
 
 ---
 
@@ -51,44 +121,6 @@
 - **chore(db):** move DB health endpoint to management API (#1757)
 - **chore(ui):** speed up endpoint initial render with background task loading (#1760)
 - **chore(workflows):** add strict PR contributor credit policy to prevent future merge credit loss
-
-### 🏆 Community Contributors Acknowledgment
-
-We identified that **37 community PRs** across past releases (v3.4.0 → v3.7.4) were manually integrated into release branches but closed instead of properly merged through GitHub, preventing contributors from receiving merge credit on their profiles. We sincerely apologize for this oversight and have since updated our workflows to ensure this never happens again.
-
-**The following contributors had their code and ideas integrated across multiple releases without proper merge credit. Thank you for your invaluable contributions to OmniRoute:**
-
-| Contributor                                            | Contributions (PRs)                                                      |
-| :----------------------------------------------------- | :----------------------------------------------------------------------- |
-| [@rdself](https://github.com/rdself)                   | #1742, #1357, #1356, #1089, #1069, #904, #880, #875, #853, #851, #974    |
-| [@oyi77](https://github.com/oyi77)                     | #1411, #1021, #990, #926, #908, #883, #881, #868, #862, #859, #850, #983 |
-| [@benzntech](https://github.com/benzntech)             | #1677, #1444, #1440, #1437, #1435                                        |
-| [@clousky2020](https://github.com/clousky2020)         | #1644, #1408                                                             |
-| [@christopher-s](https://github.com/christopher-s)     | #885, #868, #992                                                         |
-| [@kang-heewon](https://github.com/kang-heewon)         | #1235, #884                                                              |
-| [@backryun](https://github.com/backryun)               | #1627, #1358, #1722                                                      |
-| [@tombii](https://github.com/tombii)                   | #900, #856                                                               |
-| [@slewis3600](https://github.com/slewis3600)           | #1624                                                                    |
-| [@dhaern](https://github.com/dhaern)                   | #1647                                                                    |
-| [@JasonLandbridge](https://github.com/JasonLandbridge) | #1626                                                                    |
-| [@hartmark](https://github.com/hartmark)               | #1500                                                                    |
-| [@herjarsa](https://github.com/herjarsa)               | #1480                                                                    |
-| [@andruwa13](https://github.com/andruwa13)             | #1457                                                                    |
-| [@i1hwan](https://github.com/i1hwan)                   | #1386                                                                    |
-| [@xandr0s](https://github.com/xandr0s)                 | #1376                                                                    |
-| [@RaviTharuma](https://github.com/RaviTharuma)         | #1188                                                                    |
-| [@wlfonseca](https://github.com/wlfonseca)             | #1016                                                                    |
-| [@only4copilot](https://github.com/only4copilot)       | #1039, #855                                                              |
-| [@AndrewDragonIV](https://github.com/AndrewDragonIV)   | #898                                                                     |
-| [@dt418](https://github.com/dt418)                     | #896                                                                     |
-| [@willbnu](https://github.com/willbnu)                 | #882                                                                     |
-| [@defhouse](https://github.com/defhouse)               | #906                                                                     |
-| [@mercs2910](https://github.com/mercs2910)             | #1001                                                                    |
-| [@zen0bit](https://github.com/zen0bit)                 | #912                                                                     |
-| [@razllivan](https://github.com/razllivan)             | #987                                                                     |
-| [@foxy1402](https://github.com/foxy1402)               | #934                                                                     |
-| [@knopki](https://github.com/knopki)                   | #1434                                                                    |
-| [@dail45](https://github.com/dail45)                   | #1413                                                                    |
 
 ---
 
