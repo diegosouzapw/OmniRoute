@@ -17,6 +17,7 @@ import { executeQuotaManagement } from "@/lib/a2a/skills/quotaManagement";
 import { logRoutingDecision } from "@/lib/a2a/routingLogger";
 import { createA2AStream, SSE_HEADERS } from "@/lib/a2a/streaming";
 import { executeA2ATaskWithState } from "@/lib/a2a/taskExecution";
+import { getSettings } from "@/lib/db/settings";
 
 // ============ Skill Registry ============
 
@@ -95,9 +96,28 @@ function jsonRpcResult(id: string | number | null, result: unknown) {
   return NextResponse.json({ jsonrpc: "2.0", id, result });
 }
 
+async function rejectIfA2ADisabled() {
+  const settings = await getSettings();
+  if (settings.a2aEnabled === true) return null;
+  return NextResponse.json(
+    {
+      jsonrpc: "2.0",
+      id: null,
+      error: {
+        code: -32000,
+        message: "A2A endpoint is disabled. Enable it from the Endpoints page.",
+      },
+    },
+    { status: 503 }
+  );
+}
+
 // ============ Route Handler ============
 
 export async function POST(req: NextRequest) {
+  const disabledResponse = await rejectIfA2ADisabled();
+  if (disabledResponse) return disabledResponse;
+
   // Auth check
   if (!authenticate(req)) {
     return jsonRpcError(null, -32600, "Unauthorized: missing or invalid API key");

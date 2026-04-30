@@ -53,6 +53,8 @@ export async function getSettings() {
     maxRetryIntervalSec: 30,
     antigravitySignatureCacheMode: "enabled",
     requireLogin: true,
+    mcpEnabled: false,
+    a2aEnabled: false,
     hiddenSidebarItems: [],
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,

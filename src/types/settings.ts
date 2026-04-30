@@ -19,6 +19,9 @@ export interface Settings {
   requestRetry: number;
   maxRetryIntervalSec: number;
   jwtSecret?: string;
+  mcpEnabled?: boolean;
+  mcpTransport?: "stdio" | "sse" | "streamable-http";
+  a2aEnabled?: boolean;
   hideHealthCheckLogs?: boolean;
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;

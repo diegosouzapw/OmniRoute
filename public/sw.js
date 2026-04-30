@@ -1,4 +1,4 @@
-const CACHE_NAME = "omniroute-pwa-v1";
+const CACHE_NAME = "omniroute-pwa-v2";
 const APP_SHELL = [
   "/",
   "/offline",
@@ -38,6 +38,7 @@ self.addEventListener("fetch", (event) => {
   const isExcludedPath = EXCLUDED_PATH_PREFIXES.some((prefix) =>
     requestUrl.pathname.startsWith(prefix)
   );
+  const isNextAsset = requestUrl.pathname.startsWith("/_next/");
   const destination = event.request.destination;
   const isStaticAsset = ["style", "script", "image", "font"].includes(destination);
   const isNavigateRequest = event.request.mode === "navigate";
@@ -59,6 +60,19 @@ self.addEventListener("fetch", (event) => {
 
       if (!isStaticAsset) {
         return fetch(event.request);
+      }
+
+      if (isNextAsset) {
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+          }
+          return networkResponse;
+        } catch {
+          return (await caches.match(event.request)) || Response.error();
+        }
       }
 
       const cachedResponse = await caches.match(event.request);

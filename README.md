@@ -1611,6 +1611,9 @@ Useful APIs for automation:
 <details>
 <summary><b>🤝 A2A Setup (Agent2Agent)</b></summary>
 
+Enable A2A from **Endpoints → A2A** before sending JSON-RPC tasks. When the toggle is off,
+`/api/a2a/status` reports `disabled` and `POST /a2a` returns HTTP 503.
+
 Discover the agent:
 
 ```bash
