@@ -1,9 +1,13 @@
 "use client";
 
-import PropTypes from "prop-types";
+import type { ReactNode } from "react";
 import ThemeToggle from "../ThemeToggle";
 
-export default function AuthLayout({ children }) {
+type AuthLayoutProps = {
+  children: ReactNode;
+};
+
+export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col relative bg-bg transition-colors duration-500 overflow-x-hidden selection:bg-primary/20 selection:text-primary">
       {/* Background effects */}
@@ -22,7 +26,3 @@ export default function AuthLayout({ children }) {
     </div>
   );
 }
-
-AuthLayout.propTypes = {
-  children: PropTypes.node.isRequired,
-};

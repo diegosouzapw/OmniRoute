@@ -399,11 +399,9 @@ export const FORMAT_META = {
   "openai-responses": { label: "OpenAI Responses", color: "amber", icon: "swap_horiz" },
   claude: { label: "Claude", color: "orange", icon: "psychology" },
   gemini: { label: "Gemini", color: "blue", icon: "auto_awesome" },
-  "gemini-cli": { label: "Gemini CLI", color: "sky", icon: "terminal" },
   antigravity: { label: "Antigravity", color: "purple", icon: "rocket_launch" },
   kiro: { label: "Kiro", color: "cyan", icon: "terminal" },
   cursor: { label: "Cursor", color: "pink", icon: "edit" },
-  codex: { label: "Codex", color: "yellow", icon: "code" },
 };
 
 /**

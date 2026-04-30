@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
@@ -13,7 +12,7 @@ const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
 type OAuthModalProps = {
   isOpen: boolean;
   provider?: string;
-  providerInfo?: { name: string } | null;
+  providerInfo?: { name?: string } | null;
   onSuccess?: () => void;
   onClose: () => void;
   idcConfig?: unknown;
@@ -800,13 +799,3 @@ export default function OAuthModal({
     </Modal>
   );
 }
-
-OAuthModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  provider: PropTypes.string,
-  providerInfo: PropTypes.shape({
-    name: PropTypes.string,
-  }),
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

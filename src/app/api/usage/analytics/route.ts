@@ -36,6 +36,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
+    const presetsParam = searchParams.get("presets");
 
     // Cap history load to last 365 days — the heatmap never looks beyond that,
     // and all named ranges (1d/7d/30d/90d/ytd) fall within this window.
@@ -109,6 +110,31 @@ export async function GET(request) {
       analytics.summary.fallbackCount = 0;
       analytics.summary.fallbackRatePct = 0;
       analytics.summary.requestedModelCoveragePct = 0;
+    }
+
+    if (presetsParam) {
+      const allowedRanges = new Set(["1d", "7d", "30d", "90d", "ytd", "all"]);
+      const presetRanges = presetsParam
+        .split(",")
+        .map((preset) => preset.trim())
+        .filter((preset) => allowedRanges.has(preset));
+      const presetSummaries: Record<string, { totalCost: number }> = {};
+
+      for (const presetRange of presetRanges) {
+        if (presetRange === range) {
+          presetSummaries[presetRange] = {
+            totalCost: Number(analytics.summary?.totalCost || 0),
+          };
+          continue;
+        }
+
+        const presetAnalytics: any = await computeAnalytics(history, presetRange, connectionMap);
+        presetSummaries[presetRange] = {
+          totalCost: Number(presetAnalytics.summary?.totalCost || 0),
+        };
+      }
+
+      analytics.presetSummaries = presetSummaries;
     }
 
     return NextResponse.json(analytics);

@@ -228,7 +228,17 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
+  "xiaomi-mimo": buildModels([
+    "mimo-v2.5-pro",
+    "mimo-v2.5",
+    "mimo-v2.5-tts",
+    "mimo-v2.5-tts-voiceclone",
+    "mimo-v2.5-tts-voicedesign",
+    "mimo-v2-pro",
+    "mimo-v2-omni",
+    "mimo-v2-tts",
+    "mimo-v2-flash",
+  ]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",

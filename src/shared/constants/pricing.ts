@@ -1355,15 +1355,7 @@ export function getDefaultPricing() {
   return DEFAULT_PRICING;
 }
 
-/**
- * Format cost for display
- * @param {number} cost - Cost in dollars
- * @returns {string} Formatted cost string
- */
-export function formatCost(cost: number | null | undefined): string {
-  if (cost === null || cost === undefined || isNaN(cost)) return "$0.00";
-  return `$${cost.toFixed(2)}`;
-}
+export { formatCost } from "../utils/formatting";
 
 /**
  * Calculate cost from tokens and pricing

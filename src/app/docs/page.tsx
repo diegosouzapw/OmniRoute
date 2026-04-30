@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { FREE_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
 import {
+  DOCS_DEPLOYMENT_GUIDES,
   DOCS_ENDPOINT_ROWS,
   DOCS_FEATURE_ITEMS,
   DOCS_MANAGEMENT_ENDPOINT_ROWS,
@@ -78,6 +79,11 @@ export default function DocsPage() {
   }));
 
   const useCases = DOCS_USE_CASE_ITEMS.map((item) => ({
+    ...item,
+    title: t(item.titleKey),
+    text: t(item.textKey),
+  }));
+  const deploymentGuides = DOCS_DEPLOYMENT_GUIDES.map((item) => ({
     ...item,
     title: t(item.titleKey),
     text: t(item.textKey),
@@ -202,6 +208,29 @@ export default function DocsPage() {
               </p>
             </li>
           </ol>
+        </section>
+
+        <section id="deployment" className="rounded-2xl border border-border bg-bg-subtle p-6">
+          <h2 className="text-xl font-semibold">{t("deploymentGuides")}</h2>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {deploymentGuides.map((item) => (
+              <a
+                key={item.titleKey}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-border p-4 bg-bg flex gap-3 transition-colors hover:border-primary/40 hover:bg-bg-subtle"
+              >
+                <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">
+                  {item.icon}
+                </span>
+                <div>
+                  <h3 className="font-semibold text-sm">{item.title}</h3>
+                  <p className="text-sm text-text-muted mt-1">{item.text}</p>
+                </div>
+              </a>
+            ))}
+          </div>
         </section>
 
         <section id="features" className="rounded-2xl border border-border bg-bg-subtle p-6">

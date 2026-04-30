@@ -677,6 +677,125 @@ test(
 );
 
 test(
+  "runMigrations rehomes legacy 028-033 version slots before applying current migrations",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+      CREATE TABLE _omniroute_migrations (
+        version TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE provider_connections (
+        id TEXT PRIMARY KEY,
+        provider TEXT NOT NULL
+      );
+
+      CREATE TABLE api_keys (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL
+      );
+    `);
+
+      const legacyRows = [
+        ["028", "evals_tables"],
+        ["029", "webhooks_templates"],
+        ["030", "mcp_scopes_api_keys"],
+        ["031", "api_keys_expires"],
+        ["032", "detailed_logs_warnings"],
+        ["033", "provider_connections_block_extra_usage"],
+      ];
+      for (const row of legacyRows) {
+        db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+          row[0],
+          row[1]
+        );
+      }
+
+      const count = withMockedMigrationFs(
+        {
+          "028_create_files_and_batches.sql": `
+            CREATE TABLE files (id TEXT PRIMARY KEY);
+            CREATE TABLE batches (id TEXT PRIMARY KEY);
+          `,
+          "029_provider_connection_max_concurrent.sql":
+            "ALTER TABLE provider_connections ADD COLUMN should_not_run INTEGER;",
+          "030_create_eval_runs.sql": "CREATE TABLE eval_runs (id TEXT PRIMARY KEY);",
+          "031_create_eval_suites.sql": `
+            CREATE TABLE eval_suites (id TEXT PRIMARY KEY);
+            CREATE TABLE eval_cases (id TEXT PRIMARY KEY);
+          `,
+          "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN should_not_run TEXT;",
+          "033_create_reasoning_cache.sql": "CREATE TABLE reasoning_cache (id TEXT PRIMARY KEY);",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 6);
+      const rows = db.prepare("SELECT version, name FROM _omniroute_migrations").all() as Array<{
+        version: string;
+        name: string;
+      }>;
+      const byVersion = new Map(rows.map((row) => [row.version, row.name]));
+
+      assert.equal(byVersion.get("028"), "create_files_and_batches");
+      assert.equal(byVersion.get("029"), "provider_connection_max_concurrent");
+      assert.equal(byVersion.get("030"), "create_eval_runs");
+      assert.equal(byVersion.get("031"), "create_eval_suites");
+      assert.equal(byVersion.get("032"), "apikey_lifecycle");
+      assert.equal(byVersion.get("033"), "create_reasoning_cache");
+      for (const [version, name] of legacyRows) {
+        assert.equal(byVersion.get(`legacy-${version}-${name}`), name);
+      }
+
+      for (const table of [
+        "files",
+        "batches",
+        "eval_runs",
+        "eval_suites",
+        "eval_cases",
+        "reasoning_cache",
+      ]) {
+        assert.ok(
+          db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get(table),
+          `${table} should exist`
+        );
+      }
+
+      const providerColumns = db.prepare("PRAGMA table_info(provider_connections)").all() as Array<{
+        name: string;
+      }>;
+      const providerColumnNames = new Set(providerColumns.map((column) => column.name));
+      assert.equal(providerColumnNames.has("max_concurrent"), true);
+      assert.equal(providerColumnNames.has("should_not_run"), false);
+
+      const apiKeyColumns = db.prepare("PRAGMA table_info(api_keys)").all() as Array<{
+        name: string;
+      }>;
+      const apiKeyColumnNames = new Set(apiKeyColumns.map((column) => column.name));
+      for (const expected of [
+        "revoked_at",
+        "expires_at",
+        "last_used_at",
+        "key_prefix",
+        "ip_allowlist",
+        "scopes",
+      ]) {
+        assert.equal(apiKeyColumnNames.has(expected), true, `${expected} should exist`);
+      }
+      assert.equal(apiKeyColumnNames.has("should_not_run"), false);
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
   "memory FTS migrations upgrade existing UUID memories without datatype mismatches",
   serial,
   async () => {

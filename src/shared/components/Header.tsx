@@ -3,7 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import PropTypes from "prop-types";
 import ThemeToggle from "./ThemeToggle";
 import TokenHealthBadge from "./TokenHealthBadge";
 import DegradationBadge from "./DegradationBadge";
@@ -21,6 +20,11 @@ import {
 import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
+
+type HeaderProps = {
+  onMenuClick?: () => void;
+  showMenuButton?: boolean;
+};
 
 function usePageInfo(pathname: string | null): {
   title: string;
@@ -120,7 +124,7 @@ function usePageInfo(pathname: string | null): {
   return { title: "", description: "", breadcrumbs: [] };
 }
 
-export default function Header({ onMenuClick, showMenuButton = true }) {
+export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isElectron = useIsElectron();
@@ -241,8 +245,3 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
     </header>
   );
 }
-
-Header.propTypes = {
-  onMenuClick: PropTypes.func,
-  showMenuButton: PropTypes.bool,
-};

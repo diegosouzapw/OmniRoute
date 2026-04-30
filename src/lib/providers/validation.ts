@@ -2966,6 +2966,33 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
         return toValidationErrorResult(error);
       }
     },
+    // Xiaomi MiMo — Token Plan keys (tp-*) only work on regional endpoints
+    // (e.g. token-plan-sgp, token-plan-ams), not api.xiaomimimo.com.
+    // /v1/models works but validate via chat/completions for stronger auth check.
+    "xiaomi-mimo": async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const baseUrl = normalizeBaseUrl(
+          providerSpecificData?.baseUrl || "https://api.xiaomimimo.com/v1"
+        );
+        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
+        const res = await validationWrite(chatUrl, {
+          method: "POST",
+          headers: buildBearerHeaders(apiKey, providerSpecificData),
+          body: JSON.stringify({
+            model: "mimo-v2.5-pro",
+            messages: [{ role: "user", content: "test" }],
+            max_tokens: 1,
+          }),
+        });
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        // Any non-auth response (200, 400, 422, 429) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
     // Search providers — use factored validator
     ...Object.fromEntries(
       Object.entries(SEARCH_VALIDATOR_CONFIGS).map(([id, configFn]) => [

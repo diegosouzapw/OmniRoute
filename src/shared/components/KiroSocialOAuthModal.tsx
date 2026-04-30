@@ -1,11 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+
+type KiroSocialOAuthModalProps = {
+  isOpen: boolean;
+  provider: "google" | "github";
+  providerLabel?: string;
+  onSuccess?: () => void;
+  onClose: () => void;
+};
 
 /**
  * Kiro Social OAuth Modal (Google/GitHub)
@@ -17,7 +24,7 @@ export default function KiroSocialOAuthModal({
   providerLabel = "Kiro",
   onSuccess,
   onClose,
-}) {
+}: KiroSocialOAuthModalProps) {
   const [step, setStep] = useState("loading"); // loading | input | success | error
   const [authUrl, setAuthUrl] = useState("");
   const [authData, setAuthData] = useState(null);
@@ -209,11 +216,3 @@ export default function KiroSocialOAuthModal({
     </Modal>
   );
 }
-
-KiroSocialOAuthModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  provider: PropTypes.oneOf(["google", "github"]).isRequired,
-  providerLabel: PropTypes.string,
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

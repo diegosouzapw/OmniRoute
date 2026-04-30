@@ -1,10 +1,13 @@
-import PropTypes from "prop-types";
-
 /**
  * OmniRoute logo SVG — network hub icon with connected nodes.
  * Matches the favicon and app icon design.
  */
-export default function OmniRouteLogo({ size = 20, className = "" }) {
+type OmniRouteLogoProps = {
+  size?: number;
+  className?: string;
+};
+
+export default function OmniRouteLogo({ size = 20, className = "" }: OmniRouteLogoProps) {
   return (
     <svg
       width={size}
@@ -81,8 +84,3 @@ export default function OmniRouteLogo({ size = 20, className = "" }) {
     </svg>
   );
 }
-
-OmniRouteLogo.propTypes = {
-  size: PropTypes.number,
-  className: PropTypes.string,
-};

@@ -126,13 +126,20 @@ export function fmtFull(n) {
 }
 
 /**
- * Format a cost value with dollar sign.
- * @param {number} n - Cost value
+ * Format a USD cost for display.
+ * Sub-cent values show additional precision.
+ * @param {number} usd - Cost in USD
  * @returns {string}
  */
-export function fmtCost(n) {
-  return `$${(n || 0).toFixed(2)}`;
+export function formatCost(usd: number | null | undefined): string {
+  const value = Number(usd || 0);
+  if (!Number.isFinite(value) || value === 0) return "$0.00";
+  if (value < 0.01) return `$${value.toFixed(6)}`;
+  if (value < 1) return `$${value.toFixed(4)}`;
+  return `$${value.toFixed(2)}`;
 }
+
+export const fmtCost = formatCost;
 
 /**
  * Truncate a URL for compact display.

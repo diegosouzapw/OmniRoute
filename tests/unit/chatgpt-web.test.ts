@@ -64,11 +64,13 @@ function installMockFetch({
   fileDownload,
   attachmentDownload,
   signedDownload,
+  userConfig,
   onSession,
   onSentinel,
   onConv,
   onFileDownload,
   onAttachmentDownload,
+  onUserConfig,
 } = {}) {
   const calls = {
     session: 0,
@@ -78,6 +80,9 @@ function installMockFetch({
     fileDownload: 0,
     attachmentDownload: 0,
     signedDownload: 0,
+    userConfig: 0,
+    userConfigUrls: [],
+    userConfigMethods: [],
     urls: [],
     headers: [],
     bodies: [],
@@ -123,6 +128,22 @@ function installMockFetch({
       return {
         status: cfg.status,
         headers,
+        text: typeof cfg.body === "string" ? cfg.body : JSON.stringify(cfg.body || {}),
+        body: null,
+      };
+    }
+
+    // /backend-api/settings/user_last_used_model_config?model_slug=...&thinking_effort=...
+    // Match before sentinel since /settings/* is its own surface.
+    if (u.includes("/backend-api/settings/user_last_used_model_config")) {
+      calls.userConfig++;
+      calls.userConfigUrls.push(u);
+      calls.userConfigMethods.push((opts.method || "GET").toUpperCase());
+      if (onUserConfig) onUserConfig(opts, u);
+      const cfg = userConfig ?? { status: 200, body: { is_disabled: false } };
+      return {
+        status: cfg.status,
+        headers: makeHeaders({ "Content-Type": "application/json" }),
         text: typeof cfg.body === "string" ? cfg.body : JSON.stringify(cfg.body || {}),
         body: null,
       };
@@ -1115,6 +1136,248 @@ test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT 
       const body = JSON.parse(m.calls.bodies[convIdx]);
       assert.equal(body.model, expectedSlug, `${omniId} should map to ${expectedSlug}`);
     }
+  } finally {
+    m.restore();
+  }
+});
+
+// ─── thinking_effort PATCH user_last_used_model_config ─────────────────────
+
+test("thinking_effort: high → PATCH user_last_used_model_config with extended", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.5-thinking",
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+      stream: false,
+      credentials: { apiKey: "cookie-1" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 1, "exactly one PATCH issued");
+    assert.equal(m.calls.userConfigMethods[0], "PATCH");
+    const u = m.calls.userConfigUrls[0];
+    assert.match(u, /model_slug=gpt-5-5-thinking/);
+    assert.match(u, /thinking_effort=extended/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: low/medium → PATCH with standard", async () => {
+  for (const effort of ["low", "medium", "minimal"]) {
+    reset();
+    const m = installMockFetch();
+    try {
+      const executor = new ChatGptWebExecutor();
+      await executor.execute({
+        model: "gpt-5.4-thinking",
+        body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: effort },
+        stream: false,
+        credentials: { apiKey: `cookie-${effort}` },
+        signal: AbortSignal.timeout(10_000),
+        log: null,
+      });
+      assert.equal(m.calls.userConfig, 1, `effort=${effort} should issue exactly one PATCH`);
+      assert.match(m.calls.userConfigUrls[0], /thinking_effort=standard/, `${effort} → standard`);
+      assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-thinking/);
+    } finally {
+      m.restore();
+    }
+  }
+});
+
+test("thinking_effort: instant model never triggers PATCH even with reasoning_effort", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.3-instant",
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+      stream: false,
+      credentials: { apiKey: "cookie-instant" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 0, "instant slug must not PATCH thinking_effort");
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: bare chatgpt.com slug (e.g. gpt-5-4-t-mini) passed as model still PATCHes", async () => {
+  // Regression: the abbreviated dash-form slug "gpt-5-4-t-mini" doesn't
+  // carry the literal "thinking" substring, and isn't a key in MODEL_MAP
+  // (only its dot-form alias is), so a substring-only check would silently
+  // skip the PATCH for callers that send the chatgpt.com slug directly.
+  for (const bareSlug of ["gpt-5-4-t-mini", "gpt-5-5-thinking", "o3"]) {
+    reset();
+    const m = installMockFetch();
+    try {
+      const executor = new ChatGptWebExecutor();
+      await executor.execute({
+        model: bareSlug,
+        body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+        stream: false,
+        credentials: { apiKey: `cookie-bare-${bareSlug}` },
+        signal: AbortSignal.timeout(10_000),
+        log: null,
+      });
+      assert.equal(
+        m.calls.userConfig,
+        1,
+        `bare slug ${bareSlug} must trigger thinking_effort PATCH`
+      );
+      assert.match(
+        m.calls.userConfigUrls[0],
+        new RegExp(`model_slug=${bareSlug.replace(/\./g, "\\.")}`)
+      );
+    } finally {
+      m.restore();
+    }
+  }
+});
+
+test("thinking_effort: thinking model without reasoning_effort skips PATCH", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.5-thinking",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "cookie-noeffort" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 0, "no effort requested → no PATCH");
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: providerSpecificData.thinkingEffort=extended overrides body", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.4-thinking-mini",
+      body: {
+        messages: [{ role: "user", content: "hi" }],
+        reasoning_effort: "low", // would normally map to standard
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cookie-override",
+        providerSpecificData: { thinkingEffort: "extended" },
+      },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 1);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-4-t-mini/);
+    assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: nested body.reasoning.effort=high → extended", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    await executor.execute({
+      model: "gpt-5.2-thinking",
+      body: {
+        messages: [{ role: "user", content: "hi" }],
+        reasoning: { effort: "high" },
+      },
+      stream: false,
+      credentials: { apiKey: "cookie-nested" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 1);
+    assert.match(m.calls.userConfigUrls[0], /model_slug=gpt-5-2-thinking/);
+    assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: cached per (cookie, slug, effort) — second identical call skips PATCH", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    const opts = {
+      model: "gpt-5.5-thinking",
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+      stream: false,
+      credentials: { apiKey: "cookie-cache" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    };
+    await executor.execute(opts);
+    await executor.execute(opts);
+    assert.equal(m.calls.userConfig, 1, "second identical request hits cache");
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: switching effort within TTL triggers a fresh PATCH", async () => {
+  reset();
+  const m = installMockFetch();
+  try {
+    const executor = new ChatGptWebExecutor();
+    const base = {
+      model: "gpt-5.5-thinking",
+      stream: false,
+      credentials: { apiKey: "cookie-switch" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    };
+    await executor.execute({
+      ...base,
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+    });
+    await executor.execute({
+      ...base,
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "low" },
+    });
+    assert.equal(m.calls.userConfig, 2, "different effort key bypasses cache");
+    assert.match(m.calls.userConfigUrls[0], /thinking_effort=extended/);
+    assert.match(m.calls.userConfigUrls[1], /thinking_effort=standard/);
+  } finally {
+    m.restore();
+  }
+});
+
+test("thinking_effort: PATCH failure is non-fatal — conversation request still fires", async () => {
+  reset();
+  const m = installMockFetch({
+    userConfig: { status: 500, body: { error: "boom" } },
+  });
+  try {
+    const executor = new ChatGptWebExecutor();
+    const result = await executor.execute({
+      model: "gpt-5.5-thinking",
+      body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "high" },
+      stream: false,
+      credentials: { apiKey: "cookie-fail" },
+      signal: AbortSignal.timeout(10_000),
+      log: null,
+    });
+    assert.equal(m.calls.userConfig, 1);
+    assert.equal(m.calls.conv, 1, "conversation still issued despite settings PATCH 500");
+    assert.equal(result.response.status, 200);
   } finally {
     m.restore();
   }

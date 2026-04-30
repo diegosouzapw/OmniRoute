@@ -63,30 +63,43 @@ export async function GET() {
         ],
       },
       {
-        id: "intelligent-routing",
-        name: "Intelligent Model Combos",
+        id: "provider-discovery",
+        name: "Provider Discovery",
         description:
-          "Self-healing model chains with auto and LKGP routing. " +
-          "Adapts to provider health, quota, latency, and cost using " +
-          "the unified combos dashboard intelligent routing controls.",
-        tags: ["combo", "intelligent-routing", "self-healing", "adaptive"],
+          "Discovers providers that can handle a requested capability " +
+          "such as chat, images, audio, search, embeddings, rerank, or video. " +
+          "Reports availability, health, configuration status, and a recommended provider.",
+        tags: ["providers", "discovery", "capabilities", "health"],
         examples: [
-          "Create an auto-managed combo for coding tasks",
-          "Switch to cost-saver mode",
-          "Show the intelligent routing scoring breakdown",
+          "Which providers can handle image generation?",
+          "Find healthy providers for embeddings",
+          "What local providers are configured?",
         ],
       },
       {
-        id: "format-translation",
-        name: "Format Translation",
+        id: "cost-analysis",
+        name: "Cost Analysis",
         description:
-          "Transparently translates between OpenAI, Claude (Anthropic), " +
-          "Gemini (Google), and Responses API formats. Supports streaming " +
-          "translation for all format pairs.",
-        tags: ["translation", "openai", "claude", "gemini", "responses"],
+          "Analyzes usage costs by provider and model, compares recent periods, " +
+          "and returns cost-saving opportunities for agents to act on.",
+        tags: ["cost", "usage", "analytics", "optimization"],
         examples: [
-          "Send an OpenAI-format request to Claude",
-          "Translate this Gemini response to OpenAI format",
+          "How much did we spend this week?",
+          "Which provider is costing the most?",
+          "Suggest cost-saving opportunities for the last 30 days",
+        ],
+      },
+      {
+        id: "health-report",
+        name: "Health Report",
+        description:
+          "Aggregates provider health, circuit breaker states, rate limit queues, " +
+          "lockouts, and telemetry into a structured report for orchestration.",
+        tags: ["health", "monitoring", "resilience", "telemetry"],
+        examples: [
+          "Is everything healthy?",
+          "Report degraded providers and retry timing",
+          "Summarize active rate limits and lockouts",
         ],
       },
     ],

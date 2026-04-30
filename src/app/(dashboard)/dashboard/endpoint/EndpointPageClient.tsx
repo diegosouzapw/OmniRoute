@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import PropTypes from "prop-types";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
@@ -88,6 +87,29 @@ type TunnelNotice = {
   message: string;
 };
 
+type APIPageClientProps = {
+  machineId: string;
+};
+
+type EndpointProviderSummary = {
+  id: string;
+  provider: {
+    name: string;
+    alias?: string;
+  };
+};
+
+type EndpointModelSummary = {
+  id: string;
+  owned_by?: string;
+  parent?: string;
+  type?: string;
+  custom?: boolean;
+  root?: string;
+};
+
+type CopyHandler = (text: string, key?: string) => void | Promise<void>;
+
 type EndpointTunnelVisibility = {
   showCloudflaredTunnel: boolean;
   showTailscaleFunnel: boolean;
@@ -106,7 +128,7 @@ function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown
   });
 }
 
-export default function APIPageClient({ machineId }) {
+export default function APIPageClient({ machineId }: APIPageClientProps) {
   const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
@@ -2323,13 +2345,21 @@ export default function APIPageClient({ machineId }) {
   );
 }
 
-APIPageClient.propTypes = {
-  machineId: PropTypes.string.isRequired,
-};
-
 // -- Sub-component: Provider Models Modal ------------------------------------------
 
-function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
+function ProviderModelsModal({
+  provider,
+  models,
+  copy,
+  copied,
+  onClose,
+}: {
+  provider: EndpointProviderSummary;
+  models: EndpointModelSummary[];
+  copy: CopyHandler;
+  copied?: string | null;
+  onClose: () => void;
+}) {
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
   // Get provider alias for matching models
@@ -2405,14 +2435,6 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
   );
 }
 
-ProviderModelsModal.propTypes = {
-  provider: PropTypes.object.isRequired,
-  models: PropTypes.array.isRequired,
-  copy: PropTypes.func.isRequired,
-  copied: PropTypes.string,
-  onClose: PropTypes.func.isRequired,
-};
-
 // -- Sub-component: Endpoint Section ------------------------------------------
 
 function EndpointSection({
@@ -2429,6 +2451,20 @@ function EndpointSection({
   copied,
   baseUrl,
   modelsLoading = false,
+}: {
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  title: string;
+  path: string;
+  description: string;
+  models: EndpointModelSummary[];
+  expanded: boolean;
+  onToggle: () => void;
+  copy: CopyHandler;
+  copied?: string | null;
+  baseUrl: string;
+  modelsLoading?: boolean;
 }) {
   const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
@@ -2537,19 +2573,3 @@ function EndpointSection({
     </div>
   );
 }
-
-EndpointSection.propTypes = {
-  icon: PropTypes.string.isRequired,
-  iconColor: PropTypes.string.isRequired,
-  iconBg: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  path: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
-  models: PropTypes.array.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  copy: PropTypes.func.isRequired,
-  copied: PropTypes.string,
-  baseUrl: PropTypes.string.isRequired,
-  modelsLoading: PropTypes.bool,
-};

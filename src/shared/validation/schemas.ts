@@ -1212,20 +1212,8 @@ const nonEmptyJsonRecordSchema = jsonRecordSchema.refine(
   "Body must be a non-empty object"
 );
 
-const translatorLogFileSchema = z.enum([
-  "1_req_client.json",
-  "3_req_openai.json",
-  "4_req_target.json",
-  "5_res_provider.txt",
-]);
-
 export const translatorDetectSchema = z.object({
   body: nonEmptyJsonRecordSchema,
-});
-
-export const translatorSaveSchema = z.object({
-  file: translatorLogFileSchema,
-  content: z.string().min(1, "Content is required").max(1_000_000, "Content is too large"),
 });
 
 export const translatorSendSchema = z.object({
@@ -1592,6 +1580,8 @@ export const providersBatchTestSchema = z
       "web-cookie",
       "search",
       "audio",
+      "local",
+      "upstream-proxy",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),

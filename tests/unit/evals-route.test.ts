@@ -13,22 +13,18 @@ interface EvalsRoutePayload {
   targets: Array<{ type: string }>;
   apiKeys: Array<{ id: string; name: string; key?: string }>;
   recentRuns: Array<{ target: { key: string } }>;
-}
-
-interface ScorecardRoutePayload {
   scorecard: { overallPassRate: number } | null;
-  runs: unknown[];
 }
 
 const core = await import("../../src/lib/db/core.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const evalsRoute = await import("../../src/app/api/evals/route.ts");
-const evalsScorecardRoute = await import("../../src/app/api/evals/scorecard/route.ts");
 const evalSuitesRoute = await import("../../src/app/api/evals/suites/route.ts");
 const evalSuiteByIdRoute = await import("../../src/app/api/evals/suites/[suiteId]/route.ts");
 
 function resetDb() {
   core.resetDbInstance();
+  localDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
@@ -39,6 +35,7 @@ test.beforeEach(() => {
 
 test.after(() => {
   core.resetDbInstance();
+  localDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
@@ -98,7 +95,7 @@ test("evals GET returns suites, target options, api key metadata, and persisted 
   );
 });
 
-test("eval scorecard route exposes stored runs and aggregated pass rate", async () => {
+test("evals GET exposes stored runs and aggregated pass rate inline", async () => {
   localDb.saveEvalRun({
     suiteId: "golden-set",
     suiteName: "Golden Set",
@@ -109,16 +106,14 @@ test("eval scorecard route exposes stored runs and aggregated pass rate", async 
     createdAt: "2026-04-23T12:00:00.000Z",
   });
 
-  const response = await evalsScorecardRoute.GET(
-    new Request("http://localhost/api/evals/scorecard?limit=10")
-  );
+  const response = await evalsRoute.GET(new Request("http://localhost/api/evals"));
   assert.equal(response.status, 200);
 
-  const payload = (await response.json()) as ScorecardRoutePayload;
+  const payload = (await response.json()) as EvalsRoutePayload;
   assert.ok(payload.scorecard);
   assert.equal(payload.scorecard.overallPassRate, 100);
-  assert.equal(Array.isArray(payload.runs), true);
-  assert.equal(payload.runs.length, 1);
+  assert.equal(Array.isArray(payload.recentRuns), true);
+  assert.equal(payload.recentRuns.length, 1);
 });
 
 test("eval suite routes create, update, fetch, and delete custom suites", async () => {

@@ -3,7 +3,7 @@
  *
  * Tests the proxy pipeline wiring: format detection, credential retry loop,
  * circuit breaker integration, and the new Phase 2 modules (DI container,
- * prompt versioning, plugin architecture, eval scheduler).
+ * prompt versioning, plugin architecture, eval cleanup).
  *
  * @module tests/integration/proxy-pipeline.test.ts
  */
@@ -336,36 +336,13 @@ describe("Prompt Template Versioning — prompts.ts module existence", () => {
 });
 
 // ═══════════════════════════════════════════════════
-// 5. Eval Scheduler (L-7)
+// 5. Eval cleanup (Task 28)
 // ═══════════════════════════════════════════════════
 
-describe("Eval Scheduler — scheduler.ts module existence", () => {
-  it("scheduler.ts should exist", () => {
+describe("Eval cleanup — orphaned scheduler module", () => {
+  it("scheduler.ts should remain deleted", () => {
     const full = join(ROOT, "src", "lib", "evals", "scheduler.ts");
-    assert.ok(existsSync(full), "scheduler.ts should exist");
-  });
-
-  it("should export scheduling functions", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export function schedule/);
-    assert.match(src, /export function unschedule/);
-    assert.match(src, /export function pause/);
-    assert.match(src, /export function resume/);
-    assert.match(src, /export\s+(async\s+)?function\s+runNow/);
-    assert.match(src, /export function getSchedules/);
-    assert.match(src, /export function getHistory/);
-    assert.match(src, /export function stopAll/);
-  });
-
-  it("should define ScheduledEval and EvalRunResult types", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export interface ScheduledEval/);
-    assert.match(src, /export interface EvalRunResult/);
-  });
-
-  it("should have pluggable output provider", () => {
-    const src = readFileSync(join(ROOT, "src", "lib", "evals", "scheduler.ts"), "utf8");
-    assert.match(src, /export function setOutputProvider/);
+    assert.equal(existsSync(full), false, "scheduler.ts should stay removed");
   });
 });
 

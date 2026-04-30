@@ -7,6 +7,10 @@
  * @module shared/utils/costEstimator
  */
 
+import { formatCost } from "./formatting";
+
+export { formatCost };
+
 /**
  * Default pricing per 1M tokens (fallback when no pricing config exists).
  * Values in USD.
@@ -100,16 +104,6 @@ export function estimateCost({ model, inputTokens, maxOutputTokens = 1000, prici
     outputCost: Math.round(outputCost * 1_000_000) / 1_000_000,
     totalCost: Math.round(totalCost * 1_000_000) / 1_000_000,
   };
-}
-
-/**
- * Format a cost value for display.
- * @param {number} usd
- * @returns {string}
- */
-export function formatCost(usd) {
-  if (usd < 0.01) return `$${(usd * 100).toFixed(4)}¢`;
-  return `$${usd.toFixed(4)}`;
 }
 
 /**
