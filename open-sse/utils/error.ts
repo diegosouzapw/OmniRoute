@@ -172,11 +172,16 @@ export async function parseUpstreamError(response, provider = null) {
     retryAfterMs = MAX_RETRY_MS;
   }
 
+  const responseHeaders: Record<string, string> | null = response.headers
+    ? Object.fromEntries(response.headers.entries())
+    : null;
+
   return {
     statusCode: response.status,
     message: messageStr,
     retryAfterMs,
     responseBody,
+    responseHeaders,
   };
 }
 

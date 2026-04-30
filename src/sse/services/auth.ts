@@ -282,7 +282,7 @@ function resolveTerminalConnectionStatus(
   ) {
     return null;
   }
-  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN || status === 403) {
+  if (result.permanent || providerErrorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
     return "banned";
   }
   if (

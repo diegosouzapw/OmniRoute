@@ -58,6 +58,13 @@ export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
 
+const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+
+function markPendingRequestCleared(error: Error): Error {
+  (error as Error & Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] = true;
+  return error;
+}
+
 function buildResponsesOutputItemKey(item: unknown): string | null {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     return null;
@@ -855,7 +862,7 @@ export function createSSEStream(options: StreamOptions = {}) {
               }).catch(() => {});
               const timeoutError = new Error(timeoutMsg);
               timeoutError.name = "StreamIdleTimeoutError";
-              controller.error(timeoutError);
+              controller.error(markPendingRequestCleared(timeoutError));
             }
           }, 10_000);
         }
@@ -1335,7 +1342,9 @@ export function createSSEStream(options: StreamOptions = {}) {
               }
               clearIdleTimer();
               trackPendingRequest(model, provider, connectionId, false);
-              controller.error(new Error(failurePayload.message || "Upstream failure"));
+              controller.error(
+                markPendingRequestCleared(new Error(failurePayload.message || "Upstream failure"))
+              );
               return;
             }
             if (!trimmed) {
@@ -1729,7 +1738,9 @@ export function createSSEStream(options: StreamOptions = {}) {
             }
 
             clearIdleTimer();
-            controller.error(new Error(err.message || "Upstream failure"));
+            controller.error(
+              markPendingRequestCleared(new Error(err.message || "Upstream failure"))
+            );
             return;
           }
 

@@ -143,6 +143,9 @@ export function classifyProviderError(
     if (bodyStr.includes("has not been used in project")) {
       return PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR;
     }
+    if (provider && getProviderCategory(provider) === "apikey") {
+      return null;
+    }
     return PROVIDER_ERROR_TYPES.FORBIDDEN;
   }
   if (statusCode >= 500) return PROVIDER_ERROR_TYPES.SERVER_ERROR;

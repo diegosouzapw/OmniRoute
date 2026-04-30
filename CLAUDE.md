@@ -1,7 +1,6 @@
-# CLAUDE.md — AI Agent Session Bootstrap
+# CLAUDE.md
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Quick Start
 
@@ -17,55 +16,47 @@ npm run check                  # lint + test combined
 npm run check:cycles           # Detect circular dependencies
 ```
 
-### Running a Single Test
+### Running Tests
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Single test file (Node.js native test runner — most tests)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
+
+# All suites
+npm run test:all
 ```
+
+For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep architecture, see `AGENTS.md`.
 
 ---
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 160+ LLM providers, auto-fallback.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Layer         | Location                | Purpose                                    |
+| ------------- | ----------------------- | ------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points          |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc) |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch            |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)   |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions           |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc   |
+| Database      | `src/lib/db/`           | SQLite domain modules (22 files)           |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic  |
+| MCP Server    | `open-sse/mcp-server/`  | 29 tools, 3 transports, 10 scopes          |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                 |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory           |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Request Pipeline
 
 ```
 Client → /v1/chat/completions (Next.js route)
@@ -76,7 +67,12 @@ Client → /v1/chat/completions (Next.js route)
     → translateRequest() → getExecutor() → executor.execute()
       → fetch() upstream → retry w/ backoff
     → response translation → SSE stream or JSON
+    → If Responses API: responsesTransformer.ts TransformStream
 ```
+
+API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
+
+**Combo routing** (`open-sse/services/combo.ts`): 13 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks.
 
 ---
 
@@ -84,31 +80,32 @@ Client → /v1/chat/completions (Next.js route)
 
 ### Code Style
 
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
+- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas (enforced by lint-staged via Prettier)
 - **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
 - **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = error everywhere; `no-explicit-any` = warn in `open-sse/` and `tests/`
+- **TypeScript**: `strict: false`, target ES2022, module esnext, resolution bundler. Prefer explicit types.
 
-### Database Access
+### Database
 
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
+- **Always** go through `src/lib/db/` domain modules — **never** write raw SQL in routes or handlers
 - **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
+- **Never** barrel-import from `localDb.ts` — import specific `db/` modules instead
 - DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
+- Migrations: `src/lib/db/migrations/` — versioned SQL files, idempotent, run in transactions
 
 ### Error Handling
 
 - try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
+- Never swallow errors in SSE streams — use abort signals for cleanup
 - Return proper HTTP status codes (4xx/5xx)
 
 ### Security
 
-- **Never** commit secrets/credentials
 - **Never** use `eval()`, `new Function()`, or implied eval
 - Validate all inputs with Zod schemas
 - Encrypt credentials at rest (AES-256-GCM)
+- Upstream header denylist: `src/shared/constants/upstreamHeaders.ts` — keep sanitize, Zod schemas, and unit tests aligned when editing
 
 ---
 
@@ -117,11 +114,11 @@ Client → /v1/chat/completions (Next.js route)
 ### Adding a New Provider
 
 1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
+2. Add executor in `open-sse/executors/` if custom logic needed (extend `BaseExecutor`)
 3. Add translator in `open-sse/translator/` if non-OpenAI format
 4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
 5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+6. Write tests in `tests/unit/`
 
 ### Adding a New API Route
 
@@ -133,20 +130,18 @@ Client → /v1/chat/completions (Next.js route)
 
 ### Adding a New DB Module
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+1. Create `src/lib/db/yourModule.ts` — import `getDbInstance` from `./core.ts`
+2. Export CRUD functions for your domain table(s)
+3. Add migration in `src/lib/db/migrations/` if new tables needed
+4. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
+5. Write tests
 
 ### Adding a New MCP Tool
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+1. Add tool definition in `open-sse/mcp-server/tools/` with Zod input schema + async handler
+2. Register in tool set (wired by `createMcpServer()`)
+3. Assign to appropriate scope(s)
+4. Write tests (tool invocation logged to `mcp_audit` table)
 
 ### Adding a New A2A Skill
 
@@ -157,24 +152,24 @@ Client → /v1/chat/completions (Next.js route)
 
 ---
 
-## Testing Cheat Sheet
+## Testing
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+| What                    | Command                                                |
+| ----------------------- | ------------------------------------------------------ |
+| Unit tests              | `npm run test:unit`                                    |
+| Single file             | `node --import tsx/esm --test tests/unit/file.test.ts` |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                  |
+| E2E (Playwright)        | `npm run test:e2e`                                     |
+| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                           |
+| Ecosystem               | `npm run test:ecosystem`                               |
+| Coverage gate           | `npm run test:coverage` (60% min all metrics)          |
+| Coverage report         | `npm run coverage:report`                              |
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
 
 **Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+
+**Copilot coverage policy**: When a PR changes production code and coverage is below 60%, do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
 
 ---
 
@@ -183,40 +178,34 @@ you must include or update tests in the same PR.
 ```bash
 # Never commit directly to main
 git checkout -b feat/your-feature
-# ... make changes ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature
 ```
 
 **Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Commit format** (Conventional Commits): `feat(db): add circuit breaker` — scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky hooks**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
 ## Environment
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
+- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
+- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)
 - **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Key env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Setup: `cp .env.example .env` then generate `JWT_SECRET` (`openssl rand -base64 48`) and `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Hard Rules
 
 1. Never commit secrets or credentials
 2. Never add logic to `localDb.ts`

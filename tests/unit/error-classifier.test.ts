@@ -80,6 +80,17 @@ test("classifyProviderError: 403 plain => FORBIDDEN (terminal)", () => {
   assert.equal(result, PROVIDER_ERROR_TYPES.FORBIDDEN);
 });
 
+test("classifyProviderError: API-key provider plain 403 is recoverable", () => {
+  const result = classifyProviderError(
+    403,
+    {
+      error: { message: "The caller does not have permission" },
+    },
+    "glm"
+  );
+  assert.equal(result, null);
+});
+
 test("classifyProviderError: 403 with project string as plain string body => PROJECT_ROUTE_ERROR", () => {
   const body = JSON.stringify({
     error: { message: "API has not been used in project abc-xyz before" },

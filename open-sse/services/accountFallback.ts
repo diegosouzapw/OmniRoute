@@ -980,6 +980,15 @@ export function checkFallbackError(
         dailyQuotaExhausted: true,
       };
     }
+
+    if (
+      status === HTTP_STATUS.FORBIDDEN &&
+      provider &&
+      getProviderCategory(provider) === "apikey" &&
+      !errorStr.toLowerCase().includes("has not been used in project")
+    ) {
+      return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
+    }
   }
 
   const configuredRule =
