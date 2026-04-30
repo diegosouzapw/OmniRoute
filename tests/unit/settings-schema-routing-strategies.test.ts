@@ -48,3 +48,21 @@ test("settings schemas accept combo configuration modes", () => {
   assert.equal(settingsRouteSchema.safeParse({ comboConfigMode: "compact" }).success, false);
   assert.equal(sharedSettingsSchema.safeParse({ comboConfigMode: "compact" }).success, false);
 });
+
+test("settings schemas accept endpoint tunnel visibility toggles", () => {
+  const payload = {
+    hideEndpointCloudflaredTunnel: true,
+    hideEndpointTailscaleFunnel: true,
+    hideEndpointNgrokTunnel: true,
+  };
+
+  const routeParsed = settingsRouteSchema.parse(payload);
+  const sharedParsed = sharedSettingsSchema.parse(payload);
+
+  assert.equal(routeParsed.hideEndpointCloudflaredTunnel, true);
+  assert.equal(routeParsed.hideEndpointTailscaleFunnel, true);
+  assert.equal(routeParsed.hideEndpointNgrokTunnel, true);
+  assert.equal(sharedParsed.hideEndpointCloudflaredTunnel, true);
+  assert.equal(sharedParsed.hideEndpointTailscaleFunnel, true);
+  assert.equal(sharedParsed.hideEndpointNgrokTunnel, true);
+});

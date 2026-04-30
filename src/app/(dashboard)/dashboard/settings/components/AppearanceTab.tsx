@@ -38,6 +38,7 @@ export default function AppearanceTab() {
   const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
+  const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -305,6 +306,23 @@ export default function AppearanceTab() {
               <Toggle
                 checked={showTailscaleFunnel}
                 onChange={(checked) => updateSetting("hideEndpointTailscaleFunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">{getSettingsLabel("showNgrokTunnel", "ngrok Tunnel")}</p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showNgrokTunnelDesc",
+                    "Show ngrok Tunnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showNgrokTunnel}
+                onChange={(checked) => updateSetting("hideEndpointNgrokTunnel", !checked)}
                 disabled={loading}
               />
             </div>

@@ -22,6 +22,7 @@ export interface Settings {
   hideHealthCheckLogs?: boolean;
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
+  hideEndpointNgrokTunnel?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
 }

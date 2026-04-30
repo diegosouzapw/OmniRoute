@@ -141,18 +141,21 @@ describe("Settings API - persisted preferences", () => {
           body: {
             hideEndpointCloudflaredTunnel: true,
             hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
           },
         })
       );
-      const body = (await response.json()) as any;
+      const body = (await response.json()) as Record<string, unknown>;
 
       assert.equal(response.status, 200);
       assert.equal(body.hideEndpointCloudflaredTunnel, true);
       assert.equal(body.hideEndpointTailscaleFunnel, true);
+      assert.equal(body.hideEndpointNgrokTunnel, true);
 
       const settings = await harness.getSettings();
       assert.equal(settings.hideEndpointCloudflaredTunnel, true);
       assert.equal(settings.hideEndpointTailscaleFunnel, true);
+      assert.equal(settings.hideEndpointNgrokTunnel, true);
     });
 
     test("PUT /api/settings reuses the PATCH update flow", async () => {
@@ -162,7 +165,7 @@ describe("Settings API - persisted preferences", () => {
           body: { antigravitySignatureCacheMode: "bypass" },
         })
       );
-      const body = (await response.json()) as any;
+      const body = (await response.json()) as Record<string, unknown>;
 
       assert.equal(response.status, 200);
       assert.equal(body.antigravitySignatureCacheMode, "bypass");

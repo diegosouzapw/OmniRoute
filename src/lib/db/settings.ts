@@ -56,6 +56,7 @@ export async function getSettings() {
     hiddenSidebarItems: [],
     hideEndpointCloudflaredTunnel: false,
     hideEndpointTailscaleFunnel: false,
+    hideEndpointNgrokTunnel: false,
     comboConfigMode: "guided",
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,

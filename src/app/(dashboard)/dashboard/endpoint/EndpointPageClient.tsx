@@ -91,11 +91,13 @@ type TunnelNotice = {
 type EndpointTunnelVisibility = {
   showCloudflaredTunnel: boolean;
   showTailscaleFunnel: boolean;
+  showNgrokTunnel: boolean;
 };
 
 const DEFAULT_TUNNEL_VISIBILITY: EndpointTunnelVisibility = {
   showCloudflaredTunnel: true,
   showTailscaleFunnel: true,
+  showNgrokTunnel: true,
 };
 
 function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown>) {
@@ -291,7 +293,9 @@ export default function APIPageClient({ machineId }) {
       if (tunnelVisibility.showTailscaleFunnel) {
         runEndpointBackgroundTask("tailscale-status", () => fetchTailscaleStatus(true));
       }
-      runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
+      if (tunnelVisibility.showNgrokTunnel) {
+        runEndpointBackgroundTask("ngrok-status", () => fetchNgrokStatus(true));
+      }
     };
 
     void loadPage();
@@ -405,6 +409,7 @@ export default function APIPageClient({ machineId }) {
         const tunnelVisibility = {
           showCloudflaredTunnel: data.hideEndpointCloudflaredTunnel !== true,
           showTailscaleFunnel: data.hideEndpointTailscaleFunnel !== true,
+          showNgrokTunnel: data.hideEndpointNgrokTunnel !== true,
         };
 
         if (!shouldApplyState()) {
@@ -423,6 +428,7 @@ export default function APIPageClient({ machineId }) {
         }
         setShowCloudflaredTunnel(tunnelVisibility.showCloudflaredTunnel);
         setShowTailscaleFunnel(tunnelVisibility.showTailscaleFunnel);
+        setShowNgrokTunnel(tunnelVisibility.showNgrokTunnel);
 
         if (!tunnelVisibility.showCloudflaredTunnel) {
           setCloudflaredStatus(null);
@@ -431,6 +437,11 @@ export default function APIPageClient({ machineId }) {
         if (!tunnelVisibility.showTailscaleFunnel) {
           setTailscaleStatus(null);
           setTailscaleNotice(null);
+        }
+        if (!tunnelVisibility.showNgrokTunnel) {
+          setNgrokStatus(null);
+          setNgrokNotice(null);
+          setNgrokToken("");
         }
 
         return tunnelVisibility;
@@ -480,6 +491,13 @@ export default function APIPageClient({ machineId }) {
   }, [tailscaleNotice]);
 
   useEffect(() => {
+    if (ngrokNotice) {
+      const timer = setTimeout(() => setNgrokNotice(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [ngrokNotice]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       void fetchProtocolStatus();
       if (showCloudflaredTunnel) {
@@ -488,9 +506,19 @@ export default function APIPageClient({ machineId }) {
       if (showTailscaleFunnel) {
         void fetchTailscaleStatus(true);
       }
+      if (showNgrokTunnel) {
+        void fetchNgrokStatus(true);
+      }
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchCloudflaredStatus, fetchTailscaleStatus, showCloudflaredTunnel, showTailscaleFunnel]);
+  }, [
+    fetchCloudflaredStatus,
+    fetchNgrokStatus,
+    fetchTailscaleStatus,
+    showCloudflaredTunnel,
+    showNgrokTunnel,
+    showTailscaleFunnel,
+  ]);
 
   const dispatchCloudChange = () => {
     globalThis.dispatchEvent(new Event("cloud-status-changed"));

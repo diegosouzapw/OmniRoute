@@ -170,6 +170,7 @@ describe("EndpointPageClient", () => {
             cloudConfigured: false,
             hideEndpointCloudflaredTunnel: true,
             hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
             machineId: "machine-12345678",
           })
         );
@@ -196,6 +197,7 @@ describe("EndpointPageClient", () => {
     expect(fetchMock).toHaveBeenCalledWith("/v1/models");
     expect(fetchMock).not.toHaveBeenCalledWith("/api/tunnels/cloudflared", expect.anything());
     expect(fetchMock).not.toHaveBeenCalledWith("/api/tunnels/tailscale", expect.anything());
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/tunnels/ngrok", expect.anything());
 
     modelsDeferred.resolve(
       jsonResponse({
@@ -238,6 +240,7 @@ describe("EndpointPageClient", () => {
           cloudConfigured: false,
           hideEndpointCloudflaredTunnel: false,
           hideEndpointTailscaleFunnel: false,
+          hideEndpointNgrokTunnel: false,
         })
       );
       await settingsDeferred.promise;
