@@ -1202,6 +1202,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                 } catch {}
               }
               clearIdleTimer();
+              trackPendingRequest(model, provider, connectionId, false);
               controller.error(new Error(failurePayload.message || "Upstream failure"));
               return;
             }
