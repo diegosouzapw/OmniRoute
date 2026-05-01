@@ -611,7 +611,7 @@ async function getNanoGptUsage(apiKey: string) {
       return { message: `NanoGPT quota API error (${res.status})` };
     }
 
-    const data = await res.json();
+    const data = toRecord(await res.json());
     const quotas: Record<string, UsageQuota> = {};
 
     // active -> PRO, otherwise FREE
