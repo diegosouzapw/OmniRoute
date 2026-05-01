@@ -72,6 +72,10 @@ const CURSOR_USAGE_CONFIG = {
   clientVersion: CURSOR_REGISTRY_VERSION,
 };
 
+const NANOGPT_CONFIG = {
+  usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
+};
+
 const MINIMAX_USAGE_CONFIG = {
   minimax: {
     usageUrls: [
@@ -595,14 +599,18 @@ async function getBailianCodingPlanUsage(
   }
 }
 
-// https://docs.nano-gpt.com/api-reference/endpoint/subscription-usage
+/**
+ * NanoGPT Usage
+ * Fetches subscription-level quota from the NanoGPT API.
+ * Returns daily/weekly token limits and daily image limits for PRO accounts.
+ */
 async function getNanoGptUsage(apiKey: string) {
   if (!apiKey) {
     return { message: "NanoGPT API key not available. Add a key to view usage." };
   }
 
   try {
-    const res = await fetch("https://nano-gpt.com/api/subscription/v1/usage", {
+    const res = await fetch(NANOGPT_CONFIG.usageUrl, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
 
