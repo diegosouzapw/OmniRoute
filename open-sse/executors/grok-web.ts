@@ -1166,6 +1166,53 @@ function sseChunk(data: unknown): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
+function enqueueStreamingToolCalls(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  encoder: TextEncoder,
+  params: {
+    id: string;
+    created: number;
+    model: string;
+    fingerprint: string;
+    toolCalls: OpenAIToolCall[];
+  }
+): void {
+  for (let i = 0; i < params.toolCalls.length; i++) {
+    controller.enqueue(
+      encoder.encode(
+        sseChunk({
+          id: params.id,
+          object: "chat.completion.chunk",
+          created: params.created,
+          model: params.model,
+          system_fingerprint: params.fingerprint || null,
+          choices: [
+            {
+              index: 0,
+              delta: { tool_calls: [{ index: i, ...params.toolCalls[i] }] },
+              finish_reason: null,
+              logprobs: null,
+            },
+          ],
+        })
+      )
+    );
+  }
+  controller.enqueue(
+    encoder.encode(
+      sseChunk({
+        id: params.id,
+        object: "chat.completion.chunk",
+        created: params.created,
+        model: params.model,
+        system_fingerprint: params.fingerprint || null,
+        choices: [{ index: 0, delta: {}, finish_reason: "tool_calls", logprobs: null }],
+      })
+    )
+  );
+  controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+}
+
 function buildStreamingResponse(
   eventStream: ReadableStream<Uint8Array>,
   model: string,
@@ -1255,40 +1302,7 @@ function buildStreamingResponse(
           }
 
           if (chunk.toolCalls) {
-            for (let i = 0; i < chunk.toolCalls.length; i++) {
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { tool_calls: [{ index: i, ...chunk.toolCalls[i] }] },
-                        finish_reason: null,
-                        logprobs: null,
-                      },
-                    ],
-                  })
-                )
-              );
-            }
-            controller.enqueue(
-              encoder.encode(
-                sseChunk({
-                  id: cid,
-                  object: "chat.completion.chunk",
-                  created,
-                  model,
-                  system_fingerprint: fp || null,
-                  choices: [{ index: 0, delta: {}, finish_reason: "tool_calls", logprobs: null }],
-                })
-              )
-            );
-            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            enqueueStreamingToolCalls(controller, encoder, { id: cid, created, model, fingerprint: fp, toolCalls: chunk.toolCalls });
             return;
           }
 
@@ -1297,40 +1311,7 @@ function buildStreamingResponse(
           if (chunk.fullMessage) {
             const toolCalls = parseClientToolCallMarkup(chunk.fullMessage, toolRegistry);
             if (toolCalls) {
-              for (let i = 0; i < toolCalls.length; i++) {
-                controller.enqueue(
-                  encoder.encode(
-                    sseChunk({
-                      id: cid,
-                      object: "chat.completion.chunk",
-                      created,
-                      model,
-                      system_fingerprint: fp || null,
-                      choices: [
-                        {
-                          index: 0,
-                          delta: { tool_calls: [{ index: i, ...toolCalls[i] }] },
-                          finish_reason: null,
-                          logprobs: null,
-                        },
-                      ],
-                    })
-                  )
-                );
-              }
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [{ index: 0, delta: {}, finish_reason: "tool_calls", logprobs: null }],
-                  })
-                )
-              );
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              enqueueStreamingToolCalls(controller, encoder, { id: cid, created, model, fingerprint: fp, toolCalls });
               return;
             }
           }
@@ -1339,40 +1320,7 @@ function buildStreamingResponse(
             buffered += chunk.delta;
             const toolCalls = parseClientToolCallMarkup(buffered, toolRegistry);
             if (toolCalls) {
-              for (let i = 0; i < toolCalls.length; i++) {
-                controller.enqueue(
-                  encoder.encode(
-                    sseChunk({
-                      id: cid,
-                      object: "chat.completion.chunk",
-                      created,
-                      model,
-                      system_fingerprint: fp || null,
-                      choices: [
-                        {
-                          index: 0,
-                          delta: { tool_calls: [{ index: i, ...toolCalls[i] }] },
-                          finish_reason: null,
-                          logprobs: null,
-                        },
-                      ],
-                    })
-                  )
-                );
-              }
-              controller.enqueue(
-                encoder.encode(
-                  sseChunk({
-                    id: cid,
-                    object: "chat.completion.chunk",
-                    created,
-                    model,
-                    system_fingerprint: fp || null,
-                    choices: [{ index: 0, delta: {}, finish_reason: "tool_calls", logprobs: null }],
-                  })
-                )
-              );
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              enqueueStreamingToolCalls(controller, encoder, { id: cid, created, model, fingerprint: fp, toolCalls });
               return;
             }
             if (hasOpenToolCallMarkup(buffered)) continue;
