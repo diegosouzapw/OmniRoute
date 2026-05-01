@@ -16,7 +16,7 @@ export interface BaseProvider<M extends BaseModel = BaseModel> {
   id: string;
   baseUrl: string;
   authType: string; // "apikey" | "oauth" | "none"
-  authHeader: string; // "bearer" | "token" | "xi-api-key" | "x-api-key" | "none"
+  authHeader: string; // "bearer" | "key" | "token" | "xi-api-key" | "x-api-key" | "none"
   format?: string;
   models: M[];
 }
@@ -76,7 +76,7 @@ export function getAllModelsFromRegistry<P extends BaseProvider>(
 
 /**
  * Build auth headers for a provider.
- * Handles bearer, token, xi-api-key, x-api-key, and none.
+ * Handles bearer, key, token, xi-api-key, x-api-key, and none.
  */
 export function buildAuthHeaders(
   provider: BaseProvider,
@@ -87,6 +87,8 @@ export function buildAuthHeaders(
   }
 
   switch (provider.authHeader) {
+    case "key":
+      return { Authorization: `Key ${token}` };
     case "token":
       return { Authorization: `Token ${token}` };
     case "xi-api-key":

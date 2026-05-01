@@ -21,6 +21,7 @@ import { buildBedrockChatUrl } from "../config/bedrock.ts";
 import { buildWatsonxChatUrl } from "../config/watsonx.ts";
 import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
+import { buildMaritalkChatUrl } from "../config/maritalk.ts";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || "").trim().replace(/\/$/, "");
@@ -180,6 +181,10 @@ export class DefaultExecutor extends BaseExecutor {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeGigachatChatUrl(baseUrl);
       }
+      case "maritalk": {
+        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
+        return buildMaritalkChatUrl(baseUrl);
+      }
       case "lm-studio":
       case "modal":
       case "reka":
@@ -281,6 +286,13 @@ export class DefaultExecutor extends BaseExecutor {
         if (bearerToken) {
           headers["Authorization"] = `Bearer ${bearerToken}`;
           headers["X-Api-Key"] = bearerToken;
+        }
+        break;
+      }
+      case "maritalk": {
+        const token = effectiveKey || credentials.accessToken;
+        if (token) {
+          headers["Authorization"] = `Key ${token}`;
         }
         break;
       }

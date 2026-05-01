@@ -24,6 +24,7 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
+import { MARITALK_DEFAULT_BASE_URL } from "./maritalk.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -227,7 +228,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   venice: buildModels(["venice-latest"]),
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
   upstage: buildModels(["solar-pro3", "solar-mini"]),
-  maritalk: buildModels(["sabia-3", "sabia-3-small"]),
+  maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
   "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
@@ -1965,9 +1966,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "maritalk",
     format: "openai",
     executor: "default",
-    baseUrl: "https://chat.maritaca.ai/api/chat/inference",
+    baseUrl: MARITALK_DEFAULT_BASE_URL,
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "key",
     models: CHAT_OPENAI_COMPAT_MODELS.maritalk,
   },
 

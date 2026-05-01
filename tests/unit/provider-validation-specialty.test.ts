@@ -727,6 +727,75 @@ test("google PSE validator requires cx", async () => {
   assert.equal(result.error, "Programmable Search Engine ID (cx) is required");
 });
 
+test("Maritalk validates with Key auth against the models endpoint", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    assert.equal(String(url), "https://chat.maritaca.ai/api/models");
+    assert.equal(init.headers.Authorization, "Key maritalk-key");
+    return new Response(JSON.stringify({ data: [{ id: "sabia-4" }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "maritalk",
+    apiKey: "maritalk-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.method, "maritalk_models");
+  assert.equal(calls.length, 1);
+});
+
+test("Maritalk falls back to chat probe when the models endpoint is unreachable", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+
+    if (String(url) === "https://chat.maritaca.ai/api/models") {
+      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    }
+
+    assert.equal(String(url), "https://chat.maritaca.ai/api/chat/completions");
+    assert.equal(init.headers.Authorization, "Key maritalk-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.model, "sabia-4");
+    return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+      status: 200,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "maritalk",
+    apiKey: "maritalk-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(calls.length, 2);
+});
+
+test("Maritalk treats a rate-limited models probe as valid credentials", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init });
+    assert.equal(String(url), "https://chat.maritaca.ai/api/models");
+    assert.equal(init.headers.Authorization, "Key maritalk-key");
+    return new Response(JSON.stringify({ error: "rate limited" }), {
+      status: 429,
+    });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "maritalk",
+    apiKey: "maritalk-key",
+  });
+
+  assert.equal(result.valid, true);
+  assert.equal(result.warning, "Rate limited, but credentials are valid");
+  assert.equal(calls.length, 1);
+});
+
 test("local OpenAI-style providers validate without sending Authorization when apiKey is blank", async () => {
   const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
   process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS = "true";
