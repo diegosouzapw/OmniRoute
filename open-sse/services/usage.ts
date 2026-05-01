@@ -620,14 +620,14 @@ async function getNanoGptUsage(apiKey: string) {
     if (data.active) {
       // 1. Tokens limit
       // dailyInputTokens if exists, else weeklyInputTokens
-      let tokenQuota = data.dailyInputTokens;
+      let tokenQuota = toRecord(data.dailyInputTokens);
       let tokenLabel = "Daily Tokens";
-      if (!tokenQuota || !tokenQuota.resetAt) {
-        tokenQuota = data.weeklyInputTokens;
+      if (!tokenQuota.resetAt) {
+        tokenQuota = toRecord(data.weeklyInputTokens);
         tokenLabel = "Weekly Tokens";
       }
 
-      if (tokenQuota && tokenQuota.remaining !== undefined) {
+      if (tokenQuota.remaining !== undefined) {
         const used = toNumber(tokenQuota.used, 0);
         const remaining = toNumber(tokenQuota.remaining, 0);
         const total = used + remaining;
