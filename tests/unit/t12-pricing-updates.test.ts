@@ -39,7 +39,6 @@ test("T12: codex catalog includes GPT 5.5 entries", () => {
   const codexModels = new Map(REGISTRY.codex.models.map((m) => [m.id, m]));
   assert.ok(codexModels.has("gpt-5.5"), "missing codex/gpt-5.5");
   assert.ok(codexModels.has("gpt-5.5-medium"), "missing codex/gpt-5.5-medium");
-  assert.ok(codexModels.has("gpt-5.5-mini"), "missing codex/gpt-5.5-mini");
   assert.equal(codexModels.get("gpt-5.5")?.name, "GPT 5.5");
   assert.equal(codexModels.get("gpt-5.5-medium")?.name, "GPT 5.5 (Medium)");
   assert.equal(codexModels.get("gpt-5.5")?.contextLength, 1050000);

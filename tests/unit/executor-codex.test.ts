@@ -88,12 +88,6 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
     }),
     true
   );
-  assert.equal(
-    isCodexResponsesWebSocketRequired("gpt-5.5-mini", {
-      providerSpecificData: { codexTransport: "websocket" },
-    }),
-    true
-  );
   // Without codexTransport setting, defaults to HTTP (false)
   assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {}), false);
   assert.equal(isCodexResponsesWebSocketRequired("gpt-5.5-medium", {}), false);
