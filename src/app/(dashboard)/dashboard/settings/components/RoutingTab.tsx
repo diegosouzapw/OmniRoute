@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import FallbackChainsEditor from "./FallbackChainsEditor";
@@ -45,10 +45,14 @@ export default function RoutingTab() {
     }
   };
 
-  const cliCompatProviders = Array.isArray(settings.cliCompatProviders)
-    ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
-    : [];
-  const cliCompatProviderSet = new Set(cliCompatProviders);
+  const cliCompatProviders = useMemo(
+    () =>
+      Array.isArray(settings.cliCompatProviders)
+        ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        : [],
+    [settings.cliCompatProviders]
+  );
+  const cliCompatProviderSet = useMemo(() => new Set(cliCompatProviders), [cliCompatProviders]);
 
   const toggleCliCompatProvider = (providerId: string, enabled: boolean) => {
     const normalizedProviderId = normalizeCliCompatProviderId(providerId);
