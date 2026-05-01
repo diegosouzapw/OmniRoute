@@ -639,24 +639,26 @@ async function getNanoGptUsage(apiKey: string) {
           resetAt: parseResetTime(tokenQuota.resetAt),
           unlimited: false,
         };
-      } else {
-        // If both are null, we should show an error as requested
-        return { plan, message: "NanoGPT connected, but no active token limits found." };
       }
 
       // 2. Images limit
-      if (data.dailyImages && data.dailyImages.remaining !== undefined) {
-        const used = toNumber(data.dailyImages.used, 0);
-        const remaining = toNumber(data.dailyImages.remaining, 0);
+      const imageQuota = toRecord(data.dailyImages);
+      if (imageQuota.remaining !== undefined) {
+        const used = toNumber(imageQuota.used, 0);
+        const remaining = toNumber(imageQuota.remaining, 0);
         const total = used + remaining;
         quotas["Daily Images"] = {
           used,
           total,
           remaining,
-          remainingPercentage: clampPercentage(100 - toNumber(data.dailyImages.percentUsed, 0) * 100),
-          resetAt: parseResetTime(data.dailyImages.resetAt),
+          remainingPercentage: clampPercentage(100 - toNumber(imageQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(imageQuota.resetAt),
           unlimited: false,
         };
+      }
+
+      if (Object.keys(quotas).length === 0) {
+        return { plan, message: "NanoGPT connected, but no active limits found." };
       }
     }
 
@@ -665,7 +667,6 @@ async function getNanoGptUsage(apiKey: string) {
     return { message: `NanoGPT connected. Unable to fetch usage: ${(error as Error).message}` };
   }
 }
-
 
 /**
  * Get usage data for a provider connection
