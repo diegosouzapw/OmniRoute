@@ -70,7 +70,7 @@ const MODALITY_CONFIG: Record<
     placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
     textLabel: "Text",
-    needsCredentials: ["openai", "elevenlabs", "deepgram"],
+    needsCredentials: ["openai", "elevenlabs", "deepgram", "xiaomi-mimo"],
   },
   transcription: {
     icon: "mic",
@@ -183,6 +183,15 @@ const PROVIDER_MODELS: Record<
       models: [{ id: "huggingface/espnet/kan-bayashi_ljspeech_vits", name: "VITS LJSpeech" }],
     },
     { id: "qwen", name: "Qwen", models: [{ id: "qwen/qwen3-tts", name: "Qwen3 TTS" }] },
+    {
+      id: "xiaomi-mimo",
+      name: "Xiaomi MiMo",
+      models: [
+        { id: "xiaomi-mimo/mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
+        { id: "xiaomi-mimo/mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
+        { id: "xiaomi-mimo/mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
+      ],
+    },
   ],
   transcription: [
     {
@@ -271,9 +280,26 @@ const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
     { id: "Eva", label: "Eva (EN)" },
     { id: "Marcus", label: "Marcus (EN)" },
   ],
+  "xiaomi-mimo": [
+    { id: "冰糖", label: "冰糖 (Chinese Female)" },
+    { id: "茉莉", label: "茉莉 (Chinese Female)" },
+    { id: "苏打", label: "苏打 (Chinese Male)" },
+    { id: "白桦", label: "白桦 (Chinese Male)" },
+    { id: "Mia", label: "Mia (English Female)" },
+    { id: "Chloe", label: "Chloe (English Female)" },
+    { id: "Milo", label: "Milo (English Male)" },
+    { id: "Dean", label: "Dean (English Male)" },
+  ],
 };
 
 const SPEECH_FORMATS = ["mp3", "wav", "opus", "flac", "pcm"];
+const SPEECH_FORMATS_BY_PROVIDER: Record<string, string[]> = {
+  "xiaomi-mimo": ["mp3", "wav"],
+};
+
+function getSpeechFormats(providerId: string): string[] {
+  return SPEECH_FORMATS_BY_PROVIDER[providerId] || SPEECH_FORMATS;
+}
 
 function getVoiceList(providerId: string) {
   return VOICE_PRESETS[providerId] ?? VOICE_PRESETS.default;
@@ -485,6 +511,7 @@ export default function MediaPageClient() {
     setSelectedModel(firstModel);
     if (tab === "speech") {
       setSpeechVoice(getVoiceList(firstProvider?.id ?? "")[0]?.id ?? "alloy");
+      setSpeechFormat(getSpeechFormats(firstProvider?.id ?? "")[0] ?? "mp3");
     }
   };
 
@@ -495,6 +522,8 @@ export default function MediaPageClient() {
     setSelectedModel(firstModel);
     if (activeTab === "speech") {
       setSpeechVoice(getVoiceList(providerId)[0]?.id ?? "alloy");
+      const formats = getSpeechFormats(providerId);
+      setSpeechFormat((current) => (formats.includes(current) ? current : (formats[0] ?? "mp3")));
     }
   };
 
@@ -649,6 +678,7 @@ export default function MediaPageClient() {
 
   const config = MODALITY_CONFIG[activeTab];
   const voiceList = getVoiceList(selectedProvider);
+  const currentSpeechFormats = getSpeechFormats(selectedProvider);
   const isTopazImageFlow = activeTab === "image" && selectedProvider === "topaz";
   const isGenerateDisabled =
     loading ||
@@ -765,7 +795,7 @@ export default function MediaPageClient() {
                 onChange={(e) => setSpeechFormat(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
-                {SPEECH_FORMATS.map((f) => (
+                {currentSpeechFormats.map((f) => (
                   <option key={f} value={f}>
                     {f}
                   </option>

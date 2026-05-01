@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
+import { getAllAudioModels, getSpeechProvider } from "../../open-sse/config/audioRegistry.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
 import {
   createProviderSchema,
@@ -16,17 +17,26 @@ test("xiaomi-mimo registry uses the current default base URL and MiMo V2.5 + V2 
   assert.equal(entry.baseUrl, "https://api.xiaomimimo.com/v1");
   assert.deepEqual(
     entry.models.map((model) => model.id),
-    [
-      "mimo-v2.5-pro",
-      "mimo-v2.5",
-      "mimo-v2.5-tts",
-      "mimo-v2.5-tts-voiceclone",
-      "mimo-v2.5-tts-voicedesign",
-      "mimo-v2-pro",
-      "mimo-v2-omni",
-      "mimo-v2-tts",
-      "mimo-v2-flash",
-    ]
+    ["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]
+  );
+});
+
+test("xiaomi-mimo TTS models are registered in the audio speech registry", () => {
+  const provider = getSpeechProvider("xiaomi-mimo");
+
+  assert.ok(provider, "xiaomi-mimo should exist in speech registry");
+  assert.equal(provider.id, "xiaomi-mimo");
+  assert.equal(provider.authType, "apikey");
+  assert.equal(provider.authHeader, "bearer");
+  assert.equal(provider.format, "xiaomi-mimo-tts");
+  assert.deepEqual(
+    provider.models.map((model) => model.id),
+    ["mimo-v2.5-tts", "mimo-v2.5-tts-voicedesign", "mimo-v2.5-tts-voiceclone"]
+  );
+  assert.ok(
+    getAllAudioModels().some(
+      (model) => model.id === "xiaomi-mimo/mimo-v2.5-tts" && model.subtype === "speech"
+    )
   );
 });
 

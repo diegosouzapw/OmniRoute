@@ -106,6 +106,53 @@ function resolveAwsPollyBaseUrl(providerSpecificData, region) {
   return stripTrailingSlashes(baseUrl.replace(/\/v1\/speech\/?$/i, ""));
 }
 
+function getProviderSpecificData(credentials) {
+  return credentials?.providerSpecificData &&
+    typeof credentials.providerSpecificData === "object" &&
+    !Array.isArray(credentials.providerSpecificData)
+    ? credentials.providerSpecificData
+    : {};
+}
+
+function normalizeXiaomiMimoSpeechUrl(baseUrl) {
+  const configured = getStringValue(baseUrl) || "https://api.xiaomimimo.com/v1";
+  const normalized = stripTrailingSlashes(configured).replace(/\/chat\/completions$/i, "");
+  return `${normalized}/chat/completions`;
+}
+
+function normalizeXiaomiMimoMimeType(format) {
+  switch (getStringValue(format)?.toLowerCase()) {
+    case undefined:
+    case null:
+    case "mp3":
+    case "audio/mp3":
+    case "audio/mpeg":
+      return "audio/mpeg";
+    case "wav":
+    case "audio/wav":
+      return "audio/wav";
+    default:
+      return null;
+  }
+}
+
+function getXiaomiMimoAudioData(data) {
+  const messageAudio = data?.choices?.[0]?.message?.audio;
+  const directAudio = data?.audio || data?.output_audio;
+  const firstDataItem = Array.isArray(data?.data) ? data.data[0] : null;
+
+  return (
+    getStringValue(messageAudio?.data) ||
+    getStringValue(messageAudio?.b64_json) ||
+    getStringValue(directAudio?.data) ||
+    getStringValue(directAudio?.b64_json) ||
+    getStringValue(firstDataItem?.b64_json) ||
+    getStringValue(firstDataItem?.audio) ||
+    getStringValue(data?.audioContent) ||
+    getStringValue(data?.audio_content)
+  );
+}
+
 function normalizeAwsPollyEngine(modelId) {
   const engine = getStringValue(modelId) || "standard";
   return ["standard", "neural", "long-form", "generative"].includes(engine) ? engine : "standard";
@@ -468,6 +515,59 @@ async function handleAwsPollySpeech(providerConfig, body, modelId, token, creden
 }
 
 /**
+ * Xiaomi MiMo TTS uses chat/completions with an audio config instead of OpenAI's /audio/speech
+ * request body.
+ */
+async function handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials) {
+  const providerSpecificData = getProviderSpecificData(credentials);
+  const url = normalizeXiaomiMimoSpeechUrl(providerSpecificData.baseUrl || providerConfig.baseUrl);
+  const audioMimeType = normalizeXiaomiMimoMimeType(body.response_format);
+  if (!audioMimeType) {
+    return errorResponse(400, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...buildAuthHeaders(providerConfig, token),
+    },
+    body: JSON.stringify({
+      model: modelId,
+      messages: [{ role: "assistant", content: body.input }],
+      audio: {
+        format: audioMimeType,
+        voice: body.voice || getStringValue(providerSpecificData.defaultVoice) || "mimo_default",
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    return upstreamErrorResponse(res, await res.text());
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.startsWith("audio/")) {
+    return audioStreamResponse(res, audioMimeType);
+  }
+
+  const data = await res.json();
+  const audioBase64 = getXiaomiMimoAudioData(data);
+  if (!audioBase64) {
+    return errorResponse(502, "Xiaomi MiMo TTS response did not contain audio data");
+  }
+
+  const audioBuffer = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+  return new Response(audioBuffer, {
+    status: 200,
+    headers: {
+      ...CORS_HEADERS,
+      "Content-Type": audioMimeType,
+    },
+  });
+}
+
+/**
  * Handle Coqui TTS (local, no auth)
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
@@ -556,7 +656,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, aws-polly, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, aws-polly, xiaomi-mimo, coqui, tortoise, qwen`
     );
   }
 
@@ -603,6 +703,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "aws-polly") {
       return handleAwsPollySpeech(providerConfig, body, modelId, token, credentials);
+    }
+
+    if (providerConfig.format === "xiaomi-mimo-tts") {
+      return handleXiaomiMimoSpeech(providerConfig, body, modelId, token, credentials);
     }
 
     if (providerConfig.format === "coqui") {
