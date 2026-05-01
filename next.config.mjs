@@ -128,6 +128,7 @@ const nextConfig = {
       const KNOWN_EXTERNALS = new Set([
         "better-sqlite3",
         "keytar",
+        "@ngrok/ngrok",
         "wreq-js",
         "zod",
         "pino",

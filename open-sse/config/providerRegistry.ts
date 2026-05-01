@@ -1126,10 +1126,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast" },
-      { id: "expert", name: "Grok 4.20 Thinking" },
-      { id: "heavy", name: "Grok 4.20 Multi Agent" },
-      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)" },
+      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
+      { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
+      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
     ],
   },
 
