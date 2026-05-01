@@ -1531,7 +1531,13 @@ function ComboCard({
   const tc = useTranslations("common");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
-  const initialCompressionMode = combo?.config?.compressionMode || combo.compressionOverride || "";
+  const hasRuntimeConfig = combo?.config && typeof combo.config === "object";
+  const initialCompressionMode =
+    typeof combo?.config?.compressionMode === "string"
+      ? combo.config.compressionMode
+      : hasRuntimeConfig
+        ? ""
+        : combo.compressionOverride || "";
   const [compressionOverride, setCompressionOverride] = useState(initialCompressionMode);
   const [isSavingCompression, setIsSavingCompression] = useState(false);
 
