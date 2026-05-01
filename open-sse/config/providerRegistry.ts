@@ -192,7 +192,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "allenai/Olmo-3-32B-Think",
   ]),
-  moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
+  moonshot: buildModels(["kimi-k2.6", "kimi-k2.5"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
