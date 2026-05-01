@@ -47,6 +47,12 @@ test("chatCore integration: compressContext called proactively when context exce
   const provider = "openai";
   const model = "gpt-4";
 
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+  });
+
   // Create multiple messages with history that can be compressed
   // Use the same pattern as test 3 which successfully tests compression
   const body = {
@@ -120,9 +126,113 @@ test("chatCore integration: compressContext called proactively when context exce
   }
 });
 
+test("chatCore integration: disabled prompt compression leaves combo override requests unchanged", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+  const originalContextLength = process.env.CONTEXT_LENGTH_OPENAI;
+  process.env.CONTEXT_LENGTH_OPENAI = "8192";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: false,
+    defaultMode: "off",
+    autoTriggerTokens: 1,
+    comboOverrides: { "disabled-compression-combo": "lite" },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  await combosDb.createCombo({
+    name: "disabled-compression-combo",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        model: `${provider}/${model}`,
+        connectionId: connection.id,
+      },
+    ],
+    config: {
+      compressionMode: "lite",
+    },
+  });
+
+  const body = {
+    model: "combo/disabled-compression-combo",
+    stream: false,
+    messages: [
+      { role: "system", content: "You are helpful." },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}First long turn.` },
+      { role: "assistant", content: "Response 1" },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Second long turn.` },
+      { role: "assistant", content: "Response 2" },
+      { role: "user", content: `${"Keep   spacing.\n\n\n".repeat(2000)}Final question.` },
+    ],
+  };
+  const contextLimit = getTokenLimit(provider, model);
+  const proactiveThreshold = Math.floor(contextLimit * 0.7);
+  assert.ok(
+    estimateTokens(JSON.stringify(body.messages)) > proactiveThreshold,
+    "Test body should exceed proactive compression threshold"
+  );
+
+  let capturedBody: any = null;
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) {
+      capturedBody = JSON.parse(init.body as string);
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "test" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await handleChatCore({
+      body,
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId: connection.id,
+      isCombo: true,
+      comboName: "disabled-compression-combo",
+    });
+
+    assert.ok(result.success, "Request should succeed");
+    assert.ok(capturedBody, "Fetch should have been called");
+    assert.deepEqual(capturedBody.messages, body.messages);
+
+    const summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
+    assert.equal(summary.totalRequests, 0, "Disabled compression should not record analytics");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalContextLength === undefined) {
+      delete process.env.CONTEXT_LENGTH_OPENAI;
+    } else {
+      process.env.CONTEXT_LENGTH_OPENAI = originalContextLength;
+    }
+  }
+});
+
 test("chatCore integration: compressContext NOT called when context is below 85% threshold", async () => {
   const provider = "openai";
   const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+  });
   const contextLimit = getTokenLimit(provider, model);
   const threshold = Math.floor(contextLimit * 0.85);
 
@@ -198,6 +308,12 @@ test("chatCore integration: compressContext NOT called when context is below 85%
 test("chatCore integration: compression preserves message structure", async () => {
   const provider = "openai";
   const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+  });
 
   const body = {
     model,
@@ -342,6 +458,12 @@ test("chatCore integration: compression handles tool messages", async () => {
 test("chatCore integration: combo requests run proactive compression before Kiro translation", async () => {
   const provider = "kiro";
   const model = "claude-sonnet-4.5";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+  });
 
   const connection = await providersDb.createProviderConnection({
     provider,

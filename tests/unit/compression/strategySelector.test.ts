@@ -65,6 +65,17 @@ describe("getEffectiveMode", () => {
     assert.equal(getEffectiveMode(config, null, 100), "off");
   });
 
+  it("keeps disabled config off despite combo override and auto-trigger", () => {
+    const config = {
+      ...baseConfig,
+      enabled: false,
+      autoTriggerTokens: 100,
+      comboOverrides: { "my-combo": "lite" as const },
+    };
+
+    assert.equal(getEffectiveMode(config, "my-combo", 500), "off");
+  });
+
   it("returns default mode when no overrides", () => {
     assert.equal(getEffectiveMode(baseConfig, null, 100), "lite");
   });
