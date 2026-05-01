@@ -1102,19 +1102,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "cookie",
     models: [
-      { id: "gpt-5.3-instant", name: "GPT-5.3 Instant" },
-      { id: "gpt-5.3", name: "GPT-5.3" },
-      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" },
-      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" },
-      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" },
-      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" },
-      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" },
-      { id: "gpt-5.2", name: "GPT-5.2" },
-      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" },
-      { id: "gpt-5.1", name: "GPT-5.1" },
-      { id: "gpt-5", name: "GPT-5" },
-      { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "o3", name: "o3" },
+      { id: "gpt-5.5-pro", name: "GPT-5.5 Pro" }, //pro tier only
+      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" }, //plus, pro tier
+      { id: "gpt-5.4-pro", name: "GPT-5.4 Pro" }, //pro tier only
+      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" }, //plus, pro tier
+      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" }, //free-login only
+      { id: "gpt-5.3", name: "GPT-5.3" }, //free, free-login, plus, pro tier
+      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" }, //limit fallback
+      { id: "gpt-5.2-pro", name: "GPT-5.2 Pro" }, //pro tier only
+      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" }, //plus ~ tier
+      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" }, //plus ~ tier
+      { id: "o3", name: "o3" }, //plus ~ tier
+      { id: "gpt-4-5", name: "GPT-4.5" }, //pro tier only
     ],
   },
 

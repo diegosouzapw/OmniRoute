@@ -1078,7 +1078,7 @@ test("Request: payload has correct ChatGPT shape", async () => {
 
 // ─── Provider registry ──────────────────────────────────────────────────────
 
-test("Provider registry: chatgpt-web exposes the full ChatGPT Plus model catalog", async () => {
+test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catalog", async () => {
   const { getRegistryEntry } = await import("../../open-sse/config/providerRegistry.ts");
   const entry = getRegistryEntry("chatgpt-web");
   assert.ok(entry, "chatgpt-web should be in the registry");
@@ -1087,25 +1087,22 @@ test("Provider registry: chatgpt-web exposes the full ChatGPT Plus model catalog
   assert.equal(entry.authHeader, "cookie");
 
   const ids = (entry.models || []).map((m) => m.id);
-  // Mirrors /backend-api/models for a Plus account (no "research" or
-  // "agent-mode" — those are specialty surfaces, not chat models).
-  for (const id of [
-    "gpt-5.3-instant",
-    "gpt-5.3",
-    "gpt-5.3-mini",
+  // Mirrors /backend-api/models for ChatGPT Web. Retired GPT-5/GPT-5.1
+  // entries should stay out of this list.
+  assert.deepEqual(ids, [
+    "gpt-5.5-pro",
     "gpt-5.5-thinking",
+    "gpt-5.4-pro",
     "gpt-5.4-thinking",
     "gpt-5.4-thinking-mini",
-    "gpt-5.2-instant",
-    "gpt-5.2",
+    "gpt-5.3",
+    "gpt-5.3-mini",
+    "gpt-5.2-pro",
     "gpt-5.2-thinking",
-    "gpt-5.1",
-    "gpt-5",
-    "gpt-5-mini",
+    "gpt-5.2-instant",
     "o3",
-  ]) {
-    assert.ok(ids.includes(id), `registry should list ${id}`);
-  }
+    "gpt-4-5",
+  ]);
 });
 
 test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT slugs", async () => {
@@ -1113,7 +1110,6 @@ test("Executor MODEL_MAP: dot-form OmniRoute IDs translate to dash-form ChatGPT 
   const m = installMockFetch();
   try {
     const cases: Array<[string, string]> = [
-      ["gpt-5.3-instant", "gpt-5-3-instant"],
       ["gpt-5.3", "gpt-5-3"],
       ["gpt-5.5-thinking", "gpt-5-5-thinking"],
       ["gpt-5.4-thinking-mini", "gpt-5-4-t-mini"],
