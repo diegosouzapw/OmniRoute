@@ -23,6 +23,7 @@ const { createStructuredSSECollector } =
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
+  detailedLogsDb.resetRequestDetailLogsTableExistsCache();
 
   for (let attempt = 0; attempt < 10; attempt++) {
     try {

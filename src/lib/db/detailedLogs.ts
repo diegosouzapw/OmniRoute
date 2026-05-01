@@ -33,12 +33,23 @@ export interface RequestDetailLog {
   no_log?: boolean;
 }
 
+let requestDetailLogsTableExistsCache: boolean | undefined;
+
 function requestDetailLogsTableExists(): boolean {
+  if (requestDetailLogsTableExistsCache !== undefined) {
+    return requestDetailLogsTableExistsCache;
+  }
+
   const db = getDbInstance();
   const row = db
     .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'request_detail_logs'")
     .get() as { name?: string } | undefined;
-  return Boolean(row?.name);
+  requestDetailLogsTableExistsCache = Boolean(row?.name);
+  return requestDetailLogsTableExistsCache;
+}
+
+export function resetRequestDetailLogsTableExistsCache(): void {
+  requestDetailLogsTableExistsCache = undefined;
 }
 
 /** Returns true if detailed logging is enabled in settings */
