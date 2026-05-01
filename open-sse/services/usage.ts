@@ -595,6 +595,78 @@ async function getBailianCodingPlanUsage(
   }
 }
 
+// https://docs.nano-gpt.com/api-reference/endpoint/subscription-usage
+async function getNanoGptUsage(apiKey: string) {
+  if (!apiKey) {
+    return { message: "NanoGPT API key not available. Add a key to view usage." };
+  }
+
+  try {
+    const res = await fetch("https://nano-gpt.com/api/subscription/v1/usage", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) return { message: "Invalid NanoGPT API key." };
+      return { message: `NanoGPT quota API error (${res.status})` };
+    }
+
+    const data = await res.json();
+    const quotas: Record<string, UsageQuota> = {};
+
+    // active -> PRO, otherwise FREE
+    const plan = data.active ? "PRO" : "FREE";
+
+    if (data.active) {
+      // 1. Tokens limit
+      // dailyInputTokens if exists, else weeklyInputTokens
+      let tokenQuota = data.dailyInputTokens;
+      let tokenLabel = "Daily Tokens";
+      if (!tokenQuota || !tokenQuota.resetAt) {
+        tokenQuota = data.weeklyInputTokens;
+        tokenLabel = "Weekly Tokens";
+      }
+
+      if (tokenQuota && tokenQuota.remaining !== undefined) {
+        const used = toNumber(tokenQuota.used, 0);
+        const remaining = toNumber(tokenQuota.remaining, 0);
+        const total = used + remaining;
+        quotas[tokenLabel] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(tokenQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(tokenQuota.resetAt),
+          unlimited: false,
+        };
+      } else {
+        // If both are null, we should show an error as requested
+        return { plan, message: "NanoGPT connected, but no active token limits found." };
+      }
+
+      // 2. Images limit
+      if (data.dailyImages && data.dailyImages.remaining !== undefined) {
+        const used = toNumber(data.dailyImages.used, 0);
+        const remaining = toNumber(data.dailyImages.remaining, 0);
+        const total = used + remaining;
+        quotas["Daily Images"] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(data.dailyImages.percentUsed, 0) * 100),
+          resetAt: parseResetTime(data.dailyImages.resetAt),
+          unlimited: false,
+        };
+      }
+    }
+
+    return { plan, quotas };
+  } catch (error) {
+    return { message: `NanoGPT connected. Unable to fetch usage: ${(error as Error).message}` };
+  }
+}
+
+
 /**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
@@ -635,6 +707,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getCursorUsage(accessToken);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
+    case "nanogpt":
+      return await getNanoGptUsage(apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

@@ -289,6 +289,14 @@ export function parseQuotaData(provider, data) {
         }
         break;
 
+      case "nanogpt":
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
+            normalizedQuotas.push(normalizeQuotaEntry(name, quota));
+          });
+        }
+        break;
+
       default:
         // Generic fallback for unknown providers
         if (data.quotas) {
