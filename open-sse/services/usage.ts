@@ -623,8 +623,11 @@ async function getNanoGptUsage(apiKey: string) {
       let tokenQuota = toRecord(data.dailyInputTokens);
       let tokenLabel = "Daily Tokens";
       if (!tokenQuota.resetAt) {
-        tokenQuota = toRecord(data.weeklyInputTokens);
-        tokenLabel = "Weekly Tokens";
+        const weeklyQuota = toRecord(data.weeklyInputTokens);
+        if (weeklyQuota.remaining !== undefined) {
+          tokenQuota = weeklyQuota;
+          tokenLabel = "Weekly Tokens";
+        }
       }
 
       if (tokenQuota.remaining !== undefined) {

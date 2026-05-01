@@ -40,7 +40,7 @@ const PROVIDER_CONFIG = {
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
   minimax: { label: "MiniMax", color: "#7C3AED" },
   "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
-  nanogpt: { label: "NanoGPT", color: "#FBBF24" },
+  nanogpt: { label: "NanoGPT", color: "#4F46E5" },
 };
 
 const TIER_FILTERS = [
