@@ -435,6 +435,25 @@ test("provider models route returns the local catalog for new built-in chat-open
   assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
 });
 
+test("provider models route merges Upstage chat and embedding catalogs", async () => {
+  const connection = await seedConnection("upstage", {
+    apiKey: "upstage-key",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+  const modelIds = body.models.map((model) => model.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "upstage");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(modelIds.includes("solar-pro3"));
+  assert.ok(modelIds.includes("solar-mini"));
+  assert.ok(modelIds.includes("embedding-query"));
+  assert.ok(modelIds.includes("embedding-passage"));
+  assert.equal(modelIds.includes("document-parse"), false);
+});
+
 test("provider models route caches discovered opencode-go models per connection", async () => {
   const connection = await seedConnection("opencode-go", {
     apiKey: "opencode-go-key",

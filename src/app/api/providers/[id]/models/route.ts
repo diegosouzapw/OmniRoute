@@ -14,6 +14,7 @@ import {
 } from "@/lib/localDb";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
+  SafeOutboundFetchError,
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
@@ -64,6 +65,7 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 
 type JsonRecord = Record<string, unknown>;
+type LocalCatalogModel = { id: string; name?: string };
 
 const antigravityDiscoveryInflight = new Map<
   string,
@@ -116,6 +118,19 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
   return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
+}
+
+function mergeLocalCatalogModels<T extends LocalCatalogModel, U extends LocalCatalogModel>(
+  registryCatalogModels: T[],
+  specialtyCatalogModels: U[]
+): Array<T | U> {
+  if (registryCatalogModels.length === 0) return specialtyCatalogModels;
+
+  const registryModelIds = new Set(registryCatalogModels.map((model) => model.id));
+  return [
+    ...registryCatalogModels,
+    ...specialtyCatalogModels.filter((model) => !registryModelIds.has(model.id)),
+  ];
 }
 
 function buildOptionalBearerHeaders(token: string | null | undefined): Record<string, string> {
@@ -402,55 +417,48 @@ export function getStaticModelsForProvider(
     return staticModelsFn();
   }
 
+  const specialtyModels: Array<{ id: string; name: string }> = [];
+  const appendModels = (models: Array<{ id: string; name?: string }>) => {
+    for (const model of models) {
+      if (specialtyModels.some((existing) => existing.id === model.id)) continue;
+      specialtyModels.push({
+        id: model.id,
+        name: model.name || model.id,
+      });
+    }
+  };
+
   const embeddingProvider = getEmbeddingProvider(provider);
   if (embeddingProvider) {
-    return embeddingProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(embeddingProvider.models);
   }
 
   const rerankProvider = getRerankProvider(provider);
   if (rerankProvider) {
-    return rerankProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(rerankProvider.models);
   }
 
   const imageProvider = getImageProvider(provider);
   if (imageProvider) {
-    return imageProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(imageProvider.models);
   }
 
   const videoProvider = getVideoProvider(provider);
   if (videoProvider) {
-    return videoProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(videoProvider.models);
   }
 
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
-    return speechProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(speechProvider.models);
   }
 
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
-    return transcriptionProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(transcriptionProvider.models);
   }
 
-  return undefined;
+  return specialtyModels.length > 0 ? specialtyModels : undefined;
 }
 
 // Provider models endpoints configuration
@@ -825,9 +833,8 @@ export async function GET(
     const specialtyCatalogModels = getStaticModelsForProvider(provider) || [];
 
     const toLocalCatalogModels = () => {
-      const localCatalog =
-        registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
-      return localCatalog.map((model: any) => ({
+      const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
+      return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
@@ -1755,13 +1762,12 @@ export async function GET(
       });
     }
 
-    const localCatalog =
-      registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
+    const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
       return buildResponse({
         provider,
         connectionId,
-        models: localCatalog.map((m: any) => ({
+        models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
@@ -1895,6 +1901,10 @@ export async function GET(
 
     return buildApiDiscoveryResponse(allModels);
   } catch (error) {
+    if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {
       const message = error instanceof Error ? error.message : "Failed to fetch models";

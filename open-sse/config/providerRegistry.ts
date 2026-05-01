@@ -226,7 +226,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
-  upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
+  upstage: buildModels(["solar-pro3", "solar-mini"]),
   maritalk: buildModels(["sabia-3", "sabia-3-small"]),
   "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
