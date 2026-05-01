@@ -1308,3 +1308,95 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
     "Custom sky"
   );
 });
+
+test("usage service covers NanoGPT PRO weekly token quota, FREE plan, auth denial and fetch failures", async () => {
+  const resetAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://nano-gpt.com/api/subscription/v1/usage");
+    assert.equal((init as any).headers.Authorization, "Bearer nanogpt-pro-key");
+    return new Response(
+      JSON.stringify({
+        active: true,
+        limits: {
+          weeklyInputTokens: 60_000_000,
+          dailyInputTokens: null,
+          dailyImages: 100,
+        },
+        dailyInputTokens: null,
+        weeklyInputTokens: {
+          used: 31_157_321,
+          remaining: 28_842_679,
+          percentUsed: 0.5192886833333333,
+          resetAt,
+        },
+        dailyImages: {
+          used: 0,
+          remaining: 100,
+          percentUsed: 0,
+          resetAt: Date.now() + 24 * 60 * 60 * 1000,
+        },
+        state: "active",
+      }),
+      { status: 200 }
+    );
+  };
+
+  const proUsage: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-pro-key",
+  });
+
+  assert.equal(proUsage.plan, "PRO");
+  assert.ok(proUsage.quotas["Weekly Tokens"]);
+  assert.equal(proUsage.quotas["Weekly Tokens"].used, 31_157_321);
+  assert.equal(proUsage.quotas["Weekly Tokens"].total, 60_000_000);
+  assert.equal(proUsage.quotas["Weekly Tokens"].remaining, 28_842_679);
+  assert.ok(proUsage.quotas["Weekly Tokens"].remainingPercentage < 100);
+  assert.equal(proUsage.quotas["Weekly Tokens"].resetAt, new Date(resetAt).toISOString());
+  assert.equal(proUsage.quotas["Daily Images"].used, 0);
+  assert.equal(proUsage.quotas["Daily Images"].remaining, 100);
+  assert.equal(proUsage.quotas["Daily Images"].remainingPercentage, 100);
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://nano-gpt.com/api/subscription/v1/usage");
+    assert.equal((init as any).headers.Authorization, "Bearer nanogpt-free-key");
+    return new Response(
+      JSON.stringify({
+        active: false,
+        limits: {},
+        state: "cancelled",
+      }),
+      { status: 200 }
+    );
+  };
+
+  const freeUsage: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-free-key",
+  });
+
+  assert.equal(freeUsage.plan, "FREE");
+  assert.deepEqual(freeUsage.quotas, {});
+
+  const noKey: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "",
+  });
+  assert.match(noKey.message, /NanoGPT API key not available/i);
+
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+  const invalidKey: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-bad-key",
+  });
+  assert.match(invalidKey.message, /Invalid NanoGPT API key/i);
+
+  globalThis.fetch = async () => {
+    throw new Error("nano-gpt.com unreachable");
+  };
+  const fetchError: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-fail-key",
+  });
+  assert.match(fetchError.message, /Unable to fetch usage: nano-gpt.com unreachable/i);
+});
