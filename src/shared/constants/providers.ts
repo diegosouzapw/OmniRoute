@@ -1239,7 +1239,8 @@ export const APIKEY_PROVIDERS = {
       "Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
     apiHint:
       "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
-    passthroughModels: true,
+    hasFree: true,
+    freeNote: "Free tier: 50 RPM, 500,000 TPM — no credit card",
   },
   petals: {
     id: "petals",
