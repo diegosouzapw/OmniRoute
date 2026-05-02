@@ -24,6 +24,7 @@ const {
   getAllAccessTokens,
   isProviderBlocked,
   getCircuitBreakerStatus,
+  getConnectionRefreshMutexStatus,
   refreshWithRetry,
 } = tokenRefresh;
 
@@ -906,4 +907,201 @@ test("isProviderBlocked clears expired circuit-breaker entries once cooldown pas
     assert.equal(isProviderBlocked(provider), false);
     assert.equal(getCircuitBreakerStatus()[provider], undefined);
   });
+});
+
+// ─── Per-connection mutex tests ────────────────────────────────────────────────
+
+test("getAccessToken per-connection mutex: 5 concurrent callers fire exactly one upstream call", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          // Simulate 50ms upstream latency so all 5 callers are concurrent
+          await new Promise((r) => setTimeout(r, 50));
+          return jsonResponse({
+            access_token: "new-access-token",
+            refresh_token: "new-refresh-token",
+            expires_in: 3600,
+          });
+        },
+        async () => {
+          const credentials = {
+            connectionId: "conn-abc-123",
+            refreshToken: "old-refresh-token",
+          };
+
+          const results = await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          assert.equal(upstreamCallCount, 1, "upstream called exactly once");
+          for (const result of results) {
+            assert.equal(result?.accessToken, "new-access-token", "all callers got same token");
+            assert.equal(result?.refreshToken, "new-refresh-token");
+          }
+          // All results are the same object reference (shared promise)
+          assert.strictEqual(results[0], results[1]);
+          assert.strictEqual(results[1], results[4]);
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: logs concurrent refresh with waiter count", async () => {
+  const log = createLog();
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          await new Promise((r) => setTimeout(r, 20));
+          return jsonResponse({ access_token: "tok", refresh_token: "rtok", expires_in: 600 });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-log-test", refreshToken: "rt" };
+          await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          const concurrentLogs = log.entries.filter(
+            (e) =>
+              e.level === "info" &&
+              e.message === "Concurrent refresh detected — sharing in-flight refresh"
+          );
+          assert.ok(concurrentLogs.length >= 1, "logged at least one concurrent refresh event");
+          assert.ok(
+            concurrentLogs.some((e) => e.meta?.connectionId === "conn-log-test"),
+            "log includes connectionId"
+          );
+          assert.ok(
+            concurrentLogs.some((e) => typeof e.meta?.waiters === "number" && e.meta.waiters >= 1),
+            "log includes waiter count"
+          );
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: failed refresh propagates null to all waiters (idempotent error)", async () => {
+  const log = createLog();
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          await new Promise((r) => setTimeout(r, 20));
+          // 400 response causes refreshAccessToken to return null
+          return new Response("bad_request", { status: 400 });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-fail-test", refreshToken: "expired-rt" };
+          const results = await Promise.all([
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+            getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log),
+          ]);
+
+          for (const result of results) {
+            assert.equal(result, null, "failed refresh returns null to all waiters");
+          }
+          // Mutex cleaned up after failure
+          assert.equal(
+            getConnectionRefreshMutexStatus()["conn-fail-test"],
+            undefined,
+            "mutex entry removed after failure"
+          );
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: different connections run independently", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          await new Promise((r) => setTimeout(r, 20));
+          return jsonResponse({
+            access_token: `access-${upstreamCallCount}`,
+            refresh_token: `refresh-${upstreamCallCount}`,
+            expires_in: 600,
+          });
+        },
+        async () => {
+          const [groupA, groupB] = await Promise.all([
+            Promise.all([
+              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-A", refreshToken: "rt-a" }, log),
+              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-A", refreshToken: "rt-a" }, log),
+            ]),
+            Promise.all([
+              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-B", refreshToken: "rt-b" }, log),
+              getAccessToken("custom-oauth-conn-mutex", { connectionId: "conn-B", refreshToken: "rt-b" }, log),
+            ]),
+          ]);
+
+          assert.equal(upstreamCallCount, 2, "one upstream call per distinct connection");
+          assert.strictEqual(groupA[0], groupA[1], "conn-A callers share same result");
+          assert.strictEqual(groupB[0], groupB[1], "conn-B callers share same result");
+          assert.notStrictEqual(groupA[0], groupB[0], "conn-A and conn-B got different results");
+        }
+      );
+    }
+  );
+});
+
+test("getAccessToken per-connection mutex: mutex cleared after success, next call re-fires upstream", async () => {
+  const log = createLog();
+  let upstreamCallCount = 0;
+
+  await withPatchedProperties(
+    PROVIDERS,
+    { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
+    async () => {
+      await withMockedFetch(
+        async () => {
+          upstreamCallCount++;
+          return jsonResponse({
+            access_token: `access-${upstreamCallCount}`,
+            refresh_token: `refresh-${upstreamCallCount}`,
+            expires_in: 600,
+          });
+        },
+        async () => {
+          const credentials = { connectionId: "conn-refire", refreshToken: "rt" };
+
+          const first = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+          const second = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+
+          assert.equal(upstreamCallCount, 2, "each sequential call fires upstream once");
+          assert.equal(first?.accessToken, "access-1");
+          assert.equal(second?.accessToken, "access-2");
+        }
+      );
+    }
+  );
 });

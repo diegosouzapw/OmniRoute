@@ -13,6 +13,11 @@ const CACHE_SECRET = "omniroute-token-cache";
 // Key: "provider:sha256(refreshToken)" → Value: Promise<result>
 const refreshPromiseCache = new Map();
 
+// Per-connection mutex: prevents parallel OAuth refresh for rotating tokens.
+// Key: connectionId → Value: { promise, waiters }
+// Primary dedup when credentials.connectionId is present; refreshPromiseCache is fallback.
+const connectionRefreshMutex = new Map();
+
 type RefreshLogger = {
   info?: (tag: string, message: string, data?: Record<string, unknown>) => void;
   warn?: (tag: string, message: string, data?: Record<string, unknown>) => void;
@@ -415,8 +420,8 @@ export async function refreshQwenToken(refreshToken, log, proxyConfig: unknown =
 /**
  * Specialized refresh for Codex (OpenAI) OAuth tokens.
  * OpenAI uses rotating (one-time-use) refresh tokens.
- * Returns { error: 'refresh_token_reused' } when the token has already been consumed,
- * so callers can stop retrying and request re-authentication.
+ * Returns { error: 'unrecoverable_refresh_error', code } when the token has already been
+ * consumed or is invalid, so callers can stop retrying and request re-authentication.
  */
 export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown = null) {
   try {
@@ -831,9 +836,18 @@ export function isUnrecoverableRefreshError(result) {
 
 /**
  * Get access token for a specific provider (with deduplication).
- * If a refresh is already in-flight for the same provider+token,
- * subsequent calls share the existing promise instead of making
- * parallel OAuth requests.
+ *
+ * Deduplication strategy (two layers):
+ * 1. Per-connection mutex (primary): if credentials.connectionId is present, all concurrent
+ *    callers for that connection share one in-flight promise regardless of which token they
+ *    loaded. This prevents refresh_token_reused errors with rotating (one-time-use) tokens,
+ *    e.g. Codex/OpenAI, where callers that loaded credentials at different times may hold
+ *    different token strings but refer to the same connection.
+ * 2. Token-hash fallback: if no connectionId, dedup by provider+sha256(refreshToken) as before.
+ *
+ * Additionally, when connectionId is present, the stale-token check reads the DB to detect
+ * whether another process already refreshed the token. If the DB token is still valid it is
+ * returned immediately without a new upstream call.
  */
 export async function getAccessToken(provider, credentials, log, proxyConfig: unknown = null) {
   if (!credentials || !credentials.refreshToken || typeof credentials.refreshToken !== "string") {
@@ -841,6 +855,52 @@ export async function getAccessToken(provider, credentials, log, proxyConfig: un
     return null;
   }
 
+  const connectionId = credentials.connectionId;
+
+  // ── Layer 1: per-connection mutex ──────────────────────────────────────────
+  if (connectionId && typeof connectionId === "string") {
+    const existing = connectionRefreshMutex.get(connectionId);
+    if (existing) {
+      existing.waiters++;
+      log?.info?.("TOKEN_REFRESH", "Concurrent refresh detected — sharing in-flight refresh", {
+        provider,
+        connectionId,
+        waiters: existing.waiters,
+      });
+      return existing.promise;
+    }
+
+    const entry = { promise: null, waiters: 0 };
+    entry.promise = _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig).finally(() => {
+      connectionRefreshMutex.delete(connectionId);
+    });
+    connectionRefreshMutex.set(connectionId, entry);
+    return entry.promise;
+  }
+
+  // ── Layer 2: token-hash fallback (no connectionId) ─────────────────────────
+  const cacheKey = getRefreshCacheKey(provider, credentials.refreshToken);
+
+  if (refreshPromiseCache.has(cacheKey)) {
+    log?.info?.("TOKEN_REFRESH", `Reusing in-flight refresh for ${provider}`);
+    return refreshPromiseCache.get(cacheKey);
+  }
+
+  const refreshPromise = _getAccessTokenInternal(provider, credentials, log, proxyConfig).finally(
+    () => {
+      refreshPromiseCache.delete(cacheKey);
+    }
+  );
+
+  refreshPromiseCache.set(cacheKey, refreshPromise);
+  return refreshPromise;
+}
+
+/**
+ * Internal helper: performs the DB staleness check then calls the actual refresh.
+ * Only called from the per-connection mutex path (Layer 1 above).
+ */
+async function _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig) {
   // RACE CONDITION PREVENTION:
   // If the credentials object in memory is stale (e.g. it waited in a semaphore while another
   // request refreshed the token), using its OLD refreshToken will cause the provider (e.g. OpenAI)
@@ -886,23 +946,7 @@ export async function getAccessToken(provider, credentials, log, proxyConfig: un
     }
   }
 
-  const cacheKey = getRefreshCacheKey(provider, credentials.refreshToken);
-
-  // If a refresh is already in-flight, reuse it
-  if (refreshPromiseCache.has(cacheKey)) {
-    log?.info?.("TOKEN_REFRESH", `Reusing in-flight refresh for ${provider}`);
-    return refreshPromiseCache.get(cacheKey);
-  }
-
-  // Start a new refresh and cache the promise
-  const refreshPromise = _getAccessTokenInternal(provider, credentials, log, proxyConfig).finally(
-    () => {
-      refreshPromiseCache.delete(cacheKey);
-    }
-  );
-
-  refreshPromiseCache.set(cacheKey, refreshPromise);
-  return refreshPromise;
+  return _getAccessTokenInternal(provider, credentials, log, proxyConfig);
 }
 
 /**
@@ -1034,6 +1078,18 @@ export function isProviderBlocked(provider: string): boolean {
   // Cooldown expired — reset
   delete _circuitBreaker[provider];
   return false;
+}
+
+/**
+ * Get active per-connection mutex entries (for diagnostics/metrics).
+ * Returns a snapshot of connections that have an in-flight refresh and their waiter count.
+ */
+export function getConnectionRefreshMutexStatus(): Record<string, { waiters: number }> {
+  const result: Record<string, { waiters: number }> = {};
+  for (const [connectionId, entry] of connectionRefreshMutex.entries()) {
+    result[connectionId] = { waiters: entry.waiters };
+  }
+  return result;
 }
 
 /**
