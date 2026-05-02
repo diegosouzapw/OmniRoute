@@ -485,6 +485,10 @@ test("recordProviderFailure honors runtime provider breaker profile", () => {
     assert.equal(breaker.failureThreshold, runtimeProfile.failureThreshold);
     assert.equal(breaker.resetTimeout, runtimeProfile.resetTimeoutMs);
     assert.equal(isProviderInCooldown(provider), false);
+
+    const breakerAfterStatusCheck = getCircuitBreaker(provider);
+    assert.equal(breakerAfterStatusCheck.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
   } finally {
     clearProviderFailure(provider);
   }

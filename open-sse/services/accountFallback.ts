@@ -518,11 +518,16 @@ type ProviderBreakerProfile = Partial<
   >
 >;
 
-function getProviderBreaker(
+function getProviderBreaker(provider: string | null | undefined) {
+  return provider ? getCircuitBreaker(provider) : null;
+}
+
+function configureProviderBreaker(
   provider: string | null | undefined,
   profile?: ProviderBreakerProfile | null
 ) {
   if (!provider) return null;
+
   const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
   return getCircuitBreaker(provider, {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
@@ -581,7 +586,7 @@ export function recordProviderFailure(
     lastConnectionFailure.set(dedupKey, now);
   }
 
-  const breaker = getProviderBreaker(provider, profile);
+  const breaker = configureProviderBreaker(provider, profile);
   if (!breaker) return;
 
   if (!breaker.canExecute()) return;
