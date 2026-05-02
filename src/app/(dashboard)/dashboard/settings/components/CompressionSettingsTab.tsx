@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
-type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
+type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
 type CavemanIntensity = "lite" | "full" | "ultra";
 
 interface CavemanConfig {
@@ -104,6 +104,18 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     labelKey: "compressionModeUltra",
     descKey: "compressionModeUltraDesc",
     icon: "filter_alt",
+  },
+  {
+    value: "rtk",
+    labelKey: "compressionModeRtk",
+    descKey: "compressionModeRtkDesc",
+    icon: "filter_list",
+  },
+  {
+    value: "stacked",
+    labelKey: "compressionModeStacked",
+    descKey: "compressionModeStackedDesc",
+    icon: "hub",
   },
 ];
 
@@ -273,7 +285,7 @@ export default function CompressionSettingsTab() {
         {config.enabled && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-text-main">{t("compressionMode")}</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-2">
               {MODES.map((m) => (
                 <button
                   key={m.value}

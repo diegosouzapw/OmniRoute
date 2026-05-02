@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(compression):** add RTK tool-output compression, stacked Caveman + RTK pipelines,
+  compression combo assignments, dashboard context pages, MCP management tools, and
+  language-aware Caveman rule packs.
+
 ---
 
 ## [3.7.9] — 2026-05-02

@@ -1,0 +1,22 @@
+{
+  "language": "en",
+  "category": "context",
+  "rules": [
+    {
+      "name": "en_context_setup",
+      "pattern": "\\b(?:I have the following code|Here is my code|Below is the code)\\b\\s*[:.]?\\s*",
+      "replacement": "Code:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "en_intent",
+      "pattern": "\\b(?:What I'm trying to do is|My objective is to|What I need is)\\b\\s*",
+      "replacement": "Goal:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

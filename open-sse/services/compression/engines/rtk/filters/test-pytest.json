@@ -1,0 +1,23 @@
+{
+  "id": "test-pytest",
+  "name": "Pytest",
+  "description": "Keep pytest failures, tracebacks and terminal summary.",
+  "commandTypes": ["test-pytest"],
+  "category": "test",
+  "priority": 90,
+  "stripPatterns": ["^\\.", "^\\s*$"],
+  "keepPatterns": [
+    "^FAILED ",
+    "^ERROR ",
+    "^E\\s+",
+    "Traceback \\(most recent call last\\):",
+    "=+ short test summary info =+",
+    "=+ .*failed",
+    "AssertionError"
+  ],
+  "priorityPatterns": ["FAILED", "ERROR", "Traceback", "AssertionError"],
+  "collapsePatterns": ["^E\\s+"],
+  "maxLines": 160,
+  "preserveHead": 28,
+  "preserveTail": 60
+}

@@ -369,7 +369,15 @@ const compositeTiersSchema = z
   })
   .strict();
 
-const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+const compressionModeSchema = z.enum([
+  "off",
+  "lite",
+  "standard",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "stacked",
+]);
 const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
 
 const comboRuntimeConfigSchema = z

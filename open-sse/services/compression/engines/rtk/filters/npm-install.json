@@ -1,0 +1,23 @@
+{
+  "id": "npm-install",
+  "name": "Package Install",
+  "description": "Keep install summaries, warnings and audit results.",
+  "commandTypes": ["npm-install"],
+  "category": "package",
+  "priority": 65,
+  "stripPatterns": ["^\\s*$", "^\\s*\\|", "^Progress:"],
+  "keepPatterns": [
+    "added \\d+ packages",
+    "removed \\d+ packages",
+    "changed \\d+ packages",
+    "audited \\d+ packages",
+    "vulnerabilities",
+    "WARN",
+    "ERR!"
+  ],
+  "priorityPatterns": ["WARN", "ERR", "vulnerabilities"],
+  "collapsePatterns": [],
+  "maxLines": 80,
+  "preserveHead": 20,
+  "preserveTail": 30
+}

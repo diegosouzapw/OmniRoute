@@ -1,0 +1,30 @@
+{
+  "language": "fr",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "fr_polite_framing",
+      "pattern": "\\b(?:s'il vous plait|s'il te plait|peux tu|pourrais tu|je voudrais que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_context_setup",
+      "pattern": "\\b(?:voici le code|ci dessous le code|ci-dessous le code)\\b\\s*[:.]?\\s*",
+      "replacement": "Code:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_intent",
+      "pattern": "\\b(?:mon objectif est|ce dont j'ai besoin est|j'essaie de)\\b\\s*",
+      "replacement": "Objectif:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

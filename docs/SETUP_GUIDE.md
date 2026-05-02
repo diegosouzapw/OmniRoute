@@ -138,7 +138,7 @@ Add to your MCP settings:
 }
 ```
 
-**Full MCP documentation:** [MCP Server README](../open-sse/mcp-server/README.md) — 29 tools, IDE configs, Python/TS/Go clients.
+**Full MCP documentation:** [MCP Server README](../open-sse/mcp-server/README.md) — 37 tools, IDE configs, Python/TS/Go clients.
 
 ### A2A Setup (Agent-to-Agent Protocol)
 

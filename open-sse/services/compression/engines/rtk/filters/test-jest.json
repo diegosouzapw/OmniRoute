@@ -1,0 +1,25 @@
+{
+  "id": "test-jest",
+  "name": "Jest",
+  "description": "Keep Jest failures and summary while removing passing noise.",
+  "commandTypes": ["test-jest"],
+  "category": "test",
+  "priority": 90,
+  "stripPatterns": ["^PASS\\s+", "^\\s*✓\\s+"],
+  "keepPatterns": [
+    "^FAIL\\s+",
+    "^\\s*●\\s+",
+    "Expected:",
+    "Received:",
+    "Test Suites:",
+    "Tests:",
+    "Snapshots:",
+    "Time:",
+    "\\s+at\\s+"
+  ],
+  "priorityPatterns": ["FAIL", "Expected:", "Received:", "Test Suites:"],
+  "collapsePatterns": ["^\\s*at "],
+  "maxLines": 140,
+  "preserveHead": 24,
+  "preserveTail": 50
+}

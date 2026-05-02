@@ -13,6 +13,7 @@ import {
 } from "../../../src/lib/db/compression.ts";
 import { getCompressionAnalyticsSummary } from "../../../src/lib/db/compressionAnalytics.ts";
 import { getCacheStatsSummary } from "../../../src/lib/db/compressionCacheStats.ts";
+import { listCompressionCombos } from "../../../src/lib/db/compressionCombos.ts";
 import type { McpToolExtraLike } from "../scopeEnforcement.ts";
 import { getMcpDescriptionCompressionStats } from "../descriptionCompressor.ts";
 
@@ -38,6 +39,8 @@ export async function handleCompressionStatus(
     tokensSaved: number;
     avgCompressionRatio: number;
     byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+    byEngine: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+    byCompressionCombo: Record<string, { count: number; tokensSaved: number }>;
     validationFallbacks: number;
     requestsWithReceipts: number;
     realUsage: {
@@ -89,6 +92,8 @@ export async function handleCompressionStatus(
         tokensSaved: analyticsSummary.totalTokensSaved,
         avgCompressionRatio: analyticsSummary.avgSavingsPct,
         byMode: analyticsSummary.byMode ?? {},
+        byEngine: analyticsSummary.byEngine ?? {},
+        byCompressionCombo: analyticsSummary.byCompressionCombo ?? {},
         validationFallbacks: analyticsSummary.validationFallbacks,
         requestsWithReceipts: analyticsSummary.realUsage.requestsWithReceipts,
         realUsage: analyticsSummary.realUsage,
@@ -213,7 +218,64 @@ export async function handleCompressionConfigure(
 }
 
 import { z } from "zod";
-import { compressionStatusInput, compressionConfigureInput } from "../schemas/tools.ts";
+import {
+  compressionStatusInput,
+  compressionConfigureInput,
+  setCompressionEngineInput,
+  listCompressionCombosInput,
+  compressionComboStatsInput,
+} from "../schemas/tools.ts";
+
+export async function handleSetCompressionEngine(
+  args: z.infer<typeof setCompressionEngineInput>
+): Promise<{ success: boolean; settings: Record<string, unknown> }> {
+  const updates: Record<string, unknown> = { enabled: true };
+  if (args.engine) {
+    updates.defaultMode = args.engine === "caveman" ? "standard" : args.engine;
+    if (args.engine === "off") updates.enabled = false;
+  }
+  if (args.cavemanIntensity) {
+    const current = await getCompressionSettings();
+    updates.cavemanConfig = {
+      ...(current.cavemanConfig ?? {}),
+      intensity: args.cavemanIntensity,
+    };
+  }
+  if (args.rtkIntensity) {
+    const current = await getCompressionSettings();
+    updates.rtkConfig = {
+      ...(current.rtkConfig ?? {}),
+      intensity: args.rtkIntensity,
+    };
+  }
+  if (args.outputMode !== undefined) {
+    const current = await getCompressionSettings();
+    updates.cavemanOutputMode = {
+      ...(current.cavemanOutputMode ?? {}),
+      enabled: args.outputMode,
+    };
+  }
+  const settings = await updateCompressionSettings(updates);
+  return { success: true, settings: settings as unknown as Record<string, unknown> };
+}
+
+export async function handleListCompressionCombos(): Promise<{
+  combos: ReturnType<typeof listCompressionCombos>;
+}> {
+  return { combos: listCompressionCombos() };
+}
+
+export async function handleCompressionComboStats(
+  args: z.infer<typeof compressionComboStatsInput>
+): Promise<Record<string, unknown>> {
+  const summary = getCompressionAnalyticsSummary(args.since === "all" ? undefined : args.since);
+  if (!args.comboId) return summary as unknown as Record<string, unknown>;
+  return {
+    comboId: args.comboId,
+    summary,
+    combo: summary.byCompressionCombo[args.comboId] ?? { count: 0, tokensSaved: 0 },
+  };
+}
 
 export const compressionTools = {
   omniroute_compression_status: {
@@ -226,8 +288,27 @@ export const compressionTools = {
   omniroute_compression_configure: {
     name: "omniroute_compression_configure",
     description:
-      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+      "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
     inputSchema: compressionConfigureInput,
     handler: (args: z.infer<typeof compressionConfigureInput>) => handleCompressionConfigure(args),
+  },
+  omniroute_set_compression_engine: {
+    name: "omniroute_set_compression_engine",
+    description: "Set the active compression engine and Caveman/RTK runtime options.",
+    inputSchema: setCompressionEngineInput,
+    handler: (args: z.infer<typeof setCompressionEngineInput>) => handleSetCompressionEngine(args),
+  },
+  omniroute_list_compression_combos: {
+    name: "omniroute_list_compression_combos",
+    description: "List compression combos and their engine pipelines.",
+    inputSchema: listCompressionCombosInput,
+    handler: (_args: z.infer<typeof listCompressionCombosInput>) => handleListCompressionCombos(),
+  },
+  omniroute_compression_combo_stats: {
+    name: "omniroute_compression_combo_stats",
+    description: "Get compression analytics grouped by engine and compression combo.",
+    inputSchema: compressionComboStatsInput,
+    handler: (args: z.infer<typeof compressionComboStatsInput>) =>
+      handleCompressionComboStats(args),
   },
 };

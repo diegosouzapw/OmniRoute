@@ -1064,10 +1064,12 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .enum(["off", "lite", "standard", "aggressive", "ultra"])
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
     .optional()
     .describe("Compression mode"),
-  autoTriggerMode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]).optional(),
+  autoTriggerMode: z
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .optional(),
   maxTokens: z
     .number()
     .int()
@@ -1099,13 +1101,79 @@ export const compressionConfigureTool: McpToolDefinition<
 > = {
   name: "omniroute_compression_configure",
   description:
-    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
   inputSchema: compressionConfigureInput,
   outputSchema: compressionConfigureOutput,
   scopes: ["write:compression"],
   auditLevel: "full",
   phase: 2,
   sourceEndpoints: ["/api/compression/configure"],
+};
+
+export const setCompressionEngineInput = z.object({
+  engine: z.enum(["off", "caveman", "rtk", "stacked"]).optional(),
+  cavemanIntensity: z.enum(["lite", "full", "ultra"]).optional(),
+  rtkIntensity: z.enum(["minimal", "standard", "aggressive"]).optional(),
+  outputMode: z.boolean().optional(),
+});
+
+export const setCompressionEngineOutput = z.object({
+  success: z.boolean(),
+  settings: z.record(z.string(), z.unknown()),
+});
+
+export const setCompressionEngineTool: McpToolDefinition<
+  typeof setCompressionEngineInput,
+  typeof setCompressionEngineOutput
+> = {
+  name: "omniroute_set_compression_engine",
+  description: "Set the active compression engine and Caveman/RTK runtime options.",
+  inputSchema: setCompressionEngineInput,
+  outputSchema: setCompressionEngineOutput,
+  scopes: ["write:compression"],
+  auditLevel: "full",
+  phase: 2,
+  sourceEndpoints: ["/api/settings/compression", "/api/context/rtk/config"],
+};
+
+export const listCompressionCombosInput = z.object({});
+export const listCompressionCombosOutput = z.object({
+  combos: z.array(z.record(z.string(), z.unknown())),
+});
+
+export const listCompressionCombosTool: McpToolDefinition<
+  typeof listCompressionCombosInput,
+  typeof listCompressionCombosOutput
+> = {
+  name: "omniroute_list_compression_combos",
+  description: "List compression combos and their engine pipelines.",
+  inputSchema: listCompressionCombosInput,
+  outputSchema: listCompressionCombosOutput,
+  scopes: ["read:compression"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/context/combos"],
+};
+
+export const compressionComboStatsInput = z.object({
+  comboId: z.string().optional(),
+  since: z.enum(["24h", "7d", "30d", "all"]).optional(),
+});
+
+export const compressionComboStatsOutput = z.record(z.string(), z.unknown());
+
+export const compressionComboStatsTool: McpToolDefinition<
+  typeof compressionComboStatsInput,
+  typeof compressionComboStatsOutput
+> = {
+  name: "omniroute_compression_combo_stats",
+  description: "Get compression analytics grouped by engine and compression combo.",
+  inputSchema: compressionComboStatsInput,
+  outputSchema: compressionComboStatsOutput,
+  scopes: ["read:compression"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/context/analytics"],
 };
 
 // ============ 1proxy Tools ============
@@ -1245,6 +1313,9 @@ export const MCP_TOOLS = [
   cacheFlushTool,
   compressionStatusTool,
   compressionConfigureTool,
+  setCompressionEngineTool,
+  listCompressionCombosTool,
+  compressionComboStatsTool,
   oneproxyFetchTool,
   oneproxyRotateTool,
   oneproxyStatsTool,

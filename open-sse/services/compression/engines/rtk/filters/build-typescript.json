@@ -1,0 +1,15 @@
+{
+  "id": "build-typescript",
+  "name": "TypeScript",
+  "description": "Keep TypeScript diagnostics and file locations.",
+  "commandTypes": ["build-typescript"],
+  "category": "build",
+  "priority": 93,
+  "stripPatterns": ["^\\s*$"],
+  "keepPatterns": ["TS\\d{4}:", "error TS\\d{4}", "^Found \\d+ errors?"],
+  "priorityPatterns": ["TS\\d{4}", "Found \\d+"],
+  "collapsePatterns": [],
+  "maxLines": 120,
+  "preserveHead": 20,
+  "preserveTail": 40
+}

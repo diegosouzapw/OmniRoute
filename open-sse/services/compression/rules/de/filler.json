@@ -1,0 +1,30 @@
+{
+  "language": "de",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "de_polite_framing",
+      "pattern": "\\b(?:bitte|kannst du|koenntest du|könntest du|ich moechte|ich möchte)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_context_setup",
+      "pattern": "\\b(?:hier ist der code|unten ist der code)\\b\\s*[:.]?\\s*",
+      "replacement": "Code:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_intent",
+      "pattern": "\\b(?:mein ziel ist|was ich brauche ist|ich versuche)\\b\\s*",
+      "replacement": "Ziel:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "language": "ja",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "ja_polite_framing",
+      "pattern": "(?:お願いします|してください|できますか)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_context_setup",
+      "pattern": "(?:以下のコード|こちらのコード)",
+      "replacement": "コード:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_intent",
+      "pattern": "(?:目的は|やりたいことは)",
+      "replacement": "目的:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

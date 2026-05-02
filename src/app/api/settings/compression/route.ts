@@ -4,8 +4,17 @@ import { getCompressionSettings, updateCompressionSettings } from "@/lib/db/comp
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+const compressionModeSchema = z.enum([
+  "off",
+  "lite",
+  "standard",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "stacked",
+]);
 const cavemanIntensitySchema = z.enum(["lite", "full", "ultra"]);
+const rtkIntensitySchema = z.enum(["minimal", "standard", "aggressive"]);
 
 const cavemanConfigSchema = z
   .object({
@@ -23,6 +32,38 @@ const cavemanOutputModeSchema = z
     enabled: z.boolean().optional(),
     intensity: cavemanIntensitySchema.optional(),
     autoClarity: z.boolean().optional(),
+  })
+  .strict();
+
+const rtkConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    intensity: rtkIntensitySchema.optional(),
+    applyToToolResults: z.boolean().optional(),
+    applyToCodeBlocks: z.boolean().optional(),
+    applyToAssistantMessages: z.boolean().optional(),
+    enabledFilters: z.array(z.string()).optional(),
+    disabledFilters: z.array(z.string()).optional(),
+    maxLinesPerResult: z.number().int().min(0).max(100000).optional(),
+    maxCharsPerResult: z.number().int().min(0).max(1000000).optional(),
+    deduplicateThreshold: z.number().int().min(2).max(100).optional(),
+  })
+  .strict();
+
+const languageConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    defaultLanguage: z.string().trim().min(1).optional(),
+    autoDetect: z.boolean().optional(),
+    enabledPacks: z.array(z.string().trim().min(1)).optional(),
+  })
+  .strict();
+
+const stackedPipelineStepSchema = z
+  .object({
+    engine: z.enum(["lite", "caveman", "aggressive", "ultra", "rtk"]),
+    intensity: z.string().optional(),
+    config: z.record(z.string(), z.unknown()).optional(),
   })
   .strict();
 
@@ -72,8 +113,12 @@ const compressionSettingsUpdateSchema = z
     preserveSystemPrompt: z.boolean().optional(),
     mcpDescriptionCompressionEnabled: z.boolean().optional(),
     comboOverrides: z.record(z.string(), compressionModeSchema).optional(),
+    compressionComboId: z.string().trim().min(1).nullable().optional(),
+    stackedPipeline: z.array(stackedPipelineStepSchema).optional(),
     cavemanConfig: cavemanConfigSchema.optional(),
     cavemanOutputMode: cavemanOutputModeSchema.optional(),
+    rtkConfig: rtkConfigSchema.optional(),
+    languageConfig: languageConfigSchema.optional(),
     aggressive: aggressiveConfigSchema.optional(),
     ultra: ultraConfigSchema.optional(),
   })

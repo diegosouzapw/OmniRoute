@@ -1,0 +1,15 @@
+{
+  "id": "git-diff",
+  "name": "Git Diff",
+  "description": "Drop low-signal diff metadata while preserving files, hunks, and changed lines.",
+  "commandTypes": ["git-diff"],
+  "category": "git",
+  "priority": 94,
+  "stripPatterns": ["^index [0-9a-f]+\\.\\.[0-9a-f]+.*$", "^--- a/", "^\\+\\+\\+ b/"],
+  "keepPatterns": [],
+  "priorityPatterns": ["^diff --git ", "^@@ ", "^[+-](?![+-]{2})"],
+  "collapsePatterns": ["^\\s*$"],
+  "maxLines": 180,
+  "preserveHead": 40,
+  "preserveTail": 50
+}

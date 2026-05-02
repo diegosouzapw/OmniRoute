@@ -74,10 +74,10 @@ Every tool call is logged to `mcp_tool_audit` with:
 
 ## Files
 
-| File                                         | Purpose                                     |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
-| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
-| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
+| File                                         | Purpose                                           |
+| :------------------------------------------- | :------------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation and scoped tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                            |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                        |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                           |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                          |

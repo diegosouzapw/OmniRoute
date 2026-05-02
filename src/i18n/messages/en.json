@@ -736,7 +736,11 @@
     "themeCustom": "Theme Custom",
     "hideHealthLogsDesc": "Hide Health Logs Desc",
     "faviconPreview": "Favicon Preview",
-    "changelog": "Changelog"
+    "changelog": "Changelog",
+    "contextSection": "Context & Cache",
+    "contextCaveman": "Caveman",
+    "contextRtk": "RTK",
+    "contextCombos": "Compression Combos"
   },
   "webhooks": {
     "title": "Webhooks",
@@ -3696,7 +3700,11 @@
     "compressionPreservePatternsDesc": "Regex patterns that are never compressed (one per line)",
     "compressionLogTitle": "Compression Log",
     "compressionLogEmpty": "No compressed requests yet. Compression stats will appear here when requests are processed with compression enabled.",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "compressionModeRtk": "RTK",
+    "compressionModeRtkDesc": "Command-aware tool output filtering",
+    "compressionModeStacked": "Stacked",
+    "compressionModeStackedDesc": "RTK tool-output filtering followed by Caveman message compression"
   },
   "translator": {
     "title": "Translator",

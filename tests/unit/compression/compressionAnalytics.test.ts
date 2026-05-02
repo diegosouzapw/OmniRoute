@@ -53,6 +53,8 @@ describe("compressionAnalytics", () => {
       avgSavingsPct: 0,
       avgDurationMs: 0,
       byMode: {},
+      byEngine: {},
+      byCompressionCombo: {},
       byProvider: {},
       last24h: summary.last24h,
       validationFallbacks: 0,

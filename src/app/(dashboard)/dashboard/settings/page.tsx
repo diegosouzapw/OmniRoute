@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
 import { APP_CONFIG } from "@/shared/constants/appConfig";
@@ -21,7 +22,6 @@ import ModelsDevSyncTab from "./components/ModelsDevSyncTab";
 import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
-import CompressionSettingsTab from "./components/CompressionSettingsTab";
 import VisionBridgeSettingsTab from "./components/VisionBridgeSettingsTab";
 import MitmProxyTab from "./components/MitmProxyTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
@@ -97,7 +97,25 @@ export default function SettingsPage() {
           {activeTab === "ai" && (
             <div className="flex flex-col gap-6">
               <ThinkingBudgetTab />
-              <CompressionSettingsTab />
+              <Link
+                href="/dashboard/context/caveman"
+                className="flex items-center justify-between rounded-lg border border-border bg-surface p-4 transition-colors hover:bg-sidebar/50"
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="material-symbols-outlined text-[20px] text-primary">
+                    compress
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-text-main">
+                      {t("compressionTitle")}
+                    </span>
+                    <span className="block text-xs text-text-muted">{t("compressionDesc")}</span>
+                  </span>
+                </span>
+                <span className="material-symbols-outlined text-[18px] text-text-muted">
+                  chevron_right
+                </span>
+              </Link>
               <VisionBridgeSettingsTab />
               <SystemPromptTab />
               <CacheSettingsTab />

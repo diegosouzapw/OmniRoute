@@ -275,6 +275,13 @@ function isSchemaAlreadyApplied(
         hasColumn(db, "compression_analytics", "validation_fallback") &&
         hasColumn(db, "compression_analytics", "output_mode")
       );
+    case "042":
+      return (
+        hasTable(db, "compression_combos") &&
+        hasTable(db, "compression_combo_assignments") &&
+        hasColumn(db, "compression_analytics", "compression_combo_id") &&
+        hasColumn(db, "compression_analytics", "engine")
+      );
     default:
       return false;
   }
@@ -381,6 +388,27 @@ function applyCompressionReceiptsMigration(db: Database.Database): void {
       ON compression_analytics(request_id);
     CREATE INDEX IF NOT EXISTS idx_compression_analytics_receipt_source
       ON compression_analytics(receipt_source);
+  `);
+}
+
+function applyCompressionCombosMigration(db: Database.Database, migrationPath: string): void {
+  const sql = fs.readFileSync(migrationPath, "utf-8");
+  db.exec(sql);
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "compression_combo_id",
+    "ALTER TABLE compression_analytics ADD COLUMN compression_combo_id TEXT"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "engine",
+    "ALTER TABLE compression_analytics ADD COLUMN engine TEXT"
+  );
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_compression_analytics_combo_engine
+      ON compression_analytics(compression_combo_id, engine);
   `);
 }
 
@@ -728,6 +756,8 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
         applyApiKeyLifecycleMigration(db);
       } else if (migration.version === "041") {
         applyCompressionReceiptsMigration(db);
+      } else if (migration.version === "042") {
+        applyCompressionCombosMigration(db, migration.path);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);

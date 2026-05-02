@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
-import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
+import type {
+  CompressionConfig,
+  CompressionMode,
+} from "@omniroute/open-sse/services/compression/types";
 import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
 
 const PreviewRequestSchema = z.object({
@@ -14,7 +17,8 @@ const PreviewRequestSchema = z.object({
       })
     )
     .min(1),
-  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]),
+  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"]),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 function countTokens(text: string): number {
@@ -49,14 +53,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode } = parsed.data;
+  const { messages, mode, config } = parsed.data;
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
-    const result = await applyCompression(requestBody as Record<string, unknown>, mode);
+    const result = await applyCompression(requestBody as Record<string, unknown>, mode, {
+      config: config as CompressionConfig | undefined,
+    });
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{

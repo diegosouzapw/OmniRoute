@@ -4,6 +4,8 @@ export interface CompressionAnalyticsRow {
   id?: number;
   timestamp: string;
   combo_id?: string | null;
+  compression_combo_id?: string | null;
+  engine?: string | null;
   provider?: string | null;
   mode: string;
   original_tokens: number;
@@ -30,6 +32,8 @@ export interface CompressionAnalyticsSummary {
   avgSavingsPct: number;
   avgDurationMs: number;
   byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+  byEngine: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+  byCompressionCombo: Record<string, { count: number; tokensSaved: number }>;
   byProvider: Record<string, { count: number; tokensSaved: number }>;
   last24h: Array<{ hour: string; count: number; tokensSaved: number }>;
   validationFallbacks: number;
@@ -95,6 +99,11 @@ function ensureCompressionAnalyticsColumns(): void {
     "ALTER TABLE compression_analytics ADD COLUMN validation_fallback INTEGER DEFAULT 0"
   );
   addColumn("output_mode", "ALTER TABLE compression_analytics ADD COLUMN output_mode TEXT");
+  addColumn(
+    "compression_combo_id",
+    "ALTER TABLE compression_analytics ADD COLUMN compression_combo_id TEXT"
+  );
+  addColumn("engine", "ALTER TABLE compression_analytics ADD COLUMN engine TEXT");
   columnsEnsured = true;
 }
 
@@ -104,17 +113,19 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
   db.prepare(
     `
     INSERT INTO compression_analytics (
-      timestamp, combo_id, provider, mode, original_tokens, compressed_tokens, tokens_saved,
+      timestamp, combo_id, compression_combo_id, engine, provider, mode, original_tokens, compressed_tokens, tokens_saved,
       duration_ms, request_id, actual_prompt_tokens, actual_completion_tokens,
       actual_total_tokens, actual_cache_read_tokens, actual_cache_write_tokens,
       estimated_usd_saved, mcp_description_tokens_saved, multimodal_skip_count,
       receipt_source, validation_fallback, output_mode
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     row.timestamp,
     row.combo_id ?? null,
+    row.compression_combo_id ?? null,
+    row.engine ?? row.mode,
     row.provider ?? null,
     row.mode,
     row.original_tokens,
@@ -248,6 +259,44 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     byMode[r.mode] = { count: r.cnt, tokensSaved: r.saved, avgSavingsPct: Math.round(r.avgPct) };
   }
 
+  const engineRows = db
+    .prepare(
+      `
+    SELECT COALESCE(engine, mode) as engine, COUNT(*) as cnt, COALESCE(SUM(tokens_saved), 0) as saved,
+      COALESCE(AVG(CASE WHEN original_tokens > 0 THEN CAST(tokens_saved AS REAL) / original_tokens * 100 ELSE 0 END), 0) as avgPct
+    FROM compression_analytics ${whereClause}
+    GROUP BY COALESCE(engine, mode)
+  `
+    )
+    .all(...params) as Array<{ engine: string; cnt: number; saved: number; avgPct: number }>;
+
+  const byEngine: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }> =
+    {};
+  for (const r of engineRows) {
+    byEngine[r.engine] = {
+      count: r.cnt,
+      tokensSaved: r.saved,
+      avgSavingsPct: Math.round(r.avgPct),
+    };
+  }
+
+  const compressionComboRows = db
+    .prepare(
+      `
+    SELECT compression_combo_id as compressionComboId, COUNT(*) as cnt,
+      COALESCE(SUM(tokens_saved), 0) as saved
+    FROM compression_analytics ${appendCondition(whereClause, "compression_combo_id IS NOT NULL")}
+    GROUP BY compression_combo_id ORDER BY cnt DESC
+  `
+    )
+    .all(...params) as Array<{ compressionComboId: string | null; cnt: number; saved: number }>;
+
+  const byCompressionCombo: Record<string, { count: number; tokensSaved: number }> = {};
+  for (const r of compressionComboRows) {
+    const key = r.compressionComboId ?? "unknown";
+    byCompressionCombo[key] = { count: r.cnt, tokensSaved: r.saved };
+  }
+
   const provRows = db
     .prepare(
       `
@@ -358,6 +407,8 @@ export function getCompressionAnalyticsSummary(since?: string): CompressionAnaly
     avgSavingsPct: Math.round(scalar?.avgPct ?? 0),
     avgDurationMs: Math.round(scalar?.avgDur ?? 0),
     byMode,
+    byEngine,
+    byCompressionCombo,
     byProvider,
     last24h,
     validationFallbacks: fallbackRow?.cnt ?? 0,

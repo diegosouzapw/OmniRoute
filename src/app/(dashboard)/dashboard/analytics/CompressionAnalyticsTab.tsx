@@ -358,8 +358,8 @@ export default function CompressionAnalyticsTab() {
         <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
         <span>
           <strong>Compression analytics:</strong> Token savings tracked per mode (off, lite,
-          standard, aggressive, ultra) and provider. Hover over charts for details. Use the time
-          selector to view different time periods.
+          standard, aggressive, ultra, RTK, stacked), engine, compression combo, and provider. Hover
+          over charts for details. Use the time selector to view different time periods.
         </span>
       </div>
     </div>

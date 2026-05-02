@@ -1,0 +1,15 @@
+{
+  "id": "git-log",
+  "name": "Git Log",
+  "description": "Keep commit identifiers and subjects from verbose logs.",
+  "commandTypes": ["git-log"],
+  "category": "git",
+  "priority": 70,
+  "stripPatterns": ["^Author: ", "^Date: ", "^\\s*$"],
+  "keepPatterns": ["^commit [0-9a-f]{7,40}", "^\\s{4}\\S"],
+  "priorityPatterns": ["^commit "],
+  "collapsePatterns": [],
+  "maxLines": 120,
+  "preserveHead": 40,
+  "preserveTail": 20
+}

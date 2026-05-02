@@ -1,0 +1,15 @@
+{
+  "id": "docker-ps",
+  "name": "Docker PS",
+  "description": "Keep docker container table header and rows under a fixed cap.",
+  "commandTypes": ["docker-ps"],
+  "category": "docker",
+  "priority": 60,
+  "stripPatterns": ["^\\s*$"],
+  "keepPatterns": [],
+  "priorityPatterns": ["^CONTAINER ID"],
+  "collapsePatterns": [],
+  "maxLines": 80,
+  "preserveHead": 30,
+  "preserveTail": 20
+}

@@ -1,0 +1,30 @@
+{
+  "language": "en",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "en_pleasantries",
+      "pattern": "\\b(?:sure|certainly|of course|happy to)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "en_polite_framing",
+      "pattern": "\\b(?:please|kindly|could you please|would you please|can you please)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "en_hedging",
+      "pattern": "\\b(?:it seems like|I think that|probably|possibly)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

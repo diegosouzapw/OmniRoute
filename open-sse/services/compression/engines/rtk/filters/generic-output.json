@@ -1,0 +1,15 @@
+{
+  "id": "generic-output",
+  "name": "Generic Output",
+  "description": "Fallback filter for unknown command output.",
+  "commandTypes": ["generic-output", "generic-error"],
+  "category": "generic",
+  "priority": 10,
+  "stripPatterns": ["^\\s*$"],
+  "keepPatterns": [],
+  "priorityPatterns": ["error", "failed", "exception", "traceback"],
+  "collapsePatterns": [],
+  "maxLines": 120,
+  "preserveHead": 35,
+  "preserveTail": 45
+}

@@ -1,15 +1,25 @@
 /**
- * Compression Pipeline Types — Phase 1 (Lite) + Phase 2 (Standard/Caveman) + Phase 3 (Aggressive) + Phase 4 (Ultra)
+ * Compression Pipeline Types — Lite, Caveman, Aggressive, Ultra, RTK, and Stacked modes.
  *
  * Shared type definitions for the compression pipeline.
  * Phase 1: 'off' and 'lite' modes.
  * Phase 2: 'standard' mode (caveman engine).
  * Phase 3: 'aggressive' mode (summarization + tool compression + aging).
  * Phase 4: 'ultra' mode (heuristic token pruning + optional SLM tier).
+ * Phase 5: 'rtk' and 'stacked' modes (tool-output filters + multi-engine pipeline).
  */
 
-export type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
+export type CompressionMode =
+  | "off"
+  | "lite"
+  | "standard"
+  | "aggressive"
+  | "ultra"
+  | "rtk"
+  | "stacked";
 export type CavemanIntensity = "lite" | "full" | "ultra";
+export type RtkIntensity = "minimal" | "standard" | "aggressive";
+export type CompressionEngineId = "lite" | "caveman" | "aggressive" | "ultra" | "rtk";
 
 export interface CavemanRule {
   name: string;
@@ -37,6 +47,32 @@ export interface CavemanOutputModeConfig {
   autoClarity: boolean;
 }
 
+export interface RtkConfig {
+  enabled: boolean;
+  intensity: RtkIntensity;
+  applyToToolResults: boolean;
+  applyToCodeBlocks: boolean;
+  applyToAssistantMessages: boolean;
+  enabledFilters: string[];
+  disabledFilters: string[];
+  maxLinesPerResult: number;
+  maxCharsPerResult: number;
+  deduplicateThreshold: number;
+}
+
+export interface CompressionLanguageConfig {
+  enabled: boolean;
+  defaultLanguage: string;
+  autoDetect: boolean;
+  enabledPacks: string[];
+}
+
+export interface CompressionPipelineStep {
+  engine: CompressionEngineId;
+  intensity?: CavemanIntensity | RtkIntensity;
+  config?: Record<string, unknown>;
+}
+
 export interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
@@ -46,8 +82,12 @@ export interface CompressionConfig {
   preserveSystemPrompt: boolean;
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
+  compressionComboId?: string | null;
+  stackedPipeline?: CompressionPipelineStep[];
   cavemanConfig?: CavemanConfig;
   cavemanOutputMode?: CavemanOutputModeConfig;
+  rtkConfig?: RtkConfig;
+  languageConfig?: CompressionLanguageConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
 }
@@ -58,6 +98,8 @@ export interface CompressionStats {
   savingsPercent: number;
   techniquesUsed: string[];
   mode: CompressionMode;
+  engine?: string;
+  compressionComboId?: string | null;
   timestamp: number;
   rulesApplied?: string[];
   durationMs?: number;
@@ -76,6 +118,15 @@ export interface CompressionStats {
     toolResultSavings: number;
     agingSavings: number;
   };
+  engineBreakdown?: Array<{
+    engine: string;
+    originalTokens: number;
+    compressedTokens: number;
+    savingsPercent: number;
+    techniquesUsed: string[];
+    rulesApplied?: string[];
+    durationMs?: number;
+  }>;
 }
 
 export interface CompressionResult {
@@ -93,6 +144,11 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   preserveSystemPrompt: true,
   mcpDescriptionCompressionEnabled: true,
   comboOverrides: {},
+  compressionComboId: null,
+  stackedPipeline: [
+    { engine: "rtk", intensity: "standard" },
+    { engine: "caveman", intensity: "full" },
+  ],
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
@@ -108,6 +164,26 @@ export const DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG: CavemanOutputModeConfig = {
   enabled: false,
   intensity: "full",
   autoClarity: true,
+};
+
+export const DEFAULT_RTK_CONFIG: RtkConfig = {
+  enabled: true,
+  intensity: "standard",
+  applyToToolResults: true,
+  applyToCodeBlocks: false,
+  applyToAssistantMessages: false,
+  enabledFilters: [],
+  disabledFilters: [],
+  maxLinesPerResult: 120,
+  maxCharsPerResult: 12000,
+  deduplicateThreshold: 3,
+};
+
+export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {
+  enabled: false,
+  defaultLanguage: "en",
+  autoDetect: true,
+  enabledPacks: ["en"],
 };
 
 /** Aging thresholds for progressive message degradation (Phase 3) */

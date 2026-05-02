@@ -1,0 +1,15 @@
+{
+  "id": "shell-ls",
+  "name": "Shell Listing",
+  "description": "Keep directory listing boundaries without flooding the prompt.",
+  "commandTypes": ["shell-ls"],
+  "category": "shell",
+  "priority": 50,
+  "stripPatterns": ["^\\s*$"],
+  "keepPatterns": [],
+  "priorityPatterns": ["^total \\d+"],
+  "collapsePatterns": [],
+  "maxLines": 100,
+  "preserveHead": 40,
+  "preserveTail": 30
+}

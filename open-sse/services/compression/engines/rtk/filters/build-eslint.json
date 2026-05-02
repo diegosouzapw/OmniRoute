@@ -1,0 +1,19 @@
+{
+  "id": "build-eslint",
+  "name": "ESLint",
+  "description": "Keep lint diagnostics and problem summary.",
+  "commandTypes": ["build-eslint"],
+  "category": "build",
+  "priority": 88,
+  "stripPatterns": ["^\\s*$"],
+  "keepPatterns": [
+    "\\s+\\d+:\\d+\\s+(error|warning)\\s+",
+    "✖\\s+\\d+\\s+problems?",
+    "^/.*\\.(ts|tsx|js|jsx)$"
+  ],
+  "priorityPatterns": ["error", "warning", "problems?"],
+  "collapsePatterns": [],
+  "maxLines": 120,
+  "preserveHead": 20,
+  "preserveTail": 40
+}

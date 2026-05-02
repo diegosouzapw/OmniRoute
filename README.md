@@ -4,7 +4,7 @@
 
 ### Never stop coding. Save 15-75% tokens with prompt compression + auto-fallback to **FREE & low-cost AI models**.
 
-_The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (29 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
+_The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
 
 **Chat Completions • Responses API • Embeddings • Image Generation • Video • Music • Audio Speech/Transcription • Reranking • Moderations • Web Search • MCP Server • A2A Protocol • 4,600+ Tests • 100% TypeScript**
 
@@ -440,7 +440,7 @@ Every request passes through the compression pipeline **transparently** — no c
 ```
 ┌──────────────────┐     ┌─────────────────────────────┐     ┌──────────────┐
 │   Client sends   │────▶│  OmniRoute Compression      │────▶│  Provider    │
-│   full prompt    │     │  Pipeline (5 modes)          │     │  receives    │
+│   full prompt    │     │  Pipeline (7 options)        │     │  receives    │
 │   (10,000 tok)   │     │                              │     │  compressed  │
 │                  │     │  🪶 Lite ........... ~15%     │     │  (2,500 tok) │
 │                  │     │  🪨 Standard ....... ~30%     │     │              │
@@ -449,7 +449,7 @@ Every request passes through the compression pipeline **transparently** — no c
 └──────────────────┘     └─────────────────────────────┘     └──────────────┘
 ```
 
-### 5 Compression Modes
+### 7 Compression Options
 
 | Mode                      | Savings | Technique                                                                                       | Best For                               |
 | ------------------------- | ------- | ----------------------------------------------------------------------------------------------- | -------------------------------------- |
@@ -458,6 +458,8 @@ Every request passes through the compression pipeline **transparently** — no c
 | **🪨 Standard (Caveman)** | ~30%    | 30+ regex rules: filler removal, context condensation, structural compression, multi-turn dedup | Daily coding with Claude/Codex         |
 | **⚡ Aggressive**         | ~50%    | All standard + progressive message aging + tool result summarization + LLM-based compression    | Long sessions with many tool calls     |
 | **🔥 Ultra**              | ~75%    | All aggressive + heuristic token pruning + stopword removal + score-based filtering             | Maximum savings when tokens are scarce |
+| **🧰 RTK**                | 20-70%  | Command-aware tool-output filters, deduplication, smart truncation, noise stripping             | Shell/test/build/git output in agents  |
+| **🔗 Stacked**            | 30-80%  | Ordered engine pipeline, usually RTK first then Caveman                                         | Mixed prompts with tool logs + prose   |
 
 ### Before & After (Standard/Caveman Mode)
 
@@ -481,6 +483,8 @@ Request Body
   ├─ lite.ts ─────────────── Whitespace, dedup, image URLs, redundant content
   ├─ caveman.ts ──────────── 30+ regex rules via cavemanRules.ts
   │   └─ preservation.ts ─── Protects code blocks, URLs, JSON from compression
+  ├─ engines/rtk/ ────────── Command detection + JSON filter packs for tool output
+  ├─ engines/registry.ts ─── Shared engine registry for caveman, RTK, and stacked
   ├─ aggressive.ts ───────── Summarizer + tool result compressor + progressive aging
   │   ├─ summarizer.ts ───── Rule-based message summarization
   │   ├─ toolResultCompressor.ts ── file/grep/shell/JSON/error compression
@@ -492,7 +496,7 @@ Request Body
 ### Configuration
 
 ```
-Dashboard → Settings → Compression → Pick your mode
+Dashboard → Context & Cache → Caveman / RTK / Compression Combos
 ```
 
 Or per-combo override:
@@ -508,9 +512,11 @@ Or per-combo override:
 
 Auto-trigger: set `autoTriggerTokens` to automatically enable compression when a request exceeds a token threshold.
 
-> 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that proved "caveman speak" cuts 65% of tokens while keeping 100% technical accuracy. OmniRoute takes this further with a **5-mode pipeline** that goes from gentle whitespace cleanup all the way to aggressive heuristic pruning.
+Compression combos can also assign a named compression pipeline to routing combos, so a coding combo can use RTK + Caveman while a paid subscription combo stays on lite mode.
 
-📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md)
+> 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that proved "caveman speak" cuts 65% of tokens while keeping 100% technical accuracy. OmniRoute takes this further with a **7-option pipeline** that goes from gentle whitespace cleanup through RTK tool-output filters and stacked multi-engine compression.
+
+📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/compression-engines.md`](docs/compression-engines.md) • [`docs/compression-rules-format.md`](docs/compression-rules-format.md) • [`docs/compression-language-packs.md`](docs/compression-language-packs.md)
 
 ---
 
@@ -933,8 +939,8 @@ Then in `/dashboard/media` → **Transcription** tab: upload any audio or video 
 | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
 | 🧠 **Smart 4-Tier Fallback** — Subscription → API → Cheap → Free                                     | Never stop coding, zero downtime |
 | 🔄 **Format Translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API                                 | Works with ANY CLI tool          |
-| 🗜️ **Prompt Compression** — 5-mode pipeline (off → lite → standard → aggressive → ultra)             | Save 15-75% tokens automatically |
-| 🤖 **MCP Server** — 29 tools, 3 transports (stdio/SSE/HTTP), 10 scopes                               | IDE/agent tool integration       |
+| 🗜️ **Prompt Compression** — 7 options including Caveman, RTK, and stacked pipelines                  | Save 15-75% tokens automatically |
+| 🤖 **MCP Server** — 37 tools, 3 transports (stdio/SSE/HTTP), 10 scopes                               | IDE/agent tool integration       |
 | 🛡️ **Resilience Engine** — circuit breakers, cooldowns, TLS spoofing, anti-thundering herd           | Auto-recovery from any failure   |
 | 🎵 **10 Multi-Modal APIs** — chat, embed, images, video, music, TTS, STT, moderation, rerank, search | One endpoint for everything      |
 | 🌍 **3-Level Proxy** — global, per-provider, per-key + 1proxy free marketplace                       | Access AI from any country       |
@@ -1142,7 +1148,7 @@ curl http://localhost:20128/.well-known/agent.json
 
 - [User Guide](docs/USER_GUIDE.md) — Providers, combos, CLI integration
 - [API Reference](docs/API_REFERENCE.md) — All endpoints with examples
-- [MCP Server](open-sse/mcp-server/README.md) — 29 tools, IDE configs
+- [MCP Server](open-sse/mcp-server/README.md) — 37 tools, IDE configs
 - [A2A Server](src/lib/a2a/README.md) — JSON-RPC, skills, streaming
 - [Environment Config](docs/ENVIRONMENT.md) — Complete `.env` reference
 - [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md) — VM + nginx + Cloudflare
@@ -1325,16 +1331,19 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 
 ### 🧠 Features & Architecture
 
-| Document                                                 | Description                                                            |
-| -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md)                     | System architecture, data flow, and internals                          |
-| [Compression Guide](docs/COMPRESSION_GUIDE.md)           | 5-mode pipeline: off / lite / standard / aggressive / ultra            |
-| [Resilience Guide](docs/RESILIENCE_GUIDE.md)             | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing |
-| [Auto-Combo Engine](docs/AUTO-COMBO.md)                  | 6-factor scoring, mode packs, self-healing                             |
-| [Proxy Guide](docs/PROXY_GUIDE.md)                       | 3-level proxy system, 1proxy marketplace, registry CRUD                |
-| [Free Tiers](docs/FREE_TIERS.md)                         | 25+ free API providers consolidated directory                          |
-| [Features Gallery](docs/FEATURES.md)                     | Visual dashboard tour with screenshots                                 |
-| [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough                                 |
+| Document                                                         | Description                                                                   |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md)                             | System architecture, data flow, and internals                                 |
+| [Compression Guide](docs/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked |
+| [Compression Engines](docs/compression-engines.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                   |
+| [Compression Rules Format](docs/compression-rules-format.md)     | JSON rule-pack schemas for Caveman and RTK filters                            |
+| [Compression Language Packs](docs/compression-language-packs.md) | Language detection and Caveman rule-pack authoring                            |
+| [Resilience Guide](docs/RESILIENCE_GUIDE.md)                     | Circuit breakers, cooldowns, queue, anti-thundering herd, TLS spoofing        |
+| [Auto-Combo Engine](docs/AUTO-COMBO.md)                          | 6-factor scoring, mode packs, self-healing                                    |
+| [Proxy Guide](docs/PROXY_GUIDE.md)                               | 3-level proxy system, 1proxy marketplace, registry CRUD                       |
+| [Free Tiers](docs/FREE_TIERS.md)                                 | 25+ free API providers consolidated directory                                 |
+| [Features Gallery](docs/FEATURES.md)                             | Visual dashboard tour with screenshots                                        |
+| [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md)         | Beginner-friendly codebase walkthrough                                        |
 
 ### 🤖 Protocols & APIs
 
