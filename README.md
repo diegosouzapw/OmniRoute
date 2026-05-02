@@ -207,29 +207,56 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 ## 🤔 Why OmniRoute?
 
-**Stop wasting money, tokens and hitting limits:**
-
-❌ Subscription quota expires unused every month
-❌ Rate limits stop you mid-coding
-❌ Tool outputs (`git diff`, `grep`, `ls`...) burn tokens fast
-❌ Expensive APIs ($20-50/month per provider)
-❌ Manual switching between providers
-❌ Each provider has a different API format
-❌ AI providers blocked in your country
-
-**OmniRoute solves all of this:**
-
-✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-75% tokens per request
-✅ **Maximize subscriptions** — track quota, use every bit before reset
-✅ **Auto fallback** — Subscription → API Key → Cheap → Free, zero downtime
-✅ **Multi-account** — round-robin between accounts per provider
-✅ **Format translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API, any tool works
-✅ **3-level proxy** — bypass geo-blocks with global, per-provider, and per-key proxies
-✅ **10 multi-modal APIs** — chat, images, video, music, audio, search in one endpoint
-✅ **MCP + A2A** — 29 MCP tools + agent-to-agent protocol, production-ready
-✅ **Universal** — works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
-
----
+  <table>
+    <thead>
+      <tr>
+        <th class="bad">❌ Problems</th>
+        <th class="good">✅ OmniRoute Solutions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Subscription quota expires unused every month</td>
+        <td>Prompt Compression → save 15–75% tokens per request</td>
+      </tr>
+      <tr>
+        <td>Rate limits interrupt you while coding</td>
+        <td>Auto fallback → Subscription → API Key → Cheap → Free</td>
+      </tr>
+      <tr>
+        <td>Tool outputs (git diff, grep, ls) consume too many tokens</td>
+        <td>Automatic prompt & output compression</td>
+      </tr>
+      <tr>
+        <td>Expensive APIs ($20–50/month per provider)</td>
+        <td>Automatically routes to cheapest or free options</td>
+      </tr>
+      <tr>
+        <td>Manual switching between providers</td>
+        <td>Multi-account + automatic routing</td>
+      </tr>
+      <tr>
+        <td>Each provider uses a different API format</td>
+        <td>Format translation (OpenAI ↔ Claude ↔ Gemini ↔ Responses API)</td>
+      </tr>
+      <tr>
+        <td>AI providers blocked in your country</td>
+        <td>3-level proxy to bypass geo-restrictions</td>
+      </tr>
+      <tr>
+        <td>Multiple APIs needed for different modalities</td>
+        <td>10 multimodal APIs in a single endpoint</td>
+      </tr>
+      <tr>
+        <td>Hard to integrate tools and agents</td>
+        <td>MCP + A2A (29 tools + agent protocol)</td>
+      </tr>
+      <tr>
+        <td>Limited compatibility with tools</td>
+        <td>Universal (works with Claude Code, Codex, Cursor, etc.)</td>
+      </tr>
+    </tbody>
+  </table>
 
 ## 📧 Support
 
