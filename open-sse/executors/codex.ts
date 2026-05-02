@@ -1218,7 +1218,7 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (Array.isArray(body.input)) {
-      body.input = sanitizeResponsesInputItems(body.input);
+      body.input = sanitizeResponsesInputItems(body.input, false);
     }
 
     // ── Cache-aware system prompt handling (both paths) ──

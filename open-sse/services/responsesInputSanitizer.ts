@@ -20,7 +20,7 @@ export function isInternalAssistantMessage(record: JsonRecord): boolean {
   return phase !== "final";
 }
 
-export function sanitizeResponsesInputItems(items: readonly unknown[]): unknown[] {
+export function sanitizeResponsesInputItems(items: readonly unknown[], clone = true): unknown[] {
   const sanitized: unknown[] = [];
 
   for (const item of items) {
@@ -29,7 +29,7 @@ export function sanitizeResponsesInputItems(items: readonly unknown[]): unknown[
       continue;
     }
 
-    sanitized.push(structuredClone(item));
+    sanitized.push(clone ? structuredClone(item) : item);
   }
 
   return sanitized;
