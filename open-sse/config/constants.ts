@@ -139,22 +139,22 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 5000, // 5s (session tokens — short recovery)
     rateLimitCooldown: 60000, // 60s default when no retry-after header
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
-    circuitBreakerThreshold: 3, // Opens fast (low limit providers)
+    circuitBreakerThreshold: 8, // Scaled for 500+ connections (was 3)
     circuitBreakerReset: 60000, // 1min reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 3, // 3 transient failures trigger provider cooldown
-    providerFailureWindowMs: 600000, // 10min window for counting failures
+    providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
+    providerFailureWindowMs: 900000, // 15min window (was 10min)
     providerCooldownMs: 300000, // 5min cooldown when threshold reached
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
     rateLimitCooldown: 0, // 0 = respect retry-after header from provider
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
-    circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
+    circuitBreakerThreshold: 12, // Scaled for 500+ connections (was 5)
     circuitBreakerReset: 30000, // 30s reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 5, // 5 transient failures trigger provider cooldown
-    providerFailureWindowMs: 1200000, // 20min window for counting failures
+    providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
+    providerFailureWindowMs: 1800000, // 30min window (was 20min)
     providerCooldownMs: 600000, // 10min cooldown when threshold reached
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).

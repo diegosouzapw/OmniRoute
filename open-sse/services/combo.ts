@@ -1678,7 +1678,7 @@ export async function handleComboChat({
 
       // Trigger shared provider circuit breaker for 5xx errors and connection failures
       if (isProviderFailureCode(result.status)) {
-        recordProviderFailure(provider, log);
+        recordProviderFailure(provider, log, target.connectionId);
       }
 
       // Check if this is a transient error worth retrying on same model
@@ -1841,8 +1841,11 @@ async function handleRoundRobinCombo({
         timeoutMs: queueTimeout,
       });
     } catch (err) {
-      if (err.code === "SEMAPHORE_TIMEOUT") {
-        log.warn("COMBO-RR", `Semaphore timeout for ${modelStr}, trying next model`);
+      if (err.code === "SEMAPHORE_TIMEOUT" || err.code === "SEMAPHORE_QUEUE_FULL") {
+        log.warn(
+          "COMBO-RR",
+          `Semaphore ${err.code === "SEMAPHORE_QUEUE_FULL" ? "queue full" : "timeout"} for ${modelStr}, trying next model`
+        );
         if (offset > 0) fallbackCount++;
         continue;
       }

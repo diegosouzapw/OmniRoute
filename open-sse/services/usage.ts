@@ -19,10 +19,10 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
+  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
-import { googApiClientHeader } from "./cloudCodeHeaders.ts";
 import {
   getAntigravityRemainingCredits,
   updateAntigravityRemainingCredits,
@@ -70,6 +70,10 @@ const CURSOR_USAGE_CONFIG = {
   userMetaUrl: "https://www.cursor.com/api/auth/me",
   subscriptionUrl: "https://www.cursor.com/api/subscription",
   clientVersion: CURSOR_REGISTRY_VERSION,
+};
+
+const NANOGPT_CONFIG = {
+  usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
 };
 
 const MINIMAX_USAGE_CONFIG = {
@@ -596,6 +600,86 @@ async function getBailianCodingPlanUsage(
 }
 
 /**
+ * NanoGPT Usage
+ * Fetches subscription-level quota from the NanoGPT API.
+ * Returns daily/weekly token limits and daily image limits for PRO accounts.
+ */
+async function getNanoGptUsage(apiKey: string) {
+  if (!apiKey) {
+    return { message: "NanoGPT API key not available. Add a key to view usage." };
+  }
+
+  try {
+    const res = await fetch(NANOGPT_CONFIG.usageUrl, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) return { message: "Invalid NanoGPT API key." };
+      return { message: `NanoGPT quota API error (${res.status})` };
+    }
+
+    const data = toRecord(await res.json());
+    const quotas: Record<string, UsageQuota> = {};
+
+    // active -> PRO, otherwise FREE
+    const plan = data.active ? "PRO" : "FREE";
+
+    if (data.active) {
+      // 1. Tokens limit
+      // dailyInputTokens if exists, else weeklyInputTokens
+      let tokenQuota = toRecord(data.dailyInputTokens);
+      let tokenLabel = "Daily Tokens";
+      if (!tokenQuota.resetAt) {
+        const weeklyQuota = toRecord(data.weeklyInputTokens);
+        if (weeklyQuota.remaining !== undefined) {
+          tokenQuota = weeklyQuota;
+          tokenLabel = "Weekly Tokens";
+        }
+      }
+
+      if (tokenQuota.remaining !== undefined) {
+        const used = toNumber(tokenQuota.used, 0);
+        const remaining = toNumber(tokenQuota.remaining, 0);
+        const total = used + remaining;
+        quotas[tokenLabel] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(tokenQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(tokenQuota.resetAt),
+          unlimited: false,
+        };
+      }
+
+      // 2. Images limit
+      const imageQuota = toRecord(data.dailyImages);
+      if (imageQuota.remaining !== undefined) {
+        const used = toNumber(imageQuota.used, 0);
+        const remaining = toNumber(imageQuota.remaining, 0);
+        const total = used + remaining;
+        quotas["Daily Images"] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(imageQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(imageQuota.resetAt),
+          unlimited: false,
+        };
+      }
+
+      if (Object.keys(quotas).length === 0) {
+        return { plan, message: "NanoGPT connected, but no active limits found." };
+      }
+    }
+
+    return { plan, quotas };
+  } catch (error) {
+    return { message: `NanoGPT connected. Unable to fetch usage: ${(error as Error).message}` };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
@@ -635,6 +719,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getCursorUsage(accessToken);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
+    case "nanogpt":
+      return await getNanoGptUsage(apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1427,7 +1513,7 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": googApiClientHeader(),
+        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
         Accept: "text/event-stream",
       };
 

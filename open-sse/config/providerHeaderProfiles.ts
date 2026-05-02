@@ -46,25 +46,25 @@ export function getGitHubCopilotChatHeaders(
   };
 }
 
-function getRuntimePlatform(): string {
+export function getRuntimePlatform(): string {
   return typeof process !== "undefined" && typeof process.platform === "string"
     ? process.platform
     : "unknown";
 }
 
-function getRuntimeArch(): string {
+export function getRuntimeArch(): string {
   return typeof process !== "undefined" && typeof process.arch === "string"
     ? process.arch
     : "unknown";
 }
 
-function getRuntimeVersion(): string {
+export function getRuntimeVersion(): string {
   return typeof process !== "undefined" && typeof process.version === "string"
     ? process.version
     : "unknown";
 }
 
-function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): string {
+export function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): string {
   const normalized = platform.toLowerCase();
   if (normalized.includes("ios")) return "iOS";
   if (normalized === "android") return "Android";
@@ -76,7 +76,7 @@ function normalizeStainlessPlatform(platform: string = getRuntimePlatform()): st
   return normalized ? `Other:${normalized}` : "Unknown";
 }
 
-function normalizeStainlessArch(arch: string = getRuntimeArch()): string {
+export function normalizeStainlessArch(arch: string = getRuntimeArch()): string {
   if (arch === "x32") return "x32";
   if (arch === "x86_64" || arch === "x64") return "x64";
   if (arch === "arm") return "arm";

@@ -96,6 +96,14 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
 
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.deepEqual(Object.keys(result), [
+    "project",
+    "model",
+    "userAgent",
+    "requestType",
+    "requestId",
+    "request",
+  ]);
   assert.equal(result.userAgent, "antigravity");
   assert.ok(result.request.sessionId);
   assert.deepEqual(result.request.toolConfig, {

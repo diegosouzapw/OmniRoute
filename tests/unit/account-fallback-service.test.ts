@@ -405,7 +405,7 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
 
 // Provider-level failure circuit breaker tests
 test("isProviderFailureCode correctly identifies provider-wide transient error codes", () => {
-  assert.equal(isProviderFailureCode(429), true);
+  assert.equal(isProviderFailureCode(429), false);
   assert.equal(isProviderFailureCode(408), true);
   assert.equal(isProviderFailureCode(500), true);
   assert.equal(isProviderFailureCode(502), true);
@@ -431,14 +431,16 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
     assert.equal(isProviderInCooldown(provider), false);
     assert.equal(getProviderCooldownRemainingMs(provider), null);
 
-    // Record 4 failures - should not trigger cooldown yet
-    for (let i = 0; i < 4; i++) {
+    const threshold = PROVIDER_PROFILES.apikey.circuitBreakerThreshold;
+
+    // Record failures up to threshold - 1
+    for (let i = 0; i < threshold - 1; i++) {
       recordProviderFailure(provider);
       now += 1000; // 1 second between failures
     }
     assert.equal(isProviderInCooldown(provider), false);
 
-    // 5th failure - should trigger cooldown
+    // Final failure to trigger threshold
     recordProviderFailure(provider);
     assert.equal(isProviderInCooldown(provider), true);
 
@@ -450,7 +452,7 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
     // Check getProvidersInCooldown returns the provider
     const inCooldown = getProvidersInCooldown();
     assert.ok(inCooldown.some((p) => p.provider === provider));
-    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, 5);
+    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, threshold);
 
     // Simulate cooldown expiration
     now += 11 * 60 * 1000; // 11 minutes later
@@ -511,7 +513,8 @@ test("clearProviderFailure removes provider from cooldown", () => {
     clearProviderFailure(provider);
 
     // Trigger cooldown
-    for (let i = 0; i < 5; i++) {
+    const threshold = PROVIDER_PROFILES.apikey.circuitBreakerThreshold;
+    for (let i = 0; i < threshold; i++) {
       recordProviderFailure(provider);
       now += 1000;
     }

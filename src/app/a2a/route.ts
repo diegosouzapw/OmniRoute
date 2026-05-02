@@ -79,7 +79,7 @@ function authenticate(req: NextRequest): boolean {
 function jsonRpcError(id: string | number | null, code: number, message: string, data?: unknown) {
   return NextResponse.json(
     { jsonrpc: "2.0", id, error: { code, message, data } },
-    { status: code === -32600 ? 503 : code === -32601 ? 404 : code === -32603 ? 500 : 200 }
+    { status: code === -32600 ? 400 : code === -32601 ? 404 : code === -32603 ? 500 : 200 }
   );
 }
 

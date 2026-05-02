@@ -54,3 +54,22 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   assert.ok(all.some((model) => model.id === "voyage-ai/rerank-2.5"));
   assert.ok(all.some((model) => model.id === "jina-ai/jina-reranker-v3"));
 });
+
+test("upstage embedding registry exposes current embedding models", () => {
+  const provider = getEmbeddingProvider("upstage");
+
+  assert.ok(provider);
+  assert.equal(provider.baseUrl, "https://api.upstage.ai/v1/embeddings");
+  assert.ok(provider.models.some((model) => model.id === "embedding-query"));
+  assert.ok(provider.models.some((model) => model.id === "embedding-passage"));
+
+  const parsed = parseEmbeddingModel("upstage/embedding-query");
+  assert.equal(parsed.provider, "upstage");
+  assert.equal(parsed.model, "embedding-query");
+
+  const all = getAllEmbeddingModels().filter((model) => model.provider === "upstage");
+  assert.deepEqual(
+    all.map((model) => model.id),
+    ["upstage/embedding-query", "upstage/embedding-passage"]
+  );
+});

@@ -982,9 +982,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                   if (extracted) {
                     usage = extracted;
                   }
-                  // Track content length and accumulate for call log
-                  if (parsed.delta && typeof parsed.delta === "string") {
+                  // Keep generic Responses deltas for fallback usage estimates,
+                  // but only visible text deltas may become assistant content in
+                  // logs/replay payloads.
+                  if (typeof parsed.delta === "string") {
                     totalContentLength += parsed.delta.length;
+                  }
+                  if (
+                    parsed.type === "response.output_text.delta" &&
+                    typeof parsed.delta === "string"
+                  ) {
                     passthroughAccumulatedContent = appendBoundedText(
                       passthroughAccumulatedContent,
                       parsed.delta

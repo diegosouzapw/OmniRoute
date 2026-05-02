@@ -1182,6 +1182,24 @@ export class CodexExecutor extends BaseExecutor {
       body.service_tier = requestDefaults.serviceTier;
     }
 
+    // Issue #1832 & #1853: Map messages to input for clients like Cursor 5.5 that use responses/compact but send messages instead of input.
+    // This MUST run before convertSystemToDeveloperRole and stripStoredItemReferences.
+    if (!body.input && Array.isArray(body.messages)) {
+      body.input = body.messages.map((msg: any) => ({
+        type: "message",
+        role: typeof msg.role === "string" ? msg.role : "user",
+        content:
+          typeof msg.content === "string"
+            ? [{ type: "input_text", text: msg.content }]
+            : Array.isArray(msg.content)
+              ? msg.content.map((c: any) => {
+                  if (c && c.type === "text") return { type: "input_text", text: c.text };
+                  return c;
+                })
+              : [],
+      }));
+    }
+
     // ── Cache-aware system prompt handling (both paths) ──
     //
     // Convert system → developer role IN-PLACE so system prompts remain in the
@@ -1250,23 +1268,6 @@ export class CodexExecutor extends BaseExecutor {
     // The /codex/responses endpoint does not persist responses even with store=true,
     // so any references to previous response items would cause 404 errors.
     stripStoredItemReferences(body);
-
-    // Issue #1832: Map messages to input for clients like Cursor 5.5 that use responses/compact but send messages instead of input
-    if (!body.input && Array.isArray(body.messages)) {
-      body.input = body.messages.map((msg: any) => ({
-        type: "message",
-        role: typeof msg.role === "string" ? msg.role : "user",
-        content:
-          typeof msg.content === "string"
-            ? [{ type: "input_text", text: msg.content }]
-            : Array.isArray(msg.content)
-              ? msg.content.map((c: any) => {
-                  if (c && c.type === "text") return { type: "input_text", text: c.text };
-                  return c;
-                })
-              : [],
-      }));
-    }
 
     // Issue #806: Even for native passthrough, some clients (purist completions) might indiscriminately inject
     // a `messages` or `prompt` array which the strict Codex Responses schema rejects.

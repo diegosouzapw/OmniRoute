@@ -127,7 +127,7 @@
     "lowdb": "^7.0.1",
     "monaco-editor": "^0.55.1",
     "next": "^16.2.3",
-    "next-intl": "^4.8.3",
+    "next-intl": "^4.11.0",
     "node-machine-id": "^1.1.12",
     "open": "^11.0.0",
     "ora": "^9.1.0",

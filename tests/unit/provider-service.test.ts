@@ -101,6 +101,19 @@ test("Registry-driven headers support x-goog-api-key and bearer fallback", () =>
   assert.equal(accessTokenHeaders.Authorization, "Bearer gemini-access-token");
 });
 
+test("Registry-driven headers support Key auth", () => {
+  const headers = buildProviderHeaders(
+    "maritalk",
+    {
+      apiKey: "maritalk-key",
+    },
+    true
+  );
+
+  assert.equal(headers.Authorization, "Key maritalk-key");
+  assert.equal(headers.Accept, "text/event-stream");
+});
+
 test("Unknown providers fall back to bearer auth and OpenAI format", () => {
   const headers = buildProviderHeaders(
     "custom-provider",

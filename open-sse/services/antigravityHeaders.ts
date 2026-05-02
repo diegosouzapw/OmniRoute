@@ -3,13 +3,12 @@ import {
   getCachedAntigravityVersion,
   resolveAntigravityVersion,
 } from "./antigravityVersion.ts";
-import { googApiClientHeader } from "./cloudCodeHeaders.ts";
 
 /**
- * Antigravity and Gemini CLI header utilities.
+ * Antigravity header utilities.
  *
  * Generates User-Agent strings and API client headers that match
- * the real Antigravity and Gemini CLI binaries.
+ * the real Antigravity client flows.
  *
  * Based on CLIProxyAPI's misc/header_utils.go.
  */
@@ -20,6 +19,7 @@ const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/10.3.0";
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT =
   "google-cloud-sdk vscode_cloudshelleditor/0.1";
+export const ANTIGRAVITY_CREDIT_PROBE_API_CLIENT = "google-genai-sdk/1.30.0 gl-node/v22.21.1";
 const LOAD_CODE_ASSIST_METADATA = Object.freeze({
   ideType: "IDE_UNSPECIFIED",
   platform: "PLATFORM_UNSPECIFIED",
@@ -90,5 +90,9 @@ export function getAntigravityHeaders(
   }
 }
 
+/** X-Goog-Api-Client used by Antigravity's credit probe path. */
+export function getAntigravityCreditProbeApiClientHeader(): string {
+  return ANTIGRAVITY_CREDIT_PROBE_API_CLIENT;
+}
+
 export { ANTIGRAVITY_VERSION };
-export { googApiClientHeader };

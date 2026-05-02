@@ -4669,6 +4669,7 @@
     "flowDiagramCli": "CLI Agent",
     "flowDiagramCliDesc": "Processes with own auth/model",
     "fingerprintSettingsHint": "CLI Fingerprint matching (disguise requests as specific CLI tools) can be configured in",
+    "settingsRoutingLink": "Settings/Routing",
     "openSettings": "Settings"
   },
   "templateNames": {

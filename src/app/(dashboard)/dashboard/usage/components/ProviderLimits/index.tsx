@@ -40,6 +40,7 @@ const PROVIDER_CONFIG = {
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
   minimax: { label: "MiniMax", color: "#7C3AED" },
   "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
+  nanogpt: { label: "NanoGPT", color: "#4F46E5" },
 };
 
 const TIER_FILTERS = [
@@ -301,6 +302,7 @@ export default function ProviderLimits() {
       "kimi-coding": 9,
       minimax: 10,
       "minimax-cn": 11,
+      nanogpt: 12,
     };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)

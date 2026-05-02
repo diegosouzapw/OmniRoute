@@ -814,7 +814,7 @@ test("provider-nodes validate route blocks private provider hosts before fetch",
     })
   );
 
-  assert.equal(response.status, 400);
+  assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), {
     error: "Blocked private or local provider URL",
   });

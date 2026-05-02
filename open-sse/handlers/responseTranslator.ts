@@ -123,10 +123,17 @@ export function translateNonStreamingResponse(
           toString(itemObj.call_id) ||
           toString(itemObj.id) ||
           `call_${Date.now()}_${toolCalls.length}`;
+        let argsToEmit = itemObj.arguments;
+        if (argsToEmit != null && typeof argsToEmit === "object" && !Array.isArray(argsToEmit)) {
+          const cleaned = { ...argsToEmit };
+          for (const [k, v] of Object.entries(cleaned)) {
+            if (v === "" || (Array.isArray(v) && v.length === 0)) delete cleaned[k];
+          }
+          argsToEmit = cleaned;
+        }
+
         const fnArgs =
-          typeof itemObj.arguments === "string"
-            ? itemObj.arguments
-            : JSON.stringify(itemObj.arguments || {});
+          typeof argsToEmit === "string" ? argsToEmit : JSON.stringify(argsToEmit || {});
         const rawName = toString(itemObj.name);
         // Strip Claude OAuth proxy_ prefix using toolNameMap
         const resolvedName = toolNameMap?.get(rawName) ?? rawName;

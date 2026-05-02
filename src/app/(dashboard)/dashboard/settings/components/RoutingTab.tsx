@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 import FallbackChainsEditor from "./FallbackChainsEditor";
+import {
+  CLI_COMPAT_PROVIDER_DISPLAY,
+  CLI_COMPAT_TOGGLE_IDS,
+  normalizeCliCompatProviderId,
+} from "@/shared/constants/cliCompatProviders";
 
 export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({
     alwaysPreserveClientCache: "auto",
     antigravitySignatureCacheMode: "enabled",
+    cliCompatProviders: [],
   });
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
@@ -38,6 +44,26 @@ export default function RoutingTab() {
     } catch (err) {
       console.error("Failed to update settings:", err);
     }
+  };
+
+  const cliCompatProviders = useMemo(
+    () =>
+      Array.isArray(settings.cliCompatProviders)
+        ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        : [],
+    [settings.cliCompatProviders]
+  );
+  const cliCompatProviderSet = useMemo(() => new Set(cliCompatProviders), [cliCompatProviders]);
+
+  const toggleCliCompatProvider = (providerId: string, enabled: boolean) => {
+    const normalizedProviderId = normalizeCliCompatProviderId(providerId);
+    const nextProviders = new Set(cliCompatProviders);
+    if (enabled) {
+      nextProviders.add(normalizedProviderId);
+    } else {
+      nextProviders.delete(normalizedProviderId);
+    }
+    updateSetting({ cliCompatProviders: Array.from(nextProviders) });
   };
 
   return (
@@ -221,6 +247,62 @@ export default function RoutingTab() {
               <p className="text-xs text-text-muted ml-7">{option.desc}</p>
             </button>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              fingerprint
+            </span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{t("cliFingerprint")}</h3>
+            <p className="text-sm text-text-muted">{t("cliFingerprintDesc")}</p>
+            <p className="mt-1 text-xs text-text-muted">
+              {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
+            const normalizedProviderId = normalizeCliCompatProviderId(providerId);
+            const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
+            const checked = cliCompatProviderSet.has(normalizedProviderId);
+            const label = providerDisplay?.name || providerId;
+            const description = providerDisplay?.description || providerId;
+
+            return (
+              <button
+                key={providerId}
+                type="button"
+                onClick={() => toggleCliCompatProvider(providerId, !checked)}
+                disabled={loading}
+                aria-pressed={checked}
+                title={checked ? t("disableFingerprintTitle", { provider: label }) : t("enableFingerprintTitle", { provider: label })}
+                className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
+                  checked
+                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                    : "border-border/50 hover:border-border hover:bg-surface/30"
+                } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+              >
+                <span
+                  className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
+                  aria-hidden="true"
+                >
+                  {checked ? "check_circle" : "radio_button_unchecked"}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}>
+                    {label}
+                  </span>
+                  <span className="mt-1 block text-xs text-text-muted">{description}</span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </Card>
 

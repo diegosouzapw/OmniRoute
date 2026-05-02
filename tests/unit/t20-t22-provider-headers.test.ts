@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 const { antigravityUserAgent } = await import("../../open-sse/services/antigravityHeaders.ts");
-const { geminiCLIUserAgent, GEMINI_CLI_VERSION } =
+const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
   await import("../../open-sse/services/geminiCliHeaders.ts");
 
 test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
@@ -22,8 +22,8 @@ test("T20: gemini CLI fingerprint uses 0.40.1 and normalizes darwin to macos", (
   Object.defineProperty(process, "platform", { value: "darwin" });
   try {
     assert.match(
-      geminiCLIUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.40\.1\/gemini-3-flash \(macos; .*; terminal\) google-api-nodejs-client\/9\.15\.1$/
+      geminiCliUserAgent("gemini-3-flash"),
+      /^GeminiCLI\/0\.40\.1\/gemini-3-flash \(macos; .+; terminal\) google-api-nodejs-client\/9\.15\.1$/
     );
   } finally {
     if (descriptor) {

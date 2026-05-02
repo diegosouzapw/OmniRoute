@@ -1,7 +1,7 @@
 import { BaseExecutor } from "./base.ts";
+import { randomUUID } from "crypto";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { cloudCodeNodeApiClientHeader } from "../services/cloudCodeHeaders.ts";
-import { geminiCLIUserAgent, getGeminiCliLoadCodeAssistMetadata } from "../services/geminiCliHeaders.ts";
+import { getGeminiCliHeaders } from "../services/geminiCliHeaders.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import {
@@ -19,11 +19,14 @@ const ONBOARD_MAX_ATTEMPTS = 10;
 const ONBOARD_DELAY_MS = 5_000;
 const DEFAULT_PROJECT_ID = "default-project";
 const DEFAULT_ONBOARD_TIER = "free-tier";
-const ONBOARD_METADATA = Object.freeze({
+const LOAD_CODE_ASSIST_METADATA = Object.freeze({
   ideType: "IDE_UNSPECIFIED",
   platform: "PLATFORM_UNSPECIFIED",
   pluginType: "GEMINI",
-  duetProject: DEFAULT_PROJECT_ID,
+});
+const ONBOARD_METADATA = Object.freeze({
+  ideType: "IDE_UNSPECIFIED",
+  pluginType: "GEMINI",
 });
 
 // Per-account cache: accessToken -> { projectId, expiresAt }
@@ -45,6 +48,22 @@ function normalizeGeminiModel(model: string): string {
   return typeof model === "string" && model.trim().length > 0
     ? model.replace(/^models\//, "").trim()
     : "unknown";
+}
+
+function generateGeminiCliRequestId(): string {
+  return `agent-${randomUUID()}`;
+}
+
+function generateGeminiCliSessionId(): string {
+  return `-${Date.now()}`;
+}
+
+function cloneGeminiCliRecord(value: Record<string, any>): Record<string, any> {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
+
+  return JSON.parse(JSON.stringify(value));
 }
 
 function extractProjectId(payload: unknown): string {
@@ -107,25 +126,23 @@ export class GeminiCLIExecutor extends BaseExecutor {
     return `${this.config.baseUrl}:${action}`;
   }
 
-  buildHeaders(credentials, stream = true, clientHeaders = null, model = "unknown") {
+  buildHeaders(credentials, stream = true, clientHeaders?: Record<string, string> | null, model?: string) {
     void clientHeaders;
-    const normalizedModel = normalizeGeminiModel(model);
-    const raw = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${credentials.accessToken}`,
-      // Dynamic headers matching native GeminiCLI client
-      "User-Agent": geminiCLIUserAgent(normalizedModel),
-      "X-Goog-Api-Client": cloudCodeNodeApiClientHeader(),
-      Accept: stream ? "*/*" : "application/json",
-    };
+    const raw = getGeminiCliHeaders(
+      normalizeGeminiModel(model || "unknown"),
+      credentials.accessToken,
+      stream ? "*/*" : "application/json"
+    );
     return scrubProxyAndFingerprintHeaders(raw);
   }
 
   async onboardManagedProject(
     accessToken: string,
     tierId = DEFAULT_ONBOARD_TIER,
-    options: OnboardOptions = {}
+    options: OnboardOptions = {},
+    model = "unknown"
   ): Promise<string | null> {
+    const currentModel = normalizeGeminiModel(model);
     const attempts =
       Number.isInteger(options.attempts) && options.attempts! > 0
         ? Number(options.attempts)
@@ -151,11 +168,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         try {
           response = await fetch(ONBOARD_USER_URL, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-              "User-Agent": "GeminiCLI/1.0.0",
-            },
+            headers: getGeminiCliHeaders(currentModel, accessToken, "application/json"),
             body: JSON.stringify(requestBody),
             signal: controller.signal,
           });
@@ -197,7 +210,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
    * Native Gemini CLI refreshes this every 30 seconds — OmniRoute stores it once
    * at OAuth connection time, so it goes stale. This method keeps it fresh.
    */
-  async refreshProject(accessToken: string): Promise<string | null> {
+  async refreshProject(accessToken: string, model = "unknown"): Promise<string | null> {
     // Check cache
     const cached = projectCache.get(accessToken);
     if (cached && cached.expiresAt > Date.now()) {
@@ -208,7 +221,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
     const inflight = inflightRefresh.get(accessToken);
     if (inflight) return inflight;
 
-    const promise = this._doRefresh(accessToken);
+    const promise = this._doRefresh(accessToken, model);
     inflightRefresh.set(accessToken, promise);
     try {
       return await promise;
@@ -217,7 +230,8 @@ export class GeminiCLIExecutor extends BaseExecutor {
     }
   }
 
-  async _doRefresh(accessToken: string): Promise<string | null> {
+  async _doRefresh(accessToken: string, model = "unknown"): Promise<string | null> {
+    const currentModel = normalizeGeminiModel(model);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), LOAD_CODE_ASSIST_TIMEOUT_MS);
@@ -226,16 +240,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
       try {
         response = await fetch(LOAD_CODE_ASSIST_URL, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
+          headers: getGeminiCliHeaders(currentModel, accessToken, "application/json"),
           body: JSON.stringify({
-            cloudaicompanionProject: DEFAULT_PROJECT_ID,
-            metadata: {
-              ...getGeminiCliLoadCodeAssistMetadata(),
-              duetProject: DEFAULT_PROJECT_ID,
-            },
+            metadata: { ...LOAD_CODE_ASSIST_METADATA },
           }),
           signal: controller.signal,
         });
@@ -257,7 +264,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         console.warn(
           "[OmniRoute] loadCodeAssist returned no project — attempting managed project onboarding"
         );
-        projectId = await this.onboardManagedProject(accessToken, extractDefaultTierId(data));
+        projectId = await this.onboardManagedProject(accessToken, extractDefaultTierId(data), {}, currentModel);
       }
 
       if (!projectId) {
@@ -286,17 +293,42 @@ export class GeminiCLIExecutor extends BaseExecutor {
         ? stripCloudCodeThinkingConfig(body)
         : body;
 
-    // Refresh the project ID via loadCodeAssist (cached for 30s).
-    if (normalizedBody && typeof normalizedBody === "object" && normalizedBody.request) {
-      if (credentials.accessToken) {
-        const freshProject = await this.refreshProject(credentials.accessToken);
-        if (freshProject) {
-          normalizedBody.project = freshProject;
-        }
-      }
+    const bodyRecord =
+      normalizedBody && typeof normalizedBody === "object"
+        ? (normalizedBody as Record<string, any>)
+        : { request: {} };
+    const requestRecord =
+      bodyRecord.request && typeof bodyRecord.request === "object"
+        ? cloneGeminiCliRecord(bodyRecord.request as Record<string, any>)
+        : {};
 
+    const envelope: Record<string, any> = {
+      model: currentModel,
+      project: bodyRecord.project || credentials.projectId || "",
+      user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
+      request: {
+        ...requestRecord,
+        session_id: requestRecord.session_id || generateGeminiCliSessionId(),
+      },
+    };
+
+    for (const [key, value] of Object.entries(bodyRecord)) {
+      if (!(key in envelope) && key !== "request") {
+        envelope[key] = value;
+      }
+    }
+
+    // Refresh the project ID via loadCodeAssist (cached for 30s).
+    if (credentials.accessToken) {
+      const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
+      if (freshProject) {
+        envelope.project = freshProject;
+      }
+    }
+
+    if (envelope.request) {
       // Obfuscate sensitive client names in user content
-      const contents = normalizedBody.request?.contents;
+      const contents = envelope.request?.contents;
       if (Array.isArray(contents)) {
         for (const msg of contents) {
           if (Array.isArray(msg.parts)) {
@@ -309,7 +341,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
         }
       }
     }
-    return normalizedBody;
+    return envelope;
   }
 
   async refreshCredentials(credentials, log) {

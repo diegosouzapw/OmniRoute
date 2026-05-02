@@ -67,6 +67,10 @@ import {
   normalizeRunwayBaseUrl,
 } from "@omniroute/open-sse/config/runway.ts";
 import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
+import {
+  buildMaritalkChatUrl,
+  buildMaritalkModelsUrl,
+} from "@omniroute/open-sse/config/maritalk.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
@@ -218,6 +222,18 @@ function buildRekaHeaders(apiKey: string, providerSpecificData: any = {}) {
 }
 
 function buildClarifaiHeaders(apiKey: string, providerSpecificData: any = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers.Authorization = `Key ${apiKey}`;
+  }
+
+  return applyCustomUserAgent(headers, providerSpecificData);
+}
+
+function buildKeyHeaders(apiKey: string, providerSpecificData: any = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -1542,6 +1558,59 @@ async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) 
   }
 
   return { valid: false, error: "Connection failed while testing Reka" };
+}
+
+async function validateMaritalkProvider({ apiKey, providerSpecificData = {} }: any) {
+  const entry = getRegistryEntry("maritalk");
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl || entry?.baseUrl);
+  const headers = buildKeyHeaders(apiKey, providerSpecificData);
+
+  try {
+    const modelsRes = await validationRead(buildMaritalkModelsUrl(baseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null, method: "maritalk_models" };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (modelsRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "maritalk_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (modelsRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${modelsRes.status})` };
+    }
+  } catch {
+    // Fall through to the chat probe when /models cannot be reached.
+  }
+
+  const modelId =
+    typeof providerSpecificData?.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : entry?.models?.[0]?.id || "sabia-4";
+
+  return validateDirectChatProvider({
+    url: buildMaritalkChatUrl(baseUrl),
+    headers,
+    body: {
+      model: modelId,
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
 }
 
 async function validateNlpCloudProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2880,6 +2949,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
+    maritalk: validateMaritalkProvider,
     nlpcloud: validateNlpCloudProvider,
     runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,

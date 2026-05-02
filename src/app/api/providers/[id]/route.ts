@@ -124,10 +124,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       rateLimitedUntil,
       lastTested,
       healthCheckInterval,
+      group,
+      maxConcurrent,
       providerSpecificData: incomingPsd,
     } = body;
 
-    const existing = await getProviderConnectionById(id);
+    const existing = (await getProviderConnectionById(id)) as Record<string, any> | null;
     if (!existing) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
@@ -148,6 +150,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (rateLimitedUntil !== undefined) updateData.rateLimitedUntil = rateLimitedUntil;
     if (lastTested !== undefined) updateData.lastTested = lastTested;
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
+    if (group !== undefined) updateData.group = group;
+    if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {
@@ -240,7 +244,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
 
     // Fetch connection before deleting to check provider type
-    const connection = await getProviderConnectionById(id);
+    const connection = (await getProviderConnectionById(id)) as Record<string, any> | null;
     if (!connection) {
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }

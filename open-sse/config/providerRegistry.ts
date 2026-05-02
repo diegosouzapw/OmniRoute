@@ -6,7 +6,6 @@
  * is auto-generated from this registry.
  */
 
-import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
 import {
@@ -24,6 +23,7 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
+import { MARITALK_DEFAULT_BASE_URL } from "./maritalk.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -32,6 +32,8 @@ import {
   getKiroServiceHeaders,
   getQoderDefaultHeaders,
   getQwenOauthHeaders,
+  getRuntimePlatform,
+  getRuntimeArch,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
@@ -191,7 +193,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "allenai/Olmo-3-32B-Think",
   ]),
-  moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
+  moonshot: buildModels(["kimi-k2.6", "kimi-k2.5"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
@@ -226,8 +228,8 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
-  upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
-  maritalk: buildModels(["sabia-3", "sabia-3-small"]),
+  upstage: buildModels(["solar-pro3", "solar-mini"]),
+  maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
   "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
@@ -244,7 +246,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
 };
 
 function mapStainlessOs() {
-  switch (platform()) {
+  switch (getRuntimePlatform()) {
     case "darwin":
       return "MacOS";
     case "win32":
@@ -252,12 +254,12 @@ function mapStainlessOs() {
     case "linux":
       return "Linux";
     default:
-      return `Other::${platform()}`;
+      return `Other::${getRuntimePlatform()}`;
   }
 }
 
 function mapStainlessArch() {
-  switch (arch()) {
+  switch (getRuntimeArch()) {
     case "x64":
       return "x64";
     case "arm64":
@@ -265,7 +267,7 @@ function mapStainlessArch() {
     case "ia32":
       return "x86";
     default:
-      return `other::${arch()}`;
+      return `other::${getRuntimeArch()}`;
   }
 }
 
@@ -1126,10 +1128,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast" },
-      { id: "expert", name: "Grok 4.20 Thinking" },
-      { id: "heavy", name: "Grok 4.20 Multi Agent" },
-      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)" },
+      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
+      { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
+      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
     ],
   },
 
@@ -1965,9 +1967,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "maritalk",
     format: "openai",
     executor: "default",
-    baseUrl: "https://chat.maritaca.ai/api/chat/inference",
+    baseUrl: MARITALK_DEFAULT_BASE_URL,
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "key",
     models: CHAT_OPENAI_COMPAT_MODELS.maritalk,
   },
 

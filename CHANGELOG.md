@@ -15,6 +15,8 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(codex):** sanitize Responses replay state to prevent internal assistant commentary from leaking (#1868 — thanks @dhaern)
+- **fix(cli):** add capture-backed Gemini CLI fingerprint (#1866)
 - **fix(ui):** hide combo compression controls when the global setting is disabled (#1840)
 - **fix(db):** tolerate missing request_detail_logs table for legacy deployments (#1848)
 - **fix(core):** remove unneeded \`store\` payload parameter for providers lacking support (closes #1841)
@@ -22,6 +24,11 @@
 - **fix(usage):** correct Unix seconds vs milliseconds parsing logic for Kiro AI quota reset (closes #1849)
 - **fix(ui):** apply robust NaN handling, ensure 24h consistency, and fix missing hour slots in Compression Analytics (closes #1844)
 - **fix(ui):** implement short number formatting for token consumption metrics on cache pages to prevent overflow (closes #1842)
+- **fix(combo):** stabilize provider routing at 500+ connections by bounding semaphore queues and adjusting circuit breaker tracking (closes #1846) (#1854)
+- **fix(maritalk):** update Maritalk model list, use Authorization Key header, and align with latest API endpoints (#1856)
+- **fix(grok-web):** stabilize tool calling (bash, readFile, webSearch) and response parsing by mapping native Grok intents to standard OpenAI payloads (#1857)
+- **fix(providers):** correctly map and expose the Upstage embedding and chat model catalogs (#1855)
+- **fix(executor):** apply proper urlSuffix and custom authHeaders for unknown registry-based providers in DefaultExecutor (closes #1846) (#1861)
 
 ### 🛠️ Maintenance
 

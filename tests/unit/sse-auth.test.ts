@@ -169,9 +169,9 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
   quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 96 : 40,
+    used: connectionId === blocked.id ? 99 : 40,
     total: 100,
-    percentUsed: connectionId === blocked.id ? 0.96 : 0.4,
+    percentUsed: connectionId === blocked.id ? 0.99 : 0.4,
   }));
 
   const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");

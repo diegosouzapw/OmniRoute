@@ -68,46 +68,6 @@ antigravity-manager-analysis/
 .sisyphus/
 .plans/
 
-# docs (allow specific tracked files)
-docs/*
-!docs/ARCHITECTURE.md
-!docs/CODEBASE_DOCUMENTATION.md
-!docs/CONTRIBUTING.md
-!docs/USER_GUIDE.md
-!docs/API_REFERENCE.md
-!docs/TERMUX_GUIDE.md
-!docs/TROUBLESHOOTING.md
-!docs/EXECUTION_CONTEXT_PROVIDER_SYNC.md
-!docs/TASK_NEBIUS_BACKEND_ENABLEMENT.md
-!docs/frontend-backend-provider-gap-report.md
-!docs/openapi.yaml
-!docs/RELEASE_CHECKLIST.md
-!docs/PLANO-IMPLANTACAO.md
-!docs/TASKS.md
-!docs/FASE-*.md
-!docs/adr/
-!docs/cli-tools/
-!docs/planning/
-!docs/improvement-plans/
-!docs/api/
-!docs/VM_DEPLOYMENT_GUIDE.md
-!docs/FEATURES.md
-!docs/screenshots/
-!docs/i18n/
-!docs/i18n/**
-!docs/features/
-!docs/features/**
-!docs/A2A-SERVER.md
-!docs/AUTO-COMBO.md
-!docs/MCP-SERVER.md
-!docs/CLI-TOOLS.md
-!docs/COVERAGE_PLAN.md
-!docs/ENVIRONMENT.md
-!docs/UNINSTALL.md
-!docs/I18N.md
-!docs/FLY_IO_DEPLOYMENT_GUIDE.md
-
-
 # open-sse tests
 open-sse/test/*
 

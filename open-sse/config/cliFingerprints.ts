@@ -44,16 +44,19 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
     ],
     bodyFieldOrder: [
       "model",
-      "messages",
-      "temperature",
-      "top_p",
-      "max_tokens",
       "stream",
+      "input",
+      "instructions",
+      "store",
+      "reasoning",
       "tools",
       "tool_choice",
-      "response_format",
-      "n",
-      "stop",
+      "include",
+      "service_tier",
+      "prompt_cache_key",
+      "client_metadata",
+      "parallel_tool_calls",
+      "metadata",
     ],
     // Codex builds mode-specific client headers in its executor/config. The CLI fingerprint must
     // only preserve ordering here; overriding User-Agent with a generic value would erase the
@@ -190,18 +193,14 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
     headerOrder: [
       "Host",
       "Content-Type",
-      "Authorization",
       "User-Agent",
       "X-Goog-Api-Client",
       "Accept",
       "Accept-Encoding",
+      "Connection",
+      "Authorization",
     ],
-    bodyFieldOrder: [
-      "model",
-      "project",
-      "user_prompt_id",
-      "request",
-    ],
+    bodyFieldOrder: ["model", "project", "user_prompt_id", "request"],
   },
   qwen: {
     headerOrder: [

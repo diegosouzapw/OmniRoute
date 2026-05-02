@@ -56,7 +56,16 @@ type ModelFailureState = {
 
 // Provider-level failure tracking for circuit breaker behavior
 // Error codes that count toward provider-level failure threshold
-const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
+// 429 (rate limit) is intentionally excluded: rate limits are connection-scoped
+// and handled via Connection Cooldown, not provider-wide circuit breaker.
+// Counting 429 toward provider failure causes cascading provider trips at scale
+// when many connections hit rate limits simultaneously (Issue #1846).
+const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 500, 502, 503, 504]);
+
+// Per-connection failure deduplication: prevents rapid-fire failures from the
+// same connection from counting multiple times toward the provider breaker.
+const CONNECTION_FAILURE_DEDUP_MS = 5000;
+const lastConnectionFailure = new Map<string, number>();
 
 // T06 (sub2api PR #1037): Signals that indicate permanent account deactivation.
 // When a 401 body contains these strings, the account is permanently dead
@@ -541,14 +550,29 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
-  log?: { warn?: (...args: unknown[]) => void }
+  log?: { warn?: (...args: unknown[]) => void },
+  connectionId?: string | null
 ): void {
   if (!provider) return;
+
+  // Deduplicate rapid-fire failures from the same connection
+  if (connectionId) {
+    const dedupKey = `${provider}:${connectionId}`;
+    const now = Date.now();
+    const lastFailure = lastConnectionFailure.get(dedupKey);
+    if (lastFailure && now - lastFailure < CONNECTION_FAILURE_DEDUP_MS) {
+      return;
+    }
+    // Prevent memory leak by clearing map if it grows too large
+    if (lastConnectionFailure.size > 10000) {
+      lastConnectionFailure.clear();
+    }
+    lastConnectionFailure.set(dedupKey, now);
+  }
 
   const breaker = getProviderBreaker(provider);
   if (!breaker) return;
 
-  // Skip if already in cooldown to prevent timer reset (indefinite lockout bug)
   if (!breaker.canExecute()) return;
 
   breaker._onFailure();

@@ -82,9 +82,9 @@ test("preflightQuota warns but proceeds when usage is above the warning threshol
 test("preflightQuota blocks when usage reaches the exhaustion threshold", async () => {
   const infos = [];
   registerQuotaFetcher("provider-exhausted", async () => ({
-    used: 95,
+    used: 99,
     total: 100,
-    percentUsed: 0.95,
+    percentUsed: 0.99,
   }));
 
   const result = await withPatchedConsole(
@@ -101,7 +101,7 @@ test("preflightQuota blocks when usage reaches the exhaustion threshold", async 
   assert.deepEqual(result, {
     proceed: false,
     reason: "quota_exhausted",
-    quotaPercent: 0.95,
+    quotaPercent: 0.99,
     resetAt: null,
   });
   assert.equal(infos.length, 1);

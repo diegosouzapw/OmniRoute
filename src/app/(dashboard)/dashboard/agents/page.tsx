@@ -403,8 +403,8 @@ export default function AgentsPage() {
           <span className="material-symbols-outlined text-[14px] text-text-muted">fingerprint</span>
           <p className="text-xs text-text-muted">
             {t("fingerprintSettingsHint")}{" "}
-            <Link href="/dashboard/settings" className="text-primary hover:underline">
-              {t("openSettings")}
+            <Link href="/dashboard/settings?tab=routing" className="text-primary hover:underline">
+              {t("settingsRoutingLink")}
             </Link>
           </p>
         </div>

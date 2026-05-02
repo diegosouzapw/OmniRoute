@@ -66,6 +66,17 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  upstage: {
+    id: "upstage",
+    baseUrl: "https://api.upstage.ai/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "embedding-query", name: "Embedding Query", dimensions: 4096 },
+      { id: "embedding-passage", name: "Embedding Passage", dimensions: 4096 },
+    ],
+  },
+
   mistral: {
     id: "mistral",
     baseUrl: "https://api.mistral.ai/v1/embeddings",

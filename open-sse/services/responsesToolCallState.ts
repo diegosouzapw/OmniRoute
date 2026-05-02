@@ -28,6 +28,38 @@ function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
 }
 
+function isResponsesMessageItem(record: JsonRecord): boolean {
+  return record.type === "message" || (!record.type && typeof record.role === "string");
+}
+
+function isInternalAssistantMessage(record: JsonRecord): boolean {
+  if (!isResponsesMessageItem(record)) return false;
+  if (record.role !== "assistant") return false;
+
+  const phase = typeof record.phase === "string" ? record.phase.trim().toLowerCase() : "";
+  if (!phase) return false;
+
+  // OpenCode can send assistant-side commentary/analysis frames in Responses
+  // shape. Those frames are local runtime state, not durable conversation turns
+  // for Codex replay. Re-injecting them makes the model continue hidden notes.
+  return phase !== "final";
+}
+
+function sanitizeRememberedConversationItems(items: readonly unknown[]): unknown[] {
+  const sanitized: unknown[] = [];
+
+  for (const item of items) {
+    const record = toRecord(item);
+    if (record && isInternalAssistantMessage(record)) {
+      continue;
+    }
+
+    sanitized.push(structuredClone(item));
+  }
+
+  return sanitized;
+}
+
 function cleanupRememberedResponseToolCalls(now: number = Date.now()) {
   for (const [responseId, entry] of rememberedResponseToolCalls.entries()) {
     if (entry.expiresAt <= now) {
@@ -122,7 +154,7 @@ export function rememberResponseFunctionCalls(
 
   rememberedResponseToolCalls.set(normalizedResponseId, {
     functionCalls,
-    conversationItems: existingEntry?.conversationItems?.map((item) => structuredClone(item)) || [],
+    conversationItems: sanitizeRememberedConversationItems(existingEntry?.conversationItems || []),
     updatedAt: now,
     expiresAt: now + RESPONSE_TOOL_CALL_TTL_MS,
   });
@@ -140,7 +172,10 @@ export function rememberResponseConversationState(
 
   const normalizedRequestInput = Array.isArray(requestInput) ? requestInput : [];
   const normalizedOutputItems = Array.isArray(outputItems) ? outputItems : [];
-  const conversationItems = [...normalizedRequestInput, ...normalizedOutputItems];
+  const conversationItems = sanitizeRememberedConversationItems([
+    ...normalizedRequestInput,
+    ...normalizedOutputItems,
+  ]);
   if (conversationItems.length === 0) {
     return;
   }
@@ -150,7 +185,7 @@ export function rememberResponseConversationState(
   const existingEntry = rememberedResponseToolCalls.get(normalizedResponseId);
   rememberedResponseToolCalls.set(normalizedResponseId, {
     functionCalls: existingEntry?.functionCalls?.map((functionCall) => ({ ...functionCall })) || [],
-    conversationItems: conversationItems.map((item) => structuredClone(item)),
+    conversationItems,
     updatedAt: Date.now(),
     expiresAt: Date.now() + RESPONSE_TOOL_CALL_TTL_MS,
   });
@@ -185,7 +220,7 @@ export function getRememberedResponseConversationItems(responseId: unknown): unk
     return [];
   }
 
-  return entry.conversationItems.map((item) => structuredClone(item));
+  return sanitizeRememberedConversationItems(entry.conversationItems);
 }
 
 export function getRememberedFunctionCallsByIds(

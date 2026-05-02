@@ -1845,6 +1845,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  "nanogpt",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

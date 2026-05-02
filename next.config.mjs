@@ -102,11 +102,6 @@ const nextConfig = {
         })
       );
 
-      // Mark @ngrok/ngrok as external to prevent webpack from trying to bundle its .node binaries
-      config.externals = config.externals || [];
-      config.externals.push({
-        "@ngrok/ngrok": "commonjs @ngrok/ngrok",
-      });
       // ── Turbopack / Next.js 16 module-hash patch (#394, #396, #398) ────────
       //
       // Next.js 16 (with or without Turbopack) compiles the instrumentation hook
@@ -128,6 +123,7 @@ const nextConfig = {
       const KNOWN_EXTERNALS = new Set([
         "better-sqlite3",
         "keytar",
+        "@ngrok/ngrok",
         "wreq-js",
         "zod",
         "pino",
@@ -181,6 +177,7 @@ const nextConfig = {
         tls: false,
         crypto: false,
         process: false,
+        os: false,
       };
     }
     return config;

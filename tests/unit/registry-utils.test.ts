@@ -168,6 +168,12 @@ test("buildAuthHeaders: returns Token header for token authHeader", () => {
   assert.deepEqual(headers, { Authorization: "Token hf-token" });
 });
 
+test("buildAuthHeaders: returns Key header for key authHeader", () => {
+  const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "key", authType: "apikey" };
+  const headers = buildAuthHeaders(provider, "maritalk-key");
+  assert.deepEqual(headers, { Authorization: "Key maritalk-key" });
+});
+
 test("buildAuthHeaders: returns x-api-key header", () => {
   const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "x-api-key", authType: "apikey" };
   const headers = buildAuthHeaders(provider, "custom-key");
