@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
     // Use native SQLite backup API for a consistent snapshot
     const db = getDbInstance();
-    await db.backup(tmpPath);
+    db.exec(`VACUUM INTO '${tmpPath}'`);
 
     const fileBuffer = fs.readFileSync(tmpPath);
 

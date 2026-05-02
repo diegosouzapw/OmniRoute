@@ -42,7 +42,9 @@ function rowToWebhook(row: WebhookRow): Webhook {
 
 export function getWebhooks(): Webhook[] {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM webhooks ORDER BY created_at DESC").all() as WebhookRow[];
+  const rows = db
+    .prepare("SELECT * FROM webhooks ORDER BY created_at DESC")
+    .all() as unknown as WebhookRow[];
   return rows.map(rowToWebhook);
 }
 
@@ -54,7 +56,9 @@ export function getWebhook(id: string): Webhook | null {
 
 export function getEnabledWebhooks(): Webhook[] {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM webhooks WHERE enabled = 1").all() as WebhookRow[];
+  const rows = db
+    .prepare("SELECT * FROM webhooks WHERE enabled = 1")
+    .all() as unknown as WebhookRow[];
   return rows.map(rowToWebhook);
 }
 

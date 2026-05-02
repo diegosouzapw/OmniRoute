@@ -1,4 +1,6 @@
 /** Upstream proxy config persistence for upstream_proxy_config table. */
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "./core";
 
 interface UpstreamProxyConfig {
@@ -100,7 +102,7 @@ export async function getUpstreamProxyConfigs() {
   const db = getDbInstance();
   const rows = db
     .prepare("SELECT * FROM upstream_proxy_config ORDER BY provider_id")
-    .all() as UpstreamProxyRow[];
+    .all() as unknown as UpstreamProxyRow[];
   return rows.map((row) => rowToConfig(toRecord(row)));
 }
 
@@ -165,11 +167,11 @@ export async function updateUpstreamProxyConfig(
   }
 
   const sets: string[] = ["updated_at = datetime('now')"];
-  const params: unknown[] = [];
+  const params: SQLInputValue[] = [];
 
   if (updates.mode !== undefined) {
     sets.push("mode = ?");
-    params.push(updates.mode);
+    params.push(updates.mode as SQLInputValue);
   }
   if (updates.cliproxyapiModelMapping !== undefined) {
     sets.push("cliproxyapi_model_mapping = ?");
@@ -181,11 +183,11 @@ export async function updateUpstreamProxyConfig(
   }
   if (updates.nativePriority !== undefined) {
     sets.push("native_priority = ?");
-    params.push(updates.nativePriority);
+    params.push(updates.nativePriority as SQLInputValue);
   }
   if (updates.cliproxyapiPriority !== undefined) {
     sets.push("cliproxyapi_priority = ?");
-    params.push(updates.cliproxyapiPriority);
+    params.push(updates.cliproxyapiPriority as SQLInputValue);
   }
   if (updates.enabled !== undefined) {
     sets.push("enabled = ?");
@@ -214,7 +216,7 @@ export async function getProvidersByMode(mode: string) {
     .prepare(
       "SELECT * FROM upstream_proxy_config WHERE mode = ? AND enabled = 1 ORDER BY provider_id"
     )
-    .all(mode) as UpstreamProxyRow[];
+    .all(mode) as unknown as UpstreamProxyRow[];
   return rows.map((row) => rowToConfig(toRecord(row)));
 }
 

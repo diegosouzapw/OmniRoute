@@ -810,6 +810,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
     const ready = await new Promise<CloudflaredTunnelStatus>((resolve, reject) => {
       let settled = false;
       let timeout: ReturnType<typeof setTimeout> | null = null;
+      let latestStartError: string | null = null;
 
       const settle = (handler: () => void) => {
         if (settled) return;
@@ -825,6 +826,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
         await appendTunnelLog(source, text);
         const errorMessage = source === "stderr" ? extractCloudflaredErrorMessage(text) : null;
         if (errorMessage) {
+          latestStartError = errorMessage;
           await updateStateFile({
             ownerPid: process.pid,
             pid: child.pid,
@@ -857,14 +859,19 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
       });
 
       child.once("exit", (code, signal) => {
-        void finalizeProcessExit(code, signal);
-        settle(() =>
-          reject(
-            new Error(
-              `cloudflared exited before tunnel URL was ready (${code ?? "signal"}${signal ? `/${signal}` : ""})`
-            )
-          )
-        );
+        void (async () => {
+          const exitMessage =
+            latestStartError ||
+            `cloudflared exited before tunnel URL was ready (${code ?? "signal"}${signal ? `/${signal}` : ""})`;
+          await finalizeProcessExit(code, signal);
+          await updateStateFile({
+            ownerPid: process.pid,
+            pid: child.pid,
+            status: "error",
+            lastError: exitMessage,
+          });
+          settle(() => reject(new Error(exitMessage)));
+        })();
       });
 
       timeout = setTimeout(async () => {

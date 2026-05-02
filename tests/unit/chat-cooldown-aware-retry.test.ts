@@ -156,7 +156,7 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
 test("handleChat does not wait when the cooldown exceeds maxRetryIntervalSec", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-cooldown-long",
-    rateLimitedUntil: new Date(Date.now() + 1500).toISOString(),
+    rateLimitedUntil: new Date(Date.now() + 5000).toISOString(),
     lastError: "cooldown too long",
     errorCode: 429,
   });

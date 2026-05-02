@@ -1,5 +1,7 @@
 /** Version manager tool state persistence. */
 
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "./core";
 
 interface VersionManagerRow {
@@ -244,7 +246,7 @@ export async function updateVersionManagerTool(
   ]);
 
   const sets: string[] = ["updated_at = datetime('now')"];
-  const params: Record<string, unknown> = { tool };
+  const params: Record<string, SQLInputValue> = { tool };
 
   for (const [key, value] of Object.entries(updates)) {
     if (!ALLOWED_COLUMNS.has(key)) continue;
@@ -260,7 +262,7 @@ export async function updateVersionManagerTool(
       sets.push(`${dbKey} = null`);
     } else {
       sets.push(`${dbKey} = @${key}`);
-      params[key] = value;
+      params[key] = value as SQLInputValue;
     }
   }
 

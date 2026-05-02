@@ -11,6 +11,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ZodTypeAny } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   getComboModelProvider,
@@ -569,6 +570,12 @@ async function handleWebSearch(args: {
 
 // ============ MCP Server Setup ============
 
+type ToolInputSchema = Parameters<McpServer["registerTool"]>[1]["inputSchema"];
+
+function toolInputSchema(schema: ZodTypeAny): ToolInputSchema {
+  return schema as unknown as ToolInputSchema;
+}
+
 /**
  * Create and configure the OmniRoute MCP Server with all essential tools.
  */
@@ -584,7 +591,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Returns OmniRoute health status including uptime, memory, circuit breakers, rate limits, and cache stats",
-      inputSchema: getHealthInput,
+      inputSchema: toolInputSchema(getHealthInput),
     },
     withScopeEnforcement("omniroute_get_health", async (args) => {
       getHealthInput.parse(args ?? {});
@@ -597,7 +604,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Lists all configured combos (model chains) with strategies and optional metrics",
-      inputSchema: listCombosInput,
+      inputSchema: toolInputSchema(listCombosInput),
     },
     withScopeEnforcement("omniroute_list_combos", (args) =>
       handleListCombos(listCombosInput.parse(args))
@@ -608,7 +615,7 @@ export function createMcpServer(): McpServer {
     "omniroute_get_combo_metrics",
     {
       description: "Returns detailed performance metrics for a specific combo",
-      inputSchema: getComboMetricsInput,
+      inputSchema: toolInputSchema(getComboMetricsInput),
     },
     withScopeEnforcement("omniroute_get_combo_metrics", (args) =>
       handleGetComboMetrics(getComboMetricsInput.parse(args))
@@ -619,7 +626,7 @@ export function createMcpServer(): McpServer {
     "omniroute_switch_combo",
     {
       description: "Activates or deactivates a combo for routing",
-      inputSchema: switchComboInput,
+      inputSchema: toolInputSchema(switchComboInput),
     },
     withScopeEnforcement("omniroute_switch_combo", (args) =>
       handleSwitchCombo(switchComboInput.parse(args))
@@ -630,7 +637,7 @@ export function createMcpServer(): McpServer {
     "omniroute_check_quota",
     {
       description: "Checks remaining API quota for one or all providers",
-      inputSchema: checkQuotaInput,
+      inputSchema: toolInputSchema(checkQuotaInput),
     },
     withScopeEnforcement("omniroute_check_quota", (args) =>
       handleCheckQuota(checkQuotaInput.parse(args))
@@ -641,7 +648,7 @@ export function createMcpServer(): McpServer {
     "omniroute_route_request",
     {
       description: "Sends a chat completion request through OmniRoute intelligent routing",
-      inputSchema: routeRequestInput,
+      inputSchema: toolInputSchema(routeRequestInput),
     },
     withScopeEnforcement("omniroute_route_request", (args) =>
       handleRouteRequest(routeRequestInput.parse(args))
@@ -652,7 +659,7 @@ export function createMcpServer(): McpServer {
     "omniroute_cost_report",
     {
       description: "Generates a cost report for the specified period",
-      inputSchema: costReportInput,
+      inputSchema: toolInputSchema(costReportInput),
     },
     withScopeEnforcement("omniroute_cost_report", (args) =>
       handleCostReport(costReportInput.parse(args))
@@ -663,7 +670,7 @@ export function createMcpServer(): McpServer {
     "omniroute_list_models_catalog",
     {
       description: "Lists all available AI models across providers with capabilities and pricing",
-      inputSchema: listModelsCatalogInput,
+      inputSchema: toolInputSchema(listModelsCatalogInput),
     },
     withScopeEnforcement("omniroute_list_models_catalog", (args) =>
       handleListModelsCatalog(listModelsCatalogInput.parse(args))
@@ -676,7 +683,7 @@ export function createMcpServer(): McpServer {
     "omniroute_simulate_route",
     {
       description: "Simulates the routing path a request would take without executing it (dry-run)",
-      inputSchema: simulateRouteInput,
+      inputSchema: toolInputSchema(simulateRouteInput),
     },
     withScopeEnforcement("omniroute_simulate_route", (args) =>
       handleSimulateRoute(simulateRouteInput.parse(args))
@@ -688,7 +695,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Sets a session budget limit with configurable action when exceeded (degrade/block/alert)",
-      inputSchema: setBudgetGuardInput,
+      inputSchema: toolInputSchema(setBudgetGuardInput),
     },
     withScopeEnforcement("omniroute_set_budget_guard", (args) =>
       handleSetBudgetGuard(setBudgetGuardInput.parse(args))
@@ -700,7 +707,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Updates combo routing strategy at runtime (priority/weighted/round-robin/auto/etc.)",
-      inputSchema: setRoutingStrategyInput,
+      inputSchema: toolInputSchema(setRoutingStrategyInput),
     },
     withScopeEnforcement("omniroute_set_routing_strategy", (args) =>
       handleSetRoutingStrategy(setRoutingStrategyInput.parse(args))
@@ -712,7 +719,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Applies a resilience profile controlling circuit breakers, retries, timeouts, and fallback depth",
-      inputSchema: setResilienceProfileInput,
+      inputSchema: toolInputSchema(setResilienceProfileInput),
     },
     withScopeEnforcement("omniroute_set_resilience_profile", (args) =>
       handleSetResilienceProfile(setResilienceProfileInput.parse(args))
@@ -724,7 +731,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Tests each provider in a combo with a real prompt, reporting latency, cost, and success per provider",
-      inputSchema: testComboInput,
+      inputSchema: toolInputSchema(testComboInput),
     },
     withScopeEnforcement("omniroute_test_combo", (args) =>
       handleTestCombo(testComboInput.parse(args))
@@ -736,7 +743,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Returns detailed metrics for a specific provider including latency percentiles and circuit breaker state",
-      inputSchema: getProviderMetricsInput,
+      inputSchema: toolInputSchema(getProviderMetricsInput),
     },
     withScopeEnforcement("omniroute_get_provider_metrics", (args) =>
       handleGetProviderMetrics(getProviderMetricsInput.parse(args))
@@ -748,7 +755,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Recommends the best combo for a task type based on provider fitness and constraints",
-      inputSchema: bestComboForTaskInput,
+      inputSchema: toolInputSchema(bestComboForTaskInput),
     },
     withScopeEnforcement("omniroute_best_combo_for_task", (args) =>
       handleBestComboForTask(bestComboForTaskInput.parse(args))
@@ -760,7 +767,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Explains why a request was routed to a specific provider, showing scoring factors and fallbacks",
-      inputSchema: explainRouteInput,
+      inputSchema: toolInputSchema(explainRouteInput),
     },
     withScopeEnforcement("omniroute_explain_route", (args) =>
       handleExplainRoute(explainRouteInput.parse(args))
@@ -772,7 +779,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Returns a full snapshot of the current working session: cost, tokens, top models, errors, budget status",
-      inputSchema: getSessionSnapshotInput,
+      inputSchema: toolInputSchema(getSessionSnapshotInput),
     },
     withScopeEnforcement("omniroute_get_session_snapshot", async (args) => {
       getSessionSnapshotInput.parse(args ?? {});
@@ -785,7 +792,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Diagnoses or repairs OmniRoute database drift, including broken combo references and orphan quota/domain rows",
-      inputSchema: dbHealthCheckInput,
+      inputSchema: toolInputSchema(dbHealthCheckInput),
     },
     withScopeEnforcement("omniroute_db_health_check", (args) =>
       handleDbHealthCheck(dbHealthCheckInput.parse(args ?? {}))
@@ -797,7 +804,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Syncs pricing data from external sources (LiteLLM) into OmniRoute without overwriting user-set prices",
-      inputSchema: syncPricingInput,
+      inputSchema: toolInputSchema(syncPricingInput),
     },
     withScopeEnforcement("omniroute_sync_pricing", (args) =>
       handleSyncPricing(syncPricingInput.parse(args))
@@ -809,7 +816,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
-      inputSchema: webSearchInput,
+      inputSchema: toolInputSchema(webSearchInput),
     },
     withScopeEnforcement("omniroute_web_search", (args) =>
       handleWebSearch(webSearchInput.parse(args))
@@ -821,7 +828,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Returns cache statistics including semantic cache hit rate, prompt cache metrics by provider, and idempotency layer stats.",
-      inputSchema: cacheStatsInput,
+      inputSchema: toolInputSchema(cacheStatsInput),
     },
     withScopeEnforcement("omniroute_cache_stats", () => handleCacheStats())
   );
@@ -831,7 +838,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Flush cache entries. Provide signature to invalidate a single entry, model to invalidate all entries for a model, or omit both to clear all.",
-      inputSchema: cacheFlushInput,
+      inputSchema: toolInputSchema(cacheFlushInput),
     },
     withScopeEnforcement("omniroute_cache_flush", (args) =>
       handleCacheFlush(cacheFlushInput.parse(args))
@@ -845,7 +852,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Fetch free proxies from the 1proxy marketplace with optional filters for protocol, country, and quality. Returns validated proxies with quality scores.",
-      inputSchema: oneproxyFetchInput,
+      inputSchema: toolInputSchema(oneproxyFetchInput),
     },
     withScopeEnforcement("omniroute_oneproxy_fetch", (args) =>
       handleOneproxyFetch(oneproxyFetchInput.parse(args))
@@ -857,7 +864,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Get the next available free proxy from the 1proxy pool using the specified rotation strategy.",
-      inputSchema: oneproxyRotateInput,
+      inputSchema: toolInputSchema(oneproxyRotateInput),
     },
     withScopeEnforcement("omniroute_oneproxy_rotate", (args) =>
       handleOneproxyRotate(oneproxyRotateInput.parse(args))
@@ -869,7 +876,7 @@ export function createMcpServer(): McpServer {
     {
       description:
         "Returns 1proxy sync status and statistics: total proxies, average quality, sync history, and distribution by protocol and country.",
-      inputSchema: oneproxyStatsInput,
+      inputSchema: toolInputSchema(oneproxyStatsInput),
     },
     withScopeEnforcement("omniroute_oneproxy_stats", (args) =>
       handleOneproxyStats(oneproxyStatsInput.parse(args))

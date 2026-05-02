@@ -7,6 +7,8 @@
 
 import fs from "fs";
 import path from "path";
+import type { SQLInputValue } from "node:sqlite";
+
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { getDbInstance } from "../db/core";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
@@ -433,7 +435,7 @@ function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
   cleanupEmptyCallLogDirs();
 
   return {
-    deletedRows: result.changes,
+    deletedRows: Number(result.changes),
     deletedArtifacts,
   };
 }
@@ -755,7 +757,7 @@ export async function getCallLogs(filter: any = {}) {
     LEFT JOIN provider_nodes pn ON pn.id = cl.provider
   `;
   const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
+  const params: Record<string, SQLInputValue> = {};
 
   if (filter.status) {
     if (filter.status === "error") {
@@ -823,9 +825,7 @@ export async function getCallLogById(id: string) {
        LEFT JOIN provider_nodes pn ON pn.id = cl.provider
        WHERE cl.id = ?`
     )
-    .get(id) as
-    | CallLogSummaryRow
-    | undefined;
+    .get(id) as CallLogSummaryRow | undefined;
   if (!row) return null;
 
   const entry = mapSummaryRow(row);

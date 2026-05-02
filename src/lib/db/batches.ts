@@ -1,5 +1,8 @@
-import { getDbInstance, rowToCamel, objToSnake } from "./core";
+import type { SQLInputValue } from "node:sqlite";
+
 import { v4 as uuidv4 } from "uuid";
+
+import { getDbInstance, rowToCamel, objToSnake } from "./core";
 
 function parseBatchRow(row: any): BatchRecord {
   const camel = rowToCamel(row) as any;
@@ -142,7 +145,7 @@ export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean 
   if (keys.length === 0) return false;
 
   const setClause = keys.map((k) => `${k} = ?`).join(", ");
-  const values = Object.values(snakeUpdates) as any[];
+  const values = Object.values(snakeUpdates) as SQLInputValue[];
 
   const result = db.prepare(`UPDATE batches SET ${setClause} WHERE id = ?`).run(...values, id);
   return result.changes > 0;
@@ -158,22 +161,35 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
         .prepare(
           "SELECT * FROM batches WHERE api_key_id = ? AND (created_at < ? OR (created_at = ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?"
         )
-        .all(apiKeyId, afterBatch.createdAt, afterBatch.createdAt, after, limit);
+        .all(
+          apiKeyId,
+          afterBatch.createdAt,
+          afterBatch.createdAt,
+          after as SQLInputValue,
+          limit as SQLInputValue
+        );
     } else {
       rows = db
         .prepare(
           "SELECT * FROM batches WHERE api_key_id = ? ORDER BY created_at DESC, id DESC LIMIT ?"
         )
-        .all(apiKeyId, limit);
+        .all(apiKeyId, limit as SQLInputValue);
     }
   } else if (afterBatch) {
     rows = db
       .prepare(
         "SELECT * FROM batches WHERE (created_at < ? OR (created_at = ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?"
       )
-      .all(afterBatch.createdAt, afterBatch.createdAt, after, limit);
+      .all(
+        afterBatch.createdAt,
+        afterBatch.createdAt,
+        after as SQLInputValue,
+        limit as SQLInputValue
+      );
   } else {
-    rows = db.prepare("SELECT * FROM batches ORDER BY created_at DESC, id DESC LIMIT ?").all(limit);
+    rows = db
+      .prepare("SELECT * FROM batches ORDER BY created_at DESC, id DESC LIMIT ?")
+      .all(limit as SQLInputValue);
   }
   return rows.map((row) => parseBatchRow(row));
 }

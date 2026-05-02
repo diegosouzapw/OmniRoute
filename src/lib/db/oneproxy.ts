@@ -1,4 +1,6 @@
 import { randomUUID } from "crypto";
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 
@@ -95,7 +97,7 @@ export async function listOneproxyProxies(options?: {
   const db = getDbInstance();
 
   let sql = "SELECT * FROM proxy_registry WHERE source = 'oneproxy' AND status = 'active'";
-  const params: unknown[] = [];
+  const params: SQLInputValue[] = [];
 
   if (options?.protocol) {
     sql += " AND type = ?";
@@ -249,7 +251,7 @@ export async function clearAllOneproxyProxies(): Promise<number> {
   const db = getDbInstance();
   const result = db.prepare("DELETE FROM proxy_registry WHERE source = 'oneproxy'").run();
   backupDbFile("pre-write");
-  return result.changes;
+  return Number(result.changes);
 }
 
 export async function getOneproxyProxyForRotation(options?: {

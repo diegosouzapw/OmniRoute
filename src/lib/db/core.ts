@@ -1234,7 +1234,7 @@ export function getDbInstance(): SqliteDatabase {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       try {
-        if (db.open) db.close();
+        db.close();
       } catch {
         /* ignore */
       }
@@ -1286,7 +1286,7 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
     }
   } finally {
     try {
-      if (db.open) db.close();
+      db.close();
     } finally {
       setDb(null);
     }

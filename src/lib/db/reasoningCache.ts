@@ -9,6 +9,8 @@
  * @see Issue #1628
  */
 
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "./core";
 
 // ──────────────── Types ────────────────
@@ -114,7 +116,7 @@ export function getReasoningCache(
 export function deleteReasoningCache(toolCallId: string): number {
   const db = getDbInstance();
   const result = db.prepare(`DELETE FROM reasoning_cache WHERE tool_call_id = ?`).run(toolCallId);
-  return result.changes;
+  return Number(result.changes);
 }
 
 /**
@@ -125,7 +127,7 @@ export function cleanupExpiredReasoning(): number {
   const result = db
     .prepare(`DELETE FROM reasoning_cache WHERE ${EXPIRES_AT_EPOCH_SQL} <= unixepoch('now')`)
     .run();
-  return result.changes;
+  return Number(result.changes);
 }
 
 /**
@@ -136,10 +138,10 @@ export function clearAllReasoningCache(provider?: string): number {
   const db = getDbInstance();
   if (provider) {
     const result = db.prepare(`DELETE FROM reasoning_cache WHERE provider = ?`).run(provider);
-    return result.changes;
+    return Number(result.changes);
   }
   const result = db.prepare(`DELETE FROM reasoning_cache`).run();
-  return result.changes;
+  return Number(result.changes);
 }
 
 // ──────────────── Stats ────────────────
@@ -229,7 +231,7 @@ export function getReasoningCacheEntries(
   const offset = opts.offset ?? 0;
 
   const conditions: string[] = [`${EXPIRES_AT_EPOCH_SQL} > unixepoch('now')`];
-  const params: unknown[] = [];
+  const params: SQLInputValue[] = [];
 
   if (opts.provider) {
     conditions.push("provider = ?");

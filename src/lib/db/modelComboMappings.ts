@@ -92,7 +92,7 @@ export async function getModelComboMappings(): Promise<ModelComboMapping[]> {
        LEFT JOIN combos c ON c.id = m.combo_id
        ORDER BY m.priority DESC, m.created_at ASC`
     )
-    .all() as MappingRow[];
+    .all() as unknown as MappingRow[];
   return rows.map(rowToMapping);
 }
 

@@ -307,7 +307,7 @@ export function issueRegisteredKey(
 
   const created = db
     .prepare("SELECT * FROM registered_keys WHERE id = ?")
-    .get(id) as RegisteredKeyRow;
+    .get(id) as unknown as RegisteredKeyRow;
   return { ...(rowToCamel(created) as unknown as RegisteredKey), rawKey };
 }
 
@@ -340,7 +340,7 @@ export function listRegisteredKeys(
     args.push(opts.accountId);
   }
   sql += " ORDER BY created_at DESC LIMIT 500";
-  const rows = db.prepare(sql).all(...args) as RegisteredKeyRow[];
+  const rows = db.prepare(sql).all(...args) as unknown as RegisteredKeyRow[];
   return rows.map((r) => rowToCamel(r) as unknown as RegisteredKey);
 }
 

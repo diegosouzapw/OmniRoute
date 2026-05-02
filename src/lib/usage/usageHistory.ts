@@ -7,6 +7,8 @@
  * @module lib/usage/usageHistory
  */
 
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "../db/core";
 import { protectPayloadForLog } from "../logPayloads";
 import { shouldPersistToDisk } from "./migrations";
@@ -376,7 +378,7 @@ export async function getUsageHistory(filter: any = {}) {
   const db = getDbInstance();
   let sql = "SELECT * FROM usage_history";
   const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
+  const params: Record<string, SQLInputValue> = {};
 
   if (filter.provider) {
     conditions.push("provider = @provider");

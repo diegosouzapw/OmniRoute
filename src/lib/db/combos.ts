@@ -2,7 +2,10 @@
  * db/combos.js — Combo CRUD operations.
  */
 
+import type { SQLInputValue } from "node:sqlite";
+
 import { v4 as uuidv4 } from "uuid";
+
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { normalizeComboRecord } from "@/lib/combos/steps";
@@ -136,7 +139,14 @@ export async function createCombo(data: JsonRecord) {
 
   db.prepare(
     "INSERT INTO combos (id, name, data, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(combo.id, combo.name, JSON.stringify(combo), sortOrder, now, now);
+  ).run(
+    combo.id as SQLInputValue,
+    combo.name as SQLInputValue,
+    JSON.stringify(combo),
+    sortOrder as SQLInputValue,
+    now,
+    now
+  );
 
   backupDbFile("pre-write");
   return combo;
@@ -170,7 +180,13 @@ export async function updateCombo(id: string, data: JsonRecord) {
 
   db.prepare(
     "UPDATE combos SET name = ?, data = ?, sort_order = ?, updated_at = ? WHERE id = ?"
-  ).run(nextName, JSON.stringify(normalizedMerged), sortOrder, normalizedMerged.updatedAt, id);
+  ).run(
+    nextName,
+    JSON.stringify(normalizedMerged),
+    sortOrder as SQLInputValue,
+    normalizedMerged.updatedAt as SQLInputValue,
+    id
+  );
 
   backupDbFile("pre-write");
   return normalizedMerged;

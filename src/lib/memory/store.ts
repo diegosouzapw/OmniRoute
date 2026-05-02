@@ -2,6 +2,8 @@
  * Memory store - CRUD operations with prepared statements and caching
  */
 
+import type { SQLInputValue } from "node:sqlite";
+
 import { getDbInstance } from "../db/core";
 import { Memory, MemoryType } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
@@ -113,9 +115,9 @@ export async function createMemory(
       memory.content,
       JSON.stringify(updatedMetadata),
       now,
-      memory.sessionId,
+      memory.sessionId ?? null,
       memory.type,
-      memory.expiresAt ?? null,
+      memory.expiresAt?.toISOString() ?? null,
       existing.id
     );
 
@@ -236,7 +238,7 @@ export async function updateMemory(
 
   // Build dynamic update query
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: SQLInputValue[] = [];
 
   if (updates.type !== undefined) {
     fields.push("type = ?");
@@ -317,7 +319,7 @@ export async function listMemories(filters: {
 
   // Build dynamic query conditions
   const whereClauses: string[] = [];
-  const whereParams: unknown[] = [];
+  const whereParams: SQLInputValue[] = [];
 
   if (filters.apiKeyId) {
     whereClauses.push("api_key_id = ?");
@@ -351,7 +353,7 @@ export async function listMemories(filters: {
 
   // Build byType aggregation (counts ALL matching rows, not just the page)
   let byTypeQuery = "SELECT type, COUNT(*) as count FROM memories";
-  const byTypeParams: unknown[] = [...whereParams];
+  const byTypeParams: SQLInputValue[] = [...whereParams];
   if (whereClauses.length > 0) {
     byTypeQuery += " WHERE " + whereClauses.join(" AND ");
   }
@@ -378,13 +380,13 @@ export async function listMemories(filters: {
   query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
 
   // Build params for SELECT query (WHERE params + pagination params)
-  const params = [...whereParams, effectiveLimit, effectiveOffset];
+  const params: SQLInputValue[] = [...whereParams, effectiveLimit, effectiveOffset];
 
   const stmt = db.prepare(query);
   const rows = stmt.all(...params);
 
   return {
-    data: (rows as MemoryRow[]).map(rowToMemory),
+    data: (rows as unknown as MemoryRow[]).map(rowToMemory),
     total,
     byType,
   };

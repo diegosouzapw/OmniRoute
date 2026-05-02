@@ -203,17 +203,17 @@ export async function retrieveMemories(
           ftsParams.push(cutoff);
         }
         try {
-          rows = db.prepare(ftsQuery).all(...ftsParams) as MemoryRow[];
+          rows = db.prepare(ftsQuery).all(...ftsParams) as unknown as MemoryRow[];
         } catch {
           rows = [];
         }
         if (rows.length === 0) {
           query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
-          rows = db.prepare(query).all(...params) as MemoryRow[];
+          rows = db.prepare(query).all(...params) as unknown as MemoryRow[];
         }
       } else {
         query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
-        rows = db.prepare(query).all(...params) as MemoryRow[];
+        rows = db.prepare(query).all(...params) as unknown as MemoryRow[];
       }
       break;
     }
@@ -243,14 +243,14 @@ export async function retrieveMemories(
           ftsParams.push(cutoff);
         }
         try {
-          ftsRows = db.prepare(ftsQuery).all(...ftsParams) as MemoryRow[];
+          ftsRows = db.prepare(ftsQuery).all(...ftsParams) as unknown as MemoryRow[];
         } catch {
           ftsRows = [];
         }
       }
       // Get chronological results for keyword scoring
       query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
-      const keywordRows = db.prepare(query).all(...params) as MemoryRow[];
+      const keywordRows = db.prepare(query).all(...params) as unknown as MemoryRow[];
 
       // Union: FTS5 results first (higher relevance), then keyword results, dedup by id
       const seen = new Set<string | number>();
@@ -267,7 +267,7 @@ export async function retrieveMemories(
     case "exact":
     default: {
       query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
-      rows = db.prepare(query).all(...params) as MemoryRow[];
+      rows = db.prepare(query).all(...params) as unknown as MemoryRow[];
     }
   }
 

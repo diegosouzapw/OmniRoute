@@ -461,7 +461,7 @@ function rehomeLegacyVersionSlotMigrations(
 
         db.exec("COMMIT");
         repaired = true;
-        return;
+        return true;
       }
 
       db.prepare("UPDATE _omniroute_migrations SET version = ? WHERE version = ? AND name = ?").run(

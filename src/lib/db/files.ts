@@ -1,5 +1,8 @@
-import { getDbInstance, rowToCamel, objToSnake } from "./core";
+import type { SQLInputValue } from "node:sqlite";
+
 import { v4 as uuidv4 } from "uuid";
+
+import { getDbInstance, rowToCamel, objToSnake } from "./core";
 
 export interface FileRecord {
   id: string;
@@ -40,7 +43,7 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
     }
   }
   const keys = Object.keys(snakeRecord);
-  const values = Object.values(snakeRecord);
+  const values = Object.values(snakeRecord) as SQLInputValue[];
   const placeholders = keys.map(() => "?").join(", ");
 
   db.prepare(`INSERT INTO files (${keys.join(", ")}) VALUES (${placeholders})`).run(...values);
