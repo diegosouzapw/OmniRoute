@@ -1678,7 +1678,7 @@ export async function handleComboChat({
 
       // Trigger shared provider circuit breaker for 5xx errors and connection failures
       if (isProviderFailureCode(result.status)) {
-        recordProviderFailure(provider, log, target.connectionId);
+        recordProviderFailure(provider, log, target.connectionId, profile);
       }
 
       // Check if this is a transient error worth retrying on same model
