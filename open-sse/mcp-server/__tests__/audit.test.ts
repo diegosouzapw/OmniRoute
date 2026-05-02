@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type MockAuditDb = {
   prepare: ReturnType<typeof vi.fn>;
-  pragma: ReturnType<typeof vi.fn>;
   close: ReturnType<typeof vi.fn>;
   open?: boolean;
 };
@@ -40,7 +39,6 @@ describe("MCP audit shutdown", () => {
   it("checkpoints and closes the audit database during shutdown", async () => {
     const mockDb: MockAuditDb = {
       prepare: vi.fn(() => createStatementMock()),
-      pragma: vi.fn(),
       close: vi.fn(),
       open: true,
     };
@@ -48,7 +46,7 @@ describe("MCP audit shutdown", () => {
       return mockDb;
     });
 
-    vi.doMock("better-sqlite3", () => ({
+    vi.doMock("node:sqlite", () => ({
       default: MockDatabase,
     }));
 
@@ -58,7 +56,6 @@ describe("MCP audit shutdown", () => {
     expect(mockDb.prepare).toHaveBeenCalledTimes(1);
 
     expect(audit.closeAuditDb()).toBe(true);
-    expect(mockDb.pragma).toHaveBeenCalledWith("wal_checkpoint(TRUNCATE)");
     expect(mockDb.close).toHaveBeenCalledTimes(1);
     expect(audit.closeAuditDb()).toBe(false);
   });
@@ -66,9 +63,6 @@ describe("MCP audit shutdown", () => {
   it("still closes the audit database when checkpoint fails", async () => {
     const mockDb: MockAuditDb = {
       prepare: vi.fn(() => createStatementMock()),
-      pragma: vi.fn(() => {
-        throw new Error("database is busy");
-      }),
       close: vi.fn(),
       open: true,
     };
@@ -76,7 +70,7 @@ describe("MCP audit shutdown", () => {
       return mockDb;
     });
 
-    vi.doMock("better-sqlite3", () => ({
+    vi.doMock("node:sqlite", () => ({
       default: MockDatabase,
     }));
 

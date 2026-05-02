@@ -85,6 +85,7 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
 
   const port = await listen(server);
   const baseUrl = `http://127.0.0.1:${port}`;
+  //@ts-ignore
   const bridge = createOmnirouteWsBridge({ baseUrl, pingIntervalMs: 1000, idleTimeoutMs: 10000 });
 
   server.on("upgrade", async (req, socket, head) => {

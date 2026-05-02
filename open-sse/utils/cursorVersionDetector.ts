@@ -40,8 +40,8 @@ export function getCursorVersion(): string {
 
   try {
     const esmRequire = createRequire(import.meta.url);
-    const Database = esmRequire("better-sqlite3");
-    const db = new Database(getCursorDbPath(), { readonly: true, fileMustExist: true });
+    const { DatabaseSync } = esmRequire("node:sqlite");
+    const db = new DatabaseSync(getCursorDbPath(), { readOnly: true });
     try {
       const row = db.prepare("SELECT value FROM itemTable WHERE key = ?").get(DB_KEY) as
         | { value: string }
