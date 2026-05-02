@@ -95,35 +95,35 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
           <img src="./public/providers/openclaw.png" alt="OpenClaw" width="48"/><br/>
           <b>OpenClaw</b>
         </a><br/>
-        <sub>⭐ 205K</sub>
+        <sub>⭐ 367K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/HKUDS/nanobot">
           <img src="./public/providers/nanobot.png" alt="NanoBot" width="48"/><br/>
           <b>NanoBot</b>
         </a><br/>
-        <sub>⭐ 20.9K</sub>
+        <sub>⭐ 41.5K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/sipeed/picoclaw">
           <img src="./public/providers/picoclaw.jpg" alt="PicoClaw" width="48"/><br/>
           <b>PicoClaw</b>
         </a><br/>
-        <sub>⭐ 14.6K</sub>
+        <sub>⭐ 28.7K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/zeroclaw-labs/zeroclaw">
           <img src="./public/providers/zeroclaw.png" alt="ZeroClaw" width="48"/><br/>
           <b>ZeroClaw</b>
         </a><br/>
-        <sub>⭐ 9.9K</sub>
+        <sub>⭐ 30.9K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/nearai/ironclaw">
           <img src="./public/providers/ironclaw.png" alt="IronClaw" width="48"/><br/>
           <b>IronClaw</b>
         </a><br/>
-        <sub>⭐ 2.1K</sub>
+        <sub>⭐ 12.1K</sub>
       </td>
     </tr>
     <tr>
@@ -132,35 +132,35 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
           <img src="./public/providers/opencode.svg" alt="OpenCode" width="48"/><br/>
           <b>OpenCode</b>
         </a><br/>
-        <sub>⭐ 106K</sub>
+        <sub>⭐ 153K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/openai/codex">
           <img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
           <b>Codex CLI</b>
         </a><br/>
-        <sub>⭐ 60.8K</sub>
+        <sub>⭐ 79.5K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/anthropics/claude-code">
           <img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
           <b>Claude Code</b>
         </a><br/>
-        <sub>⭐ 67.3K</sub>
+        <sub>⭐ 120K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/google-gemini/gemini-cli">
           <img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
           <b>Gemini CLI</b>
         </a><br/>
-        <sub>⭐ 94.7K</sub>
+        <sub>⭐ 103K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
           <img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
         </a><br/>
-        <sub>⭐ 15.5K</sub>
+        <sub>⭐ 18.8K</sub>
       </td>
     </tr>
   </table>
