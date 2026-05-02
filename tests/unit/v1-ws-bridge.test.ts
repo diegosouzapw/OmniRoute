@@ -14,7 +14,7 @@ function listen(server) {
 }
 
 function close(server) {
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     server.close(() => resolve());
   });
 }

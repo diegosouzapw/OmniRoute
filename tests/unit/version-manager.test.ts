@@ -56,7 +56,7 @@ function installSpawnStub(startPid = 6100) {
   let nextPid = startPid;
 
   childProcess.spawn = (command, args, options) => {
-    const child = new EventEmitter();
+    const child = new EventEmitter() as any;
     child.pid = nextPid++;
     child.stdout = new EventEmitter();
     child.stderr = new EventEmitter();
@@ -86,7 +86,7 @@ function installProcessKillStub(initialRunning = []) {
       if (running.has(pid)) {
         return true;
       }
-      const error = new Error("ESRCH");
+      const error: any = new Error("ESRCH");
       error.code = "ESRCH";
       throw error;
     }
@@ -112,7 +112,7 @@ function installTimerStubs() {
   const timeouts = [];
   const intervals = [];
 
-  globalThis.setTimeout = (fn, ms) => {
+  (globalThis as any).setTimeout = (fn, ms) => {
     const handle = {
       fn,
       ms,
@@ -127,7 +127,7 @@ function installTimerStubs() {
     return handle;
   };
 
-  globalThis.setInterval = (fn, ms) => {
+  (globalThis as any).setInterval = (fn, ms) => {
     const handle = {
       fn,
       ms,

@@ -51,6 +51,10 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function toPlainObject(value) {
+  return { ...value };
+}
+
 function seedLegacyRequestTargets() {
   fs.mkdirSync(CURRENT_REQUEST_LOGS_DIR, { recursive: true });
   fs.writeFileSync(path.join(CURRENT_REQUEST_LOGS_DIR, "placeholder.txt"), "legacy");
@@ -195,7 +199,7 @@ test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks
     )
     .all();
 
-  assert.deepEqual(rows, [
+  assert.deepEqual(rows.map(toPlainObject), [
     {
       provider: "openai",
       model: "gpt-4o-mini",
@@ -287,7 +291,7 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
     .all();
 
   assert.equal(rows.length, 2);
-  assert.deepEqual(rows[0], {
+  assert.deepEqual(toPlainObject(rows[0]), {
     id: "call-1",
     method: "GET",
     path: "/v1/chat/completions",
