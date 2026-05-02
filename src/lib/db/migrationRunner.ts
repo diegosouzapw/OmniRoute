@@ -657,8 +657,23 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
       console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);
-      throw err; // Re-throw to prevent DB from starting in inconsistent state
+      // "duplicate column name" means the column already exists — end state achieved, mark applied.
+      if (message.includes("duplicate column name")) {
+        const applyMarkerOnly = db.transaction(() => {
+          db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+            migration.version,
+            migration.name
+          );
+        });
+        applyMarkerOnly();
+        count++;
+        console.log(
+          `[Migration] Applied (column pre-exists): ${migration.version}_${migration.name}`
+        );
+      } else {
+        console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);
+        throw err; // Re-throw to prevent DB from starting in inconsistent state
+      }
     }
   }
 
