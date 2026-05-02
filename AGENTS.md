@@ -10,9 +10,9 @@ with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`, ES Modules (`"type": "module"`)
-- **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
-- **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
+- **Runtime**: Next.js 16 (App Router), Node.js `>=22.13.0 <25`, ES Modules (`"type": "module"`)
+- **Language**: TypeScript 6.0 (`src/`) + JavaScript (`open-sse/`, `electron/`)
+- **Database**: node:sqlite (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
 - **Styling**: Tailwind CSS v4
 - **i18n**: next-intl with 40+ languages
@@ -138,7 +138,7 @@ Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 
 #### DB Internals
 
-- **`core.ts`**: `getDbInstance()` returns a singleton `better-sqlite3` instance with WAL
+- **`core.ts`**: `getDbInstance()` returns a singleton `node:sqlite` instance with WAL
   journaling. `SCHEMA_SQL` defines 15 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
 const serial = { concurrency: false };
 const originalEnv = {
@@ -74,7 +74,7 @@ async function withEnv(overrides, fn) {
 }
 
 function createLegacySchemaDb(sqliteFile, { withData = false } = {}) {
-  const seedDb = new Database(sqliteFile);
+  const seedDb = new DatabaseSync(sqliteFile);
   seedDb.exec(`
     CREATE TABLE schema_migrations (version TEXT);
     CREATE TABLE provider_connections (
@@ -132,7 +132,7 @@ function createLegacySchemaDb(sqliteFile, { withData = false } = {}) {
 }
 
 function createLegacyCallLogsDb(sqliteFile) {
-  const seedDb = new Database(sqliteFile);
+  const seedDb = new DatabaseSync(sqliteFile);
   seedDb.exec(`
     CREATE TABLE provider_connections (
       id TEXT PRIMARY KEY,
@@ -204,7 +204,7 @@ function createLegacyCallLogsDb(sqliteFile) {
 }
 
 function createRecoverableDb(sqliteFile) {
-  const seedDb = new Database(sqliteFile);
+  const seedDb = new DatabaseSync(sqliteFile);
   const now = new Date().toISOString();
   seedDb.exec(`
     CREATE TABLE provider_connections (
@@ -314,7 +314,7 @@ function createRecoverableDb(sqliteFile) {
 
 function createLegacySchemaDbWithName(sqliteFile, name) {
   createLegacySchemaDb(sqliteFile, { withData: true });
-  const db = new Database(sqliteFile);
+  const db = new DatabaseSync(sqliteFile);
   db.prepare("UPDATE provider_connections SET name = ? WHERE id = ?").run(name, "legacy-openai");
   db.close();
 }
@@ -414,9 +414,9 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
       const core = await importFresh("src/lib/db/core.ts");
       const db = core.getDbInstance();
 
-      assert.equal(db.pragma("journal_mode", { simple: true }), "wal");
-      assert.equal(db.pragma("busy_timeout", { simple: true }), 5000);
-      assert.equal(db.pragma("synchronous", { simple: true }), 1);
+      assert.equal(db.prepare("PRAGMA journal_mode;").get().journal_mode, "wal");
+      assert.equal(db.prepare("PRAGMA busy_timeout;").get().busy_timeout, 5000);
+      assert.equal(db.prepare("PRAGMA synchronous;").get().synchronous, 1);
       assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
     });
   } finally {
@@ -491,7 +491,7 @@ test("build phase uses an in-memory database without creating sqlite files", ser
             .get("provider_connections")
         );
         assert.equal(fs.existsSync(path.join(dataDir, "storage.sqlite")), false);
-        assert.equal(db.pragma("journal_mode", { simple: true }), "memory");
+        assert.equal(db.prepare("PRAGMA journal_mode").get().journal_mode, "memory");
 
         core.resetDbInstance();
       }
@@ -605,7 +605,7 @@ test(
   async () => {
     const dataDir = makeTempDir("omniroute-db-missing-max-concurrent-");
     const sqliteFile = path.join(dataDir, "storage.sqlite");
-    const seedDb = new Database(sqliteFile);
+    const seedDb = new DatabaseSync(sqliteFile);
     const now = new Date().toISOString();
 
     seedDb.exec(`
@@ -738,10 +738,10 @@ test(
     const sqliteFile = path.join(dataDir, "storage.sqlite");
     createRecoverableDb(sqliteFile);
 
-    const originalPrepare = Database.prototype.prepare;
+    const originalPrepare = DatabaseSync.prototype.prepare;
 
     try {
-      Database.prototype.prepare = function patchedPrepare(sql, ...args) {
+      DatabaseSync.prototype.prepare = function patchedPrepare(sql, ...args) {
         if (String(sql).includes("schema_migrations")) {
           throw new Error("forced probe failure");
         }
@@ -781,7 +781,7 @@ test(
         core.resetDbInstance();
       });
     } finally {
-      Database.prototype.prepare = originalPrepare;
+      DatabaseSync.prototype.prepare = originalPrepare;
       removePath(dataDir);
     }
   }

@@ -1,6 +1,7 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
+import { DatabaseSync } from "node:sqlite";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = DatabaseSync;
 type JsonRecord = Record<string, unknown>;
 
 export type DbHealthIssueType =
@@ -270,7 +271,7 @@ function repairQuotaSnapshots(db: SqliteDatabase): number {
   const deleteByRowId = db.prepare("DELETE FROM quota_snapshots WHERE id = ?");
   let repaired = 0;
   for (const rowId of brokenRowIds) {
-    repaired += deleteByRowId.run(rowId).changes;
+    repaired += Number(deleteByRowId.run(rowId).changes);
   }
   return repaired;
 }
@@ -295,8 +296,10 @@ function repairOrphanDomainRows(
   table: "domain_budgets" | "domain_cost_history"
 ): number {
   if (!hasRows(db, table)) return 0;
-  return db.prepare(`DELETE FROM ${table} WHERE api_key_id NOT IN (SELECT id FROM api_keys)`).run()
-    .changes;
+  return Number(
+    db.prepare(`DELETE FROM ${table} WHERE api_key_id NOT IN (SELECT id FROM api_keys)`).run()
+      .changes
+  );
 }
 
 function countInvalidJsonRows(
@@ -348,7 +351,7 @@ function repairInvalidJsonRows(
     }
     if (typeof raw !== "string") {
       if (table === "domain_circuit_breakers") {
-        repaired += clearOptionsByRowId.run(row.rowid).changes;
+        repaired += Number(clearOptionsByRowId.run(row.rowid).changes);
         continue;
       }
       deleteByRowId.run(row.rowid);
@@ -359,7 +362,7 @@ function repairInvalidJsonRows(
       JSON.parse(raw);
     } catch {
       if (table === "domain_circuit_breakers") {
-        repaired += clearOptionsByRowId.run(row.rowid).changes;
+        repaired += Number(clearOptionsByRowId.run(row.rowid).changes);
         continue;
       }
       deleteByRowId.run(row.rowid);
@@ -381,9 +384,11 @@ function getSchemaVersionIssueCount(db: SqliteDatabase, expectedSchemaVersion: s
 
 function repairSchemaVersion(db: SqliteDatabase, expectedSchemaVersion: string): number {
   if (!hasRows(db, "db_meta")) return 0;
-  return db
-    .prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', ?)")
-    .run(expectedSchemaVersion).changes;
+  return Number(
+    db
+      .prepare("INSERT OR REPLACE INTO db_meta (key, value) VALUES ('schema_version', ?)")
+      .run(expectedSchemaVersion).changes
+  );
 }
 
 export function runDbHealthCheck(
@@ -406,7 +411,10 @@ export function runDbHealthCheck(
     backupCreated = options.createBackupBeforeRepair();
   };
 
-  const integrityCheck = db.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+  const integrityCheck = db.prepare("PRAGMA integrity_check").all() as Array<{
+    integrity_check: string;
+  }>;
+
   if (integrityCheck[0]?.integrity_check !== "ok") {
     issues.push({
       type: "integrity_check_failed",
@@ -421,7 +429,7 @@ export function runDbHealthCheck(
       .prepare(
         "SELECT id, name, data, sort_order, created_at, updated_at FROM combos ORDER BY name COLLATE NOCASE ASC"
       )
-      .all() as ComboRow[];
+      .all() as unknown as ComboRow[];
     const comboRepair = repairComboRows(db, comboRows, checkedAt, { autoRepair });
     if (comboRepair.issueCount > 0) {
       issues.push({

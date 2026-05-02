@@ -769,7 +769,7 @@ npm install -g omniroute
 omniroute
 ```
 
-> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by `better-sqlite3` and `@swc/core`:
+> **pnpm users:** Run `pnpm approve-builds -g` after install to enable native build scripts required by`@swc/core`:
 >
 > ```bash
 > pnpm install -g omniroute
@@ -948,7 +948,7 @@ do_build() {
 	esac
 
 	# 1) Install all deps – skip scripts (no network in do_build, native modules
-	#    compiled separately below; better-sqlite3 is serverExternalPackage so
+	#    compiled separately below so
 	#    Next.js does not execute it during next build)
 	NODE_ENV=development npm ci --ignore-scripts
 
@@ -958,17 +958,6 @@ do_build() {
 	# 3) Copy static assets into standalone
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
-
-	# 4) Compile better-sqlite3 native binding for the target architecture.
-	#    Use node-gyp directly so CC/CXX from xbps-src cross-toolchain are used
-	#    without npm altering them.
-	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
-	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
-
-	# 5) Place the compiled binding into the standalone bundle
-	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
-	mkdir -p "$_bs3_release"
-	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
 	# 6) Remove arch-specific sharp bundles – upstream sets images.unoptimized=true
 	#    so sharp is not used at runtime; x64 .so files would break aarch64 strip

@@ -271,21 +271,29 @@ export async function updateCompressionSettings(
   updates: Partial<CompressionConfig>
 ): Promise<CompressionConfig> {
   const db = getDbInstance();
+
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
   );
 
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     for (const [key, value] of Object.entries(updates)) {
       if (value === undefined) continue;
       insert.run(NAMESPACE, key, JSON.stringify(value));
     }
-  });
 
-  tx();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   compressionSettingsCache = null;
   invalidateDbCache();
+
   return getCompressionSettings();
 }
 

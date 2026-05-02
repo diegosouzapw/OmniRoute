@@ -36,7 +36,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <25"
+    "node": ">=22.13.0 <25"
   },
   "keywords": [
     "ai",
@@ -116,7 +116,6 @@
     "@swc/helpers": "0.5.21",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.9.0",
     "bottleneck": "^2.19.5",
     "express": "^5.2.1",
     "fetch-socks": "^1.3.3",
@@ -160,7 +159,6 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^3.0.0",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/keytar": "^4.4.2",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
@@ -195,7 +193,6 @@
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "@swc/core",
-      "better-sqlite3",
       "esbuild",
       "omniroute",
       "sharp"

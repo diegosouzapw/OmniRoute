@@ -74,6 +74,7 @@ test("next config webpack server branch ignores thread-stream tests and normaliz
   const { default: nextConfig } = await loadNextConfig("webpack-server");
 
   class IgnorePlugin {
+    options: IgnorePlugin;
     constructor(options) {
       this.options = options;
     }
@@ -94,10 +95,7 @@ test("next config webpack server branch ignores thread-stream tests and normaliz
 
   const resolver = config.externals.at(-1);
   assert.equal(await runExternalResolver(resolver, "fs"), "commonjs fs");
-  assert.equal(
-    await runExternalResolver(resolver, "better-sqlite3-90e2652d1716b047"),
-    "commonjs better-sqlite3"
-  );
+  assert.equal(await runExternalResolver(resolver, "node:sqlite"), "commonjs node:sqlite");
   assert.equal(await runExternalResolver(resolver, "left-pad"), undefined);
 });
 

@@ -105,7 +105,7 @@ const nextConfig = {
     "pino-pretty",
     "thread-stream",
     "pino-abstract-transport",
-    "better-sqlite3",
+    "node:sqlite",
     "keytar",
     "wreq-js",
     "zod",

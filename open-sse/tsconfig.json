@@ -13,7 +13,6 @@
     "jsx": "react-jsx",
     "lib": ["dom", "esnext"],
     "ignoreDeprecations": "5.0",
-    "baseUrl": "..",
     "paths": {
       "@/*": ["./src/*"],
       "@omniroute/open-sse": ["./open-sse"],

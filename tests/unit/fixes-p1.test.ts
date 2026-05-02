@@ -70,7 +70,7 @@ test("token refresh dedupe key avoids collision for same-prefix tokens", async (
   const originalFetch = globalThis.fetch;
   const requests = [];
 
-  globalThis.fetch = async (_url, options = {}) => {
+  globalThis.fetch = async (_url, options: any = {}) => {
     const refreshToken = options.body?.get?.("refresh_token") || "unknown";
     requests.push(refreshToken);
     return new Response(
@@ -120,7 +120,7 @@ test(
     const backupId = "db_2000-01-01T00-00-00-000Z_manual.sqlite";
     const backupPath = path.join(core.DB_BACKUPS_DIR, backupId);
     fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
-    await db.backup(backupPath);
+    db.exec(`VACUUM INTO '${backupPath}'`);
 
     core.resetDbInstance();
     fs.writeFileSync(`${core.SQLITE_FILE}-wal`, "STALE-WAL-MARKER");
@@ -158,8 +158,8 @@ test("closeDbInstance checkpoints WAL changes into the primary SQLite file", asy
   const snapshotPath = path.join(TEST_DATA_DIR, "storage-snapshot.sqlite");
   fs.copyFileSync(core.SQLITE_FILE, snapshotPath);
 
-  const Database = (await import("better-sqlite3")).default;
-  const snapshotDb = new Database(snapshotPath, { readonly: true });
+  const Database = (await import("node:sqlite")).DatabaseSync;
+  const snapshotDb = new Database(snapshotPath, { readOnly: true });
   try {
     const row = snapshotDb
       .prepare("SELECT name FROM provider_connections WHERE id = ?")
@@ -237,14 +237,14 @@ test("unlinkFileWithRetry retries EBUSY/EPERM and eventually succeeds", async ()
       attempts++;
       if (attempts === 1) {
         const err = new Error("busy");
-        err.code = "EBUSY";
-        seenCodes.push(err.code);
+        err.cause = "EBUSY";
+        seenCodes.push(err.cause);
         throw err;
       }
       if (attempts === 2) {
         const err = new Error("perm");
-        err.code = "EPERM";
-        seenCodes.push(err.code);
+        err.cause = "EPERM";
+        seenCodes.push(err.cause);
         throw err;
       }
     }
@@ -289,7 +289,7 @@ test('provider connection migration adds "group" column for existing databases',
   const sqlitePath = core.SQLITE_FILE;
   core.resetDbInstance();
 
-  const Database = (await import("better-sqlite3")).default;
+  const Database = (await import("node:sqlite")).DatabaseSync;
   const db = new Database(sqlitePath);
   db.exec(`
     CREATE TABLE provider_connections (
@@ -421,9 +421,9 @@ test("proxy fetch rejects socks5 context when feature flag is disabled", async (
 test("proxy fetch accepts socks5 context when feature flag is enabled", async () => {
   await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
     const server = net.createServer();
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       server.once("error", reject);
-      server.listen(0, "127.0.0.1", resolve);
+      server.listen(0, "127.0.0.1", 1, resolve);
     });
 
     const address = server.address();
@@ -436,7 +436,7 @@ test("proxy fetch accepts socks5 context when feature flag is enabled", async ()
       );
       assert.equal(result, "ok");
     } finally {
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         server.close((err) => {
           if (err) reject(err);
           else resolve();

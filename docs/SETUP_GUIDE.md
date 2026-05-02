@@ -33,7 +33,15 @@ pnpm approve-builds -g   # Select all packages → approve
 omniroute
 ```
 
-> **pnpm users:** `pnpm approve-builds -g` is required to enable native build scripts for `better-sqlite3` and `@swc/core`.
+> **pnpm users:** `pnpm approve-builds -g` is required to enable native build scripts for `@swc/core`.
+
+### Bun
+
+```bash
+bun add -g omniroute
+cd ~/.bun/install/global && pm trust --all
+omniroute
+```
 
 ### Arch Linux (AUR)
 
@@ -253,13 +261,6 @@ do_build() {
 	npm run build
 	cp -r .next/static .next/standalone/.next/static
 	[ -d public ] && cp -r public .next/standalone/public || true
-
-	local _node_gyp=/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js
-	(cd node_modules/better-sqlite3 && node "$_node_gyp" rebuild --arch="$_gyp_arch")
-
-	local _bs3_release=.next/standalone/node_modules/better-sqlite3/build/Release
-	mkdir -p "$_bs3_release"
-	cp node_modules/better-sqlite3/build/Release/better_sqlite3.node "$_bs3_release/"
 
 	rm -rf .next/standalone/node_modules/@img
 

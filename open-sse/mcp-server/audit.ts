@@ -18,7 +18,7 @@ interface StatementLike<TRow = unknown> {
 
 interface AuditDatabase {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
-  pragma: (sql: string) => unknown;
+  exec: (sql: string) => unknown;
   close: () => void;
   open?: boolean;
 }
@@ -173,7 +173,7 @@ async function getDb(): Promise<AuditDatabase | null> {
       return null;
     }
 
-    const Database = (await import("better-sqlite3")).default as unknown as new (
+    const Database = (await import("node:sqlite")).DatabaseSync as unknown as new (
       dbPath: string
     ) => AuditDatabase;
     const database = new Database(dbPath);
@@ -195,7 +195,7 @@ export function closeAuditDb(): boolean {
   try {
     try {
       if (database.open !== false) {
-        database.pragma("wal_checkpoint(TRUNCATE)");
+        database.exec("PRAGMA wal_checkpoint(TRUNCATE);");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

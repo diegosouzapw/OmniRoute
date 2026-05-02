@@ -61,7 +61,7 @@ echo "INITIAL_PASSWORD=$(openssl rand -base64 16)"
 
 ## 2. Storage & Database
 
-OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
+OmniRoute uses **SQLite** (via `node:sqlite`) for all persistence. These variables control data location, encryption, and lifecycle.
 
 | Variable                         | Default              | Source File                                     | Description                                                                                                        |
 | -------------------------------- | -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |

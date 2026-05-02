@@ -17,7 +17,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import type Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
 /**
  * Resolve the migrations directory path safely across platforms.
@@ -147,7 +147,7 @@ const INITIAL_SCHEMA_SENTINELS = ["provider_connections", "combos", "call_logs"]
 /**
  * Ensure the schema_migrations tracking table exists.
  */
-function ensureMigrationsTable(db: Database.Database): void {
+function ensureMigrationsTable(db: DatabaseSync): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS _omniroute_migrations (
       version TEXT PRIMARY KEY,
@@ -182,7 +182,7 @@ function getMigrationFiles(): Array<{ version: string; name: string; path: strin
 /**
  * Get list of already-applied migration versions.
  */
-function getAppliedVersions(db: Database.Database): Set<string> {
+function getAppliedVersions(db: DatabaseSync): Set<string> {
   const rows = db.prepare("SELECT version FROM _omniroute_migrations").all() as Array<{
     version: string;
   }>;
@@ -192,7 +192,7 @@ function getAppliedVersions(db: Database.Database): Set<string> {
 /**
  * Get applied migration records (version + name) for mismatch detection.
  */
-function getAppliedRecords(db: Database.Database): Array<{ version: string; name: string }> {
+function getAppliedRecords(db: DatabaseSync): Array<{ version: string; name: string }> {
   return db
     .prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version")
     .all() as Array<{
@@ -201,31 +201,26 @@ function getAppliedRecords(db: Database.Database): Array<{ version: string; name
   }>;
 }
 
-function hasTable(db: Database.Database, tableName: string): boolean {
+function hasTable(db: DatabaseSync, tableName: string): boolean {
   const row = db
     .prepare("SELECT name FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?")
     .get(tableName) as { name?: string } | undefined;
   return Boolean(row?.name);
 }
 
-function hasColumn(db: Database.Database, tableName: string, columnName: string): boolean {
+function hasColumn(db: DatabaseSync, tableName: string, columnName: string): boolean {
   const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name?: string }>;
   return columns.some((column) => column.name === columnName);
 }
 
-function ensureColumn(
-  db: Database.Database,
-  tableName: string,
-  columnName: string,
-  ddl: string
-): void {
+function ensureColumn(db: DatabaseSync, tableName: string, columnName: string, ddl: string): void {
   if (!hasColumn(db, tableName, columnName)) {
     db.exec(ddl);
   }
 }
 
 function isSchemaAlreadyApplied(
-  db: Database.Database,
+  db: DatabaseSync,
   migration: { version: string; name: string }
 ): boolean {
   switch (migration.version) {
@@ -271,7 +266,7 @@ function isSchemaAlreadyApplied(
   }
 }
 
-function applyApiKeyLifecycleMigration(db: Database.Database): void {
+function applyApiKeyLifecycleMigration(db: DatabaseSync): void {
   ensureColumn(db, "api_keys", "revoked_at", "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT");
   ensureColumn(db, "api_keys", "expires_at", "ALTER TABLE api_keys ADD COLUMN expires_at TEXT");
   ensureColumn(db, "api_keys", "last_used_at", "ALTER TABLE api_keys ADD COLUMN last_used_at TEXT");
@@ -285,21 +280,7 @@ function applyApiKeyLifecycleMigration(db: Database.Database): void {
   `);
 }
 
-function isSearchRequestTypeMigration(migration: { version: string; name: string }): boolean {
-  return migration.version === "007";
-}
-
-function applySearchRequestTypeMigration(db: Database.Database): void {
-  ensureColumn(
-    db,
-    "call_logs",
-    "request_type",
-    "ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL"
-  );
-  db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);");
-}
-
-function inferPhysicalSchemaBaseline(db: Database.Database): {
+function inferPhysicalSchemaBaseline(db: DatabaseSync): {
   version: string;
   description: string;
 } | null {
@@ -358,7 +339,7 @@ function detectNameMismatches(
 }
 
 function reconcileRenumberedMigrations(
-  db: Database.Database,
+  db: DatabaseSync,
   files: Array<{ version: string; name: string; path: string }>
 ): boolean {
   let repaired = false;
@@ -384,11 +365,13 @@ function reconcileRenumberedMigrations(
       continue;
     }
 
-    const targetRow = db
-      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
-      .get(compatibility.toVersion) as { version: string } | undefined;
+    try {
+      db.exec("BEGIN");
 
-    const applyRepair = db.transaction(() => {
+      const targetRow = db
+        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
+        .get(compatibility.toVersion) as { version: string } | undefined;
+
       if (targetRow) {
         db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
           compatibility.fromVersion,
@@ -404,10 +387,15 @@ function reconcileRenumberedMigrations(
           compatibility.fromName
         );
       }
-    });
 
-    applyRepair();
-    repaired = true;
+      db.exec("COMMIT");
+
+      repaired = true;
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
+
     console.warn(
       `[Migration] Reconciled renamed migration ${compatibility.fromVersion}_${compatibility.fromName} ` +
         `to ${compatibility.toVersion}_${compatibility.toName} to preserve pending migrations.`
@@ -437,7 +425,7 @@ function reconcileRenumberedMigrations(
 }
 
 function rehomeLegacyVersionSlotMigrations(
-  db: Database.Database,
+  db: DatabaseSync,
   files: Array<{ version: string; name: string; path: string }>
 ): boolean {
   let repaired = false;
@@ -457,7 +445,10 @@ function rehomeLegacyVersionSlotMigrations(
     }
 
     const legacyVersion = `legacy-${legacy.version}-${legacy.name}`;
-    const applyRepair = db.transaction(() => {
+
+    try {
+      db.exec("BEGIN");
+
       const existingLegacyRow = db
         .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
         .get(legacyVersion) as { version: string } | undefined;
@@ -467,6 +458,9 @@ function rehomeLegacyVersionSlotMigrations(
           legacy.version,
           legacy.name
         );
+
+        db.exec("COMMIT");
+        repaired = true;
         return;
       }
 
@@ -475,10 +469,14 @@ function rehomeLegacyVersionSlotMigrations(
         legacy.version,
         legacy.name
       );
-    });
 
-    applyRepair();
-    repaired = true;
+      db.exec("COMMIT");
+      repaired = true;
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
+
     console.warn(
       `[Migration] Rehomed legacy migration ${legacy.version}_${legacy.name} ` +
         `to ${legacyVersion} so current ${legacy.version}_${diskName} can apply.`
@@ -492,9 +490,9 @@ function rehomeLegacyVersionSlotMigrations(
  * Create a pre-migration backup of the SQLite database using VACUUM INTO.
  * Returns the backup path on success, null on failure.
  */
-function createPreMigrationBackup(db: Database.Database): string | null {
+function createPreMigrationBackup(db: DatabaseSync): string | null {
   try {
-    const sqliteFile = db.name;
+    const sqliteFile = db.location();
     if (!sqliteFile || sqliteFile === ":memory:") return null;
 
     const backupDir = path.join(path.dirname(sqliteFile), "db_backups");
@@ -525,7 +523,7 @@ function createPreMigrationBackup(db: Database.Database): string | null {
  * 2. Aborts if too many pending migrations on an existing DB (likely wipe)
  * 3. Creates automatic backup before running any migrations
  */
-export function runMigrations(db: Database.Database, options?: { isNewDb?: boolean }): number {
+export function runMigrations(db: DatabaseSync, options?: { isNewDb?: boolean }): number {
   const isNewDb = options?.isNewDb === true;
   ensureMigrationsTable(db);
 
@@ -634,7 +632,11 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   let count = 0;
 
   for (const migration of pending) {
-    const applyMigration = db.transaction(() => {
+    let applied = false;
+
+    try {
+      db.exec("BEGIN");
+
       if (isSchemaAlreadyApplied(db, migration)) {
         console.warn(
           `[Migration] Skipped executing ${migration.version}_${migration.name} as schema changes are already present (Idempotency check).`
@@ -645,20 +647,27 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);
       }
-      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-        migration.version,
-        migration.name
-      );
-    });
 
-    try {
-      applyMigration();
-      count++;
-      console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
+      // migration registry insert (named params OK)
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (@version, @name)").run({
+        version: migration.version,
+        name: migration.name,
+      });
+
+      db.exec("COMMIT");
+      applied = true;
     } catch (err: unknown) {
+      db.exec("ROLLBACK");
+
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[Migration] FAILED: ${migration.version}_${migration.name} — ${message}`);
-      throw err; // Re-throw to prevent DB from starting in inconsistent state
+
+      throw err;
+    }
+
+    if (applied) {
+      count++;
+      console.log(`[Migration] Applied: ${migration.version}_${migration.name}`);
     }
   }
 
@@ -672,7 +681,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
 /**
  * Get migration status for diagnostics.
  */
-export function getMigrationStatus(db: Database.Database): {
+export function getMigrationStatus(db: DatabaseSync): {
   applied: Array<{ version: string; name: string; applied_at: string }>;
   pending: Array<{ version: string; name: string }>;
 } {

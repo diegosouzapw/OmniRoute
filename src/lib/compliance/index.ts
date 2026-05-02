@@ -19,9 +19,9 @@ import {
 } from "../logEnv";
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
 import { deleteCallLogsBefore, trimCallLogsToMaxRows } from "../usage/callLogs";
+import { DatabaseSync } from "node:sqlite";
 
-/** @returns {import("better-sqlite3").Database | null} */
-function getDb() {
+function getDb(): DatabaseSync | null {
   try {
     return getDbInstance();
   } catch {
@@ -145,7 +145,7 @@ function parseAuditValue(value: unknown): unknown {
   }
 }
 
-function ensureAuditLogSchema(db: import("better-sqlite3").Database) {
+function ensureAuditLogSchema(db: DatabaseSync) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -410,7 +410,7 @@ export function setNoLog(apiKeyId: string, noLog: boolean) {
   noLogDbCache.set(apiKeyId, { value: noLog, timestamp: Date.now() });
 }
 
-function ensureNoLogColumn(db: import("better-sqlite3").Database) {
+function ensureNoLogColumn(db: DatabaseSync) {
   if (noLogColumnVerified) {
     return hasNoLogColumn;
   }
@@ -534,7 +534,7 @@ export function cleanupExpiredLogs() {
 
   try {
     const r1 = db.prepare("DELETE FROM usage_history WHERE timestamp < ?").run(callCutoff);
-    deletedUsage = r1.changes;
+    deletedUsage = Number(r1.changes);
   } catch {
     /* table may not exist */
   }
@@ -548,28 +548,28 @@ export function cleanupExpiredLogs() {
 
   try {
     const r3 = db.prepare("DELETE FROM proxy_logs WHERE timestamp < ?").run(callCutoff);
-    deletedProxyLogs = r3.changes;
+    deletedProxyLogs = Number(r3.changes);
   } catch {
     /* table may not exist */
   }
 
   try {
     const r4 = db.prepare("DELETE FROM request_detail_logs WHERE timestamp < ?").run(callCutoff);
-    deletedRequestDetailLogs = r4.changes;
+    deletedRequestDetailLogs = Number(r4.changes);
   } catch {
     /* legacy table may not exist */
   }
 
   try {
     const r5 = db.prepare("DELETE FROM audit_log WHERE timestamp < ?").run(appCutoff);
-    deletedAuditLogs = r5.changes;
+    deletedAuditLogs = Number(r5.changes);
   } catch {
     /* table may not exist */
   }
 
   try {
     const r6 = db.prepare("DELETE FROM mcp_tool_audit WHERE created_at < ?").run(appCutoff);
-    deletedMcpAuditLogs = r6.changes;
+    deletedMcpAuditLogs = Number(r6.changes);
   } catch {
     /* table may not exist */
   }
@@ -599,8 +599,8 @@ export function cleanupExpiredLogs() {
             )`
           )
           .run(toDelete);
-        trimmedProxyLogs += trimmed.changes;
-        currentProxyCount.cnt -= trimmed.changes;
+        trimmedProxyLogs += Number(trimmed.changes);
+        currentProxyCount.cnt -= Number(trimmed.changes);
         if (trimmed.changes === 0) break;
       }
     } catch {

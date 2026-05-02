@@ -228,21 +228,31 @@ export async function reorderCombos(comboIds: string[]) {
     })
     .filter((name): name is string => name.length > 0);
 
-  const reorderTransaction = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     orderedIds.forEach((id, index) => {
       const row = rowById.get(id);
       const combo = row ? parseComboRow(row) : null;
+
       if (!combo) return;
+
       const sortOrder = index + 1;
+
       const updatedCombo = normalizeComboRecord(
         { ...combo, sortOrder, updatedAt: now },
         { allCombos: comboNames }
       );
+
       update.run(JSON.stringify(updatedCombo), sortOrder, now, id);
     });
-  });
 
-  reorderTransaction();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   return getCombos();
 }

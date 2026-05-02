@@ -21,7 +21,6 @@ interface StatementLike<TRow = unknown> {
 interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
   exec: (sql: string) => void;
-  transaction: (fn: () => void) => () => void;
 }
 
 interface PromptRow {
@@ -259,14 +258,21 @@ export function rollbackPrompt(slug: string, version: number): PromptTemplate | 
 
   if (!target) return null;
 
-  const rollback = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     db.prepare("UPDATE prompt_templates SET is_active = 0 WHERE slug = ?").run(slug);
+
     db.prepare("UPDATE prompt_templates SET is_active = 1 WHERE slug = ? AND version = ?").run(
       slug,
       version
     );
-  });
-  rollback();
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 
   return rowToPrompt({ ...target, is_active: 1 });
 }

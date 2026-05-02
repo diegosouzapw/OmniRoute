@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach } from "vitest";
-import Database from "better-sqlite3";
 import { retrieveMemories, estimateTokens } from "../retrieval";
+import { DatabaseSync } from "node:sqlite";
 
 // ────────────────────────────────────────────────────────────
 // Existing tests (pure-logic, no DB required)
@@ -71,7 +71,7 @@ const API_KEY_ID = "test-api-key-fts5";
  * Helper: create the `memories` table + `memory_fts` FTS5 virtual table
  * with the same DDL used in the real migrations (015 + 022).
  */
-function setupSchema(db: InstanceType<typeof Database>) {
+function setupSchema(db: InstanceType<typeof DatabaseSync>) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS memories (
       id INTEGER PRIMARY KEY,
@@ -90,7 +90,7 @@ function setupSchema(db: InstanceType<typeof Database>) {
   `);
 }
 
-function setupFts(db: InstanceType<typeof Database>) {
+function setupFts(db: InstanceType<typeof DatabaseSync>) {
   db.exec(`
     CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
       content,
@@ -116,7 +116,7 @@ function setupFts(db: InstanceType<typeof Database>) {
 
 /** Insert a memory row with an auto-incremented INTEGER id (FTS5-compatible). */
 function insertMemory(
-  db: InstanceType<typeof Database>,
+  db: InstanceType<typeof DatabaseSync>,
   opts: {
     apiKeyId?: string;
     sessionId?: string;
@@ -144,7 +144,7 @@ function insertMemory(
 }
 
 describe("Memory Retrieval — FTS5 integration", () => {
-  let db: InstanceType<typeof Database>;
+  let db: InstanceType<typeof DatabaseSync>;
   let savedDb: unknown;
 
   beforeEach(() => {
@@ -152,8 +152,8 @@ describe("Memory Retrieval — FTS5 integration", () => {
     savedDb = (globalThis as any).__omnirouteDb;
 
     // Stand up an in-memory SQLite DB and inject it as the singleton
-    db = new Database(":memory:");
-    db.pragma("journal_mode = WAL");
+    db = new DatabaseSync(":memory:");
+    db.exec("PRAGMA journal_mode = WAL;");
     setupSchema(db);
     setupFts(db);
     (globalThis as any).__omnirouteDb = db;

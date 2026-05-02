@@ -4,7 +4,6 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
@@ -16,8 +15,9 @@ import {
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
+import { DatabaseSync } from "node:sqlite";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = DatabaseSync;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 type PreservedTableSnapshot = {
@@ -417,7 +417,7 @@ export function cleanNulls(obj: unknown): JsonRecord {
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+  var __omnirouteDb: SqliteDatabase | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -434,7 +434,7 @@ function setDb(db: SqliteDatabase | null): void {
 
 function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
   if (isCloud || isBuildPhase || !SQLITE_FILE) return false;
-  db.pragma(`wal_checkpoint(${mode})`);
+  db.exec(`PRAGMA wal_checkpoint(${mode})`);
   return true;
 }
 
@@ -660,7 +660,7 @@ function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
 
   let probe: SqliteDatabase | null = null;
   try {
-    probe = new Database(sqliteFile, { readonly: true });
+    probe = new DatabaseSync(sqliteFile, { readOnly: true });
 
     for (const tableSpec of CRITICAL_DB_TABLES) {
       if (!hasTable(probe, tableSpec.table)) continue;
@@ -708,38 +708,48 @@ function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
 }
 
 function restoreCriticalDbState(
-  db: SqliteDatabase,
+  db: DatabaseSync,
   snapshot: PreservedCriticalDbState
 ): PreservedTableSnapshot[] {
   const restoredTables: PreservedTableSnapshot[] = [];
 
-  const restore = db.transaction(() => {
+  try {
+    db.exec("BEGIN");
+
     for (const table of snapshot.preservedTables) {
       if (table.rows.length === 0) continue;
+
       if (!hasTable(db, table.table)) {
         throw new Error(`Current schema is missing preserved table "${table.table}"`);
       }
 
       const currentColumns = new Set(getTableColumns(db, table.table));
+
       const restoreColumns = table.columns.filter((column) => currentColumns.has(column));
+
       if (restoreColumns.length === 0) {
         throw new Error(`No compatible columns remain for preserved table "${table.table}"`);
       }
 
       const sql = `INSERT OR REPLACE INTO ${quoteIdentifier(table.table)} (${restoreColumns
-        .map((column) => quoteIdentifier(column))
+        .map((c) => quoteIdentifier(c))
         .join(", ")}) VALUES (${restoreColumns.map(() => "?").join(", ")})`;
-      const insert = db.prepare(sql);
+
+      const stmt = db.prepare(sql);
 
       for (const row of table.rows) {
-        insert.run(...restoreColumns.map((column) => row[column] ?? null));
+        stmt.run(...restoreColumns.map((c) => (row as any)[c] ?? null));
       }
 
       restoredTables.push(table);
     }
-  });
 
-  restore();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   return restoredTables;
 }
 
@@ -833,9 +843,11 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
         artifact_sha256 = NULL
     WHERE id = ?
   `);
-
   let failed = 0;
-  const tx = db.transaction(() => {
+
+  try {
+    db.exec("BEGIN");
+
     for (const row of pendingRows) {
       const artifact: CallLogArtifact = {
         schemaVersion: 4,
@@ -876,6 +888,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
         artifact,
         buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
       );
+
       if (!artifactResult) {
         failed++;
         markMissingStmt.run(row.id);
@@ -889,9 +902,12 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
         artifactSha256: artifactResult.sha256,
       });
     }
-  });
 
-  tx();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 
   if (failed > 0) {
     console.warn(
@@ -902,7 +918,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
 
   db.exec("DROP TABLE IF EXISTS call_logs_v1_legacy");
   try {
-    db.pragma("wal_checkpoint(TRUNCATE)");
+    db.exec("PRAGMA wal_checkpoint(TRUNCATE);");
     db.exec("VACUUM");
     console.log(`[DB] Offloaded ${pendingRows.length} legacy call log detail row(s) to artifacts.`);
   } catch (error: unknown) {
@@ -1009,8 +1025,8 @@ export function getDbInstance(): SqliteDatabase {
     if (isBuildPhase) {
       console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
     }
-    const memoryDb = new Database(":memory:");
-    memoryDb.pragma("journal_mode = WAL");
+    const memoryDb = new DatabaseSync(":memory:");
+    memoryDb.exec("PRAGMA journal_mode = WAL;");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
     ensureCallLogsColumns(memoryDb);
@@ -1084,7 +1100,7 @@ export function getDbInstance(): SqliteDatabase {
   // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
     try {
-      const probe = new Database(sqliteFile, { readonly: true });
+      const probe = new DatabaseSync(sqliteFile, { readOnly: true });
       const hasOldSchema = probe
         .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
@@ -1105,10 +1121,10 @@ export function getDbInstance(): SqliteDatabase {
           console.log(
             `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
-          const fixDb = new Database(sqliteFile);
+          const fixDb = new DatabaseSync(sqliteFile);
           try {
             fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
-            fixDb.pragma("wal_checkpoint(TRUNCATE)");
+            fixDb.exec("PRAGMA wal_checkpoint(TRUNCATE);");
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
             console.warn("[DB] Could not clean up old schema table:", message);
@@ -1176,10 +1192,10 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  const db = new Database(sqliteFile);
-  db.pragma("journal_mode = WAL");
-  db.pragma("busy_timeout = 5000");
-  db.pragma("synchronous = NORMAL");
+  const db = new DatabaseSync(sqliteFile);
+  db.exec("PRAGMA journal_mode = WAL;");
+  db.exec("PRAGMA busy_timeout = 5000;");
+  db.exec("PRAGMA synchronous = NORMAL;");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1287,7 +1303,6 @@ export function resetDbInstance() {
 }
 
 // ──────────────── JSON → SQLite Migration ────────────────
-
 function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
   try {
     const raw = fs.readFileSync(jsonPath, "utf-8");
@@ -1307,29 +1322,11 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       `[DB] Migrating db.json → SQLite (${connCount} connections, ${nodeCount} nodes, ${keyCount} keys)...`
     );
 
-    const migrate = db.transaction(() => {
+    db.exec("BEGIN");
+
+    try {
       // 1. Provider Connections
-      const insertConn = db.prepare(`
-        INSERT OR REPLACE INTO provider_connections (
-          id, provider, auth_type, name, email, priority, is_active,
-          access_token, refresh_token, expires_at, token_expires_at,
-          scope, project_id, test_status, error_code, last_error,
-          last_error_at, last_error_type, last_error_source, backoff_level,
-          rate_limited_until, health_check_interval, last_health_check_at,
-          last_tested, api_key, id_token, provider_specific_data,
-          expires_in, display_name, global_priority, default_model,
-          token_type, consecutive_use_count, rate_limit_protection, last_used_at, created_at, updated_at
-        ) VALUES (
-          @id, @provider, @authType, @name, @email, @priority, @isActive,
-          @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt,
-          @scope, @projectId, @testStatus, @errorCode, @lastError,
-          @lastErrorAt, @lastErrorType, @lastErrorSource, @backoffLevel,
-          @rateLimitedUntil, @healthCheckInterval, @lastHealthCheckAt,
-          @lastTested, @apiKey, @idToken, @providerSpecificData,
-          @expiresIn, @displayName, @globalPriority, @defaultModel,
-          @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @createdAt, @updatedAt
-        )
-      `);
+      const insertConn = db.prepare(`...`);
 
       for (const conn of data.providerConnections || []) {
         insertConn.run({
@@ -1377,10 +1374,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 2. Provider Nodes
-      const insertNode = db.prepare(`
-        INSERT OR REPLACE INTO provider_nodes (id, type, name, prefix, api_type, base_url, created_at, updated_at)
-        VALUES (@id, @type, @name, @prefix, @apiType, @baseUrl, @createdAt, @updatedAt)
-      `);
+      const insertNode = db.prepare(`...`);
       for (const node of data.providerNodes || []) {
         insertNode.run({
           id: node.id,
@@ -1395,9 +1389,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 3. Key-Value pairs
-      const insertKv = db.prepare(
-        "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-      );
+      const insertKv = db.prepare(`...`);
 
       for (const [alias, model] of Object.entries(data.modelAliases || {})) {
         insertKv.run("modelAliases", alias, JSON.stringify(model));
@@ -1414,6 +1406,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       for (const [providerId, models] of Object.entries(data.customModels || {})) {
         insertKv.run("customModels", providerId, JSON.stringify(models));
       }
+
       if (data.proxyConfig) {
         insertKv.run("proxyConfig", "global", JSON.stringify(data.proxyConfig.global || null));
         insertKv.run("proxyConfig", "providers", JSON.stringify(data.proxyConfig.providers || {}));
@@ -1422,15 +1415,13 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 4. Combos
-      const insertCombo = db.prepare(`
-        INSERT OR REPLACE INTO combos (id, name, data, sort_order, created_at, updated_at)
-        VALUES (@id, @name, @data, @sortOrder, @createdAt, @updatedAt)
-      `);
+      const insertCombo = db.prepare(`...`);
       for (const [index, combo] of (data.combos || []).entries()) {
         const normalizedCombo = {
           ...combo,
           sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
         };
+
         insertCombo.run({
           id: normalizedCombo.id,
           name: normalizedCombo.name,
@@ -1442,10 +1433,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 5. API Keys
-      const insertKey = db.prepare(`
-        INSERT OR REPLACE INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at)
-        VALUES (@id, @name, @key, @machineId, @allowedModels, @noLog, @createdAt)
-      `);
+      const insertKey = db.prepare(`...`);
       for (const apiKey of data.apiKeys || []) {
         insertKey.run({
           id: apiKey.id,
@@ -1457,24 +1445,20 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
           createdAt: apiKey.createdAt || new Date().toISOString(),
         });
       }
-    });
 
-    migrate();
+      db.exec("COMMIT");
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
 
     const migratedPath = jsonPath + ".migrated";
     fs.renameSync(jsonPath, migratedPath);
     console.log(`[DB] ✓ Migration complete. Original saved as ${migratedPath}`);
-
-    const legacyBackupDir = path.join(DATA_DIR, "db_backups");
-    if (fs.existsSync(legacyBackupDir)) {
-      const jsonBackups = fs.readdirSync(legacyBackupDir).filter((f) => f.endsWith(".json"));
-      if (jsonBackups.length > 0) {
-        console.log(
-          `[DB] Note: ${jsonBackups.length} legacy .json backups remain in ${legacyBackupDir}`
-        );
-      }
-    }
   } catch (err) {
-    console.error("[DB] Migration from db.json failed:", err.message);
+    db.exec("ROLLBACK");
+
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[DB] Migration from db.json failed:", message);
   }
 }

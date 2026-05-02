@@ -4,12 +4,12 @@ OmniRoute can run as a headless server on Android through Termux. The Electron d
 
 ## Prerequisites
 
-Install Termux from F-Droid or GitHub releases, then update packages and install the build tools required by native dependencies such as `better-sqlite3`.
+Install Termux from F-Droid or GitHub releases, then update packages and install `nodejs-lts` and `git`
 
 ```bash
 pkg update
 pkg upgrade
-pkg install nodejs-lts python build-essential git
+pkg install nodejs-lts git
 ```
 
 If native package compilation fails, rerun the `pkg install` command above and then retry the OmniRoute install.
@@ -120,14 +120,6 @@ omniroute
 - MITM/system certificate features may require Android-level trust-store work outside Termux.
 
 ## Troubleshooting
-
-### better-sqlite3 Build Errors
-
-Install the Termux build toolchain:
-
-```bash
-pkg install nodejs-lts python build-essential
-```
 
 Then rerun:
 

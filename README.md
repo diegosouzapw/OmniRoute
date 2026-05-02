@@ -1307,10 +1307,10 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 <details>
 <summary><b>Click to expand tech stack details</b></summary>
 
-- **Runtime**: Node.js 20.20.2+, 22.22.2+, or 24.x LTS (24 LTS recommended)
-- **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
+- **Runtime**: Node.js 22.22.2+, or 25.x LTS (25 LTS recommended)
+- **Language**: TypeScript 6.0 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
-- **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
+- **Database**: node:sqlite (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
 - **Schemas**: Zod (MCP tool I/O validation, API contracts)
 - **Protocols**: MCP (stdio/HTTP) + A2A v0.3 (JSON-RPC 2.0 + SSE)
 - **Streaming**: Server-Sent Events (SSE) + WebSocket bridge (`/v1/ws`)

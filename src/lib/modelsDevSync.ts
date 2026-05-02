@@ -442,13 +442,21 @@ export function saveModelsDevPricing(data: PricingByProvider): void {
   const insert = db.prepare(
     "INSERT INTO key_value (namespace, key, value) VALUES ('models_dev_pricing', ?, ?)"
   );
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     del.run();
+
     for (const [provider, models] of Object.entries(data)) {
       insert.run(provider, JSON.stringify(models));
     }
-  });
-  tx();
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   invalidateDbCache("pricing");
 }
@@ -588,8 +596,11 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
   `);
 
   const now = new Date().toISOString();
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     del.run();
+
     for (const [provider, models] of Object.entries(data)) {
       for (const [modelId, cap] of Object.entries(models)) {
         insert.run(
@@ -616,8 +627,13 @@ export function saveModelsDevCapabilities(data: CapabilitiesByProvider): void {
         );
       }
     }
-  });
-  tx();
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   cachedCapabilities = data;
   cachedCapabilitiesLoadedAll = true;

@@ -367,18 +367,23 @@ export function batchSaveCostEntries(
   if (!Array.isArray(entries) || entries.length === 0) return;
 
   const db = getDbInstance();
+
   const stmt = db.prepare(
     "INSERT INTO domain_cost_history (api_key_id, cost, timestamp) VALUES (?, ?, ?)"
   );
-  const tx = db.transaction(
-    (rows: Array<{ apiKeyId: string; cost: number; timestamp: number }>) => {
-      for (const entry of rows) {
-        stmt.run(entry.apiKeyId, entry.cost, entry.timestamp);
-      }
-    }
-  );
 
-  tx(entries);
+  db.exec("BEGIN");
+
+  try {
+    for (const entry of entries) {
+      stmt.run(entry.apiKeyId, entry.cost, entry.timestamp);
+    }
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 }
 
 /**

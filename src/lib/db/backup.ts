@@ -2,7 +2,7 @@
  * db/backup.js — Database backup/restore operations.
  */
 
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import path from "path";
 import fs from "fs";
 import {
@@ -244,15 +244,15 @@ export function backupDbFile(reason = "auto") {
 
     // Use native SQLite backup API for consistency
     const db = getDbInstance();
-    db.backup(backupFile)
-      .then(() => {
-        console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
-        cleanupDbBackups();
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("[DB] Backup failed:", message);
-      });
+    try {
+      db.exec(`VACUUM INTO '${backupFile}'`);
+
+      console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
+      cleanupDbBackups();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[DB] Backup failed:", message);
+    }
 
     return { filename: path.basename(backupFile), size: stat.size };
   } catch (err: unknown) {
@@ -283,7 +283,7 @@ export async function listDbBackups() {
 
       let connectionCount = 0;
       try {
-        const backupDb = new Database(filePath, { readonly: true });
+        const backupDb = new DatabaseSync(filePath, { readOnly: true });
         const row = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as
           | CountRow
           | undefined;
@@ -337,8 +337,8 @@ export async function restoreDbBackup(backupId: string) {
 
   // Validate backup integrity
   try {
-    const testDb = new Database(backupPath, { readonly: true });
-    const result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+    const testDb = new DatabaseSync(backupPath, { readOnly: true });
+    const result = testDb.prepare("PRAGMA integrity_check").all() as { integrity_check: string }[];
     testDb.close();
     if (result[0]?.integrity_check !== "ok") {
       throw new Error("Backup integrity check failed");
@@ -362,7 +362,7 @@ export async function restoreDbBackup(backupId: string) {
           `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
         );
         const dbForBackup = getDbInstance();
-        await dbForBackup.backup(preBackupPath);
+        dbForBackup.exec(`VACUUM INTO '${preBackupPath}'`);
         _lastBackupAt = Date.now();
       }
     }

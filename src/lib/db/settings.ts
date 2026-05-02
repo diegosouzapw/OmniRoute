@@ -93,12 +93,18 @@ export async function updateSettings(updates: Record<string, unknown>) {
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', ?, ?)"
   );
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     for (const [key, value] of Object.entries(updates)) {
       insert.run(key, JSON.stringify(value));
     }
-  });
-  tx();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   invalidateDbCache("settings"); // Bust the read cache immediately
   const nextSettings = await getSettings();
@@ -259,13 +265,24 @@ export async function updatePricing(pricingData: PricingByProvider) {
     if (!key || rawValue === null) continue;
     existing[key] = toRecord(JSON.parse(rawValue)) as PricingModels;
   }
+  db.exec("BEGIN");
 
-  const tx = db.transaction(() => {
+  try {
     for (const [provider, models] of Object.entries(pricingData)) {
-      insert.run(provider, JSON.stringify({ ...(existing[provider] || {}), ...models }));
+      insert.run(
+        provider,
+        JSON.stringify({
+          ...(existing[provider] || {}),
+          ...models,
+        })
+      );
     }
-  });
-  tx();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   invalidateDbCache("pricing"); // Bust the pricing read cache
   const updated: PricingByProvider = {};
@@ -555,27 +572,40 @@ export async function setProxyConfig(config: Record<string, unknown>) {
 
   const db = getDbInstance();
   const current = await getProxyConfig();
+
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', ?, ?)"
   );
 
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     if (config.global !== undefined) {
       current.global = toProxyValue(config.global);
       insert.run("global", JSON.stringify(current.global));
     }
-    for (const mapKey of ["providers", "combos", "keys"]) {
+
+    for (const mapKey of ["providers", "combos", "keys"] as const) {
       if (config[mapKey]) {
-        const merged = { ...toProxyMap(current[mapKey]), ...toProxyMap(config[mapKey]) };
+        const merged = {
+          ...toProxyMap(current[mapKey]),
+          ...toProxyMap(config[mapKey]),
+        };
+
         for (const [k, v] of Object.entries(merged)) {
           if (!v) delete merged[k];
         }
+
         current[mapKey] = merged;
         insert.run(mapKey, JSON.stringify(merged));
       }
     }
-  });
-  tx();
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 
   backupDbFile("pre-write");
   return current;

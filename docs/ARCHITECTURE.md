@@ -287,7 +287,7 @@ OAuth provider modules (13 individual files under `src/lib/oauth/providers/`):
 
 Primary state DB (SQLite):
 
-- Core infra: `src/lib/db/core.ts` (better-sqlite3, migrations, WAL)
+- Core infra: `src/lib/db/core.ts` (node:sqlite, migrations, WAL)
 - Re-export facade: `src/lib/localDb.ts` (thin compatibility layer for callers)
 - file: `${DATA_DIR}/storage.sqlite` (or `$XDG_CONFIG_HOME/omniroute/storage.sqlite` when set, else `~/.omniroute/storage.sqlite`)
 - entities (tables + KV namespaces): providerConnections, providerNodes, modelAliases, combos, apiKeys, settings, pricing, **customModels**, **proxyConfig**, **ipFilter**, **thinkingBudget**, **systemPrompt**

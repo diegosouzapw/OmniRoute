@@ -10,7 +10,7 @@ interface StatementLike<TRow = unknown> {
 
 interface DbLike {
   prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
-  transaction: <T extends (...args: any[]) => unknown>(fn: T) => T;
+  exec: (sql: string) => void;
 }
 
 interface KeyValueRow {
@@ -106,15 +106,20 @@ export function setProviderLimitsCacheBatch(
   const insert = db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
   );
-  const tx = db.transaction(
-    (items: Array<{ connectionId: string; entry: ProviderLimitsCacheEntry }>) => {
-      for (const item of items) {
-        insert.run(PROVIDER_LIMITS_CACHE_NAMESPACE, item.connectionId, JSON.stringify(item.entry));
-      }
+
+  db.exec("BEGIN");
+
+  try {
+    for (const item of entries) {
+      insert.run(PROVIDER_LIMITS_CACHE_NAMESPACE, item.connectionId, JSON.stringify(item.entry));
     }
-  );
-  tx(entries);
-  return entries.length;
+
+    db.exec("COMMIT");
+    return entries.length;
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 }
 
 export function deleteProviderLimitsCache(connectionId: string): void {

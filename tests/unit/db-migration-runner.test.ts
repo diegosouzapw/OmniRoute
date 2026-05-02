@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
 const serial = { concurrency: false };
 
@@ -58,7 +58,7 @@ function withMockedMigrationFs(files, fn) {
 }
 
 function createDb() {
-  return new Database(":memory:");
+  return new DatabaseSync(":memory:");
 }
 
 function createInitialSchemaTables(db) {
@@ -87,6 +87,7 @@ function withNonTestEnvironment(fn) {
   const originalDisableAutoBackup = process.env.DISABLE_SQLITE_AUTO_BACKUP;
   const originalArgv = [...process.argv];
 
+  //@ts-ignore
   delete process.env.NODE_ENV;
   delete process.env.VITEST;
   delete process.env.DISABLE_SQLITE_AUTO_BACKUP;
@@ -97,7 +98,9 @@ function withNonTestEnvironment(fn) {
   } finally {
     process.argv = originalArgv;
 
+    //@ts-ignore
     if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+    //@ts-ignore
     else process.env.NODE_ENV = originalNodeEnv;
 
     if (originalVitest === undefined) delete process.env.VITEST;

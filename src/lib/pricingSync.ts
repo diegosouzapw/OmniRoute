@@ -209,13 +209,21 @@ export function saveSyncedPricing(data: PricingByProvider): void {
   const insert = db.prepare(
     "INSERT INTO key_value (namespace, key, value) VALUES ('pricing_synced', ?, ?)"
   );
-  const tx = db.transaction(() => {
+  db.exec("BEGIN");
+
+  try {
     del.run();
+
     for (const [provider, models] of Object.entries(data)) {
       insert.run(provider, JSON.stringify(models));
     }
-  });
-  tx();
+
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+
   backupDbFile("pre-write");
   invalidateDbCache("pricing");
 }

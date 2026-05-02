@@ -11,9 +11,9 @@
  * here, so this function never touches authentication configuration.
  */
 
-import type Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 
-type SqliteDatabase = InstanceType<typeof Database>;
+type SqliteDatabase = InstanceType<typeof DatabaseSync>;
 
 export interface LegacyJsonData {
   providerConnections?: Record<string, unknown>[];
@@ -84,65 +84,73 @@ export function runJsonMigration(
     VALUES (@id, @name, @key, @machineId, @allowedModels, @noLog, @createdAt)
   `);
 
-  const migrate = db.transaction(() => {
+  db.exec("BEGIN");
+
+  let connections = 0;
+  let nodes = 0;
+  let combos = 0;
+  let apiKeys = 0;
+
+  try {
     // 1. Provider Connections
     for (const conn of data.providerConnections ?? []) {
-      insertConn.run({
-        id: conn.id,
-        provider: conn.provider,
-        authType: conn.authType ?? "oauth",
-        name: conn.name ?? null,
-        email: conn.email ?? null,
-        priority: conn.priority ?? 0,
-        isActive: conn.isActive === false ? 0 : 1,
-        accessToken: conn.accessToken ?? null,
-        refreshToken: conn.refreshToken ?? null,
-        expiresAt: conn.expiresAt ?? null,
-        tokenExpiresAt: conn.tokenExpiresAt ?? null,
-        scope: conn.scope ?? null,
-        projectId: conn.projectId ?? null,
-        testStatus: conn.testStatus ?? null,
-        errorCode: conn.errorCode ?? null,
-        lastError: conn.lastError ?? null,
-        lastErrorAt: conn.lastErrorAt ?? null,
-        lastErrorType: conn.lastErrorType ?? null,
-        lastErrorSource: conn.lastErrorSource ?? null,
-        backoffLevel: conn.backoffLevel ?? 0,
-        rateLimitedUntil: conn.rateLimitedUntil ?? null,
-        healthCheckInterval: conn.healthCheckInterval ?? null,
-        lastHealthCheckAt: conn.lastHealthCheckAt ?? null,
-        lastTested: conn.lastTested ?? null,
-        apiKey: conn.apiKey ?? null,
-        idToken: conn.idToken ?? null,
-        providerSpecificData: conn.providerSpecificData
-          ? JSON.stringify(conn.providerSpecificData)
-          : null,
-        expiresIn: conn.expiresIn ?? null,
-        displayName: conn.displayName ?? null,
-        globalPriority: conn.globalPriority ?? null,
-        defaultModel: conn.defaultModel ?? null,
-        tokenType: conn.tokenType ?? null,
-        consecutiveUseCount: conn.consecutiveUseCount ?? 0,
-        lastUsedAt: conn.lastUsedAt ?? null,
-        rateLimitProtection:
-          conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
-        createdAt: conn.createdAt ?? new Date().toISOString(),
-        updatedAt: conn.updatedAt ?? new Date().toISOString(),
-      });
+      insertConn.run(
+        conn.id,
+        conn.provider,
+        conn.authType ?? "oauth",
+        conn.name ?? null,
+        conn.email ?? null,
+        conn.priority ?? 0,
+        conn.isActive === false ? 0 : 1,
+        conn.accessToken ?? null,
+        conn.refreshToken ?? null,
+        conn.expiresAt ?? null,
+        conn.tokenExpiresAt ?? null,
+        conn.scope ?? null,
+        conn.projectId ?? null,
+        conn.testStatus ?? null,
+        conn.errorCode ?? null,
+        conn.lastError ?? null,
+        conn.lastErrorAt ?? null,
+        conn.lastErrorType ?? null,
+        conn.lastErrorSource ?? null,
+        conn.backoffLevel ?? 0,
+        conn.rateLimitedUntil ?? null,
+        conn.healthCheckInterval ?? null,
+        conn.lastHealthCheckAt ?? null,
+        conn.lastTested ?? null,
+        conn.apiKey ?? null,
+        conn.idToken ?? null,
+        conn.providerSpecificData ? JSON.stringify(conn.providerSpecificData) : null,
+        conn.expiresIn ?? null,
+        conn.displayName ?? null,
+        conn.globalPriority ?? null,
+        conn.defaultModel ?? null,
+        conn.tokenType ?? null,
+        conn.consecutiveUseCount ?? 0,
+        conn.rateLimitProtection === true || conn.rateLimitProtection === 1 ? 1 : 0,
+        conn.lastUsedAt ?? null,
+        conn.createdAt ?? new Date().toISOString(),
+        conn.updatedAt ?? new Date().toISOString()
+      );
+
+      connections++;
     }
 
     // 2. Provider Nodes
     for (const node of data.providerNodes ?? []) {
-      insertNode.run({
-        id: node.id,
-        type: node.type,
-        name: node.name,
-        prefix: node.prefix ?? null,
-        apiType: node.apiType ?? null,
-        baseUrl: node.baseUrl ?? null,
-        createdAt: node.createdAt ?? new Date().toISOString(),
-        updatedAt: node.updatedAt ?? new Date().toISOString(),
-      });
+      insertNode.run(
+        node.id,
+        node.type,
+        node.name,
+        node.prefix ?? null,
+        node.apiType ?? null,
+        node.baseUrl ?? null,
+        node.createdAt ?? new Date().toISOString(),
+        node.updatedAt ?? new Date().toISOString()
+      );
+
+      nodes++;
     }
 
     // 3. Key-Value Settings (caller must have stripped password / requireLogin)
@@ -154,15 +162,19 @@ export function runJsonMigration(
     for (const [alias, model] of Object.entries(data.modelAliases ?? {})) {
       insertKv.run("modelAliases", alias, JSON.stringify(model));
     }
+
     for (const [toolName, mappings] of Object.entries(data.mitmAlias ?? {})) {
       insertKv.run("mitmAlias", toolName, JSON.stringify(mappings));
     }
+
     for (const [provider, models] of Object.entries(data.pricing ?? {})) {
       insertKv.run("pricing", provider, JSON.stringify(models));
     }
+
     for (const [providerId, models] of Object.entries(data.customModels ?? {})) {
       insertKv.run("customModels", providerId, JSON.stringify(models));
     }
+
     if (data.proxyConfig) {
       insertKv.run("proxyConfig", "global", JSON.stringify(data.proxyConfig.global ?? null));
       insertKv.run("proxyConfig", "providers", JSON.stringify(data.proxyConfig.providers ?? {}));
@@ -172,40 +184,43 @@ export function runJsonMigration(
 
     // 5. Combos
     for (const [index, combo] of (data.combos ?? []).entries()) {
-      const normalizedCombo = {
+      const normalized = {
         ...combo,
         sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
       };
-      insertCombo.run({
-        id: normalizedCombo.id,
-        name: normalizedCombo.name,
-        data: JSON.stringify(normalizedCombo),
-        sortOrder: normalizedCombo.sortOrder,
-        createdAt: normalizedCombo.createdAt ?? new Date().toISOString(),
-        updatedAt: normalizedCombo.updatedAt ?? new Date().toISOString(),
-      });
+
+      insertCombo.run(
+        normalized.id,
+        normalized.name,
+        JSON.stringify(normalized),
+        normalized.sortOrder,
+        normalized.createdAt ?? new Date().toISOString(),
+        normalized.updatedAt ?? new Date().toISOString()
+      );
+
+      combos++;
     }
 
     // 6. API Keys
     for (const apiKey of data.apiKeys ?? []) {
-      insertKey.run({
-        id: apiKey.id,
-        name: apiKey.name,
-        key: apiKey.key,
-        machineId: apiKey.machineId ?? null,
-        allowedModels: JSON.stringify(apiKey.allowedModels ?? []),
-        noLog: apiKey.noLog ? 1 : 0,
-        createdAt: apiKey.createdAt ?? new Date().toISOString(),
-      });
+      insertKey.run(
+        apiKey.id,
+        apiKey.name,
+        apiKey.key,
+        apiKey.machineId ?? null,
+        JSON.stringify(apiKey.allowedModels ?? []),
+        apiKey.noLog ? 1 : 0,
+        apiKey.createdAt ?? new Date().toISOString()
+      );
+
+      apiKeys++;
     }
-  });
 
-  migrate();
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
 
-  return {
-    connections: (data.providerConnections ?? []).length,
-    nodes: (data.providerNodes ?? []).length,
-    combos: (data.combos ?? []).length,
-    apiKeys: (data.apiKeys ?? []).length,
-  };
+  return { connections, nodes, combos, apiKeys };
 }

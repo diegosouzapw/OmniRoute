@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import Database from "better-sqlite3";
 
 import { bootstrapEnv } from "../../scripts/bootstrap-env.mjs";
+import { DatabaseSync } from "node:sqlite";
 
 function withTempEnv(fn) {
   const originalCwd = process.cwd();
@@ -68,7 +68,7 @@ test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
   withTempEnv(({ dataDir }) => {
     process.env.DATA_DIR = dataDir;
     fs.mkdirSync(dataDir, { recursive: true });
-    const db = new Database(path.join(dataDir, "storage.sqlite"));
+    const db = new DatabaseSync(path.join(dataDir, "storage.sqlite"));
     try {
       db.exec(`
         CREATE TABLE provider_connections (

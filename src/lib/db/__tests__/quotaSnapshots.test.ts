@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Database from "better-sqlite3";
 import { rowToCamel } from "../core";
 import type { QuotaSnapshotRow } from "@/shared/types/utilization";
+import { DatabaseSync } from "node:sqlite";
 
 const MIGRATION_SQL = `
   CREATE TABLE IF NOT EXISTS quota_snapshots (
@@ -34,7 +34,7 @@ interface DbLike {
 let lastCleanupAt = 0;
 
 function saveQuotaSnapshotForTest(
-  db: Database.Database,
+  db: DatabaseSync,
   snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
 ): void {
   const now = new Date().toISOString();
@@ -60,7 +60,7 @@ function saveQuotaSnapshotForTest(
 }
 
 function getQuotaSnapshotsForTest(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: {
     provider?: string;
     connectionId?: string;
@@ -117,7 +117,7 @@ function getQuotaSnapshotsForTest(
 }
 
 function getAggregatedSnapshotsForTest(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: {
     provider?: string;
     since: string;
@@ -175,7 +175,7 @@ function getAggregatedSnapshotsForTest(
   }));
 }
 
-function cleanupOldSnapshotsForTest(db: Database.Database, retentionDays = 90): number {
+function cleanupOldSnapshotsForTest(db: DatabaseSync, retentionDays = 90): number {
   const now = Date.now();
   const cleanupThresholdMs = 6 * 60 * 60 * 1000;
 
@@ -193,11 +193,11 @@ function cleanupOldSnapshotsForTest(db: Database.Database, retentionDays = 90): 
 }
 
 describe("quotaSnapshots DB module", () => {
-  let testDb: Database.Database;
+  let testDb: DatabaseSync;
 
   beforeEach(() => {
-    testDb = new Database(":memory:");
-    testDb.pragma("journal_mode = WAL");
+    testDb = new DatabaseSync(":memory:");
+    testDb.exec("PRAGMA journal_mode = WAL;");
     testDb.exec(MIGRATION_SQL);
     lastCleanupAt = 0;
   });
@@ -225,7 +225,7 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots ORDER BY id DESC LIMIT 1")
-        .all() as QuotaSnapshotRow[];
+        .all() as unknown as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(1);
       expect(rows[0].provider).toBe("codex");
@@ -251,7 +251,7 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots WHERE provider = ?")
-        .all("claude") as QuotaSnapshotRow[];
+        .all("claude") as unknown as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(1);
       expect(rows[0].remaining_percentage).toBeNull();
@@ -276,7 +276,7 @@ describe("quotaSnapshots DB module", () => {
 
       const rows = testDb
         .prepare("SELECT * FROM quota_snapshots WHERE provider = ?")
-        .all("test-provider") as QuotaSnapshotRow[];
+        .all("test-provider") as unknown as QuotaSnapshotRow[];
 
       expect(rows).toHaveLength(3);
     });

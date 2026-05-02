@@ -5,14 +5,14 @@ import os from "node:os";
 import path from "node:path";
 
 const FALLBACK_VERSION = "3.2.14";
-const Database = (await import("better-sqlite3")).default;
+const { DatabaseSync } = await import("node:sqlite");
 
 const { getCursorVersion, resetCursorVersionCache } =
   await import("../../open-sse/utils/cursorVersionDetector.ts");
 
 function createStateDb(dir, version) {
   const dbPath = path.join(dir, "state.vscdb");
-  const db = new Database(dbPath);
+  const db = new DatabaseSync(dbPath);
   db.exec("CREATE TABLE itemTable (key TEXT PRIMARY KEY, value TEXT)");
   if (version) {
     db.prepare("INSERT INTO itemTable (key, value) VALUES (?, ?)").run(

@@ -8,7 +8,7 @@
 
 ### Core Infrastructure
 
-- **`core.ts`** — `getDbInstance()` returns singleton `better-sqlite3` with WAL journaling. Exports `rowToCamel()` (snake_case → camelCase), `encryptConnectionFields()` for provider credentials at rest. `SCHEMA_SQL` defines 15 base tables.
+- **`core.ts`** — `getDbInstance()` returns singleton `node:sqlite` with WAL journaling. Exports `rowToCamel()` (snake_case → camelCase), `encryptConnectionFields()` for provider credentials at rest. `SCHEMA_SQL` defines 15 base tables.
 - **`migrationRunner.ts`** — Applies versioned SQL files from `db/migrations/` inside transactions. Tracks applied migrations in `_omniroute_migrations`. Runs at startup; each migration is idempotent.
 - **`db/migrations/`** — 21 SQL files (`001_initial_schema.sql` → `021_combo_call_log_targets.sql`). Each migration has single responsibility, runs in a transaction, never fails partially.
 - **`localDb.ts`** — Re-export layer only. Never add logic here. Consumers import domain modules from this file for convenience.

@@ -1,7 +1,7 @@
 /**
  * DB Read Cache — In-memory TTL cache for hot read paths.
  *
- * SQLite reads are already fast since better-sqlite3 is synchronous and
+ * SQLite reads are already fast since node:sqlite has synchronous feature and
  * memory-mapped. However, some functions (getSettings, getPricing,
  * getProviderConnections) are called on every request by multiple callers.
  * A short TTL cache (5s) eliminates redundant I/O without staling data for

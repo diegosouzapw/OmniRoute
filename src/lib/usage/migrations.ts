@@ -273,7 +273,9 @@ export function migrateUsageJsonToSqlite() {
             @status, @success, @latencyMs, @ttftMs, @errorCode, @timestamp)
         `);
 
-        const tx = db.transaction(() => {
+        try {
+          db.exec("BEGIN");
+
           for (const entry of history) {
             insert.run({
               provider: entry.provider || null,
@@ -299,9 +301,14 @@ export function migrateUsageJsonToSqlite() {
               timestamp: entry.timestamp || new Date().toISOString(),
             });
           }
-        });
-        tx();
-        console.log(`[usageDb] ✓ Migrated ${history.length} usage entries`);
+
+          db.exec("COMMIT");
+
+          console.log(`[usageDb] ✓ Migrated ${history.length} usage entries`);
+        } catch (err) {
+          db.exec("ROLLBACK");
+          throw err;
+        }
       }
 
       fs.renameSync(USAGE_JSON_FILE, `${USAGE_JSON_FILE}.migrated`);
@@ -331,21 +338,26 @@ export function migrateUsageJsonToSqlite() {
             @detailState, @artifactRelPath, @artifactSizeBytes, @artifactSha256,
             @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary)
         `);
+        try {
+          db.exec("BEGIN");
 
-        const tx = db.transaction(() => {
           for (const log of logs) {
             const id = log.id || `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
             const timestamp = log.timestamp || new Date().toISOString();
+
             const protectedRequestBody = log.requestBody
               ? protectPayloadForLog(log.requestBody)
               : null;
+
             const protectedResponseBody = log.responseBody
               ? protectPayloadForLog(log.responseBody)
               : null;
+
             const protectedError =
               log.error && typeof log.error === "object"
                 ? protectPayloadForLog(log.error)
                 : log.error || null;
+
             const detailExpected =
               protectedRequestBody !== null ||
               protectedResponseBody !== null ||
@@ -385,13 +397,15 @@ export function migrateUsageJsonToSqlite() {
                   apiKeyName: log.apiKeyName || null,
                   comboName: log.comboName || null,
                   comboStepId: log.comboStepId || null,
-                  comboExecutionKey: log.comboExecutionKey || null,
+                  comboExecutionKey: log.comboExecutionKey || log.comboStepId || null,
                 },
                 requestBody: protectedRequestBody,
                 responseBody: protectedResponseBody,
                 error: protectedError,
               };
+
               const artifactResult = writeCallArtifact(artifact);
+
               if (artifactResult) {
                 detailState = "ready";
                 artifactRelPath = artifactResult.relPath;
@@ -439,9 +453,14 @@ export function migrateUsageJsonToSqlite() {
               requestSummary: buildLegacyRequestSummary(log.requestType, protectedRequestBody),
             });
           }
-        });
-        tx();
-        console.log(`[usageDb] ✓ Migrated ${logs.length} call log entries`);
+
+          db.exec("COMMIT");
+
+          console.log(`[usageDb] ✓ Migrated ${logs.length} call log entries`);
+        } catch (err) {
+          db.exec("ROLLBACK");
+          throw err;
+        }
       }
 
       fs.renameSync(CALL_LOGS_JSON_FILE, `${CALL_LOGS_JSON_FILE}.migrated`);
