@@ -1,19 +1,19 @@
-# OmniRoute — Uninstall Guide
+# OmniRoute — docs/UNINSTALL Guide
 
-🌐 **Languages:** 🇺🇸 [English](UNINSTALL.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/UNINSTALL.md) | 🇪🇸 [Español](i18n/es/UNINSTALL.md) | 🇫🇷 [Français](i18n/fr/UNINSTALL.md) | 🇮🇹 [Italiano](i18n/it/UNINSTALL.md) | 🇷🇺 [Русский](i18n/ru/UNINSTALL.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/UNINSTALL.md) | 🇩🇪 [Deutsch](i18n/de/UNINSTALL.md) | 🇮🇳 [हिन्दी](i18n/in/UNINSTALL.md) | 🇹🇭 [ไทย](i18n/th/UNINSTALL.md) | 🇺🇦 [Українська](i18n/uk-UA/UNINSTALL.md) | 🇸🇦 [العربية](i18n/ar/UNINSTALL.md) | 🇯🇵 [日本語](i18n/ja/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](i18n/vi/UNINSTALL.md) | 🇧🇬 [Български](i18n/bg/UNINSTALL.md) | 🇩🇰 [Dansk](i18n/da/UNINSTALL.md) | 🇫🇮 [Suomi](i18n/fi/UNINSTALL.md) | 🇮🇱 [עברית](i18n/he/UNINSTALL.md) | 🇭🇺 [Magyar](i18n/hu/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/UNINSTALL.md) | 🇰🇷 [한국어](i18n/ko/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/UNINSTALL.md) | 🇳🇱 [Nederlands](i18n/nl/UNINSTALL.md) | 🇳🇴 [Norsk](i18n/no/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](i18n/pt/UNINSTALL.md) | 🇷🇴 [Română](i18n/ro/UNINSTALL.md) | 🇵🇱 [Polski](i18n/pl/UNINSTALL.md) | 🇸🇰 [Slovenčina](i18n/sk/UNINSTALL.md) | 🇸🇪 [Svenska](i18n/sv/UNINSTALL.md) | 🇵🇭 [Filipino](i18n/phi/UNINSTALL.md) | 🇨🇿 [Čeština](i18n/cs/UNINSTALL.md)
+🌐 **Languages:** 🇺🇸 [English](UNINSTALL.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/docs/UNINSTALL.md) | 🇪🇸 [Español](i18n/es/docs/UNINSTALL.md) | 🇫🇷 [Français](i18n/fr/docs/UNINSTALL.md) | 🇮🇹 [Italiano](i18n/it/docs/UNINSTALL.md) | 🇷🇺 [Русский](i18n/ru/docs/UNINSTALL.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/docs/UNINSTALL.md) | 🇩🇪 [Deutsch](i18n/de/docs/UNINSTALL.md) | 🇮🇳 [हिन्दी](i18n/in/docs/UNINSTALL.md) | 🇹🇭 [ไทย](i18n/th/docs/UNINSTALL.md) | 🇺🇦 [Українська](i18n/uk-UA/docs/UNINSTALL.md) | 🇸🇦 [العربية](i18n/ar/docs/UNINSTALL.md) | 🇯🇵 [日本語](i18n/ja/docs/UNINSTALL.md) | 🇻🇳 [Tiếng Việt](i18n/vi/docs/UNINSTALL.md) | 🇧🇬 [Български](i18n/bg/docs/UNINSTALL.md) | 🇩🇰 [Dansk](i18n/da/docs/UNINSTALL.md) | 🇫🇮 [Suomi](i18n/fi/docs/UNINSTALL.md) | 🇮🇱 [עברית](i18n/he/docs/UNINSTALL.md) | 🇭🇺 [Magyar](i18n/hu/docs/UNINSTALL.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/docs/UNINSTALL.md) | 🇰🇷 [한국어](i18n/ko/docs/UNINSTALL.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/docs/UNINSTALL.md) | 🇳🇱 [Nederlands](i18n/nl/docs/UNINSTALL.md) | 🇳🇴 [Norsk](i18n/no/docs/UNINSTALL.md) | 🇵🇹 [Português (Portugal)](i18n/pt/docs/UNINSTALL.md) | 🇷🇴 [Română](i18n/ro/docs/UNINSTALL.md) | 🇵🇱 [Polski](i18n/pl/docs/UNINSTALL.md) | 🇸🇰 [Slovenčina](i18n/sk/docs/UNINSTALL.md) | 🇸🇪 [Svenska](i18n/sv/docs/UNINSTALL.md) | 🇵🇭 [Filipino](i18n/phi/docs/UNINSTALL.md) | 🇨🇿 [Čeština](i18n/cs/docs/UNINSTALL.md)
 
 This guide covers how to cleanly remove OmniRoute from your system.
 
 ---
 
-## Quick Uninstall (v3.6.2+)
+## Quick docs/UNINSTALL (v3.6.2+)
 
 OmniRoute provides two built-in scripts for clean removal:
 
 ### Keep Your Data
 
 ```bash
-npm run uninstall
+npm run docs/UNINSTALL
 ```
 
 This removes the OmniRoute application but **preserves** your database, configurations, API keys, and provider settings in `~/.omniroute/`. Use this if you plan to reinstall later and want to keep your setup.
@@ -21,7 +21,7 @@ This removes the OmniRoute application but **preserves** your database, configur
 ### Full Removal
 
 ```bash
-npm run uninstall:full
+npm run docs/UNINSTALL:full
 ```
 
 This removes the application **and permanently erases** all data:
@@ -32,17 +32,17 @@ This removes the application **and permanently erases** all data:
 - Log files
 - All files in the `~/.omniroute/` directory
 
-> ⚠️ **Warning:** `npm run uninstall:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
+> ⚠️ **Warning:** `npm run docs/UNINSTALL:full` is irreversible. All your provider connections, combos, API keys, and usage history will be permanently deleted.
 
 ---
 
-## Manual Uninstall
+## Manual docs/UNINSTALL
 
 ### NPM Global Install
 
 ```bash
 # Remove the global package
-npm uninstall -g omniroute
+npm docs/UNINSTALL -g omniroute
 
 # (Optional) Remove data directory
 rm -rf ~/.omniroute
@@ -51,7 +51,7 @@ rm -rf ~/.omniroute
 ### pnpm Global Install
 
 ```bash
-pnpm uninstall -g omniroute
+pnpm docs/UNINSTALL -g omniroute
 rm -rf ~/.omniroute
 ```
 
@@ -83,8 +83,8 @@ docker compose down -v
 
 **Windows:**
 
-- Open `Settings → Apps → OmniRoute → Uninstall`
-- Or run the NSIS uninstaller from the install directory
+- Open `Settings → Apps → OmniRoute → docs/UNINSTALL`
+- Or run the NSIS docs/UNINSTALLer from the install directory
 
 **macOS:**
 
@@ -135,7 +135,7 @@ OmniRoute stores data in the following locations by default:
 
 ## Verify Complete Removal
 
-After uninstalling, verify there are no remaining files:
+After docs/UNINSTALLing, verify there are no remaining files:
 
 ```bash
 # Check for global npm package
