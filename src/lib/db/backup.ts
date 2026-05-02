@@ -245,7 +245,7 @@ export function backupDbFile(reason = "auto") {
     // Use native SQLite backup API for consistency
     const db = getDbInstance();
     try {
-      db.exec(`VACUUM INTO '${backupFile}'`);
+      db.backup(backupFile);
 
       console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
       cleanupDbBackups();
@@ -362,7 +362,7 @@ export async function restoreDbBackup(backupId: string) {
           `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
         );
         const dbForBackup = getDbInstance();
-        dbForBackup.exec(`VACUUM INTO '${preBackupPath}'`);
+        dbForBackup.backup(preBackupPath);
         _lastBackupAt = Date.now();
       }
     }

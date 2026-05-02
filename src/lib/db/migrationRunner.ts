@@ -19,6 +19,27 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { DatabaseSync } from "node:sqlite";
 
+declare module "node:sqlite" {
+  interface DatabaseSync {
+    backup(destination: string): void | Promise<void>;
+  }
+}
+
+function quoteSqlitePath(filePath: string): string {
+  return `'${filePath.replaceAll("'", "''")}'`;
+}
+
+function ensureBackupMethod(db: DatabaseSync): void {
+  if (typeof db.backup !== "function") {
+    Object.defineProperty(db, "backup", {
+      value: (destination: string) => {
+        db.exec(`VACUUM INTO ${quoteSqlitePath(destination)}`);
+      },
+      configurable: true,
+    });
+  }
+}
+
 /**
  * Resolve the migrations directory path safely across platforms.
  * On Windows with global npm installs, `import.meta.url` may not be a valid
@@ -487,7 +508,7 @@ function rehomeLegacyVersionSlotMigrations(
 }
 
 /**
- * Create a pre-migration backup of the SQLite database using VACUUM INTO.
+ * Create a pre-migration backup of the SQLite database.
  * Returns the backup path on success, null on failure.
  */
 function createPreMigrationBackup(db: DatabaseSync): string | null {
@@ -502,9 +523,9 @@ function createPreMigrationBackup(db: DatabaseSync): string | null {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupPath = path.join(backupDir, `db_${timestamp}_pre-migration.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
 
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
+    ensureBackupMethod(db);
+    db.backup(backupPath);
     console.log(`[Migration] Pre-migration backup created: ${backupPath}`);
     return backupPath;
   } catch (err: unknown) {

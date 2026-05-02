@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
       // 1. Export database using native backup API
       const dbBackupPath = path.join(tempDir, "storage.sqlite");
-      db.exec(`VACUUM INTO '${dbBackupPath}'`);
+      await db.backup(dbBackupPath);
 
       // 2. Export settings as JSON
       const settings: Record<string, string> = {};

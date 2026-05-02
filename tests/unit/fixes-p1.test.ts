@@ -120,7 +120,7 @@ test(
     const backupId = "db_2000-01-01T00-00-00-000Z_manual.sqlite";
     const backupPath = path.join(core.DB_BACKUPS_DIR, backupId);
     fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
-    db.exec(`VACUUM INTO '${backupPath}'`);
+    await db.backup(backupPath);
 
     core.resetDbInstance();
     fs.writeFileSync(`${core.SQLITE_FILE}-wal`, "STALE-WAL-MARKER");

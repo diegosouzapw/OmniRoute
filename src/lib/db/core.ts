@@ -17,6 +17,12 @@ import {
 } from "../usage/callLogArtifacts";
 import { DatabaseSync } from "node:sqlite";
 
+declare module "node:sqlite" {
+  interface DatabaseSync {
+    backup(destination: string): void | Promise<void>;
+  }
+}
+
 type SqliteDatabase = DatabaseSync;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
@@ -424,9 +430,25 @@ function getDb(): SqliteDatabase | null {
   return globalThis.__omnirouteDb ?? null;
 }
 
+function quoteSqlitePath(filePath: string): string {
+  return `'${filePath.replaceAll("'", "''")}'`;
+}
+
+function attachDbBackupMethod(db: SqliteDatabase): SqliteDatabase {
+  if (typeof db.backup !== "function") {
+    Object.defineProperty(db, "backup", {
+      value: (destination: string) => {
+        db.exec(`VACUUM INTO ${quoteSqlitePath(destination)}`);
+      },
+      configurable: true,
+    });
+  }
+  return db;
+}
+
 function setDb(db: SqliteDatabase | null): void {
   if (db) {
-    globalThis.__omnirouteDb = db;
+    globalThis.__omnirouteDb = attachDbBackupMethod(db);
   } else {
     delete globalThis.__omnirouteDb;
   }
@@ -953,9 +975,8 @@ function createHealthCheckBackup(db: SqliteDatabase): boolean {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupPath = path.join(backupDir, `db_${timestamp}_health-check-repair.sqlite`);
-    const escapedBackupPath = backupPath.replace(/'/g, "''");
 
-    db.exec(`VACUUM INTO '${escapedBackupPath}'`);
+    db.backup(backupPath);
     console.log(`[DB] Health-check backup created: ${backupPath}`);
     return true;
   } catch (error: unknown) {
@@ -1192,7 +1213,7 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  const db = new DatabaseSync(sqliteFile);
+  const db = attachDbBackupMethod(new DatabaseSync(sqliteFile));
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec("PRAGMA busy_timeout = 5000;");
   db.exec("PRAGMA synchronous = NORMAL;");
