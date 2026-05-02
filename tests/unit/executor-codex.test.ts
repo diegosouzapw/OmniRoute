@@ -24,13 +24,28 @@ import {
 } from "../../open-sse/services/thinkingBudget.ts";
 import { CODEX_CHAT_DEFAULT_INSTRUCTIONS } from "../../open-sse/config/codexInstructions.ts";
 
+type MockCodexWebSocket = {
+  send: (data: string) => void;
+  close: (code?: number, reason?: string) => void;
+  onmessage: ((event: { data: unknown }) => void) | null;
+  onerror: ((event: { message?: string }) => void) | null;
+  onclose: (() => void) | null;
+};
+
+function getRecord(value: unknown): Record<string, unknown> {
+  assert.equal(typeof value, "object");
+  assert.notEqual(value, null);
+  assert.equal(Array.isArray(value), false);
+  return value as Record<string, unknown>;
+}
+
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
   __setCodexWebSocketTransportForTesting(undefined);
   clearRememberedResponseFunctionCallsForTesting();
 });
 
-async function withEnv(entries: Record<string, string | undefined>, fn: () => any) {
+async function withEnv<T>(entries: Record<string, string | undefined>, fn: () => T | Promise<T>) {
   const previous = new Map();
 
   for (const [key, value] of Object.entries(entries)) {
@@ -74,7 +89,13 @@ test("Codex helper functions isolate rate-limit scopes and parse quota headers",
   assert.equal(getCodexUpstreamModel("gpt-5.5-medium"), "gpt-5.5");
   // With mock WS transport + codexTransport=websocket, gpt-5.5 models require WS
   __setCodexWebSocketTransportForTesting(
-    async () => ({ send() {}, close() {}, onmessage: null, onerror: null, onclose: null }) as any
+    async (): Promise<MockCodexWebSocket> => ({
+      send() {},
+      close() {},
+      onmessage: null,
+      onerror: null,
+      onclose: null,
+    })
   );
   assert.equal(
     isCodexResponsesWebSocketRequired("gpt-5.5-xhigh", {
@@ -385,6 +406,66 @@ test("CodexExecutor.transformRequest expands remembered conversation state for s
     call_id: "call_tool_123",
     output: '{"ok":true}',
   });
+});
+
+test("CodexExecutor.transformRequest does not replay internal assistant commentary", () => {
+  const executor = new CodexExecutor();
+  rememberResponseConversationState(
+    "resp_prev_commentary_123",
+    [
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: "Summarize the previous result." }],
+      },
+      {
+        role: "assistant",
+        phase: "commentary",
+        content: [{ type: "output_text", text: "Need inspect raw tool output first." }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: "Visible assistant answer." }],
+      },
+    ],
+    [
+      {
+        type: "function_call",
+        call_id: "call_safe_123",
+        name: "workspace_read_file",
+        arguments: '{"path":"README.md"}',
+      },
+    ]
+  );
+
+  const body = {
+    _nativeCodexPassthrough: true,
+    previous_response_id: "resp_prev_commentary_123",
+    input: [
+      {
+        type: "function_call_output",
+        call_id: "call_safe_123",
+        output: '{"ok":true}',
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.input.length, 4);
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Need inspect raw tool output")),
+    false
+  );
+  assert.equal(result.input[0].role, "user");
+  assert.equal(result.input[1].role, "assistant");
+  assert.equal(result.input[2].type, "function_call");
+  assert.equal(result.input[3].type, "function_call_output");
 });
 
 test("CodexExecutor.transformRequest rehydrates missing function_call items for stateful tool outputs", () => {
@@ -744,7 +825,7 @@ test("CodexExecutor.execute falls back to HTTP when websocket transport is unava
     // When WS transport is unavailable, isCodexResponsesWebSocketRequired returns false
     // and the executor falls back to HTTP via super.execute()
     assert.equal(result.response.status, 200);
-    assert.equal((result.transformedBody as any).model, "gpt-5.5");
+    assert.equal(getRecord(result.transformedBody).model, "gpt-5.5");
   } finally {
     globalThis.fetch = originalFetch;
   }

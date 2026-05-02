@@ -180,6 +180,65 @@ test("createPassthroughStreamWithLogger backfills completed output from function
   assert.ok(result.includes('"arguments":"{\\"path\\":\\"README.md\\"}"'));
 });
 
+test("createPassthroughStreamWithLogger keeps reasoning deltas out of logged assistant content", async () => {
+  let completePayload = null;
+  const transform = createPassthroughStreamWithLogger(
+    "codex",
+    null,
+    null,
+    "gpt-5.5-low",
+    null,
+    {
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "Say OK." }],
+        },
+      ],
+    },
+    (payload) => {
+      completePayload = payload;
+    },
+    null,
+    null,
+    "openai-responses"
+  );
+
+  const writer = transform.writable.getWriter();
+  await writer.write(
+    new TextEncoder().encode(
+      [
+        'data: {"type":"response.created","response":{"id":"resp_reasoning_delta_1"}}',
+        "event: response.reasoning_summary_text.delta",
+        'data: {"type":"response.reasoning_summary_text.delta","response_id":"resp_reasoning_delta_1","delta":"Internal reasoning should not be content."}',
+        "event: response.function_call_arguments.delta",
+        'data: {"type":"response.function_call_arguments.delta","response_id":"resp_reasoning_delta_1","delta":"{\\"path\\":\\"secret.txt\\"}"}',
+        "event: response.output_text.delta",
+        'data: {"type":"response.output_text.delta","response_id":"resp_reasoning_delta_1","delta":"OK"}',
+        "event: response.completed",
+        'data: {"type":"response.completed","response":{"id":"resp_reasoning_delta_1","status":"completed","output":[],"usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}',
+        "",
+      ].join("\n")
+    )
+  );
+  await writer.close();
+
+  const reader = transform.readable.getReader();
+  while (true) {
+    const { done } = await reader.read();
+    if (done) break;
+  }
+
+  assert.ok(completePayload, "expected onComplete payload");
+  assert.equal(completePayload.responseBody.choices[0].message.content, "OK");
+  assert.equal(
+    JSON.stringify(completePayload.responseBody).includes("Internal reasoning should not be content"),
+    false
+  );
+  assert.equal(JSON.stringify(completePayload.responseBody).includes("secret.txt"), false);
+});
+
 test("createStreamController returns valid controller", () => {
   let completeLogged = false;
   let disconnectLogged = false;

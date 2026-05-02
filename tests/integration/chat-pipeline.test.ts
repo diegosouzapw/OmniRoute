@@ -26,6 +26,7 @@ const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
+const { setCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
 
 const originalFetch = globalThis.fetch;
 const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
@@ -346,9 +347,15 @@ async function resetStorage() {
 async function seedConnection(provider, overrides = {}) {
   return providersDb.createProviderConnection({
     provider,
-    authType: "apikey",
+    authType: overrides.authType || "apikey",
     name: overrides.name || `${provider}-primary`,
+    email: overrides.email,
     apiKey: overrides.apiKey || `sk-${provider}-${Math.random().toString(16).slice(2, 10)}`,
+    accessToken: overrides.accessToken,
+    refreshToken: overrides.refreshToken,
+    tokenType: overrides.tokenType,
+    expiresAt: overrides.expiresAt,
+    tokenExpiresAt: overrides.tokenExpiresAt,
     isActive: overrides.isActive ?? true,
     testStatus: overrides.testStatus || "active",
     priority: overrides.priority,
@@ -471,6 +478,7 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
+  setCliCompatProviders([]);
   await resetStorage();
 });
 
@@ -562,6 +570,84 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.equal(callLog.tokens.cacheRead, 40);
   assert.equal(callLog.tokens.cacheWrite, 11);
   assert.equal(callLog.tokens.reasoning, 13);
+});
+
+test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", async () => {
+  setCliCompatProviders(["codex"]);
+  await seedConnection("codex", {
+    apiKey: "unused-for-oauth",
+    authType: "oauth",
+    accessToken: "codex-oauth-token",
+    providerSpecificData: {
+      openaiStoreEnabled: false,
+      requestDefaults: { reasoningEffort: "high" },
+      codexInstallationId: "11111111-1111-4111-a111-111111111111",
+    },
+  });
+
+  const fetchCalls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: toPlainHeaders(init.headers),
+      bodyString: String(init.body || ""),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+    return buildOpenAIResponsesSSE({ text: "fingerprint ok" });
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      url: "http://localhost/v1/responses",
+      body: {
+        model: "codex/gpt-5.5-low",
+        stream: false,
+        conversation_id: "conv_codex_fingerprint",
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [{ type: "input_text", text: "Reply with fingerprint ok" }],
+          },
+        ],
+      },
+    })
+  );
+
+  await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  const call = fetchCalls[0];
+  assert.match(call.url, /chatgpt\.com\/backend-api\/codex\/responses$/);
+  assert.equal(call.headers.Authorization, "Bearer codex-oauth-token");
+  assert.equal(call.headers.Accept, "text/event-stream");
+  assert.equal(call.headers.Version, "0.125.0");
+  assert.equal(call.headers["Openai-Beta"], "responses=experimental");
+  assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
+  assert.equal(call.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26200; x64)");
+  assert.equal(call.headers["x-codex-window-id"], "conv_codex_fingerprint:0");
+  assert.ok(call.headers["x-client-request-id"], "expected Codex request id header");
+  assert.ok(call.headers["x-codex-turn-metadata"], "expected Codex turn metadata header");
+
+  const headerOrder = Object.keys(call.headers);
+  assert.ok(headerOrder.indexOf("Content-Type") < headerOrder.indexOf("Authorization"));
+  assert.ok(headerOrder.indexOf("Authorization") < headerOrder.indexOf("Accept"));
+  assert.ok(headerOrder.indexOf("Accept") < headerOrder.indexOf("User-Agent"));
+
+  const bodyOrder = Object.keys(JSON.parse(call.bodyString));
+  assert.deepEqual(bodyOrder.slice(0, 7), [
+    "model",
+    "stream",
+    "input",
+    "instructions",
+    "store",
+    "reasoning",
+    "prompt_cache_key",
+  ]);
+  assert.equal(call.body.model, "gpt-5.5");
+  assert.equal(call.body.store, false);
+  assert.equal(call.body.client_metadata["x-codex-installation-id"], "11111111-1111-4111-a111-111111111111");
 });
 
 test("chat pipeline treats Codex /responses/compact as non-streaming JSON", async () => {
