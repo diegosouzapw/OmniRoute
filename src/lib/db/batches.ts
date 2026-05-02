@@ -98,9 +98,14 @@ export function createBatch(
     metadata: record.metadata ? JSON.stringify(record.metadata) : null,
     errors: record.errors ? JSON.stringify(record.errors) : null,
     usage: record.usage ? JSON.stringify(record.usage) : null,
-  }) as any;
+  }) as Record<string, unknown>;
+  for (const key of Object.keys(snakeRecord)) {
+    if (snakeRecord[key] === undefined) {
+      snakeRecord[key] = null;
+    }
+  }
   const keys = Object.keys(snakeRecord);
-  const values = Object.values(snakeRecord);
+  const values = Object.values(snakeRecord) as any[];
   const placeholders = keys.map(() => "?").join(", ");
 
   db.prepare(`INSERT INTO batches (${keys.join(", ")}) VALUES (${placeholders})`).run(...values);
@@ -117,7 +122,7 @@ export function getBatch(id: string): BatchRecord | null {
 
 export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean {
   const db = getDbInstance();
-  const snakeUpdates = objToSnake(updates) as any;
+  const snakeUpdates = objToSnake(updates) as Record<string, unknown>;
   if (snakeUpdates.metadata && typeof snakeUpdates.metadata !== "string") {
     snakeUpdates.metadata = JSON.stringify(snakeUpdates.metadata);
   }
@@ -127,12 +132,17 @@ export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean 
   if (snakeUpdates.usage && typeof snakeUpdates.usage !== "string") {
     snakeUpdates.usage = JSON.stringify(snakeUpdates.usage);
   }
+  for (const key of Object.keys(snakeUpdates)) {
+    if (snakeUpdates[key] === undefined) {
+      snakeUpdates[key] = null;
+    }
+  }
 
   const keys = Object.keys(snakeUpdates);
   if (keys.length === 0) return false;
 
   const setClause = keys.map((k) => `${k} = ?`).join(", ");
-  const values = Object.values(snakeUpdates);
+  const values = Object.values(snakeUpdates) as any[];
 
   const result = db.prepare(`UPDATE batches SET ${setClause} WHERE id = ?`).run(...values, id);
   return result.changes > 0;

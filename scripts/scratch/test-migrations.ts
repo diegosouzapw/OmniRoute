@@ -1,10 +1,10 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import fs from "fs";
 import path from "path";
 
 import { runMigrations, getMigrationStatus } from "../../src/lib/db/migrationRunner.ts";
 
-const db = new Database(":memory:");
+const db = new DatabaseSync(":memory:");
 db.exec(`
   CREATE TABLE IF NOT EXISTS _omniroute_migrations (
     version TEXT PRIMARY KEY,

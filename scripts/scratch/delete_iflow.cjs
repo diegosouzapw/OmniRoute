@@ -1,5 +1,5 @@
-const Database = require('better-sqlite3');
-const db = new Database(process.env.HOME + '/.omniroute/storage.sqlite');
+const Database = require('node:sqlite');
+const db = new Database.DatabaseSync(process.env.HOME + '/.omniroute/storage.sqlite');
 
 console.log("Deleting iflow connections...");
 const stmt = db.prepare("DELETE FROM provider_connections WHERE provider = 'iflow'");

@@ -22,9 +22,23 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
   const db = getDbInstance();
   const id = "file-" + uuidv4().replaceAll("-", "").substring(0, 24);
   const createdAt = Math.floor(Date.now() / 1000);
-  const record = { ...file, id, createdAt };
+  const record = {
+    ...file,
+    id,
+    createdAt,
+    mimeType: file.mimeType ?? null,
+    apiKeyId: file.apiKeyId ?? null,
+    status: file.status ?? "validating",
+    expiresAt: file.expiresAt ?? null,
+    deletedAt: file.deletedAt ?? null,
+  };
 
-  const snakeRecord = objToSnake(record) as any;
+  const snakeRecord = objToSnake(record) as Record<string, unknown>;
+  for (const key of Object.keys(snakeRecord)) {
+    if (snakeRecord[key] === undefined) {
+      snakeRecord[key] = null;
+    }
+  }
   const keys = Object.keys(snakeRecord);
   const values = Object.values(snakeRecord);
   const placeholders = keys.map(() => "?").join(", ");
@@ -46,8 +60,12 @@ export function getFileContent(id: string): Buffer | null {
   const db = getDbInstance();
   const row = db
     .prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL")
-    .get(id) as { content: Buffer } | undefined;
-  return row?.content || null;
+    .get(id) as { content: Buffer | Uint8Array | ArrayBuffer | null } | undefined;
+  if (!row?.content) return null;
+  if (Buffer.isBuffer(row.content)) return row.content;
+  if (row.content instanceof Uint8Array) return Buffer.from(row.content);
+  if (row.content instanceof ArrayBuffer) return Buffer.from(row.content);
+  return Buffer.from(row.content as never);
 }
 
 export function listFiles(

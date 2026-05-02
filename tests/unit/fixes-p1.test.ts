@@ -237,14 +237,14 @@ test("unlinkFileWithRetry retries EBUSY/EPERM and eventually succeeds", async ()
       attempts++;
       if (attempts === 1) {
         const err = new Error("busy");
-        err.cause = "EBUSY";
-        seenCodes.push(err.cause);
+        err.code = "EBUSY";
+        seenCodes.push(err.code);
         throw err;
       }
       if (attempts === 2) {
         const err = new Error("perm");
-        err.cause = "EPERM";
-        seenCodes.push(err.cause);
+        err.code = "EPERM";
+        seenCodes.push(err.code);
         throw err;
       }
     }

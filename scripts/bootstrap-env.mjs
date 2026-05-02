@@ -72,8 +72,8 @@ function hasEncryptedCredentials(dataDir) {
   if (!existsSync(dbPath)) return false;
 
   try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const { DatabaseSync } = require("node:sqlite");
+    const db = new DatabaseSync(dbPath, { readOnly: true });
     try {
       const row = db
         .prepare(
@@ -220,10 +220,9 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   // ── Decrypt-probe: verify STORAGE_ENCRYPTION_KEY matches encrypted data (#1622) ─
   if (merged.STORAGE_ENCRYPTION_KEY?.trim() && hasEncryptedCredentials(dataDir)) {
     try {
-      const Database = require("better-sqlite3");
-      const db = new Database(join(dataDir, "storage.sqlite"), {
-        readonly: true,
-        fileMustExist: true,
+      const { DatabaseSync } = require("node:sqlite");
+      const db = new DatabaseSync(join(dataDir, "storage.sqlite"), {
+        readOnly: true,
       });
       try {
         const row = db

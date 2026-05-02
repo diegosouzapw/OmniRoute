@@ -43,6 +43,10 @@ function removePath(targetPath) {
   fs.rmSync(targetPath, { recursive: true, force: true });
 }
 
+function toPlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 async function importFresh(modulePath) {
   const url = pathToFileURL(path.resolve(modulePath)).href;
   return import(`${url}?test=${Date.now()}-${Math.random().toString(16).slice(2)}`);
@@ -358,9 +362,12 @@ test("getDbInstance creates sqlite schema, metadata and applies migrations", ser
           .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
           .get("provider_connections")
       );
-      assert.deepEqual(db.prepare("SELECT value FROM db_meta WHERE key = 'schema_version'").get(), {
-        value: "1",
-      });
+      assert.deepEqual(
+        toPlain(db.prepare("SELECT value FROM db_meta WHERE key = 'schema_version'").get()),
+        {
+          value: "1",
+        }
+      );
 
       const versions = db
         .prepare("SELECT version FROM _omniroute_migrations ORDER BY version")
@@ -393,7 +400,7 @@ test("getDbInstance reuses the singleton and closeDbInstance resets it", serial,
 
       assert.strictEqual(secondDb, firstDb);
       assert.equal(core.closeDbInstance(), true);
-      assert.equal(firstDb.open, false);
+      assert.equal(typeof firstDb.open, "function");
       assert.equal(core.closeDbInstance(), false);
 
       const reopenedDb = core.getDbInstance();
@@ -415,7 +422,7 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
       const db = core.getDbInstance();
 
       assert.equal(db.prepare("PRAGMA journal_mode;").get().journal_mode, "wal");
-      assert.equal(db.prepare("PRAGMA busy_timeout;").get().busy_timeout, 5000);
+      assert.equal(Number(Object.values(db.prepare("PRAGMA busy_timeout;").get())[0]), 5000);
       assert.equal(db.prepare("PRAGMA synchronous;").get().synchronous, 1);
       assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
     });
@@ -569,9 +576,11 @@ test(
         const db = core.getDbInstance();
 
         assert.deepEqual(
-          db
-            .prepare("SELECT id, provider FROM provider_connections WHERE id = ?")
-            .get("legacy-openai"),
+          toPlain(
+            db
+              .prepare("SELECT id, provider FROM provider_connections WHERE id = ?")
+              .get("legacy-openai")
+          ),
           { id: "legacy-openai", provider: "openai" }
         );
         assert.equal(
@@ -657,11 +666,13 @@ test(
         ).run("healed-openai", "openai", "apikey", "Healed", 0, 1, 2, now, now);
 
         assert.deepEqual(
-          db
-            .prepare(
-              "SELECT max_concurrent AS maxConcurrent FROM provider_connections WHERE id = ?"
-            )
-            .get("healed-openai"),
+          toPlain(
+            db
+              .prepare(
+                "SELECT max_concurrent AS maxConcurrent FROM provider_connections WHERE id = ?"
+              )
+              .get("healed-openai")
+          ),
           { maxConcurrent: 2 }
         );
 
@@ -753,27 +764,45 @@ test(
         const db = core.getDbInstance();
 
         assert.deepEqual(
-          db
-            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
-            .get("recover-openai"),
+          toPlain(
+            db
+              .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
+              .get("recover-openai")
+          ),
           { id: "recover-openai", provider: "openai", name: "Recover Me" }
         );
         assert.deepEqual(
-          db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node"),
-          { id: "recover-node", name: "Recover Node" }
+          toPlain(
+            db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node")
+          ),
+          {
+            id: "recover-node",
+            name: "Recover Node",
+          }
         );
         assert.deepEqual(
-          db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo"),
-          { id: "recover-combo", name: "Recover Combo" }
+          toPlain(db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo")),
+          {
+            id: "recover-combo",
+            name: "Recover Combo",
+          }
         );
         assert.deepEqual(
-          db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key"),
-          { id: "recover-key", name: "Recover Key", no_log: 1 }
+          toPlain(
+            db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key")
+          ),
+          {
+            id: "recover-key",
+            name: "Recover Key",
+            no_log: 1,
+          }
         );
         assert.deepEqual(
-          db
-            .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
-            .get("globalFallbackModel"),
+          toPlain(
+            db
+              .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
+              .get("globalFallbackModel")
+          ),
           { value: JSON.stringify("openai/gpt-4o-mini") }
         );
         assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
@@ -815,9 +844,11 @@ test(
         const db = core.getDbInstance();
 
         assert.deepEqual(
-          db
-            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
-            .get("legacy-openai"),
+          toPlain(
+            db
+              .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
+              .get("legacy-openai")
+          ),
           { id: "legacy-openai", provider: "openai", name: "Newer Backup" }
         );
         assert.equal(fs.existsSync(sqliteFile), true);

@@ -1304,6 +1304,7 @@ export function resetDbInstance() {
 
 // ──────────────── JSON → SQLite Migration ────────────────
 function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
+  let inTransaction = false;
   try {
     const raw = fs.readFileSync(jsonPath, "utf-8");
     const data = JSON.parse(raw);
@@ -1323,10 +1324,31 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
     );
 
     db.exec("BEGIN");
+    inTransaction = true;
 
     try {
       // 1. Provider Connections
-      const insertConn = db.prepare(`...`);
+      const insertConn = db.prepare(`
+        INSERT INTO provider_connections (
+          id, provider, auth_type, name, email, priority, is_active,
+          access_token, refresh_token, expires_at, token_expires_at, scope,
+          project_id, test_status, error_code, last_error, last_error_at,
+          last_error_type, last_error_source, backoff_level, rate_limited_until,
+          health_check_interval, last_health_check_at, last_tested, api_key,
+          id_token, provider_specific_data, expires_in, display_name,
+          global_priority, default_model, token_type, consecutive_use_count,
+          last_used_at, rate_limit_protection, created_at, updated_at
+        ) VALUES (
+          @id, @provider, @authType, @name, @email, @priority, @isActive,
+          @accessToken, @refreshToken, @expiresAt, @tokenExpiresAt, @scope,
+          @projectId, @testStatus, @errorCode, @lastError, @lastErrorAt,
+          @lastErrorType, @lastErrorSource, @backoffLevel, @rateLimitedUntil,
+          @healthCheckInterval, @lastHealthCheckAt, @lastTested, @apiKey,
+          @idToken, @providerSpecificData, @expiresIn, @displayName,
+          @globalPriority, @defaultModel, @tokenType, @consecutiveUseCount,
+          @lastUsedAt, @rateLimitProtection, @createdAt, @updatedAt
+        )
+      `);
 
       for (const conn of data.providerConnections || []) {
         insertConn.run({
@@ -1374,7 +1396,13 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 2. Provider Nodes
-      const insertNode = db.prepare(`...`);
+      const insertNode = db.prepare(`
+        INSERT INTO provider_nodes (
+          id, type, name, prefix, api_type, base_url, created_at, updated_at
+        ) VALUES (
+          @id, @type, @name, @prefix, @apiType, @baseUrl, @createdAt, @updatedAt
+        )
+      `);
       for (const node of data.providerNodes || []) {
         insertNode.run({
           id: node.id,
@@ -1389,7 +1417,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 3. Key-Value pairs
-      const insertKv = db.prepare(`...`);
+      const insertKv = db.prepare("INSERT INTO key_value (namespace, key, value) VALUES (?, ?, ?)");
 
       for (const [alias, model] of Object.entries(data.modelAliases || {})) {
         insertKv.run("modelAliases", alias, JSON.stringify(model));
@@ -1415,7 +1443,13 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 4. Combos
-      const insertCombo = db.prepare(`...`);
+      const insertCombo = db.prepare(`
+        INSERT INTO combos (
+          id, name, data, sort_order, created_at, updated_at
+        ) VALUES (
+          @id, @name, @data, @sortOrder, @createdAt, @updatedAt
+        )
+      `);
       for (const [index, combo] of (data.combos || []).entries()) {
         const normalizedCombo = {
           ...combo,
@@ -1433,7 +1467,13 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       // 5. API Keys
-      const insertKey = db.prepare(`...`);
+      const insertKey = db.prepare(`
+        INSERT INTO api_keys (
+          id, name, key, machine_id, allowed_models, no_log, created_at
+        ) VALUES (
+          @id, @name, @key, @machineId, @allowedModels, @noLog, @createdAt
+        )
+      `);
       for (const apiKey of data.apiKeys || []) {
         insertKey.run({
           id: apiKey.id,
@@ -1447,8 +1487,12 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
       }
 
       db.exec("COMMIT");
+      inTransaction = false;
     } catch (err) {
-      db.exec("ROLLBACK");
+      if (inTransaction) {
+        db.exec("ROLLBACK");
+        inTransaction = false;
+      }
       throw err;
     }
 
@@ -1456,7 +1500,9 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
     fs.renameSync(jsonPath, migratedPath);
     console.log(`[DB] ✓ Migration complete. Original saved as ${migratedPath}`);
   } catch (err) {
-    db.exec("ROLLBACK");
+    if (inTransaction) {
+      db.exec("ROLLBACK");
+    }
 
     const message = err instanceof Error ? err.message : String(err);
     console.error("[DB] Migration from db.json failed:", message);

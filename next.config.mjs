@@ -166,7 +166,7 @@ const nextConfig = {
       const HASH_PATTERN = /^(.+)-[0-9a-f]{16}(\/.*)?$/;
 
       const KNOWN_EXTERNALS = new Set([
-        "better-sqlite3",
+        "node:sqlite",
         "keytar",
         "@ngrok/ngrok",
         "wreq-js",

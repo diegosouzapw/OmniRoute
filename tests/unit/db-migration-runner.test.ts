@@ -61,6 +61,10 @@ function createDb() {
   return new DatabaseSync(":memory:");
 }
 
+function toPlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 function createInitialSchemaTables(db) {
   db.exec(`
     CREATE TABLE provider_connections (id TEXT PRIMARY KEY);
@@ -147,7 +151,7 @@ test("runMigrations applies pending files sequentially in version order", serial
 
     assert.equal(appliedCount, 3);
     assert.deepEqual(
-      db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+      toPlain(db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all()),
       [{ version: "001" }, { version: "002" }, { version: "010" }]
     );
     assert.ok(
@@ -245,7 +249,9 @@ test(
         assert.equal(names.has(expected), true, `${expected} should exist`);
       }
       assert.deepEqual(
-        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        toPlain(
+          db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032")
+        ),
         { version: "032", name: "apikey_lifecycle" }
       );
     } finally {
@@ -283,7 +289,9 @@ test(
       assert.equal(names.has("expires_at"), true);
       assert.equal(names.has("should_not_run"), false);
       assert.deepEqual(
-        db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032"),
+        toPlain(
+          db.prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?").get("032")
+        ),
         { version: "032", name: "renamed_lifecycle_patch" }
       );
     } finally {
@@ -420,7 +428,7 @@ test("invalid file names are ignored while valid migrations still run", serial, 
 
     assert.equal(count, 1);
     assert.deepEqual(
-      db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all(),
+      toPlain(db.prepare("SELECT version, name FROM _omniroute_migrations ORDER BY version").all()),
       [{ version: "003", name: "valid" }]
     );
     assert.equal(
@@ -461,7 +469,7 @@ test(
 
       assert.equal(count, 1);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        toPlain(db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all()),
         [{ version: "001" }, { version: "002" }, { version: "003" }]
       );
     } finally {
@@ -500,7 +508,7 @@ test(
 
       assert.equal(count, 2);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        toPlain(db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all()),
         [{ version: "001" }, { version: "002" }, { version: "999" }]
       );
     } finally {
@@ -563,14 +571,14 @@ test(
 
       assert.equal(count, 2);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        toPlain(db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all()),
         [{ version: "021" }, { version: "022" }, { version: "023" }]
       );
-      assert.deepEqual(db.prepare("SELECT memory_id, content FROM memories").get(), {
+      assert.deepEqual(toPlain(db.prepare("SELECT memory_id, content FROM memories").get()), {
         memory_id: 1,
         content: "memory content",
       });
-      assert.deepEqual(db.prepare("SELECT rowid, content, key FROM memory_fts").get(), {
+      assert.deepEqual(toPlain(db.prepare("SELECT rowid, content, key FROM memory_fts").get()), {
         rowid: 1,
         content: "memory content",
         key: "topic",
@@ -610,7 +618,7 @@ test(
 
       assert.equal(count, 6);
       assert.deepEqual(
-        db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all(),
+        toPlain(db.prepare("SELECT version FROM _omniroute_migrations ORDER BY version").all()),
         [
           { version: "001" },
           { version: "002" },

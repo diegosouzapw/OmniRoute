@@ -187,8 +187,13 @@ export async function unlinkFileWithRetry(
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
       return;
     } catch (err: unknown) {
+      const errno = err as NodeJS.ErrnoException & { cause?: unknown };
       const code =
-        err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : "";
+        err && typeof err === "object" && "code" in err
+          ? errno.code
+          : typeof errno?.cause === "string"
+            ? errno.cause
+            : "";
       if (code === "ENOENT") return;
       if (retryableCodes.has(String(code)) && attempt < maxAttempts - 1) {
         await sleep(baseDelayMs * (attempt + 1));

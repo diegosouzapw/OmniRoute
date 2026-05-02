@@ -273,12 +273,7 @@ async function startBatch(batch: any) {
       requestCountsTotal: total,
     });
 
-    // Fire-and-forget: process items in the background so the poll loop isn't blocked.
-    // isProcessing prevents a second poll tick from overlapping.
-    processBatchItems(batch, parsedItems.items).catch((err) => {
-      console.error(`[BATCH] Critical error in processBatchItems for ${batch.id}:`, err);
-      failBatch(batch.id, String(err));
-    });
+    await processBatchItems(batch, parsedItems.items);
   } catch (err) {
     console.error(`[BATCH] Error starting batch ${batch.id}:`, err);
     failBatch(batch.id, err instanceof Error ? err.message : String(err));
