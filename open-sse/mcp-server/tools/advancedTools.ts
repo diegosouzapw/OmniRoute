@@ -26,6 +26,11 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../../src/lib/combos/steps.ts";
+import type {
+  AutoRoutingStrategyValue,
+  RoutingStrategyValue,
+} from "../../../src/shared/constants/routingStrategies.ts";
+import { normalizeRoutingStrategy } from "../../../src/shared/constants/routingStrategies.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -372,17 +377,8 @@ export async function handleSetBudgetGuard(args: {
 
 export async function handleSetRoutingStrategy(args: {
   comboId: string;
-  strategy:
-    | "priority"
-    | "weighted"
-    | "round-robin"
-    | "context-relay"
-    | "strict-random"
-    | "random"
-    | "least-used"
-    | "cost-optimized"
-    | "auto";
-  autoRoutingStrategy?: "rules" | "cost" | "eco" | "latency" | "fast";
+  strategy: RoutingStrategyValue;
+  autoRoutingStrategy?: AutoRoutingStrategyValue;
 }) {
   const start = Date.now();
   try {
@@ -424,8 +420,9 @@ export async function handleSetRoutingStrategy(args: {
       Object.keys(toRecord(combo.config)).length > 0 ? combo.config : comboData.config
     );
 
+    const normalizedStrategy = normalizeRoutingStrategy(args.strategy);
     let nextConfig: JsonRecord | undefined = undefined;
-    if (args.strategy === "auto" && args.autoRoutingStrategy) {
+    if (normalizedStrategy === "auto" && args.autoRoutingStrategy) {
       const currentAutoConfig = toRecord(currentConfig.auto);
       nextConfig = {
         ...currentConfig,
@@ -436,7 +433,7 @@ export async function handleSetRoutingStrategy(args: {
       };
     }
 
-    const payload: JsonRecord = { strategy: args.strategy };
+    const payload: JsonRecord = { strategy: normalizedStrategy };
     if (nextConfig && Object.keys(nextConfig).length > 0) {
       payload.config = nextConfig;
     }
@@ -451,16 +448,16 @@ export async function handleSetRoutingStrategy(args: {
     const updatedConfig = toRecord(updatedCombo.config);
     const resolvedAutoStrategy =
       toString(toRecord(updatedConfig.auto).routingStrategy) ||
-      (args.strategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
+      (normalizedStrategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
 
     const result = {
       success: true,
       combo: {
         id: toString(updatedCombo.id, comboId),
         name: toString(updatedCombo.name, toString(combo.name, comboId)),
-        strategy: toString(updatedCombo.strategy, args.strategy),
+        strategy: toString(updatedCombo.strategy, normalizedStrategy),
         autoRoutingStrategy:
-          toString(updatedCombo.strategy, args.strategy) === "auto" ? resolvedAutoStrategy : null,
+          toString(updatedCombo.strategy, normalizedStrategy) === "auto" ? resolvedAutoStrategy : null,
       },
     };
 

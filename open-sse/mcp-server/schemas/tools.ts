@@ -10,6 +10,10 @@
  */
 
 import { z } from "zod";
+import {
+  AUTO_ROUTING_STRATEGY_VALUES,
+  ROUTING_STRATEGY_VALUES,
+} from "../../../src/shared/constants/routingStrategies.ts";
 
 // ============ Shared Types ============
 
@@ -109,17 +113,7 @@ export const listCombosOutput = z.object({
           priority: z.number(),
         })
       ),
-      strategy: z.enum([
-        "priority",
-        "weighted",
-        "round-robin",
-        "context-relay",
-        "strict-random",
-        "random",
-        "least-used",
-        "cost-optimized",
-        "auto",
-      ]),
+      strategy: z.enum(ROUTING_STRATEGY_VALUES),
       enabled: z.boolean(),
       metrics: z
         .object({
@@ -545,20 +539,10 @@ export const setBudgetGuardTool: McpToolDefinition<
 export const setRoutingStrategyInput = z.object({
   comboId: z.string().describe("Combo ID or name to update"),
   strategy: z
-    .enum([
-      "priority",
-      "weighted",
-      "round-robin",
-      "context-relay",
-      "strict-random",
-      "random",
-      "least-used",
-      "cost-optimized",
-      "auto",
-    ])
+    .enum(ROUTING_STRATEGY_VALUES)
     .describe("Routing strategy to apply"),
   autoRoutingStrategy: z
-    .enum(["rules", "cost", "eco", "latency", "fast"])
+    .enum(AUTO_ROUTING_STRATEGY_VALUES)
     .optional()
     .describe("Optional strategy used by auto mode (only used when strategy='auto')"),
 });

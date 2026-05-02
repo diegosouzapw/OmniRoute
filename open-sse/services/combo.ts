@@ -48,6 +48,7 @@ import {
   resolveRequestRoutingTags,
   type RoutingTagMatchMode,
 } from "../../src/domain/tagRouter.ts";
+import { normalizeRoutingStrategy } from "../../src/shared/constants/routingStrategies.ts";
 
 // Status codes that should mark round-robin target semaphores as cooling down.
 const TRANSIENT_FOR_SEMAPHORE = [429, 502, 503, 504];
@@ -641,6 +642,9 @@ function sortModelsByContextSize(models) {
 }
 
 function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
+  const hasKnownContext = targets.some((target) => getModelContextLimit(target.modelStr) != null);
+  if (!hasKnownContext) return targets;
+
   const orderedModels = sortModelsByContextSize(targets.map((target) => target.modelStr));
   const byModel = new Map<string, ResolvedComboTarget[]>();
   for (const target of targets) {
@@ -654,6 +658,31 @@ function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
       return queue?.shift() || null;
     })
     .filter((target): target is ResolvedComboTarget => target !== null);
+}
+
+function getP2CTargetScore(target: ResolvedComboTarget, metrics: ReturnType<typeof getComboMetrics>): number {
+  const breakerState = getCircuitBreaker(target.provider)?.getStatus?.()?.state;
+  if (breakerState === "OPEN") return -Infinity;
+  const modelMetric = metrics?.byModel?.[target.modelStr] || null;
+  const successRate = Number(modelMetric?.successRate);
+  const avgLatency = Number(modelMetric?.avgLatencyMs);
+  const successScore = Number.isFinite(successRate) ? successRate / 100 : 0.5;
+  const latencyScore = Number.isFinite(avgLatency) && avgLatency > 0 ? 1 / Math.log10(avgLatency + 10) : 0.25;
+  const breakerPenalty = breakerState === "HALF_OPEN" ? 0.25 : 0;
+  return successScore + latencyScore - breakerPenalty;
+}
+
+function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboName: string) {
+  if (targets.length <= 1) return targets;
+  const metrics = getComboMetrics(comboName);
+  const firstIndex = Math.floor(Math.random() * targets.length);
+  let secondIndex = Math.floor(Math.random() * (targets.length - 1));
+  if (secondIndex >= firstIndex) secondIndex++;
+
+  const first = targets[firstIndex];
+  const second = targets[secondIndex];
+  const selected = getP2CTargetScore(second, metrics) > getP2CTargetScore(first, metrics) ? second : first;
+  return [selected, ...targets.filter((target) => target.executionKey !== selected.executionKey)];
 }
 
 function toTextContent(content) {
@@ -1034,7 +1063,7 @@ export async function handleComboChat({
   relayOptions,
   signal,
 }) {
-  const strategy = combo.strategy || "priority";
+  const strategy = normalizeRoutingStrategy(combo.strategy || "priority");
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
@@ -1427,6 +1456,11 @@ export async function handleComboChat({
   } else if (strategy === "random") {
     orderedTargets = fisherYatesShuffle([...orderedTargets]);
     log.info("COMBO", `Random shuffle: ${orderedTargets.length} targets`);
+  } else if (strategy === "fill-first") {
+    log.info("COMBO", `Fill-first ordering: preserving priority order (${orderedTargets.length} targets)`);
+  } else if (strategy === "p2c") {
+    orderedTargets = orderTargetsByPowerOfTwoChoices(orderedTargets, combo.name);
+    log.info("COMBO", `Power-of-two-choices ordering: selected ${orderedTargets[0]?.modelStr}`);
   } else if (strategy === "least-used") {
     orderedTargets = sortTargetsByUsage(orderedTargets, combo.name);
     log.info("COMBO", `Least-used ordering: ${orderedTargets[0]?.modelStr} has fewest requests`);

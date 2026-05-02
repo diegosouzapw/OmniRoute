@@ -1,21 +1,28 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
-import { handleComboChat } from "../../open-sse/services/combo.ts";
-import * as combosDb from "../../src/lib/db/combos.ts";
-import * as modelsDb from "../../src/lib/db/models.ts";
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-strategies-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
+process.env.DATA_DIR = TEST_DATA_DIR;
 
-function stubConnection() {
-  return [
-    {
-      id: "conn-openai",
-      provider: "openai",
-      authType: "oauth",
-      isActive: 1,
-      accessToken: "token",
-    },
-  ];
-}
+const dbCore = await import("../../src/lib/db/core.ts");
+const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
+const { recordComboRequest } = await import("../../open-sse/services/comboMetrics.ts");
+const { saveModelsDevCapabilities } = await import("../../src/lib/modelsDevSync.ts");
+
+after(() => {
+  dbCore.resetDbInstance();
+  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
+});
 
 const reqBodyNullContext = {
   model: "comboTest",
@@ -29,78 +36,110 @@ const reqBodyTextArray = {
   stream: false,
 };
 
-test("handleComboChat with 'usage' strategy hits sortModelsByUsage", async () => {
-  const id = crypto.randomUUID();
-  await combosDb.createCombo({
-    id,
-    name: id,
-    strategy: "usage",
-    models: ["openai/gpt-3.5-turbo", "openai/gpt-4"],
+function capability(limitContext: number) {
+  return {
+    tool_call: true,
+    reasoning: null,
+    attachment: null,
+    structured_output: null,
+    temperature: null,
+    modalities_input: "[]",
+    modalities_output: "[]",
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: limitContext,
+    limit_input: null,
+    limit_output: null,
+    interleaved_field: null,
+  };
+}
+
+function okResponse(model: string) {
+  return Response.json({ choices: [{ message: { role: "assistant", content: model } }] });
+}
+
+function makeLog() {
+  return {
+    info() {},
+    warn() {},
+    debug() {},
+    error() {},
+  };
+}
+
+async function selectedModelFor(combo: Record<string, unknown>, body: Record<string, unknown>) {
+  const calls: string[] = [];
+  const response = await handleComboChat({
+    body,
+    combo,
+    allCombos: [combo],
+    isModelAvailable: undefined,
+    relayOptions: undefined,
+    signal: undefined,
+    settings: {},
+    log: makeLog(),
+    handleSingleModel: async (_body: unknown, modelStr: string) => {
+      calls.push(modelStr);
+      return okResponse(modelStr);
+    },
   });
 
-  // No proxy/http mock needed if we expect error or quick reject
-  const req = new Request("http://localhost", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...reqBodyTextArray, model: id }),
+  assert.equal(response.status, 200);
+  assert.equal(calls.length > 0, true);
+  return calls[0];
+}
+
+test("least-used strategy prefers the model with fewer recorded combo requests", async () => {
+  const name = `least-used-${crypto.randomUUID()}`;
+  const busyModel = "openai/gpt-4";
+  const idleModel = "openai/gpt-3.5-turbo";
+  const combo = await combosDb.createCombo({
+    name,
+    strategy: "least-used",
+    models: [busyModel, idleModel],
   });
 
-  try {
-    const res = await handleComboChat(id, req, stubConnection());
-    assert.equal(res.status >= 200, true);
-  } catch (e: any) {
-    // Expect error as fetch is not globally mocked for this quick edge branch test, that's fine
-  }
+  recordComboRequest(name, busyModel, {
+    success: true,
+    latencyMs: 10,
+    strategy: "least-used",
+  });
+
+  assert.equal(await selectedModelFor(combo, reqBodyTextArray), idleModel);
 });
 
-test("handleComboChat with 'context' strategy hits sortModelsByContextSize", async () => {
-  const id = crypto.randomUUID();
-  await combosDb.createCombo({
-    id,
-    name: id,
-    strategy: "context",
-    models: ["openai/gpt-4-32k", "openai/gpt-4", "unknown/unknown"],
+test("context-optimized strategy prefers the largest context window", async () => {
+  saveModelsDevCapabilities({
+    "test-context": {
+      small: capability(8_000),
+      large: capability(64_000),
+    },
   });
 
-  const req = new Request("http://localhost", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...reqBodyNullContext, model: id }),
+  const combo = await combosDb.createCombo({
+    name: `context-optimized-${crypto.randomUUID()}`,
+    strategy: "context-optimized",
+    models: ["test-context/small", "test-context/large", "unknown/unknown"],
   });
 
-  try {
-    const res = await handleComboChat(id, req, stubConnection());
-  } catch (e: any) {}
+  assert.equal(await selectedModelFor(combo, reqBodyNullContext), "test-context/large");
 });
 
-test("handleComboChat hits extractPromptForIntent edge cases", async () => {
-  const id = crypto.randomUUID();
-  await combosDb.createCombo({
-    id,
-    name: id,
+test("auto strategy handles null and empty prompt edge cases without throwing", async () => {
+  const combo = await combosDb.createCombo({
+    name: `auto-${crypto.randomUUID()}`,
     strategy: "auto",
-    autoConfig: { intentConfig: { enabled: true } },
+    config: { auto: { explorationRate: 0 } },
     models: ["openai/gpt-4"],
   });
 
-  // Null message content
-  const reqNull = new Request("http://localhost", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: id, messages: [{ role: "user", content: null }] }),
-  });
-
-  // Empty messages array
-  const reqEmpty = new Request("http://localhost", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: id, messages: [] }),
-  });
-
-  try {
-    await handleComboChat(id, reqNull, stubConnection());
-  } catch (e: any) {}
-  try {
-    await handleComboChat(id, reqEmpty, stubConnection());
-  } catch (e: any) {}
+  assert.equal(
+    await selectedModelFor(combo, { model: combo.name, messages: [{ role: "user", content: null }] }),
+    "openai/gpt-4"
+  );
+  assert.equal(await selectedModelFor(combo, { model: combo.name, messages: [] }), "openai/gpt-4");
 });

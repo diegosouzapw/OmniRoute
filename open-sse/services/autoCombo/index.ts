@@ -17,11 +17,6 @@ export { SelfHealingManager, getSelfHealingManager } from "./selfHealing";
 export { MODE_PACKS, getModePack, getModePackNames } from "./modePacks";
 export {
   selectProvider,
-  createAutoCombo,
-  getAutoCombo,
-  updateAutoCombo,
-  deleteAutoCombo,
-  listAutoCombos,
   type AutoComboConfig,
   type SelectionResult,
 } from "./engine";
