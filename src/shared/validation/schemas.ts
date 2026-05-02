@@ -699,6 +699,7 @@ export const providerModelMutationSchema = z.object({
       "chat-completions",
       "responses",
       "embeddings",
+      "rerank",
       "audio-transcriptions",
       "audio-speech",
       "images-generations",
@@ -709,6 +710,7 @@ export const providerModelMutationSchema = z.object({
       z.enum([
         "chat",
         "embeddings",
+        "rerank",
         "images",
         "audio",
         "audio-transcriptions",

@@ -2,8 +2,10 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { POST as postChatCompletion } from "@/app/api/v1/chat/completions/route";
 import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
+import { POST as postRerank } from "@/app/api/v1/rerank/route";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getCustomModels } from "@/lib/localDb";
 import { z } from "zod";
 
 const testModelSchema = z.object({
@@ -73,6 +75,45 @@ function buildInternalChatRequest(testBody: Record<string, unknown>, signal: Abo
   });
 }
 
+function buildInternalRerankRequest(testBody: Record<string, unknown>, signal: AbortSignal) {
+  return new Request(`${INTERNAL_ORIGIN}/v1/rerank`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Test": "combo-health-check",
+      "X-OmniRoute-No-Cache": "true",
+      "X-Request-Id": `model-test-${randomUUID()}`,
+    },
+    body: JSON.stringify(testBody),
+    signal,
+  });
+}
+
+function stripFirstSegment(modelId: string): string | null {
+  const slashIdx = modelId.indexOf("/");
+  return slashIdx > 0 ? modelId.slice(slashIdx + 1) : null;
+}
+
+async function findCustomModelMetadata(providerId: string, modelId: string) {
+  try {
+    const customModels = await getCustomModels(providerId);
+    if (!Array.isArray(customModels)) return null;
+
+    const candidates = new Set([modelId]);
+    const stripped = stripFirstSegment(modelId);
+    if (stripped) candidates.add(stripped);
+    if (modelId.startsWith(`${providerId}/`)) candidates.add(modelId.slice(providerId.length + 1));
+
+    return (
+      customModels.find(
+        (model: any) => typeof model?.id === "string" && candidates.has(model.id)
+      ) || null
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
@@ -108,19 +149,47 @@ export async function POST(request: Request) {
     }
 
     const startTime = Date.now();
+    const customModel = await findCustomModelMetadata(providerId, fullModelStr);
+    const supportedEndpoints = Array.isArray(customModel?.supportedEndpoints)
+      ? customModel.supportedEndpoints
+      : [];
+    const apiFormat = typeof customModel?.apiFormat === "string" ? customModel.apiFormat : "";
+    const lowerModel = fullModelStr.toLowerCase();
+    const isRerank =
+      apiFormat === "rerank" ||
+      supportedEndpoints.includes("rerank") ||
+      lowerModel.includes("rerank");
     const isEmbedding =
-      fullModelStr.toLowerCase().includes("embedding") ||
-      fullModelStr.toLowerCase().includes("bge-") ||
-      fullModelStr.toLowerCase().includes("text-embed");
+      !isRerank &&
+      (apiFormat === "embeddings" ||
+        supportedEndpoints.includes("embeddings") ||
+        lowerModel.includes("embedding") ||
+        lowerModel.includes("bge-") ||
+        lowerModel.includes("text-embed") ||
+        lowerModel.includes("jina-clip") ||
+        lowerModel.includes("colbert"));
 
-    const testBody = buildComboTestRequestBody(fullModelStr, isEmbedding);
+    const testBody = isRerank
+      ? {
+          model: fullModelStr,
+          query: "What is OmniRoute?",
+          documents: [
+            "OmniRoute routes AI requests across configured providers.",
+            "This document is unrelated to the test query.",
+          ],
+          top_n: 1,
+          return_documents: false,
+        }
+      : buildComboTestRequestBody(fullModelStr, isEmbedding);
 
     const res = await runWithTimeout((signal) =>
       isEmbedding
         ? handleValidatedEmbeddingRequestBody(
             testBody as Record<string, unknown> & { model: string }
           )
-        : postChatCompletion(buildInternalChatRequest(testBody, signal))
+        : isRerank
+          ? postRerank(buildInternalRerankRequest(testBody, signal))
+          : postChatCompletion(buildInternalChatRequest(testBody, signal))
     );
 
     const latencyMs = Date.now() - startTime;
@@ -134,6 +203,13 @@ export async function POST(request: Request) {
       }
 
       const responseText = extractComboTestResponseText(responseBody);
+      if (isRerank) {
+        return NextResponse.json({
+          status: "ok",
+          latencyMs,
+          responseText: "[Rerank completed successfully]",
+        });
+      }
       if (!responseText && !isEmbedding) {
         return NextResponse.json(
           {

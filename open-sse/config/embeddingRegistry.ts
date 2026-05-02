@@ -173,13 +173,50 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "text-embedding-3-large", name: "Text Embedding 3 Large (GitHub)", dimensions: 3072 },
     ],
   },
+
+  "jina-ai": {
+    id: "jina-ai",
+    baseUrl: "https://api.jina.ai/v1/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      {
+        id: "jina-embeddings-v5-text-small",
+        name: "Jina Embeddings v5 Text Small",
+        dimensions: 1024,
+      },
+      { id: "jina-embeddings-v5-text-nano", name: "Jina Embeddings v5 Text Nano", dimensions: 768 },
+      { id: "jina-code-embeddings-1.5b", name: "Jina Code Embeddings 1.5B", dimensions: 1536 },
+      { id: "jina-code-embeddings-0.5b", name: "Jina Code Embeddings 0.5B", dimensions: 896 },
+      { id: "jina-embeddings-v4", name: "Jina Embeddings v4", dimensions: 2048 },
+      { id: "jina-clip-v2", name: "Jina CLIP v2", dimensions: 1024 },
+      { id: "jina-colbert-v2", name: "Jina ColBERT v2", dimensions: 128 },
+    ],
+  },
 };
+
+const EMBEDDING_PROVIDER_ALIASES: Record<string, string> = {
+  jina: "jina-ai",
+  voyage: "voyage-ai",
+};
+
+function resolveEmbeddingProviderId(providerId: string): string {
+  return EMBEDDING_PROVIDER_ALIASES[providerId] || providerId;
+}
+
+function normalizeProviderScopedModelId(providerId: string, modelId: string): string {
+  return modelId.startsWith(`${providerId}/`) ? modelId.slice(providerId.length + 1) : modelId;
+}
+
+function toProviderScopedModelId(providerId: string, modelId: string): string {
+  return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
+}
 
 /**
  * Get embedding provider config by ID
  */
 export function getEmbeddingProvider(providerId: string): EmbeddingProvider | null {
-  return EMBEDDING_PROVIDERS[providerId] || null;
+  return EMBEDDING_PROVIDERS[resolveEmbeddingProviderId(providerId)] || null;
 }
 
 /**
@@ -195,10 +232,23 @@ export function parseEmbeddingModel(
   // Check for "provider/model" format
   const slashIdx = modelStr.indexOf("/");
   if (slashIdx > 0) {
+    const rawProvider = modelStr.slice(0, slashIdx);
+    const resolvedProvider = resolveEmbeddingProviderId(rawProvider);
+
+    if (EMBEDDING_PROVIDERS[resolvedProvider]) {
+      return {
+        provider: resolvedProvider,
+        model: normalizeProviderScopedModelId(resolvedProvider, modelStr.slice(slashIdx + 1)),
+      };
+    }
+
     // Phase 1: Try each hardcoded provider prefix
     for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
       if (modelStr.startsWith(providerId + "/")) {
-        return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
+        return {
+          provider: providerId,
+          model: normalizeProviderScopedModelId(providerId, modelStr.slice(providerId.length + 1)),
+        };
       }
     }
     // Phase 2: Try dynamic provider_nodes prefix
@@ -233,7 +283,7 @@ export function getAllEmbeddingModels() {
   for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
     for (const model of config.models) {
       models.push({
-        id: `${providerId}/${model.id}`,
+        id: toProviderScopedModelId(providerId, model.id),
         name: model.name,
         provider: providerId,
         dimensions: model.dimensions,

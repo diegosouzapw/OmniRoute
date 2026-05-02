@@ -40,7 +40,7 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   assert.ok(jina);
   assert.equal(jina.baseUrl, "https://api.jina.ai/v1/rerank");
   assert.ok(jina.models.some((model) => model.id === "jina-reranker-v3"));
-  assert.ok(jina.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+  assert.ok(jina.models.some((model) => model.id === "jina-reranker-m0"));
 
   const parsedVoyage = parseRerankModel("voyage-ai/rerank-2.5");
   assert.equal(parsedVoyage.provider, "voyage-ai");
@@ -49,6 +49,10 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   const parsedJina = parseRerankModel("jina-ai/jina-reranker-v3");
   assert.equal(parsedJina.provider, "jina-ai");
   assert.equal(parsedJina.model, "jina-reranker-v3");
+
+  const parsedJinaAlias = parseRerankModel("jina/jina-reranker-v3");
+  assert.equal(parsedJinaAlias.provider, "jina-ai");
+  assert.equal(parsedJinaAlias.model, "jina-reranker-v3");
 
   const all = getAllRerankModels();
   assert.ok(all.some((model) => model.id === "voyage-ai/rerank-2.5"));
