@@ -10,8 +10,8 @@ import {
 import {
   getAntigravityHeaders,
   antigravityUserAgent,
-  googApiClientHeader,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { googApiClientHeader } from "@omniroute/open-sse/services/cloudCodeHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,

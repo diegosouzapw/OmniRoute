@@ -1,6 +1,7 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
-import { geminiCLIUserAgent, googApiClientHeader } from "../services/antigravityHeaders.ts";
+import { cloudCodeNodeApiClientHeader } from "../services/cloudCodeHeaders.ts";
+import { geminiCLIUserAgent, getGeminiCliLoadCodeAssistMetadata } from "../services/geminiCliHeaders.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
 import {
@@ -18,14 +19,9 @@ const ONBOARD_MAX_ATTEMPTS = 10;
 const ONBOARD_DELAY_MS = 5_000;
 const DEFAULT_PROJECT_ID = "default-project";
 const DEFAULT_ONBOARD_TIER = "free-tier";
-const LOAD_CODE_ASSIST_METADATA = Object.freeze({
-  ideType: "ANTIGRAVITY",
-  platform: "PLATFORM_UNSPECIFIED",
-  pluginType: "GEMINI",
-  duetProject: DEFAULT_PROJECT_ID,
-});
 const ONBOARD_METADATA = Object.freeze({
-  ideType: "ANTIGRAVITY",
+  ideType: "IDE_UNSPECIFIED",
+  platform: "PLATFORM_UNSPECIFIED",
   pluginType: "GEMINI",
   duetProject: DEFAULT_PROJECT_ID,
 });
@@ -105,25 +101,25 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   buildUrl(model, stream, urlIndex = 0) {
-    this._currentModel = normalizeGeminiModel(model);
+    void model;
+    void urlIndex;
     const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
     return `${this.config.baseUrl}:${action}`;
   }
 
-  buildHeaders(credentials, stream = true) {
+  buildHeaders(credentials, stream = true, clientHeaders = null, model = "unknown") {
+    void clientHeaders;
+    const normalizedModel = normalizeGeminiModel(model);
     const raw = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${credentials.accessToken}`,
       // Dynamic headers matching native GeminiCLI client
-      "User-Agent": geminiCLIUserAgent(this._currentModel || "unknown"),
-      "X-Goog-Api-Client": googApiClientHeader(),
-      ...(stream && { Accept: "text/event-stream" }),
+      "User-Agent": geminiCLIUserAgent(normalizedModel),
+      "X-Goog-Api-Client": cloudCodeNodeApiClientHeader(),
+      Accept: stream ? "*/*" : "application/json",
     };
     return scrubProxyAndFingerprintHeaders(raw);
   }
-
-  // Track current model for dynamic UA. BaseExecutor calls buildUrl before buildHeaders.
-  private _currentModel = "unknown";
 
   async onboardManagedProject(
     accessToken: string,
@@ -236,7 +232,10 @@ export class GeminiCLIExecutor extends BaseExecutor {
           },
           body: JSON.stringify({
             cloudaicompanionProject: DEFAULT_PROJECT_ID,
-            metadata: { ...LOAD_CODE_ASSIST_METADATA },
+            metadata: {
+              ...getGeminiCliLoadCodeAssistMetadata(),
+              duetProject: DEFAULT_PROJECT_ID,
+            },
           }),
           signal: controller.signal,
         });
@@ -279,9 +278,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
   }
 
   async transformRequest(model, body, stream, credentials) {
-    this._currentModel = normalizeGeminiModel(model);
+    const currentModel = normalizeGeminiModel(model);
     const normalizedBody =
-      shouldStripCloudCodeThinking(this.provider, this._currentModel) &&
+      shouldStripCloudCodeThinking(this.provider, currentModel) &&
       body &&
       typeof body === "object"
         ? stripCloudCodeThinkingConfig(body)

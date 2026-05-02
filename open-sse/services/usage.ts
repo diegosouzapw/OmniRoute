@@ -19,10 +19,10 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  googApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
+import { googApiClientHeader } from "./cloudCodeHeaders.ts";
 import {
   getAntigravityRemainingCredits,
   updateAntigravityRemainingCredits,

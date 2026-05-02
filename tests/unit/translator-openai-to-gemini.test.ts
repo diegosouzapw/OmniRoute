@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const { openaiToAntigravityRequest, openaiToGeminiCLIRequest, openaiToGeminiRequest } =
   await import("../../open-sse/translator/request/openai-to-gemini.ts");
+const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const {
   DEFAULT_SAFETY_SETTINGS,
   cleanJSONSchemaForAntigravity,
@@ -481,6 +483,69 @@ test("OpenAI -> Gemini helper IDs and JSON parsing stay in the expected format",
   assert.equal(tryParseJSON("not-json"), null as any);
 });
 
+test("OpenAI -> Gemini CLI wraps requests like native Cloud Code", () => {
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
+  assert.ok(translate, "expected Gemini CLI translator registration");
+
+  const envelope = translate(
+    "gemini-3-flash-preview",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning_effort: "high",
+    },
+    true,
+    { projectId: "project-1" }
+  ) as any;
+
+  assert.equal(envelope.model, "gemini-3-flash-preview");
+  assert.equal(envelope.userAgent, undefined);
+  assert.equal(envelope.requestId, undefined);
+  assert.equal(envelope.request.sessionId, undefined);
+  assert.match(envelope.request.session_id, /^[0-9a-f-]{36}$/i);
+  assert.equal(envelope.user_prompt_id, envelope.request.session_id);
+});
+
+test("OpenAI -> Gemini CLI emits native Cloud Code functionResponse output", () => {
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
+  assert.ok(translate, "expected Gemini CLI translator registration");
+
+  const envelope = translate(
+    "gemini-3-flash-preview",
+    {
+      messages: [
+        { role: "user", content: "Read fixture" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "read_file_123_0",
+              type: "function",
+              function: { name: "read_file", arguments: '{"file_path":"fixture.txt"}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "read_file_123_0",
+          content: "The answer is capybara-4729.",
+        },
+      ],
+    },
+    true,
+    { projectId: "project-1" }
+  ) as any;
+
+  const toolTurn = envelope.request.contents.find(
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
+  );
+  assert.ok(toolTurn, "expected Gemini CLI tool response turn");
+  assert.deepEqual(getFunctionResponse(toolTurn.parts[0]), {
+    id: "read_file_123_0",
+    name: "read_file",
+    response: { output: "The answer is capybara-4729." },
+  });
+});
+
 test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () => {
   const result = openaiToAntigravityRequest(
     "gemini-2.5-pro",
@@ -642,6 +707,7 @@ test("OpenAI -> Antigravity Claude bridge sanitizes long names and preserves res
   );
   assert.ok(toolTurn, "expected a tool response turn");
   assert.equal(getFunctionResponse(toolTurn.parts[0]).name, sanitizedToolName);
+  assert.deepEqual(getFunctionResponse(toolTurn.parts[0]).response, { result: { ok: true } });
 });
 
 test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap without forwarding thinking", () => {

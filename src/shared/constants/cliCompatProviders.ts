@@ -8,6 +8,7 @@ export const IMPLEMENTED_CLI_FINGERPRINT_PROVIDER_IDS = [
   "codex",
   "github",
   "antigravity",
+  "gemini-cli",
   "qwen",
 ] as const;
 
@@ -16,6 +17,7 @@ export const CLI_COMPAT_DISPLAY_PROVIDER_IDS = [
   "codex",
   "copilot",
   "antigravity",
+  "gemini-cli",
   "qwen",
 ] as const;
 
