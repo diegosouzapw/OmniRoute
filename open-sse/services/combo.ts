@@ -631,18 +631,23 @@ function sortTargetsByUsage(targets: ResolvedComboTarget[], comboName: string) {
  */
 function sortModelsByContextSize(models) {
   const withContext = models.map((modelStr) => {
-    const parsed = parseModel(modelStr);
-    const provider = parsed.provider || parsed.providerAlias || "unknown";
-    const model = parsed.model || modelStr;
-    const limit = getModelContextLimit(provider, model);
-    return { modelStr, context: limit ?? 0 };
+    return { modelStr, context: getModelContextLimitForModelString(modelStr) ?? 0 };
   });
   withContext.sort((a, b) => b.context - a.context);
   return withContext.map((e) => e.modelStr);
 }
 
+function getModelContextLimitForModelString(modelStr: string) {
+  const parsed = parseModel(modelStr);
+  const provider = parsed.provider || parsed.providerAlias || "unknown";
+  const model = parsed.model || modelStr;
+  return getModelContextLimit(provider, model);
+}
+
 function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
-  const hasKnownContext = targets.some((target) => getModelContextLimit(target.modelStr) != null);
+  const hasKnownContext = targets.some(
+    (target) => getModelContextLimitForModelString(target.modelStr) != null
+  );
   if (!hasKnownContext) return targets;
 
   const orderedModels = sortModelsByContextSize(targets.map((target) => target.modelStr));
@@ -681,8 +686,11 @@ function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboNa
 
   const first = targets[firstIndex];
   const second = targets[secondIndex];
-  const selected = getP2CTargetScore(second, metrics) > getP2CTargetScore(first, metrics) ? second : first;
-  return [selected, ...targets.filter((target) => target.executionKey !== selected.executionKey)];
+  const selectedIndex =
+    getP2CTargetScore(second, metrics) > getP2CTargetScore(first, metrics)
+      ? secondIndex
+      : firstIndex;
+  return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
 }
 
 function toTextContent(content) {
