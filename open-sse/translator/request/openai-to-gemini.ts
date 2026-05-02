@@ -73,11 +73,13 @@ type GeminiRequest = {
 type CloudCodeEnvelope = {
   project: string;
   model: string;
-  userAgent: string;
-  requestId: string;
+  user_prompt_id?: string;
+  userAgent?: string;
+  requestId?: string;
   requestType?: string;
   request: {
-    sessionId: string;
+    session_id?: string;
+    sessionId?: string;
     contents: GeminiContent[];
     systemInstruction?: GeminiContent;
     generationConfig: GeminiGenerationConfig;
@@ -393,27 +395,38 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
   const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
 
-  const envelope: CloudCodeEnvelope = {
-    project: projectId,
-    model: cleanModel,
-    userAgent: isAntigravity ? "antigravity" : "gemini-cli",
-    requestId: isAntigravity ? `agent-${generateUUID()}` : generateRequestId(),
-    request: {
-      sessionId: generateSessionId(),
-      contents: geminiCLI.contents,
-      systemInstruction: geminiCLI.systemInstruction,
-      generationConfig: geminiCLI.generationConfig,
-      tools: geminiCLI.tools,
-    },
-  };
+  const envelope: CloudCodeEnvelope = isAntigravity
+    ? {
+        project: projectId,
+        model: cleanModel,
+        userAgent: "antigravity",
+        requestType: "agent",
+        requestId: `agent-${generateUUID()}`,
+        request: {
+          sessionId: generateSessionId(),
+          contents: geminiCLI.contents,
+          systemInstruction: geminiCLI.systemInstruction,
+          generationConfig: geminiCLI.generationConfig,
+          tools: geminiCLI.tools,
+        },
+      }
+    : {
+        model: cleanModel,
+        project: projectId,
+        user_prompt_id: generateRequestId(),
+        request: {
+          contents: geminiCLI.contents,
+          systemInstruction: geminiCLI.systemInstruction,
+          generationConfig: geminiCLI.generationConfig,
+          tools: geminiCLI.tools,
+        },
+      };
   if (geminiCLI._toolNameMap instanceof Map && geminiCLI._toolNameMap.size > 0) {
     envelope._toolNameMap = geminiCLI._toolNameMap;
   }
 
   // Antigravity specific fields
   if (isAntigravity) {
-    envelope.requestType = "agent";
-
     // Inject required default system prompt for Antigravity
     const defaultPart: GeminiPart = { text: ANTIGRAVITY_DEFAULT_SYSTEM };
     if (envelope.request.systemInstruction?.parts) {
@@ -429,7 +442,8 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
       };
     }
   } else {
-    // Keep safetySettings for Gemini CLI
+    // Gemini CLI's native Cloud Code envelope uses snake_case identifiers.
+    envelope.request.session_id = generateSessionId();
     envelope.request.safetySettings = geminiCLI.safetySettings;
   }
 

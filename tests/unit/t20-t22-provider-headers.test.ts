@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
-const { antigravityUserAgent, geminiCLIUserAgent, GEMINI_CLI_VERSION } =
-  await import("../../open-sse/services/antigravityHeaders.ts");
+const { antigravityUserAgent } = await import("../../open-sse/services/antigravityHeaders.ts");
+const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
+  await import("../../open-sse/services/geminiCliHeaders.ts");
 
 test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
   const antigravity = REGISTRY.antigravity;
@@ -14,15 +15,15 @@ test("T20: antigravity config has updated User-Agent and sandbox fallback URL", 
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 
-test("T20: gemini CLI fingerprint uses 0.39.1 and normalizes darwin to macos", () => {
-  assert.equal(GEMINI_CLI_VERSION, "0.39.1");
+test("T20: gemini CLI fingerprint uses 0.40.1 and normalizes darwin to macos", () => {
+  assert.equal(GEMINI_CLI_VERSION, "0.40.1");
 
   const descriptor = Object.getOwnPropertyDescriptor(process, "platform");
   Object.defineProperty(process, "platform", { value: "darwin" });
   try {
     assert.match(
-      geminiCLIUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.39\.1\/gemini-3-flash \(macos; /
+      geminiCliUserAgent("gemini-3-flash"),
+      /^GeminiCLI\/0\.40\.1\/gemini-3-flash \(macos; .+; terminal\) google-api-nodejs-client\/9\.15\.1$/
     );
   } finally {
     if (descriptor) {

@@ -14,6 +14,7 @@ export default function RoutingTab() {
   const [settings, setSettings] = useState<any>({
     alwaysPreserveClientCache: "auto",
     antigravitySignatureCacheMode: "enabled",
+    cliCompatProviders: [],
   });
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);

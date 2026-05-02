@@ -10,7 +10,7 @@ import {
 import {
   getAntigravityHeaders,
   antigravityUserAgent,
-  googApiClientHeader,
+  getAntigravityCreditProbeApiClientHeader,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -202,7 +202,7 @@ async function probeAntigravityCreditBalance(
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
       "User-Agent": antigravityUserAgent(),
-      "X-Goog-Api-Client": googApiClientHeader(),
+      "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
       Accept: "text/event-stream",
     };
 

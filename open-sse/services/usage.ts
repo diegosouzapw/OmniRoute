@@ -19,7 +19,7 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  googApiClientHeader,
+  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -1427,7 +1427,7 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": googApiClientHeader(),
+        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
         Accept: "text/event-stream",
       };
 

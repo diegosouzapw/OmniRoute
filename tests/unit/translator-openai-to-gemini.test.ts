@@ -351,6 +351,34 @@ test("OpenAI -> Gemini CLI adds thinking config and normalizes namespaced tool n
   assert.equal(getFunctionResponse(responseTurn.parts[0]).name, "weather");
 });
 
+test("OpenAI -> Gemini CLI wraps Cloud Code envelope with native top-level and request keys", async () => {
+  const { getRequestTranslator } = await import("../../open-sse/translator/registry.ts");
+  const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+  await import("../../open-sse/translator/request/openai-to-gemini.ts");
+
+  const translate = getRequestTranslator(FORMATS.OPENAI, FORMATS.GEMINI_CLI);
+  assert.ok(translate, "expected Gemini CLI translator to be registered");
+
+  const result = translate(
+    "models/gemini-2.5-flash",
+    { messages: [{ role: "user", content: "Hello" }] },
+    true,
+    { projectId: "projects/demo" }
+  ) as UnknownRecord;
+  const request = result.request as UnknownRecord;
+
+  assert.deepEqual(Object.keys(result), ["model", "project", "user_prompt_id", "request"]);
+  assert.equal(result.model, "gemini-2.5-flash");
+  assert.equal(result.project, "projects/demo");
+  assert.equal(typeof result.user_prompt_id, "string");
+  assert.equal(result.userAgent, undefined);
+  assert.equal(result.requestId, undefined);
+  assert.equal(result.requestType, undefined);
+  assert.equal(typeof request.session_id, "string");
+  assert.equal(request.sessionId, undefined);
+  assert.ok(Array.isArray(request.contents));
+});
+
 test("OpenAI -> Gemini request sanitizes long MCP tool names and strips unsupported schema fields", () => {
   const longToolName =
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2";
@@ -502,6 +530,14 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   );
 
   assert.equal(result.project, "proj-1");
+  assert.deepEqual(Object.keys(result), [
+    "project",
+    "model",
+    "userAgent",
+    "requestType",
+    "requestId",
+    "request",
+  ]);
   assert.equal(result.userAgent, "antigravity");
   assert.equal(result.requestType, "agent");
   assert.match(result.requestId, /^agent-/);

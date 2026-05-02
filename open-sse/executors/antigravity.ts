@@ -60,6 +60,15 @@ type AntigravityCollectedStream = {
   remainingCredits: Array<{ creditType: string; creditAmount: string }> | null;
 };
 
+type AntigravityRequestEnvelope = Record<string, unknown> & {
+  project: string;
+  model: string;
+  userAgent: "antigravity";
+  requestType: "agent";
+  requestId: string;
+  request: Record<string, unknown>;
+};
+
 /**
  * Per-account GOOGLE_ONE_AI credits-exhausted tracker.
  * Key: accountId (OAuth subject / email). Value: expiry timestamp.
@@ -249,7 +258,7 @@ export class AntigravityExecutor extends BaseExecutor {
     return scrubProxyAndFingerprintHeaders(raw);
   }
 
-  transformRequest(model, body, stream, credentials) {
+  transformRequest(model, body, stream, credentials): AntigravityRequestEnvelope | Response {
     // TODO: Consider removing project override like gemini-cli.ts — stored projectId
     // can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
     // Antigravity accounts may have more stable project IDs, but the risk exists.
@@ -352,14 +361,24 @@ export class AntigravityExecutor extends BaseExecutor {
       }
     }
 
+    const {
+      project: _project,
+      model: _model,
+      userAgent: _userAgent,
+      requestType: _requestType,
+      requestId: _requestId,
+      request: _request,
+      ...passthroughFields
+    } = normalizedBody;
+
     return {
-      ...normalizedBody,
       project: projectId,
       model: upstreamModel,
       userAgent: "antigravity",
       requestType: "agent",
       requestId: `agent-${crypto.randomUUID()}`,
       request: transformedRequest,
+      ...passthroughFields,
     };
   }
 
@@ -572,15 +591,17 @@ export class AntigravityExecutor extends BaseExecutor {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
       mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
-      let transformedBody = await this.transformRequest(model, body, upstreamStream, credentials);
+      const transformed = await this.transformRequest(model, body, upstreamStream, credentials);
       let requestToolNameMap: Map<string, string> | null = null;
 
-      if (transformedBody instanceof Response) {
-        return { response: transformedBody, url, headers, transformedBody: body };
+      if (transformed instanceof Response) {
+        return { response: transformed, url, headers, transformedBody: body };
       }
 
+      let transformedBody: Record<string, unknown> = transformed;
+
       if (transformedBody && typeof transformedBody === "object") {
-        const cloaked = cloakAntigravityToolPayload(transformedBody as Record<string, unknown>);
+        const cloaked = cloakAntigravityToolPayload(transformedBody);
         transformedBody = cloaked.body;
         requestToolNameMap = cloaked.toolNameMap;
       }
