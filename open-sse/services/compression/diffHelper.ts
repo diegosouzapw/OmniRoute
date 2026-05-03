@@ -16,8 +16,29 @@ export interface CompressionPreviewDiff {
   fallbackApplied: boolean;
 }
 
+export interface CompressionPreviewDiffOptions {
+  maxTokenProduct?: number;
+}
+
+export const DEFAULT_MAX_PREVIEW_DIFF_TOKEN_PRODUCT = 1_000_000;
+
 function tokenize(text: string): string[] {
   return text.match(/\s+|[^\s]+/g) ?? [];
+}
+
+function getDiffSkipWarning(
+  original: string,
+  compressed: string,
+  options: CompressionPreviewDiffOptions = {}
+): string | null {
+  const maxTokenProduct = options.maxTokenProduct ?? DEFAULT_MAX_PREVIEW_DIFF_TOKEN_PRODUCT;
+  if (maxTokenProduct <= 0) return null;
+
+  const originalTokens = tokenize(original).length;
+  const compressedTokens = tokenize(compressed).length;
+  if (originalTokens * compressedTokens <= maxTokenProduct) return null;
+
+  return `Preview diff omitted because token product ${originalTokens}x${compressedTokens} exceeds safe limit ${maxTokenProduct}.`;
 }
 
 export function buildCompressionDiff(
@@ -69,19 +90,27 @@ export function buildCompressionDiff(
 export function buildCompressionPreviewDiff(
   original: string,
   compressed: string,
-  stats: CompressionStats | null | undefined
+  stats: CompressionStats | null | undefined,
+  options: CompressionPreviewDiffOptions = {}
 ): CompressionPreviewDiff {
   const validation = validateCompression(original, compressed);
   const preserved = extractPreservedBlocks(original).blocks.map((block) => ({
     kind: block.kind,
     preview: block.content.replace(/\s+/g, " ").slice(0, 120),
   }));
+  const diffSkipWarning = getDiffSkipWarning(original, compressed, options);
 
   return {
-    segments: buildCompressionDiff(original, compressed),
+    segments: diffSkipWarning
+      ? [{ type: "same", text: "[diff omitted: input too large]" }]
+      : buildCompressionDiff(original, compressed),
     preservedBlocks: preserved,
     ruleRemovals: stats?.rulesApplied ?? [],
-    validationWarnings: [...(stats?.validationWarnings ?? []), ...validation.warnings],
+    validationWarnings: [
+      ...(stats?.validationWarnings ?? []),
+      ...validation.warnings,
+      ...(diffSkipWarning ? [diffSkipWarning] : []),
+    ],
     validationErrors: [...(stats?.validationErrors ?? []), ...validation.errors],
     fallbackApplied: Boolean(stats?.fallbackApplied || validation.fallbackApplied),
   };

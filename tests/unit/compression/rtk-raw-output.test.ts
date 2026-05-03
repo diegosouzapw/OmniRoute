@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 import {
+  applyCompression,
   processRtkText,
   readRtkRawOutput,
   redactRtkRawOutput,
@@ -55,5 +56,56 @@ describe("RTK raw output retention", () => {
     });
 
     assert.equal(result.rawOutputPointers, undefined);
+  });
+
+  it("propagates raw output pointers from stacked RTK runs", () => {
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-stacked-raw-"));
+    process.env.DATA_DIR = tempData;
+
+    const result = applyCompression(
+      {
+        messages: [
+          {
+            role: "tool",
+            content: [
+              "Error: failed with Authorization: Bearer secret-token-value",
+              ...Array.from({ length: 40 }, () => "same noisy line"),
+            ].join("\n"),
+          },
+        ],
+      },
+      "stacked",
+      {
+        config: {
+          enabled: true,
+          defaultMode: "stacked",
+          autoTriggerTokens: 0,
+          cacheMinutes: 5,
+          preserveSystemPrompt: true,
+          comboOverrides: {},
+          rtkConfig: {
+            enabled: true,
+            intensity: "standard",
+            applyToToolResults: true,
+            applyToCodeBlocks: false,
+            applyToAssistantMessages: false,
+            enabledFilters: [],
+            disabledFilters: [],
+            maxLinesPerResult: 2,
+            maxCharsPerResult: 120,
+            deduplicateThreshold: 3,
+            customFiltersEnabled: true,
+            trustProjectFilters: false,
+            rawOutputRetention: "always",
+            rawOutputMaxBytes: 1_048_576,
+          },
+          stackedPipeline: [{ engine: "rtk", intensity: "standard" }],
+        },
+      }
+    );
+
+    const pointer = result.stats?.rtkRawOutputPointers?.[0];
+    assert.ok(pointer);
+    assert.ok(readRtkRawOutput(pointer.id)?.includes("[REDACTED"));
   });
 });

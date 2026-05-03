@@ -14,6 +14,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const readCacheDb = await import("../../src/lib/db/readCache.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const compressionDb = await import("../../src/lib/db/compression.ts");
+const compressionCombosDb = await import("../../src/lib/db/compressionCombos.ts");
 const compressionAnalyticsDb = await import("../../src/lib/db/compressionAnalytics.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { estimateTokens, getTokenLimit } = await import("../../open-sse/services/contextManager.ts");
@@ -559,6 +560,106 @@ test("chatCore integration: combo requests run proactive compression before Kiro
   }
 });
 
+test("chatCore integration: assigned compression combo applies language packs and output mode", async () => {
+  const provider = "openai";
+  const model = "gpt-4";
+
+  await compressionDb.updateCompressionSettings({
+    enabled: true,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+    cavemanOutputMode: {
+      enabled: false,
+      intensity: "full",
+      autoClarity: true,
+    },
+    languageConfig: {
+      enabled: false,
+      defaultLanguage: "en",
+      autoDetect: true,
+      enabledPacks: ["en"],
+    },
+  });
+
+  const connection = await providersDb.createProviderConnection({
+    provider,
+    apiKey: "test-key",
+    isActive: true,
+  });
+
+  const routingCombo = await combosDb.createCombo({
+    name: "assigned-compression-combo",
+    strategy: "priority",
+    models: [
+      {
+        kind: "model",
+        model: `${provider}/${model}`,
+        connectionId: connection.id,
+      },
+    ],
+  });
+
+  const compressionCombo = compressionCombosDb.createCompressionCombo({
+    name: "Assigned PT Output Mode",
+    pipeline: [{ engine: "caveman", intensity: "lite" }],
+    languagePacks: ["pt-BR"],
+    outputMode: true,
+    outputModeIntensity: "lite",
+  });
+  assert.equal(compressionCombosDb.assignRoutingCombo(compressionCombo.id, routingCombo.id), true);
+
+  let capturedBody: any = null;
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) {
+      capturedBody = JSON.parse(init.body as string);
+    }
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await handleChatCore({
+      body: {
+        model: "combo/assigned-compression-combo",
+        stream: false,
+        messages: [{ role: "user", content: "Resuma esta implementacao." }],
+      },
+      modelInfo: { provider, model },
+      credentials: { apiKey: "test-key" },
+      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+      connectionId: connection.id,
+      isCombo: true,
+      comboName: "assigned-compression-combo",
+    });
+
+    assert.ok(result.success, "Request should succeed");
+    assert.ok(capturedBody, "Fetch should receive the request body");
+    const firstMessage = capturedBody.messages?.[0];
+    assert.equal(firstMessage?.role, "system");
+    assert.match(firstMessage?.content ?? "", /OmniRoute Caveman Output Mode/);
+    assert.match(firstMessage?.content ?? "", /Responda conciso/);
+
+    for (
+      let attempt = 0;
+      attempt < 100 && compressionAnalyticsDb.getCompressionAnalyticsSummary().totalRequests === 0;
+      attempt += 1
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("chatCore integration: modular compression records analytics row best-effort", async () => {
   const provider = "openai";
   const model = "gpt-4";
@@ -611,8 +712,8 @@ test("chatCore integration: modular compression records analytics row best-effor
     assert.ok(result.success, "Request should succeed");
 
     let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
-    for (let attempt = 0; attempt < 20 && summary.totalRequests === 0; attempt += 1) {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+    for (let attempt = 0; attempt < 100 && summary.totalRequests === 0; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
       summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
     }
 
@@ -683,10 +784,11 @@ test("chatCore integration: caveman output mode records analytics and receipts w
     let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
     for (
       let attempt = 0;
-      attempt < 20 && (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
+      attempt < 100 &&
+      (summary.totalRequests === 0 || summary.realUsage.requestsWithReceipts === 0);
       attempt += 1
     ) {
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 20));
       summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
     }
 

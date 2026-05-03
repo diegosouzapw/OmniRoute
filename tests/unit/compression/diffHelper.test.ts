@@ -33,4 +33,13 @@ describe("compression preview diff", () => {
     assert.equal(preview.fallbackApplied, true);
     assert.ok(preview.validationErrors.length >= 2);
   });
+
+  it("degrades preview diff generation when token product exceeds the safe limit", () => {
+    const original = Array.from({ length: 1500 }, (_, index) => `original-${index}`).join(" ");
+    const compressed = Array.from({ length: 1500 }, (_, index) => `compressed-${index}`).join(" ");
+    const preview = buildCompressionPreviewDiff(original, compressed, null);
+
+    assert.deepEqual(preview.segments, [{ type: "same", text: "[diff omitted: input too large]" }]);
+    assert.match(preview.validationWarnings.join("\n"), /Preview diff omitted/);
+  });
 });

@@ -34,7 +34,18 @@ const VALID_INTENSITIES = new Set(["lite", "full", "ultra"]);
 const cache = new Map<string, CavemanRule[]>();
 
 function getRulesDir(): string {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), "rules");
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.join(moduleDir, "rules"),
+    path.join(moduleDir, "..", "services", "compression", "rules"),
+    path.join(process.cwd(), "open-sse", "services", "compression", "rules"),
+    path.join(process.cwd(), "app", "open-sse", "services", "compression", "rules"),
+  ];
+  return (
+    candidates.find((candidate, index) => {
+      return candidates.indexOf(candidate) === index && fs.existsSync(candidate);
+    }) ?? candidates[0]
+  );
 }
 
 function compileRule(rule: FileRule, source: string): CavemanRule {
@@ -124,7 +135,7 @@ export function loadRulePack(
   category: string,
   options: { refresh?: boolean } = {}
 ): CavemanRule[] {
-  const key = `${language}:${category}`;
+  const key = `${getRulesDir()}:${language}:${category}`;
   if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
 
   const pack = readPack(language, category);
@@ -142,7 +153,7 @@ export function loadAllRulesForLanguage(
   language: string,
   options: { refresh?: boolean } = {}
 ): CavemanRule[] {
-  const key = `${language}:*`;
+  const key = `${getRulesDir()}:${language}:*`;
   if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
 
   const languageDir = path.join(getRulesDir(), language);

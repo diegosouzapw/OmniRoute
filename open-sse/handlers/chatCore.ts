@@ -1578,35 +1578,6 @@ export async function handleChatCore({
       );
     }
 
-    if (compressionSettings?.cavemanOutputMode?.enabled) {
-      try {
-        const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
-        const outputModeLanguage =
-          compressionSettings.languageConfig?.enabled === true
-            ? compressionSettings.languageConfig.defaultLanguage
-            : "en";
-        const outputMode = applyCavemanOutputMode(
-          body as Parameters<typeof applyCavemanOutputMode>[0],
-          compressionSettings.cavemanOutputMode,
-          outputModeLanguage
-        );
-        if (outputMode.applied) {
-          body = outputMode.body as typeof body;
-          cavemanOutputModeApplied = true;
-          cavemanOutputModeIntensity = compressionSettings.cavemanOutputMode.intensity;
-          estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
-          log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
-        } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
-          log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
-        }
-      } catch (err) {
-        log?.debug?.(
-          "COMPRESSION",
-          "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
-        );
-      }
-    }
-
     // --- Modular Compression Pipeline (Phase 1 Lite + Phase 2 Standard/Caveman + Phase 3 Aggressive) ---
     // Runs BEFORE the existing reactive compressContext() to proactively reduce tokens.
     try {
@@ -1674,10 +1645,52 @@ export async function handleChatCore({
                 .map((id) => getCompressionComboForRoutingCombo(id))
                 .find((combo) => combo !== null) ?? null;
             if (assignedCompressionCombo && assignedCompressionCombo.pipeline.length > 0) {
+              const comboLanguagePacks = [
+                ...new Set(
+                  assignedCompressionCombo.languagePacks
+                    .map((pack) => pack.trim())
+                    .filter((pack) => pack.length > 0)
+                ),
+              ];
+              const comboOutputIntensity = (
+                ["lite", "full", "ultra"].includes(assignedCompressionCombo.outputModeIntensity)
+                  ? assignedCompressionCombo.outputModeIntensity
+                  : (config.cavemanOutputMode?.intensity ?? "full")
+              ) as "lite" | "full" | "ultra";
+              const comboDefaultLanguage =
+                comboLanguagePacks.find(
+                  (pack) => pack === config.languageConfig?.defaultLanguage
+                ) ??
+                comboLanguagePacks[0] ??
+                config.languageConfig?.defaultLanguage ??
+                "en";
               config = {
                 ...config,
                 compressionComboId: assignedCompressionCombo.id,
                 stackedPipeline: assignedCompressionCombo.pipeline,
+                languageConfig: {
+                  ...(config.languageConfig ?? {
+                    enabled: false,
+                    defaultLanguage: "en",
+                    autoDetect: true,
+                    enabledPacks: ["en"],
+                  }),
+                  enabled: true,
+                  defaultLanguage: comboDefaultLanguage,
+                  enabledPacks:
+                    comboLanguagePacks.length > 0
+                      ? comboLanguagePacks
+                      : (config.languageConfig?.enabledPacks ?? ["en"]),
+                },
+                cavemanOutputMode: {
+                  ...(config.cavemanOutputMode ?? {
+                    enabled: false,
+                    intensity: "full",
+                    autoClarity: true,
+                  }),
+                  enabled: assignedCompressionCombo.outputMode,
+                  intensity: comboOutputIntensity,
+                },
                 comboOverrides: {
                   ...(config.comboOverrides ?? {}),
                   ...(comboName ? { [comboName]: "stacked" as const } : {}),
@@ -1692,6 +1705,32 @@ export async function handleChatCore({
             "COMPRESSION",
             "Combo compression override lookup skipped: " +
               (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      if (config.cavemanOutputMode?.enabled) {
+        try {
+          const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
+          const outputModeLanguage =
+            config.languageConfig?.enabled === true ? config.languageConfig.defaultLanguage : "en";
+          const outputMode = applyCavemanOutputMode(
+            body as Parameters<typeof applyCavemanOutputMode>[0],
+            config.cavemanOutputMode,
+            outputModeLanguage
+          );
+          if (outputMode.applied) {
+            body = outputMode.body as typeof body;
+            cavemanOutputModeApplied = true;
+            cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
+            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
+          } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
+            log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
           );
         }
       }

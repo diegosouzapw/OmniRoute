@@ -33,4 +33,11 @@ describe("RTK smart truncate", () => {
     assert.equal(result.truncated, true);
     assert.ok(result.text.length <= 80);
   });
+
+  it("respects maxChars when the marker consumes the full char budget", () => {
+    const result = smartTruncate("x".repeat(500), { maxChars: 10 });
+
+    assert.equal(result.truncated, true);
+    assert.ok(result.text.length <= 10);
+  });
 });

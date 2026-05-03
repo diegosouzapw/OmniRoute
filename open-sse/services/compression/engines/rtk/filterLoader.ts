@@ -30,7 +30,27 @@ interface RtkFilterLoadOptions {
 }
 
 function getFiltersDir(): string {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), "filters");
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.join(moduleDir, "filters"),
+    path.join(moduleDir, "..", "services", "compression", "engines", "rtk", "filters"),
+    path.join(process.cwd(), "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    path.join(
+      process.cwd(),
+      "app",
+      "open-sse",
+      "services",
+      "compression",
+      "engines",
+      "rtk",
+      "filters"
+    ),
+  ];
+  return (
+    candidates.find((candidate, index) => {
+      return candidates.indexOf(candidate) === index && fs.existsSync(candidate);
+    }) ?? candidates[0]
+  );
 }
 
 function getDataDir(): string {

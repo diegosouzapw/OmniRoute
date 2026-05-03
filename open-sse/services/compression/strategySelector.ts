@@ -198,6 +198,7 @@ export function applyStackedCompression(
   const techniques = new Set<string>();
   const rules = new Set<string>();
   const breakdown: NonNullable<CompressionStats["engineBreakdown"]> = [];
+  const rtkRawOutputPointers: NonNullable<CompressionStats["rtkRawOutputPointers"]> = [];
   const start = performance.now();
 
   for (const step of steps) {
@@ -214,6 +215,9 @@ export function applyStackedCompression(
     if (result.stats) {
       result.stats.techniquesUsed.forEach((technique) => techniques.add(technique));
       result.stats.rulesApplied?.forEach((rule) => rules.add(rule));
+      result.stats.rtkRawOutputPointers?.forEach((pointer) => {
+        rtkRawOutputPointers.push(pointer);
+      });
       breakdown.push({
         engine: step.engine,
         originalTokens: result.stats.originalTokens,
@@ -242,6 +246,14 @@ export function applyStackedCompression(
   stats.compressionComboId =
     options?.compressionComboId ?? options?.config?.compressionComboId ?? null;
   stats.engineBreakdown = breakdown;
+  if (rtkRawOutputPointers.length > 0) {
+    const seenPointers = new Set<string>();
+    stats.rtkRawOutputPointers = rtkRawOutputPointers.filter((pointer) => {
+      if (seenPointers.has(pointer.id)) return false;
+      seenPointers.add(pointer.id);
+      return true;
+    });
+  }
 
   return {
     body: currentBody,

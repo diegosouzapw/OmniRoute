@@ -51,11 +51,11 @@ export interface CompressionAnalyticsSummary {
   };
 }
 
-let columnsEnsured = false;
+let columnsEnsuredForDb: unknown = null;
 
 function ensureCompressionAnalyticsColumns(): void {
-  if (columnsEnsured) return;
   const db = getDbInstance();
+  if (columnsEnsuredForDb === db) return;
   const rows = db.prepare("PRAGMA table_info(compression_analytics)").all() as Array<{
     name: string;
   }>;
@@ -114,7 +114,7 @@ function ensureCompressionAnalyticsColumns(): void {
     "rtk_raw_output_bytes",
     "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_bytes INTEGER"
   );
-  columnsEnsured = true;
+  columnsEnsuredForDb = db;
 }
 
 export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): void {
