@@ -147,10 +147,16 @@ const nextConfig = {
         })
       );
 
-      // Ignore native .node binary imports from problematic packages that
-      // are already listed in serverExternalPackages but whose deep imports
-      // of platform-specific sub-packages still leak into webpack's resolver.
-      config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\.node$/ }));
+      // Handle native .node binaries: tell webpack to treat them as file
+      // assets rather than trying to parse them as JavaScript/JSON.
+      // This prevents "Unexpected character" errors from ngrok, keytar, koffi etc.
+      config.module.rules.push({
+        test: /\.node$/,
+        type: "asset/resource",
+        generator: {
+          filename: "[name][ext]",
+        },
+      });
 
       // ── Turbopack / Next.js 16 module-hash patch (#394, #396, #398) ────────
       //
@@ -207,7 +213,25 @@ const nextConfig = {
           if (KNOWN_EXTERNALS.has(request)) {
             return callback(null, `commonjs ${request}`);
           }
-          // Case 2: Hash-suffixed name — strip hash, preserve subpath
+          // Case 2: Scoped sub-packages of known externals
+          // e.g. "@ngrok/ngrok-linux-x64-gnu" is a sub-dep of "@ngrok/ngrok"
+          if (request?.startsWith("@ngrok/")) {
+            return callback(null, `commonjs ${request}`);
+          }
+          // Case 3: Any import ending in .node (native binary)
+          if (request?.endsWith(".node")) {
+            return callback(null, `commonjs ${request}`);
+          }
+          // Case 4: Sub-paths of known externals (e.g. "keytar/lib/keytar.js")
+          if (request) {
+            const basePkg = request.startsWith("@")
+              ? request.split("/").slice(0, 2).join("/")
+              : request.split("/")[0];
+            if (KNOWN_EXTERNALS.has(basePkg) && request !== basePkg) {
+              return callback(null, `commonjs ${request}`);
+            }
+          }
+          // Case 5: Hash-suffixed name — strip hash, preserve subpath
           // e.g. "better-sqlite3-90e2652d1716b047" → "better-sqlite3"
           //      "zod-dcb22c6336e0bc69"            → "zod"
           //      "zod-dcb22c6336e0bc69/v3"         → "zod/v3"
