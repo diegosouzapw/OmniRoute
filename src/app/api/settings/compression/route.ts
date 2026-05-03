@@ -47,6 +47,10 @@ const rtkConfigSchema = z
     maxLinesPerResult: z.number().int().min(0).max(100000).optional(),
     maxCharsPerResult: z.number().int().min(0).max(1000000).optional(),
     deduplicateThreshold: z.number().int().min(2).max(100).optional(),
+    customFiltersEnabled: z.boolean().optional(),
+    trustProjectFilters: z.boolean().optional(),
+    rawOutputRetention: z.enum(["never", "failures", "always"]).optional(),
+    rawOutputMaxBytes: z.number().int().min(1024).max(10_000_000).optional(),
   })
   .strict();
 

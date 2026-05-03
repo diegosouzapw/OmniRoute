@@ -39,13 +39,21 @@ Compression settings can include:
 ```json
 {
   "languageConfig": {
+    "enabled": true,
     "defaultLanguage": "en",
     "autoDetect": true,
-    "fallbackLanguage": "en",
-    "enabledLanguages": ["en", "pt-BR", "es", "de", "fr", "ja"]
+    "enabledPacks": ["en", "pt-BR", "es", "de", "fr", "ja"]
+  },
+  "cavemanConfig": {
+    "language": "en",
+    "autoDetectLanguage": true,
+    "enabledLanguagePacks": ["en", "pt-BR", "es", "de", "fr", "ja"]
   }
 }
 ```
+
+`languageConfig` controls dashboard/preview defaults. `cavemanConfig` is the runtime engine config
+used when Caveman compresses message text.
 
 ## Adding a Language Pack
 
@@ -82,7 +90,7 @@ curl -X POST http://localhost:20128/api/compression/preview \
 
 ## Operational Notes
 
-- English built-in rules remain the fallback when a language pack is missing or invalid.
-- Invalid JSON packs are skipped by the loader.
+- English built-in rules remain the fallback when a language pack is missing.
+- Invalid built-in JSON packs fail validation so release assets do not silently degrade.
 - Rule packs are data-only and should not import code or run arbitrary logic.
 - The compression analytics layer records the selected mode and engine, not full prompt text.

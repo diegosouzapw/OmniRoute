@@ -3,69 +3,193 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { CavemanIntensity, CavemanRule } from "./types.ts";
 
+type CavemanRuleCategory = NonNullable<CavemanRule["category"]>;
+type CavemanRuleContext = CavemanRule["context"];
+
 interface FileRule {
   name: string;
   pattern: string;
   replacement: string;
-  context?: CavemanRule["context"];
-  category?: CavemanRule["category"];
+  context?: CavemanRuleContext;
+  category?: CavemanRuleCategory;
   minIntensity?: CavemanIntensity;
   description?: string;
 }
 
-let cache = new Map<string, CavemanRule[]>();
+interface RulePack {
+  language: string;
+  category: string;
+  rules: FileRule[];
+}
+
+export interface RulePackMetadata {
+  language: string;
+  categories: string[];
+  ruleCount: number;
+}
+
+const VALID_CONTEXTS = new Set(["all", "user", "system", "assistant"]);
+const VALID_CATEGORIES = new Set(["filler", "context", "structural", "dedup", "terse", "ultra"]);
+const VALID_INTENSITIES = new Set(["lite", "full", "ultra"]);
+const cache = new Map<string, CavemanRule[]>();
 
 function getRulesDir(): string {
   return path.join(path.dirname(fileURLToPath(import.meta.url)), "rules");
 }
 
-function compileRule(rule: FileRule): CavemanRule {
-  return {
-    name: rule.name,
-    pattern: new RegExp(rule.pattern, "gi"),
-    replacement: rule.replacement,
-    context: rule.context ?? "all",
-    category: rule.category ?? "filler",
-    minIntensity: rule.minIntensity ?? "lite",
-    description: rule.description,
-  };
+function compileRule(rule: FileRule, source: string): CavemanRule {
+  try {
+    return {
+      name: rule.name,
+      pattern: new RegExp(rule.pattern, "gi"),
+      replacement: rule.replacement,
+      context: rule.context ?? "all",
+      category: rule.category ?? "filler",
+      minIntensity: rule.minIntensity ?? "lite",
+      description: rule.description,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid Caveman rule pattern in ${source}:${rule.name}: ${message}`);
+  }
+}
+
+export function validateRulePack(pack: unknown): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (!pack || typeof pack !== "object") {
+    return { valid: false, errors: ["Rule pack must be an object"] };
+  }
+
+  const value = pack as Partial<RulePack>;
+  if (typeof value.language !== "string" || !value.language.trim()) {
+    errors.push("language must be a non-empty string");
+  }
+  if (typeof value.category !== "string" || !value.category.trim()) {
+    errors.push("category must be a non-empty string");
+  }
+  if (!Array.isArray(value.rules)) {
+    errors.push("rules must be an array");
+  } else {
+    value.rules.forEach((rule, index) => {
+      if (!rule || typeof rule !== "object") {
+        errors.push(`rules[${index}] must be an object`);
+        return;
+      }
+      const entry = rule as Partial<FileRule>;
+      if (typeof entry.name !== "string" || !entry.name.trim()) {
+        errors.push(`rules[${index}].name must be a non-empty string`);
+      }
+      if (typeof entry.pattern !== "string" || !entry.pattern.trim()) {
+        errors.push(`rules[${index}].pattern must be a non-empty string`);
+      } else {
+        try {
+          new RegExp(entry.pattern, "gi");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          errors.push(`rules[${index}].pattern is invalid: ${message}`);
+        }
+      }
+      if (typeof entry.replacement !== "string") {
+        errors.push(`rules[${index}].replacement must be a string`);
+      }
+      if (entry.context !== undefined && !VALID_CONTEXTS.has(entry.context)) {
+        errors.push(`rules[${index}].context is invalid`);
+      }
+      if (entry.category !== undefined && !VALID_CATEGORIES.has(entry.category)) {
+        errors.push(`rules[${index}].category is invalid`);
+      }
+      if (entry.minIntensity !== undefined && !VALID_INTENSITIES.has(entry.minIntensity)) {
+        errors.push(`rules[${index}].minIntensity is invalid`);
+      }
+    });
+  }
+  return { valid: errors.length === 0, errors };
+}
+
+function readPack(language: string, category: string): RulePack | null {
+  const filename = path.join(getRulesDir(), language, `${category}.json`);
+  if (!fs.existsSync(filename)) return null;
+  const parsed = JSON.parse(fs.readFileSync(filename, "utf8")) as unknown;
+  const validation = validateRulePack(parsed);
+  if (!validation.valid) {
+    throw new Error(
+      `Invalid Caveman rule pack ${language}/${category}: ${validation.errors.join("; ")}`
+    );
+  }
+  return parsed as RulePack;
+}
+
+export function loadRulePack(
+  language: string,
+  category: string,
+  options: { refresh?: boolean } = {}
+): CavemanRule[] {
+  const key = `${language}:${category}`;
+  if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
+
+  const pack = readPack(language, category);
+  if (!pack) {
+    cache.set(key, []);
+    return [];
+  }
+
+  const rules = pack.rules.map((rule) => compileRule(rule, `${language}/${category}`));
+  cache.set(key, rules);
+  return rules;
+}
+
+export function loadAllRulesForLanguage(
+  language: string,
+  options: { refresh?: boolean } = {}
+): CavemanRule[] {
+  const key = `${language}:*`;
+  if (cache.has(key) && !options.refresh) return cache.get(key) ?? [];
+
+  const languageDir = path.join(getRulesDir(), language);
+  if (!fs.existsSync(languageDir)) {
+    cache.set(key, []);
+    return [];
+  }
+
+  const rules = fs
+    .readdirSync(languageDir)
+    .filter((entry) => entry.endsWith(".json"))
+    .sort()
+    .flatMap((entry) => loadRulePack(language, path.basename(entry, ".json"), options));
+
+  cache.set(key, rules);
+  return rules;
+}
+
+export function getAvailableLanguagePacks(): RulePackMetadata[] {
+  const root = getRulesDir();
+  if (!fs.existsSync(root)) return [];
+
+  return fs
+    .readdirSync(root)
+    .filter((entry) => fs.statSync(path.join(root, entry)).isDirectory())
+    .map((language) => {
+      const categories = fs
+        .readdirSync(path.join(root, language))
+        .filter((entry) => entry.endsWith(".json"))
+        .map((entry) => path.basename(entry, ".json"))
+        .sort();
+      const ruleCount = categories.reduce(
+        (count, category) => count + loadRulePack(language, category).length,
+        0
+      );
+      return { language, categories, ruleCount };
+    })
+    .sort((a, b) => a.language.localeCompare(b.language));
 }
 
 export function loadCavemanFileRules(
   language: string,
   options: { refresh?: boolean } = {}
 ): CavemanRule[] {
-  if (cache.has(language) && !options.refresh) return cache.get(language) ?? [];
-  const languageDir = path.join(getRulesDir(), language);
-  if (!fs.existsSync(languageDir)) {
-    cache.set(language, []);
-    return [];
-  }
-
-  const rules: CavemanRule[] = [];
-  for (const file of fs
-    .readdirSync(languageDir)
-    .filter((entry) => entry.endsWith(".json"))
-    .sort()) {
-    const parsed = JSON.parse(fs.readFileSync(path.join(languageDir, file), "utf8"));
-    const entries = Array.isArray(parsed.rules) ? parsed.rules : [];
-    for (const entry of entries) {
-      rules.push(compileRule(entry as FileRule));
-    }
-  }
-  cache.set(language, rules);
-  return rules;
+  return loadAllRulesForLanguage(language, options);
 }
 
-export function listCavemanRulePacks(): Array<{ language: string; ruleCount: number }> {
-  const root = getRulesDir();
-  if (!fs.existsSync(root)) return [];
-  return fs
-    .readdirSync(root)
-    .filter((entry) => fs.statSync(path.join(root, entry)).isDirectory())
-    .map((language) => ({
-      language,
-      ruleCount: loadCavemanFileRules(language).length,
-    }))
-    .sort((a, b) => a.language.localeCompare(b.language));
+export function listCavemanRulePacks(): RulePackMetadata[] {
+  return getAvailableLanguagePacks();
 }

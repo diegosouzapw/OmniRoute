@@ -19,6 +19,7 @@ export type CompressionMode =
   | "stacked";
 export type CavemanIntensity = "lite" | "full" | "ultra";
 export type RtkIntensity = "minimal" | "standard" | "aggressive";
+export type RtkRawOutputRetention = "never" | "failures" | "always";
 export type CompressionEngineId = "lite" | "caveman" | "aggressive" | "ultra" | "rtk";
 
 export interface CavemanRule {
@@ -39,6 +40,9 @@ export interface CavemanConfig {
   minMessageLength: number;
   preservePatterns: string[];
   intensity: CavemanIntensity;
+  language?: string;
+  autoDetectLanguage?: boolean;
+  enabledLanguagePacks?: string[];
 }
 
 export interface CavemanOutputModeConfig {
@@ -58,6 +62,10 @@ export interface RtkConfig {
   maxLinesPerResult: number;
   maxCharsPerResult: number;
   deduplicateThreshold: number;
+  customFiltersEnabled: boolean;
+  trustProjectFilters: boolean;
+  rawOutputRetention: RtkRawOutputRetention;
+  rawOutputMaxBytes: number;
 }
 
 export interface CompressionLanguageConfig {
@@ -107,6 +115,13 @@ export interface CompressionStats {
   validationErrors?: string[];
   fallbackApplied?: boolean;
   preservedBlockCount?: number;
+  rtkRawOutputPointers?: Array<{
+    id: string;
+    path: string;
+    bytes: number;
+    sha256: string;
+    redacted: boolean;
+  }>;
   realUsage?: {
     promptTokens?: number;
     completionTokens?: number;
@@ -177,6 +192,10 @@ export const DEFAULT_RTK_CONFIG: RtkConfig = {
   maxLinesPerResult: 120,
   maxCharsPerResult: 12000,
   deduplicateThreshold: 3,
+  customFiltersEnabled: true,
+  trustProjectFilters: false,
+  rawOutputRetention: "never",
+  rawOutputMaxBytes: 1_048_576,
 };
 
 export const DEFAULT_COMPRESSION_LANGUAGE_CONFIG: CompressionLanguageConfig = {

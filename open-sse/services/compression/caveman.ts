@@ -1,10 +1,17 @@
-import type { CavemanConfig, CavemanRule, CompressionResult, CompressionMode } from "./types.ts";
+import type {
+  CavemanConfig,
+  CavemanRule,
+  CompressionResult,
+  CompressionMode,
+  CompressionStats,
+} from "./types.ts";
 import { DEFAULT_CAVEMAN_CONFIG } from "./types.ts";
 import { CAVEMAN_RULES, getRulesForContext } from "./cavemanRules.ts";
 import { extractPreservedBlocks, restorePreservedBlocks } from "./preservation.ts";
 import { createCompressionStats, estimateCompressionTokens } from "./stats.ts";
 import { validateCompression } from "./validation.ts";
 import { mapTextContent } from "./messageContent.ts";
+import { detectCompressionLanguage } from "./languageDetector.ts";
 
 interface ChatMessage {
   role: string;
@@ -18,15 +25,9 @@ interface ChatRequestBody {
 }
 
 const RULE_KEYWORDS: Record<string, string[]> = {
-  redundant_phrasing: [
-    "make sure",
-    "be sure",
-    "due to the fact",
-    "the reason is because",
-    "it is important",
-    "you should",
-    "remember to",
-  ],
+  redundant_phrasing: ["make sure", "be sure"],
+  redundant_because: ["due to the fact", "the reason is because"],
+  redundant_directive: ["it is important", "you should", "remember to"],
   pleasantries: ["sure", "certainly", "of course", "happy to"],
   polite_framing: [
     "please",
@@ -72,6 +73,9 @@ const RULE_KEYWORDS: Record<string, string[]> = {
   self_reference: ["i am trying to", "i am working on", "i have been"],
   excessive_gratitude: ["thank you so much", "thanks in advance", "i really appreciate"],
   qualifier_removal: ["a bit", "a little", "somewhat", "kind of", "sort of"],
+  softeners: ["if possible", "when you get a chance", "at your convenience", "just wondering"],
+  uncertainty_fillers: ["i guess", "i suppose", "more or less", "in a way"],
+  assistant_fillers: ["here's", "below is", "this is"],
   compound_collapse: ["and any potential"],
   explanatory_prefix: [
     "the function appears to be handling",
@@ -98,6 +102,7 @@ const RULE_KEYWORDS: Record<string, string[]> = {
   list_conjunction: ["and also", "as well as"],
   purpose_phrases: ["in order to", "so as to"],
   redundant_quantifiers: ["each and every", "any and all"],
+  all_quantifier: ["any and all"],
   verbose_connectors: ["furthermore", "additionally", "moreover", "in addition"],
   transition_removal: ["on the other hand", "in contrast", "however"],
   emphasis_removal: ["very", "really", "extremely", "highly", "quite"],
@@ -122,49 +127,36 @@ const RULE_KEYWORDS: Record<string, string[]> = {
   ],
   reestablished_context: ["going back to the code above", "referring back to", "returning to"],
   summary_replacement: ["to summarize", "in summary of our conversation", "to recap"],
-  ultra_abbreviations: [
-    "database",
-    "configuration",
-    "function",
-    "request",
-    "response",
+  ultra_abbreviations: ["database"],
+  ultra_config_abbreviation: ["configuration"],
+  ultra_function_abbreviation: ["function"],
+  ultra_request_abbreviation: ["request"],
+  ultra_response_abbreviation: ["response"],
+  ultra_implementation_abbreviation: ["implementation"],
+  ultra_authentication_abbreviation: ["authentication"],
+  ultra_authorization_abbreviation: ["authorization"],
+  ultra_application_abbreviation: ["application"],
+  ultra_dependency_abbreviation: ["dependency", "dependencies"],
+  ultra_common_abbreviations: [
     "implementation",
     "authentication",
     "authorization",
     "application",
     "dependency",
+    "dependencies",
   ],
 };
 
-const KEYWORD_WORDS = new Map<string, string[]>();
+const ARTICLE_HINT_RE = /\b(?:a|an|the)\b/;
 
-function extractLowerWords(lowerText: string): Set<string> {
-  return new Set(lowerText.match(/[a-z]+(?:'[a-z]+)?/g) ?? []);
-}
-
-function getKeywordWords(keyword: string): string[] {
-  const cached = KEYWORD_WORDS.get(keyword);
-  if (cached) return cached;
-  const words = keyword.match(/[a-z]+(?:'[a-z]+)?/g) ?? [];
-  KEYWORD_WORDS.set(keyword, words);
-  return words;
-}
-
-function hasKeywordHint(keyword: string, words: Set<string>): boolean {
-  const keywordWords = getKeywordWords(keyword);
-  return keywordWords.length === 0 || keywordWords.every((word) => words.has(word));
-}
-
-function shouldAttemptRule(ruleName: string, lowerText: string, words: Set<string>): boolean {
+function shouldAttemptRule(ruleName: string, lowerText: string): boolean {
   if (ruleName === "articles") {
-    return words.has("a") || words.has("an") || words.has("the");
+    ARTICLE_HINT_RE.lastIndex = 0;
+    return ARTICLE_HINT_RE.test(lowerText);
   }
 
   const keywords = RULE_KEYWORDS[ruleName];
-  return (
-    !keywords ||
-    keywords.some((keyword) => hasKeywordHint(keyword, words) && lowerText.includes(keyword))
-  );
+  return !keywords || keywords.some((keyword) => lowerText.includes(keyword));
 }
 
 export function applyRulesToText(
@@ -173,11 +165,10 @@ export function applyRulesToText(
 ): { text: string; appliedRules: string[] } {
   let result = text;
   const lowerResult = text.toLowerCase();
-  const lowerWords = extractLowerWords(lowerResult);
   const appliedRules: string[] = [];
 
   for (const rule of rules) {
-    if (!shouldAttemptRule(rule.name, lowerResult, lowerWords)) continue;
+    if (!shouldAttemptRule(rule.name, lowerResult)) continue;
 
     const before = result;
     const { pattern, replacement } = rule;
@@ -215,6 +206,29 @@ function recapitalizeSentences(text: string): string {
   return text.replace(/(^|[.!?]\s+|\n+\s*)([a-z])/g, (_match, prefix: string, char: string) => {
     return `${prefix}${char.toUpperCase()}`;
   });
+}
+
+function createCavemanStats(
+  originalTokens: number,
+  compressedTokens: number,
+  techniquesUsed: string[],
+  rulesApplied: string[] | undefined,
+  durationMs: number
+): CompressionStats {
+  const savingsPercent =
+    originalTokens > 0
+      ? Math.round(((originalTokens - compressedTokens) / originalTokens) * 10000) / 100
+      : 0;
+  return {
+    originalTokens,
+    compressedTokens,
+    savingsPercent,
+    techniquesUsed,
+    mode: "standard",
+    timestamp: Date.now(),
+    ...(rulesApplied && rulesApplied.length > 0 ? { rulesApplied } : {}),
+    durationMs,
+  };
 }
 
 function compileUserPreservePatterns(patterns: string[]): {
@@ -320,7 +334,16 @@ export function cavemanCompress(
         : { text: textPart, blocks: [] };
       preservedBlockCount += blocks.length;
 
-      const rules = getRulesForContext(msg.role, config.intensity).filter(
+      const detectedLanguage = config.autoDetectLanguage
+        ? detectCompressionLanguage(textPart)
+        : (config.language ?? "en");
+      const enabledPacks = config.enabledLanguagePacks ?? ["en", detectedLanguage];
+      const language = enabledPacks.includes(detectedLanguage)
+        ? detectedLanguage
+        : enabledPacks.includes("en")
+          ? "en"
+          : detectedLanguage;
+      const rules = getRulesForContext(msg.role, config.intensity, language).filter(
         (rule) => !config.skipRules.includes(rule.name)
       );
       const { text: rulesApplied, appliedRules } = applyRulesToText(extractedText, rules);
@@ -365,10 +388,9 @@ export function cavemanCompress(
 
   const durationMs = performance.now() - startMs;
   const uniqueRules = [...new Set(allAppliedRules)];
-  const stats = createCompressionStats(
-    body as unknown as Record<string, unknown>,
-    { ...body, messages: compressedMessages } as unknown as Record<string, unknown>,
-    "standard" as CompressionMode,
+  const stats = createCavemanStats(
+    totalOriginalTokens,
+    totalCompressedTokens,
     uniqueRules.length > 0 ? ["caveman-rules"] : [],
     uniqueRules.length > 0 ? uniqueRules : undefined,
     Math.round(durationMs * 100) / 100

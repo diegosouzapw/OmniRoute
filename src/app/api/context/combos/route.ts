@@ -4,7 +4,7 @@ import { createCompressionCombo, listCompressionCombos } from "@/lib/db/compress
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const pipelineStepSchema = z
+export const pipelineStepSchema = z
   .object({
     engine: z.enum(["lite", "caveman", "aggressive", "ultra", "rtk"]),
     intensity: z.string().optional(),
@@ -12,7 +12,7 @@ const pipelineStepSchema = z
   })
   .strict();
 
-const compressionComboCreateSchema = z
+export const compressionComboCreateSchema = z
   .object({
     id: z.string().trim().min(1).optional(),
     name: z.string().trim().min(1).max(120),

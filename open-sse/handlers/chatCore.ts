@@ -1581,9 +1581,14 @@ export async function handleChatCore({
     if (compressionSettings?.cavemanOutputMode?.enabled) {
       try {
         const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
+        const outputModeLanguage =
+          compressionSettings.languageConfig?.enabled === true
+            ? compressionSettings.languageConfig.defaultLanguage
+            : "en";
         const outputMode = applyCavemanOutputMode(
           body as Parameters<typeof applyCavemanOutputMode>[0],
-          compressionSettings.cavemanOutputMode
+          compressionSettings.cavemanOutputMode,
+          outputModeLanguage
         );
         if (outputMode.applied) {
           body = outputMode.body as typeof body;
@@ -1745,6 +1750,8 @@ export async function handleChatCore({
                   estimated_usd_saved: estimatedUsdSaved || null,
                   validation_fallback: result.stats.fallbackApplied ? 1 : 0,
                   output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
+                  rtk_raw_output_pointer: result.stats.rtkRawOutputPointers?.[0]?.id ?? null,
+                  rtk_raw_output_bytes: result.stats.rtkRawOutputPointers?.[0]?.bytes ?? null,
                 });
               } catch (err) {
                 log?.debug?.(

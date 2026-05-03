@@ -4,26 +4,66 @@
   "rules": [
     {
       "name": "de_polite_framing",
-      "pattern": "\\b(?:bitte|kannst du|koenntest du|könntest du|ich moechte|ich möchte)\\b\\s*",
+      "pattern": "\\b(?:bitte|kannst du|koenntest du|könntest du|ich moechte|ich möchte|ich brauche)\\b\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
       "minIntensity": "lite"
     },
     {
-      "name": "de_context_setup",
-      "pattern": "\\b(?:hier ist der code|unten ist der code)\\b\\s*[:.]?\\s*",
-      "replacement": "Code:",
-      "context": "user",
-      "category": "context",
+      "name": "de_pleasantries",
+      "pattern": "\\b(?:hallo|guten morgen|guten tag|danke|vielen dank)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
       "minIntensity": "lite"
     },
     {
-      "name": "de_intent",
-      "pattern": "\\b(?:mein ziel ist|was ich brauche ist|ich versuche)\\b\\s*",
-      "replacement": "Ziel:",
+      "name": "de_hedging",
+      "pattern": "\\b(?:ich denke dass|ich glaube dass|es scheint dass|vielleicht|wahrscheinlich|moeglicherweise|möglicherweise)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_filler_adverbs",
+      "pattern": "\\b(?:grundsaetzlich|grundsätzlich|eigentlich|buchstaeblich|buchstäblich|einfach)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_self_reference",
+      "pattern": "^(?:ich versuche|ich will|ich moechte|ich möchte|ich brauche)\\b\\s*",
+      "replacement": "",
       "context": "user",
-      "category": "context",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_verbose_request",
+      "pattern": "\\b(?:kannst du erklaeren|kannst du erklären|koenntest du erklaeren|könntest du erklären)\\b\\s*",
+      "replacement": "Erklaere ",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_qualifiers",
+      "pattern": "\\b(?:ein bisschen|etwas|irgendwie|mehr oder weniger)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_softeners",
+      "pattern": "\\b(?:wenn moeglich|wenn möglich|wenn du zeit hast|ohne eile)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
       "minIntensity": "lite"
     }
   ]

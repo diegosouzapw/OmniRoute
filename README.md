@@ -446,6 +446,8 @@ Every request passes through the compression pipeline **transparently** — no c
 │                  │     │  🪨 Standard ....... ~30%     │     │              │
 │                  │     │  ⚡ Aggressive ..... ~50%     │     │  💰 75% saved │
 │                  │     │  🔥 Ultra .......... ~75%     │     │              │
+│                  │     │  🧰 RTK ............ 20-70%    │     │              │
+│                  │     │  🔗 Stacked ........ 30-80%    │     │              │
 └──────────────────┘     └─────────────────────────────┘     └──────────────┘
 ```
 
@@ -458,7 +460,7 @@ Every request passes through the compression pipeline **transparently** — no c
 | **🪨 Standard (Caveman)** | ~30%    | 30+ regex rules: filler removal, context condensation, structural compression, multi-turn dedup | Daily coding with Claude/Codex         |
 | **⚡ Aggressive**         | ~50%    | All standard + progressive message aging + tool result summarization + LLM-based compression    | Long sessions with many tool calls     |
 | **🔥 Ultra**              | ~75%    | All aggressive + heuristic token pruning + stopword removal + score-based filtering             | Maximum savings when tokens are scarce |
-| **🧰 RTK**                | 20-70%  | Command-aware tool-output filters, deduplication, smart truncation, noise stripping             | Shell/test/build/git output in agents  |
+| **🧰 RTK**                | 20-70%  | 39 command-aware filters, RTK-style JSON DSL, verify gate, trust-gated custom filters           | Shell/test/build/git output in agents  |
 | **🔗 Stacked**            | 30-80%  | Ordered engine pipeline, usually RTK first then Caveman                                         | Mixed prompts with tool logs + prose   |
 
 ### Before & After (Standard/Caveman Mode)
@@ -483,7 +485,7 @@ Request Body
   ├─ lite.ts ─────────────── Whitespace, dedup, image URLs, redundant content
   ├─ caveman.ts ──────────── 30+ regex rules via cavemanRules.ts
   │   └─ preservation.ts ─── Protects code blocks, URLs, JSON from compression
-  ├─ engines/rtk/ ────────── Command detection + JSON filter packs for tool output
+  ├─ engines/rtk/ ────────── Command detection + JSON DSL filters + raw-output recovery
   ├─ engines/registry.ts ─── Shared engine registry for caveman, RTK, and stacked
   ├─ aggressive.ts ───────── Summarizer + tool result compressor + progressive aging
   │   ├─ summarizer.ts ───── Rule-based message summarization
@@ -516,7 +518,7 @@ Compression combos can also assign a named compression pipeline to routing combo
 
 > 🪨 **Fun fact:** The standard/caveman mode is inspired by [Caveman](https://github.com/JuliusBrussee/caveman) — the viral project that proved "caveman speak" cuts 65% of tokens while keeping 100% technical accuracy. OmniRoute takes this further with a **7-option pipeline** that goes from gentle whitespace cleanup through RTK tool-output filters and stacked multi-engine compression.
 
-📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/compression-engines.md`](docs/compression-engines.md) • [`docs/compression-rules-format.md`](docs/compression-rules-format.md) • [`docs/compression-language-packs.md`](docs/compression-language-packs.md)
+📖 **Full compression documentation:** [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) • [`docs/rtk-compression.md`](docs/rtk-compression.md) • [`docs/compression-engines.md`](docs/compression-engines.md) • [`docs/compression-rules-format.md`](docs/compression-rules-format.md) • [`docs/compression-language-packs.md`](docs/compression-language-packs.md)
 
 ---
 
@@ -1335,6 +1337,7 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [Architecture](docs/ARCHITECTURE.md)                             | System architecture, data flow, and internals                                 |
 | [Compression Guide](docs/COMPRESSION_GUIDE.md)                   | 7-option pipeline: off / lite / standard / aggressive / ultra / RTK / stacked |
+| [RTK Compression](docs/rtk-compression.md)                       | Command-output compression, filters, trust, verify, raw-output recovery       |
 | [Compression Engines](docs/compression-engines.md)               | Caveman, RTK, stacked pipelines, dashboard/API/MCP surfaces                   |
 | [Compression Rules Format](docs/compression-rules-format.md)     | JSON rule-pack schemas for Caveman and RTK filters                            |
 | [Compression Language Packs](docs/compression-language-packs.md) | Language detection and Caveman rule-pack authoring                            |

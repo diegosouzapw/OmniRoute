@@ -8,7 +8,7 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const assignmentsUpdateSchema = z
+export const assignmentsUpdateSchema = z
   .object({
     routingComboIds: z.array(z.string().trim().min(1)),
   })

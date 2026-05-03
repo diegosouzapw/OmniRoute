@@ -149,6 +149,26 @@ function normalizeRtkConfig(value: unknown): RtkConfig {
       2,
       100
     ),
+    customFiltersEnabled:
+      typeof record.customFiltersEnabled === "boolean"
+        ? record.customFiltersEnabled
+        : DEFAULT_RTK_CONFIG.customFiltersEnabled,
+    trustProjectFilters:
+      typeof record.trustProjectFilters === "boolean"
+        ? record.trustProjectFilters
+        : DEFAULT_RTK_CONFIG.trustProjectFilters,
+    rawOutputRetention:
+      record.rawOutputRetention === "never" ||
+      record.rawOutputRetention === "failures" ||
+      record.rawOutputRetention === "always"
+        ? record.rawOutputRetention
+        : DEFAULT_RTK_CONFIG.rawOutputRetention,
+    rawOutputMaxBytes: boundedInt(
+      record.rawOutputMaxBytes,
+      DEFAULT_RTK_CONFIG.rawOutputMaxBytes,
+      1024,
+      10_000_000
+    ),
   };
 }
 

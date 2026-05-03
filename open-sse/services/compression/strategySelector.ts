@@ -90,6 +90,13 @@ export function applyCompression(
   if (mode === "standard") {
     const cavemanConfig = {
       ...(options?.config?.cavemanConfig ?? {}),
+      ...(options?.config?.languageConfig?.enabled
+        ? {
+            language: options.config.languageConfig.defaultLanguage,
+            autoDetectLanguage: options.config.languageConfig.autoDetect,
+            enabledLanguagePacks: options.config.languageConfig.enabledPacks,
+          }
+        : {}),
       ...(options?.config?.preserveSystemPrompt !== false
         ? {
             compressRoles: (options?.config?.cavemanConfig?.compressRoles ?? ["user"]).filter(

@@ -43,13 +43,23 @@ The dashboard surface is `Dashboard -> Context & Cache -> Caveman`.
 
 RTK mode focuses on command and tool output:
 
-- detects output classes such as `git status`, `git diff`, `git log`, Vitest/Jest/Pytest,
-  TypeScript builds, ESLint, npm installs, Docker process lists, shell listings, and generic logs
-- applies JSON filters from `open-sse/services/compression/engines/rtk/filters/`
+- detects output classes such as `git status`, `git branch`, `git diff`, Vitest/Jest/Pytest,
+  Cargo/Go tests, TypeScript/Vite/Webpack builds, ESLint, npm audit/installs, Docker logs,
+  shell `find`/`grep`, stack traces, and generic logs
+- applies 39 JSON filters from `open-sse/services/compression/engines/rtk/filters/`
+- supports the RTK-style declarative pipeline: ANSI stripping, replace, match-output short-circuit,
+  strip/keep lines, per-line truncation, head/tail/max-line truncation, and on-empty fallback
+- supports trust-gated project filters in `.rtk/filters.json` and global filters in
+  `DATA_DIR/rtk/filters.json`
 - strips ANSI sequences, progress noise, repeated lines, and unhelpful boilerplate
 - preserves actionable failures, warnings, summaries, changed files, and tail context
+- can optionally retain redacted raw output for recovery/debugging through authenticated management
+  routes
 
 The dashboard surface is `Dashboard -> Context & Cache -> RTK`.
+
+Operational details for custom filters, trust, verify, and raw-output recovery live in
+[`rtk-compression.md`](rtk-compression.md).
 
 ## Stacked Pipelines
 
@@ -78,18 +88,19 @@ Dashboard surface: `Dashboard -> Context & Cache -> Compression Combos`.
 
 ## API Surface
 
-| Route                                  | Purpose                               |
-| -------------------------------------- | ------------------------------------- |
-| `/api/settings/compression`            | Global compression settings           |
-| `/api/compression/preview`             | Preview any compression mode          |
-| `/api/compression/language-packs`      | List available Caveman language packs |
-| `/api/context/caveman/config`          | Caveman settings alias                |
-| `/api/context/rtk/config`              | RTK defaults and settings             |
-| `/api/context/rtk/filters`             | RTK filter catalog                    |
-| `/api/context/rtk/test`                | RTK preview/test endpoint             |
-| `/api/context/combos`                  | Compression combo CRUD                |
-| `/api/context/combos/[id]/assignments` | Routing-combo assignment CRUD         |
-| `/api/context/analytics`               | Compression analytics alias           |
+| Route                                  | Purpose                                    |
+| -------------------------------------- | ------------------------------------------ |
+| `/api/settings/compression`            | Global compression settings                |
+| `/api/compression/preview`             | Preview any compression mode               |
+| `/api/compression/language-packs`      | List available Caveman language packs      |
+| `/api/context/caveman/config`          | Caveman settings alias                     |
+| `/api/context/rtk/config`              | RTK defaults and settings                  |
+| `/api/context/rtk/filters`             | RTK filter catalog                         |
+| `/api/context/rtk/test`                | RTK preview/test endpoint                  |
+| `/api/context/rtk/raw-output/[id]`     | Authenticated redacted raw-output recovery |
+| `/api/context/combos`                  | Compression combo CRUD                     |
+| `/api/context/combos/[id]/assignments` | Routing-combo assignment CRUD              |
+| `/api/context/analytics`               | Compression analytics alias                |
 
 Management routes require management authentication or API-key policy checks.
 
@@ -110,7 +121,7 @@ Compression exposes five MCP tools:
 The focused gates for this area are:
 
 ```bash
-node --import tsx/esm --test tests/unit/compression/types.test.ts tests/unit/compression/strategySelector.test.ts tests/unit/compression/rtk-engine.test.ts tests/unit/compression/compression-combos-db.test.ts
-node --import tsx/esm --test tests/unit/compression/compressionAnalytics.test.ts tests/unit/sidebar-visibility.test.ts
+node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts
+node --import tsx/esm --test tests/unit/compression/*.test.ts tests/golden-set/*.test.ts tests/integration/compression-pipeline.test.ts tests/unit/api/compression/compression-api.test.ts
 npm run typecheck:core
 ```

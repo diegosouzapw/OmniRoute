@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type RtkFilter = {
   id: string;
@@ -16,9 +17,29 @@ type RtkConfig = {
   intensity: "minimal" | "standard" | "aggressive";
   applyToToolResults: boolean;
   applyToAssistantMessages: boolean;
+  applyToCodeBlocks: boolean;
+  enabledFilters: string[];
+  disabledFilters: string[];
   maxLinesPerResult: number;
   maxCharsPerResult: number;
   deduplicateThreshold: number;
+};
+
+type AnalyticsSummary = {
+  totalRequests: number;
+  totalTokensSaved: number;
+  avgSavingsPct: number;
+  byEngine?: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
+};
+
+type PreviewResult = {
+  text?: string;
+  compressed?: boolean;
+  originalTokens?: number;
+  compressedTokens?: number;
+  techniquesUsed?: string[];
+  detection?: { type: string; confidence: number; category: string };
+  error?: string;
 };
 
 const SAMPLE_OUTPUT = `$ npm run typecheck
@@ -29,11 +50,17 @@ src/lib/example.ts:10:15 - error TS2322: Type 'string' is not assignable to type
 
 Found 1 error in src/lib/example.ts:10`;
 
+function formatNumber(value: number | undefined): string {
+  return new Intl.NumberFormat().format(value ?? 0);
+}
+
 export default function RtkContextPageClient() {
+  const t = useTranslations("contextRtk");
   const [filters, setFilters] = useState<RtkFilter[]>([]);
   const [config, setConfig] = useState<RtkConfig | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [sample, setSample] = useState(SAMPLE_OUTPUT);
-  const [preview, setPreview] = useState<Record<string, unknown> | null>(null);
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -45,6 +72,10 @@ export default function RtkContextPageClient() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setConfig(data))
       .catch(() => {});
+    fetch("/api/context/analytics?since=7d")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setAnalytics(data))
+      .catch(() => {});
   }, []);
 
   const groupedFilters = useMemo(() => {
@@ -53,6 +84,12 @@ export default function RtkContextPageClient() {
       return groups;
     }, {});
   }, [filters]);
+
+  const activeFilterCount = useMemo(() => {
+    if (!config) return 0;
+    if (config.enabledFilters.length > 0) return config.enabledFilters.length;
+    return filters.filter((filter) => !config.disabledFilters.includes(filter.id)).length;
+  }, [config, filters]);
 
   const saveConfig = async (patch: Partial<RtkConfig>) => {
     if (!config) return;
@@ -71,6 +108,14 @@ export default function RtkContextPageClient() {
     }
   };
 
+  const toggleFilter = (filterId: string, enabled: boolean) => {
+    if (!config) return;
+    const disabledFilters = enabled
+      ? config.disabledFilters.filter((id) => id !== filterId)
+      : [...new Set([...config.disabledFilters, filterId])];
+    saveConfig({ disabledFilters });
+  };
+
   const runPreview = async () => {
     const res = await fetch("/api/context/rtk/test", {
       method: "POST",
@@ -80,33 +125,49 @@ export default function RtkContextPageClient() {
     setPreview(res.ok ? await res.json() : { error: await res.text() });
   };
 
+  const rtkStats = analytics?.byEngine?.rtk;
+  const statCards = [
+    [t("tokensFiltered"), formatNumber(rtkStats?.tokensSaved ?? analytics?.totalTokensSaved)],
+    [t("filtersActive"), formatNumber(activeFilterCount)],
+    [t("requests"), formatNumber(rtkStats?.count ?? analytics?.totalRequests)],
+    [t("avgSavings"), `${rtkStats?.avgSavingsPct ?? analytics?.avgSavingsPct ?? 0}%`],
+  ];
+
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-[30px] text-primary">filter_alt</span>
           <div>
-            <h1 className="text-2xl font-bold text-text-main">RTK Engine</h1>
-            <p className="text-sm text-text-muted">
-              Command-aware compression for tool output, terminal logs and build results.
-            </p>
+            <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
+            <p className="text-sm text-text-muted">{t("description")}</p>
           </div>
         </div>
       </header>
 
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map(([label, value]) => (
+          <div key={label} className="rounded-lg border border-border bg-surface p-4">
+            <p className="text-xs uppercase text-text-muted">{label}</p>
+            <p className="mt-1 text-xl font-semibold text-text-main">{value}</p>
+          </div>
+        ))}
+      </section>
+
       {config && (
         <section className="rounded-lg border border-border bg-surface p-4">
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="flex items-center gap-2 text-sm text-text-main">
               <input
                 type="checkbox"
                 checked={config.enabled}
+                disabled={saving}
                 onChange={(event) => saveConfig({ enabled: event.target.checked })}
               />
-              Enabled
+              {t("enabled")}
             </label>
-            <label className="flex items-center gap-2 text-sm text-text-main">
-              Intensity
+            <label className="flex flex-col gap-1 text-sm text-text-main">
+              {t("intensity")}
               <select
                 value={config.intensity}
                 disabled={saving}
@@ -115,13 +176,13 @@ export default function RtkContextPageClient() {
                 }
                 className="rounded border border-border bg-bg px-2 py-1 text-sm"
               >
-                <option value="minimal">minimal</option>
-                <option value="standard">standard</option>
-                <option value="aggressive">aggressive</option>
+                <option value="minimal">{t("intensityMinimal")}</option>
+                <option value="standard">{t("intensityStandard")}</option>
+                <option value="aggressive">{t("intensityAggressive")}</option>
               </select>
             </label>
-            <label className="flex items-center gap-2 text-sm text-text-main">
-              Max lines
+            <label className="flex flex-col gap-1 text-sm text-text-main">
+              {t("maxLines")}
               <input
                 type="number"
                 min={0}
@@ -129,9 +190,40 @@ export default function RtkContextPageClient() {
                 onChange={(event) =>
                   saveConfig({ maxLinesPerResult: Number(event.target.value) || 0 })
                 }
-                className="w-24 rounded border border-border bg-bg px-2 py-1 text-sm"
+                className="rounded border border-border bg-bg px-2 py-1 text-sm"
               />
             </label>
+            <label className="flex flex-col gap-1 text-sm text-text-main">
+              {t("maxChars")}
+              <input
+                type="number"
+                min={0}
+                value={config.maxCharsPerResult}
+                onChange={(event) =>
+                  saveConfig({ maxCharsPerResult: Number(event.target.value) || 0 })
+                }
+                className="rounded border border-border bg-bg px-2 py-1 text-sm"
+              />
+            </label>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-4 text-sm text-text-main">
+            {[
+              ["applyToToolResults", t("toolResults")],
+              ["applyToAssistantMessages", t("assistantMessages")],
+              ["applyToCodeBlocks", t("codeBlocks")],
+            ].map(([key, label]) => (
+              <label key={key} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={Boolean(config[key as keyof RtkConfig])}
+                  disabled={saving}
+                  onChange={(event) =>
+                    saveConfig({ [key]: event.target.checked } as Partial<RtkConfig>)
+                  }
+                />
+                {label}
+              </label>
+            ))}
           </div>
         </section>
       )}
@@ -139,24 +231,31 @@ export default function RtkContextPageClient() {
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
         <div className="rounded-lg border border-border bg-surface p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-main">Playground</h2>
+            <h2 className="text-sm font-semibold text-text-main">{t("filterTesting")}</h2>
             <button
               onClick={runPreview}
               className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
             >
-              Run
+              {t("run")}
             </button>
           </div>
           <textarea
             value={sample}
             onChange={(event) => setSample(event.target.value)}
+            placeholder={t("pasteOutput")}
             className="h-72 w-full rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-main"
           />
         </div>
         <div className="rounded-lg border border-border bg-surface p-4">
-          <h2 className="mb-3 text-sm font-semibold text-text-main">Result</h2>
+          <h2 className="mb-3 text-sm font-semibold text-text-main">{t("result")}</h2>
+          {preview?.detection && (
+            <p className="mb-2 text-xs text-text-muted">
+              {t("detected")}: {preview.detection.type} (
+              {Math.round(preview.detection.confidence * 100)}%)
+            </p>
+          )}
           <pre className="h-72 overflow-auto rounded-lg border border-border bg-bg p-3 text-xs text-text-main">
-            {preview ? JSON.stringify(preview, null, 2) : "Run a sample to preview RTK output."}
+            {preview ? JSON.stringify(preview, null, 2) : t("previewEmpty")}
           </pre>
         </div>
       </section>
@@ -166,18 +265,31 @@ export default function RtkContextPageClient() {
           <div key={category} className="rounded-lg border border-border bg-surface p-4">
             <h2 className="text-sm font-semibold capitalize text-text-main">{category}</h2>
             <div className="mt-3 space-y-3">
-              {items.map((filter) => (
-                <div
-                  key={filter.id}
-                  className="border-t border-border pt-3 first:border-t-0 first:pt-0"
-                >
-                  <p className="text-sm font-medium text-text-main">{filter.name}</p>
-                  <p className="mt-1 text-xs text-text-muted">{filter.description}</p>
-                  <p className="mt-2 font-mono text-[11px] text-text-muted">
-                    {filter.commandTypes.join(", ")}
-                  </p>
-                </div>
-              ))}
+              {items.map((filter) => {
+                const enabled = config ? !config.disabledFilters.includes(filter.id) : true;
+                return (
+                  <div
+                    key={filter.id}
+                    className="border-t border-border pt-3 first:border-t-0 first:pt-0"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text-main">{filter.name}</p>
+                        <p className="mt-1 text-xs text-text-muted">{filter.description}</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        disabled={!config || saving}
+                        onChange={(event) => toggleFilter(filter.id, event.target.checked)}
+                      />
+                    </div>
+                    <p className="mt-2 font-mono text-[11px] text-text-muted">
+                      {filter.commandTypes.join(", ")}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

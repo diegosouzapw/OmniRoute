@@ -23,6 +23,7 @@ export function deduplicateRepeatedLines(
 
     if (line.trim() && runLength >= threshold) {
       output.push(line);
+      output.push(`[line repeated ${runLength - 1}x]`);
       output.push(`[rtk:dropped ${runLength - 1} repeated lines]`);
       collapsed += runLength - 1;
       index += runLength - 1;

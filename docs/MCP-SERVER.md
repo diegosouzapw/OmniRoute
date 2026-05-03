@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 16 intelligent tools
+> Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations
 
 ## Installation
 
@@ -49,20 +49,50 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 | `omniroute_explain_route`          | Explain a past routing decision                             |
 | `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
+## Cache Tools (2)
+
+| Tool                    | Description                                         |
+| :---------------------- | :-------------------------------------------------- |
+| `omniroute_cache_stats` | Semantic cache, prompt-cache, and idempotency stats |
+| `omniroute_cache_flush` | Flush cache globally or by signature/model          |
+
+## Compression Tools (5)
+
+| Tool                                | Description                                                    |
+| :---------------------------------- | :------------------------------------------------------------- |
+| `omniroute_compression_status`      | Compression settings, analytics summary, and cache-aware stats |
+| `omniroute_compression_configure`   | Configure compression mode, threshold, and runtime options     |
+| `omniroute_set_compression_engine`  | Set Caveman, RTK, or stacked compression mode and pipeline     |
+| `omniroute_list_compression_combos` | List named compression combos and routing assignments          |
+| `omniroute_compression_combo_stats` | Analytics grouped by compression combo and engine              |
+
+See [Compression Engines](compression-engines.md) and [RTK Compression](rtk-compression.md) for
+the runtime compression model behind these tools.
+
+## Other Tool Groups
+
+The remaining MCP surface includes 1proxy tools, memory tools, and skill tools. The live source of
+truth is `open-sse/mcp-server/tools/` and `open-sse/mcp-server/schemas/tools.ts`.
+
 ## Authentication
 
 MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-| Scope          | Tools                                            |
-| :------------- | :----------------------------------------------- |
-| `read:health`  | get_health, get_provider_metrics                 |
-| `read:combos`  | list_combos, get_combo_metrics                   |
-| `write:combos` | switch_combo                                     |
-| `read:quota`   | check_quota                                      |
-| `write:route`  | route_request, simulate_route, test_combo        |
-| `read:usage`   | cost_report, get_session_snapshot, explain_route |
-| `write:config` | set_budget_guard, set_resilience_profile         |
-| `read:models`  | list_models_catalog, best_combo_for_task         |
+| Scope                 | Tools                                                                |
+| :-------------------- | :------------------------------------------------------------------- |
+| `read:health`         | get_health, get_provider_metrics                                     |
+| `read:combos`         | list_combos, get_combo_metrics                                       |
+| `write:combos`        | switch_combo                                                         |
+| `read:quota`          | check_quota                                                          |
+| `write:route`         | route_request, simulate_route, test_combo                            |
+| `read:usage`          | cost_report, get_session_snapshot, explain_route                     |
+| `write:config`        | set_budget_guard, set_resilience_profile                             |
+| `read:models`         | list_models_catalog, best_combo_for_task                             |
+| `read:cache`          | cache_stats                                                          |
+| `write:cache`         | cache_flush                                                          |
+| `read:compression`    | compression_status, list_compression_combos, compression_combo_stats |
+| `write:compression`   | compression_configure, set_compression_engine                        |
+| `execute:completions` | route_request, test_combo                                            |
 
 ## Audit Logging
 

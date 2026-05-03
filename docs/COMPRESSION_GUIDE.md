@@ -84,10 +84,13 @@ Maximum compression for token-critical scenarios:
 RTK mode is optimized for verbose tool outputs that appear in coding-agent sessions:
 
 - Detects command/output classes such as `git status`, `git diff`, `git log`, test runners,
-  TypeScript builds, ESLint, npm installs, Docker process lists, and generic shell output
+  TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
+  output, and generic shell output
 - Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
+- Ships 39 built-in filters with inline verify samples
 - Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
 - Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
+- Supports trust-gated project filters, global filters, and optional redacted raw-output recovery
 
 **Best for:** Agent sessions with shell, build, test, git, grep, and file-output transcripts.
 
@@ -158,15 +161,20 @@ curl http://localhost:20128/api/settings/compression
 # Update compression settings
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
-  -d '{"defaultMode":"stacked","autoTriggerThreshold":32000}'
+  -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
 
-# Preview a specific RTK/staked payload
+# Preview a specific RTK/stacked payload
 curl -X POST http://localhost:20128/api/compression/preview \
   -H "Content-Type: application/json" \
-  -d '{"mode":"rtk","text":"npm test output here"}'
+  -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
 
 # List RTK filter packs
 curl http://localhost:20128/api/context/rtk/filters
+
+# Test RTK directly with optional command metadata
+curl -X POST http://localhost:20128/api/context/rtk/test \
+  -H "Content-Type: application/json" \
+  -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
 ```
 
 ---
@@ -178,10 +186,13 @@ The compression engine **always preserves:**
 - ✅ Code blocks (fenced and inline)
 - ✅ URLs and file paths
 - ✅ JSON structures and structured data
-- ✅ API keys, tokens, and identifiers
+- ✅ Identifiers and protected technical tokens
 - ✅ Mathematical expressions
 - ✅ Tool/function call definitions
 - ✅ System prompts (in lite mode)
+
+RTK raw-output recovery redacts common API keys, bearer tokens, Slack tokens, AWS access keys,
+passwords, tokens, and secrets before anything is persisted.
 
 ---
 
@@ -198,7 +209,8 @@ Every compressed request includes stats in the server logs:
   "mode": "lite",
   "engine": "caveman",
   "compressionComboId": "coding-agent-stack",
-  "latencyMs": 0.8
+  "durationMs": 0.8,
+  "rtkRawOutputPointers": []
 }
 ```
 
@@ -226,6 +238,7 @@ Standard mode compression rules are inspired by **[Caveman](https://github.com/J
 - [Environment Config](ENVIRONMENT.md) — Compression environment variables
 - [Architecture Guide](ARCHITECTURE.md) — Compression pipeline internals
 - [User Guide](USER_GUIDE.md) — Getting started with compression
+- [RTK Compression](rtk-compression.md) — RTK filters, trust model, verify gate, raw-output recovery
 - [Compression Engines](compression-engines.md) — Caveman, RTK, stacked, APIs, MCP, dashboard
 - [Compression Rules Format](compression-rules-format.md) — JSON rule-pack format
 - [Compression Language Packs](compression-language-packs.md) — Language-specific Caveman rules

@@ -302,7 +302,10 @@ Modular prompt compression that runs proactively before the existing reactive co
   rules plus file-loaded language packs under `compression/rules/`.
 - **`engines/rtk/`**: Rule-based terminal/tool-output compression inspired by RTK patterns. Detects
   command output classes, applies JSON filter packs, deduplicates repeated lines, strips ANSI/code
-  noise, and preserves errors/actionable context.
+  noise, and preserves errors/actionable context. The RTK JSON DSL supports replace,
+  match-output short-circuit, strip/keep, per-line truncation, head/tail/max-line truncation,
+  inline tests, trust-gated project/global custom filters, and optional redacted raw-output
+  retention for authenticated recovery.
 - **`engines/registry.ts`**: Registers engines (`caveman`, `rtk`) and powers stacked pipelines.
 - **`stats.ts`**: Per-request compression stats tracking (original tokens, compressed tokens,
   savings %, techniques used, engine breakdown, compression combo id).

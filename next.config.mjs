@@ -147,6 +147,11 @@ const nextConfig = {
         })
       );
 
+      // Ignore native .node binary imports from problematic packages that
+      // are already listed in serverExternalPackages but whose deep imports
+      // of platform-specific sub-packages still leak into webpack's resolver.
+      config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\.node$/ }));
+
       // ── Turbopack / Next.js 16 module-hash patch (#394, #396, #398) ────────
       //
       // Next.js 16 (with or without Turbopack) compiles the instrumentation hook
@@ -174,6 +179,10 @@ const nextConfig = {
         "pino",
         "pino-pretty",
         "pino-abstract-transport",
+        "thread-stream",
+        "tls-client-node",
+        "koffi",
+        "tough-cookie",
         "child_process",
         "fs",
         "path",

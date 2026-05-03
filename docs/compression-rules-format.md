@@ -15,16 +15,17 @@ Each pack contains replacements that apply to normal prose after protected regio
 
 ```json
 {
-  "id": "en-filler",
   "language": "en",
-  "description": "English filler phrase removal",
+  "category": "filler",
   "rules": [
     {
-      "id": "remove-basically",
+      "name": "remove_basically",
       "pattern": "\\bbasically\\b",
       "replacement": "",
-      "flags": "gi",
-      "intensity": "safe"
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite",
+      "description": "Remove filler adverb."
     }
   ]
 }
@@ -32,17 +33,21 @@ Each pack contains replacements that apply to normal prose after protected regio
 
 ### Caveman Fields
 
-| Field                 | Required | Description                                          |
-| --------------------- | -------- | ---------------------------------------------------- |
-| `id`                  | yes      | Stable pack id                                       |
-| `language`            | yes      | BCP-47-like language key such as `en`, `pt-BR`, `es` |
-| `description`         | no       | Human-readable pack summary                          |
-| `rules`               | yes      | Array of regex replacement rules                     |
-| `rules[].id`          | yes      | Stable rule id                                       |
-| `rules[].pattern`     | yes      | JavaScript regex source                              |
-| `rules[].replacement` | yes      | Replacement string                                   |
-| `rules[].flags`       | no       | Regex flags, default `gi`                            |
-| `rules[].intensity`   | no       | `safe`, `balanced`, or `full`                        |
+| Field                  | Required | Description                                                      |
+| ---------------------- | -------- | ---------------------------------------------------------------- |
+| `language`             | yes      | BCP-47-like language key such as `en`, `pt-BR`, `es`             |
+| `category`             | yes      | Pack category filename/category, for example `filler` or `dedup` |
+| `rules`                | yes      | Array of regex replacement rules                                 |
+| `rules[].name`         | yes      | Stable rule name                                                 |
+| `rules[].pattern`      | yes      | JavaScript regex source, compiled with `gi`                      |
+| `rules[].replacement`  | yes      | Replacement string                                               |
+| `rules[].context`      | no       | `all`, `user`, `assistant`, or `system`; default `all`           |
+| `rules[].category`     | no       | `filler`, `context`, `structural`, `dedup`, `terse`, or `ultra`  |
+| `rules[].minIntensity` | no       | `lite`, `full`, or `ultra`; default `lite`                       |
+| `rules[].description`  | no       | Human-readable rule summary                                      |
+
+Caveman file packs are data-only. Replacement functions are reserved for built-in TypeScript rules;
+JSON packs use string replacements only.
 
 ## RTK Filter Packs
 
@@ -58,48 +63,115 @@ Each filter describes how to recognize and compress a command-output family.
 {
   "id": "test-vitest",
   "label": "Vitest output",
+  "category": "test",
+  "priority": 92,
   "match": {
+    "outputTypes": ["test-vitest"],
     "commands": ["vitest", "npm test", "npm run test"],
     "patterns": ["\\bFAIL\\b", "\\bPASS\\b", "\\bTest Files\\b"]
   },
   "rules": {
+    "stripAnsi": true,
+    "replace": [{ "pattern": "\\s+\\[[0-9]+ms\\]", "replacement": "" }],
+    "matchOutput": [
+      { "pattern": "All tests passed", "message": "vitest: ok", "unless": "FAIL|Error:" }
+    ],
     "includePatterns": ["FAIL", "Error:", "Test Files", "Tests"],
     "dropPatterns": ["^\\s*$", "Duration\\s+\\d+"],
+    "collapsePatterns": ["^\\s+at "],
     "deduplicate": true,
+    "truncateLineAt": 240,
     "maxLines": 160,
-    "tailLines": 40
+    "headLines": 24,
+    "tailLines": 40,
+    "onEmpty": "vitest: ok",
+    "filterStderr": false
   },
   "preserve": {
     "errorPatterns": ["FAIL", "Error:", "AssertionError"],
     "summaryPatterns": ["Test Files", "Tests", "Snapshots"]
-  }
+  },
+  "tests": [
+    {
+      "name": "keeps failing tests",
+      "command": "vitest",
+      "input": "FAIL test/a.test.ts\\nError: boom\\nTest Files 1 failed",
+      "expected": "FAIL test/a.test.ts\\nError: boom\\nTest Files 1 failed"
+    }
+  ]
 }
 ```
 
 ### RTK Fields
 
-| Field                      | Required | Description                                             |
-| -------------------------- | -------- | ------------------------------------------------------- |
-| `id`                       | yes      | Stable filter id                                        |
-| `label`                    | yes      | Dashboard-readable name                                 |
-| `match.commands`           | no       | Command tokens that select this filter                  |
-| `match.patterns`           | no       | Regex patterns that select this filter from output text |
-| `rules.includePatterns`    | no       | Lines to prefer preserving                              |
-| `rules.dropPatterns`       | no       | Lines to remove as noise                                |
-| `rules.deduplicate`        | no       | Collapse duplicate normalized lines                     |
-| `rules.maxLines`           | no       | Maximum retained lines before tail preservation         |
-| `rules.tailLines`          | no       | Tail lines retained for recent context                  |
-| `preserve.errorPatterns`   | no       | Error lines that should survive truncation              |
-| `preserve.summaryPatterns` | no       | Summary lines that should survive truncation            |
+| Field                      | Required | Description                                                                    |
+| -------------------------- | -------- | ------------------------------------------------------------------------------ |
+| `id`                       | yes      | Stable filter id                                                               |
+| `label`                    | yes      | Dashboard-readable name                                                        |
+| `category`                 | yes      | Filter family: git, test, build, shell, docker, package, infra, cloud, generic |
+| `priority`                 | no       | Higher priority wins when multiple filters match                               |
+| `match.outputTypes`        | no       | Detector output ids that select this filter                                    |
+| `match.commands`           | no       | Command tokens that select this filter                                         |
+| `match.patterns`           | no       | Regex patterns that select this filter from output text                        |
+| `rules.stripAnsi`          | no       | Remove ANSI escape sequences before regex stages                               |
+| `rules.replace`            | no       | Ordered regex substitutions applied line by line                               |
+| `rules.matchOutput`        | no       | Short-circuit output rules with optional `unless` guard                        |
+| `rules.includePatterns`    | no       | Lines to prefer preserving                                                     |
+| `rules.dropPatterns`       | no       | Lines to remove as noise                                                       |
+| `rules.collapsePatterns`   | no       | Repeated matching lines that can be collapsed                                  |
+| `rules.deduplicate`        | no       | Collapse duplicate normalized lines                                            |
+| `rules.truncateLineAt`     | no       | Unicode-safe per-line character limit                                          |
+| `rules.maxLines`           | no       | Maximum retained lines before tail preservation                                |
+| `rules.headLines`          | no       | Head lines retained during truncation                                          |
+| `rules.tailLines`          | no       | Tail lines retained for recent context                                         |
+| `rules.onEmpty`            | no       | Fallback message when filtering removes all content                            |
+| `rules.filterStderr`       | no       | Marks filters that should merge stderr when available                          |
+| `preserve.errorPatterns`   | no       | Error lines that should survive truncation                                     |
+| `preserve.summaryPatterns` | no       | Summary lines that should survive truncation                                   |
+| `tests[]`                  | no       | Inline verification samples used by the RTK verify gate                        |
+
+RTK applies declarative stages in this order: `stripAnsi`, `replace`, `matchOutput`,
+`dropPatterns`/`includePatterns`, `truncateLineAt`, `headLines`/`tailLines`, `maxLines`, and
+`onEmpty`.
+
+Custom filters can be loaded from:
+
+1. Project `.rtk/filters.json` files only after a matching `.rtk/trust.json` hash is present or
+   `trustProjectFilters` is enabled.
+2. Global `DATA_DIR/rtk/filters.json`.
+3. Built-in filters.
+
+Project/global custom files may contain one filter object or an array of filter objects. Invalid
+custom filters are skipped with diagnostics; invalid built-in filters fail validation.
+
+Project trust file:
+
+```json
+{
+  "filtersSha256": "0123456789abcdef..."
+}
+```
+
+The environment override `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS=1` trusts project filters without a
+hash and should be limited to controlled local development.
 
 ## Safety Rules
 
 - Keep rules idempotent: running the same filter twice should not corrupt output.
 - Preserve exact error text, file paths, line numbers, and command summaries where possible.
 - Avoid rules that modify code blocks, JSON payloads, URLs, or secrets.
-- Add unit coverage for new command families in `tests/unit/compression/rtk-engine.test.ts`.
+- Add unit coverage for new command families in detector/filter tests.
+- Add `tests[]` samples to every built-in filter and to shared custom filters.
 
 ## Validation
 
-Rule packs are validated by Zod schemas before use. Invalid packs are ignored by the loader rather
-than breaking the request pipeline. Run focused compression tests after adding or changing packs.
+Rule packs are validated before use. Built-in Caveman packs and built-in RTK filters fail fast
+during validation so broken release assets are caught before shipment. Custom RTK filters are
+skipped with diagnostics when parsing or trust validation fails.
+
+Focused validation:
+
+```bash
+node --import tsx/esm --test tests/unit/compression/rule-loader.test.ts tests/unit/compression/language-packs.test.ts
+node --import tsx/esm --test tests/unit/compression/rtk-verify.test.ts tests/unit/compression/rtk-dsl-pipeline.test.ts
+```

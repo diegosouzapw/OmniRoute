@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { processRtkText } from "@omniroute/open-sse/services/compression/engines/rtk";
+import {
+  detectCommandType,
+  processRtkText,
+} from "@omniroute/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const rtkTestSchema = z
+export const rtkTestSchema = z
   .object({
     text: z.string().min(1),
     command: z.string().optional(),
@@ -28,10 +31,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  return NextResponse.json(
-    processRtkText(validation.data.text, {
+  const detection = detectCommandType(validation.data.text, validation.data.command);
+  return NextResponse.json({
+    detection,
+    ...processRtkText(validation.data.text, {
       command: validation.data.command,
       config: validation.data.config,
-    })
-  );
+    }),
+  });
 }

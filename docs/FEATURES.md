@@ -113,6 +113,20 @@ Currently supports Codex account rotation. See [Context Relay documentation](fea
 
 ---
 
+## 🗜️ Prompt Compression _(v3.7.9+)_
+
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
+
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
+
+See [Compression Guide](COMPRESSION_GUIDE.md), [RTK Compression](rtk-compression.md), and
+[Compression Engines](compression-engines.md).
+
+---
+
 ## 🛡️ Proxy Hardening _(v3.5.5+)_
 
 Comprehensive proxy configuration enforcement across the entire request pipeline:

@@ -5,8 +5,9 @@ import { rtkEngine } from "./rtk/index.ts";
 let registered = false;
 
 export function registerBuiltinCompressionEngines(): void {
-  if (registered) return;
-  for (const engine of [liteEngine, cavemanEngine, aggressiveEngine, ultraEngine, rtkEngine]) {
+  const engines = [liteEngine, cavemanEngine, aggressiveEngine, ultraEngine, rtkEngine];
+  if (registered && engines.every((engine) => getCompressionEngine(engine.id))) return;
+  for (const engine of engines) {
     if (!getCompressionEngine(engine.id)) registerCompressionEngine(engine);
   }
   registered = true;

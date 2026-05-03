@@ -9,7 +9,7 @@ import {
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-const pipelineStepSchema = z
+export const pipelineStepSchema = z
   .object({
     engine: z.enum(["lite", "caveman", "aggressive", "ultra", "rtk"]),
     intensity: z.string().optional(),
@@ -17,7 +17,7 @@ const pipelineStepSchema = z
   })
   .strict();
 
-const compressionComboUpdateSchema = z
+export const compressionComboUpdateSchema = z
   .object({
     name: z.string().trim().min(1).max(120).optional(),
     description: z.string().max(1000).optional(),

@@ -1,5 +1,5 @@
 import type { CavemanRule } from "./types.ts";
-import { loadCavemanFileRules } from "./ruleLoader.ts";
+import { loadAllRulesForLanguage } from "./ruleLoader.ts";
 
 const CAVEMAN_RULES: CavemanRule[] = [
   // ── Category 1: Filler Removal (10+ rules) ──────────────────────────
@@ -397,7 +397,8 @@ export function getRulesForContext(
   language = "en"
 ): CavemanRule[] {
   const rank = INTENSITY_RANK[intensity] ?? INTENSITY_RANK.full;
-  const rules = language && language !== "en" ? loadCavemanFileRules(language) : CAVEMAN_RULES;
+  const fileRules = language ? loadAllRulesForLanguage(language) : [];
+  const rules = fileRules.length > 0 ? fileRules : CAVEMAN_RULES;
   const selected = rules.filter((rule) => {
     const minRank = INTENSITY_RANK[rule.minIntensity ?? "lite"];
     return (rule.context === "all" || rule.context === context) && minRank <= rank;
