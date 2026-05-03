@@ -1,0 +1,41 @@
+{
+  "id": "build-vite",
+  "label": "Vite Build",
+  "description": "Keep Vite errors and final build summary.",
+  "category": "build",
+  "priority": 83,
+  "match": {
+    "outputTypes": ["build-vite"],
+    "commands": ["^vite\\s+build\\b", "^npm\\s+run\\s+build\\b", "^pnpm\\s+build\\b"],
+    "patterns": ["vite v[\\d.]+", "✓ built in"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "matchOutput": [
+      {
+        "pattern": "✓ built in",
+        "message": "vite: build ok",
+        "unless": "error|failed"
+      }
+    ],
+    "includePatterns": ["error", "failed", "✓ built in", "dist/", "rendering chunks"],
+    "dropPatterns": ["^transforming ", "^✓ \\d+ modules transformed", "^\\s*$"],
+    "collapsePatterns": ["^dist/"],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 45
+  },
+  "preserve": {
+    "errorPatterns": ["error", "failed"],
+    "summaryPatterns": ["✓ built in"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "vite build",
+      "input": "vite v5.0.0 building for production...\n✓ 10 modules transformed.\n✓ built in 100ms\n",
+      "expected": "vite: build ok"
+    }
+  ]
+}

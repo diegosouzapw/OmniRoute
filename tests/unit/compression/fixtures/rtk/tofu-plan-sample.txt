@@ -1,0 +1,8 @@
+OpenTofu will perform the following actions:
+
+  # module.web.aws_lb.main will be created
+  + resource "aws_lb" "main" {
+      name = "web"
+    }
+
+Plan: 1 to add, 0 to change, 0 to destroy.

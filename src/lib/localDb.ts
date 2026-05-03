@@ -80,6 +80,7 @@ export {
 } from "./db/combos";
 
 export * from "./db/compressionCacheStats";
+export * from "./db/compressionCombos";
 
 export {
   // API Keys
@@ -340,9 +341,6 @@ export {
   setReasoningCache,
   getReasoningCache,
   deleteReasoningCache,
-  cleanupExpiredReasoning,
-  getReasoningCacheStats,
-  getReasoningCacheEntries,
   clearAllReasoningCache,
 } from "./db/reasoningCache";
 

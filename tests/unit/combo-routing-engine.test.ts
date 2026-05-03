@@ -432,6 +432,73 @@ test("handleComboChat random strategy uses shuffled model order", async () => {
   }
 });
 
+test("handleComboChat fill-first explicitly preserves priority order", async () => {
+  const calls: any[] = [];
+
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "fill-first-order",
+      strategy: "fill-first",
+      models: ["model-a", "model-b"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(calls, ["model-a"]);
+});
+
+test("handleComboChat p2c selects the better of two random choices by metrics", async () => {
+  const originalRandom = Math.random;
+  const calls: any[] = [];
+  const sequence = [0.0, 0.0];
+  let idx = 0;
+
+  recordComboRequest("p2c-combo", "model-a", {
+    success: true,
+    latencyMs: 2000,
+    strategy: "p2c",
+  });
+  recordComboRequest("p2c-combo", "model-b", {
+    success: true,
+    latencyMs: 20,
+    strategy: "p2c",
+  });
+  Math.random = () => sequence[idx++] ?? 0;
+
+  try {
+    await handleComboChat({
+      body: {},
+      combo: {
+        name: "p2c-combo",
+        strategy: "p2c",
+        models: ["model-a", "model-b", "model-c"],
+      },
+      handleSingleModel: async (_body: any, modelStr: any) => {
+        calls.push(modelStr);
+        return okResponse();
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings: null,
+      relayOptions: null as any,
+      allCombos: null,
+    });
+
+    assert.deepEqual(calls, ["model-b"]);
+  } finally {
+    Math.random = originalRandom;
+  }
+});
+
 test("handleComboChat least-used strategy prefers the model with fewer recorded requests", async () => {
   recordComboRequest("least-used-combo", "model-a", {
     success: true,
@@ -1316,6 +1383,59 @@ test("handleComboChat context-optimized orders models by the largest synced cont
 
   assert.equal(result.ok, true);
   assert.equal(calls[0], "openai/gpt-4o-max");
+});
+
+test("handleComboChat context-optimized preserves order when all context limits are unknown", async () => {
+  const calls: any[] = [];
+  const result = await handleComboChat({
+    body: {},
+    combo: {
+      name: "context-optimized-unknown",
+      strategy: "context-optimized",
+      models: ["unknown/model-a", "unknown/model-b"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      calls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(calls, ["unknown/model-a"]);
+});
+
+test("handleComboChat normalizes legacy strategy names at runtime", async () => {
+  const usageCalls: any[] = [];
+  recordComboRequest("legacy-usage-combo", "model-a", {
+    success: true,
+    latencyMs: 100,
+    strategy: "least-used",
+  });
+
+  await handleComboChat({
+    body: {},
+    combo: {
+      name: "legacy-usage-combo",
+      strategy: "usage",
+      models: ["model-a", "model-b"],
+    },
+    handleSingleModel: async (_body: any, modelStr: any) => {
+      usageCalls.push(modelStr);
+      return okResponse();
+    },
+    isModelAvailable: async () => true,
+    log: createLog(),
+    settings: null,
+    relayOptions: null as any,
+    allCombos: null,
+  });
+
+  assert.deepEqual(usageCalls, ["model-b"]);
 });
 
 test("handleComboChat returns a 503 when every model is unavailable before execution", async () => {

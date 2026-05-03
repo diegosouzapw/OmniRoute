@@ -1,5 +1,9 @@
 import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
 import type { ResilienceSettings } from "@/lib/resilience/settings";
+import type {
+  AccountFallbackStrategyValue,
+  RoutingStrategyValue,
+} from "@/shared/constants/routingStrategies";
 
 /**
  * Application settings stored in SQLite key-value pairs.
@@ -7,14 +11,7 @@ import type { ResilienceSettings } from "@/lib/resilience/settings";
 export interface Settings {
   requireLogin: boolean;
   hasPassword: boolean;
-  fallbackStrategy:
-    | "fill-first"
-    | "round-robin"
-    | "p2c"
-    | "random"
-    | "least-used"
-    | "cost-optimized"
-    | "strict-random";
+  fallbackStrategy: AccountFallbackStrategyValue;
   stickyRoundRobinLimit: number;
   requestRetry: number;
   maxRetryIntervalSec: number;
@@ -31,7 +28,7 @@ export interface Settings {
 }
 
 export interface ComboDefaults {
-  strategy: "priority" | "weighted" | "round-robin" | "context-relay";
+  strategy: RoutingStrategyValue;
   maxRetries: number;
   retryDelayMs: number;
   maxComboDepth: number;

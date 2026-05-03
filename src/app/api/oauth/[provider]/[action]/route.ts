@@ -24,6 +24,7 @@ import {
   oauthPollSchema,
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 // Use globalThis to persist callback server state across Next.js HMR reloads
 if (!globalThis.__codexCallbackState) {
@@ -42,6 +43,12 @@ function safeEqual(a: string | null | undefined, b: string | null | undefined): 
   return timingSafeEqual(ba, bb);
 }
 
+async function requireOAuthRouteAuth(request: Request) {
+  if (!(await isAuthRequired(request))) return null;
+  if (await isAuthenticated(request)) return null;
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
 /**
  * Dynamic OAuth API Route
  * Handles: authorize, exchange, device-code, poll, start-callback-server, poll-callback
@@ -53,6 +60,9 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  const authResponse = await requireOAuthRouteAuth(request);
+  if (authResponse) return authResponse;
+
   try {
     const { provider, action } = await params;
     const { searchParams } = new URL(request.url);
@@ -212,6 +222,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ provider: string; action: string }> }
 ) {
+  const authResponse = await requireOAuthRouteAuth(request);
+  if (authResponse) return authResponse;
+
   try {
     const { provider, action } = await params;
     let rawBody: any = {};

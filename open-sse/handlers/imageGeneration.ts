@@ -45,6 +45,7 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "flux-kontext-max",
   "flux-kontext",
   "flux-kontext-pro",
+  "qwen-image",
 ]);
 
 const BFL_MODEL_ENDPOINTS = {

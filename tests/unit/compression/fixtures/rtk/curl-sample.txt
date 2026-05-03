@@ -1,0 +1,4 @@
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 500 Internal Server Error
+curl: (22) The requested URL returned error: 500

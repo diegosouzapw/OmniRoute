@@ -1,0 +1,4 @@
+--- FAIL: TestRouter (0.01s)
+    router_test.go:12: expected route to match
+FAIL
+FAIL    ./pkg/router  0.123s

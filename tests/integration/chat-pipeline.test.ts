@@ -27,7 +27,6 @@ const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
-const { setCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
 
 const originalFetch = globalThis.fetch;
 const originalRetryDelayMs = BaseExecutor.RETRY_CONFIG.delayMs;
