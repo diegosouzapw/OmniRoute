@@ -1,0 +1,30 @@
+{
+  "language": "es",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "es_purpose",
+      "pattern": "\\b(?:con el fin de|con el objetivo de|para poder)\\b\\s*",
+      "replacement": "para ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_connectors",
+      "pattern": "\\b(?:ademas|además|adicionalmente|por otra parte)\\b\\s*",
+      "replacement": "también ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_emphasis",
+      "pattern": "\\b(?:muy|realmente|extremadamente|bastante)\\s+(?=[a-záéíóúñ])",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    }
+  ]
+}

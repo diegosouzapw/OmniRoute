@@ -1,0 +1,30 @@
+{
+  "language": "ja",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "ja_purpose",
+      "pattern": "(?:するために|目的として)",
+      "replacement": "ため ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_connectors",
+      "pattern": "(?:さらに|加えて|その上)",
+      "replacement": "また ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_emphasis",
+      "pattern": "(?:非常に|とても|かなり)",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    }
+  ]
+}

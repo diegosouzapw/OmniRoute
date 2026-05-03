@@ -226,7 +226,7 @@ git checkout main
 git pull origin main
 
 # Build and pack locally
-cd /home/diegosouzapw/dev/proxys/9router && rm -f omniroute-*.tgz && rm -rf .next/cache app/.next/cache && npm run build:cli && rm -rf app/logs app/coverage app/.git app/.app-build-backup* && npm pack --ignore-scripts
+cd /home/diegosouzapw/dev/proxys/OmniRoute && rm -f omniroute-*.tgz && rm -rf .next/cache app/.next/cache && npm run build:cli && rm -rf app/logs app/coverage app/.git app/.app-build-backup* && npm pack --ignore-scripts
 
 # Deploy to LOCAL VPS (192.168.0.15)
 scp omniroute-*.tgz root@192.168.0.15:/tmp/

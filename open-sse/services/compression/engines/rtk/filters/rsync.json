@@ -1,0 +1,33 @@
+{
+  "id": "rsync",
+  "label": "rsync",
+  "description": "Drop rsync transfer chatter while preserving copied files and errors.",
+  "category": "cloud",
+  "priority": 73,
+  "match": {
+    "outputTypes": ["rsync"],
+    "commands": ["^rsync\\b"],
+    "patterns": ["^sending incremental file list", "^rsync error:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^sending incremental file list", "^sent \\d", "^total size is", "^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 140,
+    "headLines": 35,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["^rsync error:", "Permission denied", "No such file"],
+    "summaryPatterns": ["^sent \\d", "^total size is"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "rsync -av",
+      "input": "sending incremental file list\napp.js\nsent 120 bytes received 20 bytes\nrsync error: some files could not be transferred (code 23)\n",
+      "expected": "app.js\nrsync error: some files could not be transferred (code 23)"
+    }
+  ]
+}

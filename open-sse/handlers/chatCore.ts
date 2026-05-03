@@ -1178,6 +1178,23 @@ export async function handleChatCore({
   const capturePipelineStreamChunks =
     detailedLoggingEnabled && getCallLogPipelineCaptureStreamChunks();
   const skillRequestId = generateRequestId();
+  let compressionAnalyticsWritePromise: Promise<void> | null = null;
+  const attachCompressionUsageReceiptAfterAnalytics = (
+    usage: Record<string, unknown>,
+    source: "provider" | "estimated" | "stream"
+  ) => {
+    const pendingWrite = compressionAnalyticsWritePromise;
+    void (async () => {
+      try {
+        if (pendingWrite) await pendingWrite;
+        const { attachCompressionUsageReceipt } =
+          await import("../../src/lib/db/compressionAnalytics.ts");
+        attachCompressionUsageReceipt(skillRequestId, usage, source);
+      } catch {
+        // Compression analytics are best-effort and must never affect responses.
+      }
+    })();
+  };
   const pipelineSessionId =
     (clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
       ? clientRawRequest.headers.get("x-omniroute-session-id")
@@ -1560,6 +1577,8 @@ export async function handleChatCore({
   // This prevents "prompt too long" errors for large-but-not-full contexts.
   const allMessages =
     body?.messages || body?.input || body?.contents || body?.request?.contents || [];
+  let cavemanOutputModeApplied = false;
+  let cavemanOutputModeIntensity: string | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let promptCompressionEnabled = false;
@@ -1594,6 +1613,91 @@ export async function handleChatCore({
         log?.debug?.("COMPRESSION", "Prompt compression disabled or unavailable");
       }
       let compressionComboKey = comboName ?? null;
+      let compressionComboApplied = false;
+      type RuntimeCompressionCombo = {
+        id: string;
+        pipeline: NonNullable<CompressionConfig["stackedPipeline"]>;
+        languagePacks: string[];
+        outputMode: boolean;
+        outputModeIntensity: string;
+      };
+      const isBuiltinStackedPipeline = (
+        pipeline: CompressionConfig["stackedPipeline"] | undefined
+      ): boolean => {
+        if (!Array.isArray(pipeline) || pipeline.length !== 2) return false;
+        const [first, second] = pipeline;
+        return (
+          first?.engine === "rtk" &&
+          (first.intensity === undefined || first.intensity === "standard") &&
+          !first.config &&
+          second?.engine === "caveman" &&
+          (second.intensity === undefined || second.intensity === "full") &&
+          !second.config
+        );
+      };
+      const applyCompressionComboConfig = (
+        compressionCombo: RuntimeCompressionCombo | null,
+        routingOverrideIds: string[] = []
+      ): boolean => {
+        if (!compressionCombo || compressionCombo.pipeline.length === 0) return false;
+        const comboLanguagePacks = [
+          ...new Set(
+            compressionCombo.languagePacks
+              .map((pack) => pack.trim())
+              .filter((pack) => pack.length > 0)
+          ),
+        ];
+        const comboOutputIntensity = (
+          ["lite", "full", "ultra"].includes(compressionCombo.outputModeIntensity)
+            ? compressionCombo.outputModeIntensity
+            : (config.cavemanOutputMode?.intensity ?? "full")
+        ) as "lite" | "full" | "ultra";
+        const comboDefaultLanguage =
+          comboLanguagePacks.find((pack) => pack === config.languageConfig?.defaultLanguage) ??
+          comboLanguagePacks[0] ??
+          config.languageConfig?.defaultLanguage ??
+          "en";
+        const comboOverrides = { ...(config.comboOverrides ?? {}) };
+        for (const id of routingOverrideIds) {
+          if (id) comboOverrides[id] = "stacked";
+        }
+        config = {
+          ...config,
+          compressionComboId: compressionCombo.id,
+          stackedPipeline: compressionCombo.pipeline,
+          languageConfig: {
+            ...(config.languageConfig ?? {
+              enabled: false,
+              defaultLanguage: "en",
+              autoDetect: true,
+              enabledPacks: ["en"],
+            }),
+            enabled: true,
+            defaultLanguage: comboDefaultLanguage,
+            enabledPacks:
+              comboLanguagePacks.length > 0
+                ? comboLanguagePacks
+                : (config.languageConfig?.enabledPacks ?? ["en"]),
+          },
+          cavemanOutputMode: {
+            ...(config.cavemanOutputMode ?? {
+              enabled: false,
+              intensity: "full",
+              autoClarity: true,
+            }),
+            enabled: compressionCombo.outputMode,
+            intensity: comboOutputIntensity,
+          },
+          comboOverrides,
+        };
+        compressionComboApplied = true;
+        return true;
+      };
+      const isStackedCompressionCombo = (
+        compressionCombo: RuntimeCompressionCombo | null
+      ): compressionCombo is RuntimeCompressionCombo => {
+        return Boolean(compressionCombo && compressionCombo.pipeline.length > 1);
+      };
       if (isCombo && comboName) {
         try {
           const { getComboByName } = await import("../../src/lib/localDb");
@@ -1616,7 +1720,9 @@ export async function handleChatCore({
             comboMode === "lite" ||
             comboMode === "standard" ||
             comboMode === "aggressive" ||
-            comboMode === "ultra"
+            comboMode === "ultra" ||
+            comboMode === "rtk" ||
+            comboMode === "stacked"
           ) {
             config = {
               ...config,
@@ -1628,11 +1734,92 @@ export async function handleChatCore({
             };
             compressionComboKey = comboName;
           }
+          const routingComboIds = [
+            comboConfig?.id,
+            comboName,
+            comboName.startsWith("combo/") ? comboName.substring(6) : null,
+          ].filter((id): id is string => typeof id === "string" && id.length > 0);
+          if (routingComboIds.length > 0) {
+            const { getCompressionComboForRoutingCombo } =
+              await import("../../src/lib/db/compressionCombos.ts");
+            const assignedCompressionCombo =
+              routingComboIds
+                .map((id) => getCompressionComboForRoutingCombo(id))
+                .find((combo) => combo !== null) ?? null;
+            if (
+              applyCompressionComboConfig(
+                assignedCompressionCombo as RuntimeCompressionCombo | null,
+                routingComboIds
+              )
+            ) {
+              compressionComboKey = comboName;
+            }
+          }
         } catch (err) {
           log?.debug?.(
             "COMPRESSION",
             "Combo compression override lookup skipped: " +
               (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      const modeBeforeOutputTransform = selectCompressionStrategy(
+        config,
+        compressionComboKey,
+        estimatedTokens,
+        body as Record<string, unknown>,
+        { provider, targetFormat, model: effectiveModel }
+      );
+      if (
+        modeBeforeOutputTransform === "stacked" &&
+        !compressionComboApplied &&
+        !config.compressionComboId &&
+        isBuiltinStackedPipeline(config.stackedPipeline)
+      ) {
+        try {
+          const { getDefaultCompressionCombo } =
+            await import("../../src/lib/db/compressionCombos.ts");
+          const defaultCompressionCombo = getDefaultCompressionCombo();
+          if (
+            isStackedCompressionCombo(defaultCompressionCombo as RuntimeCompressionCombo | null) &&
+            applyCompressionComboConfig(defaultCompressionCombo as RuntimeCompressionCombo | null)
+          ) {
+            log?.debug?.(
+              "COMPRESSION",
+              `Default compression combo applied: ${defaultCompressionCombo?.id}`
+            );
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Default compression combo lookup skipped: " +
+              (err instanceof Error ? err.message : String(err))
+          );
+        }
+      }
+      if (config.cavemanOutputMode?.enabled) {
+        try {
+          const { applyCavemanOutputMode } = await import("../services/compression/outputMode.ts");
+          const outputModeLanguage =
+            config.languageConfig?.enabled === true ? config.languageConfig.defaultLanguage : "en";
+          const outputMode = applyCavemanOutputMode(
+            body as Parameters<typeof applyCavemanOutputMode>[0],
+            config.cavemanOutputMode,
+            outputModeLanguage
+          );
+          if (outputMode.applied) {
+            body = outputMode.body as typeof body;
+            cavemanOutputModeApplied = true;
+            cavemanOutputModeIntensity = config.cavemanOutputMode.intensity;
+            estimatedTokens = estimateTokens(JSON.stringify(body?.messages ?? body?.input ?? []));
+            log?.debug?.("COMPRESSION", "Caveman output mode instruction applied");
+          } else if (outputMode.skippedReason && outputMode.skippedReason !== "disabled") {
+            log?.debug?.("COMPRESSION", `Caveman output mode skipped: ${outputMode.skippedReason}`);
+          }
+        } catch (err) {
+          log?.debug?.(
+            "COMPRESSION",
+            "Caveman output mode skipped: " + (err instanceof Error ? err.message : String(err))
           );
         }
       }
@@ -1644,79 +1831,133 @@ export async function handleChatCore({
         compressionInputBody,
         { provider, targetFormat, model: effectiveModel }
       );
+      let compressionAnalyticsRecorded = false;
       if (mode !== "off") {
         const result = applyCompression(compressionInputBody, mode, {
           model: effectiveModel,
           config,
         });
-        if (result.compressed && result.stats) {
-          body = result.body as typeof body;
-          estimatedTokens = result.stats.compressedTokens;
-          trackCompressionStats(result.stats);
-          void (async () => {
-            try {
-              const { insertCompressionAnalyticsRow } =
-                await import("../../src/lib/db/compressionAnalytics.ts");
-              insertCompressionAnalyticsRow({
-                timestamp: new Date().toISOString(),
-                combo_id: comboName ?? null,
-                provider: provider ?? null,
-                mode,
-                original_tokens: result.stats.originalTokens,
-                compressed_tokens: result.stats.compressedTokens,
-                tokens_saved: Math.max(
+        if (result.stats) {
+          if (result.compressed) {
+            body = result.body as typeof body;
+            estimatedTokens = result.stats.compressedTokens;
+          }
+
+          if (result.compressed || result.stats.fallbackApplied || cavemanOutputModeApplied) {
+            trackCompressionStats(result.stats);
+            compressionAnalyticsRecorded = true;
+            compressionAnalyticsWritePromise = (async () => {
+              try {
+                const { insertCompressionAnalyticsRow } =
+                  await import("../../src/lib/db/compressionAnalytics.ts");
+                const { calculateCost } = await import("../../src/lib/usage/costCalculator.ts");
+                const tokensSaved = Math.max(
                   0,
                   result.stats.originalTokens - result.stats.compressedTokens
-                ),
-                duration_ms: result.stats.durationMs ?? null,
-                request_id: skillRequestId,
-              });
-            } catch (err) {
-              log?.debug?.(
-                "COMPRESSION",
-                "Compression analytics write skipped: " +
-                  (err instanceof Error ? err.message : String(err))
-              );
-            }
-          })();
-          void (async () => {
-            try {
-              const { detectCachingContext } =
-                await import("../services/compression/cachingAware.ts");
-              const { recordCacheStats } =
-                await import("../../src/lib/db/compressionCacheStats.ts");
-              const cacheContext = detectCachingContext(compressionInputBody, {
-                provider,
-                targetFormat,
-                model: effectiveModel,
-              });
-              const tokensSavedCompression = Math.max(
-                0,
-                result.stats.originalTokens - result.stats.compressedTokens
-              );
-              recordCacheStats({
-                provider: cacheContext.provider ?? provider ?? "unknown",
-                model: effectiveModel ?? "",
-                compressionMode: mode,
-                cacheControlPresent: cacheContext.hasCacheControl,
-                estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
-                tokensSavedCompression,
-                tokensSavedCaching: 0,
-                netSavings: tokensSavedCompression,
-              });
-            } catch (err) {
-              log?.debug?.(
-                "COMPRESSION",
-                "Compression cache stats write skipped: " +
-                  (err instanceof Error ? err.message : String(err))
-              );
-            }
-          })();
-          log?.info?.(
-            "COMPRESSION",
-            `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
-          );
+                );
+                const estimatedUsdSaved = await calculateCost(
+                  provider ?? "",
+                  effectiveModel ?? "",
+                  {
+                    input: tokensSaved,
+                  }
+                );
+                insertCompressionAnalyticsRow({
+                  timestamp: new Date().toISOString(),
+                  combo_id: comboName ?? null,
+                  provider: provider ?? null,
+                  mode,
+                  engine: result.stats.engine ?? mode,
+                  compression_combo_id:
+                    result.stats.compressionComboId ?? config.compressionComboId ?? null,
+                  original_tokens: result.stats.originalTokens,
+                  compressed_tokens: result.stats.compressedTokens,
+                  tokens_saved: tokensSaved,
+                  duration_ms: result.stats.durationMs ?? null,
+                  request_id: skillRequestId,
+                  estimated_usd_saved: estimatedUsdSaved || null,
+                  validation_fallback: result.stats.fallbackApplied ? 1 : 0,
+                  output_mode: cavemanOutputModeApplied ? cavemanOutputModeIntensity : null,
+                  rtk_raw_output_pointer: result.stats.rtkRawOutputPointers?.[0]?.id ?? null,
+                  rtk_raw_output_bytes: result.stats.rtkRawOutputPointers?.[0]?.bytes ?? null,
+                });
+              } catch (err) {
+                log?.debug?.(
+                  "COMPRESSION",
+                  "Compression analytics write skipped: " +
+                    (err instanceof Error ? err.message : String(err))
+                );
+              }
+            })();
+          }
+
+          if (result.compressed) {
+            void (async () => {
+              try {
+                const { detectCachingContext } =
+                  await import("../services/compression/cachingAware.ts");
+                const { recordCacheStats } =
+                  await import("../../src/lib/db/compressionCacheStats.ts");
+                const cacheContext = detectCachingContext(compressionInputBody, {
+                  provider,
+                  targetFormat,
+                  model: effectiveModel,
+                });
+                const tokensSavedCompression = Math.max(
+                  0,
+                  result.stats.originalTokens - result.stats.compressedTokens
+                );
+                recordCacheStats({
+                  provider: cacheContext.provider ?? provider ?? "unknown",
+                  model: effectiveModel ?? "",
+                  compressionMode: mode,
+                  cacheControlPresent: cacheContext.hasCacheControl,
+                  estimatedCacheHit: cacheContext.hasCacheControl && cacheContext.isCachingProvider,
+                  tokensSavedCompression,
+                  tokensSavedCaching: 0,
+                  netSavings: tokensSavedCompression,
+                });
+              } catch (err) {
+                log?.debug?.(
+                  "COMPRESSION",
+                  "Compression cache stats write skipped: " +
+                    (err instanceof Error ? err.message : String(err))
+                );
+              }
+            })();
+            log?.info?.(
+              "COMPRESSION",
+              `Prompt compressed (${mode}): ${result.stats.originalTokens} -> ${result.stats.compressedTokens} tokens (${result.stats.savingsPercent}% saved, techniques: ${result.stats.techniquesUsed.join(",")})`
+            );
+          }
         }
+      }
+      if (cavemanOutputModeApplied && !compressionAnalyticsRecorded) {
+        compressionAnalyticsWritePromise = (async () => {
+          try {
+            const { insertCompressionAnalyticsRow } =
+              await import("../../src/lib/db/compressionAnalytics.ts");
+            insertCompressionAnalyticsRow({
+              timestamp: new Date().toISOString(),
+              combo_id: comboName ?? null,
+              provider: provider ?? null,
+              mode: "output-caveman",
+              engine: "caveman-output",
+              compression_combo_id: config.compressionComboId ?? null,
+              original_tokens: estimatedTokens,
+              compressed_tokens: estimatedTokens,
+              tokens_saved: 0,
+              request_id: skillRequestId,
+              output_mode: cavemanOutputModeIntensity,
+            });
+          } catch (err) {
+            log?.debug?.(
+              "COMPRESSION",
+              "Caveman output analytics write skipped: " +
+                (err instanceof Error ? err.message : String(err))
+            );
+          }
+        })();
       }
     } catch (err) {
       log?.warn?.(
@@ -3264,6 +3505,9 @@ export async function handleChatCore({
 
     // Log usage for non-streaming responses
     const usage = extractUsageFromResponse(responseBody, provider);
+    if (usage && typeof usage === "object") {
+      attachCompressionUsageReceiptAfterAnalytics(usage as Record<string, unknown>, "provider");
+    }
     appendRequestLog({ model, provider, connectionId, tokens: usage, status: "200 OK" }).catch(
       () => {}
     );
@@ -3636,6 +3880,7 @@ export async function handleChatCore({
 
     // Track cache token metrics for streaming responses
     if (streamUsage && typeof streamUsage === "object") {
+      attachCompressionUsageReceiptAfterAnalytics(streamUsage as Record<string, unknown>, "stream");
       const inputTokens = streamUsage.prompt_tokens || 0;
       const cachedTokens = toPositiveNumber(
         streamUsage.cache_read_input_tokens ??

@@ -80,6 +80,7 @@ export {
 } from "./db/combos";
 
 export * from "./db/compressionCacheStats";
+export * from "./db/compressionCombos";
 
 export {
   // API Keys

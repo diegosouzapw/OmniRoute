@@ -1,0 +1,34 @@
+{
+  "id": "wget",
+  "label": "wget",
+  "description": "Remove wget progress output and keep final errors or saved-file summaries.",
+  "category": "cloud",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["wget"],
+    "commands": ["^wget\\b"],
+    "patterns": ["^--\\d{4}-\\d{2}-\\d{2}", "^ERROR \\d{3}:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*\\d+K", "^Saving to:", "^\\s*$"],
+    "includePatterns": ["^ERROR \\d{3}:", "saved \\[\\d", "^HTTP request sent"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["^ERROR \\d{3}:", "failed", "unable to resolve"],
+    "summaryPatterns": ["saved \\[\\d", "^HTTP request sent"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "wget",
+      "input": "--2026-05-02-- https://example.test/file\nSaving to: 'file'\nHTTP request sent, awaiting response... 404 Not Found\nERROR 404: Not Found.\n",
+      "expected": "HTTP request sent, awaiting response... 404 Not Found\nERROR 404: Not Found."
+    }
+  ]
+}

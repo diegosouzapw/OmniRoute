@@ -42,6 +42,24 @@ test("primary sidebar items place limits after cache", () => {
   );
 });
 
+test("context sidebar section sits between primary and cli", () => {
+  const sectionIds = sidebarVisibility.SIDEBAR_SECTIONS.map((section) => section.id);
+  assert.deepEqual(sectionIds.slice(0, 3), ["primary", "context", "cli"]);
+
+  const contextSection = sidebarVisibility.SIDEBAR_SECTIONS.find(
+    (section) => section.id === "context"
+  );
+  assert.ok(contextSection, "expected Context & Cache sidebar section to exist");
+  assert.deepEqual(
+    contextSection.items.map((item) => ({ id: item.id, href: item.href })),
+    [
+      { id: "context-caveman", href: "/dashboard/context/caveman" },
+      { id: "context-rtk", href: "/dashboard/context/rtk" },
+      { id: "context-combos", href: "/dashboard/context/combos" },
+    ]
+  );
+});
+
 test("sidebar visibility drops stale entries from saved settings", () => {
   const allSidebarItemIds = sidebarVisibility.SIDEBAR_SECTIONS.flatMap((section) =>
     section.items.map((item) => item.id)
@@ -87,4 +105,10 @@ test("legacy dashboard routes redirect to their consolidated surfaces", async ()
 
   assert.match(autoComboPage, /redirect\("\/dashboard\/combos\?filter=intelligent"\)/);
   assert.match(usagePage, /redirect\("\/dashboard\/logs"\)/);
+
+  const compressionPage = await readFile(
+    join(repoRoot, "src/app/(dashboard)/dashboard/compression/page.tsx"),
+    "utf8"
+  );
+  assert.match(compressionPage, /redirect\("\/dashboard\/context\/caveman"\)/);
 });

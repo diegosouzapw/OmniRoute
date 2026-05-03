@@ -10,18 +10,6 @@ async function loadNextConfig(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
 }
 
-function runExternalResolver(resolver, request) {
-  return new Promise((resolve, reject) => {
-    resolver({ request }, (error, result) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(result);
-    });
-  });
-}
-
 test.afterEach(() => {
   if (originalNextDistDir === undefined) {
     delete process.env.NEXT_DIST_DIR;
@@ -70,39 +58,40 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   ]);
 });
 
-test("next config webpack server branch ignores thread-stream tests and normalizes externals", async () => {
-  const { default: nextConfig } = await loadNextConfig("webpack-server");
+test("next config declares Turbopack aliases, runtime assets and server externals", async () => {
+  const { default: nextConfig } = await loadNextConfig("runtime-assets");
+  const serverExternalPackages = new Set(nextConfig.serverExternalPackages);
+  const tracingIncludes = nextConfig.outputFileTracingIncludes["/*"];
+  const tracingExcludes = nextConfig.outputFileTracingExcludes["/*"];
 
-  class IgnorePlugin {
-    constructor(options) {
-      this.options = options;
-    }
-  }
-
-  const config = {
-    context: process.cwd(),
-    plugins: [],
-    resolve: { fallback: {} },
-    externals: [],
-  };
-
-  nextConfig.webpack(config, { isServer: true, webpack: { IgnorePlugin } });
-
-  assert.equal(config.plugins.length, 1);
-  assert.match(String(config.plugins[0].options.resourceRegExp), /test/);
-  assert.match(String(config.plugins[0].options.contextRegExp), /thread-stream/);
-
-  const resolver = config.externals.at(-1);
-  assert.equal(await runExternalResolver(resolver, "fs"), "commonjs fs");
-  assert.equal(
-    await runExternalResolver(resolver, "better-sqlite3-90e2652d1716b047"),
-    "commonjs better-sqlite3"
+  assert.equal(nextConfig.turbopack.root, process.cwd());
+  assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
+  assert.equal(nextConfig.outputFileTracingRoot, process.cwd());
+  assert.ok(tracingIncludes.includes("./src/lib/db/migrations/**/*"));
+  assert.ok(
+    tracingIncludes.includes("./open-sse/services/compression/engines/rtk/filters/**/*.json")
   );
-  assert.equal(await runExternalResolver(resolver, "left-pad"), undefined);
+  assert.ok(tracingIncludes.includes("./open-sse/services/compression/rules/**/*.json"));
+  assert.ok(tracingExcludes.includes("./_tasks/**/*"));
+  assert.ok(tracingExcludes.includes("./tests/**/*"));
+
+  for (const packageName of [
+    "thread-stream",
+    "better-sqlite3",
+    "wreq-js",
+    "fs",
+    "path",
+    "child_process",
+    "crypto",
+    "net",
+    "tls",
+  ]) {
+    assert.ok(serverExternalPackages.has(packageName), `${packageName} should be externalized`);
+  }
 });
 
-test("next config webpack client branch disables Node builtins in browser bundles", async () => {
-  const { default: nextConfig } = await loadNextConfig("webpack-client");
+test("next-intl webpack hook preserves caller webpack config without legacy fallbacks", async () => {
+  const { default: nextConfig } = await loadNextConfig("webpack-pass-through");
   const config = {
     context: process.cwd(),
     plugins: [],
@@ -110,17 +99,18 @@ test("next config webpack client branch disables Node builtins in browser bundle
     resolve: { fallback: { http: true } },
   };
 
-  nextConfig.webpack(config, { isServer: false, webpack: { IgnorePlugin: class {} } });
-
-  assert.deepEqual(config.resolve.fallback, {
-    http: true,
-    fs: false,
-    path: false,
-    child_process: false,
-    net: false,
-    tls: false,
-    crypto: false,
-    process: false,
-    os: false,
+  nextConfig.webpack(config, {
+    isServer: false,
+    webpack: {
+      IgnorePlugin: class {
+        constructor(options) {
+          this.options = options;
+        }
+      },
+    },
   });
+
+  assert.deepEqual(config.plugins, []);
+  assert.deepEqual(config.externals, []);
+  assert.deepEqual(config.resolve.fallback, { http: true });
 });

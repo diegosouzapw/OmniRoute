@@ -40,7 +40,7 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   assert.ok(jina);
   assert.equal(jina.baseUrl, "https://api.jina.ai/v1/rerank");
   assert.ok(jina.models.some((model) => model.id === "jina-reranker-v3"));
-  assert.ok(jina.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+  assert.ok(jina.models.some((model) => model.id === "jina-reranker-m0"));
 
   const parsedVoyage = parseRerankModel("voyage-ai/rerank-2.5");
   assert.equal(parsedVoyage.provider, "voyage-ai");
@@ -49,6 +49,10 @@ test("voyage-ai and jina-ai rerank registries expose supported models", () => {
   const parsedJina = parseRerankModel("jina-ai/jina-reranker-v3");
   assert.equal(parsedJina.provider, "jina-ai");
   assert.equal(parsedJina.model, "jina-reranker-v3");
+
+  const parsedJinaAlias = parseRerankModel("jina/jina-reranker-v3");
+  assert.equal(parsedJinaAlias.provider, "jina-ai");
+  assert.equal(parsedJinaAlias.model, "jina-reranker-v3");
 
   const all = getAllRerankModels();
   assert.ok(all.some((model) => model.id === "voyage-ai/rerank-2.5"));
@@ -72,4 +76,22 @@ test("upstage embedding registry exposes current embedding models", () => {
     all.map((model) => model.id),
     ["upstage/embedding-query", "upstage/embedding-passage"]
   );
+});
+
+test("nvidia embedding and rerank parsing preserves provider-prefixed upstream model IDs", () => {
+  const parsedEmbedding = parseEmbeddingModel("nvidia/nv-embedqa-e5-v5");
+  assert.equal(parsedEmbedding.provider, "nvidia");
+  assert.equal(parsedEmbedding.model, "nvidia/nv-embedqa-e5-v5");
+
+  const parsedDoublePrefixedEmbedding = parseEmbeddingModel("nvidia/nvidia/nv-embedqa-e5-v5");
+  assert.equal(parsedDoublePrefixedEmbedding.provider, "nvidia");
+  assert.equal(parsedDoublePrefixedEmbedding.model, "nvidia/nv-embedqa-e5-v5");
+
+  const parsedRerank = parseRerankModel("nvidia/nv-rerankqa-mistral-4b-v3");
+  assert.equal(parsedRerank.provider, "nvidia");
+  assert.equal(parsedRerank.model, "nvidia/nv-rerankqa-mistral-4b-v3");
+
+  const parsedDoublePrefixedRerank = parseRerankModel("nvidia/nvidia/nv-rerankqa-mistral-4b-v3");
+  assert.equal(parsedDoublePrefixedRerank.provider, "nvidia");
+  assert.equal(parsedDoublePrefixedRerank.model, "nvidia/nv-rerankqa-mistral-4b-v3");
 });

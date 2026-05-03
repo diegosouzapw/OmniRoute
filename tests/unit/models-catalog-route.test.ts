@@ -473,6 +473,103 @@ test("v1 models catalog includes media, moderation, rerank, video, and music mod
   assert.equal((byId.get("comfyui/stable-audio-open") as any).type, "music");
 });
 
+test("v1 models catalog does not duplicate imported Jina specialty models", async () => {
+  const connection = await seedConnection("jina-ai", {
+    name: "jina-synced",
+    apiKey: "jina-key",
+  });
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection("jina-ai", (connection as any).id, [
+    {
+      id: "jina-embeddings-v5-text-small",
+      name: "Jina Embeddings v5 Text Small",
+      source: "imported",
+      apiFormat: "embeddings",
+      supportedEndpoints: ["embeddings"],
+    },
+    {
+      id: "jina-reranker-v3",
+      name: "Jina Reranker v3",
+      source: "imported",
+      apiFormat: "rerank",
+      supportedEndpoints: ["rerank"],
+    },
+  ]);
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const visibleJinaEmbeddingRows = body.data.filter(
+    (item) =>
+      item.owned_by === "jina-ai" &&
+      item.root === "jina-embeddings-v5-text-small" &&
+      item.type === "embedding" &&
+      !item.parent
+  );
+  const visibleJinaRerankRows = body.data.filter(
+    (item) =>
+      item.owned_by === "jina-ai" &&
+      item.root === "jina-reranker-v3" &&
+      item.type === "rerank" &&
+      !item.parent
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(visibleJinaEmbeddingRows.length, 1);
+  assert.equal(visibleJinaEmbeddingRows[0].id, "jina/jina-embeddings-v5-text-small");
+  assert.equal(visibleJinaRerankRows.length, 1);
+  assert.equal(visibleJinaRerankRows[0].id, "jina/jina-reranker-v3");
+});
+
+test("v1 models catalog does not duplicate custom Jina specialty models", async () => {
+  await seedConnection("jina-ai", {
+    name: "jina-custom",
+    apiKey: "jina-key",
+  });
+  await modelsDb.addCustomModel(
+    "jina-ai",
+    "jina-embeddings-v5-text-small",
+    "Jina Embeddings v5 Text Small",
+    "imported",
+    "embeddings",
+    ["embeddings"]
+  );
+  await modelsDb.addCustomModel(
+    "jina-ai",
+    "jina-reranker-v3",
+    "Jina Reranker v3",
+    "imported",
+    "rerank",
+    ["rerank"]
+  );
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const visibleJinaEmbeddingRows = body.data.filter(
+    (item) =>
+      item.owned_by === "jina-ai" &&
+      item.root === "jina-embeddings-v5-text-small" &&
+      item.type === "embedding" &&
+      !item.parent
+  );
+  const visibleJinaRerankRows = body.data.filter(
+    (item) =>
+      item.owned_by === "jina-ai" &&
+      item.root === "jina-reranker-v3" &&
+      item.type === "rerank" &&
+      !item.parent
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(visibleJinaEmbeddingRows.length, 1);
+  assert.equal(visibleJinaEmbeddingRows[0].id, "jina-ai/jina-embeddings-v5-text-small");
+  assert.equal(visibleJinaRerankRows.length, 1);
+  assert.equal(visibleJinaRerankRows[0].id, "jina-ai/jina-reranker-v3");
+});
+
 test("v1 models catalog exposes image model input and output modalities for advanced image providers", async () => {
   await seedConnection("together", { name: "together-images" });
   await seedConnection("topaz", { name: "topaz-images" });

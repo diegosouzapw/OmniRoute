@@ -1,0 +1,34 @@
+{
+  "id": "aws",
+  "label": "AWS CLI",
+  "description": "Compress AWS CLI progress output while preserving errors and completed transfers.",
+  "category": "cloud",
+  "priority": 76,
+  "match": {
+    "outputTypes": ["aws"],
+    "commands": ["^aws\\b"],
+    "patterns": ["An error occurred \\([A-Za-z0-9]+\\) when calling", "^(?:upload|download): "]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Completed \\d", "^\\s*$"],
+    "includePatterns": ["^(?:upload|download): ", "An error occurred \\("],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["An error occurred", "AccessDenied", "Throttling", "ValidationError"],
+    "summaryPatterns": ["^(?:upload|download): "]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "aws s3 cp",
+      "input": "Completed 1.0 MiB/2.0 MiB\nupload: ./app.log to s3://bucket/app.log\nAn error occurred (AccessDenied) when calling the PutObject operation: denied\n",
+      "expected": "upload: ./app.log to s3://bucket/app.log\nAn error occurred (AccessDenied) when calling the PutObject operation: denied"
+    }
+  ]
+}
