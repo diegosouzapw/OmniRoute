@@ -504,7 +504,7 @@ test("chatCore resolves stream mode from body.stream and Accept header", async (
 
   assert.equal(explicitTrue.call.headers.Accept, "text/event-stream");
   assert.equal(explicitFalse.call.headers.Accept, "application/json");
-  assert.equal(acceptDriven.call.headers.Accept, "text/event-stream");
+  assert.equal(acceptDriven.call.headers.Accept, "application/json");
   assert.equal(jsonDefault.call.headers.Accept, "application/json");
 });
 

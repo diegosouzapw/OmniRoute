@@ -220,6 +220,7 @@ test("chatCore remembers Codex Responses conversation state from transformed bod
     model: "gpt-5.5-low",
     body: {
       model: "gpt-5.5-low",
+      stream: true,
       previous_response_id: "resp_prev_tool_123",
       input: [
         {

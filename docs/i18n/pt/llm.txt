@@ -17,7 +17,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Tech Stack
 
-- **Runtime:** Node.js >= 18 < 24, ES Modules (`"type": "module"`)
+- **Runtime:** Node.js >=22.22.2 <23 || >=24.0.0 <25, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 5.9
 - **Database:** SQLite via better-sqlite3 (local, zero-config, 16 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
@@ -465,7 +465,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 17. **Proxy enforcement** is now comprehensive: token health checks resolve proxy per connection, provider validation wraps in `runWithProxyContext`, and proxy dispatchers use `undici.fetch()` instead of the Node built-in `fetch()` to avoid dispatcher incompatibilities on Node 22.
 
-18. **Node.js 24+ compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
+18. **Node.js runtime compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
 
 ## Links
 

@@ -3800,10 +3800,10 @@
     "waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
     "waitingForQoderAuthorization": "Waiting for Qoder authorization...",
     "exchangingCodeForTokens": "Exchanging code for tokens...",
-    "nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
+    "nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use Node.js 22.x or 24.x LTS.",
     "nodeIncompatibleTitle": "Incompatible Node.js Version",
-    "nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-    "nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
+    "nodeIncompatibleHint": "OmniRoute requires Node.js 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
+    "nodeIncompatibleFixLabel": "Fix: install Node.js 22.22.2+ or 24.x LTS"
   },
   "landing": {
     "brandName": "OmniRoute",

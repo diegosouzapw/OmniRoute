@@ -22,24 +22,23 @@ test("parseNodeVersion normalizes v-prefixed versions", () => {
   });
 });
 
-test("getNodeRuntimeSupport accepts patched Node 24, 22 and 20 LTS lines", () => {
+test("getNodeRuntimeSupport accepts patched Node 24 and 22 LTS lines", () => {
   assert.deepEqual(getNodeRuntimeSupport("22.22.2"), {
     nodeVersion: "v22.22.2",
     nodeCompatible: true,
     reason: "supported",
     supportedRange: SUPPORTED_NODE_RANGE,
-    supportedDisplay: "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.0.0+ (24.x LTS)",
+    supportedDisplay: "Node.js 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS)",
     recommendedVersion: "v24.14.1",
     minimumSecureVersion: "v22.22.2",
   });
 
-  assert.equal(getNodeRuntimeSupport("20.20.2").nodeCompatible, true);
   assert.deepEqual(getNodeRuntimeSupport("24.1.0"), {
     nodeVersion: "v24.1.0",
     nodeCompatible: true,
     reason: "supported",
     supportedRange: SUPPORTED_NODE_RANGE,
-    supportedDisplay: "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.0.0+ (24.x LTS)",
+    supportedDisplay: "Node.js 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS)",
     recommendedVersion: "v24.14.1",
     minimumSecureVersion: "v24.0.0",
   });
@@ -56,17 +55,21 @@ test("getNodeRuntimeSupport rejects versions below the secure floor in a support
 
 test("getNodeRuntimeSupport rejects unsupported major lines", () => {
   const node18 = getNodeRuntimeSupport("18.20.8");
+  const node20 = getNodeRuntimeSupport("20.20.2");
   const node25 = getNodeRuntimeSupport("25.1.0");
 
   assert.equal(node18.nodeCompatible, false);
   assert.equal(node18.reason, "unsupported-major");
   assert.match(getNodeRuntimeWarning("18.20.8") || "", /outside OmniRoute's approved secure/i);
 
+  assert.equal(node20.nodeCompatible, false);
+  assert.equal(node20.reason, "unsupported-major");
+
   assert.equal(node25.nodeCompatible, false);
   assert.equal(node25.reason, "unreleased-major");
   assert.match(
     getNodeRuntimeWarning("25.1.0") || "",
-    /currently supports Node\.js 20\.x, 22\.x, and 24\.x/i
+    /currently supports Node\.js 22\.x and 24\.x/i
   );
 });
 

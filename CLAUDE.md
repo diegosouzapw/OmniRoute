@@ -195,7 +195,7 @@ git push -u origin feat/your-feature
 
 ## Environment
 
-- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **Runtime**: Node.js ≥22.22.2 <23 || ≥24 <25, ES Modules
 - **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 - **Default port**: 20128 (API + dashboard on same port)

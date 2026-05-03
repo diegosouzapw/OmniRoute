@@ -122,7 +122,7 @@ Comprehensive proxy configuration enforcement across the entire request pipeline
 - **Token Health Check** — Background OAuth refresh now resolves proxy config per connection, preventing failures in proxy-required environments
 - **API Key Validation** — Provider key validation (`POST /api/providers/validate`) routes through `runWithProxyContext`, honoring provider-level and global proxy settings
 - **undici Dispatcher Fix** — Proxy dispatchers use undici's own fetch implementation instead of Node's built-in fetch, resolving `invalid onRequestStart method` errors on Node.js 22
-- **Node.js Version Detection** — Login page proactively detects incompatible Node.js versions (24+) and displays a warning banner with instructions to use Node 22 LTS
+- **Node.js Version Detection** â Login page proactively detects unsupported Node.js versions and displays a warning banner with the supported 22.22.2+ or 24.x LTS runtime policy
 
 ---
 

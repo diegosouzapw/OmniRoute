@@ -76,7 +76,7 @@ Legacy IDs still accepted for compatibility: `copilot`, `kimi-coding`, `qwen`.
 
 ## Step 2 — Install CLI Tools
 
-All npm-based tools require Node.js 18+:
+All npm-based tools require a supported OmniRoute Node.js runtime (`>=22.22.2 <23` or `>=24.0.0 <25`):
 
 ```bash
 # Claude Code (Anthropic)

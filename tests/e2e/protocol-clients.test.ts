@@ -40,6 +40,14 @@ async function callA2A(method: string, params: Record<string, unknown>, id: stri
   return { response, json };
 }
 
+async function enableA2AEndpoint() {
+  const response = await apiFetch("/api/settings", {
+    method: "PATCH",
+    body: JSON.stringify({ a2aEnabled: true }),
+  });
+  expect(response.ok).toBe(true);
+}
+
 async function consumeA2AStream(response: Response): Promise<{
   taskId: string | null;
   terminalState: string | null;
@@ -140,6 +148,8 @@ describe("Protocol clients E2E", () => {
   it(
     "executes A2A discovery/send/stream/get/cancel flow",
     async () => {
+      await enableA2AEndpoint();
+
       const cardRes = await apiFetch("/.well-known/agent.json");
       expect(cardRes.ok).toBe(true);
       const card = (await cardRes.json()) as any;

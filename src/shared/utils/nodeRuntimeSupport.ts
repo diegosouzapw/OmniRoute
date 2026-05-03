@@ -8,15 +8,13 @@
  */
 
 export const SECURE_NODE_LINES = Object.freeze([
-  Object.freeze({ major: 20, minor: 20, patch: 2 }),
   Object.freeze({ major: 22, minor: 22, patch: 2 }),
   Object.freeze({ major: 24, minor: 0, patch: 0 }),
 ]);
 
 export const RECOMMENDED_NODE_VERSION = "24.14.1";
-export const SUPPORTED_NODE_RANGE = ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <25";
-export const SUPPORTED_NODE_DISPLAY =
-  "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.0.0+ (24.x LTS)";
+export const SUPPORTED_NODE_RANGE = ">=22.22.2 <23 || >=24.0.0 <25";
+export const SUPPORTED_NODE_DISPLAY = "Node.js 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS)";
 
 export interface NodeVersionInfo {
   major: number;
@@ -104,7 +102,7 @@ export function getNodeRuntimeWarning(version: string = process.versions.node): 
   }
 
   if (support.reason === "unreleased-major") {
-    return `Node.js ${support.nodeVersion} is outside the supported LTS lines. OmniRoute currently supports Node.js 20.x, 22.x, and 24.x.`;
+    return `Node.js ${support.nodeVersion} is outside the supported LTS lines. OmniRoute currently supports Node.js 22.x and 24.x.`;
   }
 
   return `Node.js ${support.nodeVersion} is outside OmniRoute's approved secure runtime policy.`;

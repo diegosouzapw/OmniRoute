@@ -1263,15 +1263,15 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 
 ## 🐛 Troubleshooting
 
-| Problem                                       | Quick Fix                                                                            |
-| --------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **"Language model did not provide messages"** | Provider quota exhausted → check quota tracker, use combo fallback                   |
-| **Rate limiting (429)**                       | Add fallback combo: `cc/claude → glm/glm-4.7 → if/kimi-k2-thinking`                  |
-| **OAuth token expired**                       | Auto-refreshed by OmniRoute. If stuck: delete + re-auth in Providers                 |
-| **`unsupported_country_region_territory`**    | Configure proxy in Settings → Proxy (see [Proxy Guide](docs/PROXY_GUIDE.md))         |
-| **Docker SQLite locks**                       | Use `--stop-timeout 40` for clean WAL checkpoint on shutdown                         |
-| **Node.js runtime errors**                    | Use Node.js `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25` (24 LTS recommended) |
-| **`system-info` for bug reports**             | Run `npm run system-info` and attach `system-info.txt` to your issue                 |
+| Problem                                       | Quick Fix                                                                    |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| **"Language model did not provide messages"** | Provider quota exhausted → check quota tracker, use combo fallback           |
+| **Rate limiting (429)**                       | Add fallback combo: `cc/claude → glm/glm-4.7 → if/kimi-k2-thinking`          |
+| **OAuth token expired**                       | Auto-refreshed by OmniRoute. If stuck: delete + re-auth in Providers         |
+| **`unsupported_country_region_territory`**    | Configure proxy in Settings → Proxy (see [Proxy Guide](docs/PROXY_GUIDE.md)) |
+| **Docker SQLite locks**                       | Use `--stop-timeout 40` for clean WAL checkpoint on shutdown                 |
+| **Node.js runtime errors**                    | Use Node.js `>=22.22.2 <23` or `>=24.0.0 <25` (24 LTS recommended)           |
+| **`system-info` for bug reports**             | Run `npm run system-info` and attach `system-info.txt` to your issue         |
 
 📖 **Full troubleshooting guide:** [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
 
@@ -1280,7 +1280,7 @@ See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 <details>
 <summary><b>Click to expand tech stack details</b></summary>
 
-- **Runtime**: Node.js 20.20.2+, 22.22.2+, or 24.x LTS (24 LTS recommended)
+- **Runtime**: Node.js 22.22.2+ or 24.x LTS (24 LTS recommended)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
 - **Framework**: Next.js 16 + React 19 + Tailwind CSS 4
 - **Database**: better-sqlite3 (SQLite) + LowDB (JSON legacy) — domain state, proxy logs, MCP audit, routing decisions, memory, skills
