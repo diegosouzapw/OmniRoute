@@ -511,12 +511,27 @@ export function getAllModelLockouts() {
 // ─── Provider Breaker Compatibility Wrappers ────────────────────────────────
 // Legacy helpers now delegate to the shared provider circuit breaker.
 
+type ProviderBreakerProfile = Partial<
+  Pick<
+    ProviderProfile,
+    "failureThreshold" | "resetTimeoutMs" | "circuitBreakerThreshold" | "circuitBreakerReset"
+  >
+>;
+
 function getProviderBreaker(provider: string | null | undefined) {
+  return provider ? getCircuitBreaker(provider) : null;
+}
+
+function configureProviderBreaker(
+  provider: string | null | undefined,
+  profile?: ProviderBreakerProfile | null
+) {
   if (!provider) return null;
-  const profile = getProviderProfile(provider);
+
+  const resolvedProfile = { ...getProviderProfile(provider), ...(profile ?? {}) };
   return getCircuitBreaker(provider, {
-    failureThreshold: profile.failureThreshold ?? profile.circuitBreakerThreshold,
-    resetTimeout: profile.resetTimeoutMs ?? profile.circuitBreakerReset,
+    failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
+    resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
   });
 }
 
@@ -551,7 +566,8 @@ export function getProviderCooldownRemainingMs(provider: string | null | undefin
 export function recordProviderFailure(
   provider: string | null | undefined,
   log?: { warn?: (...args: unknown[]) => void },
-  connectionId?: string | null
+  connectionId?: string | null,
+  profile?: ProviderBreakerProfile | null
 ): void {
   if (!provider) return;
 
@@ -570,7 +586,7 @@ export function recordProviderFailure(
     lastConnectionFailure.set(dedupKey, now);
   }
 
-  const breaker = getProviderBreaker(provider);
+  const breaker = configureProviderBreaker(provider, profile);
   if (!breaker) return;
 
   if (!breaker.canExecute()) return;

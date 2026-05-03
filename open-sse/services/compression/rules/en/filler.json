@@ -1,0 +1,129 @@
+{
+  "language": "en",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "pleasantries",
+      "pattern": "(?<!make\\s)(?<!be\\s)\\b(?:i'?d be happy to|i would be happy to|i'?d be glad to|i would be glad to|glad to help|happy to|thank you|thanks|no problem|you'?re welcome|absolutely|certainly|of course|sure)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "polite_framing",
+      "pattern": "\\b(?:please|kindly|could you please|would you please|can you please|I would like you to|I want you to|I need you to)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "hedging",
+      "pattern": "\\b(?:it seems like|it appears that|I think that|I believe that|probably|possibly|maybe it)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "verbose_instructions",
+      "pattern": "\\b(?:provide a detailed explanation of|give me a comprehensive explanation of|write an in-depth explanation of|create a thorough explanation of|provide a detailed|give me a comprehensive|write an in-depth|create a thorough|explain in detail)\\b",
+      "replacement": "explain ",
+      "replacementMap": {
+        "provide a detailed explanation of": "explain ",
+        "give me a comprehensive explanation of": "explain ",
+        "write an in-depth explanation of": "explain ",
+        "create a thorough explanation of": "explain ",
+        "provide a detailed": "provide ",
+        "give me a comprehensive": "give ",
+        "write an in-depth": "write ",
+        "create a thorough": "create ",
+        "explain in detail": "explain "
+      },
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "filler_adverbs",
+      "pattern": "(?<![a-z])\\b(?:basically|essentially|actually|literally|simply|currently)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "filler_phrases",
+      "pattern": "^(?:I want to|I need to|I'd like to|I'm looking for)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "redundant_openers",
+      "pattern": "^(?:Hi there|Hello|Good morning|Hey)\\s*[,.!?\\s]?\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "verbose_requests",
+      "pattern": "\\b(?:I was wondering if you could|Would it be possible to)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "self_reference",
+      "pattern": "^(?:I am trying to|I am working on|I have been)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "excessive_gratitude",
+      "pattern": "\\b(?:Thank you so much|Thanks in advance|I really appreciate)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "qualifier_removal",
+      "pattern": "\\b(?:a bit|a little|somewhat|kind of|sort of)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "softeners",
+      "pattern": "\\b(?:if possible|when you get a chance|at your convenience|just wondering)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "uncertainty_fillers",
+      "pattern": "\\b(?:I guess|I suppose|more or less|in a way)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "assistant_fillers",
+      "pattern": "^(?:Here'?s|Below is|This is)\\s+(?:a|an|the)?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

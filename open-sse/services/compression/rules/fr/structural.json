@@ -1,0 +1,30 @@
+{
+  "language": "fr",
+  "category": "structural",
+  "rules": [
+    {
+      "name": "fr_purpose",
+      "pattern": "\\b(?:afin de|dans le but de|pour pouvoir)\\b\\s*",
+      "replacement": "pour ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_connectors",
+      "pattern": "\\b(?:de plus|en outre|additionnellement|par ailleurs)\\b\\s*",
+      "replacement": "aussi ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_emphasis",
+      "pattern": "\\b(?:tres|très|vraiment|extremement|extrêmement|assez)\\s+(?=[a-zàâçéèêëîïôûùüÿñæœ])",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    }
+  ]
+}

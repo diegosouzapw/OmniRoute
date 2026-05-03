@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.7.8
+  version: 3.7.9
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -51,6 +51,8 @@ tags:
     description: Routing combo management
   - name: Settings
     description: Application settings
+  - name: Compression
+    description: Prompt compression, RTK filters, Caveman rules, and compression combos
   - name: Usage
     description: Usage analytics and logs
   - name: Translator
@@ -733,6 +735,202 @@ paths:
       responses:
         "200":
           description: Updated settings
+
+  /api/settings/compression:
+    get:
+      tags: [Compression]
+      summary: Get global compression settings
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current compression settings
+    put:
+      tags: [Compression]
+      summary: Update global compression settings
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                defaultMode:
+                  type: string
+                  enum: [off, lite, standard, aggressive, ultra, rtk, stacked]
+                autoTriggerMode:
+                  type: string
+                  enum: [off, lite, standard, aggressive, ultra, rtk, stacked]
+                autoTriggerTokens:
+                  type: integer
+                  minimum: 0
+                rtkConfig:
+                  type: object
+                  additionalProperties: true
+                stackedPipeline:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Updated compression settings
+
+  /api/compression/preview:
+    post:
+      tags: [Compression]
+      summary: Preview compression for a message payload
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messages, mode]
+              properties:
+                mode:
+                  type: string
+                  enum: [off, lite, standard, aggressive, ultra, rtk, stacked]
+                messages:
+                  type: array
+                  items:
+                    type: object
+                    required: [role, content]
+                    properties:
+                      role:
+                        type: string
+                      content:
+                        oneOf:
+                          - type: string
+                          - type: array
+                            items: {}
+                config:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Compression preview with diff, validation, and stats
+
+  /api/compression/language-packs:
+    get:
+      tags: [Compression]
+      summary: List Caveman compression language packs
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Available languages and rule-pack metadata
+
+  /api/compression/rules:
+    get:
+      tags: [Compression]
+      summary: List Caveman compression rule metadata
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Caveman rule metadata
+
+  /api/context/rtk/config:
+    get:
+      tags: [Compression]
+      summary: Get RTK compression settings
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Current RTK config
+    put:
+      tags: [Compression]
+      summary: Update RTK compression settings
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                intensity:
+                  type: string
+                  enum: [minimal, standard, aggressive]
+                customFiltersEnabled:
+                  type: boolean
+                trustProjectFilters:
+                  type: boolean
+                rawOutputRetention:
+                  type: string
+                  enum: [never, failures, always]
+                rawOutputMaxBytes:
+                  type: integer
+      responses:
+        "200":
+          description: Updated RTK config
+
+  /api/context/rtk/filters:
+    get:
+      tags: [Compression]
+      summary: List RTK filters and load diagnostics
+      security:
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: RTK filter catalog and diagnostics
+
+  /api/context/rtk/test:
+    post:
+      tags: [Compression]
+      summary: Run RTK compression preview for text
+      security:
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                command:
+                  type: string
+                config:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Detection and RTK compression result
+
+  /api/context/rtk/raw-output/{id}:
+    get:
+      tags: [Compression]
+      summary: Read retained redacted RTK raw output
+      security:
+        - ManagementSessionAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-f0-9]{24}$"
+      responses:
+        "200":
+          description: Raw output text
+        "404":
+          description: Raw output not found
 
   /api/settings/payload-rules:
     get:

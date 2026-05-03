@@ -1,0 +1,35 @@
+{
+  "id": "bundle-install",
+  "label": "Bundle Install",
+  "description": "Strip bundle install noise and keep final status.",
+  "category": "package",
+  "priority": 70,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^bundle\\s+install\\b"],
+    "patterns": ["Bundle complete", "Using "]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Using ", "^Fetching ", "^Installing ", "^\\s*$"],
+    "includePatterns": ["Bundle complete", "Your bundle is complete", "ERROR", "Gem::"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 35,
+    "onEmpty": "bundle: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["ERROR", "Gem::"],
+    "summaryPatterns": ["Bundle complete", "Your bundle is complete"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "bundle install",
+      "input": "Using rake 13.0\nInstalling pg 1.5\nBundle complete! 4 Gemfile dependencies\n",
+      "expected": "Bundle complete! 4 Gemfile dependencies"
+    }
+  ]
+}

@@ -23,6 +23,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 import { getAllCustomModels, getProviderNodes } from "@/lib/localDb";
 
+function toProviderScopedModelId(providerId: string, modelId: string): string {
+  return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
+}
+
 /**
  * Handle CORS preflight
  */
@@ -59,7 +63,7 @@ export async function GET() {
       for (const model of models) {
         if (!model?.id || !Array.isArray(model.supportedEndpoints)) continue;
         if (!model.supportedEndpoints.includes("embeddings")) continue;
-        const fullId = `${providerId}/${model.id}`;
+        const fullId = toProviderScopedModelId(providerId, model.id);
         if (data.some((d) => d.id === fullId)) continue;
         data.push({
           id: fullId,

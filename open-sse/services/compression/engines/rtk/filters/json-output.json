@@ -1,0 +1,40 @@
+{
+  "id": "json-output",
+  "label": "JSON Output",
+  "description": "Keep actionable JSON status, error and message fields while preserving structure.",
+  "category": "generic",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["json-output"],
+    "commands": ["^(?:jq\\b|cat\\s+.*\\.json\\b)"],
+    "patterns": ["^\\s*[\\[{][\\s\\S]*[\\]}]\\s*$"]
+  },
+  "rules": {
+    "includePatterns": [
+      "\"status\"\\s*:",
+      "\"error\"\\s*:",
+      "\"errors\"\\s*:",
+      "\"code\"\\s*:",
+      "\"message\"\\s*:",
+      "[{}\\[\\],]"
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 20,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["\"error\"", "\"errors\"", "\"message\""],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:jq\\b|cat .*\\.json\\b)",
+      "input": "{\n  \"status\": \"ok\",\n  \"items\": [1,2,3]\n}\n",
+      "expected": "{\n  \"status\": \"ok\",\n  \"items\": [1,2,3]\n}"
+    }
+  ]
+}

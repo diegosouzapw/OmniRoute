@@ -148,6 +148,26 @@ describe("Integration: strategySelector → aggressive pipeline", () => {
     assert.equal(systemMsg!.content, "You are a helpful coding assistant.");
   });
 
+  it("compressAggressive preserves duplicate system prompts during lite fallback", () => {
+    const messages = [
+      { role: "system", content: "Policy exact. Keep exact." },
+      { role: "system", content: "Policy exact. Keep exact." },
+      { role: "user", content: "Short" },
+    ];
+
+    const result = compressAggressive(messages, {
+      preserveSystemPrompt: true,
+      minSavingsThreshold: 0.9,
+      summarizerEnabled: false,
+      maxTokensPerMessage: 999999,
+    });
+
+    assert.deepEqual(
+      result.messages.filter((message) => message.role === "system"),
+      messages.filter((message) => message.role === "system")
+    );
+  });
+
   it("compressAggressive downgrade chain works when aggressive fails", () => {
     // Empty messages should trigger downgrade gracefully
     const result = compressAggressive([]);

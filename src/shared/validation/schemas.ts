@@ -358,7 +358,15 @@ const compositeTiersSchema = z
   })
   .strict();
 
-const compressionModeSchema = z.enum(["off", "lite", "standard", "aggressive", "ultra"]);
+const compressionModeSchema = z.enum([
+  "off",
+  "lite",
+  "standard",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "stacked",
+]);
 const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
 
 const comboRuntimeConfigSchema = z
@@ -674,6 +682,7 @@ export const providerModelMutationSchema = z.object({
       "chat-completions",
       "responses",
       "embeddings",
+      "rerank",
       "audio-transcriptions",
       "audio-speech",
       "images-generations",
@@ -684,6 +693,7 @@ export const providerModelMutationSchema = z.object({
       z.enum([
         "chat",
         "embeddings",
+        "rerank",
         "images",
         "audio",
         "audio-transcriptions",

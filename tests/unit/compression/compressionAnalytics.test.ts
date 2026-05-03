@@ -11,6 +11,8 @@ const core = await import("../../../src/lib/db/core.ts");
 core.resetDbInstance();
 const { insertCompressionAnalyticsRow, getCompressionAnalyticsSummary } =
   await import("../../../src/lib/db/compressionAnalytics.ts");
+const { attachCompressionUsageReceipt } =
+  await import("../../../src/lib/db/compressionAnalytics.ts");
 const { getDbInstance } = core;
 
 describe("compressionAnalytics", () => {
@@ -51,9 +53,27 @@ describe("compressionAnalytics", () => {
       avgSavingsPct: 0,
       avgDurationMs: 0,
       byMode: {},
+      byEngine: {},
+      byCompressionCombo: {},
       byProvider: {},
-      last24h: [],
+      last24h: summary.last24h,
+      validationFallbacks: 0,
+      realUsage: {
+        requestsWithReceipts: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        estimatedUsdSaved: 0,
+        bySource: {},
+      },
+      mcpDescriptionCompression: {
+        snapshots: 0,
+        estimatedTokensSaved: 0,
+      },
     });
+    assert.equal(summary.last24h.length, 24);
   });
 
   it("insert single row does not throw", () => {
@@ -248,5 +268,93 @@ describe("compressionAnalytics", () => {
       assert(typeof bucket.count === "number");
       assert(typeof bucket.tokensSaved === "number");
     });
+  });
+
+  it("attaches real usage receipts to the latest compression row", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "standard",
+      original_tokens: 1000,
+      compressed_tokens: 700,
+      tokens_saved: 300,
+      request_id: "req-receipt",
+    });
+    attachCompressionUsageReceipt(
+      "req-receipt",
+      {
+        prompt_tokens: 710,
+        completion_tokens: 42,
+        total_tokens: 752,
+        prompt_tokens_details: { cached_tokens: 100, cache_creation_tokens: 12 },
+      },
+      "provider"
+    );
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.promptTokens, 710);
+    assert.equal(summary.realUsage.completionTokens, 42);
+    assert.equal(summary.realUsage.totalTokens, 752);
+    assert.equal(summary.realUsage.cacheReadTokens, 100);
+    assert.equal(summary.realUsage.cacheWriteTokens, 12);
+    assert.equal(summary.realUsage.bySource.provider, 1);
+  });
+
+  it("aggregates estimated USD savings separately from token estimates", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "standard",
+      original_tokens: 1000,
+      compressed_tokens: 700,
+      tokens_saved: 300,
+      request_id: "req-usd",
+      estimated_usd_saved: 0.0015,
+    });
+    attachCompressionUsageReceipt("req-usd", { prompt_tokens: 700, total_tokens: 700 }, "provider");
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.estimatedUsdSaved, 0.0015);
+  });
+
+  it("summarizes validation fallback and output mode rows", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "output-caveman",
+      original_tokens: 900,
+      compressed_tokens: 900,
+      tokens_saved: 0,
+      request_id: "req-output",
+      validation_fallback: true,
+      output_mode: "full",
+    });
+    attachCompressionUsageReceipt(
+      "req-output",
+      { prompt_tokens: 900, completion_tokens: 120, total_tokens: 1020 },
+      "provider"
+    );
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.validationFallbacks, 1);
+    assert.equal(summary.byMode["output-caveman"].count, 1);
+    assert.equal(summary.realUsage.requestsWithReceipts, 1);
+    assert.equal(summary.realUsage.totalTokens, 1020);
+  });
+
+  it("summarizes MCP description estimates without counting them as provider receipts", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "mcp-description",
+      engine: "mcp-description",
+      original_tokens: 20,
+      compressed_tokens: 12,
+      tokens_saved: 8,
+      mcp_description_tokens_saved: 8,
+    });
+
+    const summary = getCompressionAnalyticsSummary();
+    assert.equal(summary.mcpDescriptionCompression.snapshots, 1);
+    assert.equal(summary.mcpDescriptionCompression.estimatedTokensSaved, 8);
+    assert.equal(summary.realUsage.requestsWithReceipts, 0);
+    assert.equal(summary.realUsage.bySource.mcp_metadata_estimate, undefined);
   });
 });

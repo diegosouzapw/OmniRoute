@@ -1,6 +1,6 @@
 # OmniRoute — Dashboard Features Gallery
 
-🌐 **Languages:** 🇺🇸 [English](FEATURES.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/FEATURES.md) | 🇪🇸 [Español](i18n/es/FEATURES.md) | 🇫🇷 [Français](i18n/fr/FEATURES.md) | 🇮🇹 [Italiano](i18n/it/FEATURES.md) | 🇷🇺 [Русский](i18n/ru/FEATURES.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/FEATURES.md) | 🇩🇪 [Deutsch](i18n/de/FEATURES.md) | 🇮🇳 [हिन्दी](i18n/in/FEATURES.md) | 🇹🇭 [ไทย](i18n/th/FEATURES.md) | 🇺🇦 [Українська](i18n/uk-UA/FEATURES.md) | 🇸🇦 [العربية](i18n/ar/FEATURES.md) | 🇯🇵 [日本語](i18n/ja/FEATURES.md) | 🇻🇳 [Tiếng Việt](i18n/vi/FEATURES.md) | 🇧🇬 [Български](i18n/bg/FEATURES.md) | 🇩🇰 [Dansk](i18n/da/FEATURES.md) | 🇫🇮 [Suomi](i18n/fi/FEATURES.md) | 🇮🇱 [עברית](i18n/he/FEATURES.md) | 🇭🇺 [Magyar](i18n/hu/FEATURES.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/FEATURES.md) | 🇰🇷 [한국어](i18n/ko/FEATURES.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/FEATURES.md) | 🇳🇱 [Nederlands](i18n/nl/FEATURES.md) | 🇳🇴 [Norsk](i18n/no/FEATURES.md) | 🇵🇹 [Português (Portugal)](i18n/pt/FEATURES.md) | 🇷🇴 [Română](i18n/ro/FEATURES.md) | 🇵🇱 [Polski](i18n/pl/FEATURES.md) | 🇸🇰 [Slovenčina](i18n/sk/FEATURES.md) | 🇸🇪 [Svenska](i18n/sv/FEATURES.md) | 🇵🇭 [Filipino](i18n/phi/FEATURES.md) | 🇨🇿 [Čeština](i18n/cs/FEATURES.md)
+🌐 **Main README translations:** 🇺🇸 [English](../README.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/README.md) | 🇪🇸 [Español](i18n/es/README.md) | 🇫🇷 [Français](i18n/fr/README.md) | 🇮🇹 [Italiano](i18n/it/README.md) | 🇷🇺 [Русский](i18n/ru/README.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](i18n/de/README.md) | 🇮🇳 [हिन्दी](i18n/in/README.md) | 🇹🇭 [ไทย](i18n/th/README.md) | 🇺🇦 [Українська](i18n/uk-UA/README.md) | 🇸🇦 [العربية](i18n/ar/README.md) | 🇯🇵 [日本語](i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](i18n/vi/README.md) | 🇧🇬 [Български](i18n/bg/README.md) | 🇩🇰 [Dansk](i18n/da/README.md) | 🇫🇮 [Suomi](i18n/fi/README.md) | 🇮🇱 [עברית](i18n/he/README.md) | 🇭🇺 [Magyar](i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/README.md) | 🇰🇷 [한국어](i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/README.md) | 🇳🇱 [Nederlands](i18n/nl/README.md) | 🇳🇴 [Norsk](i18n/no/README.md) | 🇵🇹 [Português (Portugal)](i18n/pt/README.md) | 🇷🇴 [Română](i18n/ro/README.md) | 🇵🇱 [Polski](i18n/pl/README.md) | 🇸🇰 [Slovenčina](i18n/sk/README.md) | 🇸🇪 [Svenska](i18n/sv/README.md) | 🇵🇭 [Filipino](i18n/phi/README.md) | 🇨🇿 [Čeština](i18n/cs/README.md)
 
 Visual guide to every section of the OmniRoute dashboard.
 
@@ -109,7 +109,21 @@ Configurable via combo-level or global settings:
 - **Max Messages For Summary** — How much recent history to condense
 - **Summary Model** — Optional override model for generating the handoff summary
 
-Currently supports Codex account rotation. See [Context Relay documentation](features/context-relay.md).
+Currently supports Codex account rotation. See [Context Relay documentation](ARCHITECTURE.md).
+
+---
+
+## 🗜️ Prompt Compression _(v3.7.9+)_
+
+Context & Cache now exposes dedicated pages for Caveman, RTK, and Compression Combos:
+
+- **Caveman** — language-aware rule packs, preview, output-mode controls, and analytics
+- **RTK** — command-aware compression for shell, git, test, build, package, Docker, infra, JSON, and stack-trace output
+- **Compression Combos** — named pipelines such as `rtk -> caveman` assigned to routing combos; the default stacked math reaches `~89%` average and `78-95%` eligible-context savings when both engines apply
+- **Raw-output recovery** — optional redacted RTK raw-output pointers for debugging compressed failures
+
+See [Compression Guide](COMPRESSION_GUIDE.md), [RTK Compression](RTK_COMPRESSION.md), and
+[Compression Engines](COMPRESSION_ENGINES.md).
 
 ---
 
