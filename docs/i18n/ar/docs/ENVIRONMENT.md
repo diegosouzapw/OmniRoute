@@ -95,8 +95,8 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the `/v1/*` proxy API on this separate port.                          |
 | `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Bind address for the API port.                                                         |
 | `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
-| `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Host-side published port for the Dashboard in Docker production mode.                  |
-| `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Host-side published port for the API in Docker production mode.                        |
+| `PROD_DASHBOARD_PORT` | `20130`      | `compose.prod.yaml`        | Host-side published port for the Dashboard in Docker production mode.                  |
+| `PROD_API_PORT`       | `20131`      | `compose.prod.yaml`        | Host-side published port for the API in Docker production mode.                        |
 | `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
 | `NODE_ENV`            | `production` | Next.js core               | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations. |
 
@@ -120,7 +120,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ┌─────────────────────────── Docker Production ──────────────────────────────┐
 │  PROD_DASHBOARD_PORT=443   PROD_API_PORT=8443                              │
-│  → Maps container ports to host ports in docker-compose.prod.yml.          │
+│  → Maps container ports to host ports in compose.prod.yaml.          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 

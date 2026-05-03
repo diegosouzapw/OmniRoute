@@ -29,7 +29,7 @@ ENV PORT=20128
 ENV HOSTNAME=0.0.0.0
 ENV NODE_OPTIONS="--max-old-space-size=256"
 
-# Data directory inside Docker — must match the volume mount in docker-compose.yml
+# Data directory inside Docker — must match the volume mount in compose.yaml
 ENV DATA_DIR=/app/data
 RUN apt-get update \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \

@@ -84,7 +84,7 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
   return {
     mode,
     repoDir,
-    composeFile: env.AUTO_UPDATE_COMPOSE_FILE || path.join(repoDir, "docker-compose.yml"),
+    composeFile: env.AUTO_UPDATE_COMPOSE_FILE || path.join(repoDir, "compose.yaml"),
     composeProfile: env.AUTO_UPDATE_COMPOSE_PROFILE || "cli",
     composeService: env.AUTO_UPDATE_SERVICE || "omniroute-cli",
     gitRemote: env.AUTO_UPDATE_GIT_REMOTE || "origin",

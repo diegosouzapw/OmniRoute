@@ -446,7 +446,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 9. **Auto-combo engine** in `open-sse/services/autoCombo/` — 6-factor scoring, 4 mode packs, bandit exploration, progressive cooldown.
 
-10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (3 profiles), `docker-compose.prod.yml` for production (port 20130).
+10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `compose.yaml` for dev (3 profiles), `compose.prod.yaml` for production (port 20130).
 
 11. **Electron desktop app** in `electron/` with main.js and preload.js. Build with `npm run electron:build` (supports Windows, macOS, Linux).
 

@@ -16,7 +16,7 @@ describe("getAutoUpdateConfig", () => {
       DATA_DIR: "/tmp/custom-data",
       AUTO_UPDATE_MODE: "docker-compose",
       AUTO_UPDATE_REPO_DIR: "/srv/omniroute",
-      AUTO_UPDATE_COMPOSE_FILE: "/srv/omniroute/docker-compose.yml",
+      AUTO_UPDATE_COMPOSE_FILE: "/srv/omniroute/compose.yaml",
       AUTO_UPDATE_COMPOSE_PROFILE: "base",
       AUTO_UPDATE_SERVICE: "omniroute-base",
       AUTO_UPDATE_GIT_REMOTE: "upstream",
@@ -26,7 +26,7 @@ describe("getAutoUpdateConfig", () => {
 
     assert.equal(config.mode, "docker-compose");
     assert.equal(config.repoDir, "/srv/omniroute");
-    assert.equal(config.composeFile, "/srv/omniroute/docker-compose.yml");
+    assert.equal(config.composeFile, "/srv/omniroute/compose.yaml");
     assert.equal(config.composeProfile, "base");
     assert.equal(config.composeService, "omniroute-base");
     assert.equal(config.gitRemote, "upstream");
@@ -61,7 +61,7 @@ describe("validateAutoUpdateRuntime", () => {
     const config = autoUpdate.getAutoUpdateConfig({
       AUTO_UPDATE_MODE: "docker-compose",
       AUTO_UPDATE_REPO_DIR: "/repo",
-      AUTO_UPDATE_COMPOSE_FILE: "/repo/docker-compose.yml",
+      AUTO_UPDATE_COMPOSE_FILE: "/repo/compose.yaml",
     });
 
     const result = await autoUpdate.validateAutoUpdateRuntime(
@@ -78,7 +78,7 @@ describe("validateAutoUpdateRuntime", () => {
     const config = autoUpdate.getAutoUpdateConfig({
       AUTO_UPDATE_MODE: "docker-compose",
       AUTO_UPDATE_REPO_DIR: "/repo",
-      AUTO_UPDATE_COMPOSE_FILE: "/repo/docker-compose.yml",
+      AUTO_UPDATE_COMPOSE_FILE: "/repo/compose.yaml",
     });
 
     const result = await autoUpdate.validateAutoUpdateRuntime(
@@ -103,7 +103,7 @@ describe("buildDockerComposeUpdateScript", () => {
     const config = autoUpdate.getAutoUpdateConfig({
       AUTO_UPDATE_MODE: "docker-compose",
       AUTO_UPDATE_REPO_DIR: "/repo",
-      AUTO_UPDATE_COMPOSE_FILE: "/repo/docker-compose.yml",
+      AUTO_UPDATE_COMPOSE_FILE: "/repo/compose.yaml",
       AUTO_UPDATE_COMPOSE_PROFILE: "cli",
       AUTO_UPDATE_SERVICE: "omniroute-cli",
       AUTO_UPDATE_GIT_REMOTE: "origin",

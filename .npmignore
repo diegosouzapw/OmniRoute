@@ -43,7 +43,7 @@ next-env.d.ts
 llm.txt
 
 # Docker
-docker-compose*.yml
+compose*.yaml
 Dockerfile
 .dockerignore
 

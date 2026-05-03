@@ -83,7 +83,7 @@ audit-report.json
 sonar-project.properties
 
 # Deployment Configs
-docker-compose*.yml
+compose*.yaml
 fly.toml
 
 # Consistent with .gitignore

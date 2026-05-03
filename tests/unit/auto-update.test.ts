@@ -58,7 +58,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "source",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -84,7 +84,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "source",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -101,7 +101,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "source",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -120,7 +120,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "docker-compose",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -137,7 +137,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "docker-compose",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -154,7 +154,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "docker-compose",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -174,7 +174,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "docker-compose",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -194,7 +194,7 @@ test("validateAutoUpdateRuntime covers source, docker preconditions and successf
     {
       mode: "docker-compose",
       repoDir: "/repo",
-      composeFile: "/repo/docker-compose.yml",
+      composeFile: "/repo/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -263,7 +263,7 @@ test("auto update script builders generate npm, source, and docker-compose scrip
     config: {
       mode: "docker-compose",
       repoDir: "/workspace/with spaces",
-      composeFile: "/workspace/with spaces/docker-compose.yml",
+      composeFile: "/workspace/with spaces/compose.yaml",
       composeProfile: "cli",
       composeService: "omniroute-cli",
       gitRemote: "origin",
@@ -327,7 +327,7 @@ test("launchAutoUpdate returns validation failures and starts detached update sc
 
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-autoupdate-"));
   const repoDir = path.join(tempRoot, "repo");
-  const composeFile = path.join(repoDir, "docker-compose.yml");
+  const composeFile = path.join(repoDir, "compose.yaml");
   const logPath = path.join(tempRoot, "logs", "auto-update.log");
   fs.mkdirSync(repoDir, { recursive: true });
   fs.writeFileSync(composeFile, "services: {}\n");
