@@ -1,0 +1,70 @@
+{
+  "language": "es",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "es_polite_framing",
+      "pattern": "\\b(?:por favor|podrias|podrías|puedes|me gustaria que|me gustaría que|necesito que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_pleasantries",
+      "pattern": "\\b(?:hola|buenos dias|buenos días|buenas tardes|gracias|muchas gracias)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_hedging",
+      "pattern": "\\b(?:creo que|me parece que|parece que|tal vez|probablemente|posiblemente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_filler_adverbs",
+      "pattern": "\\b(?:basicamente|básicamente|esencialmente|en realidad|literalmente|simplemente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_self_reference",
+      "pattern": "^(?:estoy intentando|quiero|necesito|me gustaria|me gustaría)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_verbose_request",
+      "pattern": "\\b(?:podrias explicarme|podrías explicarme|puedes explicar|podrias detallar|podrías detallar)\\b\\s*",
+      "replacement": "Explica ",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_qualifiers",
+      "pattern": "\\b(?:un poco|algo asi|algo así|mas o menos|más o menos|de alguna manera)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_softeners",
+      "pattern": "\\b(?:si es posible|cuando puedas|sin prisa|solo queria|sólo quería)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

@@ -210,6 +210,12 @@ export async function getUnifiedModelsResponse(
     if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
+    const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
+      aliasToProviderId[aliasOrProviderId] ||
+      (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
+      FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
+      fallbackProviderId ||
+      aliasOrProviderId;
 
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders: Set<string> = new Set(
@@ -322,7 +328,7 @@ export async function getUnifiedModelsResponse(
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
       // Skip blocked providers (Issue #96)
       if (blockedProviders.has(alias) || blockedProviders.has(canonicalProviderId)) continue;
@@ -387,7 +393,7 @@ export async function getUnifiedModelsResponse(
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
         const parentProviderType = nodeIdToProviderType[providerId];
 
         if (
@@ -405,12 +411,15 @@ export async function getUnifiedModelsResponse(
 
           const aliasId = `${alias}/${sm.id}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
           const syncedFields = {
             ...(modelType ? { type: modelType } : {}),
+            ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
@@ -478,7 +487,7 @@ export async function getUnifiedModelsResponse(
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || provider;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
 
       // FIX #1752: Ensure blocked providers are not returned for non-chat models
       if (
@@ -492,16 +501,38 @@ export async function getUnifiedModelsResponse(
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
 
+    const hasEquivalentSpecialtyModel = (
+      providerId: string,
+      rawModelId: string,
+      type: string,
+      scopedModelId: string
+    ) =>
+      models.some((model: any) => {
+        if (model?.id === scopedModelId) return true;
+        if (model?.owned_by !== providerId || model?.type !== type) return false;
+        const existingRoot =
+          typeof model?.root === "string"
+            ? model.root
+            : typeof model?.id === "string"
+              ? model.id.split("/").pop()
+              : null;
+        return existingRoot === rawModelId;
+      });
+
     // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
       if (!isProviderActive(embModel.provider)) continue;
       const rawModelId = embModel.id.split("/").pop() || embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
+        continue;
+      }
       models.push({
         id: embModel.id,
         object: "model",
         created: timestamp,
         owned_by: embModel.provider,
+        root: rawModelId,
         type: "embedding",
         dimensions: embModel.dimensions,
       });
@@ -530,11 +561,15 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(rerankModel.provider)) continue;
       const rawModelId = rerankModel.id.split("/").pop() || rerankModel.id;
       if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
+        continue;
+      }
       models.push({
         id: rerankModel.id,
         object: "model",
         created: timestamp,
         owned_by: rerankModel.provider,
+        root: rawModelId,
         type: "rerank",
       });
     }
@@ -611,7 +646,7 @@ export async function getUnifiedModelsResponse(
         // For compatible providers, use the prefix from provider nodes
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
         // Only include if provider is active — check alias, canonical ID, raw providerId,
         // or the parent provider type (for compatible providers whose node ID is a UUID)
@@ -649,8 +684,15 @@ export async function getUnifiedModelsResponse(
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          if (
+            modelType &&
+            hasEquivalentSpecialtyModel(canonicalProviderId, modelId, modelType, aliasId)
+          ) {
+            continue;
+          }
           const visionFields =
             modelType === "chat"
               ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)

@@ -26,6 +26,7 @@ import {
   getRememberedResponseConversationItems,
   getRememberedResponseFunctionCalls,
 } from "../services/responsesToolCallState.ts";
+import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { createRequire } from "module";
@@ -45,6 +46,11 @@ type WreqWebSocket = {
   onclose: (() => void) | null;
 };
 type WebsocketFn = (url: string, opts?: Record<string, unknown>) => Promise<WreqWebSocket>;
+type ResponsesMessageInput = {
+  role?: unknown;
+  phase?: unknown;
+  content?: unknown;
+};
 
 let _websocketFn: WebsocketFn | null = null;
 let _wreqChecked = false;
@@ -1185,19 +1191,49 @@ export class CodexExecutor extends BaseExecutor {
     // Issue #1832 & #1853: Map messages to input for clients like Cursor 5.5 that use responses/compact but send messages instead of input.
     // This MUST run before convertSystemToDeveloperRole and stripStoredItemReferences.
     if (!body.input && Array.isArray(body.messages)) {
-      body.input = body.messages.map((msg: any) => ({
+      body.input = body.messages.map((msg: ResponsesMessageInput) => ({
         type: "message",
         role: typeof msg.role === "string" ? msg.role : "user",
+        ...(typeof msg.phase === "string" ? { phase: msg.phase } : {}),
         content:
           typeof msg.content === "string"
             ? [{ type: "input_text", text: msg.content }]
             : Array.isArray(msg.content)
-              ? msg.content.map((c: any) => {
-                  if (c && c.type === "text") return { type: "input_text", text: c.text };
-                  return c;
+              ? msg.content.map((contentPart: unknown) => {
+                  if (
+                    contentPart &&
+                    typeof contentPart === "object" &&
+                    !Array.isArray(contentPart) &&
+                    (contentPart as Record<string, unknown>).type === "text"
+                  ) {
+                    return {
+                      type: "input_text",
+                      text: (contentPart as Record<string, unknown>).text,
+                    };
+                  }
+                  return contentPart;
                 })
               : [],
       }));
+    } else if (!body.input && typeof body.prompt === "string" && body.prompt.trim()) {
+      // Issue #1872: Cursor occasionally passes the request as `prompt` instead of `messages`.
+      body.input = [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: body.prompt }],
+        },
+      ];
+    } else if (!body.input && Array.isArray(body.prompt)) {
+      body.input = body.prompt.map((p: any) => ({
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
+      }));
+    }
+
+    if (Array.isArray(body.input)) {
+      body.input = sanitizeResponsesInputItems(body.input, false);
     }
 
     // ── Cache-aware system prompt handling (both paths) ──

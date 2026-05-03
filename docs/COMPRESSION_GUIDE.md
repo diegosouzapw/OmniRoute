@@ -1,6 +1,6 @@
 # 🗜️ Prompt Compression Guide — OmniRoute
 
-> Save 15-75% on token costs automatically. For a quick overview, see the [README Compression section](../README.md#%EF%B8%8F-prompt-compression--save-15-75-tokens-automatically).
+> Save 15-95% on eligible context automatically. For a quick overview, see the [README Compression section](../README.md#%EF%B8%8F-prompt-compression--save-15-95-eligible-tokens-automatically).
 
 ## Overview
 
@@ -19,6 +19,8 @@ Client Request
     → Standard: Caveman-speak filler removal (~30%)
     → Aggressive: History aging + summarization (~50%)
     → Ultra: Heuristic pruning + code-block thinning (~75%)
+    → RTK: Command-aware terminal/tool-output filtering (60-90% upstream range)
+    → Stacked: Ordered multi-engine pipeline, usually RTK then Caveman (78-95% eligible range)
   → Compressed Request → Provider
 ```
 
@@ -77,6 +79,65 @@ Maximum compression for token-critical scenarios:
 
 **Best for:** When you're hitting context limits repeatedly.
 
+### RTK Mode (60-90% upstream range)
+
+RTK mode is optimized for verbose tool outputs that appear in coding-agent sessions:
+
+- Detects command/output classes such as `git status`, `git diff`, `git log`, test runners,
+  TypeScript/Vite/Webpack builds, ESLint/Biome/Prettier, npm audit/installs, Docker logs, infra
+  output, and generic shell output
+- Applies JSON filter packs from `open-sse/services/compression/engines/rtk/filters/`
+- Ships 49 built-in filters with inline verify samples
+- Removes ANSI control sequences, progress bars, repeated lines, and non-actionable noise
+- Preserves failures, errors, warnings, changed files, summaries, and the tail of long output
+- Supports trust-gated project filters, global filters, and optional redacted raw-output recovery
+
+**Best for:** Agent sessions with shell, build, test, git, grep, and file-output transcripts.
+
+### Stacked Mode (78-95% eligible range)
+
+Stacked mode runs multiple compression engines in a deterministic order. The default pipeline is:
+
+```txt
+RTK -> Caveman
+```
+
+That order keeps terminal/tool output compact first, then applies Caveman semantic condensation to
+the remaining natural-language prompt. Stacked pipelines can be configured globally or through
+compression combos assigned to routing combos.
+
+**Best for:** Mixed context with large tool logs plus human instructions or assistant summaries.
+
+---
+
+## Upstream Savings Math
+
+OmniRoute documents compression savings from two sources: upstream project benchmarks and
+OmniRoute's own engine composition.
+
+| Source  | Upstream README number used here                                                                                      |
+| ------- | --------------------------------------------------------------------------------------------------------------------- |
+| Caveman | `~75%` fewer output tokens, `65%` benchmark average output savings, `22-87%` range, and `~46%` input compression tool |
+| RTK     | `60-90%` command-output savings; sample session `~118,000 -> ~23,900` tokens, or `79.7%` saved (`~80%`)               |
+
+For overlapping tool/context payloads, the default OmniRoute combo stacks the engines:
+
+```txt
+RTK -> Caveman
+```
+
+The combined savings are multiplicative, not additive:
+
+```txt
+combined = 1 - (1 - RTK savings) * (1 - Caveman input savings)
+average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
+range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
+```
+
+That `78-95%` number applies when both RTK and Caveman can reduce the same input/context payload.
+Caveman response output mode is separate: when enabled, use Caveman's own output savings (`65%`
+average, `~75%` headline, `22-87%` range). Total billing savings depend on your prompt/output mix.
+
 ---
 
 ## Token Savings Visualization
@@ -87,6 +148,8 @@ With Lite:           40K tokens sent          (15% saved — safe, always-on)
 With Standard:       33K tokens sent          (30% saved — caveman-speak rules)
 With Aggressive:     24K tokens sent          (50% saved — aging + summarization)
 With Ultra:          12K tokens sent          (75% saved — heuristic pruning)
+With RTK:            19K-5K tokens sent       (60-90% saved on command/tool output)
+With Stacked:        10K-2.5K tokens sent     (78-95% eligible RTK+Caveman range)
 ```
 
 ---
@@ -95,25 +158,29 @@ With Ultra:          12K tokens sent          (75% saved — heuristic pruning)
 
 ### Dashboard
 
-Navigate to `Dashboard → Settings → Compression`:
+Navigate to `Dashboard → Context & Cache`:
 
-- **Default Mode** — sets the system-wide compression mode
+- **Caveman** — mode selection, language packs, preview, and global defaults
+- **RTK** — command-filter preview, RTK safety settings, and filter catalog
+- **Compression Combos** — named engine pipelines assigned to routing combos
 - **Auto-Trigger Threshold** — automatically engage compression when token count exceeds threshold
-- **Per-Combo Override** — each combo can have its own compression mode
 
 ### Per-Combo Override
 
-In `Dashboard → Combos → [Your Combo] → Advanced`, set compression mode per combo:
+In `Dashboard → Context & Cache → Compression Combos`, assign a compression combo to a routing
+combo:
 
 ```txt
 Combo: "free-forever"
-  Mode: Standard
+  Compression Combo: "coding-agent-stack"
+  Pipeline: RTK -> Caveman
   Targets:
     1. gc/gemini-3-flash
     2. if/kimi-k2-thinking
 ```
 
-This lets you use aggressive compression on free providers while keeping lite mode on paid subscriptions.
+This lets you use stacked compression on free/coding providers while keeping lite mode on paid
+subscriptions.
 
 ### API
 
@@ -124,7 +191,20 @@ curl http://localhost:20128/api/settings/compression
 # Update compression settings
 curl -X PUT http://localhost:20128/api/settings/compression \
   -H "Content-Type: application/json" \
-  -d '{"defaultMode":"lite","autoTriggerThreshold":32000}'
+  -d '{"defaultMode":"stacked","autoTriggerMode":"stacked","autoTriggerTokens":32000}'
+
+# Preview a specific RTK/stacked payload
+curl -X POST http://localhost:20128/api/compression/preview \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"rtk","messages":[{"role":"tool","content":"npm test output here"}]}'
+
+# List RTK filter packs
+curl http://localhost:20128/api/context/rtk/filters
+
+# Test RTK directly with optional command metadata
+curl -X POST http://localhost:20128/api/context/rtk/test \
+  -H "Content-Type: application/json" \
+  -d '{"command":"npm test","text":"FAIL tests/example.test.ts\nError: boom"}'
 ```
 
 ---
@@ -136,10 +216,13 @@ The compression engine **always preserves:**
 - ✅ Code blocks (fenced and inline)
 - ✅ URLs and file paths
 - ✅ JSON structures and structured data
-- ✅ API keys, tokens, and identifiers
+- ✅ Identifiers and protected technical tokens
 - ✅ Mathematical expressions
 - ✅ Tool/function call definitions
 - ✅ System prompts (in lite mode)
+
+RTK raw-output recovery redacts common API keys, bearer tokens, Slack tokens, AWS access keys,
+passwords, tokens, and secrets before anything is persisted.
 
 ---
 
@@ -154,7 +237,10 @@ Every compressed request includes stats in the server logs:
   "savingsPercent": 15.0,
   "techniquesUsed": ["collapseWhitespace", "dedupSystemPrompt"],
   "mode": "lite",
-  "latencyMs": 0.8
+  "engine": "caveman",
+  "compressionComboId": "coding-agent-stack",
+  "durationMs": 0.8,
+  "rtkRawOutputPointers": []
 }
 ```
 
@@ -166,13 +252,16 @@ Every compressed request includes stats in the server logs:
 | ------- | ------------------------------------ | ---------- |
 | Phase 1 | Off, Lite                            | ✅ Shipped |
 | Phase 2 | Standard, Aggressive, Ultra          | ✅ Shipped |
-| Phase 3 | Per-model adaptive, ML-based pruning | 🗓️ Planned |
+| Phase 3 | RTK, Stacked, Compression Combos     | ✅ Shipped |
+| Phase 4 | Per-model adaptive, ML-based pruning | 🗓️ Planned |
 
 ---
 
 ## Acknowledgments
 
-Standard mode compression rules are inspired by **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project.
+Standard mode compression rules are inspired by **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project. Caveman reports `~75%` fewer output tokens, `65%` benchmark average output savings, a `22-87%` output range, and a `~46%` input-compression tool.
+
+RTK mode is inspired by **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project for terminal, build, test, git, and tool-output filtering. RTK reports `60-90%` savings, with its README sample session showing `~80%` saved.
 
 ---
 
@@ -181,3 +270,7 @@ Standard mode compression rules are inspired by **[Caveman](https://github.com/J
 - [Environment Config](ENVIRONMENT.md) — Compression environment variables
 - [Architecture Guide](ARCHITECTURE.md) — Compression pipeline internals
 - [User Guide](USER_GUIDE.md) — Getting started with compression
+- [RTK Compression](RTK_COMPRESSION.md) — RTK filters, trust model, verify gate, raw-output recovery
+- [Compression Engines](COMPRESSION_ENGINES.md) — Caveman, RTK, stacked, APIs, MCP, dashboard
+- [Compression Rules Format](COMPRESSION_RULES_FORMAT.md) — JSON rule-pack format
+- [Compression Language Packs](COMPRESSION_LANGUAGE_PACKS.md) — Language-specific Caveman rules

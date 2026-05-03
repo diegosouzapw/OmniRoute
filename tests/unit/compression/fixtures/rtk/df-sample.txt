@@ -1,0 +1,4 @@
+Filesystem      Size  Used Avail Use% Mounted on
+udev            2.0G     0  2.0G   0% /dev
+/dev/sda1        50G   45G  5.0G  90% /
+/dev/sdb1       200G  120G   80G  60% /data
