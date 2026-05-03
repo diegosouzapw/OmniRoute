@@ -1,0 +1,2 @@
+src/app.py:12: error: Incompatible return value type (got "str", expected "int")  [return-value]
+Found 1 error in 1 file (checked 5 source files)

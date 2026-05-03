@@ -154,4 +154,39 @@ describe("applyCompression", () => {
     const result = applyCompression(body, "standard");
     assert.equal(result.compressed, false);
   });
+
+  it("applies rtk compression to tool output", () => {
+    const body = {
+      messages: [
+        {
+          role: "tool",
+          content: Array.from({ length: 20 }, () => "same noisy line").join("\n"),
+        },
+      ],
+    };
+    const result = applyCompression(body, "rtk");
+    assert.equal(result.stats?.mode, "rtk");
+    assert.equal(result.stats?.engine, "rtk");
+    assert.equal(result.compressed, true);
+  });
+
+  it("applies stacked compression with RTK followed by Caveman", () => {
+    const body = {
+      messages: [
+        {
+          role: "tool",
+          content: Array.from({ length: 20 }, () => "same noisy line").join("\n"),
+        },
+        {
+          role: "user",
+          content: "Could you please explain in detail what I need to do?",
+        },
+      ],
+    };
+    const result = applyCompression(body, "stacked");
+    assert.equal(result.stats?.mode, "stacked");
+    assert.equal(result.stats?.engine, "stacked");
+    assert.ok(result.stats?.engineBreakdown?.some((entry) => entry.engine === "rtk"));
+    assert.ok(result.stats?.engineBreakdown?.some((entry) => entry.engine === "caveman"));
+  });
 });

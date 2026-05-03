@@ -1,0 +1,34 @@
+{
+  "id": "ps",
+  "label": "ps",
+  "description": "Keep process table headers and process rows, dropping empty noise.",
+  "category": "shell",
+  "priority": 68,
+  "match": {
+    "outputTypes": ["shell-ps"],
+    "commands": ["^ps\\b"],
+    "patterns": ["^(?:USER\\s+PID|\\s*PID\\s+)"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$"],
+    "includePatterns": ["^(?:USER\\s+PID|\\s*PID\\s+)", "^\\S+\\s+\\d+\\s+", "^\\s*\\d+\\s+"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["defunct", "Permission denied"],
+    "summaryPatterns": ["^(?:USER\\s+PID|\\s*PID\\s+)"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "ps aux",
+      "input": "USER       PID %CPU COMMAND\nroot         1  0.0 init\nnode      1234  5.0 node server.js\n",
+      "expected": "USER       PID %CPU COMMAND\nroot         1  0.0 init\nnode      1234  5.0 node server.js"
+    }
+  ]
+}

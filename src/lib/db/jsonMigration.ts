@@ -12,6 +12,7 @@
  */
 
 import type Database from "better-sqlite3";
+import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
 
 type SqliteDatabase = InstanceType<typeof Database>;
 
@@ -172,8 +173,19 @@ export function runJsonMigration(
 
     // 5. Combos
     for (const [index, combo] of (data.combos ?? []).entries()) {
-      const normalizedCombo = {
+      const config =
+        combo.config && typeof combo.config === "object" && !Array.isArray(combo.config)
+          ? { ...(combo.config as Record<string, unknown>) }
+          : combo.config;
+      if (config && typeof config === "object" && !Array.isArray(config) && "strategy" in config) {
+        (config as Record<string, unknown>).strategy = normalizeRoutingStrategy(
+          (config as Record<string, unknown>).strategy
+        );
+      }
+      const normalizedCombo: Record<string, unknown> = {
         ...combo,
+        strategy: normalizeRoutingStrategy(combo.strategy),
+        config,
         sortOrder: typeof combo.sortOrder === "number" ? combo.sortOrder : index + 1,
       };
       insertCombo.run({

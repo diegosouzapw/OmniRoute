@@ -266,6 +266,22 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "provider_connections", "max_concurrent");
     case "040":
       return hasColumn(db, "proxy_registry", "source");
+    case "041":
+      return (
+        hasColumn(db, "compression_analytics", "actual_prompt_tokens") &&
+        hasColumn(db, "compression_analytics", "actual_completion_tokens") &&
+        hasColumn(db, "compression_analytics", "actual_total_tokens") &&
+        hasColumn(db, "compression_analytics", "receipt_source") &&
+        hasColumn(db, "compression_analytics", "validation_fallback") &&
+        hasColumn(db, "compression_analytics", "output_mode")
+      );
+    case "042":
+      return (
+        hasTable(db, "compression_combos") &&
+        hasTable(db, "compression_combo_assignments") &&
+        hasColumn(db, "compression_analytics", "compression_combo_id") &&
+        hasColumn(db, "compression_analytics", "engine")
+      );
     default:
       return false;
   }
@@ -297,6 +313,103 @@ function applySearchRequestTypeMigration(db: Database.Database): void {
     "ALTER TABLE call_logs ADD COLUMN request_type TEXT DEFAULT NULL"
   );
   db.exec("CREATE INDEX IF NOT EXISTS idx_call_logs_request_type ON call_logs(request_type);");
+}
+
+function applyCompressionReceiptsMigration(db: Database.Database): void {
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "actual_prompt_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_prompt_tokens INTEGER"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "actual_completion_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_completion_tokens INTEGER"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "actual_total_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_total_tokens INTEGER"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "actual_cache_read_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_read_tokens INTEGER"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "actual_cache_write_tokens",
+    "ALTER TABLE compression_analytics ADD COLUMN actual_cache_write_tokens INTEGER"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "estimated_usd_saved",
+    "ALTER TABLE compression_analytics ADD COLUMN estimated_usd_saved REAL"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "mcp_description_tokens_saved",
+    "ALTER TABLE compression_analytics ADD COLUMN mcp_description_tokens_saved INTEGER DEFAULT 0"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "multimodal_skip_count",
+    "ALTER TABLE compression_analytics ADD COLUMN multimodal_skip_count INTEGER DEFAULT 0"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "receipt_source",
+    "ALTER TABLE compression_analytics ADD COLUMN receipt_source TEXT"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "validation_fallback",
+    "ALTER TABLE compression_analytics ADD COLUMN validation_fallback INTEGER DEFAULT 0"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "output_mode",
+    "ALTER TABLE compression_analytics ADD COLUMN output_mode TEXT"
+  );
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_compression_analytics_request_id
+      ON compression_analytics(request_id);
+    CREATE INDEX IF NOT EXISTS idx_compression_analytics_receipt_source
+      ON compression_analytics(receipt_source);
+  `);
+}
+
+function applyCompressionCombosMigration(db: Database.Database, migrationPath: string): void {
+  const sql = fs.readFileSync(migrationPath, "utf-8");
+  db.exec(sql);
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "compression_combo_id",
+    "ALTER TABLE compression_analytics ADD COLUMN compression_combo_id TEXT"
+  );
+  ensureColumn(
+    db,
+    "compression_analytics",
+    "engine",
+    "ALTER TABLE compression_analytics ADD COLUMN engine TEXT"
+  );
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_compression_analytics_combo_engine
+      ON compression_analytics(compression_combo_id, engine);
+  `);
 }
 
 function inferPhysicalSchemaBaseline(db: Database.Database): {
@@ -641,6 +754,10 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
         );
       } else if (migration.version === "032") {
         applyApiKeyLifecycleMigration(db);
+      } else if (migration.version === "041") {
+        applyCompressionReceiptsMigration(db);
+      } else if (migration.version === "042") {
+        applyCompressionCombosMigration(db, migration.path);
       } else {
         const sql = fs.readFileSync(migration.path, "utf-8");
         db.exec(sql);

@@ -1,17 +1,55 @@
-export type RoutingStrategyValue =
-  | "priority"
-  | "weighted"
-  | "round-robin"
-  | "context-relay"
-  | "fill-first"
-  | "p2c"
-  | "random"
-  | "least-used"
-  | "cost-optimized"
-  | "strict-random"
-  | "auto"
-  | "context-optimized"
-  | "lkgp";
+export const ROUTING_STRATEGY_VALUES = [
+  "priority",
+  "weighted",
+  "round-robin",
+  "context-relay",
+  "fill-first",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+  "auto",
+  "lkgp",
+  "context-optimized",
+] as const;
+
+export type RoutingStrategyValue = (typeof ROUTING_STRATEGY_VALUES)[number];
+
+export const AUTO_ROUTING_STRATEGY_VALUES = [
+  "rules",
+  "cost",
+  "eco",
+  "latency",
+  "fast",
+  "lkgp",
+] as const;
+
+export type AutoRoutingStrategyValue = (typeof AUTO_ROUTING_STRATEGY_VALUES)[number];
+
+export const ACCOUNT_FALLBACK_STRATEGY_VALUES = [
+  "priority",
+  "weighted",
+  "fill-first",
+  "round-robin",
+  "p2c",
+  "random",
+  "least-used",
+  "cost-optimized",
+  "strict-random",
+] as const;
+
+export type AccountFallbackStrategyValue = (typeof ACCOUNT_FALLBACK_STRATEGY_VALUES)[number];
+
+export function normalizeRoutingStrategy(value: unknown): RoutingStrategyValue {
+  if (typeof value !== "string") return "priority";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "usage") return "least-used";
+  if (normalized === "context") return "context-optimized";
+  return (ROUTING_STRATEGY_VALUES as readonly string[]).includes(normalized)
+    ? (normalized as RoutingStrategyValue)
+    : "priority";
+}
 
 type RoutingStrategyOption = {
   value: RoutingStrategyValue;
@@ -115,17 +153,4 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
   },
 ];
 
-export const SETTINGS_FALLBACK_STRATEGY_VALUES: RoutingStrategyValue[] = [
-  "priority",
-  "weighted",
-  "fill-first",
-  "round-robin",
-  "p2c",
-  "random",
-  "least-used",
-  "cost-optimized",
-  "strict-random",
-  "auto",
-  "context-optimized",
-  "lkgp",
-];
+export const SETTINGS_FALLBACK_STRATEGY_VALUES = ACCOUNT_FALLBACK_STRATEGY_VALUES;

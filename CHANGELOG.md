@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat(compression):** add RTK tool-output compression, stacked Caveman + RTK pipelines,
+  compression combo assignments, dashboard context pages, MCP management tools, and
+  language-aware Caveman rule packs.
+- **feat(compression):** expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages,
+  inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and
+  redacted raw-output recovery.
+
+---
+
+## [3.7.9] — 2026-05-02
+
+### ✨ New Features
+
+- **feat(provider):** update Jina AI model catalog to support Embeddings and Rerank natively (#1874 — thanks @backryun)
+
+### 🐛 Bug Fixes
+
+- **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)
+- **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)
+- **fix(core):** align stream parameter default to false per strict OpenAI spec (fixes #1873)
+
+### 🏆 Release Attribution & Retroactive Credits
+
+- **@payne0420** (PR #1828 / #1839) — Implementation of the **Rate Limit Watchdog** and environment overrides. (This feature was manually backported to v3.7.8, causing the automatic GitHub Release notes to omit the author's credit).
+
 ---
 
 ## [3.7.8] — 2026-05-01

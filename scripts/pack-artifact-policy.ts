@@ -42,6 +42,8 @@ export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
   ".next/",
   "data/",
   "node_modules/",
+  "open-sse/services/compression/engines/rtk/filters/",
+  "open-sse/services/compression/rules/",
   "public/",
   "src/lib/db/migrations/",
   "src/mitm/",
@@ -88,6 +90,8 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 ];
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
+  "app/open-sse/services/compression/engines/rtk/filters/generic-output.json",
+  "app/open-sse/services/compression/rules/en/filler.json",
   "app/server.js",
   "app/server-ws.mjs",
   "app/responses-ws-proxy.mjs",

@@ -1,0 +1,3 @@
+src/app.py:1:1: F401 `os` imported but unused
+src/app.py:4:5: E722 Do not use bare `except`
+Found 2 errors.

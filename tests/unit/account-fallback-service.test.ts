@@ -5,6 +5,7 @@ const accountFallback = await import("../../open-sse/services/accountFallback.ts
 const accountSelector = await import("../../open-sse/services/accountSelector.ts");
 const { RateLimitReason, COOLDOWN_MS, PROVIDER_PROFILES } =
   await import("../../open-sse/config/constants.ts");
+const { getCircuitBreaker } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 const {
   isOAuthInvalidToken,
@@ -465,6 +466,31 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
   } finally {
     Date.now = originalNow;
     clearProviderFailure("test-provider");
+  }
+});
+
+test("recordProviderFailure honors runtime provider breaker profile", () => {
+  const provider = "test-provider-runtime-profile";
+  clearProviderFailure(provider);
+
+  try {
+    const runtimeProfile = {
+      failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold + 7,
+      resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset + 45_000,
+    };
+
+    recordProviderFailure(provider, undefined, "conn-runtime-profile", runtimeProfile);
+
+    const breaker = getCircuitBreaker(provider);
+    assert.equal(breaker.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breaker.resetTimeout, runtimeProfile.resetTimeoutMs);
+    assert.equal(isProviderInCooldown(provider), false);
+
+    const breakerAfterStatusCheck = getCircuitBreaker(provider);
+    assert.equal(breakerAfterStatusCheck.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
+  } finally {
+    clearProviderFailure(provider);
   }
 });
 

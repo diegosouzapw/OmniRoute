@@ -355,8 +355,23 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
   assert.equal(jinaBody.source, "local_catalog");
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v3"));
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-embeddings-v5-text-small" &&
+        model.apiFormat === "embeddings" &&
+        model.supportedEndpoints?.includes("embeddings")
+    )
+  );
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-reranker-v3" &&
+        model.apiFormat === "rerank" &&
+        model.supportedEndpoints?.includes("rerank")
+    )
+  );
+  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-m0"));
 });
 
 test("provider models route returns the local catalog for Runway video models", async () => {

@@ -1,0 +1,33 @@
+{
+  "id": "docker-ps",
+  "label": "Docker PS",
+  "description": "Keep docker container table header and rows under a fixed cap.",
+  "category": "docker",
+  "priority": 60,
+  "match": {
+    "outputTypes": ["docker-ps"],
+    "commands": ["^docker\\s+ps\\b"],
+    "patterns": ["^CONTAINER ID\\s+IMAGE\\s+COMMAND"]
+  },
+  "rules": {
+    "includePatterns": [],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 80,
+    "headLines": 30,
+    "tailLines": 20
+  },
+  "preserve": {
+    "errorPatterns": ["^CONTAINER ID"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "docker ps",
+      "input": "CONTAINER ID   IMAGE   COMMAND\nabc123         node    \"npm start\"\n",
+      "expected": "CONTAINER ID   IMAGE   COMMAND\nabc123         node    \"npm start\""
+    }
+  ]
+}
