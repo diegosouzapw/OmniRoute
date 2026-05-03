@@ -21,7 +21,7 @@ export type ManagedImportedModel = {
   id: string;
   name: string;
   source: "imported";
-  apiFormat: "chat-completions";
+  apiFormat: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
   outputTokenLimit?: number;
@@ -48,7 +48,7 @@ function normalizeImportedModels(fetchedModels: unknown): ManagedImportedModel[]
     id: model.id,
     name: model.name || model.id,
     source: "imported",
-    apiFormat: "chat-completions",
+    apiFormat: toNonEmptyString(model.apiFormat) || "chat-completions",
     ...(Array.isArray(model.supportedEndpoints) && model.supportedEndpoints.length > 0
       ? { supportedEndpoints: model.supportedEndpoints }
       : {}),

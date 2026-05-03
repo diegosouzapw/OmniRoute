@@ -1,0 +1,43 @@
+{
+  "id": "npm-audit",
+  "label": "npm audit",
+  "description": "Keep vulnerability counts and remediation hints.",
+  "category": "package",
+  "priority": 84,
+  "match": {
+    "outputTypes": ["npm-audit"],
+    "commands": ["^(?:npm|pnpm|yarn)\\s+audit\\b"],
+    "patterns": ["found \\d+ vulnerabilities", "\\bcritical\\b"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "vulnerabilities",
+      "critical",
+      "high",
+      "moderate",
+      "low",
+      "fix available",
+      "npm audit fix",
+      "No vulnerabilities"
+    ],
+    "dropPatterns": ["^\\s*$", "^# npm audit report"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 45
+  },
+  "preserve": {
+    "errorPatterns": ["critical", "high"],
+    "summaryPatterns": ["vulnerabilities", "No vulnerabilities"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:npm|pnpm|yarn) audit",
+      "input": "# npm audit report\ncritical vulnerability in foo\nfound 1 vulnerabilities\nnpm audit fix\n",
+      "expected": "critical vulnerability in foo\nfound 1 vulnerabilities\nnpm audit fix"
+    }
+  ]
+}

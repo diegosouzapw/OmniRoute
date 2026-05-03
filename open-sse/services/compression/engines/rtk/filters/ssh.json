@@ -1,0 +1,43 @@
+{
+  "id": "ssh",
+  "label": "ssh",
+  "description": "Compress SSH connection logs while preserving access and host-key failures.",
+  "category": "cloud",
+  "priority": 72,
+  "match": {
+    "outputTypes": ["ssh"],
+    "commands": ["^ssh\\b"],
+    "patterns": [
+      "Permission denied \\(",
+      "Host key verification failed",
+      "Connection (?:closed|timed out)"
+    ]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^debug\\d:", "^\\s*$"],
+    "includePatterns": [
+      "Permission denied",
+      "Host key verification failed",
+      "Connection (?:closed|timed out)",
+      "^Welcome "
+    ],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["Permission denied", "Host key verification failed", "Connection timed out"],
+    "summaryPatterns": ["^Welcome "]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "ssh host",
+      "input": "debug1: Connecting to host\nWelcome to Ubuntu\nPermission denied (publickey).\n",
+      "expected": "Welcome to Ubuntu\nPermission denied (publickey)."
+    }
+  ]
+}

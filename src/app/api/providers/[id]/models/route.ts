@@ -65,7 +65,12 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 
 type JsonRecord = Record<string, unknown>;
-type LocalCatalogModel = { id: string; name?: string };
+type LocalCatalogModel = {
+  id: string;
+  name?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+};
 
 const antigravityDiscoveryInflight = new Map<
   string,
@@ -409,33 +414,41 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
  * @param provider - Provider ID
  * @returns Array of models or undefined if provider doesn't use static models
  */
-export function getStaticModelsForProvider(
-  provider: string
-): Array<{ id: string; name: string }> | undefined {
+export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
   }
 
-  const specialtyModels: Array<{ id: string; name: string }> = [];
-  const appendModels = (models: Array<{ id: string; name?: string }>) => {
+  const specialtyModels: LocalCatalogModel[] = [];
+  const appendModels = (
+    models: Array<{ id: string; name?: string }>,
+    metadata?: Pick<LocalCatalogModel, "apiFormat" | "supportedEndpoints">
+  ) => {
     for (const model of models) {
       if (specialtyModels.some((existing) => existing.id === model.id)) continue;
       specialtyModels.push({
         id: model.id,
         name: model.name || model.id,
+        ...metadata,
       });
     }
   };
 
   const embeddingProvider = getEmbeddingProvider(provider);
   if (embeddingProvider) {
-    appendModels(embeddingProvider.models);
+    appendModels(embeddingProvider.models, {
+      apiFormat: "embeddings",
+      supportedEndpoints: ["embeddings"],
+    });
   }
 
   const rerankProvider = getRerankProvider(provider);
   if (rerankProvider) {
-    appendModels(rerankProvider.models);
+    appendModels(rerankProvider.models, {
+      apiFormat: "rerank",
+      supportedEndpoints: ["rerank"],
+    });
   }
 
   const imageProvider = getImageProvider(provider);
@@ -837,6 +850,8 @@ export async function GET(
       return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
+        ...(model.apiFormat ? { apiFormat: model.apiFormat } : {}),
+        ...(model.supportedEndpoints ? { supportedEndpoints: model.supportedEndpoints } : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
@@ -1770,6 +1785,8 @@ export async function GET(
         models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
+          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
+          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",

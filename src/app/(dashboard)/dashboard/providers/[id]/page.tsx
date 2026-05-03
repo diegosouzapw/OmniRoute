@@ -2020,6 +2020,10 @@ export default function ProviderDetailPage() {
             modelId,
             modelName: model.name || modelId,
             source: "imported",
+            ...(typeof model.apiFormat === "string" ? { apiFormat: model.apiFormat } : {}),
+            ...(Array.isArray(model.supportedEndpoints)
+              ? { supportedEndpoints: model.supportedEndpoints }
+              : {}),
           }),
         });
         // Also create an alias for routing
@@ -4212,6 +4216,7 @@ function CustomModelsSection({
               <option value="chat-completions">{t("chatCompletions")}</option>
               <option value="responses">{t("responsesApi")}</option>
               <option value="embeddings">{t("embeddings")}</option>
+              <option value="rerank">Rerank</option>
               <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
               <option value="audio-speech">{t("audioSpeech")}</option>
               <option value="images-generations">{t("imagesGenerations")}</option>
@@ -4222,7 +4227,7 @@ function CustomModelsSection({
               {t("supportedEndpointsLabel")}
             </span>
             <div className="flex items-center gap-3">
-              {["chat", "embeddings", "images", "audio"].map((ep) => (
+              {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
                 <label
                   key={ep}
                   className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
@@ -4243,9 +4248,11 @@ function CustomModelsSection({
                     ? `💬 ${t("supportedEndpointChat")}`
                     : ep === "embeddings"
                       ? `📐 ${t("supportedEndpointEmbeddings")}`
-                      : ep === "images"
-                        ? `🖼️ ${t("supportedEndpointImages")}`
-                        : `🔊 ${t("supportedEndpointAudio")}`}
+                      : ep === "rerank"
+                        ? "Rerank"
+                        : ep === "images"
+                          ? `🖼️ ${t("supportedEndpointImages")}`
+                          : `🔊 ${t("supportedEndpointAudio")}`}
                 </label>
               ))}
             </div>
@@ -4347,6 +4354,7 @@ function CustomModelsSection({
                             <option value="chat-completions">{t("chatCompletions")}</option>
                             <option value="responses">{t("responsesApi")}</option>
                             <option value="embeddings">{t("embeddings")}</option>
+                            <option value="rerank">Rerank</option>
                             <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
@@ -4357,7 +4365,7 @@ function CustomModelsSection({
                             {t("supportedEndpointsLabel")}
                           </span>
                           <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 min-w-0">
-                            {["chat", "embeddings", "images", "audio"].map((ep) => (
+                            {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
                               <label
                                 key={ep}
                                 className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
@@ -4380,9 +4388,11 @@ function CustomModelsSection({
                                   ? `💬 ${t("supportedEndpointChat")}`
                                   : ep === "embeddings"
                                     ? `📐 ${t("supportedEndpointEmbeddings")}`
-                                    : ep === "images"
-                                      ? `🖼️ ${t("supportedEndpointImages")}`
-                                      : `🔊 ${t("supportedEndpointAudio")}`}
+                                    : ep === "rerank"
+                                      ? "Rerank"
+                                      : ep === "images"
+                                        ? `🖼️ ${t("supportedEndpointImages")}`
+                                        : `🔊 ${t("supportedEndpointAudio")}`}
                               </label>
                             ))}
                           </div>

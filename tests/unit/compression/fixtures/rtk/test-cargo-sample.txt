@@ -1,0 +1,8 @@
+running 2 tests
+test parser::tests::parses_route ... ok
+test server::tests::starts ... FAILED
+
+failures:
+    server::tests::starts
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored

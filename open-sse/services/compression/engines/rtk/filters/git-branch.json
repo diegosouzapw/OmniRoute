@@ -1,0 +1,45 @@
+{
+  "id": "git-branch",
+  "label": "Git Branch",
+  "description": "Compact git branch/switch output.",
+  "category": "git",
+  "priority": 94,
+  "match": {
+    "outputTypes": ["git-branch"],
+    "commands": ["^git\\s+(?:branch|checkout|switch)\\b"],
+    "patterns": ["^\\*\\s+\\S+", "Switched to (?:a new )?branch", "Already on"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "matchOutput": [
+      {
+        "pattern": "Switched to (?:a new )?branch",
+        "message": "git: switched branch",
+        "unless": "error|failed"
+      },
+      {
+        "pattern": "Already on",
+        "message": "git: already on branch"
+      }
+    ],
+    "includePatterns": ["^\\*\\s+\\S+", "^\\s{2}\\S+", "Switched to", "Already on"],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 60,
+    "headLines": 20,
+    "tailLines": 20
+  },
+  "preserve": {
+    "errorPatterns": ["error", "failed"],
+    "summaryPatterns": ["Switched to", "Already on"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "git (?:branch|checkout|switch)",
+      "input": "  main\n* feature/rtk\n  release\n",
+      "expected": "  main\n* feature/rtk\n  release"
+    }
+  ]
+}

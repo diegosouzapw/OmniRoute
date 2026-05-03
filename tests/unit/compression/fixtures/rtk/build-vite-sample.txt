@@ -1,0 +1,3 @@
+vite v5.4.0 building for production...
+transforming (42) src/app.ts
+✓ built in 1.23s

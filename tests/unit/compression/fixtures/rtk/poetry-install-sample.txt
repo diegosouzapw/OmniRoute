@@ -1,0 +1,5 @@
+Installing dependencies from lock file
+
+Package operations: 2 installs, 0 updates, 0 removals
+  - Installing pydantic (2.9.2)
+  - Installing httpx (0.28.1)

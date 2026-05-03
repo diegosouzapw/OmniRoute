@@ -1,0 +1,4 @@
+src/app.ts:1:1 lint/suspicious/noExplicitAny
+  ! Unexpected any. Specify a different type.
+
+Checked 12 files in 18ms. No fixes applied.

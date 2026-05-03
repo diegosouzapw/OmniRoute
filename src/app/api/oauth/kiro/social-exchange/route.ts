@@ -5,6 +5,7 @@ import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { kiroSocialExchangeSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * POST /api/oauth/kiro/social-exchange
@@ -12,6 +13,10 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * Callback URL will be in format: kiro://kiro.kiroAgent/authenticate-success?code=XXX&state=YYY
  */
 export async function POST(request: Request) {
+  if ((await isAuthRequired(request)) && !(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let rawBody;
   try {
     rawBody = await request.json();
