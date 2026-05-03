@@ -72,4 +72,23 @@ describe("RTK declarative DSL pipeline", () => {
 
     assert.equal(applyLineFilter("drop me", filter).text, "dsl: empty");
   });
+
+  it("normalizes stderr prefixes before applying keep/drop rules", () => {
+    const filter = makeFilter({
+      rules: {
+        filterStderr: true,
+        includePatterns: ["^error:"],
+        dropPatterns: ["debug"],
+      },
+    });
+
+    const result = applyLineFilter(
+      "stdout | ok\nstderr | error: boom\nstderr: debug noise",
+      filter
+    );
+
+    assert.equal(result.text, "error: boom");
+    assert.ok(result.appliedRules.includes("dsl-test:filter-stderr"));
+    assert.ok(result.appliedRules.includes("dsl-test:keep"));
+  });
 });

@@ -6,6 +6,7 @@ import path from "node:path";
 
 import {
   applyCompression,
+  maybePersistRtkRawOutput,
   processRtkText,
   readRtkRawOutput,
   redactRtkRawOutput,
@@ -56,6 +57,25 @@ describe("RTK raw output retention", () => {
     });
 
     assert.equal(result.rawOutputPointers, undefined);
+  });
+
+  it("retains only configured failure output and enforces byte caps", () => {
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-raw-cap-"));
+    process.env.DATA_DIR = tempData;
+
+    assert.equal(
+      maybePersistRtkRawOutput("ordinary successful output", { retention: "failures" }),
+      null
+    );
+
+    const pointer = maybePersistRtkRawOutput("error: " + "x".repeat(5000), {
+      retention: "failures",
+      maxBytes: 64,
+    });
+    assert.ok(pointer);
+    const recovered = readRtkRawOutput(pointer.id);
+    assert.ok(recovered?.includes("truncated at 1024 bytes"));
+    assert.equal(readRtkRawOutput("0123456789abcdef01234567"), null);
   });
 
   it("propagates raw output pointers from stacked RTK runs", () => {

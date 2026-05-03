@@ -22,6 +22,58 @@ type Detector = {
   contentPatterns: RegExp[];
 };
 
+const COMMAND_PREFIXES = [
+  "git",
+  "make",
+  "terraform",
+  "tofu",
+  "opentofu",
+  "systemctl",
+  "npm",
+  "pnpm",
+  "yarn",
+  "vitest",
+  "jest",
+  "pytest",
+  "python",
+  "go",
+  "cargo",
+  "tsc",
+  "eslint",
+  "webpack",
+  "vite",
+  "biome",
+  "prettier",
+  "turbo",
+  "nx",
+  "playwright",
+  "ruff",
+  "mypy",
+  "pip",
+  "uv",
+  "poetry",
+  "golangci-lint",
+  "bundle",
+  "rubocop",
+  "docker",
+  "aws",
+  "gcloud",
+  "ssh",
+  "rsync",
+  "curl",
+  "wget",
+  "ls",
+  "find",
+  "grep",
+  "rg",
+  "ag",
+  "ps",
+  "df",
+  "du",
+];
+
+const COMMAND_PREFIX_PATTERN = new RegExp(`^(?:${COMMAND_PREFIXES.join("|")})\\b`);
+
 const DETECTORS: Detector[] = [
   {
     type: "git-status",
@@ -50,6 +102,30 @@ const DETECTORS: Detector[] = [
     category: "git",
     commandPatterns: [/^git\s+log\b/i],
     contentPatterns: [/^commit [0-9a-f]{7,40}/m, /^Author: /m],
+  },
+  {
+    type: "make",
+    category: "build",
+    commandPatterns: [/^make\b/i],
+    contentPatterns: [/^make\[\d+\]: (?:Entering|Leaving) directory/m, /make: \*\*\* /],
+  },
+  {
+    type: "terraform-plan",
+    category: "infra",
+    commandPatterns: [/^terraform\s+plan\b/i],
+    contentPatterns: [/Terraform will perform the following actions:/, /Plan: \d+ to add/i],
+  },
+  {
+    type: "tofu-plan",
+    category: "infra",
+    commandPatterns: [/^(?:tofu|opentofu)\s+plan\b/i],
+    contentPatterns: [/OpenTofu will perform the following actions:/, /Plan: \d+ to add/i],
+  },
+  {
+    type: "systemctl-status",
+    category: "infra",
+    commandPatterns: [/^systemctl\s+status\b/i],
+    contentPatterns: [/^\s*Loaded:\s+/m, /^\s*Active:\s+/m, /^●\s+\S+\.service/m],
   },
   {
     type: "test-vitest",
@@ -114,6 +190,36 @@ const DETECTORS: Detector[] = [
     contentPatterns: [/vite v[\d.]+/i, /✓ built in/i, /transforming \(\d+\)/i],
   },
   {
+    type: "biome",
+    category: "build",
+    commandPatterns: [/^biome\b/i, /^npx\s+biome\b/i],
+    contentPatterns: [/lint\/[A-Za-z0-9/.-]+/, /Checked \d+ files? in/i],
+  },
+  {
+    type: "prettier",
+    category: "build",
+    commandPatterns: [/^prettier\b/i, /^npx\s+prettier\b/i],
+    contentPatterns: [/^Checking formatting\.\.\./m, /Code style issues found/i],
+  },
+  {
+    type: "turbo",
+    category: "build",
+    commandPatterns: [/^turbo\b/i, /^npx\s+turbo\b/i],
+    contentPatterns: [/^• Packages in scope:/m, /^Tasks:\s+\d+\s+successful/m],
+  },
+  {
+    type: "nx",
+    category: "build",
+    commandPatterns: [/^nx\b/i, /^npx\s+nx\b/i],
+    contentPatterns: [/^NX\s+/m, /^> nx run /m],
+  },
+  {
+    type: "playwright",
+    category: "test",
+    commandPatterns: [/^playwright\s+test\b/i, /^npx\s+playwright\s+test\b/i],
+    contentPatterns: [/Running \d+ tests? using \d+ workers?/i, /^\s+\d+ failed/m],
+  },
+  {
     type: "npm-install",
     category: "package",
     commandPatterns: [/^(?:npm|pnpm|yarn)\s+(?:install|add|update)\b/i],
@@ -130,6 +236,54 @@ const DETECTORS: Detector[] = [
     contentPatterns: [/found \d+ vulnerabilities/i, /\b(?:low|moderate|high|critical)\b/i],
   },
   {
+    type: "ruff",
+    category: "build",
+    commandPatterns: [/^ruff\b/i, /^uv\s+run\s+ruff\b/i],
+    contentPatterns: [/^[\w./-]+\.py:\d+:\d+:\s+[A-Z]\d+/m, /Found \d+ errors?\./i],
+  },
+  {
+    type: "mypy",
+    category: "build",
+    commandPatterns: [/^mypy\b/i, /^python\s+-m\s+mypy\b/i],
+    contentPatterns: [/^[\w./-]+\.py:\d+:\s+error:/m, /Found \d+ errors? in \d+ files?/i],
+  },
+  {
+    type: "pip",
+    category: "package",
+    commandPatterns: [/^pip\s+(?:install|download|uninstall)\b/i, /^python\s+-m\s+pip\b/i],
+    contentPatterns: [/^Collecting /m, /^Successfully installed /m],
+  },
+  {
+    type: "uv-sync",
+    category: "package",
+    commandPatterns: [/^uv\s+sync\b/i, /^uv\s+pip\s+install\b/i],
+    contentPatterns: [/^Resolved \d+ packages?/m, /^Installed \d+ packages?/m],
+  },
+  {
+    type: "poetry-install",
+    category: "package",
+    commandPatterns: [/^poetry\s+install\b/i],
+    contentPatterns: [/^Installing dependencies from lock file/m, /^Package operations:/m],
+  },
+  {
+    type: "golangci-lint",
+    category: "build",
+    commandPatterns: [/^golangci-lint\b/i],
+    contentPatterns: [/^[\w./-]+\.go:\d+:\d+:/m, /^\d+ issues?:/m],
+  },
+  {
+    type: "bundle-install",
+    category: "package",
+    commandPatterns: [/^bundle\s+install\b/i],
+    contentPatterns: [/^Fetching gem metadata from /m, /^Bundle complete!/m],
+  },
+  {
+    type: "rubocop",
+    category: "build",
+    commandPatterns: [/^rubocop\b/i, /^bundle\s+exec\s+rubocop\b/i],
+    contentPatterns: [/^Inspecting \d+ files/m, /^[\w./-]+\.rb:\d+:\d+:\s+[A-Z]:/m],
+  },
+  {
     type: "docker-ps",
     category: "docker",
     commandPatterns: [/^docker\s+ps\b/i],
@@ -144,6 +298,46 @@ const DETECTORS: Detector[] = [
       /\b(?:ERROR|WARN|INFO)\b/,
       /^Attaching to /m,
     ],
+  },
+  {
+    type: "aws",
+    category: "cloud",
+    commandPatterns: [/^aws\b/i],
+    contentPatterns: [/An error occurred \([A-Za-z0-9]+\) when calling/, /^(?:upload|download): /m],
+  },
+  {
+    type: "gcloud",
+    category: "cloud",
+    commandPatterns: [/^gcloud\b/i],
+    contentPatterns: [/^ERROR: \(gcloud\./m, /^Updated property \[/m],
+  },
+  {
+    type: "ssh",
+    category: "cloud",
+    commandPatterns: [/^ssh\b/i],
+    contentPatterns: [
+      /Permission denied \(/,
+      /Host key verification failed/,
+      /Connection timed out/,
+    ],
+  },
+  {
+    type: "rsync",
+    category: "cloud",
+    commandPatterns: [/^rsync\b/i],
+    contentPatterns: [/^sending incremental file list/m, /^rsync error:/m],
+  },
+  {
+    type: "curl",
+    category: "cloud",
+    commandPatterns: [/^curl\b/i],
+    contentPatterns: [/curl: \(\d+\)/, /^HTTP\/\d(?:\.\d)? \d{3}/m],
+  },
+  {
+    type: "wget",
+    category: "cloud",
+    commandPatterns: [/^wget\b/i],
+    contentPatterns: [/^--\d{4}-\d{2}-\d{2}/m, /^ERROR \d{3}:/m],
   },
   {
     type: "json-output",
@@ -173,6 +367,24 @@ const DETECTORS: Detector[] = [
     ],
   },
   {
+    type: "shell-ps",
+    category: "shell",
+    commandPatterns: [/^ps\b/i],
+    contentPatterns: [/^(?:USER\s+PID|\s*PID\s+)/m],
+  },
+  {
+    type: "shell-df",
+    category: "shell",
+    commandPatterns: [/^df\b/i],
+    contentPatterns: [/^Filesystem\s+.*Use%/m],
+  },
+  {
+    type: "shell-du",
+    category: "shell",
+    commandPatterns: [/^du\b/i],
+    contentPatterns: [/^\d+(?:\.\d+)?[KMGTP]?\s+\S+/m],
+  },
+  {
     type: "error-stacktrace",
     category: "generic",
     commandPatterns: [],
@@ -196,11 +408,7 @@ export function detectCommandFromText(text: string): string | null {
   for (const line of firstLines) {
     const trimmed = line.trim().replace(/^\$\s+/, "");
     if (!trimmed) continue;
-    if (
-      /^(git|npm|pnpm|yarn|vitest|jest|pytest|python|go|cargo|tsc|eslint|webpack|vite|docker|ls|find|grep|rg|ag)\b/.test(
-        trimmed
-      )
-    ) {
+    if (COMMAND_PREFIX_PATTERN.test(trimmed)) {
       return trimmed;
     }
   }

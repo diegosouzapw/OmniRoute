@@ -63,8 +63,8 @@ Filters use the JSON schema described in [Compression Rules Format](compression-
 The runtime applies these stages in order:
 
 ```txt
-stripAnsi -> replace -> matchOutput -> drop/include lines -> truncateLineAt
-  -> head/tail/maxLines -> onEmpty
+stripAnsi -> filterStderr -> replace -> matchOutput -> drop/include lines
+  -> truncateLineAt -> head/tail/maxLines -> onEmpty
 ```
 
 Important fields:
@@ -72,6 +72,7 @@ Important fields:
 | Field                        | Purpose                                                        |
 | ---------------------------- | -------------------------------------------------------------- |
 | `rules.stripAnsi`            | Remove terminal color/control sequences before matching        |
+| `rules.filterStderr`         | Normalize common stderr prefixes before matching/filtering     |
 | `rules.replace`              | Apply ordered regex replacements                               |
 | `rules.matchOutput`          | Return a compact summary when output matches a known condition |
 | `rules.matchOutput[].unless` | Skip the shortcut when an error/failure pattern is present     |

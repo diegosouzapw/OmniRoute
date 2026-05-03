@@ -125,14 +125,14 @@ Each filter describes how to recognize and compress a command-output family.
 | `rules.headLines`          | no       | Head lines retained during truncation                                          |
 | `rules.tailLines`          | no       | Tail lines retained for recent context                                         |
 | `rules.onEmpty`            | no       | Fallback message when filtering removes all content                            |
-| `rules.filterStderr`       | no       | Marks filters that should merge stderr when available                          |
+| `rules.filterStderr`       | no       | Normalize common stderr prefixes before later filtering stages                 |
 | `preserve.errorPatterns`   | no       | Error lines that should survive truncation                                     |
 | `preserve.summaryPatterns` | no       | Summary lines that should survive truncation                                   |
 | `tests[]`                  | no       | Inline verification samples used by the RTK verify gate                        |
 
-RTK applies declarative stages in this order: `stripAnsi`, `replace`, `matchOutput`,
-`dropPatterns`/`includePatterns`, `truncateLineAt`, `headLines`/`tailLines`, `maxLines`, and
-`onEmpty`.
+RTK applies declarative stages in this order: `stripAnsi`, `filterStderr`, `replace`,
+`matchOutput`, `dropPatterns`/`includePatterns`, `truncateLineAt`, `headLines`/`tailLines`,
+`maxLines`, and `onEmpty`.
 
 Custom filters can be loaded from:
 

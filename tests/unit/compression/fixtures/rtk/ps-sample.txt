@@ -1,0 +1,4 @@
+USER       PID %CPU COMMAND
+root         1  0.0 /sbin/init
+node      1234  5.0 node server.js
+diego     2345  0.2 bash

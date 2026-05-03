@@ -38,6 +38,10 @@ function stripAnsi(text: string): string {
   return text.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, "");
 }
 
+function normalizeStderrPrefix(line: string): string {
+  return line.replace(/^\s*(?:stderr|err)\s*(?:\||:)\s*/i, "");
+}
+
 function truncateUnicodeSafe(line: string, maxChars: number): string {
   if (maxChars <= 0) return line;
   const chars = Array.from(line);
@@ -62,6 +66,14 @@ export function applyLineFilter(text: string, filter: RtkFilterDefinition): Line
       appliedRules.push(`${filter.id}:strip-ansi`);
     }
     lines = stripped;
+  }
+
+  if (filter.filterStderr) {
+    const normalized = lines.map(normalizeStderrPrefix);
+    if (normalized.join("\n") !== lines.join("\n")) {
+      appliedRules.push(`${filter.id}:filter-stderr`);
+    }
+    lines = normalized;
   }
 
   for (const rule of filter.replace) {

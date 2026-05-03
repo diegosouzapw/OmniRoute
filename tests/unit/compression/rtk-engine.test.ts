@@ -7,6 +7,7 @@ import {
   matchRtkFilter,
   processRtkText,
   applyRtkCompression,
+  rtkEngine,
 } from "../../../open-sse/services/compression/index.ts";
 
 describe("RTK compression engine", () => {
@@ -33,6 +34,48 @@ describe("RTK compression engine", () => {
     const result = processRtkText(output);
     assert.equal(result.compressed, true);
     assert.ok(result.text.includes("[rtk:dropped"));
+  });
+
+  it("honors disabled and empty-message runtime branches", () => {
+    const disabled = applyRtkCompression(
+      { messages: [{ role: "tool", content: "same\nsame\nsame" }] },
+      { config: { enabled: false } }
+    );
+    assert.equal(disabled.compressed, false);
+    assert.equal(disabled.stats, null);
+
+    const empty = applyRtkCompression({ messages: [] });
+    assert.equal(empty.compressed, false);
+    assert.equal(empty.stats, null);
+  });
+
+  it("respects enabled and disabled filter lists", () => {
+    const output = "diff --git a/a.ts b/a.ts\n@@ -1,1 +1,1 @@\n-error\n+ok";
+
+    const disabled = processRtkText(output, {
+      command: "git diff",
+      config: { disabledFilters: ["git-diff"] },
+    });
+    assert.ok(!disabled.rulesApplied.includes("git-diff:keep"));
+
+    const enabledMismatch = processRtkText(output, {
+      command: "git diff",
+      config: { enabledFilters: ["git-status"] },
+    });
+    assert.ok(!enabledMismatch.rulesApplied.includes("git-diff:keep"));
+  });
+
+  it("exposes RTK engine schema, validation, apply and compress contracts", () => {
+    assert.ok(rtkEngine.getConfigSchema().some((field) => field.key === "rawOutputRetention"));
+    assert.equal(rtkEngine.validateConfig({ intensity: "invalid" }).valid, false);
+    assert.equal(rtkEngine.validateConfig({ rawOutputRetention: "always" }).valid, true);
+
+    const body = { messages: [{ role: "tool", content: "same\nsame\nsame\nsame" }] };
+    assert.equal(
+      rtkEngine.apply(body, { config: { rtkConfig: { enabled: true } } }).stats?.engine,
+      "rtk"
+    );
+    assert.equal(rtkEngine.compress(body, { enabled: true }).stats?.engine, "rtk");
   });
 
   it("applies to chat tool messages", () => {

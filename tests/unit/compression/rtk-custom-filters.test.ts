@@ -7,6 +7,7 @@ import path from "node:path";
 
 import {
   getRtkFilterLoadDiagnostics,
+  getRtkFilterCatalog,
   loadRtkFilters,
   matchRtkFilter,
 } from "../../../open-sse/services/compression/index.ts";
@@ -82,5 +83,22 @@ describe("RTK custom filter lookup and trust", () => {
     const filter = matchRtkFilter("global-filter", "globalcmd");
 
     assert.equal(filter?.id, "global-filter");
+  });
+
+  it("skips invalid custom filters and keeps the dashboard catalog lightweight", () => {
+    const tempProject = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-project-"));
+    const tempData = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-rtk-data-"));
+    process.chdir(tempProject);
+    process.env.DATA_DIR = tempData;
+    fs.mkdirSync(path.join(tempData, "rtk"), { recursive: true });
+    fs.writeFileSync(path.join(tempData, "rtk", "filters.json"), "{ invalid json");
+
+    const filters = loadRtkFilters({ refresh: true });
+    const diagnostics = getRtkFilterLoadDiagnostics();
+    const catalog = getRtkFilterCatalog();
+
+    assert.ok(filters.some((filter) => filter.id === "generic-output"));
+    assert.ok(diagnostics.some((entry) => entry.source === "global" && entry.level === "warning"));
+    assert.ok(catalog.every((entry) => !("stripPatterns" in entry)));
   });
 });
