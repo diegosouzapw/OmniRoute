@@ -1,0 +1,32 @@
+{
+  "id": "generic-output",
+  "label": "Generic Output",
+  "description": "Fallback filter for unknown command output.",
+  "category": "generic",
+  "priority": 10,
+  "match": {
+    "outputTypes": ["generic-output", "generic-error"],
+    "commands": [],
+    "patterns": ["Error:", "Exception:", "Traceback \\(most recent call last\\):"]
+  },
+  "rules": {
+    "includePatterns": [],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 35,
+    "tailLines": 45
+  },
+  "preserve": {
+    "errorPatterns": ["error", "failed", "exception", "traceback"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "input": "\nError: boom\n\nTraceback (most recent call last):\n  file.py:1\n",
+      "expected": "Error: boom\nTraceback (most recent call last):\n  file.py:1"
+    }
+  ]
+}

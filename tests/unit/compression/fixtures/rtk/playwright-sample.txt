@@ -1,0 +1,6 @@
+Running 3 tests using 1 worker
+  ok 1 tests/login.spec.ts:3:1 › login works (1.2s)
+  x  2 tests/app.spec.ts:8:1 › app renders (4.0s)
+
+  1 failed
+    tests/app.spec.ts:8:1 › app renders

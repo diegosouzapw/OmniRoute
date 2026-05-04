@@ -1,0 +1,2102 @@
+[
+  {
+    "additions": 149,
+    "author": {
+      "id": "MDQ6VXNlcjM1NzM4Ng==",
+      "is_bot": false,
+      "login": "andrewmunsell",
+      "name": "Andrew Munsell"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\r\n\r\n- Add tokens_compressed INTEGER column to call_logs (migration 041)\r\n- Capture compression savings from both legacy compressContext() and modular applyCompression() pipelines in chatCore.ts\r\n- Display inline ↓N purple badge in log list view tokens cell\r\n- Show \"Compressed: FROM → TO (-X%)\" badge in detail modal Input section\r\n- Bump CallLogArtifact schemaVersion from 4 to 5\r\n\r\n<img width=\"1840\" height=\"844\" alt=\"CleanShot 2026-05-03 at 20 17 14@2x\" src=\"https://github.com/user-attachments/assets/b8f9b623-0615-4bd3-b71a-1810eb6e41c4\" />\r\n<img width=\"2620\" height=\"1010\" alt=\"CleanShot 2026-05-03 at 20 17 18@2x\" src=\"https://github.com/user-attachments/assets/58ebb33b-e7cb-417a-909e-99d9d58375b2\" />\r\n\r\n## Tests Added Or Updated\r\n\r\n- Add compression tokens unit tests\r\n",
+    "createdAt": "2026-05-04T03:48:16Z",
+    "deletions": 7,
+    "files": [
+      {
+        "path": "open-sse/handlers/chatCore.ts",
+        "additions": 7,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/i18n/messages/en.json",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/db/core.ts",
+        "additions": 4,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/db/migrationRunner.ts",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/db/migrations/041_compression_tokens.sql",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/lib/usage/callLogArtifacts.ts",
+        "additions": 2,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/usage/callLogs.ts",
+        "additions": 8,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/usage/migrations.ts",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/shared/components/RequestLoggerDetail.tsx",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/shared/components/RequestLoggerV2.tsx",
+        "additions": 11,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tests/unit/call-log-cap.test.ts",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tests/unit/compression-tokens.test.ts",
+        "additions": 98,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "emdash/indicate-compression-in-logs-use9w",
+    "number": 1923,
+    "title": "feat(logs): show compression tokens in request log UI"
+  },
+  {
+    "additions": 1698,
+    "author": {
+      "id": "MDQ6VXNlcjE0OTIxOTgz",
+      "is_bot": false,
+      "login": "oyi77",
+      "name": "Paijo"
+    },
+    "baseRefName": "release/v3.7.9",
+    "body": "Adds automated model assessment, categorization, and self-healing system for omniroute combos.\n\n## The Problem\nWhen providers fail (rate limits, auth errors, model deprecation), combos silently degrade. Our production experience: 2+ hours manually testing models and updating 44 combos because most returned errors.\n\n## The Solution\nThree new domain modules:\n1. **Assessor** - Probes every provider/model pair (quick/standard/deep tiers)\n2. **Categorizer** - Classifies models by capability with fitness scores\n3. **SelfHealer** - Auto-fixes combos: removes dead models, reduces weights for rate-limited, emergency-adds working alternatives\n\n## New Files\n- src/domain/assessment/assessor.ts\n- src/domain/assessment/categorizer.ts\n- src/domain/assessment/selfHealer.ts\n- src/domain/assessment/types.ts\n- src/domain/assessment/migration.ts\n- src/domain/assessment/index.ts\n- src/app/api/assess/route.ts\n- docs/RFC-AUTO-ASSESSMENT.md (full RFC)\n\n## New DB Tables\n- model_assessments, assessment_runs, combo_health, heal_actions\n\n## API\nPOST /api/assess/models - Run assessment\nGET /api/assess/models?action=working - Get working models\nGET /api/assess/models?action=combo-health - Get combo health\n\n> [!NOTE]\n> **OmniRoute Maintainer Note:** This PR has been deferred and will be accepted and redirected for the `v4.0.0` (or greater) release cycle. Please skip this PR during `v3.x` stabilization reviews.",
+    "createdAt": "2026-05-03T20:53:04Z",
+    "deletions": 0,
+    "files": [
+      {
+        "path": "docs/RFC-AUTO-ASSESSMENT.md",
+        "additions": 518,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/app/api/assess/route.ts",
+        "additions": 110,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/assessor.ts",
+        "additions": 206,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/categorizer.ts",
+        "additions": 118,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/index.ts",
+        "additions": 24,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/migration.ts",
+        "additions": 109,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/selfHealer.ts",
+        "additions": 261,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/domain/assessment/types.ts",
+        "additions": 352,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/auto-assessment-engine",
+    "number": 1918,
+    "title": "feat: Auto-Assessment and Self-Healing Combo Engine"
+  },
+  {
+    "additions": 22666,
+    "author": {
+      "id": "MDQ6VXNlcjgwMTY4NDE=",
+      "is_bot": false,
+      "login": "diegosouzapw",
+      "name": "Diego Rodrigues de Sa e Souza"
+    },
+    "baseRefName": "main",
+    "body": "### ✨ New Features\n\n- **feat(compression):** major upgrade to Caveman and RTK compression pipelines (#1876, #1889):\n  - Add RTK tool-output compression, stacked Caveman + RTK pipelines, compression combo assignments, dashboard context pages, MCP management tools, and language-aware Caveman rule packs.\n  - Expand RTK parity with a 39-filter catalog, RTK-style JSON DSL stages, inline verify/benchmark coverage, trust-gated custom filters, expanded command detection, and redacted raw-output recovery.\n  - Expose rule intensities, track USD savings, unify config validation, and persist MCP savings.\n  - Expand Caveman parity and MCP metadata compression.\n- **feat(provider):** update Jina AI model catalog to support Embeddings and Rerank natively (#1874 — thanks @backryun)\n- **feat(provider):** add NanoGPT image generation provider (#1899 — thanks @Aculeasis)\n- **feat(ui):** move proxy configuration to dedicated System → Proxy page (#1907 — thanks @oyi77)\n- **feat(ui):** add K/M/B/T cost shortener utility (#1902 — thanks @oyi77)\n- **feat(providers):** implement bulk paste for extra API keys (#1916 — thanks @0xtbug)\n- **feat(analytics):** usage history API key backfill + dark mode pricing (#1896 — thanks @Gi99lin)\n\n### 🐛 Bug Fixes\n\n- **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)\n- **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)\n- **fix(api-manager):** show validation errors inline in modals, not behind (#1920 — thanks @andrewmunsell)\n- **fix(compression):** align seeded standard savings combo with stacked default, preserve stacked defaults, and secure metadata routes.\n- **fix(gemini-cli):** separate Cloud Code transport from Antigravity (#1869 — thanks @dhaern)\n- **fix(codex):** map prompt field to input array for Cursor compatibility (fixes #1872)\n- **fix(core):** align stream parameter default to false per strict OpenAI spec (fixes #1873)\n- **fix(ui):** restore Next.js CSP `unsafe-eval` in production `script-src` to fix unresponsive Onboarding button (fixes #1883)\n- **fix(proxy):** globally strip `prompt_cache_retention` in `BaseExecutor` to prevent upstream 400 errors from strict endpoints like droid/gemini-2-pro (fixes #1884)\n- **fix(ui):** include `isOpen` dependency in `EditConnectionModal` state sync to ensure `maxConcurrent` is properly hydrated when reopening the modal (fixes #1859)\n- **fix(security):** remediate 4 polynomial-redos CodeQL alerts in compression regexes by bounding repetitions and removing overlapping quantifiers\n- **fix(codex):** flatten Chat Completions tool format to Codex Responses format in `normalizeCodexTools` — prevents `Missing required parameter: tools[0].name` upstream errors (#1914 — thanks @tranduykhanh030)\n- **fix(proxy):** add proxy-aware execution context to image generation route — proxy settings are now correctly applied for image providers behind restricted networks (#1904 — thanks @Aculeasis)\n- **fix(translator):** inject `properties: {}` into zero-argument MCP tool schemas during Anthropic→OpenAI translation — prevents 400 errors from OpenAI strict schema validation (#1898 — thanks @bryceIT)\n- **fix(codex):** sanitize raw responses input (#1895 — thanks @dhaern)\n- **fix(combos):** align strategy contracts (#1892 — thanks @dhaern)\n- **fix(combos):** fix combo provider breaker profile handling (#1891 — thanks @rdself)\n- **fix(migrations):** duplicate-column no-op fix (#1886 — thanks @smartenok-ops)\n- **fix(auth):** per-connection OAuth refresh mutex (#1885 — thanks @smartenok-ops)\n- **fix(auth):** require dashboard management auth for compression preview\n\n### 📝 Documentation\n\n- **docs(compression):** document RTK+Caveman stacked savings ranges\n\n### 🏆 Release Attribution & Retroactive Credits\n\n- **@payne0420** (PR #1828 / #1839) — Implementation of the **Rate Limit Watchdog** and environment overrides. (This feature was manually backported to v3.7.8, causing the automatic GitHub Release notes to omit the author's credit).\n",
+    "createdAt": "2026-05-03T20:35:53Z",
+    "deletions": 1470,
+    "files": [
+      {
+        "path": ".agents/workflows/deploy-vps-akamai.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/deploy-vps-both.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/deploy-vps-local.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/generate-release.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/version-bump.md",
+        "additions": 9,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "AGENTS.md",
+        "additions": 25,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "additions": 47,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "README.md",
+        "additions": 71,
+        "deletions": 29,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/API_REFERENCE.md",
+        "additions": 32,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "additions": 16,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/COMPRESSION_ENGINES.md",
+        "additions": 143,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/COMPRESSION_GUIDE.md",
+        "additions": 105,
+        "deletions": 12,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/COMPRESSION_LANGUAGE_PACKS.md",
+        "additions": 96,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/COMPRESSION_RULES_FORMAT.md",
+        "additions": 186,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/ENVIRONMENT.md",
+        "additions": 6,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/FEATURES.md",
+        "additions": 16,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/MCP-SERVER.md",
+        "additions": 55,
+        "deletions": 19,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/RTK_COMPRESSION.md",
+        "additions": 234,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/SETUP_GUIDE.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/openapi.yaml",
+        "additions": 199,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "electron/package-lock.json",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "electron/package.json",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "llm.txt",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "next.config.mjs",
+        "additions": 8,
+        "deletions": 95,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/config/embeddingRegistry.ts",
+        "additions": 62,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/config/imageRegistry.ts",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/config/rerankRegistry.ts",
+        "additions": 44,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/executors/base.ts",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/executors/codex.ts",
+        "additions": 75,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/handlers/chatCore.ts",
+        "additions": 338,
+        "deletions": 68,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/handlers/imageGeneration.ts",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/handlers/responseSanitizer.ts",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/mcp-server/README.md",
+        "additions": 17,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/mcp-server/descriptionCompressor.ts",
+        "additions": 243,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/mcp-server/schemas/tools.ts",
+        "additions": 121,
+        "deletions": 32,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/mcp-server/server.ts",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/mcp-server/tools/advancedTools.ts",
+        "additions": 15,
+        "deletions": 16,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/mcp-server/tools/compressionTools.ts",
+        "additions": 157,
+        "deletions": 11,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/package.json",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/AGENTS.md",
+        "additions": 5,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/accountFallback.ts",
+        "additions": 21,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/autoCombo/index.ts",
+        "additions": 1,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/combo.ts",
+        "additions": 56,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/compression/aggressive.ts",
+        "additions": 19,
+        "deletions": 29,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/compression/caveman.ts",
+        "additions": 310,
+        "deletions": 31,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/compression/cavemanRules.ts",
+        "additions": 189,
+        "deletions": 15,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "open-sse/services/compression/diffHelper.ts",
+        "additions": 117,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/cavemanAdapter.ts",
+        "additions": 408,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/index.ts",
+        "additions": 14,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/registry.ts",
+        "additions": 87,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/codeStripper.ts",
+        "additions": 128,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/commandDetector.ts",
+        "additions": 465,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/deduplicator.ts",
+        "additions": 37,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filterLoader.ts",
+        "additions": 220,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filterSchema.ts",
+        "additions": 182,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/aws.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/biome.json",
+        "additions": 35,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/build-eslint.json",
+        "additions": 37,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/build-typescript.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/build-vite.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/build-webpack.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/bundle-install.json",
+        "additions": 35,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/curl.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/df.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/docker-logs.json",
+        "additions": 42,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/docker-ps.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/du.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/error-stacktrace.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/gcloud.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/generic-output.json",
+        "additions": 32,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/git-branch.json",
+        "additions": 45,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/git-diff.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/git-log.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/git-status.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/golangci-lint.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/json-output.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/make.json",
+        "additions": 38,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/mypy.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/npm-audit.json",
+        "additions": 43,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/npm-install.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/nx.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/pip.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/playwright.json",
+        "additions": 42,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/poetry-install.json",
+        "additions": 35,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/prettier.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/ps.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/rsync.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/rubocop.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/ruff.json",
+        "additions": 40,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/shell-find.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/shell-grep.json",
+        "additions": 37,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/shell-ls.json",
+        "additions": 33,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/ssh.json",
+        "additions": 43,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/systemctl-status.json",
+        "additions": 43,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/terraform-plan.json",
+        "additions": 34,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/test-cargo.json",
+        "additions": 42,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/test-go.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/test-jest.json",
+        "additions": 43,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/test-pytest.json",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "open-sse/services/compression/engines/rtk/filters/test-vitest.json",
+        "additions": 43,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "release/v3.7.9",
+    "number": 1917,
+    "title": "Release v3.7.9"
+  },
+  {
+    "additions": 788,
+    "author": {
+      "id": "MDQ6VXNlcjI0MTk4NDIy",
+      "is_bot": false,
+      "login": "backryun",
+      "name": "backryun"
+    },
+    "baseRefName": "release/v3.7.9",
+    "body": "## Summary\r\n\r\ncompletely removing support for Node.js 20.\r\nNode.js 20 has reached EOL.\r\n<img width=\"334\" height=\"327\" alt=\"image\" src=\"https://github.com/user-attachments/assets/f88758e4-fd6e-478e-88e4-8819d0c5e8e0\" />\r\n\r\n## Validation\r\n\r\n- [x] `npm run lint`\r\n- [x] `npm run test:unit`\r\n- [ ] `npm run test:coverage`\r\n- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches\r\n\r\n## Tests Added Or Updated\r\n\r\nUpdated automated test files:\r\n\r\n- `tests/unit/node-runtime-support.test.ts`\r\n- `tests/unit/chatcore-sanitization.test.ts`\r\n- `tests/unit/codex-stream-false.test.ts`\r\n- `tests/unit/t26-ai-sdk-accept-header-compat.test.ts`\r\n- `tests/integration/chat-pipeline.test.ts`\r\n- `tests/e2e/protocol-clients.test.ts`\r\n\r\nProduction code changed: Node runtime support logic was updated in `src/shared/utils/nodeRuntimeSupport.ts` and `bin/nodeRuntimeSupport.mjs`.\r\n\r\n## Coverage Notes\r\n\r\nThis PR changes `src/` and `bin/`.\r\n\r\nCoverage for the runtime support change is primarily provided by:\r\n\r\n- `tests/unit/node-runtime-support.test.ts`\r\n- `npm run check:node-runtime`\r\n\r\nAdditional regression coverage was run through:\r\n\r\n- `npm run test:unit`\r\n- `npm run test:integration`\r\n- `npm run test:e2e`\r\n- `npm run test:protocols:e2e`\r\n\r\n`npm run test:coverage` was not run, so coverage movement for touched files has not been measured yet. Follow-up before merge: run `npm run test:coverage` and confirm statements, lines, functions, and branches remain `>= 60%`.\r\n\r\n## Reviewer Notes\r\n\r\n- Node.js 20 support is removed from runtime policy, package engines, CI, docs, and runtime warning copy.\r\n- Supported runtime policy is now Node.js `>=22.22.2 <23 || >=24.0.0 <25`.\r\n- CI matrix and local version files now target Node 22/24 support.\r\n- Docs and i18n runtime wording were updated broadly; reviewers should expect many documentation-only diffs.\r\n- `tests/e2e/protocol-clients.test.ts` now explicitly enables A2A before validating the A2A flow, matching the current default where A2A starts disabled.\r\n- Manual validation was performed on Node `v22.22.2`.\n\n> [!NOTE]\n> **OmniRoute Maintainer Note:** This PR has been deferred and will be accepted and redirected for the `v4.0.0` (or greater) release cycle. Please skip this PR during `v3.x` stabilization reviews.",
+    "createdAt": "2026-05-03T14:11:25Z",
+    "deletions": 776,
+    "files": [
+      {
+        "path": ".dockerignore",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".env.example",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "additions": 8,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".npmignore",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "AGENTS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "CLAUDE.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "Dockerfile",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "README.md",
+        "additions": 10,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "bin/nodeRuntimeSupport.mjs",
+        "additions": 3,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "compose.prod.yaml",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "compose.yaml",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "RENAMED"
+      },
+      {
+        "path": "docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bg/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/bn/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/da/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/de/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/es/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fa/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fi/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/docs/RELEASE_CHECKLIST.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/docs/TROUBLESHOOTING.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/fr/llm.txt",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/gu/CONTRIBUTING.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/gu/README.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/gu/docs/CLI-TOOLS.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/gu/docs/ENVIRONMENT.md",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/gu/docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "release/v3.7.9",
+    "number": 1915,
+    "title": "[will be merge 4.0 update] (Security Fix): Drop node.js 20 support + Update docker files to lastest docker standards"
+  },
+  {
+    "additions": 1119,
+    "author": {
+      "id": "U_kgDODPQT-Q",
+      "is_bot": false,
+      "login": "vrdons",
+      "name": ""
+    },
+    "baseRefName": "release/v3.7.9",
+    "body": "## Summary\r\n\r\nTo allow using on bun interface, faster typescript checks\r\n\r\n## Related Issues\r\nNone\r\n\r\n## Validation\r\n\r\n- [x] `npm run lint`\r\n- [ ] `npm run test:unit`\r\nNo, because last tests stucks\r\n- [x] `npm run test:coverage`\r\n- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches\r\n- [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below\r\n\r\n## Tests Added Or Updated\r\n\r\n- List every changed or added automated test file.\r\n- If no production code changed, state that here.\r\n\r\n## Coverage Notes\r\n\r\n- If this PR changes `src/`, `open-sse/`, `electron/`, or `bin/`, explain which tests cover the change.\r\n- If coverage moved down in any touched file, explain why and what follow-up task will recover it.\r\n\r\n## Reviewer Notes\r\n\r\n- Call out any risky areas, migrations, feature flags, or manual validation that reviewers should know about.\r\n\n> [!NOTE]\n> **OmniRoute Maintainer Note:** This PR has been deferred and will be accepted and redirected for the `v4.0.0` (or greater) release cycle. Please skip this PR during `v3.x` stabilization reviews.",
+    "createdAt": "2026-05-02T17:57:46Z",
+    "deletions": 231022,
+    "files": [
+      {
+        "path": ".agents/workflows/deploy-vps-akamai.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/deploy-vps-both.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/deploy-vps-local.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": ".agents/workflows/generate-release.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "AGENTS.md",
+        "additions": 4,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "CLAUDE.md",
+        "additions": 1,
+        "deletions": 218,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "GEMINI.md",
+        "additions": 1,
+        "deletions": 21,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "README.md",
+        "additions": 63,
+        "deletions": 36,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/API_REFERENCE.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/CODEBASE_DOCUMENTATION.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/ENVIRONMENT.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/FEATURES.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/I18N.md",
+        "additions": 82,
+        "deletions": 52,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/SETUP_GUIDE.md",
+        "additions": 9,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/TERMUX_GUIDE.md",
+        "additions": 2,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/TROUBLESHOOTING.md",
+        "additions": 17,
+        "deletions": 41,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/UNINSTALL.md",
+        "additions": 12,
+        "deletions": 12,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/USER_GUIDE.md",
+        "additions": 2,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/VM_DEPLOYMENT_GUIDE.md",
+        "additions": 1,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/ar/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/ar/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/ar/README.md",
+        "additions": 2,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/ar/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bg/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bg/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bg/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bg/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bn/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bn/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/bn/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/cs/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/cs/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/cs/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/cs/README.md",
+        "additions": 0,
+        "deletions": 2379,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/A2A-SERVER.md",
+        "additions": 0,
+        "deletions": 200,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/API_REFERENCE.md",
+        "additions": 0,
+        "deletions": 469,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/ARCHITECTURE.md",
+        "additions": 0,
+        "deletions": 891,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/AUTO-COMBO.md",
+        "additions": 0,
+        "deletions": 67,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/CLI-TOOLS.md",
+        "additions": 0,
+        "deletions": 398,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/CODEBASE_DOCUMENTATION.md",
+        "additions": 0,
+        "deletions": 591,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/COVERAGE_PLAN.md",
+        "additions": 0,
+        "deletions": 170,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/ENVIRONMENT.md",
+        "additions": 0,
+        "deletions": 669,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/FEATURES.md",
+        "additions": 0,
+        "deletions": 270,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/FLY_IO_DEPLOYMENT_GUIDE.md",
+        "additions": 0,
+        "deletions": 455,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/I18N.md",
+        "additions": 0,
+        "deletions": 441,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/MCP-SERVER.md",
+        "additions": 0,
+        "deletions": 87,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/RELEASE_CHECKLIST.md",
+        "additions": 0,
+        "deletions": 44,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/TROUBLESHOOTING.md",
+        "additions": 0,
+        "deletions": 341,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/UNINSTALL.md",
+        "additions": 0,
+        "deletions": 157,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/USER_GUIDE.md",
+        "additions": 0,
+        "deletions": 966,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/VM_DEPLOYMENT_GUIDE.md",
+        "additions": 0,
+        "deletions": 407,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/cloudflare-zero-trust-guide.md",
+        "additions": 0,
+        "deletions": 106,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/docs/features/context-relay.md",
+        "additions": 0,
+        "deletions": 130,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/i18n/cs/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/da/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/da/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/da/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/da/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/de/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/de/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/de/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/de/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/es/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/es/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/es/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/es/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fa/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fa/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fa/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fi/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fi/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fi/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fi/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fr/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fr/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fr/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/fr/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/gu/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/gu/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/gu/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/he/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/he/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/he/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/he/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hi/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hi/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hi/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hi/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hu/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hu/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hu/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/hu/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/id/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 4921,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/id/CLAUDE.md",
+        "additions": 0,
+        "deletions": 233,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/id/GEMINI.md",
+        "additions": 0,
+        "deletions": 25,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/id/llm.txt",
+        "additions": 0,
+        "deletions": 476,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/in/CHANGELOG.md",
+        "additions": 0,
+        "deletions": 3232,
+        "changeType": "DELETED"
+      },
+      {
+        "path": "docs/i18n/in/CLAUDE.md",
+        "additions": 0,
+        "deletions": 229,
+        "changeType": "DELETED"
+      }
+    ],
+    "headRefName": "main",
+    "number": 1894,
+    "title": "refactor(db): migrate from better-sqlite3 to node:sqlite, use tsgo"
+  },
+  {
+    "additions": 276,
+    "author": {
+      "id": "U_kgDOD9eSjQ",
+      "is_bot": false,
+      "login": "smartenok-ops",
+      "name": ""
+    },
+    "baseRefName": "release/v3.7.9",
+    "body": "When a codex SSE stream hits 429 mid-task, OmniRoute previously gave up (maxAttempts=1, no rotation). Add retry with account rotation when session affinity allows.\r\n\r\nDepends on: per-session sticky routing PR (extractSessionAffinityKey, deleteSessionAccountAffinity).\r\n\r\n## Summary\r\n\r\n- Describe the user-facing or operational change.\r\n\r\n## Related Issues\r\n\r\n- Closes #\r\n- Related to #\r\n\r\n## Validation\r\n\r\n- [ ] `npm run lint`\r\n- [ ] `npm run test:unit`\r\n- [ ] `npm run test:coverage`\r\n- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches\r\n- [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below\r\n\r\n## Tests Added Or Updated\r\n\r\n- List every changed or added automated test file.\r\n- If no production code changed, state that here.\r\n\r\n## Coverage Notes\r\n\r\n- If this PR changes `src/`, `open-sse/`, `electron/`, or `bin/`, explain which tests cover the change.\r\n- If coverage moved down in any touched file, explain why and what follow-up task will recover it.\r\n\r\n## Reviewer Notes\r\n\r\n- Call out any risky areas, migrations, feature flags, or manual validation that reviewers should know about.\r\n\n> [!NOTE]\n> **OmniRoute Maintainer Note:** This PR has been deferred and will be accepted and redirected for the `v4.0.0` (or greater) release cycle. Please skip this PR during `v3.x` stabilization reviews.",
+    "createdAt": "2026-05-02T16:06:11Z",
+    "deletions": 2,
+    "files": [
+      {
+        "path": "open-sse/handlers/chatCore.ts",
+        "additions": 84,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tests/unit/codex-failover.test.ts",
+        "additions": 192,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/codex-429-mid-task-failover",
+    "number": 1888,
+    "title": "feat(sse): codex 429 mid-task failover with account rotation"
+  },
+  {
+    "additions": 461,
+    "author": {
+      "id": "U_kgDOD9eSjQ",
+      "is_bot": false,
+      "login": "smartenok-ops",
+      "name": ""
+    },
+    "baseRefName": "release/v3.7.9",
+    "body": "When concurrent SSE clients use a shared OmniRoute key, randomized account selection causes per-session inconsistencies (one stream hits account A, next request from same logical session hits B). Adds session_account_affinity table + extractSessionAffinityKey helper so a session_key (e.g. SHA of input headers) deterministically pins to one account for its lifetime.\r\n\r\nMigration: 041_session_account_affinity.sql (renumbered from local 026 — please confirm next available slot).\r\n\r\n## Summary\r\n\r\n- Describe the user-facing or operational change.\r\n\r\n## Related Issues\r\n\r\n- Closes #\r\n- Related to #\r\n\r\n## Validation\r\n\r\n- [ ] `npm run lint`\r\n- [ ] `npm run test:unit`\r\n- [ ] `npm run test:coverage`\r\n- [ ] Coverage is still `>= 60%` for statements, lines, functions, and branches\r\n- [ ] SonarQube PR analysis is green or any remaining issues are explicitly documented below\r\n\r\n## Tests Added Or Updated\r\n\r\n- List every changed or added automated test file.\r\n- If no production code changed, state that here.\r\n\r\n## Coverage Notes\r\n\r\n- If this PR changes `src/`, `open-sse/`, `electron/`, or `bin/`, explain which tests cover the change.\r\n- If coverage moved down in any touched file, explain why and what follow-up task will recover it.\r\n\r\n## Reviewer Notes\r\n\r\n- Call out any risky areas, migrations, feature flags, or manual validation that reviewers should know about.\r\n\n> [!NOTE]\n> **OmniRoute Maintainer Note:** This PR has been deferred and will be accepted and redirected for the `v4.0.0` (or greater) release cycle. Please skip this PR during `v3.x` stabilization reviews.",
+    "createdAt": "2026-05-02T16:05:53Z",
+    "deletions": 122,
+    "files": [
+      {
+        "path": "src/instrumentation-node.ts",
+        "additions": 10,
+        "deletions": 5,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/lib/db/migrations/041_session_account_affinity.sql",
+        "additions": 11,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/lib/db/sessionAccountAffinity.ts",
+        "additions": 122,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "src/lib/localDb.ts",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/sse/handlers/chat.ts",
+        "additions": 14,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/sse/services/auth.ts",
+        "additions": 177,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "tests/unit/sse-auth.test.ts",
+        "additions": 117,
+        "deletions": 114,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/per-session-sticky-routing",
+    "number": 1887,
+    "title": "feat(auth): per-session sticky routing for codex"
+  }
+]

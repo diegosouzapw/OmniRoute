@@ -437,6 +437,20 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     models: [{ id: "topaz-enhance", name: "topaz-enhance", inputModalities: ["image"] }],
     supportedSizes: ["1024x1024"],
   },
+  nanogpt: {
+    id: "nanogpt",
+    baseUrl: "https://nano-gpt.com/api/v1/images/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "qwen-image", name: "Qwen Image", inputModalities: ["text", "image"] },
+      { id: "z-image-turbo", name: "Z Image Turbo" },
+      { id: "chroma", name: "Chroma" },
+      { id: "hidream", name: "Hidream I1 Full" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1280", "1280x1024"],
+  },
 };
 
 /**

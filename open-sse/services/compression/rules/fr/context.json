@@ -1,0 +1,38 @@
+{
+  "language": "fr",
+  "category": "context",
+  "rules": [
+    {
+      "name": "fr_context_setup",
+      "pattern": "\\b(?:voici le code|ci dessous le code|ci-dessous le code|ceci est le code)\\b\\s*[:.]?\\s*",
+      "replacement": "Code:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_intent",
+      "pattern": "\\b(?:mon objectif est|ce dont j'ai besoin est|j'essaie de|l'idee est|l'idée est)\\b\\s*",
+      "replacement": "Objectif:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_question_directive",
+      "pattern": "\\b(?:peux tu expliquer pourquoi|peux tu montrer comment|pourrais tu montrer comment)\\b\\s*",
+      "replacement": "Explique ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_background",
+      "pattern": "\\b(?:comme tu le sais|comme mentionne avant|comme mentionné avant)\\b[,.]?\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

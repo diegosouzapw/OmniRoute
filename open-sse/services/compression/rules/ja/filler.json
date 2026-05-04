@@ -1,0 +1,70 @@
+{
+  "language": "ja",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "ja_polite_framing",
+      "pattern": "(?:お願いします|してください|できますか|いただけますか)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_pleasantries",
+      "pattern": "(?:こんにちは|こんばんは|おはようございます|ありがとうございます)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_hedging",
+      "pattern": "(?:と思います|かもしれません|たぶん|おそらく)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_filler_adverbs",
+      "pattern": "(?:基本的に|本質的に|実際には|単純に)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_self_reference",
+      "pattern": "(?:私は|自分は|やりたいことは)",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_verbose_request",
+      "pattern": "(?:説明していただけますか|詳しく説明してください|教えてください)",
+      "replacement": "説明:",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_qualifiers",
+      "pattern": "(?:少し|ちょっと|なんとなく|ある程度)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_softeners",
+      "pattern": "(?:可能であれば|時間があれば|急ぎではありません)",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

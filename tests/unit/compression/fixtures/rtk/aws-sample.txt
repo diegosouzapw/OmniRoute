@@ -1,0 +1,4 @@
+Completed 1.0 MiB/2.0 MiB
+Completed 2.0 MiB/2.0 MiB
+upload: ./app.log to s3://omniroute-logs/app.log
+An error occurred (AccessDenied) when calling the PutObject operation: denied

@@ -1,0 +1,34 @@
+{
+  "id": "rubocop",
+  "label": "RuboCop",
+  "description": "Keep RuboCop offenses and final summary.",
+  "category": "build",
+  "priority": 74,
+  "match": {
+    "outputTypes": ["rubocop"],
+    "commands": ["^rubocop\\b", "^bundle\\s+exec\\s+rubocop\\b"],
+    "patterns": ["^Inspecting \\d+ files", "^\\S+\\.rb:\\d+:\\d+: [A-Z]:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Inspecting \\d+ files", "^\\.+$", "^\\s*$"],
+    "includePatterns": ["^\\S+\\.rb:\\d+:\\d+: [A-Z]:", "^\\d+ files inspected"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 45
+  },
+  "preserve": {
+    "errorPatterns": [" [EF]: ", "Offenses:"],
+    "summaryPatterns": ["^\\d+ files inspected"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "rubocop",
+      "input": "Inspecting 2 files\n.C\napp/models/user.rb:12:3: C: Style/IfUnlessModifier: Favor modifier if usage.\n2 files inspected, 1 offense detected\n",
+      "expected": "app/models/user.rb:12:3: C: Style/IfUnlessModifier: Favor modifier if usage.\n2 files inspected, 1 offense detected"
+    }
+  ]
+}

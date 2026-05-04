@@ -827,6 +827,9 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
+    const reasoningDeltaShape = state.copilotCompatibleReasoning
+      ? { reasoning_text: reasoningDelta }
+      : { reasoning: { summary: reasoningDelta } };
     return {
       id: state.chatId,
       object: "chat.completion.chunk",
@@ -835,7 +838,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
       choices: [
         {
           index: 0,
-          delta: { reasoning: { summary: reasoningDelta } },
+          delta: reasoningDeltaShape,
           finish_reason: null,
         },
       ],

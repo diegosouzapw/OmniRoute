@@ -1,0 +1,70 @@
+{
+  "language": "pt-BR",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "pt_polite_framing",
+      "pattern": "\\b(?:por favor|por gentileza|poderia|voce pode|você pode|eu gostaria que|preciso que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_pleasantries",
+      "pattern": "\\b(?:ola|olá|oi|bom dia|boa tarde|boa noite|obrigado|obrigada|valeu)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_hedging",
+      "pattern": "\\b(?:eu acho que|eu acredito que|parece que|talvez|provavelmente|possivelmente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_filler_adverbs",
+      "pattern": "\\b(?:basicamente|essencialmente|na verdade|literalmente|simplesmente|atualmente)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_self_reference",
+      "pattern": "^(?:eu estou tentando|estou tentando|eu quero|eu preciso|gostaria de)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_verbose_request",
+      "pattern": "\\b(?:voce poderia me explicar|você poderia me explicar|poderia detalhar|gostaria que voce explicasse|gostaria que você explicasse)\\b\\s*",
+      "replacement": "Explique ",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_qualifiers",
+      "pattern": "\\b(?:um pouco|meio que|tipo assim|de certa forma|mais ou menos)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_softeners",
+      "pattern": "\\b(?:se possivel|se possível|quando puder|sem pressa|so queria|só queria)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

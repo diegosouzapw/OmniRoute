@@ -1,0 +1,34 @@
+{
+  "id": "turbo",
+  "label": "Turborepo",
+  "description": "Compact turbo task cache and failure output.",
+  "category": "build",
+  "priority": 76,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^turbo\\b", "^npx\\s+turbo\\b"],
+    "patterns": ["Tasks:", "Remote caching"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["cache hit", "cache miss", "^\\s*$"],
+    "includePatterns": ["failed", "error", "Tasks:", "Cached:", "Time:", "successful"],
+    "collapsePatterns": ["^• Packages in scope"],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 25,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["failed", "error"],
+    "summaryPatterns": ["Tasks:", "Cached:", "Time:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "turbo",
+      "input": "cache hit app#build\napp#test: failed\nTasks: 1 successful, 1 failed\nTime: 2s\n",
+      "expected": "app#test: failed\nTasks: 1 successful, 1 failed\nTime: 2s"
+    }
+  ]
+}

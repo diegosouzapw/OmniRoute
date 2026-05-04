@@ -1,0 +1,4 @@
+--2026-05-02 22:40:00--  https://example.test/file.tgz
+Saving to: 'file.tgz'
+HTTP request sent, awaiting response... 404 Not Found
+ERROR 404: Not Found.
