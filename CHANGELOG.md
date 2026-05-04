@@ -21,8 +21,6 @@
 
 ### 🐛 Bug Fixes
 
-- **fix(providers):** resolve ChatGPT Web authentication failure by aligning TLS fingerprint User-Agent strings (fixes #1925)
-- **fix(infrastructure):** move `wreq-js` to optionalDependencies to unblock ARM64/Android Termux installations and add Node 25/26 to secure runtime policy (fixes #1924)
 - **fix(providers):** allow local OpenAI-compatible endpoints (like Ollama) to be added without an API key (fixes #1893)
 - **fix(providers):** bypass AgentRouter unauthorized_client_error by spoofing Claude CLI headers via Anthropic endpoints (fixes #1921)
 - **fix(copilot):** emit compatible reasoning text deltas (#1919 — thanks @ivan-mezentsev)
