@@ -133,9 +133,8 @@ const KIMI_CODING_SHARED = {
     "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
-    { id: "kimi-k2.5", name: "Kimi K2.5" },
-    { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
-    { id: "kimi-latest", name: "Kimi Latest" },
+    { id: "kimi-k2.6", name: "Kimi K2.6" },
+    { id: "kimi-k2.6-thinking", name: "Kimi K2.6 Thinking" },
   ] as RegistryModel[],
 } as const;
 
@@ -384,11 +383,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
-      { id: "codex-auto-review", name: "Codex Auto Review", targetFormat: "openai-responses" },
       { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
@@ -493,10 +490,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "gpt-5.2", name: "GPT-5.2" },
-      { id: "gpt-5.2-codex", name: "GPT-5.2 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
-      { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
@@ -510,7 +504,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "grok-code-fast-1", name: "Grok Code Fast 1" },
       { id: "oswe-vscode-prime", name: "Raptor Mini" },
-      //{id: "?", name: "Goldeneye" },
+      //{ id: "?", name: "Goldeneye" },
     ],
   },
 

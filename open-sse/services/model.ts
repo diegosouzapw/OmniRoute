@@ -73,7 +73,7 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
   }
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
-const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["codex-auto-review", "gpt-5.5"]);
+const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
 
 /**
  * Resolve provider alias to provider ID
