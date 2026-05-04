@@ -390,6 +390,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
+        if (providerId === "reka") continue;
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
@@ -637,6 +638,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
+        if (providerId === "reka") continue;
         const providerCustomModels = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
               (model): model is Record<string, unknown> =>

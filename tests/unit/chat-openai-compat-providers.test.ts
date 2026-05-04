@@ -39,6 +39,7 @@ const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "nanogpt",
   "predibase",
   "bytez",
+  "reka",
 ];
 
 test("chat-openai-compat providers are registered across provider metadata, registry and local catalog", () => {

@@ -1258,7 +1258,7 @@ test("provider models route discovers Modal models from the configured OpenAI-co
   ]);
 });
 
-test("provider models route discovers Reka models from the named OpenAI-compatible /v1 endpoint", async () => {
+test("provider models route always returns the Reka preset catalog", async () => {
   const connection = await seedConnection("reka", {
     apiKey: "reka-key",
     providerSpecificData: {
@@ -1266,13 +1266,8 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
     },
   });
 
-  globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://api.reka.ai/v1/models");
-    assert.equal(init.method, "GET");
-    assert.equal(init.headers.Authorization, "Bearer reka-key");
-    assert.equal(init.headers["X-Api-Key"], "reka-key");
-
-    return Response.json([{ id: "reka-core", name: "Reka Core" }, { id: "reka-flash" }]);
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed");
   };
 
   const response = await callRoute(connection.id);
@@ -1280,19 +1275,34 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "reka");
-  assert.equal(body.source, "api");
-  assert.deepEqual(body.models, [
-    {
-      id: "reka-core",
-      name: "Reka Core",
-      owned_by: "reka",
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
+});
+
+test("provider models route returns Reka local catalog without an API key", async () => {
+  const connection = await seedConnection("reka", {
+    providerSpecificData: {
+      baseUrl: "https://api.reka.ai/v1",
     },
-    {
-      id: "reka-flash",
-      name: "reka-flash",
-      owned_by: "reka",
-    },
-  ]);
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed without a token");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "reka");
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
 });
 
 test("provider models route discovers SAP models from AI_API_URL derived from deploymentUrl", async () => {

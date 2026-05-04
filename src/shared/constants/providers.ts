@@ -408,7 +408,6 @@ export const APIKEY_PROVIDERS = {
       "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
     hasFree: true,
     freeNote: "$10/month recurring free API credits",
-    passthroughModels: true,
   },
   nlpcloud: {
     id: "nlpcloud",

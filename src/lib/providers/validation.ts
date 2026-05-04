@@ -1531,7 +1531,7 @@ async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) 
       method: "POST",
       headers,
       body: JSON.stringify({
-        model: providerSpecificData.validationModelId || "reka-flash",
+        model: providerSpecificData.validationModelId || "reka-flash-3",
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
