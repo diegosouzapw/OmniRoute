@@ -249,7 +249,11 @@ export async function POST(request) {
 
   // Execute with proxy context when available, direct otherwise (#1904)
   const result = await (credentials?.connectionId
-    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage)
+    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
+        success: false,
+        status: err.statusCode || 500,
+        error: err.message,
+      }))
     : generateImage());
 
   if (result.success) {

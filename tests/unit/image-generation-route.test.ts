@@ -155,7 +155,7 @@ test("v1 image generation POST resolves proxy and executes with proxy context wh
     throw new Error("fetch should not be called — proxy fast-fail should trigger first");
   };
 
-  const response = imageRoute.POST(
+  const response = await imageRoute.POST(
     new Request("http://localhost/api/v1/images/generations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -166,30 +166,18 @@ test("v1 image generation POST resolves proxy and executes with proxy context wh
     })
   );
 
-  // runWithProxyContext performs a fast-fail reachability check on the proxy URL.
-  // Since 127.0.0.1:1 is unreachable, it throws PROXY_UNREACHABLE.
-  // This proves the proxy code path was taken (credentials.connectionId was used).
-  await assert.rejects(response, (err) => {
-    return (err as any).code === "PROXY_UNREACHABLE";
-  });
+  assert.equal(response.status, 503);
+  const body = (await response.json()) as any;
+  assert.match(body.error.message, /unreachable/i);
 });
 
 test("v1 image generation POST executes directly when proxy resolution fails gracefully", async () => {
   const connection = await seedConnection("openai", { apiKey: "image-proxy-fail-key" });
 
-  // Set a malformed proxy config that will cause resolveProxyForConnection to throw
-  // The route catches the error on line 235 and continues without proxy
-  await settingsDb.setProxyForLevel("key", (connection as any).id, {
-    type: "http",
-    host: "127.0.0.1",
-    port: 1,
-  });
-
-  // Delete the proxy setting immediately so resolveProxyForConnection still
-  // runs but won't find a key-level proxy → falls through to provider lookup
-  // which also has nothing → returns direct (no proxy). This verifies the
-  // catch block on resolveProxyForConnection doesn't break the request.
-  await settingsDb.deleteProxyForLevel("key", (connection as any).id);
+  const db = core.getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', 'keys', 'corrupt-json')"
+  ).run();
 
   globalThis.fetch = async (url) => {
     const stringUrl = String(url);
@@ -219,9 +207,6 @@ test("v1 image generation POST executes directly when proxy resolution fails gra
 });
 
 test("v1 image generation POST executes directly when credentials.connectionId is absent (authType: none)", async () => {
-  // sdwebui has authType: "none" — credentials stays null and
-  // credentials?.connectionId is undefined. No proxy resolution or
-  // runWithProxyContext should be called.
   globalThis.fetch = async (url) => {
     const stringUrl = String(url);
     if (stringUrl === "http://localhost:7860/sdapi/v1/txt2img") {
