@@ -5112,6 +5112,7 @@
       "apiKey": "API Key",
       "combo": "Combo",
       "tokens": "Tokens",
+      "compressed": "Compression",
       "tps": "TPS",
       "duration": "Duration",
       "time": "Time"

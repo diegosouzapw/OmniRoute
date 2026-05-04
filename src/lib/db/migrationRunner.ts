@@ -266,6 +266,8 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "provider_connections", "max_concurrent");
     case "040":
       return hasColumn(db, "proxy_registry", "source");
+    case "041":
+      return hasColumn(db, "call_logs", "tokens_compressed");
     default:
       return false;
   }

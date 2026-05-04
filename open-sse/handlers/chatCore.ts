@@ -954,6 +954,7 @@ export async function handleChatCore({
     const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
     log?.info?.("STAGE_TRACE", `${traceId} ${label} t=${elapsed}ms${suffix}`);
   };
+  let tokensCompressed: number | null = null;
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({
       provider: provider || "unknown",
@@ -1285,6 +1286,7 @@ export async function handleChatCore({
       comboName,
       comboStepId,
       comboExecutionKey,
+      tokensCompressed,
       cacheSource: cacheSource === "semantic" ? "semantic" : "upstream",
       apiKeyId: apiKeyInfo?.id || null,
       apiKeyName: apiKeyInfo?.name || null,
@@ -1652,6 +1654,10 @@ export async function handleChatCore({
         if (result.compressed && result.stats) {
           body = result.body as typeof body;
           estimatedTokens = result.stats.compressedTokens;
+          tokensCompressed = Math.max(
+            0,
+            result.stats.originalTokens - result.stats.compressedTokens
+          );
           trackCompressionStats(result.stats);
           void (async () => {
             try {
@@ -1793,6 +1799,7 @@ export async function handleChatCore({
       if (compressionResult.compressed) {
         body = compressionResult.body;
         const stats = compressionResult.stats;
+        tokensCompressed = Math.max(0, (stats?.original ?? 0) - (stats?.final ?? 0));
         const layersInfo =
           stats && "layers" in stats && Array.isArray(stats.layers)
             ? ` (layers: ${stats.layers.map((l: { name: string }) => l.name).join(", ")})`

@@ -158,6 +158,7 @@ export default function RequestLoggerDetail({
     cacheRead: detail?.tokens?.cacheRead ?? log.tokens?.cacheRead,
     cacheWrite: detail?.tokens?.cacheWrite ?? log.tokens?.cacheWrite,
     reasoning: detail?.tokens?.reasoning ?? log.tokens?.reasoning,
+    compressed: detail?.tokens?.compressed ?? log.tokens?.compressed,
   };
 
   const formatTokenValue = (value) => (value != null ? value.toLocaleString() : "N/A");
@@ -248,6 +249,15 @@ export default function RequestLoggerDetail({
                 <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold">
                   Cache Write: {formatTokenValue(tokenStats.cacheWrite)}
                 </span>
+                {tokenStats.compressed != null && tokenStats.compressed > 0 && (() => {
+                  const fromTokens = tokenStats.totalIn + tokenStats.compressed;
+                  const pct = Math.round((tokenStats.compressed / fromTokens) * 100);
+                  return (
+                    <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold">
+                      Compressed: {fromTokens.toLocaleString()} → {tokenStats.totalIn.toLocaleString()} (-{pct}%)
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <div>
