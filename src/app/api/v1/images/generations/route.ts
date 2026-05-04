@@ -229,9 +229,9 @@ export async function POST(request) {
 
   // Resolve proxy for the connection if credentials exist (#1904)
   let proxyInfo = null;
-  if (credentials?.id) {
+  if (credentials?.connectionId) {
     try {
-      proxyInfo = await resolveProxyForConnection(credentials.id);
+      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
     } catch {
       log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
     }
@@ -248,7 +248,7 @@ export async function POST(request) {
     });
 
   // Execute with proxy context when available, direct otherwise (#1904)
-  const result = await (credentials?.id
+  const result = await (credentials?.connectionId
     ? runWithProxyContext(proxyInfo?.proxy || null, generateImage)
     : generateImage());
 
