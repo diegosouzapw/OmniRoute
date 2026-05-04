@@ -3552,7 +3552,6 @@ export async function handleChatCore({
       const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
       console.log(`${COLORS.green}${msg}${COLORS.reset}`);
 
-      // Track cache token metrics
       const inputTokens = usage.prompt_tokens || 0;
       const cachedTokens = toPositiveNumber(
         usage.cache_read_input_tokens ??
