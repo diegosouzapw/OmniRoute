@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import { buildOpenCodeConfigDocument } from "@/shared/services/opencodeConfig";
 import { useTheme } from "@/shared/hooks/useTheme";
+import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 export default function DefaultToolCard({
   toolId,
@@ -90,7 +91,7 @@ export default function DefaultToolCard({
     [getSelectedModelEntries]
   );
 
-  const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+  const normalizedBaseUrl = baseUrl || DEFAULT_DISPLAY_BASE_URL;
   const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
     ? normalizedBaseUrl
     : `${normalizedBaseUrl}/v1`;
