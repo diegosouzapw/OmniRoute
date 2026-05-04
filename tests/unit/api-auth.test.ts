@@ -63,6 +63,8 @@ test("isPublicRoute recognizes allowed API prefixes", () => {
   assert.equal(apiAuth.isPublicRoute("/api/auth/login"), true);
   assert.equal(apiAuth.isPublicRoute("/api/v1/chat/completions"), true);
   assert.equal(apiAuth.isPublicRoute("/api/sync/bundle"), true);
+  assert.equal(apiAuth.isPublicRoute("/api/monitoring/health", "GET"), true);
+  assert.equal(apiAuth.isPublicRoute("/api/monitoring/health", "DELETE"), false);
   assert.equal(apiAuth.isPublicRoute("/api/settings"), false);
 });
 
@@ -150,6 +152,18 @@ test("isAuthenticated rejects bearer API keys on management routes", async () =>
   const result = await apiAuth.isAuthenticated(request);
 
   assert.equal(result, false);
+});
+
+test("monitoring health reset route requires dashboard authentication", async () => {
+  process.env.INITIAL_PASSWORD = "bootstrap-password";
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  const healthRoute = await import("../../src/app/api/monitoring/health/route.ts");
+  const response = await healthRoute.DELETE(
+    new Request("https://example.com/api/monitoring/health", { method: "DELETE" })
+  );
+
+  assert.equal(response.status, 401);
 });
 
 test("isAuthenticated returns false when auth is required without valid credentials", async () => {

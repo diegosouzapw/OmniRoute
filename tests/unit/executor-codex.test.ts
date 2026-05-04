@@ -468,6 +468,120 @@ test("CodexExecutor.transformRequest does not replay internal assistant commenta
   assert.equal(result.input[3].type, "function_call_output");
 });
 
+test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
+  const executor = new CodexExecutor();
+  const body = {
+    _nativeCodexPassthrough: true,
+    input: [
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: "Use the tool result." }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        phase: "commentary",
+        content: [{ type: "output_text", text: "Need maybe inspect tool output first." }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        phase: "final",
+        content: [{ type: "output_text", text: "Visible final assistant answer." }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: "Visible assistant history without phase." }],
+      },
+      {
+        type: "reasoning",
+        summary: [{ type: "summary_text", text: "formal reasoning item" }],
+      },
+      {
+        type: "function_call",
+        call_id: "call_keep_123",
+        name: "workspace_read_file",
+        arguments: '{"path":"README.md"}',
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_keep_123",
+        output: '{"ok":true}',
+      },
+    ],
+    stream: false,
+  };
+
+  const result = executor.transformRequest("gpt-5.5-low", body, false, {
+    requestEndpointPath: "/responses",
+  });
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Need maybe inspect tool output")),
+    false
+  );
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
+    true
+  );
+  assert.equal(
+    result.input.some((item) =>
+      JSON.stringify(item).includes("Visible assistant history without phase")
+    ),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => item.type === "reasoning"),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => item.type === "function_call"),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => item.type === "function_call_output"),
+    true
+  );
+});
+
+test("CodexExecutor.transformRequest strips internal assistant commentary before mapping messages to input", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest(
+    "gpt-5.5-low",
+    {
+      _nativeCodexPassthrough: true,
+      messages: [
+        { role: "user", content: "Continue." },
+        {
+          role: "assistant",
+          phase: "commentary",
+          content: "Need maybe update PR body first.",
+        },
+        {
+          role: "assistant",
+          phase: "final",
+          content: "Visible final assistant answer.",
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Need maybe update PR body")),
+    false
+  );
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
+    true
+  );
+  assert.equal(result.messages, undefined);
+});
+
 test("CodexExecutor.transformRequest rehydrates missing function_call items for stateful tool outputs", () => {
   const executor = new CodexExecutor();
   rememberResponseFunctionCalls("resp_prev_tool_123", [

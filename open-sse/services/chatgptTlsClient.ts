@@ -20,7 +20,7 @@ import { randomUUID } from "node:crypto";
 let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
-const CHATGPT_PROFILE = "firefox_148"; // matches the Firefox 150 UA we send
+const CHATGPT_PROFILE = "firefox_148"; // matches the Firefox 148 UA we send
 const DEFAULT_TIMEOUT_MS = 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
 // hard timeout fires. Under healthy operation `tls-client-node` honors

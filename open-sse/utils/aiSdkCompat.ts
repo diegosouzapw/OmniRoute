@@ -23,9 +23,9 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
 
-  // No explicit stream param — default to false per OpenAI spec
-  // (Fixes #1873 - previously relied on Accept header heuristic)
-  return false;
+  // No explicit stream param — preserve OmniRoute's streaming default unless
+  // the client explicitly asks for JSON and does not also accept SSE.
+  return !clientWantsJsonResponse(acceptHeader);
 }
 
 /**

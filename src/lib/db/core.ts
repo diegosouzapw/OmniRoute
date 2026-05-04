@@ -232,6 +232,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
+    tokens_compressed INTEGER DEFAULT NULL,
     cache_source TEXT DEFAULT "upstream",
     request_type TEXT,
     source_format TEXT,
@@ -787,6 +788,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
     tokens_cache_read: number | null;
     tokens_cache_creation: number | null;
     tokens_reasoning: number | null;
+    tokens_compressed: number | null;
     request_type: string | null;
     source_format: string | null;
     target_format: string | null;
@@ -838,7 +840,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   const tx = db.transaction(() => {
     for (const row of pendingRows) {
       const artifact: CallLogArtifact = {
-        schemaVersion: 4,
+        schemaVersion: 5,
         summary: {
           id: row.id,
           timestamp: row.timestamp || new Date().toISOString(),
@@ -857,6 +859,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
             cacheRead: row.tokens_cache_read ?? null,
             cacheWrite: row.tokens_cache_creation ?? null,
             reasoning: row.tokens_reasoning ?? null,
+            compressed: row.tokens_compressed ?? null,
           },
           requestType: row.request_type || null,
           sourceFormat: row.source_format || null,

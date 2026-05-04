@@ -30,12 +30,6 @@ function getRangeStartIso(range: string): string | null {
   return start.toISOString();
 }
 
-function shortModelName(model: string | null): string {
-  if (!model) return "-";
-  const parts = model.split(/[/:-]/);
-  return parts[parts.length - 1] || model;
-}
-
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 type PricingByProvider = Record<string, Record<string, Record<string, unknown>>>;
@@ -65,28 +59,107 @@ function appendWhereCondition(whereClause: string, condition: string): string {
   return whereClause ? `${whereClause} AND (${condition})` : `WHERE (${condition})`;
 }
 
+function findKeyInsensitive(obj: Record<string, any> | undefined | null, key: string): any {
+  if (!obj || !key) return undefined;
+  return obj[key.toLowerCase()];
+}
+
+function uniqueValues(values: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(normalized);
+  }
+  return result;
+}
+
+function stripCodexEffortSuffix(model: string): string {
+  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+}
+
+function getPricingModelCandidates(
+  model: string,
+  normalizeModelName: (model: string) => string
+): string[] {
+  const normalizedModel = normalizeModelName(model);
+  const lowerModel = model.toLowerCase();
+  const lowerNormalized = normalizedModel.toLowerCase();
+  const hyphenModel = lowerModel.replace(/\./g, "-");
+  const hyphenNormalized = lowerNormalized.replace(/\./g, "-");
+  const effortBaseModel = stripCodexEffortSuffix(lowerNormalized);
+
+  return uniqueValues([
+    lowerModel,
+    lowerNormalized,
+    hyphenModel,
+    hyphenNormalized,
+    effortBaseModel,
+    effortBaseModel.replace(/\./g, "-"),
+    lowerNormalized === "codex-auto-review" ? "gpt-5.5" : null,
+  ]);
+}
+
 function resolveModelPricing(
   pricingByProvider: PricingByProvider,
-  provider: string,
+  providerAliasMap: Record<string, string>,
+  providerRaw: string,
   model: string,
   normalizeModelName: (model: string) => string
 ): Record<string, unknown> | null {
-  const providerPricing = pricingByProvider[provider];
-  if (!providerPricing) return null;
+  const pLower = (providerRaw || "").toLowerCase();
 
-  const normalizedModel = normalizeModelName(model);
-  const shortModel = shortModelName(model);
-  return (
-    providerPricing[model] ||
-    providerPricing[normalizedModel] ||
-    providerPricing[shortModel] ||
-    null
-  );
+  let providerPricing = findKeyInsensitive(pricingByProvider, pLower);
+  if (!providerPricing) {
+    const alias = providerAliasMap[pLower];
+    if (alias) {
+      providerPricing = findKeyInsensitive(pricingByProvider, alias);
+    } else {
+      const np = pLower.replace(/-cn$/, "");
+      if (np && np !== pLower) {
+        providerPricing = findKeyInsensitive(pricingByProvider, np);
+      }
+    }
+  }
+
+  // Hardcoded known fallbacks
+  if (!providerPricing) {
+    if (pLower === "antigravity") providerPricing = findKeyInsensitive(pricingByProvider, "ag");
+  }
+
+  const modelCandidates = getPricingModelCandidates(model, normalizeModelName);
+
+  const tryFind = (prov: Record<string, unknown> | null | undefined) => {
+    if (!prov || typeof prov !== "object") return null;
+    for (const candidate of modelCandidates) {
+      const pricing = findKeyInsensitive(prov as Record<string, unknown>, candidate);
+      if (pricing) return pricing;
+    }
+    return null;
+  };
+
+  let pricing = providerPricing ? tryFind(providerPricing) : null;
+
+  if (!pricing) {
+    // Global fallback: search all providers for this exact model (helps with aliases)
+    for (const prov of Object.values(pricingByProvider)) {
+      const found = tryFind(prov as Record<string, unknown>);
+      if (found) {
+        pricing = found;
+        break;
+      }
+    }
+  }
+
+  return pricing as Record<string, unknown> | null;
 }
 
 function computeUsageRowCost(
   row: Record<string, unknown>,
   pricingByProvider: PricingByProvider,
+  providerAliasMap: Record<string, string>,
   normalizeModelName: (model: string) => string,
   computeCostFromPricing: ComputeCostFromPricing
 ): number {
@@ -94,7 +167,13 @@ function computeUsageRowCost(
   const model = toStringValue(row.model);
   if (!provider || !model) return 0;
 
-  const pricing = resolveModelPricing(pricingByProvider, provider, model, normalizeModelName);
+  const pricing = resolveModelPricing(
+    pricingByProvider,
+    providerAliasMap,
+    provider,
+    model,
+    normalizeModelName
+  );
   if (!pricing) return 0;
 
   return computeCostFromPricing(pricing, {
@@ -163,9 +242,20 @@ export async function GET(request: Request) {
 
     // Fetch pricing data for cost calculation (no rows loaded)
     const { getPricing } = await import("@/lib/db/settings");
-    const pricingByProvider = (await getPricing()) as PricingByProvider;
+    const rawPricingByProvider = (await getPricing()) as PricingByProvider;
+
+    // Pre-process pricing data to lowercase keys for O(1) lookups
+    const pricingByProvider: PricingByProvider = {};
+    for (const [providerKey, providerVal] of Object.entries(rawPricingByProvider || {})) {
+      const lowerProvider = {};
+      for (const [modelKey, modelVal] of Object.entries(providerVal || {})) {
+        (lowerProvider as any)[modelKey.toLowerCase()] = modelVal;
+      }
+      pricingByProvider[providerKey.toLowerCase()] = lowerProvider;
+    }
     const { computeCostFromPricing, normalizeModelName } =
       await import("@/lib/usage/costCalculator");
+    const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
     const summaryRow = db
       .prepare(
@@ -210,8 +300,8 @@ export async function GET(request: Request) {
         `
         SELECT
           DATE(timestamp) as date,
-          provider,
-          model,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -219,7 +309,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
         ${whereClause}
-        GROUP BY DATE(timestamp), provider, model
+        GROUP BY DATE(timestamp), LOWER(provider), LOWER(model)
         ORDER BY date ASC
       `
       )
@@ -263,8 +353,8 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          model,
-          provider,
+          LOWER(model) as model,
+          LOWER(provider) as provider,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -277,7 +367,7 @@ export async function GET(request: Request) {
           COALESCE(MAX(timestamp), '') as lastUsed
         FROM usage_history
         ${whereClause}
-        GROUP BY model, provider
+        GROUP BY LOWER(model), LOWER(provider)
         ORDER BY requests DESC
         LIMIT 50
       `
@@ -288,8 +378,8 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          provider,
-          model,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -297,7 +387,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
         ${whereClause}
-        GROUP BY provider, model
+        GROUP BY LOWER(provider), LOWER(model)
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -306,7 +396,7 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          provider,
+          LOWER(provider) as provider,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -315,7 +405,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests
         FROM usage_history
         ${whereClause}
-        GROUP BY provider
+        GROUP BY LOWER(provider)
         ORDER BY requests DESC
       `
       )
@@ -325,17 +415,18 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          connection_id as account,
-          provider,
-          model,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-          COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
+          LOWER(usage_history.provider) as provider,
+          LOWER(usage_history.model) as model,
+          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
+          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
+          COALESCE(SUM(usage_history.tokens_cache_read), 0) as cacheReadTokens,
+          COALESCE(SUM(usage_history.tokens_cache_creation), 0) as cacheCreationTokens,
+          COALESCE(SUM(usage_history.tokens_reasoning), 0) as reasoningTokens
         FROM usage_history
-        ${whereClause}
-        GROUP BY connection_id, provider, model
+        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
+        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
+        GROUP BY account, LOWER(usage_history.provider), LOWER(usage_history.model)
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -344,31 +435,35 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          connection_id as account,
-          COUNT(*) as requests,
-          COALESCE(SUM(tokens_input), 0) as promptTokens,
-          COALESCE(SUM(tokens_output), 0) as completionTokens,
-          COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
-          COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
-          COALESCE(MAX(timestamp), '') as lastUsed
+          COALESCE(NULLIF(c.display_name, ''), NULLIF(c.email, ''), NULLIF(c.name, ''), usage_history.connection_id, 'unknown') as account,
+          COUNT(usage_history.id) as requests,
+          COALESCE(SUM(usage_history.tokens_input), 0) as promptTokens,
+          COALESCE(SUM(usage_history.tokens_output), 0) as completionTokens,
+          COALESCE(SUM(usage_history.tokens_input + usage_history.tokens_output), 0) as totalTokens,
+          COALESCE(AVG(usage_history.latency_ms), 0) as avgLatencyMs,
+          COALESCE(MAX(usage_history.timestamp), '') as lastUsed
         FROM usage_history
-        ${whereClause}
-        GROUP BY connection_id
+        LEFT JOIN provider_connections c ON c.id = usage_history.connection_id
+        ${whereClause.replace(/timestamp/g, "usage_history.timestamp").replace(/api_key_/g, "usage_history.api_key_")}
+        GROUP BY account
         ORDER BY requests DESC
         LIMIT 50
       `
       )
       .all(params) as Array<Record<string, unknown>>;
 
-    const apiKeyWhereClause = whereClause;
+    const apiKeyWhereClause = appendWhereCondition(
+      whereClause,
+      "(api_key_id IS NOT NULL AND api_key_id != '') OR (api_key_name IS NOT NULL AND api_key_name != '')"
+    );
     const apiKeyRows = db
       .prepare(
         `
         SELECT
           api_key_id as apiKeyId,
           COALESCE(NULLIF(api_key_name, ''), NULLIF(api_key_id, ''), 'Unknown API key') as apiKeyName,
-          provider,
-          model,
+          LOWER(provider) as provider,
+          LOWER(model) as model,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -378,7 +473,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
         ${apiKeyWhereClause}
-        GROUP BY api_key_id, api_key_name, provider, model
+        GROUP BY api_key_id, api_key_name, LOWER(provider), LOWER(model)
       `
       )
       .all(params) as Array<Record<string, unknown>>;
@@ -414,10 +509,20 @@ export async function GET(request: Request) {
           COUNT(*) as total,
           SUM(CASE WHEN requested_model IS NOT NULL AND requested_model != '' THEN 1 ELSE 0 END) as with_requested,
           SUM(CASE
-            WHEN requested_model IS NOT NULL
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
              AND requested_model != ''
              AND model IS NOT NULL
-             AND requested_model != model
+             AND model != ''
+            THEN 1 ELSE 0 END
+          ) as fallback_eligible,
+          SUM(CASE
+            WHEN (combo_name IS NULL OR combo_name = '')
+             AND requested_model IS NOT NULL
+             AND requested_model != ''
+             AND model IS NOT NULL
+             AND model != ''
+             AND LOWER(requested_model) != LOWER(model)
             THEN 1 ELSE 0 END
           ) as fallbacks
         FROM call_logs
@@ -451,10 +556,11 @@ export async function GET(request: Request) {
       lastRequest: summaryRow?.lastRequest || "",
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
       fallbackRatePct:
-        Number(fallbackRow?.with_requested || 0) > 0
+        Number(fallbackRow?.fallback_eligible || 0) > 0
           ? Number(
               (
-                (Number(fallbackRow?.fallbacks || 0) / Number(fallbackRow?.with_requested || 1)) *
+                (Number(fallbackRow?.fallbacks || 0) /
+                  Number(fallbackRow?.fallback_eligible || 1)) *
                 100
               ).toFixed(2)
             )
@@ -471,17 +577,31 @@ export async function GET(request: Request) {
       streak: 0,
     };
 
+    const dailyByModelMap: Record<string, Record<string, number>> = {};
+    const allModels = new Set<string>();
+
     const dailyCostByDate = new Map<string, number>();
     for (const row of dailyCostRows) {
       const date = toStringValue(row.date);
       if (!date) continue;
+
+      // Calculate costs
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
       dailyCostByDate.set(date, (dailyCostByDate.get(date) || 0) + cost);
+
+      // Group tokens by model for the day
+      const model = normalizeModelName(row.model as string);
+      const tokens = Number(row.promptTokens) + Number(row.completionTokens);
+
+      if (!dailyByModelMap[date]) dailyByModelMap[date] = {};
+      dailyByModelMap[date][model] = (dailyByModelMap[date][model] || 0) + tokens;
+      allModels.add(model);
     }
 
     const dailyTrend = dailyRows.map((row) => ({
@@ -502,7 +622,7 @@ export async function GET(request: Request) {
     const byModel = modelRows.map((row) => {
       const model = row.model as string;
       const provider = row.provider as string;
-      const short = shortModelName(model);
+      const short = normalizeModelName(model);
       const tokens = {
         input: Number(row.promptTokens) || 0,
         output: Number(row.completionTokens) || 0,
@@ -510,6 +630,7 @@ export async function GET(request: Request) {
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -541,6 +662,7 @@ export async function GET(request: Request) {
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -567,6 +689,7 @@ export async function GET(request: Request) {
       const cost = computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -619,6 +742,7 @@ export async function GET(request: Request) {
       existing.cost += computeUsageRowCost(
         row,
         pricingByProvider,
+        PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
@@ -650,6 +774,11 @@ export async function GET(request: Request) {
       }
     }
 
+    const dailyByModel = Object.keys(dailyByModelMap)
+      .sort()
+      .map((date) => ({ date, ...dailyByModelMap[date] }));
+    const modelNames = Array.from(allModels);
+
     const analytics = {
       summary,
       dailyTrend,
@@ -661,6 +790,8 @@ export async function GET(request: Request) {
       weeklyPattern,
       weeklyTokens,
       weeklyCounts,
+      dailyByModel,
+      modelNames,
       range,
     } as any;
 
@@ -699,8 +830,8 @@ export async function GET(request: Request) {
           .prepare(
             `
             SELECT
-              model,
-              provider,
+              LOWER(model) as model,
+              LOWER(provider) as provider,
               COALESCE(SUM(tokens_input), 0) as promptTokens,
               COALESCE(SUM(tokens_output), 0) as completionTokens,
               COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -708,7 +839,7 @@ export async function GET(request: Request) {
               COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
             FROM usage_history
             ${presetWhere}
-            GROUP BY model, provider
+            GROUP BY LOWER(model), LOWER(provider)
           `
           )
           .all(presetParams) as Array<Record<string, unknown>>;
@@ -718,6 +849,7 @@ export async function GET(request: Request) {
           presetTotalCost += computeUsageRowCost(
             row,
             pricingByProvider,
+            PROVIDER_ID_TO_ALIAS,
             normalizeModelName,
             computeCostFromPricing
           );

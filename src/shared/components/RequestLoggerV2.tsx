@@ -807,6 +807,17 @@ export default function RequestLoggerV2() {
                           <span className="text-emerald-700 dark:text-emerald-400">
                             {log.tokens?.out?.toLocaleString() || 0}
                           </span>
+                          {log.tokens?.compressed != null && log.tokens.compressed > 0 && (
+                            <>
+                              <span className="mx-1 text-border">|</span>
+                              <span
+                                className="text-purple-500 dark:text-purple-400 font-semibold"
+                                title={`${log.tokens.compressed.toLocaleString()} tokens compressed`}
+                              >
+                                ↓{log.tokens.compressed.toLocaleString()}
+                              </span>
+                            </>
+                          )}
                         </td>
                       )}
                       {visibleColumns.tps && (

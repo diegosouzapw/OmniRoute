@@ -205,6 +205,15 @@ function resolveEmbeddingProviderId(providerId: string): string {
 }
 
 function normalizeProviderScopedModelId(providerId: string, modelId: string): string {
+  const resolvedProvider = resolveEmbeddingProviderId(providerId);
+  const provider = EMBEDDING_PROVIDERS[resolvedProvider];
+  if (provider?.models.some((model) => model.id === modelId)) return modelId;
+
+  const providerScopedModelId = `${resolvedProvider}/${modelId}`;
+  if (provider?.models.some((model) => model.id === providerScopedModelId)) {
+    return providerScopedModelId;
+  }
+
   return modelId.startsWith(`${providerId}/`) ? modelId.slice(providerId.length + 1) : modelId;
 }
 

@@ -2543,7 +2543,7 @@ async function validateChatGptWebProvider({ apiKey, providerSpecificData = {} }:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:150.0) Gecko/20100101 Firefox/150.0",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
           },
           providerSpecificData
         ),
@@ -2872,7 +2872,12 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey =
-    provider !== "searxng-search" && provider !== "petals" && !isSelfHostedChatProvider(provider);
+    provider !== "searxng-search" &&
+    provider !== "petals" &&
+    !isSelfHostedChatProvider(provider) &&
+    !isOpenAICompatibleProvider(provider) &&
+    !isAnthropicCompatibleProvider(provider);
+
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }

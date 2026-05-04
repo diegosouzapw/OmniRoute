@@ -358,7 +358,7 @@ export function migrateUsageJsonToSqlite() {
 
             if (detailExpected) {
               const artifact: CallLogArtifact = {
-                schemaVersion: 4,
+                schemaVersion: 5,
                 summary: {
                   id,
                   timestamp,

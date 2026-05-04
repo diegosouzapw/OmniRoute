@@ -1,0 +1,41 @@
+{
+  "id": "pip",
+  "label": "pip",
+  "description": "Strip pip install progress and keep install/failure summary.",
+  "category": "package",
+  "priority": 72,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^pip\\s+(?:install|sync|download)\\b", "^python\\s+-m\\s+pip\\s+install\\b"],
+    "patterns": ["Successfully installed", "Requirement already satisfied"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": [
+      "^Collecting ",
+      "^Downloading ",
+      "^Installing collected packages:",
+      "^Requirement already satisfied",
+      "^\\s*$"
+    ],
+    "includePatterns": ["Successfully installed", "ERROR:", "WARNING:", "failed", "Could not find"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 35,
+    "onEmpty": "pip: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["ERROR:", "failed", "Could not find"],
+    "summaryPatterns": ["Successfully installed"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "pip (?:install|sync|download)",
+      "input": "Collecting requests\nDownloading requests.whl\nSuccessfully installed requests-2.0\n",
+      "expected": "Successfully installed requests-2.0"
+    }
+  ]
+}

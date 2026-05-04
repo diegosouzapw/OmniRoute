@@ -111,6 +111,27 @@ function createCurrencyFormatter(locale: string) {
   });
 }
 
+function formatCurrencyCost(locale: string, value: number): string {
+  const numericValue = Number(value || 0);
+  if (!Number.isFinite(numericValue) || numericValue === 0) {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0);
+  }
+
+  const absValue = Math.abs(numericValue);
+  const fractionDigits = absValue < 0.01 ? 6 : absValue < 1 ? 4 : 2;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(numericValue);
+}
+
 function csvCell(value: string | number): string {
   const text = String(value);
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -398,25 +419,25 @@ export default function CostOverviewTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
           label={t("spendToday")}
-          value={currencyFormatter.format(presetCosts["1d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["1d"] || 0)}
           loading={summaryLoading}
           color="text-emerald-400"
         />
         <MetricCard
           label={t("spend7d")}
-          value={currencyFormatter.format(presetCosts["7d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["7d"] || 0)}
           loading={summaryLoading}
           color="text-sky-400"
         />
         <MetricCard
           label={t("spend30d")}
-          value={currencyFormatter.format(presetCosts["30d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["30d"] || 0)}
           loading={summaryLoading}
           color="text-violet-400"
         />
         <MetricCard
           label={t("selectedWindow")}
-          value={currencyFormatter.format(summary.totalCost || 0)}
+          value={formatCurrencyCost(locale, summary.totalCost || 0)}
           subValue={selectedRangeLabel}
           color="text-amber-400"
         />
@@ -438,7 +459,7 @@ export default function CostOverviewTab() {
           />
           <CompactMetric
             label={t("avgCostPerRequest")}
-            value={currencyFormatter.format(avgCostPerRequest)}
+            value={formatCurrencyCost(locale, avgCostPerRequest)}
           />
         </div>
       </Card>

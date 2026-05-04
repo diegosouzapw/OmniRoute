@@ -17,9 +17,9 @@ import {
 } from "../../open-sse/handlers/sseParser.ts";
 
 test("getModelInfoCore resolves unique non-openai unprefixed model", async () => {
-  const info = await getModelInfoCore("claude-haiku-4-5-20251001", {});
+  const info = await getModelInfoCore("claude-sonnet-4-5-20250929", {});
   assert.equal(info.provider, "claude");
-  assert.equal(info.model, "claude-haiku-4-5-20251001");
+  assert.equal(info.model, "claude-sonnet-4-5-20250929");
 });
 
 test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {

@@ -8,22 +8,7 @@
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-
-const fallbackStrategyValues = [
-  "priority",
-  "weighted",
-  "round-robin",
-  "context-relay",
-  "fill-first",
-  "p2c",
-  "random",
-  "least-used",
-  "cost-optimized",
-  "strict-random",
-  "auto",
-  "context-optimized",
-  "lkgp",
-] as const;
+import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -52,7 +37,7 @@ export const updateSettingsSchema = z.object({
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z.enum(fallbackStrategyValues).optional(),
+  fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),

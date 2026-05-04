@@ -54,6 +54,7 @@ import {
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
+import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -5989,6 +5990,7 @@ function normalizeAndValidateHttpBaseUrl(rawValue, fallbackUrl) {
 
 function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnectionModalProps) {
   const t = useTranslations("providers");
+  const notify = useNotificationStore();
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
@@ -6052,7 +6054,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       : t("leaveBlankKeepCurrentApiKey");
 
   useEffect(() => {
-    if (connection) {
+    if (isOpen && connection) {
       const rawBaseUrl = connection.providerSpecificData?.baseUrl;
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
       const rawRegion = connection.providerSpecificData?.region;
@@ -6074,9 +6076,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         name: connection.name || "",
         priority: connection.priority || 1,
         maxConcurrent:
-          connection.maxConcurrent === null || connection.maxConcurrent === undefined
-            ? ""
-            : String(connection.maxConcurrent),
+          connection.maxConcurrent !== null && connection.maxConcurrent !== undefined
+            ? String(connection.maxConcurrent)
+            : "",
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
@@ -6113,7 +6115,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, isVertex]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -6167,6 +6169,17 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult("failed");
     } finally {
       setValidating(false);
+    }
+  };
+
+  const handleAddParsedExtraKeys = (raw: string) => {
+    const { added, duplicates } = parseExtraApiKeys(raw, extraApiKeys);
+    if (added.length > 0) {
+      setExtraApiKeys((prev) => [...prev, ...added]);
+      notify.success(t("bulkPasteAdded", { count: added.length }));
+    }
+    if (duplicates > 0) {
+      notify.warning(t("bulkPasteDuplicatesIgnored", { count: duplicates }));
     }
   };
 
@@ -6620,12 +6633,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         {/* T07: Extra API Keys for round-robin rotation */}
         {!isOAuth && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-text-main">
-              {t("extraApiKeysLabel")}
-              <span className="ml-2 text-[11px] font-normal text-text-muted">
-                ({t("extraApiKeysHint")})
-              </span>
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-sm font-medium text-text-main">
+                {t("extraApiKeysLabel")}
+                <span className="ml-2 text-[11px] font-normal text-text-muted">
+                  ({t("extraApiKeysHint")})
+                </span>
+              </label>
+              {extraApiKeys.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExtraApiKeys([])}
+                  className="px-2.5 py-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 text-xs font-medium transition-colors"
+                >
+                  {t("deleteAllExtraApiKeys")}
+                </button>
+              )}
+            </div>
             {extraApiKeys.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {extraApiKeys.map((key, idx) => (
@@ -6661,6 +6685,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                     setNewExtraKey("");
                   }
                 }}
+                onPaste={(e) => {
+                  const text = e.clipboardData.getData("text");
+                  if (!/\r?\n/.test(text)) return;
+                  e.preventDefault();
+                  handleAddParsedExtraKeys(text);
+                }}
               />
               <button
                 onClick={() => {
@@ -6675,6 +6705,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 {t("add")}
               </button>
             </div>
+            <p className="text-[11px] text-text-muted">{t("bulkPasteHint")}</p>
             {extraApiKeys.length > 0 && (
               <p className="text-[11px] text-text-muted">
                 {t("totalKeysRotating", { count: extraApiKeys.length + 1 })}

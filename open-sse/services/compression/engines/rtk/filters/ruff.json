@@ -1,0 +1,40 @@
+{
+  "id": "ruff",
+  "label": "Ruff",
+  "description": "Keep Ruff diagnostics and summary.",
+  "category": "build",
+  "priority": 82,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^ruff\\b", "^uv\\s+run\\s+ruff\\b"],
+    "patterns": ["Found \\d+ errors?", "All checks passed"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "matchOutput": [
+      {
+        "pattern": "All checks passed",
+        "message": "ruff: ok"
+      }
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "includePatterns": ["^[A-Z]\\d{3}", "Found \\d+", "error:", "warning:", "-->"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["^[A-Z]\\d{3}", "error:"],
+    "summaryPatterns": ["Found \\d+", "All checks passed"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "ruff",
+      "input": "F401 app.py:1:1 unused import\nFound 1 error.\n",
+      "expected": "F401 app.py:1:1 unused import\nFound 1 error."
+    }
+  ]
+}

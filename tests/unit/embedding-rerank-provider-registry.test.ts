@@ -77,3 +77,21 @@ test("upstage embedding registry exposes current embedding models", () => {
     ["upstage/embedding-query", "upstage/embedding-passage"]
   );
 });
+
+test("nvidia embedding and rerank parsing preserves provider-prefixed upstream model IDs", () => {
+  const parsedEmbedding = parseEmbeddingModel("nvidia/nv-embedqa-e5-v5");
+  assert.equal(parsedEmbedding.provider, "nvidia");
+  assert.equal(parsedEmbedding.model, "nvidia/nv-embedqa-e5-v5");
+
+  const parsedDoublePrefixedEmbedding = parseEmbeddingModel("nvidia/nvidia/nv-embedqa-e5-v5");
+  assert.equal(parsedDoublePrefixedEmbedding.provider, "nvidia");
+  assert.equal(parsedDoublePrefixedEmbedding.model, "nvidia/nv-embedqa-e5-v5");
+
+  const parsedRerank = parseRerankModel("nvidia/nv-rerankqa-mistral-4b-v3");
+  assert.equal(parsedRerank.provider, "nvidia");
+  assert.equal(parsedRerank.model, "nvidia/nv-rerankqa-mistral-4b-v3");
+
+  const parsedDoublePrefixedRerank = parseRerankModel("nvidia/nvidia/nv-rerankqa-mistral-4b-v3");
+  assert.equal(parsedDoublePrefixedRerank.provider, "nvidia");
+  assert.equal(parsedDoublePrefixedRerank.model, "nvidia/nv-rerankqa-mistral-4b-v3");
+});

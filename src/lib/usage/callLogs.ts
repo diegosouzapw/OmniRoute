@@ -53,6 +53,7 @@ type CallLogSummaryRow = {
   tokens_cache_read: number | null;
   tokens_cache_creation: number | null;
   tokens_reasoning: number | null;
+  tokens_compressed: number | null;
   cache_source: string | null;
   request_type: string | null;
   source_format: string | null;
@@ -286,6 +287,7 @@ function buildArtifact(
     tokensCacheRead: number | null;
     tokensCacheCreation: number | null;
     tokensReasoning: number | null;
+    tokensCompressed: number | null;
     requestType: string | null;
     sourceFormat: string | null;
     targetFormat: string | null;
@@ -301,7 +303,7 @@ function buildArtifact(
   pipelinePayloads: RequestPipelinePayloads | null
 ): CallLogArtifact {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     summary: {
       id: logEntry.id,
       timestamp: logEntry.timestamp,
@@ -320,6 +322,7 @@ function buildArtifact(
         cacheRead: logEntry.tokensCacheRead,
         cacheWrite: logEntry.tokensCacheCreation,
         reasoning: logEntry.tokensReasoning,
+        compressed: logEntry.tokensCompressed,
       },
       requestType: logEntry.requestType,
       sourceFormat: logEntry.sourceFormat,
@@ -546,6 +549,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       cacheRead: row.tokens_cache_read != null ? toNumber(row.tokens_cache_read) : null,
       cacheWrite: row.tokens_cache_creation != null ? toNumber(row.tokens_cache_creation) : null,
       reasoning: row.tokens_reasoning != null ? toNumber(row.tokens_reasoning) : null,
+      compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
     requestType: row.request_type,
@@ -635,6 +639,7 @@ export async function saveCallLog(entry: any) {
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
       tokensReasoning: getReasoningTokensOrNull(entry.tokens),
+      tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
@@ -687,7 +692,7 @@ export async function saveCallLog(entry: any) {
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
-        tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+        tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
@@ -696,7 +701,7 @@ export async function saveCallLog(entry: any) {
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
-        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
+        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
