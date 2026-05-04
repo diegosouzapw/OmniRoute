@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { useTranslations } from "next-intl";
 
@@ -1007,21 +1008,14 @@ export default function APIPageClient({ machineId }: APIPageClientProps) {
     }
   }, [fetchTailscaleStatus, handleTailscaleEnable, tailscalePassword, translateOrFallback]);
 
-  const [baseUrl, setBaseUrl] = useState("/v1");
+  const displayBaseUrl = useDisplayBaseUrl();
+  const baseUrl = `${displayBaseUrl}/v1`;
   const normalizedCloudBaseUrl = cloudBaseUrl
     ? resolvedMachineId && !cloudBaseUrl.endsWith(`/${resolvedMachineId}`)
       ? `${cloudBaseUrl}/${resolvedMachineId}`
       : cloudBaseUrl
     : null;
   const cloudEndpointNew = normalizedCloudBaseUrl ? `${normalizedCloudBaseUrl}/v1` : null;
-
-  // Hydration fix: Only access window on client side
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const defaultOrigin = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      setBaseUrl(`${defaultOrigin}/v1`);
-    }
-  }, []);
 
   if (loading) {
     return (

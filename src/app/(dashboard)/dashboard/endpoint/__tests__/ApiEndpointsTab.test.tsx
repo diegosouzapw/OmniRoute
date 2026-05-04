@@ -104,4 +104,48 @@ describe("ApiEndpointsTab", () => {
     expect(document.body.textContent).toContain("1 endpoints across 1 categories");
     expect(document.body.textContent).toContain("/api/v1/chat/completions");
   });
+
+  it("renders curl example using window.location.origin when NEXT_PUBLIC_BASE_URL is unset", async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        info: { title: "OmniRoute API", version: "3.7.6" },
+        servers: [],
+        tags: [{ name: "Chat" }],
+        endpoints: [
+          {
+            method: "POST",
+            path: "/api/v1/chat/completions",
+            tags: ["Chat"],
+            summary: "Create chat completion",
+            description: "Create chat completion",
+            security: false,
+            parameters: [],
+            requestBody: false,
+            responses: ["200"],
+          },
+        ],
+        schemas: [],
+      })
+    );
+
+    renderApiEndpointsTab();
+
+    await waitForText("OmniRoute API");
+
+    // Expand the endpoint to reveal the curl example
+    const endpointRow = document.body.querySelector("code.font-mono.flex-1");
+    if (endpointRow?.parentElement) {
+      await act(async () => {
+        endpointRow.parentElement!.click();
+      });
+    }
+
+    // After mount the hook swaps DEFAULT_DISPLAY_BASE_URL for window.location.origin.
+    // In jsdom the default origin is "http://localhost".
+    const expectedOrigin = window.location.origin; // "http://localhost" in jsdom
+    await waitForText(`curl -X POST ${expectedOrigin}/v1/chat/completions`);
+    expect(document.body.textContent).toContain(
+      `curl -X POST ${expectedOrigin}/v1/chat/completions`
+    );
+  });
 });
