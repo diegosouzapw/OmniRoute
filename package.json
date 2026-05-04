@@ -114,7 +114,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@ngrok/ngrok": "^1.7.0",
     "@swc/helpers": "0.5.21",
-    "axios": "^1.15.0",
+    "axios": "^1.16.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "bottleneck": "^2.19.5",
@@ -143,12 +143,12 @@
     "selfsigned": "^5.5.0",
     "tls-client-node": "^0.1.13",
     "tsx": "^4.21.0",
-    "undici": "^8.1.0",
+    "undici": "^8.2.0",
     "uuid": "^14.0.0",
     "wreq-js": "^2.0.1",
     "xxhash-wasm": "^1.1.0",
     "yazl": "^3.3.1",
-    "zod": "^4.3.6",
+    "zod": "^4.4.3",
     "zustand": "^5.0.10"
   },
   "optionalDependencies": {
