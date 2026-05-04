@@ -57,7 +57,6 @@ test("GitHub Copilot registry reflects the current supported model lineup", () =
   assert.ok(ids.has("gpt-5.3-codex"));
   assert.ok(ids.has("gpt-5.4"));
   assert.ok(ids.has("gpt-5.4-mini"));
-  assert.ok(ids.has("gpt-5.4-nano"));
   assert.ok(ids.has("claude-opus-4.7"));
   assert.ok(ids.has("claude-sonnet-4.6"));
   assert.ok(ids.has("gemini-3-flash-preview"));

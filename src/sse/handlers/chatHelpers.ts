@@ -29,22 +29,87 @@ import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
 
+// Models that explicitly cannot run on the codex/ChatGPT-Pro OAuth pool — when
+// a caller writes `codex/deepseek-v4-pro` we transparently reroute to the
+// canonical provider whose API key is configured. Saves callers from having
+// to know about the OAuth-vs-API-key split.
+const NON_OAUTH_MODEL_PREFIX = /^(deepseek|qwen|kimi|glm|minimax|mimo)/i;
+const PREFERRED_BY_FAMILY: Record<string, string> = {
+  deepseek: "deepseek",
+  qwen: "bailian",
+  kimi: "moonshot",
+  glm: "zhipu",
+  minimax: "minimax",
+  mimo: "moonshot",
+};
+
 export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
   const modelInfo = await getModelInfo(modelStr);
+
+  // Forced-rewrite: codex provider doesn't serve DeepSeek/Qwen/Kimi/etc. Reroute
+  // these to their canonical native provider so the request lands on the right
+  // upstream API key instead of failing with a 400 on the OAuth account.
+  // Ambiguous candidates (e.g. deepseek-v4-pro lives on both ds + opencode-go)
+  // resolve to the model-family's native provider via NON_OAUTH_PROVIDER_BY_FAMILY.
+  if (
+    modelInfo.provider === "codex" &&
+    typeof modelInfo.model === "string" &&
+    NON_OAUTH_MODEL_PREFIX.test(modelInfo.model)
+  ) {
+    log.info(
+      "ROUTING",
+      `codex/${modelInfo.model} → re-resolving via native provider (codex OAuth does not serve this model)`
+    );
+    const rerouted = await getModelInfo(modelInfo.model);
+    if (rerouted.provider && rerouted.provider !== "codex") {
+      log.info("ROUTING", `codex/${modelInfo.model} → ${rerouted.provider}/${rerouted.model}`);
+      Object.assign(modelInfo, rerouted);
+    } else if ((rerouted as any).errorType === "ambiguous_model") {
+      const candidates: string[] = (rerouted as any).candidateProviders || [];
+      const family = modelInfo.model.match(NON_OAUTH_MODEL_PREFIX)?.[1]?.toLowerCase();
+      const pick = family && PREFERRED_BY_FAMILY[family];
+      if (pick && candidates.includes(pick)) {
+        log.info(
+          "ROUTING",
+          `codex/${modelInfo.model} → ${pick}/${modelInfo.model} (ambiguity resolved by family)`
+        );
+        modelInfo.provider = pick;
+        modelInfo.model = (rerouted as any).model;
+      }
+    }
+  }
+
   if (!modelInfo.provider) {
     if ((modelInfo as any).errorType === "ambiguous_model") {
-      const message =
-        (modelInfo as any).errorMessage ||
-        `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
-      log.warn("CHAT", message, {
-        model: modelStr,
-        candidates:
-          (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
-      });
-      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+      // Family disambiguation: if the model name begins with a known
+      // non-OAuth family prefix, auto-pick the family-native provider
+      // from the candidate set instead of returning a 400. Saves callers
+      // (codex CLI, hermes, etc.) from having to guess the right alias.
+      const candidates: string[] = (modelInfo as any).candidateProviders || [];
+      const modelLower = (modelInfo.model || modelStr).toLowerCase();
+      const family = modelLower.match(NON_OAUTH_MODEL_PREFIX)?.[1];
+      const pick = family && PREFERRED_BY_FAMILY[family];
+      if (pick && candidates.includes(pick)) {
+        log.info(
+          "ROUTING",
+          `${modelStr} → ${pick}/${modelInfo.model} (ambiguity auto-resolved by family)`
+        );
+        modelInfo.provider = pick;
+      } else {
+        const message =
+          (modelInfo as any).errorMessage ||
+          `Ambiguous model '${modelStr}'. Use provider/model prefix (ex: gh/${modelStr} or cc/${modelStr}).`;
+        log.warn("CHAT", message, {
+          model: modelStr,
+          candidates:
+            (modelInfo as any).candidateAliases || (modelInfo as any).candidateProviders || [],
+        });
+        return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+      }
+    } else {
+      log.warn("CHAT", "Invalid model format", { model: modelStr });
+      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
     }
-    log.warn("CHAT", "Invalid model format", { model: modelStr });
-    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid model format") };
   }
 
   const { provider, model, extendedContext } = modelInfo;

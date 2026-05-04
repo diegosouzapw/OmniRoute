@@ -175,6 +175,7 @@ export const DEFAULT_PRICING = {
 
   // OpenAI Codex (cx)
   cx: {
+    "codex-auto-review": GPT_5_5_PRICING,
     // GPT 5.5
     "gpt-5.5": GPT_5_5_PRICING,
     "gpt5.5": GPT_5_5_PRICING,
@@ -810,6 +811,21 @@ export const DEFAULT_PRICING = {
       cached: 0.14,
       reasoning: 2.19,
       cache_creation: 0.55,
+    },
+    // DeepSeek V4 Pro — promo until 2026-05-31, then list ($0.145 / $3.48)
+    "deepseek-v4-pro": {
+      input: 0.435,
+      output: 0.87,
+      cached: 0.0036,
+      reasoning: 0.87,
+      cache_creation: 0.435,
+    },
+    "deepseek-v4-flash": {
+      input: 0.07,
+      output: 0.28,
+      cached: 0.014,
+      reasoning: 0.28,
+      cache_creation: 0.07,
     },
   },
 

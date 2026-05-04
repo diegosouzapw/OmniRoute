@@ -132,6 +132,74 @@ test("GET /api/usage/analytics includes byModel array with cost calculations", a
   assert.ok(gptEntry.cost > 0);
 });
 
+test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider aliases", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.5", "codex-conn", 1000, 500, 1, 250, new Date().toISOString());
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.02);
+  assert.equal(body.byProvider[0].provider, "codex");
+  assertClose(body.byProvider[0].cost, 0.02);
+  assert.equal(body.byModel[0].model, "gpt-5.5");
+  assertClose(body.byModel[0].cost, 0.02);
+});
+
+test("GET /api/usage/analytics maps Codex auto-review usage to GPT-5.5 pricing", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    "codex",
+    "codex-auto-review",
+    "codex-conn",
+    1000,
+    500,
+    1,
+    250,
+    new Date().toISOString()
+  );
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.02);
+  assert.equal(body.byModel[0].model, "codex-auto-review");
+  assertClose(body.byModel[0].cost, 0.02);
+});
+
+test("GET /api/usage/analytics ignores normal combo routing in fallback statistics", async () => {
+  const db = core.getDbInstance();
+  const timestamp = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.5", "codex-conn", 1000, 500, 1, 250, timestamp);
+  db.prepare(
+    `INSERT INTO call_logs (id, provider, model, requested_model, combo_name, connection_id, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run("combo-call", "codex", "gpt-5.5", "combo/dev", "dev", "codex-conn", timestamp);
+  db.prepare(
+    `INSERT INTO call_logs (id, provider, model, requested_model, connection_id, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run("same-model-call", "codex", "GPT-5.5", "gpt-5.5", "codex-conn", timestamp);
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.summary.fallbackCount, 0);
+  assert.equal(body.summary.fallbackRatePct, 0);
+  assert.equal(body.summary.requestedModelCoveragePct, 100);
+});
+
 test("GET /api/usage/analytics filters by range parameter", async () => {
   await seedAnalyticsData();
 

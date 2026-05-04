@@ -6,6 +6,23 @@
  *
  * If STORAGE_ENCRYPTION_KEY is not set, operates in passthrough mode
  * (stores plaintext for development convenience).
+ *
+ * KEY DERIVATION CHANGE (v3.7.9):
+ * The PRIMARY key is now derived with a static salt ("omniroute-field-encryption-v1").
+ * The LEGACY key used a dynamic salt (sha256 hash of the key). Auto-migration
+ * re-encrypts any legacy-encrypted tokens on decrypt.
+ *
+ * Why the change?
+ * The dynamic salt `createHash("sha256").update(secret).digest().slice(0, 16)` produced
+ * a different derived key than the static salt `"omniroute-field-encryption-v1"`. When the
+ * health-check/token-refresh path used one derivation and the main API used another,
+ * tokens encrypted by one path became undecryptable by the other, causing:
+ * - Persistent decrypt failures
+ * - Re-encryption loops (health-check undoing fixes)
+ * - CPU spikes (50%) from error cascades
+ *
+ * This fix makes the static salt the primary derivation and auto-migrates
+ * legacy-encrypted tokens back to static-salt encryption.
  */
 
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync, createHash } from "crypto";
@@ -14,9 +31,16 @@ const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;
 const PREFIX = "enc:v1:";
+const STATIC_SALT = "omniroute-field-encryption-v1";
 
-let _derivedKey: Buffer | null = null;
-let _legacyDerivedKey: Buffer | null = null;
+let _staticKey: Buffer | null = null;
+let _legacyDynamicKey: Buffer | null = null;
+// Module-level migration flag. Safe in Node.js because:
+// 1. Node.js is single-threaded — no concurrent access race conditions
+// 2. decrypt() is synchronous — no interleaving between flag-set and flag-read
+// 3. Used as a "check-after-decrypt" signal, not a persistent state dependency
+// 4. Same pattern as _staticKey/_legacyDynamicKey cache variables above
+let _migrationNeeded = false;
 
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
@@ -28,27 +52,18 @@ export interface ConnectionFields {
 }
 
 /**
- * Derive a 256-bit key from the env secret using scrypt.
+ * Derive the PRIMARY encryption key using the static salt.
+ * This is the canonical key derivation that all new encryptions use.
  * Returns null if no encryption key is configured.
  */
-function getKey(): Buffer | null {
-  if (_derivedKey !== null) return _derivedKey;
+function getStaticKey(): Buffer | null {
+  if (_staticKey !== null) return _staticKey;
 
   const secret = process.env.STORAGE_ENCRYPTION_KEY;
-  if (!secret) return null;
+  if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
-  if (typeof secret !== "string" || secret.trim().length === 0) {
-    console.error(
-      "[Encryption] STORAGE_ENCRYPTION_KEY is set but empty or invalid. " +
-        "Generate a valid key with: openssl rand -base64 32"
-    );
-    return null;
-  }
-
-  // Dynamic salt derived from key hash to prevent rainbow table attacks, while remaining deterministic
-  const salt = createHash("sha256").update(secret).digest().slice(0, 16);
   try {
-    _derivedKey = scryptSync(secret, salt, KEY_LENGTH);
+    _staticKey = scryptSync(secret, STATIC_SALT, KEY_LENGTH);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(
@@ -57,26 +72,40 @@ function getKey(): Buffer | null {
     );
     return null;
   }
-  return _derivedKey;
+  return _staticKey;
 }
 
 /**
- * Derive legacy 256-bit key from the env secret using the old static salt.
- * Used exclusively for fallback decryption.
+ * Derive the LEGACY key using the old dynamic salt method.
+ * Used exclusively for fallback decryption of tokens encrypted by older versions.
+ *
+ * The old dynamic salt was: createHash("sha256").update(secret).digest().slice(0, 16)
+ * This produced a different derived key than the static salt, causing incompatibility.
  */
-function getLegacyKey(): Buffer | null {
-  if (_legacyDerivedKey !== null) return _legacyDerivedKey;
+function getLegacyDynamicKey(): Buffer | null {
+  if (_legacyDynamicKey !== null) return _legacyDynamicKey;
 
   const secret = process.env.STORAGE_ENCRYPTION_KEY;
   if (!secret || typeof secret !== "string" || secret.trim().length === 0) return null;
 
-  const legacySalt = "omniroute-field-encryption-v1";
+  // This is the OLD dynamic salt derivation that caused the bug
+  const dynamicSalt = createHash("sha256").update(secret).digest().slice(0, 16);
   try {
-    _legacyDerivedKey = scryptSync(secret, legacySalt, KEY_LENGTH);
+    _legacyDynamicKey = scryptSync(secret, dynamicSalt, KEY_LENGTH);
   } catch {
     return null;
   }
-  return _legacyDerivedKey;
+  return _legacyDynamicKey;
+}
+
+/** Check if any tokens were decrypted using the legacy key (indicating migration is needed). */
+export function isMigrationNeeded(): boolean {
+  return _migrationNeeded;
+}
+
+/** Reset migration flag (call after migration is complete). */
+export function resetMigrationFlag(): void {
+  _migrationNeeded = false;
 }
 
 /** Check if encryption is enabled. */
@@ -85,13 +114,13 @@ export function isEncryptionEnabled(): boolean {
 }
 
 /**
- * Encrypt a plaintext string. Returns ciphertext with prefix.
+ * Encrypt a plaintext string using the STATIC salt key.
  * If encryption is not configured, returns plaintext unchanged.
  */
 export function encrypt(plaintext: string | null | undefined): string | null | undefined {
   if (!plaintext || typeof plaintext !== "string") return plaintext;
 
-  const key = getKey();
+  const key = getStaticKey();
   if (!key) {
     console.warn(
       "[Encryption] STORAGE_ENCRYPTION_KEY not set. Storing plaintext (passthrough mode)."
@@ -122,7 +151,12 @@ export function encrypt(plaintext: string | null | undefined): string | null | u
 }
 
 /**
- * Decrypt a ciphertext string. If not encrypted (no prefix), returns as-is.
+ * Decrypt a ciphertext string. Attempts static-salt key first (primary),
+ * then falls back to legacy dynamic-salt key for backward compatibility.
+ *
+ * When a token is decrypted using the legacy key, it is flagged for
+ * auto-migration: the next encrypt() call will re-encrypt it with the
+ * static-salt key, gradually migrating the database.
  */
 export function decrypt(ciphertext: string | null | undefined): string | null | undefined {
   if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
@@ -130,12 +164,11 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   // Not encrypted — return as-is (legacy plaintext or passthrough mode)
   if (!ciphertext.startsWith(PREFIX)) return ciphertext;
 
-  const key = getKey();
-  if (!key) {
+  const staticKey = getStaticKey();
+  if (!staticKey) {
     console.warn(
       "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
     );
-    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
     return null;
   }
 
@@ -143,7 +176,6 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   const parts = body.split(":");
   if (parts.length !== 3) {
     console.error("[Encryption] Malformed encrypted value");
-    // Return null instead of encrypted ciphertext to prevent sending malformed encrypted tokens to providers
     return null;
   }
 
@@ -165,15 +197,20 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   };
 
   try {
-    const decrypted = tryDecryptWithKey(key);
+    // PRIMARY: Try static-salt key first (canonical derivation)
+    let decrypted = tryDecryptWithKey(staticKey);
     if (decrypted !== null) {
       return decrypted;
     }
 
-    const legacyKey = getLegacyKey();
+    // FALLBACK: Try legacy dynamic-salt key (backward compatibility)
+    const legacyKey = getLegacyDynamicKey();
     if (legacyKey) {
       const legacyDecrypted = tryDecryptWithKey(legacyKey);
       if (legacyDecrypted !== null) {
+        // Flag for migration: this token was encrypted with the legacy key
+        // and should be re-encrypted with the static key on next write
+        _migrationNeeded = true;
         return legacyDecrypted;
       }
     }
@@ -186,13 +223,14 @@ export function decrypt(ciphertext: string | null | undefined): string | null | 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[Encryption] Decryption failed:", message);
-    // Return null instead of encrypted ciphertext to prevent sending encrypted tokens to providers
     return null;
   }
 }
 
 /**
  * Encrypt sensitive fields in a connection object (mutates in-place).
+ * After decryption that required legacy key, re-encrypt with static key
+ * to migrate tokens automatically.
  */
 export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(conn: T): T {
   if (!isEncryptionEnabled()) return conn;
@@ -207,6 +245,9 @@ export function encryptConnectionFields<T extends ConnectionFields | null | unde
 
 /**
  * Decrypt sensitive fields in a connection row (returns new object).
+ * Note: If any field was decrypted using the legacy key, the migration
+ * flag is set. The calling code should check isMigrationNeeded() and
+ * trigger a re-encrypt (write-back) to migrate those tokens to the static key.
  */
 export function decryptConnectionFields<T extends ConnectionFields | null | undefined>(row: T): T {
   if (!row) return row;
@@ -242,7 +283,7 @@ export function validateEncryptionConfig(): { valid: boolean; error?: string } {
 
   // Try deriving a key to verify it works
   try {
-    scryptSync(secret, "omniroute-field-encryption-v1", KEY_LENGTH);
+    scryptSync(secret, STATIC_SALT, KEY_LENGTH);
     return { valid: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

@@ -4,6 +4,14 @@ export function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+export function isRoot(): boolean {
+  try {
+    return !!(process.getuid && process.getuid() === 0);
+  } catch {
+    return false;
+  }
+}
+
 export function execFileText(command: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     execFile(command, args, { encoding: "utf8" }, (error, stdout, stderr) => {
@@ -22,8 +30,22 @@ export function execFileWithPassword(
   password: string,
   stdinAfterPassword = ""
 ): Promise<string> {
+  // When running as root, skip sudo -S and run the target command directly
+  const root = isRoot();
+  const needsPassword = !root || command !== "sudo";
+  let finalCommand = command;
+  let finalArgs = args;
+
+  if (root && command === "sudo") {
+    const realCmdIndex = args.findIndex((arg) => !arg.startsWith("-"));
+    if (realCmdIndex !== -1) {
+      finalCommand = args[realCmdIndex];
+      finalArgs = args.slice(realCmdIndex + 1);
+    }
+  }
+
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawn(finalCommand, finalArgs, {
       stdio: ["pipe", "pipe", "pipe"],
     });
     let stdout = "";
@@ -57,7 +79,12 @@ export function execFileWithPassword(
       settle(new Error(`Command failed with code ${code}\n${stderr}`));
     });
 
-    child.stdin?.write(`${password}\n${stdinAfterPassword}`);
+    const stdinInput = needsPassword
+      ? `${password}\n${stdinAfterPassword}`
+      : stdinAfterPassword || "";
+    if (stdinInput) {
+      child.stdin?.write(stdinInput);
+    }
     child.stdin?.end();
   });
 }

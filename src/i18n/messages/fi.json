@@ -659,6 +659,7 @@
     "analytics": "Analytics",
     "costs": "Kustannukset",
     "health": "Terveys",
+    "proxy": "Välityspalvelin",
     "limits": "Rajoitukset ja kiintiöt",
     "cliTools": "CLI-työkalut",
     "media": "Media",

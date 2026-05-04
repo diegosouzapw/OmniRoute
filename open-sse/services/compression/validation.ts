@@ -67,13 +67,13 @@ export function validateCompression(original: string, compressed: string): Valid
   requireExactPresence("heading", collectMatches(original, /^#{1,6}\s+.+$/gm), compressed, errors);
   requireExactPresence(
     "table row",
-    collectMatches(original, /^[ \t]*\|(?:[^|\n]{0,1000}\|){1,100}[ \t]*$/gm),
+    collectMatches(original, /^[ \t]*\|(?:[^|\n]*\|)+[ \t]*$/gm),
     compressed,
     errors
   );
   requireExactPresence(
     "math block",
-    collectMatches(original, /\$\$[\s\S]{0,10000}?\$\$/g),
+    collectMatches(original, /\$\$[^$]*(?:\$(?!\$)[^$]*)*\$\$/g),
     compressed,
     errors
   );
@@ -85,7 +85,10 @@ export function validateCompression(original: string, compressed: string): Valid
   );
   requireExactPresence(
     "LaTeX block",
-    collectMatches(original, /\\begin\{[A-Za-z*]{1,50}\}[\s\S]{0,10000}?\\end\{[A-Za-z*]{1,50}\}/g),
+    collectMatches(
+      original,
+      /\\begin\{[A-Za-z*]{1,50}\}(?:(?!\\end\{)[^])*\\end\{[A-Za-z*]{1,50}\}/g
+    ),
     compressed,
     errors
   );

@@ -659,6 +659,7 @@
     "analytics": "Analytics",
     "costs": "Costs",
     "health": "Health",
+    "proxy": "Proxy",
     "limits": "Limits & Quotas",
     "cliTools": "CLI Tools",
     "media": "Media",
