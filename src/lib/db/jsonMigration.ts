@@ -32,6 +32,9 @@ export interface LegacyJsonData {
     combos?: unknown;
     keys?: unknown;
   };
+  usageHistory?: Record<string, unknown>[];
+  domainCostHistory?: Record<string, unknown>[];
+  domainBudgets?: Record<string, unknown>[];
 }
 
 /**
@@ -43,7 +46,15 @@ export interface LegacyJsonData {
 export function runJsonMigration(
   db: SqliteDatabase,
   data: LegacyJsonData
-): { connections: number; nodes: number; combos: number; apiKeys: number } {
+): {
+  connections: number;
+  nodes: number;
+  combos: number;
+  apiKeys: number;
+  usageHistory: number;
+  domainCostHistory: number;
+  domainBudgets: number;
+} {
   const insertConn = db.prepare(`
     INSERT OR REPLACE INTO provider_connections (
       id, provider, auth_type, name, email, priority, is_active,
@@ -210,6 +221,89 @@ export function runJsonMigration(
         createdAt: apiKey.createdAt ?? new Date().toISOString(),
       });
     }
+    // 7. Usage History
+    if (data.usageHistory && data.usageHistory.length > 0) {
+      const insertUsageHistory = db.prepare(`
+        INSERT OR REPLACE INTO usage_history (
+          id, provider, model, connection_id, api_key_id, api_key_name,
+          tokens_input, tokens_output, tokens_cache_read, tokens_cache_creation,
+          tokens_reasoning, status, success, latency_ms, ttft_ms, error_code, timestamp
+        ) VALUES (
+          @id, @provider, @model, @connection_id, @api_key_id, @api_key_name,
+          @tokens_input, @tokens_output, @tokens_cache_read, @tokens_cache_creation,
+          @tokens_reasoning, @status, @success, @latency_ms, @ttft_ms, @error_code, @timestamp
+        )
+      `);
+      for (const row of data.usageHistory) {
+        insertUsageHistory.run({
+          id: row.id,
+          provider: row.provider ?? null,
+          model: row.model ?? null,
+          connection_id: row.connection_id ?? null,
+          api_key_id: row.api_key_id ?? null,
+          api_key_name: row.api_key_name ?? null,
+          tokens_input: row.tokens_input ?? 0,
+          tokens_output: row.tokens_output ?? 0,
+          tokens_cache_read: row.tokens_cache_read ?? 0,
+          tokens_cache_creation: row.tokens_cache_creation ?? 0,
+          tokens_reasoning: row.tokens_reasoning ?? 0,
+          status: row.status ?? null,
+          success: row.success ?? 1,
+          latency_ms: row.latency_ms ?? 0,
+          ttft_ms: row.ttft_ms ?? 0,
+          error_code: row.error_code ?? null,
+          timestamp: row.timestamp,
+        });
+      }
+    }
+
+    // 8. Domain Cost History
+    if (data.domainCostHistory && data.domainCostHistory.length > 0) {
+      const insertCostHistory = db.prepare(`
+        INSERT OR REPLACE INTO domain_cost_history (
+          id, api_key_id, cost, timestamp
+        ) VALUES (
+          @id, @api_key_id, @cost, @timestamp
+        )
+      `);
+      for (const row of data.domainCostHistory) {
+        insertCostHistory.run({
+          id: row.id,
+          api_key_id: row.api_key_id,
+          cost: row.cost,
+          timestamp: row.timestamp,
+        });
+      }
+    }
+    // 9. Domain Budgets
+    if (data.domainBudgets && data.domainBudgets.length > 0) {
+      const insertBudgets = db.prepare(`
+        INSERT OR REPLACE INTO domain_budgets (
+          api_key_id, daily_limit_usd, weekly_limit_usd, monthly_limit_usd,
+          warning_threshold, reset_interval, reset_time, budget_reset_at,
+          last_budget_reset_at, warning_emitted_at, warning_period_start
+        ) VALUES (
+          @api_key_id, @daily_limit_usd, @weekly_limit_usd, @monthly_limit_usd,
+          @warning_threshold, @reset_interval, @reset_time, @budget_reset_at,
+          @last_budget_reset_at, @warning_emitted_at, @warning_period_start
+        )
+      `);
+      for (const row of data.domainBudgets) {
+        insertBudgets.run({
+          api_key_id: row.api_key_id,
+          daily_limit_usd: row.daily_limit_usd,
+          weekly_limit_usd: row.weekly_limit_usd ?? 0,
+          monthly_limit_usd: row.monthly_limit_usd ?? 0,
+          warning_threshold: row.warning_threshold ?? 0.8,
+          reset_interval: row.reset_interval ?? "daily",
+          reset_time: row.reset_time ?? "00:00",
+          budget_reset_at: row.budget_reset_at ?? null,
+          last_budget_reset_at: row.last_budget_reset_at ?? null,
+          warning_emitted_at: row.warning_emitted_at ?? null,
+          warning_period_start: row.warning_period_start ?? null,
+        });
+      }
+    }
   });
 
   migrate();
@@ -219,5 +313,8 @@ export function runJsonMigration(
     nodes: (data.providerNodes ?? []).length,
     combos: (data.combos ?? []).length,
     apiKeys: (data.apiKeys ?? []).length,
+    usageHistory: (data.usageHistory ?? []).length,
+    domainCostHistory: (data.domainCostHistory ?? []).length,
+    domainBudgets: (data.domainBudgets ?? []).length,
   };
 }

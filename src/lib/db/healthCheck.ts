@@ -1,4 +1,10 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
+import {
+  decryptConnectionFields,
+  encryptConnectionFields,
+  isMigrationNeeded,
+  resetMigrationFlag,
+} from "./encryption";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -7,7 +13,8 @@ export type DbHealthIssueType =
   | "integrity_check_failed"
   | "broken_reference"
   | "stale_snapshot"
-  | "invalid_state";
+  | "invalid_state"
+  | "legacy_encryption";
 
 export interface DbHealthIssue {
   type: DbHealthIssueType;
@@ -386,6 +393,83 @@ function repairSchemaVersion(db: SqliteDatabase, expectedSchemaVersion: string):
     .run(expectedSchemaVersion).changes;
 }
 
+function countLegacyEncryptedTokens(db: SqliteDatabase): number {
+  if (!hasRows(db, "provider_connections")) return 0;
+
+  const rows = db
+    .prepare("SELECT api_key, access_token, refresh_token, id_token FROM provider_connections")
+    .all() as Array<{
+    api_key?: string | null;
+    access_token?: string | null;
+    refresh_token?: string | null;
+    id_token?: string | null;
+  }>;
+
+  let legacyCount = 0;
+  for (const row of rows) {
+    resetMigrationFlag();
+    decryptConnectionFields({
+      apiKey: row.api_key,
+      accessToken: row.access_token,
+      refreshToken: row.refresh_token,
+      idToken: row.id_token,
+    });
+    if (isMigrationNeeded()) {
+      legacyCount += 1;
+    }
+  }
+
+  return legacyCount;
+}
+
+function repairLegacyEncryption(db: SqliteDatabase): number {
+  if (!hasRows(db, "provider_connections")) return 0;
+
+  const rows = db
+    .prepare("SELECT id, api_key, access_token, refresh_token, id_token FROM provider_connections")
+    .all() as Array<{
+    id: string;
+    api_key?: string | null;
+    access_token?: string | null;
+    refresh_token?: string | null;
+    id_token?: string | null;
+  }>;
+
+  const updateStmt = db.prepare(
+    "UPDATE provider_connections SET api_key = ?, access_token = ?, refresh_token = ?, id_token = ?, updated_at = ? WHERE id = ?"
+  );
+
+  let repaired = 0;
+  const now = new Date().toISOString();
+
+  for (const row of rows) {
+    resetMigrationFlag();
+    const camelRow = {
+      apiKey: row.api_key,
+      accessToken: row.access_token,
+      refreshToken: row.refresh_token,
+      idToken: row.id_token,
+    };
+
+    const decrypted = decryptConnectionFields(camelRow);
+
+    if (isMigrationNeeded()) {
+      const reEncrypted = encryptConnectionFields(decrypted);
+      updateStmt.run(
+        reEncrypted.apiKey || null,
+        reEncrypted.accessToken || null,
+        reEncrypted.refreshToken || null,
+        reEncrypted.idToken || null,
+        now,
+        row.id
+      );
+      repaired += 1;
+    }
+  }
+
+  return repaired;
+}
+
 export function runDbHealthCheck(
   db: SqliteDatabase,
   options: RunDbHealthCheckOptions = {}
@@ -534,6 +618,21 @@ export function runDbHealthCheck(
     if (autoRepair) {
       ensureBackupBeforeRepair();
       repairedCount += repairSchemaVersion(db, expectedSchemaVersion);
+    }
+  }
+
+  const legacyEncryptionCount = countLegacyEncryptedTokens(db);
+  if (legacyEncryptionCount > 0) {
+    issues.push({
+      type: "legacy_encryption",
+      table: "provider_connections",
+      description:
+        "Provider connections contain tokens encrypted with the legacy dynamic salt derivation.",
+      count: legacyEncryptionCount,
+    });
+    if (autoRepair) {
+      ensureBackupBeforeRepair();
+      repairedCount += repairLegacyEncryption(db);
     }
   }
 

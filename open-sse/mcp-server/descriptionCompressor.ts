@@ -65,9 +65,9 @@ export function compressMcpDescription(description: string): DescriptionCompress
   const applied = applyRulesToText(text, rules).text;
   const normalized = applied
     .replace(/[ \t]{2,}/g, " ")
-    .replace(/[ \t]+([,.;:!?])/g, "$1")
+    .replace(/[ \t]([,.;:!?])/g, "$1")
     .replace(/\n{3,}/g, "\n\n")
-    .replace(/(^|[.!?]\s+|^\s+)([a-z])/gm, (_match, prefix: string, char: string) => {
+    .replace(/(^|[.!?][ \t]|\n[ \t]*)([a-z])/g, (_match, prefix: string, char: string) => {
       return `${prefix}${char.toUpperCase()}`;
     })
     .trim();

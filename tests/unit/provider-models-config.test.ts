@@ -50,6 +50,16 @@ test("provider models helpers resolve provider IDs through aliases", () => {
   assert.deepEqual(getModelsByProviderId("provider-that-does-not-exist"), []);
 });
 
+test("Reka registry exposes preset models", () => {
+  const rekaModels = getModelsByProviderId("reka");
+  const ids = rekaModels.map((model) => model.id);
+
+  assert.equal(PROVIDER_ID_TO_ALIAS.reka, "reka");
+  assert.equal(getDefaultModel("reka"), "reka-flash-3");
+  assert.deepEqual(ids, ["reka-flash-3", "reka-edge-2603"]);
+  assert.equal(isValidModel("reka", "reka-edge-2603"), true);
+});
+
 test("GitHub Copilot registry reflects the current supported model lineup", () => {
   const githubModels = getProviderModels("gh");
   const ids = new Set(githubModels.map((model) => model.id));

@@ -949,6 +949,11 @@ export async function GET(
       });
     };
 
+    if (provider === "reka") {
+      const localCatalog = buildLocalCatalogResponse();
+      if (localCatalog) return localCatalog;
+    }
+
     if (
       isOpenAICompatibleProvider(provider) ||
       isLocalOpenAIStyleProvider(provider) ||

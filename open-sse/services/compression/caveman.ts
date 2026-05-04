@@ -205,7 +205,7 @@ export function applyRulesToText(
 function cleanupArtifacts(text: string): string {
   let result = text;
   if (result.includes("  ")) result = result.replace(/[ \t]{2,}/g, " ");
-  if (/[\t ]+[,.;:!?]/.test(result)) result = result.replace(/[ \t]+([,.;:!?])/g, "$1");
+  if (/[\t ]+[,.;:!?]/.test(result)) result = result.replace(/[ \t]([,.;:!?])/g, "$1");
   if (/[.!?]{2,}/.test(result)) result = result.replace(/([.!?]){2,}/g, "$1");
   if (/[ \t]\n/.test(result)) result = result.replace(/[ \t]+$/gm, "");
   if (result.endsWith(" ") || result.endsWith("\t")) result = result.trimEnd();
@@ -216,7 +216,7 @@ function cleanupArtifacts(text: string): string {
 }
 
 function recapitalizeSentences(text: string): string {
-  return text.replace(/(^|[.!?]\s+|^\s+)([a-z])/gm, (_match, prefix: string, char: string) => {
+  return text.replace(/(^|[.!?][ \t]|\n[ \t]*)([a-z])/g, (_match, prefix: string, char: string) => {
     return `${prefix}${char.toUpperCase()}`;
   });
 }
@@ -362,7 +362,7 @@ export function cavemanCompress(
       const { text: rulesApplied, appliedRules } = applyRulesToText(extractedText, rules);
       allAppliedRules.push(...appliedRules);
 
-      const normalized = cleanupArtifacts(recapitalizeSentences(rulesApplied));
+      const normalized = recapitalizeSentences(cleanupArtifacts(rulesApplied));
       const cleaned =
         blocks.length > 0
           ? cleanupArtifacts(restorePreservedBlocks(normalized, blocks))

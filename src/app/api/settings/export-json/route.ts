@@ -6,6 +6,7 @@ import {
   getCombos,
   getApiKeys,
 } from "@/lib/localDb";
+import { getDbInstance } from "@/lib/db/core";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -32,12 +33,20 @@ export async function GET(request: Request) {
     const combos = await getCombos();
     const apiKeys = await getApiKeys();
 
+    const db = getDbInstance();
+    const usageHistory = db.prepare("SELECT * FROM usage_history").all();
+    const domainCostHistory = db.prepare("SELECT * FROM domain_cost_history").all();
+    const domainBudgets = db.prepare("SELECT * FROM domain_budgets").all();
+
     const exportData = {
       settings: safeSettings,
       providerConnections,
       providerNodes,
       combos,
       apiKeys,
+      usageHistory,
+      domainCostHistory,
+      domainBudgets,
       // Metadata to identify export version
       _meta: {
         exportedAt: new Date().toISOString(),
