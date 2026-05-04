@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import { Card, Button, Input, Toggle } from "@/shared/components";
 import { cn } from "@/shared/utils/cn";
-import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
+import {
+  ROUTING_STRATEGIES,
+  SETTINGS_FALLBACK_STRATEGY_VALUES,
+} from "@/shared/constants/routingStrategies";
 import { useTranslations } from "next-intl";
 
 const STRATEGY_LABEL_FALLBACKS: Record<string, string> = {
@@ -15,6 +18,7 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
+const ACCOUNT_FALLBACK_STRATEGIES = new Set<string>(SETTINGS_FALLBACK_STRATEGY_VALUES);
 
 function translateOrFallback(
   t: ReturnType<typeof useTranslations>,
@@ -42,6 +46,17 @@ function sanitizeProviderOverrides(overrides?: Record<string, any> | null) {
       sanitizeComboRuntimeConfig(config),
     ])
   );
+}
+
+function toGlobalRoutingPatch(strategy: string | undefined, stickyRoundRobinLimit?: number) {
+  const patch: Record<string, unknown> = {};
+  if (strategy && ACCOUNT_FALLBACK_STRATEGIES.has(strategy)) {
+    patch.fallbackStrategy = strategy;
+  }
+  if (strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
+    patch.stickyRoundRobinLimit = stickyRoundRobinLimit;
+  }
+  return patch;
 }
 
 export default function ComboDefaultsTab() {
@@ -90,7 +105,7 @@ export default function ComboDefaultsTab() {
           ...prev,
           ...sanitizeComboRuntimeConfig(comboData.comboDefaults),
           strategy:
-            settingsData.fallbackStrategy ?? comboData.comboDefaults?.strategy ?? prev.strategy,
+            comboData.comboDefaults?.strategy ?? settingsData.fallbackStrategy ?? prev.strategy,
           stickyRoundRobinLimit:
             settingsData.stickyRoundRobinLimit ??
             comboData.comboDefaults?.stickyRoundRobinLimit ??
@@ -109,8 +124,7 @@ export default function ComboDefaultsTab() {
   };
 
   const syncGlobalRoutingSettings = async (patch: Record<string, unknown>) => {
-    const keys = Object.keys(patch);
-    if (keys.length === 0) return true;
+    if (Object.keys(patch).length === 0) return;
 
     const res = await fetch("/api/settings", {
       method: "PATCH",
@@ -121,21 +135,13 @@ export default function ComboDefaultsTab() {
     if (!res.ok) {
       throw new Error("Failed to sync global routing settings");
     }
-
-    return true;
   };
 
   const saveComboDefaults = async () => {
     setSaving(true);
     try {
       const { stickyRoundRobinLimit, ...comboDefaultsPayload } = comboDefaults;
-      const settingsPatch: Record<string, unknown> = {};
-      if (comboDefaults.strategy) {
-        settingsPatch.fallbackStrategy = comboDefaults.strategy;
-      }
-      if (comboDefaults.strategy === "round-robin" && stickyRoundRobinLimit !== undefined) {
-        settingsPatch.stickyRoundRobinLimit = stickyRoundRobinLimit;
-      }
+      const settingsPatch = toGlobalRoutingPatch(comboDefaults.strategy, stickyRoundRobinLimit);
 
       const comboDefaultsRes = await fetch("/api/settings/combo-defaults", {
         method: "PATCH",
@@ -243,7 +249,7 @@ export default function ComboDefaultsTab() {
                 onClick={async () => {
                   setComboDefaults((prev) => ({ ...prev, strategy: s.value }));
                   try {
-                    await syncGlobalRoutingSettings({ fallbackStrategy: s.value });
+                    await syncGlobalRoutingSettings(toGlobalRoutingPatch(s.value));
                   } catch (error) {
                     console.error("Failed to sync fallback strategy:", error);
                     showStatus("error", t("errorOccurred"));

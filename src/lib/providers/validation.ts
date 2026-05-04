@@ -2872,7 +2872,12 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey =
-    provider !== "searxng-search" && provider !== "petals" && !isSelfHostedChatProvider(provider);
+    provider !== "searxng-search" &&
+    provider !== "petals" &&
+    !isSelfHostedChatProvider(provider) &&
+    !isOpenAICompatibleProvider(provider) &&
+    !isAnthropicCompatibleProvider(provider);
+
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }

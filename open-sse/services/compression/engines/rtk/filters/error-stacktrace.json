@@ -1,0 +1,41 @@
+{
+  "id": "error-stacktrace",
+  "label": "Error Stacktrace",
+  "description": "Collapse stack traces while preserving error text and top frames.",
+  "category": "generic",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["error-stacktrace"],
+    "commands": [],
+    "patterns": ["Traceback \\(most recent call last\\):", "^\\s+at\\s+", "^panic: "]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "Error:",
+      "Exception:",
+      "Traceback",
+      "^\\s+at ",
+      "^panic:",
+      "^thread ",
+      "^Caused by:"
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": ["^\\s+at "],
+    "deduplicate": true,
+    "maxLines": 80,
+    "headLines": 25,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["Error:", "Exception:", "^panic:", "Traceback"],
+    "summaryPatterns": ["Caused by:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "input": "Error: boom\n    at fn (/repo/a.ts:1:1)\n    at fn (/repo/a.ts:1:1)\nCaused by: bad\n",
+      "expected": "Error: boom\n    at fn (/repo/a.ts:1:1)\nCaused by: bad"
+    }
+  ]
+}

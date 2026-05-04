@@ -475,6 +475,23 @@ if (existsSync(migrationsSrc)) {
   cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
 }
 
+const runtimeAssetDirs = [
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+  },
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "rules"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "rules"),
+  },
+];
+for (const assetDir of runtimeAssetDirs) {
+  if (existsSync(assetDir.source)) {
+    mkdirSync(dirname(assetDir.destination), { recursive: true });
+    cpSync(assetDir.source, assetDir.destination, { recursive: true, force: true });
+  }
+}
+
 // ── Step 10: Ensure data/ directory exists ──────────────────
 mkdirSync(join(APP_DIR, "data"), { recursive: true });
 

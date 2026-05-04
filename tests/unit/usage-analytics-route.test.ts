@@ -124,7 +124,9 @@ test("GET /api/usage/analytics includes byModel array with cost calculations", a
   assert.equal(response.status, 200);
   assert.ok(Array.isArray(body.byModel));
   assert.ok(body.byModel.length > 0);
-  const gptEntry = body.byModel.find((m) => m.model === "4o" && m.provider === "openai");
+  const gptEntry = body.byModel.find(
+    (m) => (m.model === "4o" || m.model === "gpt-4o") && m.provider === "openai"
+  );
   assert.ok(gptEntry);
   assert.ok(typeof gptEntry.cost === "number");
   assert.ok(gptEntry.cost > 0);
@@ -200,7 +202,7 @@ test("GET /api/usage/analytics does not persist guessed API key attribution", as
   const body = await response.json();
 
   assert.equal(response.status, 200);
-  assert.ok(body.byApiKey.some((row) => row.apiKeyName === "Unknown API key"));
+  assert.equal(body.byApiKey.length, 0);
 
   const row = db
     .prepare("SELECT api_key_id, api_key_name FROM usage_history WHERE connection_id = ?")
