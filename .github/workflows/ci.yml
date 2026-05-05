@@ -18,6 +18,7 @@ permissions:
 env:
   CI_NODE_VERSION: "24"
   CI_NODE_24_VERSION: "24"
+  CI_NODE_26_VERSION: "26"
 
 jobs:
   lint:
@@ -200,6 +201,30 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_24_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - run: npm run build
+      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+
+  node-26-compat:
+    name: Node 26 Compatibility (${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    env:
+      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-test-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_26_VERSION }}
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
@@ -441,6 +466,7 @@ jobs:
       - electron-package-smoke
       - test-unit
       - node-24-compat
+      - node-26-compat
       - test-coverage
       - sonarqube
       - coverage-pr-comment
@@ -494,6 +520,8 @@ jobs:
           echo "| Suite | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Node 24 Compatibility | $(status '${{ needs.node-24-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Node 26 Compatibility | $(status '${{ needs.node-26-compat.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"

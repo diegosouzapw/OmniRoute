@@ -1092,6 +1092,7 @@ test("Provider registry: chatgpt-web exposes the current ChatGPT Web model catal
   assert.deepEqual(ids, [
     "gpt-5.5-pro",
     "gpt-5.5-thinking",
+    "gpt-5.5",
     "gpt-5.4-pro",
     "gpt-5.4-thinking",
     "gpt-5.4-thinking-mini",

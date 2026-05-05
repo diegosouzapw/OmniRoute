@@ -196,6 +196,16 @@ export const autoNavSections: AutoGenNavSection[] = [
         "fileName": "UNINSTALL.md"
       }
     ]
+  },
+  {
+    "title": "Other",
+    "items": [
+      {
+        "slug": "rfc-auto-assessment",
+        "title": "RFC: Auto-Assessment & Self-Healing Combo Engine",
+        "fileName": "RFC-AUTO-ASSESSMENT.md"
+      }
+    ]
   }
 ];
 
@@ -732,6 +742,25 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     ]
   },
   {
+    "slug": "rfc-auto-assessment",
+    "title": "RFC: Auto-Assessment & Self-Healing Combo Engine",
+    "fileName": "RFC-AUTO-ASSESSMENT.md",
+    "section": "Other",
+    "content": "Omniroute's combo system currently requires manual configuration: users must know which providers and models are actually working, then manually wire them into combo chains. When providers fail (rate limits, auth errors, model deprecation), combos silently degrade — routing to dead endpoints that ti",
+    "headings": [
+      "Summary",
+      "Problem Statement",
+      "What we encountered (real production incident)",
+      "Current flow (broken)",
+      "Proposed flow (self-healing)",
+      "Architecture",
+      "New Components",
+      "Detailed Design",
+      "1. Assessor — src/domain/assessor.ts",
+      "2. Categorizer — src/domain/categorizer.ts"
+    ]
+  },
+  {
     "slug": "api-explorer",
     "title": "API Explorer",
     "fileName": "API_REFERENCE.md",
@@ -773,5 +802,6 @@ export const autoAllSlugs: string[] = [
   "coverage-plan",
   "i18n",
   "release-checklist",
-  "uninstall"
+  "uninstall",
+  "rfc-auto-assessment"
 ];

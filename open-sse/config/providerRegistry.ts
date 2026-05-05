@@ -1121,10 +1121,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "gpt-5.5-pro", name: "GPT-5.5 Pro" }, //pro tier only
       { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" }, //plus, pro tier
+      { id: "gpt-5.5", name: "GPT-5.5 Instant" }, //free, plus, pro tier
       { id: "gpt-5.4-pro", name: "GPT-5.4 Pro" }, //pro tier only
       { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" }, //plus, pro tier
       { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" }, //free-login only
-      { id: "gpt-5.3", name: "GPT-5.3" }, //free, free-login, plus, pro tier
+      { id: "gpt-5.3", name: "GPT-5.3 Instant" }, //free, free-login, plus, pro tier
       { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" }, //limit fallback
       { id: "gpt-5.2-pro", name: "GPT-5.2 Pro" }, //pro tier only
       { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" }, //plus ~ tier

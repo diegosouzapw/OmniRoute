@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
@@ -41,12 +42,12 @@ export default function Navigation() {
           >
             {t("howItWorks")}
           </a>
-          <a
+          <Link
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
             href="/docs"
           >
             {t("docsLink")}
-          </a>
+          </Link>
           <a
             className="text-gray-300 hover:text-white text-sm font-medium transition-colors flex items-center gap-1"
             href="https://github.com/diegosouzapw/OmniRoute"
@@ -98,12 +99,13 @@ export default function Navigation() {
             >
               {t("howItWorks")}
             </a>
-            <a
+            <Link
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
               href="/docs"
+              onClick={() => setMobileMenuOpen(false)}
             >
               {t("docsLink")}
-            </a>
+            </Link>
             <a
               className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
               href="https://github.com/diegosouzapw/OmniRoute"

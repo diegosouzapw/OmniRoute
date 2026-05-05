@@ -35,6 +35,7 @@ test("getNodeRuntimeSupport accepts patched Node 24, 22 and 20 LTS lines", () =>
   });
 
   assert.equal(getNodeRuntimeSupport("20.20.2").nodeCompatible, true);
+  assert.equal(getNodeRuntimeSupport("26.0.0").nodeCompatible, true);
   assert.deepEqual(getNodeRuntimeSupport("24.1.0"), {
     nodeVersion: "v24.1.0",
     nodeCompatible: true,

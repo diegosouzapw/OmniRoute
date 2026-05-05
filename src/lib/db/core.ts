@@ -88,6 +88,44 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "webhooks", maxRows: 5_000 },
 ];
 
+function isNativeSqliteLoadError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Module did not self-register") ||
+    message.includes("NODE_MODULE_VERSION") ||
+    message.includes("ERR_DLOPEN_FAILED") ||
+    (error as any)?.code === "ERR_DLOPEN_FAILED"
+  );
+}
+
+function createNativeSqliteLoadError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  const detail =
+    `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
+    "This usually happens after switching Node.js versions without rebuilding native modules. " +
+    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
+    `Original error: ${message}`;
+  const wrapped = new Error(detail);
+  wrapped.name = "NativeSqliteLoadError";
+  (wrapped as any).cause = error;
+  (wrapped as any).code = (error as any)?.code || "ERR_DLOPEN_FAILED";
+  return wrapped;
+}
+
+function openSqliteDatabase(
+  sqliteFile: string,
+  options?: ConstructorParameters<typeof Database>[1]
+): SqliteDatabase {
+  try {
+    return new Database(sqliteFile, options);
+  } catch (error: unknown) {
+    if (isNativeSqliteLoadError(error)) {
+      throw createNativeSqliteLoadError(error);
+    }
+    throw error;
+  }
+}
+
 // Ensure data directory exists — with fallback for restricted home directories (#133)
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
   try {
@@ -662,7 +700,7 @@ function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
 
   let probe: SqliteDatabase | null = null;
   try {
-    probe = new Database(sqliteFile, { readonly: true });
+    probe = openSqliteDatabase(sqliteFile, { readonly: true });
 
     for (const tableSpec of CRITICAL_DB_TABLES) {
       if (!hasTable(probe, tableSpec.table)) continue;
@@ -1013,7 +1051,7 @@ export function getDbInstance(): SqliteDatabase {
     if (isBuildPhase) {
       console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
     }
-    const memoryDb = new Database(":memory:");
+    const memoryDb = openSqliteDatabase(":memory:");
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
@@ -1088,7 +1126,7 @@ export function getDbInstance(): SqliteDatabase {
   // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
     try {
-      const probe = new Database(sqliteFile, { readonly: true });
+      const probe = openSqliteDatabase(sqliteFile, { readonly: true });
       const hasOldSchema = probe
         .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
@@ -1109,7 +1147,7 @@ export function getDbInstance(): SqliteDatabase {
           console.log(
             `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
-          const fixDb = new Database(sqliteFile);
+          const fixDb = openSqliteDatabase(sqliteFile);
           try {
             fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
             fixDb.pragma("wal_checkpoint(TRUNCATE)");
@@ -1141,12 +1179,7 @@ export function getDbInstance(): SqliteDatabase {
       console.warn("[DB] Could not probe existing DB:", message);
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
-      if (
-        message.includes("Module did not self-register") ||
-        message.includes("could not be found") ||
-        message.includes("ERR_DLOPEN_FAILED") ||
-        (e as any)?.code === "ERR_DLOPEN_FAILED"
-      ) {
+      if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
         throw e;
       }
 
@@ -1180,7 +1213,7 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  const db = new Database(sqliteFile);
+  const db = openSqliteDatabase(sqliteFile);
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.pragma("synchronous = NORMAL");

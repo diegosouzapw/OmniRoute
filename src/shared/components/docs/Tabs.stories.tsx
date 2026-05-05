@@ -14,21 +14,6 @@ export const Default: Story = {
     tabs: [
       {
         label: "Installation",
-<<<<<<< HEAD
-        content: <div className="p-2">Run npm install to get started.</div>,
-      },
-      {
-        label: "Configuration",
-        content: <div className="p-2">Edit your config.json file.</div>,
-      },
-      {
-        label: "Usage",
-        content: <div className="p-2">Import the provider and start routing.</div>,
-      },
-    ],
-  },
-};
-=======
         content: '<div className="p-2">Run npm install to get started.</div>',
       },
       { label: "Configuration", content: '<div className="p-2">Edit your config.json file.</div>' },
@@ -39,4 +24,3 @@ export const Default: Story = {
     ],
   },
 };
->>>>>>> upstream/release/v3.7.9

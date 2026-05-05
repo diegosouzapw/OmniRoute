@@ -14,8 +14,19 @@ import { SEARCH_INDEX } from "../../src/app/docs/lib/searchIndex";
 // docsNavigation structure
 // ──────────────────────────────────────────────
 
-test("docsNavigation has 6 sections", () => {
-  assert.equal(docsNavigation.length, 6);
+test("docsNavigation has expected sections", () => {
+  assert.deepEqual(
+    docsNavigation.map((section) => section.title),
+    [
+      "Getting Started",
+      "Features",
+      "API & Protocols",
+      "Deployment",
+      "Operations",
+      "Development",
+      "Other",
+    ]
+  );
 });
 
 test("every section has title and items", () => {
@@ -147,12 +158,12 @@ test("extractHeadings strips bold and code from heading text", () => {
 
 test("renderMarkdown converts headings to HTML", () => {
   const html = renderMarkdown("# Title\n## Section\n### Subsection\n#### Details");
-  assert.ok(html.includes('<h1'), "h1 tag");
+  assert.ok(html.includes("<h1"), "h1 tag");
   assert.ok(html.includes("Title"), "h1 text");
-  assert.ok(html.includes('<h2'), "h2 tag");
+  assert.ok(html.includes("<h2"), "h2 tag");
   assert.ok(html.includes("Section"), "h2 text");
-  assert.ok(html.includes('<h3'), "h3 tag");
-  assert.ok(html.includes('<h4'), "h4 tag");
+  assert.ok(html.includes("<h3"), "h3 tag");
+  assert.ok(html.includes("<h4"), "h4 tag");
 });
 
 test("renderMarkdown sanitizes XSS content", () => {

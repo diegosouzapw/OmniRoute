@@ -930,14 +930,14 @@ export default function SystemStorageTab() {
               setPurgeLogsLoading(true);
               setPurgeLogsStatus({ type: "", message: "" });
               try {
-                const res = await fetch("/api/logs/purge", { method: "DELETE" });
+                const res = await fetch("/api/settings/purge-logs", { method: "POST" });
                 const data = await res.json();
                 if (res.ok) {
                   setPurgeLogsStatus({
                     type: "success",
                     message:
-                      t("logsPurged", { count: data.deletedCount }) ||
-                      `Purged ${data.deletedCount} old log entries`,
+                      t("logsDeleted", { count: data.deleted }) ||
+                      `Purged ${data.deleted} expired log(s)`,
                   });
                 } else {
                   setPurgeLogsStatus({
@@ -953,9 +953,9 @@ export default function SystemStorageTab() {
             }}
           >
             <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-              delete_forever
+              auto_delete
             </span>
-            {t("purgeOldLogs") || "Purge Old Logs"}
+            {t("purgeExpiredLogs") || "Purge Expired Logs"}
           </Button>
           {purgeLogsStatus.message && (
             <div
@@ -976,247 +976,6 @@ export default function SystemStorageTab() {
           )}
         </div>
       </div>
-
-      {/* Purge Section */}
-      <div className="pt-3 border-t border-border/50 mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="material-symbols-outlined text-[18px] text-red-500" aria-hidden="true">
-            auto_delete
-          </span>
-          <p className="font-medium">Purge Data</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              loading={purgeLogsLoading}
-              onClick={async () => {
-                setPurgeLogsLoading(true);
-                try {
-                  const res = await fetch("/api/db/cleanup/quota-snapshots", { method: "DELETE" });
-                  const data = await res.json();
-                  if (res.ok) {
-                    setPurgeLogsStatus({
-                      type: "success",
-                      message: `Purged ${data.deleted} quota snapshots`,
-                    });
-                  } else {
-                    setPurgeLogsStatus({
-                      type: "error",
-                      message: data.error || "Failed to purge quota snapshots",
-                    });
-                  }
-                } catch (err) {
-                  setPurgeLogsStatus({ type: "error", message: "Error purging quota snapshots" });
-                } finally {
-                  setPurgeLogsLoading(false);
-                }
-              }}
-            >
-              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-                delete
-              </span>
-              Purge Quota Snapshots
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              loading={purgeLogsLoading}
-              onClick={async () => {
-                setPurgeLogsLoading(true);
-                try {
-                  const res = await fetch("/api/db/cleanup/call-logs", { method: "DELETE" });
-                  const data = await res.json();
-                  if (res.ok) {
-                    setPurgeLogsStatus({
-                      type: "success",
-                      message: `Purged ${data.deleted} call logs`,
-                    });
-                  } else {
-                    setPurgeLogsStatus({
-                      type: "error",
-                      message: data.error || "Failed to purge call logs",
-                    });
-                  }
-                } catch (err) {
-                  setPurgeLogsStatus({ type: "error", message: "Error purging call logs" });
-                } finally {
-                  setPurgeLogsLoading(false);
-                }
-              }}
-            >
-              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-                delete
-              </span>
-              Purge Call Logs
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              loading={purgeLogsLoading}
-              onClick={async () => {
-                setPurgeLogsLoading(true);
-                try {
-                  const res = await fetch("/api/db/cleanup/detailed-logs", { method: "DELETE" });
-                  const data = await res.json();
-                  if (res.ok) {
-                    setPurgeLogsStatus({
-                      type: "success",
-                      message: `Purged ${data.deleted} detailed logs`,
-                    });
-                  } else {
-                    setPurgeLogsStatus({
-                      type: "error",
-                      message: data.error || "Failed to purge detailed logs",
-                    });
-                  }
-                } catch (err) {
-                  setPurgeLogsStatus({ type: "error", message: "Error purging detailed logs" });
-                } finally {
-                  setPurgeLogsLoading(false);
-                }
-              }}
-            >
-              <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-                delete
-              </span>
-              Purge Detailed Logs
-            </Button>
-          </div>
-        </div>
-        {purgeLogsStatus.message && (
-          <div
-            className={`p-3 rounded-lg text-sm ${
-              purgeLogsStatus.type === "success"
-                ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                : "bg-red-500/10 text-red-500 border border-red-500/20"
-            }`}
-            role="alert"
-          >
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                {purgeLogsStatus.type === "success" ? "check_circle" : "error"}
-              </span>
-              {purgeLogsStatus.message}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Button
-          variant="outline"
-          size="sm"
-          loading={clearCacheLoading}
-          onClick={async () => {
-            setClearCacheLoading(true);
-            setClearCacheStatus({ type: "", message: "" });
-            try {
-              const res = await fetch("/api/cache", { method: "DELETE" });
-              const data = await res.json();
-              if (res.ok) {
-                setClearCacheStatus({
-                  type: "success",
-                  message: t("cacheCleared") || "Cache cleared successfully",
-                });
-              } else {
-                setClearCacheStatus({
-                  type: "error",
-                  message: data.error || t("clearCacheFailed") || "Failed to clear cache",
-                });
-              }
-            } catch {
-              setClearCacheStatus({ type: "error", message: t("errorOccurred") });
-            } finally {
-              setClearCacheLoading(false);
-            }
-          }}
-        >
-          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-            delete_sweep
-          </span>
-          {t("clearCache") || "Clear Cache"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          loading={purgeLogsLoading}
-          onClick={async () => {
-            setPurgeLogsLoading(true);
-            setPurgeLogsStatus({ type: "", message: "" });
-            try {
-              const res = await fetch("/api/settings/purge-logs", { method: "POST" });
-              const data = await res.json();
-              if (res.ok) {
-                setPurgeLogsStatus({
-                  type: "success",
-                  message:
-                    t("logsDeleted", { count: data.deleted }) ||
-                    `Purged ${data.deleted} expired log(s)`,
-                });
-              } else {
-                setPurgeLogsStatus({
-                  type: "error",
-                  message: data.error || t("purgeLogsFailed") || "Failed to purge logs",
-                });
-              }
-            } catch {
-              setPurgeLogsStatus({ type: "error", message: t("errorOccurred") });
-            } finally {
-              setPurgeLogsLoading(false);
-            }
-          }}
-        >
-          <span className="material-symbols-outlined text-[14px] mr-1" aria-hidden="true">
-            auto_delete
-          </span>
-          {t("purgeExpiredLogs") || "Purge Expired Logs"}
-        </Button>
-      </div>
-      {(clearCacheStatus.message || purgeLogsStatus.message) && (
-        <div className="flex flex-col gap-2">
-          {clearCacheStatus.message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${
-                clearCacheStatus.type === "success"
-                  ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                  : "bg-red-500/10 text-red-500 border border-red-500/20"
-              }`}
-              role="alert"
-            >
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  {clearCacheStatus.type === "success" ? "check_circle" : "error"}
-                </span>
-                {clearCacheStatus.message}
-              </div>
-            </div>
-          )}
-          {purgeLogsStatus.message && (
-            <div
-              className={`p-3 rounded-lg text-sm ${
-                purgeLogsStatus.type === "success"
-                  ? "bg-green-500/10 text-green-500 border border-green-500/20"
-                  : "bg-red-500/10 text-red-500 border border-red-500/20"
-              }`}
-              role="alert"
-            >
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
-                  {purgeLogsStatus.type === "success" ? "check_circle" : "error"}
-                </span>
-                {purgeLogsStatus.message}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Purge Data section */}
       <div className="pt-3 border-t border-border/50">
