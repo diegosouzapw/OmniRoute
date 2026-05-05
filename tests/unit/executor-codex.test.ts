@@ -468,6 +468,57 @@ test("CodexExecutor.transformRequest does not replay internal assistant commenta
   assert.equal(result.input[3].type, "function_call_output");
 });
 
+test("CodexExecutor.transformRequest preserves replayed assistant final_answer messages", () => {
+  const executor = new CodexExecutor();
+  rememberResponseConversationState(
+    "resp_prev_final_answer_123",
+    [
+      {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text: "9+10?" }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        phase: "final_answer",
+        content: [{ type: "output_text", text: "19" }],
+      },
+    ],
+    []
+  );
+
+  const result = executor.transformRequest(
+    "gpt-5.5-low",
+    {
+      _nativeCodexPassthrough: true,
+      previous_response_id: "resp_prev_final_answer_123",
+      input: [
+        {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "did you answered?" }],
+        },
+      ],
+      stream: false,
+    },
+    false,
+    { requestEndpointPath: "/responses" }
+  );
+
+  assert.equal(
+    result.input.some((item) => JSON.stringify(item).includes('"text":"19"')),
+    true
+  );
+  assert.equal(
+    result.input.some((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+      return item.role === "assistant" && item.phase === "final_answer";
+    }),
+    true
+  );
+});
+
 test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
   const executor = new CodexExecutor();
   const body = {
@@ -489,6 +540,12 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
         role: "assistant",
         phase: "final",
         content: [{ type: "output_text", text: "Visible final assistant answer." }],
+      },
+      {
+        type: "message",
+        role: "assistant",
+        phase: "final_answer",
+        content: [{ type: "output_text", text: "Visible final_answer assistant answer." }],
       },
       {
         type: "message",
@@ -524,6 +581,12 @@ test("CodexExecutor.transformRequest strips raw internal assistant commentary wi
   );
   assert.equal(
     result.input.some((item) => JSON.stringify(item).includes("Visible final assistant answer")),
+    true
+  );
+  assert.equal(
+    result.input.some((item) =>
+      JSON.stringify(item).includes("Visible final_answer assistant answer")
+    ),
     true
   );
   assert.equal(

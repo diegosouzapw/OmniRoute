@@ -1,4 +1,5 @@
 type JsonRecord = Record<string, unknown>;
+const INTERNAL_ASSISTANT_PHASES = new Set(["commentary"]);
 
 function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
@@ -15,9 +16,9 @@ export function isInternalAssistantMessage(record: JsonRecord): boolean {
   const phase = typeof record.phase === "string" ? record.phase.trim().toLowerCase() : "";
   if (!phase) return false;
 
-  // OpenCode can send assistant-side commentary/analysis frames in Responses
-  // shape. Those frames are local runtime state, not durable conversation turns.
-  return phase !== "final";
+  // Drop only known internal runtime frames. Visible assistant turns such as
+  // `final` and `final_answer` must survive replay for Codex/OpenCode follow-ups.
+  return INTERNAL_ASSISTANT_PHASES.has(phase);
 }
 
 export function sanitizeResponsesInputItems(items: readonly unknown[], clone = true): unknown[] {
