@@ -291,7 +291,8 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
     shouldMarkAccountExhaustedFrom429("openai-compatible-custom-node", "any-model"),
     false
   );
-  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
+  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("claude", "claude-sonnet-4-6"), true);
 });
 
 test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {

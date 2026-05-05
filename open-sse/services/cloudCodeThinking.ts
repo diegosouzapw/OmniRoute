@@ -54,6 +54,10 @@ export function stripCloudCodeThinkingConfig(
 
   if (isRecord(next.request)) {
     const request = { ...next.request };
+    delete request.reasoning_effort;
+    delete request.reasoning;
+    delete request.thinking;
+
     if ("generationConfig" in request) {
       request.generationConfig = stripGeminiThinkingConfig(request.generationConfig);
     }

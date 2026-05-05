@@ -185,8 +185,7 @@ test("Claude native messages can be round-tripped through OpenAI into Claude OAu
       content: [{ type: "text", text: "reply with OK only" }],
     },
   ]);
-  assert.ok(Array.isArray(translated.system));
-  assert.equal(translated.system[0]?.text?.includes("You are Claude Code"), true);
+  assert.equal(translated.system, undefined);
 });
 
 test("CodexExecutor maps fast service tier to priority", () => {

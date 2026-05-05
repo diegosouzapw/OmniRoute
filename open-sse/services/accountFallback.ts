@@ -453,7 +453,10 @@ export function shouldMarkAccountExhaustedFrom429(
   model: string | null | undefined = null,
   connectionPassthroughModels?: boolean
 ): boolean {
-  return !hasPerModelQuota(provider, model, connectionPassthroughModels);
+  return (
+    shouldPreserveQuotaSignalsFor429(provider) &&
+    !hasPerModelQuota(provider, model, connectionPassthroughModels)
+  );
 }
 
 /**

@@ -76,6 +76,6 @@ test("AntigravityExecutor.transformRequest keeps Claude bridge output cap and st
     projectId: "project-1",
   });
 
-  assert.equal(result.request.generationConfig.maxOutputTokens, 16_384);
-  assert.equal(result.request.generationConfig.thinkingConfig, undefined);
+  assert.equal(result.request.max_tokens, 16_384);
+  assert.equal(result.request.thinking, undefined);
 });

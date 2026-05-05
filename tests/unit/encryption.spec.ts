@@ -66,6 +66,41 @@ describe("encryption module", () => {
     });
   });
 
+  describe("migrateLegacyEncryptedString() behavior", () => {
+    it("should upgrade legacy encrypted tokens to static key tokens", async () => {
+      const secret = "test-secret-key-12345";
+      const plaintext = "legacy-token";
+      const legacyEncrypted = createLegacyEncrypted(plaintext, secret);
+
+      vi.stubEnv("STORAGE_ENCRYPTION_KEY", secret);
+      vi.resetModules();
+
+      const { migrateLegacyEncryptedString, decrypt } = await import("@/lib/db/encryption");
+
+      const result = migrateLegacyEncryptedString(legacyEncrypted);
+      expect(result.updated).toBe(true);
+      expect(result.value).not.toBe(legacyEncrypted);
+      expect(result.value).toMatch(/^enc:v1:/);
+
+      const decrypted = decrypt(result.value);
+      expect(decrypted).toBe(plaintext);
+    });
+
+    it("should NOT upgrade static-key encrypted tokens", async () => {
+      vi.stubEnv("STORAGE_ENCRYPTION_KEY", "test-secret-key-12345");
+      vi.resetModules();
+
+      const { encrypt, migrateLegacyEncryptedString } = await import("@/lib/db/encryption");
+
+      const plaintext = "modern-token";
+      const encrypted = encrypt(plaintext);
+
+      const result = migrateLegacyEncryptedString(encrypted!);
+      expect(result.updated).toBe(false);
+      expect(result.value).toBe(encrypted);
+    });
+  });
+
   describe("passthrough mode: no STORAGE_ENCRYPTION_KEY set → plaintext stored", () => {
     it("should return plaintext when encryption key is not set", async () => {
       // No STORAGE_ENCRYPTION_KEY set

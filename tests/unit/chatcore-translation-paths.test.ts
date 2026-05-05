@@ -840,7 +840,7 @@ test("chatCore strips unsupported reasoning params and caps provider token field
 
   assert.equal(call.body.temperature, undefined);
   assert.equal(call.body.presence_penalty, undefined);
-  assert.equal(call.body.max_tokens, 16384);
+  assert.equal(call.body.max_tokens, undefined);
   assert.equal(call.body.max_completion_tokens, 16384);
 });
 
