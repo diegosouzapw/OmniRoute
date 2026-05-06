@@ -274,6 +274,31 @@ function mapStainlessArch() {
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   // ─── OAuth Providers ───────────────────────────────────────────────────
+  kie: {
+    id: "kie",
+    alias: "kie",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.kie.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "gpt-5-2", name: "GPT 5.2" },
+      { id: "gpt-5-4", name: "GPT 5.4" },
+      { id: "gpt-codex", name: "GPT Codex" },
+      { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku" },
+      { id: "claude-opus-4-5", name: "Claude 4.5 Opus" },
+      { id: "claude-opus-4-6", name: "Claude 4.6 Opus" },
+      { id: "claude-sonnet-4-5", name: "Claude 4.5 Sonnet" },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
+      { id: "gemini-2-5-pro", name: "Gemini 2.5 Pro" },
+      { id: "gemini-3-pro", name: "Gemini 3 Pro" },
+      { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-2-5-flash", name: "Gemini 2.5 Flash" },
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+    ],
+  },
   claude: {
     id: "claude",
     alias: "cc",

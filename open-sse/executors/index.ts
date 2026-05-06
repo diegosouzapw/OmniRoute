@@ -14,6 +14,7 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { KieExecutor } from "./kie.ts";
 import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
@@ -52,6 +53,7 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
+  kie: new KieExecutor(),
   "chatgpt-web": new ChatGptWebExecutor(),
   "cgpt-web": new ChatGptWebExecutor(), // Alias
   "blackbox-web": new BlackboxWebExecutor(),
@@ -89,6 +91,7 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { KieExecutor } from "./kie.ts";
 export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";

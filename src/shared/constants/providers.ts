@@ -618,6 +618,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "NB",
     website: "https://nanobananaapi.ai",
   },
+  kie: {
+    id: "kie",
+    alias: "kie",
+    name: "KIE.AI",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "KIE",
+    website: "https://kie.ai",
+  },
   "ollama-cloud": {
     id: "ollama-cloud",
     alias: "ollamacloud",

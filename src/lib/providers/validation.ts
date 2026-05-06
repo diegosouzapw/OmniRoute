@@ -755,6 +755,55 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
   }
 }
 
+async function validateKieProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    // Use credit check endpoint as requested by user based on Kie.ai docs.
+    const response = await validationRead("https://api.kie.ai/api/v1/chat/credit", {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid Kie.ai API key" };
+    }
+
+    // Fallback: if credits endpoint is 404/not supported, try minimal chat probe.
+    const chatRes = await validationWrite("https://api.kie.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "gpt-4o-mini",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      chatRes.ok ||
+      (chatRes.status >= 400 &&
+        chatRes.status < 500 &&
+        chatRes.status !== 401 &&
+        chatRes.status !== 403)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${chatRes.status}` };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 function getAwsProviderString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
@@ -2920,6 +2969,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       validateImageProviderApiKey({ provider: "topaz", apiKey, providerSpecificData }),
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
