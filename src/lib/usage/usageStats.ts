@@ -8,6 +8,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { getApiKeys } from "../db/apiKeys";
 import { getPendingRequests } from "./usageHistory";
 import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
@@ -29,6 +30,7 @@ type UsageBreakdown = UsageBucket & {
   accountName?: string;
   apiKeyId?: string | null;
   apiKeyName?: string;
+  historicalApiKeyNames?: string[];
 };
 
 type ActiveRequest = {
@@ -53,6 +55,10 @@ function toNumber(value: unknown): number {
 
 function toStringOrEmpty(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+function getApiKeyStatsKey(apiKeyId: string | null, apiKeyName: string | null): string {
+  return apiKeyId ? `id:${apiKeyId}` : `name:${apiKeyName || "unknown"}`;
 }
 
 /**
@@ -124,6 +130,18 @@ export async function getUsageStats() {
     if (!connectionId) continue;
     connectionMap[connectionId] =
       toStringOrEmpty(conn.name) || toStringOrEmpty(conn.email) || connectionId;
+  }
+
+  const currentApiKeyNames = new Map<string, string>();
+  try {
+    const apiKeys = await getApiKeys();
+    for (const apiKey of apiKeys) {
+      if (typeof apiKey.id === "string" && typeof apiKey.name === "string") {
+        currentApiKeyNames.set(apiKey.id, apiKey.name);
+      }
+    }
+  } catch {
+    // Stats can still be computed from usage_history when api_keys is unavailable.
   }
 
   const pendingRequests = getPendingRequests();
@@ -286,26 +304,35 @@ export async function getUsageStats() {
 
     // By API key
     if (apiKeyId || apiKeyName) {
-      const keyName = apiKeyName || apiKeyId || "unknown";
-      const keyId = apiKeyId || null;
-      const apiKey = keyId ? `${keyName} (${keyId})` : keyName;
-      if (!stats.byApiKey[apiKey]) {
-        stats.byApiKey[apiKey] = {
+      const key = getApiKeyStatsKey(apiKeyId, apiKeyName);
+      const displayName =
+        (apiKeyId ? currentApiKeyNames.get(apiKeyId) : undefined) ||
+        apiKeyName ||
+        apiKeyId ||
+        "unknown";
+      if (!stats.byApiKey[key]) {
+        stats.byApiKey[key] = {
           requests: 0,
           promptTokens: 0,
           completionTokens: 0,
           cost: 0,
-          apiKeyId: keyId,
-          apiKeyName: keyName,
+          apiKeyId,
+          apiKeyName: displayName,
+          historicalApiKeyNames: [],
           lastUsed: timestamp,
         };
       }
-      stats.byApiKey[apiKey].requests++;
-      stats.byApiKey[apiKey].promptTokens += promptTokens;
-      stats.byApiKey[apiKey].completionTokens += completionTokens;
-      stats.byApiKey[apiKey].cost += entryCost;
-      if (new Date(timestamp) > new Date(stats.byApiKey[apiKey].lastUsed || timestamp)) {
-        stats.byApiKey[apiKey].lastUsed = timestamp;
+      const apiKeyStats = stats.byApiKey[key];
+      if (apiKeyName && !apiKeyStats.historicalApiKeyNames?.includes(apiKeyName)) {
+        apiKeyStats.historicalApiKeyNames?.push(apiKeyName);
+      }
+      apiKeyStats.apiKeyName = displayName;
+      apiKeyStats.requests++;
+      apiKeyStats.promptTokens += promptTokens;
+      apiKeyStats.completionTokens += completionTokens;
+      apiKeyStats.cost += entryCost;
+      if (new Date(timestamp) > new Date(apiKeyStats.lastUsed || timestamp)) {
+        apiKeyStats.lastUsed = timestamp;
       }
     }
   }
