@@ -977,7 +977,7 @@
     "tipSeparate": "Create separate keys for different clients or environments",
     "tipRestrict": "Restrict keys to specific models for better security and cost control",
     "keyName": "Key Name",
-    "keyNamePlaceholder": "e.g., Production Key, Development Key",
+    "keyNamePlaceholder": "e.g. Production Key",
     "keyNameDesc": "Choose a descriptive name to identify this key's purpose",
     "keyCreated": "API Key Created",
     "keyCreatedSuccess": "Key created successfully!",

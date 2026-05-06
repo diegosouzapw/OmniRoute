@@ -42,8 +42,8 @@ function validateKeyName(
   if (name.length > MAX_KEY_NAME_LENGTH) {
     return { valid: false, error: t("keyNameTooLong", { max: MAX_KEY_NAME_LENGTH }) };
   }
-  // Only allow alphanumeric, spaces, hyphens, underscores
-  if (!/^[a-zA-Z0-9_\-\s]+$/.test(name)) {
+  // Allow Unicode letters (accented chars), numbers, spaces, hyphens, underscores
+  if (!/^[\p{L}\p{N}_\-\s]+$/u.test(name)) {
     return {
       valid: false,
       error: t("keyNameInvalid"),

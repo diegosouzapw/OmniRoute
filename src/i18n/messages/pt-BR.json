@@ -875,7 +875,7 @@
     "tipSeparate": "Crie chaves separadas para diferentes clientes ou ambientes",
     "tipRestrict": "Restrinja chaves a modelos específicos para maior segurança e controle de custos",
     "keyName": "Nome da Chave",
-    "keyNamePlaceholder": "ex: Chave de Produção, Chave de Desenvolvimento",
+    "keyNamePlaceholder": "ex: Chave de Produção",
     "keyNameDesc": "Escolha um nome descritivo para identificar o propósito desta chave",
     "keyCreated": "Chave de API Criada",
     "keyCreatedSuccess": "Chave criada com sucesso!",
