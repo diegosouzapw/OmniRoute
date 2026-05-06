@@ -288,6 +288,36 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
   );
 });
 
+test("v1 models catalog exposes bare Codex-preferred IDs for native Codex clients", async () => {
+  await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-native",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const getModel = (id: string) => body.data.find((item) => item.id === id);
+
+  assert.equal(response.status, 200);
+  const modelId = "codex-auto-review";
+  const bareModel = getModel(modelId);
+  const providerModel = getModel(`codex/${modelId}`);
+  const aliasModel = getModel(`cx/${modelId}`);
+  const openAiModel = getModel(`openai/${modelId}`);
+
+  assert.ok(bareModel, `expected bare ${modelId} model`);
+  assert.ok(providerModel, `expected codex/${modelId} model`);
+  assert.ok(aliasModel, `expected cx/${modelId} model`);
+  assert.equal(openAiModel, undefined);
+  assert.equal(bareModel.owned_by, "codex");
+  assert.equal(bareModel.parent, providerModel.id);
+  assert.equal(providerModel.parent, aliasModel.id);
+});
+
 test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {
   await seedConnection("antigravity", {
     authType: "oauth",

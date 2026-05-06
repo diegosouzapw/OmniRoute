@@ -74,6 +74,7 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
 const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
+export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 /**
  * Resolve provider alias to provider ID
@@ -278,6 +279,14 @@ function resolveModelByProviderInference(modelId, extendedContext) {
   const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
 
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
+
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
+    return {
+      provider: "codex",
+      model: modelId,
+      extendedContext,
+    };
+  }
 
   if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
     return {

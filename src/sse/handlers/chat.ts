@@ -485,7 +485,12 @@ async function handleSingleModelChat(
   isCombo: boolean = false
 ) {
   // 1. Resolve model → provider/model
-  const resolved = await resolveModelOrError(modelStr, body, clientRawRequest?.endpoint);
+  const resolved = await resolveModelOrError(
+    modelStr,
+    body,
+    clientRawRequest?.endpoint,
+    clientRawRequest?.headers
+  );
   if (resolved.error) return resolved.error;
 
   const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;

@@ -16,6 +16,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model.ts";
 import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -374,6 +375,51 @@ export async function getUnifiedModelsResponse(
             ...(providerVisionFields || {}),
           });
         }
+
+        if (
+          canonicalProviderId === "codex" &&
+          CODEX_NATIVE_UNPREFIXED_MODELS.has(model.id) &&
+          !models.some((existingModel) => existingModel.id === model.id)
+        ) {
+          models.push({
+            id: model.id,
+            object: "model",
+            created: timestamp,
+            owned_by: canonicalProviderId,
+            permission: [],
+            root: model.id,
+            parent: `${canonicalProviderId}/${model.id}`,
+            ...(contextLength ? { context_length: contextLength } : {}),
+            ...(visionFields || {}),
+          });
+        }
+      }
+    }
+
+    for (const modelId of CODEX_NATIVE_UNPREFIXED_MODELS) {
+      if (!providerSupportsModel("codex", modelId)) continue;
+      if (getModelIsHidden("codex", modelId)) continue;
+
+      const alias = providerIdToAlias.codex || "cx";
+      const aliasId = `${alias}/${modelId}`;
+      const providerIdModel = `codex/${modelId}`;
+      const entries = [
+        { id: aliasId, parent: null },
+        { id: providerIdModel, parent: aliasId },
+        { id: modelId, parent: providerIdModel },
+      ];
+
+      for (const entry of entries) {
+        if (models.some((existingModel) => existingModel.id === entry.id)) continue;
+        models.push({
+          id: entry.id,
+          object: "model",
+          created: timestamp,
+          owned_by: "codex",
+          permission: [],
+          root: modelId,
+          parent: entry.parent,
+        });
       }
     }
 
