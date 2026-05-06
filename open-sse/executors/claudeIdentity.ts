@@ -50,6 +50,20 @@ export function stainlessRuntimeVersion(): string {
   return process.version;
 }
 
+// ---------- Bounded-map helper -------------------------------------------
+
+const IDENTITY_CACHE_LIMIT = 10_000;
+const BOOTSTRAP_FETCH_TIMEOUT_MS = 10_000;
+
+/** Insert with FIFO eviction once a Map reaches `max`. JS Maps preserve insertion order. */
+function setBounded<K, V>(m: Map<K, V>, key: K, value: V, max: number): void {
+  if (!m.has(key) && m.size >= max) {
+    const oldest = m.keys().next().value as K | undefined;
+    if (oldest !== undefined) m.delete(oldest);
+  }
+  m.set(key, value);
+}
+
 // ---------- Upstream session-id passthrough ------------------------------
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -74,7 +88,7 @@ export function getSessionId(seed: string): string {
   let id = sessionCache.get(seed);
   if (id) return id;
   id = randomUUID();
-  sessionCache.set(seed, id);
+  setBounded(sessionCache, seed, id, IDENTITY_CACHE_LIMIT);
   return id;
 }
 
@@ -108,7 +122,7 @@ export function resolveCliUserID(
   let cached = lazyCliUserIDCache.get(seed);
   if (cached) return cached;
   cached = generateCliUserID();
-  lazyCliUserIDCache.set(seed, cached);
+  setBounded(lazyCliUserIDCache, seed, cached, IDENTITY_CACHE_LIMIT);
   return cached;
 }
 
@@ -124,6 +138,8 @@ async function backgroundFetchAccountUUID(accessToken: string, seed: string): Pr
   if (cached?.uuid) return;
   if (cached && Date.now() - cached.fetchedAt < ACCOUNT_FETCH_RETRY_MS) return;
   inflightFetches.add(seed);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), BOOTSTRAP_FETCH_TIMEOUT_MS);
   try {
     const res = await fetch("https://api.anthropic.com/api/claude_cli/bootstrap", {
       method: "GET",
@@ -133,13 +149,15 @@ async function backgroundFetchAccountUUID(accessToken: string, seed: string): Pr
         "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
+      signal: ctrl.signal,
     });
     const data: any = res.ok ? await res.json().catch(() => null) : null;
     const uuid: string | null = data?.oauth_account?.account_uuid || null;
-    accountUuidCache.set(seed, { uuid, fetchedAt: Date.now() });
+    setBounded(accountUuidCache, seed, { uuid, fetchedAt: Date.now() }, IDENTITY_CACHE_LIMIT);
   } catch {
-    accountUuidCache.set(seed, { uuid: null, fetchedAt: Date.now() });
+    setBounded(accountUuidCache, seed, { uuid: null, fetchedAt: Date.now() }, IDENTITY_CACHE_LIMIT);
   } finally {
+    clearTimeout(timer);
     inflightFetches.delete(seed);
   }
 }

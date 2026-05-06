@@ -1,17 +1,23 @@
 import crypto from "node:crypto";
 import { CLAUDE_CONFIG } from "../constants/oauth";
+import { CLAUDE_CODE_VERSION } from "@omniroute/open-sse/executors/claudeIdentity.ts";
+
+const BOOTSTRAP_FETCH_TIMEOUT_MS = 10_000;
 
 // Best-effort: failure must not block OAuth — the access token is valid.
 async function fetchClaudeBootstrap(accessToken) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), BOOTSTRAP_FETCH_TIMEOUT_MS);
   try {
     const res = await fetch("https://api.anthropic.com/api/claude_cli/bootstrap", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json",
-        "User-Agent": "claude-cli/2.1.131 (external, cli)",
+        "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
         "anthropic-beta": "oauth-2025-04-20",
       },
+      signal: ctrl.signal,
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -27,6 +33,8 @@ async function fetchClaudeBootstrap(accessToken) {
     };
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
