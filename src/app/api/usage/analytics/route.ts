@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
 
 function getRangeStartIso(range: string): string | null {
@@ -74,6 +75,16 @@ function uniqueValues(values: Array<string | null | undefined>): string[] {
     result.push(normalized);
   }
   return result;
+}
+
+function makeApiKeyUsageGroup(apiKeyId: string, fallbackName: string): string {
+  return apiKeyId ? `id:${apiKeyId}` : `name:${fallbackName}`;
+}
+
+function addApiKeyAlias(target: Set<string>, value: unknown): void {
+  if (typeof value !== "string") return;
+  const trimmed = value.trim();
+  if (trimmed) target.add(trimmed);
 }
 
 function stripCodexEffortSuffix(model: string): string {
@@ -244,6 +255,13 @@ export async function GET(request: Request) {
     const presetsParam = searchParams.get("presets");
 
     const db = getDbInstance();
+    const apiKeys = await getApiKeys();
+    const currentApiKeyNames = new Map<string, string>();
+    for (const apiKey of apiKeys) {
+      if (typeof apiKey.id === "string" && typeof apiKey.name === "string") {
+        currentApiKeyNames.set(apiKey.id, apiKey.name);
+      }
+    }
 
     const conditions = [];
     const params: Record<string, string> = {};
@@ -296,7 +314,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens,
           COUNT(DISTINCT model) as uniqueModels,
           COUNT(DISTINCT connection_id) as uniqueAccounts,
-          COUNT(DISTINCT api_key_id) as uniqueApiKeys,
+          COUNT(DISTINCT COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''))) as uniqueApiKeys,
           COALESCE(SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END), 0) as successfulRequests,
           COALESCE(AVG(latency_ms), 0) as avgLatencyMs,
           COALESCE(MIN(timestamp), '') as firstRequest,
@@ -489,8 +507,8 @@ export async function GET(request: Request) {
       .prepare(
         `
         SELECT
-          api_key_id as apiKeyId,
-          COALESCE(NULLIF(api_key_name, ''), NULLIF(api_key_id, ''), 'Unknown API key') as apiKeyName,
+          NULLIF(api_key_id, '') as apiKeyId,
+          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
           LOWER(provider) as provider,
           LOWER(model) as model,
           COUNT(*) as requests,
@@ -502,10 +520,41 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
         ${apiKeyWhereClause}
-        GROUP BY api_key_id, api_key_name, LOWER(provider), LOWER(model)
+        GROUP BY COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown'), NULLIF(api_key_id, ''), LOWER(provider), LOWER(model)
       `
       )
       .all(params) as Array<Record<string, unknown>>;
+
+    const apiKeyMetadataRows = db
+      .prepare(
+        `
+        SELECT
+          NULLIF(api_key_id, '') as apiKeyId,
+          NULLIF(api_key_name, '') as apiKeyName,
+          COALESCE(NULLIF(api_key_id, ''), NULLIF(api_key_name, ''), 'unknown') as apiKeyGroupKey,
+          MAX(timestamp) as lastUsed
+        FROM usage_history
+        ${apiKeyWhereClause}
+        GROUP BY NULLIF(api_key_id, ''), NULLIF(api_key_name, '')
+        ORDER BY lastUsed DESC
+      `
+      )
+      .all(params) as Array<Record<string, unknown>>;
+
+    const apiKeyMetadata = new Map<string, { latestName: string; aliases: Set<string> }>();
+    for (const row of apiKeyMetadataRows) {
+      const apiKeyId = toStringValue(row.apiKeyId);
+      const apiKeyGroupKey = toStringValue(row.apiKeyGroupKey, "unknown");
+      const groupKey = makeApiKeyUsageGroup(apiKeyId, apiKeyGroupKey);
+      const existing = apiKeyMetadata.get(groupKey) || {
+        latestName: "",
+        aliases: new Set<string>(),
+      };
+      const apiKeyName = toStringValue(row.apiKeyName);
+      if (!existing.latestName && apiKeyName) existing.latestName = apiKeyName;
+      addApiKeyAlias(existing.aliases, apiKeyName);
+      apiKeyMetadata.set(groupKey, existing);
+    }
 
     const weeklyRows = db
       .prepare(
@@ -742,6 +791,7 @@ export async function GET(request: Request) {
         apiKey: string;
         apiKeyId: string | null;
         apiKeyName: string;
+        historicalApiKeyNames: string[];
         requests: number;
         promptTokens: number;
         completionTokens: number;
@@ -751,12 +801,20 @@ export async function GET(request: Request) {
     >();
     for (const row of apiKeyRows) {
       const apiKeyId = toStringValue(row.apiKeyId);
-      const apiKeyName = toStringValue(row.apiKeyName, apiKeyId || "Unknown API key");
-      const key = `${apiKeyId || "unknown"}::${apiKeyName}`;
+      const apiKeyGroupKey = toStringValue(row.apiKeyGroupKey, "unknown");
+      const key = makeApiKeyUsageGroup(apiKeyId, apiKeyGroupKey);
+      const metadata = apiKeyMetadata.get(key);
+      const apiKeyName =
+        (apiKeyId ? currentApiKeyNames.get(apiKeyId) : undefined) ||
+        metadata?.latestName ||
+        apiKeyId ||
+        apiKeyGroupKey ||
+        "Unknown API key";
       const existing = apiKeyMap.get(key) || {
         apiKey: apiKeyId && apiKeyName !== apiKeyId ? `${apiKeyName} (${apiKeyId})` : apiKeyName,
         apiKeyId: apiKeyId || null,
         apiKeyName,
+        historicalApiKeyNames: Array.from(metadata?.aliases || []),
         requests: 0,
         promptTokens: 0,
         completionTokens: 0,
