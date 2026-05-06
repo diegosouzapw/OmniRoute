@@ -61,16 +61,15 @@ export default function UsageAnalytics() {
       setError(null);
 
       // Update available keys from unfiltered data (only when no filter is active).
-      // Use apiKeyName as the stable identifier — it is always populated
-      // for every OmniRoute API key regardless of the downstream provider.
       if (selectedApiKeys.length === 0 && data.byApiKey?.length > 0) {
         const seen = new Set<string>();
         const keys: { id: string; name: string }[] = [];
         for (const k of data.byApiKey) {
+          const id = k.apiKeyId || k.apiKeyName || "unknown";
           const name = k.apiKeyName || k.apiKeyId || "unknown";
-          if (seen.has(name)) continue;
-          seen.add(name);
-          keys.push({ id: name, name });
+          if (seen.has(id)) continue;
+          seen.add(id);
+          keys.push({ id, name });
         }
         setAvailableApiKeys(keys);
       }

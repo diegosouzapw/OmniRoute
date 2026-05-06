@@ -184,13 +184,17 @@ export default function ApiManagerPageClient() {
       const stats: Record<string, KeyUsageStats> = {};
 
       for (const key of apiKeys) {
-        // Match analytics entry by key name (reliable across both systems)
-        const analyticsMatch = byApiKey.find((entry: any) => entry.apiKeyName === key.name);
+        const analyticsMatch = byApiKey.find(
+          (entry: any) =>
+            entry.apiKeyId === key.id || (!entry.apiKeyId && entry.apiKeyName === key.name)
+        );
 
         // The call-logs endpoint returns entries sorted by timestamp DESC,
         // so the first match is the most recent one.
         const lastUsed =
-          (logs || []).find((log: any) => log.apiKeyName === key.name)?.timestamp || null;
+          (logs || []).find(
+            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+          )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests: analyticsMatch?.requests ?? 0,
