@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import Image from "next/image";
 import {
   parseQuotaData,
   calculatePercentage,
@@ -18,6 +17,7 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
@@ -551,14 +551,7 @@ export default function ProviderLimits() {
                 {/* Account Info */}
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                    <Image
-                      src={`/providers/${conn.provider}.png`}
-                      alt={conn.provider}
-                      width={32}
-                      height={32}
-                      className="object-contain"
-                      sizes="32px"
-                    />
+                    <ProviderIcon providerId={conn.provider} size={32} type="color" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">

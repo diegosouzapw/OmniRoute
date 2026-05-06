@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Card, Button, Badge, Modal, Input, ModelSelectModal } from "@/shared/components";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 export default function AntigravityToolCard({
   tool,
@@ -226,17 +227,7 @@ export default function AntigravityToolCard({
       <div className="flex items-center justify-between hover:cursor-pointer" onClick={onToggle}>
         <div className="flex items-center gap-3">
           <div className="size-8 flex items-center justify-center shrink-0">
-            <Image
-              src={tool.image || "/providers/antigravity.png"}
-              alt={tool.name}
-              width={32}
-              height={32}
-              className="size-8 object-contain rounded-lg"
-              sizes="32px"
-              onError={(e) => {
-                (e.currentTarget as HTMLElement).style.display = "none";
-              }}
-            />
+            <ProviderIcon providerId={tool.id || "antigravity"} size={32} type="color" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">

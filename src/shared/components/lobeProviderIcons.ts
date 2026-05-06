@@ -75,6 +75,8 @@ import KimiColorIcon from "@lobehub/icons/es/Kimi/components/Color";
 import KimiMonoIcon from "@lobehub/icons/es/Kimi/components/Mono";
 import LambdaMonoIcon from "@lobehub/icons/es/Lambda/components/Mono";
 import LmStudioMonoIcon from "@lobehub/icons/es/LmStudio/components/Mono";
+import LongCatColorIcon from "@lobehub/icons/es/LongCat/components/Color";
+import LongCatMonoIcon from "@lobehub/icons/es/LongCat/components/Mono";
 import MetaColorIcon from "@lobehub/icons/es/Meta/components/Color";
 import MetaMonoIcon from "@lobehub/icons/es/Meta/components/Mono";
 import MetaAIColorIcon from "@lobehub/icons/es/MetaAI/components/Color";
@@ -104,12 +106,14 @@ import PerplexityColorIcon from "@lobehub/icons/es/Perplexity/components/Color";
 import PerplexityMonoIcon from "@lobehub/icons/es/Perplexity/components/Mono";
 import PoeColorIcon from "@lobehub/icons/es/Poe/components/Color";
 import PoeMonoIcon from "@lobehub/icons/es/Poe/components/Mono";
+import PollinationsMonoIcon from "@lobehub/icons/es/Pollinations/components/Mono";
 import QoderColorIcon from "@lobehub/icons/es/Qoder/components/Color";
 import QoderMonoIcon from "@lobehub/icons/es/Qoder/components/Mono";
 import QwenColorIcon from "@lobehub/icons/es/Qwen/components/Color";
 import QwenMonoIcon from "@lobehub/icons/es/Qwen/components/Mono";
 import RecraftMonoIcon from "@lobehub/icons/es/Recraft/components/Mono";
 import ReplicateMonoIcon from "@lobehub/icons/es/Replicate/components/Mono";
+import RooCodeMonoIcon from "@lobehub/icons/es/RooCode/components/Mono";
 import RunwayMonoIcon from "@lobehub/icons/es/Runway/components/Mono";
 import SambaNovaColorIcon from "@lobehub/icons/es/SambaNova/components/Color";
 import SambaNovaMonoIcon from "@lobehub/icons/es/SambaNova/components/Mono";
@@ -139,6 +143,7 @@ import VolcengineColorIcon from "@lobehub/icons/es/Volcengine/components/Color";
 import VolcengineMonoIcon from "@lobehub/icons/es/Volcengine/components/Mono";
 import VoyageColorIcon from "@lobehub/icons/es/Voyage/components/Color";
 import VoyageMonoIcon from "@lobehub/icons/es/Voyage/components/Mono";
+import WindsurfMonoIcon from "@lobehub/icons/es/Windsurf/components/Mono";
 import WorkersAIColorIcon from "@lobehub/icons/es/WorkersAI/components/Color";
 import WorkersAIMonoIcon from "@lobehub/icons/es/WorkersAI/components/Mono";
 import XAIMonoIcon from "@lobehub/icons/es/XAI/components/Mono";
@@ -208,6 +213,7 @@ const LOBE_ICON_COMPONENTS = {
   Kimi: { mono: KimiMonoIcon, color: KimiColorIcon },
   Lambda: { mono: LambdaMonoIcon },
   LmStudio: { mono: LmStudioMonoIcon },
+  LongCat: { mono: LongCatMonoIcon, color: LongCatColorIcon },
   Meta: { mono: MetaMonoIcon, color: MetaColorIcon },
   MetaAI: { mono: MetaAIMonoIcon, color: MetaAIColorIcon },
   Minimax: { mono: MinimaxMonoIcon, color: MinimaxColorIcon },
@@ -226,10 +232,12 @@ const LOBE_ICON_COMPONENTS = {
   OpenRouter: { mono: OpenRouterMonoIcon },
   Perplexity: { mono: PerplexityMonoIcon, color: PerplexityColorIcon },
   Poe: { mono: PoeMonoIcon, color: PoeColorIcon },
+  Pollinations: { mono: PollinationsMonoIcon },
   Qoder: { mono: QoderMonoIcon, color: QoderColorIcon },
   Qwen: { mono: QwenMonoIcon, color: QwenColorIcon },
   Recraft: { mono: RecraftMonoIcon },
   Replicate: { mono: ReplicateMonoIcon },
+  RooCode: { mono: RooCodeMonoIcon },
   Runway: { mono: RunwayMonoIcon },
   SambaNova: { mono: SambaNovaMonoIcon, color: SambaNovaColorIcon },
   SearchApi: { mono: SearchApiMonoIcon },
@@ -247,6 +255,7 @@ const LOBE_ICON_COMPONENTS = {
   Vllm: { mono: VllmMonoIcon, color: VllmColorIcon },
   Volcengine: { mono: VolcengineMonoIcon, color: VolcengineColorIcon },
   Voyage: { mono: VoyageMonoIcon, color: VoyageColorIcon },
+  Windsurf: { mono: WindsurfMonoIcon },
   WorkersAI: { mono: WorkersAIMonoIcon, color: WorkersAIColorIcon },
   XAI: { mono: XAIMonoIcon },
   XiaomiMiMo: { mono: XiaomiMiMoMonoIcon },
@@ -325,6 +334,7 @@ const LOBE_PROVIDER_ALIASES = {
   "lambda-ai": "Lambda",
   "lm-studio": "LmStudio",
   lmstudio: "LmStudio",
+  longcat: "LongCat",
   "meta-llama": "Meta",
   minimax: "Minimax",
   "minimax-cn": "Minimax",
@@ -352,10 +362,12 @@ const LOBE_PROVIDER_ALIASES = {
   "perplexity-search": "Perplexity",
   "perplexity-web": "Perplexity",
   poe: "Poe",
+  pollinations: "Pollinations",
   qoder: "Qoder",
   qwen: "Qwen",
   recraft: "Recraft",
   replicate: "Replicate",
+  roo: "RooCode",
   runwayml: "Runway",
   sambanova: "SambaNova",
   sdwebui: "Automatic",
@@ -382,6 +394,7 @@ const LOBE_PROVIDER_ALIASES = {
   voyage: "Voyage",
   "voyage-ai": "Voyage",
   watsonx: "IBM",
+  windsurf: "Windsurf",
   "workers-ai": "WorkersAI",
   workersai: "WorkersAI",
   xai: "XAI",
