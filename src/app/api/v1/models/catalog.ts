@@ -375,24 +375,6 @@ export async function getUnifiedModelsResponse(
             ...(providerVisionFields || {}),
           });
         }
-
-        if (
-          canonicalProviderId === "codex" &&
-          CODEX_NATIVE_UNPREFIXED_MODELS.has(model.id) &&
-          !models.some((existingModel) => existingModel.id === model.id)
-        ) {
-          models.push({
-            id: model.id,
-            object: "model",
-            created: timestamp,
-            owned_by: canonicalProviderId,
-            permission: [],
-            root: model.id,
-            parent: `${canonicalProviderId}/${model.id}`,
-            ...(contextLength ? { context_length: contextLength } : {}),
-            ...(visionFields || {}),
-          });
-        }
       }
     }
 
