@@ -280,8 +280,8 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Filter out tools with empty names (would cause Claude 400 error)
     result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
 
-    // Add cache_control to last tool that doesn't have defer_loading
-    // Tools with defer_loading=true cannot have cache_control (API rejects it)
+    // Cache breakpoint on the last non-defer-loading tool — Anthropic
+    // rejects cache_control on defer_loading tools.
     for (let i = result.tools.length - 1; i >= 0; i--) {
       if (!result.tools[i].defer_loading) {
         result.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };

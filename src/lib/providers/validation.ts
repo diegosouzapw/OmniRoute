@@ -11,6 +11,7 @@ import {
   stripClaudeCodeCompatibleEndpointSuffix,
   stripAnthropicMessagesSuffix,
 } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
+import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -544,6 +545,13 @@ async function validateAnthropicLikeProvider({
     return { valid: false, error: "Missing base URL" };
   }
 
+  // OAuth tokens need the same Claude Code cloak as production traffic in
+  // base.ts; a bare validation request gets flagged on the user:sessions:
+  // claude_code scope.
+  if (typeof apiKey === "string" && apiKey.startsWith("sk-ant-oat")) {
+    return validateClaudeOAuthInline({ apiKey, modelId, providerSpecificData });
+  }
+
   const requestHeaders = applyCustomUserAgent(
     {
       "Content-Type": "application/json",
@@ -578,6 +586,45 @@ async function validateAnthropicLikeProvider({
   }
 
   return { valid: true, error: null };
+}
+
+// Probe a Claude OAuth credential through the same executor that handles
+// production traffic so the cloak/signing/identity logic isn't duplicated.
+async function validateClaudeOAuthInline({
+  apiKey,
+  modelId,
+  providerSpecificData = {},
+}: {
+  apiKey: string;
+  modelId: string | null | undefined;
+  providerSpecificData?: Record<string, unknown>;
+}) {
+  const testModelId =
+    providerSpecificData?.validationModelId || modelId || "claude-haiku-4-5-20251001";
+
+  try {
+    const { response } = await getExecutor("claude").execute({
+      model: testModelId,
+      body: {
+        model: testModelId,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      },
+      stream: false,
+      credentials: { accessToken: apiKey, providerSpecificData },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid OAuth token" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    // 2xx and non-auth 4xx (429 quota, 400 model) both mean the token is valid.
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateGeminiLikeProvider({
