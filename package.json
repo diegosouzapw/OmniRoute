@@ -1,7 +1,7 @@
 {
   "name": "omniroute",
   "version": "3.7.7",
-  "description": "Smart AI Router with auto fallback — route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
+  "description": "Smart AI Router with auto fallback \u2014 route to FREE & cheap models, zero downtime. Works with Cursor, Cline, Claude Desktop, Codex, and any OpenAI-compatible tool.",
   "type": "module",
   "bin": {
     "omniroute": "bin/omniroute.mjs",
@@ -209,5 +209,6 @@
     "@hono/node-server": "^1.19.13",
     "react": "$react",
     "react-dom": "$react-dom"
-  }
+  },
+  "packageManager": "npm@10"
 }
