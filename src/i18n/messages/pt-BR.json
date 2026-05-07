@@ -4785,5 +4785,10 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint"
+  },
+  "agentFeatures": {
+    "agentFeaturesContextLength": "Context length",
+    "agentFeaturesContextLengthPlaceholder": "e.g. 128000",
+    "agentFeaturesContextLengthHint": "Defines the context window for this combo in /v1.models."
   }
 }
