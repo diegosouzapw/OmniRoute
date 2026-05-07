@@ -301,13 +301,19 @@ function convertMessages(messages, tools, model) {
  * Build Kiro payload from OpenAI format
  */
 export function buildKiroPayload(model, body, stream, credentials) {
+  // Normalize model name: Claude Code sends dashes (claude-sonnet-4-6),
+  // Kiro API expects dots (claude-sonnet-4.6). Convert trailing version segment.
+  const normalizedModel = model.replace(
+    /^(claude-(?:opus|sonnet|haiku|3-\d+)-\d+)-(\d+)$/,
+    "$1.$2"
+  );
   const messages = body.messages || [];
   const tools = body.tools || [];
   const maxTokens = body.max_tokens ?? body.max_completion_tokens ?? 32000;
   const temperature = body.temperature;
   const topP = body.top_p;
 
-  const { history, currentMessage } = convertMessages(messages, tools, model);
+  const { history, currentMessage } = convertMessages(messages, tools, normalizedModel);
 
   const profileArn = credentials?.providerSpecificData?.profileArn || "";
 
@@ -343,7 +349,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
       currentMessage: {
         userInputMessage: {
           content: finalContent,
-          modelId: model,
+          modelId: normalizedModel,
           origin: "AI_EDITOR",
           ...(currentMessage?.userInputMessage?.images?.length && {
             images: currentMessage.userInputMessage.images,

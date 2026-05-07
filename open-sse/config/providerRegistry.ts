@@ -528,9 +528,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      //{ id: "?", name: "DeepSeek V3.2" },
-      //{ id: "?", name: "MiniMax M2.5" },
-      //{ id: "?", name: "GLM-5" },
+      // Dash aliases — Claude Code sends "claude-sonnet-4-6", Kiro API uses dots
+      { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
+      // Non-Claude models on Kiro subscription
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
+      { id: "minimax-m2.5", name: "MiniMax M2.5" },
+      { id: "minimax-m2.1", name: "MiniMax M2.1" },
+      { id: "glm-5", name: "GLM-5" },
+      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
     ],
   },
 
