@@ -153,10 +153,10 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     authHeader: "bearer",
     format: "openai",
     models: [
-      { id: "grok-imagine-image-pro", name: "Grok Imagine Image Pro" },
+      { id: "grok-imagine-image-quality", name: "Grok Imagine Image Quality" },
       { id: "grok-imagine-image", name: "Grok Imagine Image" },
     ],
-    supportedSizes: ["1024x1024"],
+    supportedSizes: ["1024x1024", "2048x2048"],
   },
 
   together: {

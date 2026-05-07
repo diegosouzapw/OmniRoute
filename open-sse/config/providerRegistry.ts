@@ -1100,8 +1100,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
-      { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning" },
-      { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast" },
     ],
   },
 
@@ -1140,7 +1138,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "fast", name: "Grok 4.20", toolCalling: true },
       { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
       { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
@@ -1157,7 +1155,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "mistral-large-latest", name: "Mistral Large 3" },
-      { id: "mistral-medium-latest", name: "Mistral Medium 3.1" },
+      { id: "mistral-medium-3-5", name: "Mistral Medium 3.5" },
       { id: "mistral-small-latest", name: "Mistral Small 4" },
       { id: "devstral-latest", name: "Devstral 2" },
       { id: "codestral-latest", name: "Codestral" },
