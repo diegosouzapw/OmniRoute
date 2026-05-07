@@ -56,9 +56,8 @@ export default function FileDetailModal({
   contents,
   loading,
   onClose,
-}: FileDetailModalProps) {
+}: Readonly<FileDetailModalProps>) {
   const [copied, setCopied] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -68,26 +67,13 @@ export default function FileDetailModal({
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
-      const response = await fetch(`/api/v1/files/${file.id}/content`);
-      if (!response.ok) throw new Error("Download failed");
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = file.filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-      alert("Failed to download file");
-    } finally {
-      setIsDownloading(false);
-    }
+  const handleDownload = () => {
+    const a = document.createElement("a");
+    a.href = `/api/v1/files/${file.id}/content`;
+    a.download = file.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const handleCopy = () => {
@@ -241,7 +227,6 @@ export default function FileDetailModal({
           <div className="flex justify-end gap-3 mt-2">
             <Button
               onClick={handleDownload}
-              loading={isDownloading}
               className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 transition-opacity"
             >
               <span className="material-symbols-outlined text-[18px]">download</span>

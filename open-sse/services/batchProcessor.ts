@@ -311,7 +311,12 @@ async function processBatchItems(batch: BatchRecord, items: BatchRequestItem[]):
 
     try {
       const response = await processSingleItemWithRetry(item, apiKey);
-      const responseBody = await response.json();
+      let responseBody: unknown;
+      try {
+        responseBody = await response.clone().json();
+      } catch {
+        responseBody = await response.text();
+      }
 
       // Record the item's result so finalization can emit output/error files.
       // The output file format expects entries like:
