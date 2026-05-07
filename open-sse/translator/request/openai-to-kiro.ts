@@ -38,6 +38,7 @@ function convertMessages(messages, tools, model) {
   let pendingUserContent = [];
   let pendingAssistantContent = [];
   let pendingToolResults = [];
+  let pendingImages: Array<{ format: string; source: { bytes: string } }> = [];
   let currentRole = null;
 
   const flushPending = () => {
@@ -47,6 +48,7 @@ function convertMessages(messages, tools, model) {
         userInputMessage: {
           content: string;
           modelId: string;
+          images?: Array<{ format: string; source: { bytes: string } }>;
           userInputMessageContext?: {
             toolResults?: Array<Record<string, unknown>>;
             tools?: Array<Record<string, unknown>>;
@@ -63,6 +65,11 @@ function convertMessages(messages, tools, model) {
         userMsg.userInputMessage.userInputMessageContext = {
           toolResults: pendingToolResults,
         };
+      }
+
+      // Attach images to userInputMessage (NOT userInputMessageContext)
+      if (pendingImages.length > 0) {
+        userMsg.userInputMessage.images = pendingImages;
       }
 
       // Add tools to first user message
@@ -94,6 +101,7 @@ function convertMessages(messages, tools, model) {
       currentMessage = userMsg;
       pendingUserContent = [];
       pendingToolResults = [];
+      pendingImages = [];
     } else if (currentRole === "assistant") {
       const content = pendingAssistantContent.join("\n\n").trim() || "...";
       const assistantMsg = {
@@ -131,6 +139,24 @@ function convertMessages(messages, tools, model) {
           .filter((c) => c.type === "text" || c.text)
           .map((c) => c.text || "");
         content = textParts.join("\n");
+
+        // Extract images (OpenAI image_url and Anthropic image formats)
+        for (const block of msg.content) {
+          if (block.type === "image_url") {
+            const url: string = block.image_url?.url || "";
+            if (url.startsWith("data:")) {
+              // data:image/jpeg;base64,<data>
+              const [header, bytes] = url.split(",", 2);
+              const mediaType = header.split(";")[0].replace("data:", ""); // e.g. "image/jpeg"
+              const format = mediaType.split("/")[1] || "jpeg";
+              if (bytes) pendingImages.push({ format, source: { bytes } });
+            }
+          } else if (block.type === "image" && block.source?.type === "base64") {
+            const format = (block.source.media_type || "image/jpeg").split("/")[1] || "jpeg";
+            if (block.source.data)
+              pendingImages.push({ format, source: { bytes: block.source.data } });
+          }
+        }
 
         // Check for tool_result blocks
         const toolResultBlocks = msg.content.filter((c) => c.type === "tool_result");
@@ -298,6 +324,7 @@ export function buildKiroPayload(model, body, stream, credentials) {
           content: string;
           modelId: string;
           origin: string;
+          images?: Array<{ format: string; source: { bytes: string } }>;
           userInputMessageContext?: Record<string, unknown>;
         };
       };
@@ -318,6 +345,9 @@ export function buildKiroPayload(model, body, stream, credentials) {
           content: finalContent,
           modelId: model,
           origin: "AI_EDITOR",
+          ...(currentMessage?.userInputMessage?.images?.length && {
+            images: currentMessage.userInputMessage.images,
+          }),
           ...(currentMessage?.userInputMessage?.userInputMessageContext && {
             userInputMessageContext: currentMessage.userInputMessage.userInputMessageContext,
           }),
