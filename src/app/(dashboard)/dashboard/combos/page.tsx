@@ -1869,6 +1869,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     agentSystemMessage: string;
     agentToolFilter: string;
     agentContextCache: boolean;
+    contextLength: number | undefined;
   };
 
   const getEmptyCreateDraftSnapshot = useCallback(
@@ -1882,6 +1883,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       agentSystemMessage: "",
       agentToolFilter: "",
       agentContextCache: false,
+      contextLength: undefined,
     }),
     []
   );
@@ -1923,6 +1925,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   const [agentContextCache, setAgentContextCache] = useState<boolean>(
     !!combo?.context_cache_protection
   );
+  const [contextLength, setContextLength] = useState<number | undefined>(
+    combo?.context_length || undefined
+  );
+  const [contextLengthError, setContextLengthError] = useState<string>("");
   const comboBuilderStages = useMemo(() => getComboBuilderStages({ strategy }), [strategy]);
   const visibleStageMeta = useMemo(
     () => COMBO_FORM_STAGE_META.filter((stageMeta) => comboBuilderStages.includes(stageMeta.id)),
@@ -1951,11 +1957,13 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       setConfig(nextConfig);
       setShowAdvanced(isExpertMode);
       setNameError("");
+      setContextLengthError("");
       setAgentSystemMessage(nextCombo?.system_message || "");
       setAgentToolFilter(nextCombo?.tool_filter_regex || "");
       setAgentContextCache(!!nextCombo?.context_cache_protection);
+      setContextLength(nextCombo?.context_length || undefined);
     },
-    [isExpertMode, setAgentContextCache]
+    [isExpertMode, setAgentContextCache, setContextLength]
   );
 
   useEffect(() => {
@@ -1969,6 +1977,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
       agentSystemMessage,
       agentToolFilter,
       agentContextCache,
+      contextLength,
     };
   }, [
     name,
@@ -1980,6 +1989,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     agentSystemMessage,
     agentToolFilter,
     agentContextCache,
+    contextLength,
   ]);
 
   useEffect(() => {
@@ -2093,6 +2103,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   const saveBlocked =
     !name.trim() ||
     !!nameError ||
+    !!contextLengthError ||
     saving ||
     hasNoModels ||
     hasInvalidWeightedTotal ||
@@ -2235,7 +2246,8 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
           draft.nameError.length === 0 &&
           draft.agentSystemMessage.length === 0 &&
           draft.agentToolFilter.length === 0 &&
-          draft.agentContextCache === false;
+          draft.agentContextCache === false &&
+          draft.contextLength === undefined;
 
         if (!cancelled && isPristineDraft) {
           resetFormForCombo(null, data.comboDefaults || null);
@@ -2641,6 +2653,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     else delete saveData.tool_filter_regex;
     if (agentContextCache) saveData.context_cache_protection = true;
     else delete saveData.context_cache_protection;
+
+    // Validate and save context_length
+    if (contextLength !== undefined && contextLength !== null && contextLength !== "") {
+      const ctxLen = Number(contextLength);
+      if (isNaN(ctxLen) || !Number.isInteger(ctxLen)) {
+        setContextLengthError("Context length must be a valid integer");
+        setSaving(false);
+        return;
+      }
+      if (ctxLen >= 1000 && ctxLen <= 2000000) {
+        saveData.context_length = ctxLen;
+      } else {
+        // Out of range - don't save, show error
+        setContextLengthError(`Context length must be between 1000 and 2000000`);
+        setSaving(false);
+        return;
+      }
+    } else if (isEdit) {
+      // Editing: send null to explicitly clear context_length
+      saveData.context_length = null;
+    } else {
+      delete saveData.context_length;
+    }
 
     await onSave(saveData);
     setSaving(false);
@@ -3749,6 +3784,56 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                   onChange={(e) => setAgentContextCache(e.target.checked)}
                   className="accent-primary shrink-0"
                 />
+              </div>
+
+              {/* Context Length */}
+              <div>
+                <label className="text-[11px] font-medium text-text-muted block mb-0.5">
+                  {getI18nOrFallback(t, "agentFeaturesContextLength", "Context length")}
+                </label>
+                <input
+                  type="number"
+                  min="1000"
+                  max="2000000"
+                  step="1000"
+                  value={contextLength || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setContextLengthError("");
+                    if (value === "") {
+                      setContextLength(undefined);
+                      return;
+                    }
+                    const num = Number(value);
+                    if (isNaN(num) || !Number.isInteger(num)) {
+                      setContextLengthError("Context length must be a valid integer");
+                      setContextLength(undefined);
+                    } else if (num < 1000 || num > 2000000) {
+                      setContextLengthError("Context length must be between 1000 and 2000000");
+                      setContextLength(num);
+                    } else {
+                      setContextLength(num);
+                    }
+                  }}
+                  placeholder={getI18nOrFallback(
+                    t,
+                    "agentFeaturesContextLengthPlaceholder",
+                    "e.g. 128000"
+                  )}
+                  className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                />
+                {contextLengthError && (
+                  <p className="text-[10px] text-red-500 mt-0.5">{contextLengthError}</p>
+                )}
+                {!contextLengthError && !isExpertMode && (
+                  <p className="text-[10px] text-text-muted mt-0.5">
+                    {getI18nOrFallback(
+                      t,
+                      "agentFeaturesContextLengthHint",
+                      "Defines the context window for this combo in /v1/models."
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           )}
