@@ -447,7 +447,7 @@ test("provider models route returns the local catalog for new built-in chat-open
   assert.match(body.warning, /local catalog/i);
   assert.ok(Array.isArray(body.models));
   assert.ok(body.models.length > 0);
-  assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
+  assert.ok(body.models.some((model) => model.id === "openai/gpt-oss-120b"));
 });
 
 test("provider models route merges Upstage chat and embedding catalogs", async () => {

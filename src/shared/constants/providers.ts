@@ -193,7 +193,7 @@ export const APIKEY_PROVIDERS = {
     icon: "code",
     color: "#2563EB",
     textIcon: "GL",
-    website: "https://open.bigmodel.cn",
+    website: "https://z.ai/subscribe",
   },
   "glm-cn": {
     id: "glm-cn",
@@ -230,7 +230,7 @@ export const APIKEY_PROVIDERS = {
     icon: "psychology",
     color: "#1E3A8A",
     textIcon: "KM",
-    website: "https://kimi.moonshot.cn",
+    website: "https://platform.moonshot.ai",
   },
   "kimi-coding-apikey": {
     id: "kimi-coding-apikey",
@@ -239,7 +239,7 @@ export const APIKEY_PROVIDERS = {
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
-    website: "https://kimi.com",
+    website: "https://www.kimi.com/code",
   },
   minimax: {
     id: "minimax",
@@ -248,7 +248,7 @@ export const APIKEY_PROVIDERS = {
     icon: "memory",
     color: "#7C3AED",
     textIcon: "MM",
-    website: "https://www.minimaxi.com",
+    website: "https://www.minimax.io",
   },
   "minimax-cn": {
     id: "minimax-cn",
@@ -314,7 +314,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#2563EB",
     textIcon: "AF",
-    website: "https://learn.microsoft.com/azure/ai-foundry/",
+    website: "https://learn.microsoft.com/azure/ai-foundry",
     authHint:
       "Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.",
     apiHint:
@@ -328,7 +328,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#FF9900",
     textIcon: "BR",
-    website: "https://aws.amazon.com/bedrock/",
+    website: "https://aws.amazon.com/bedrock",
     authHint:
       "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
     apiHint:
@@ -356,7 +356,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#C74634",
     textIcon: "OCI",
-    website: "https://www.oracle.com/artificial-intelligence/generative-ai/",
+    website: "https://www.oracle.com/artificial-intelligence/generative-ai",
     authHint:
       "Use your OCI Generative AI API key or IAM bearer token. Base URL can be https://inference.generativeai.<region>.oci.oraclecloud.com/openai/v1/.",
     apiHint:
@@ -444,7 +444,7 @@ export const APIKEY_PROVIDERS = {
     icon: "smart_toy",
     color: "#D97757",
     textIcon: "AN",
-    website: "https://console.anthropic.com",
+    website: "https://platform.claude.com",
   },
   gemini: {
     id: "gemini",
@@ -453,7 +453,7 @@ export const APIKEY_PROVIDERS = {
     icon: "diamond",
     color: "#4285F4",
     textIcon: "GE",
-    website: "https://ai.google.dev",
+    website: "https://aistudio.google.com",
     hasFree: true,
     freeNote:
       "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
@@ -465,7 +465,7 @@ export const APIKEY_PROVIDERS = {
     icon: "bolt",
     color: "#4D6BFE",
     textIcon: "DS",
-    website: "https://deepseek.com",
+    website: "https://platform.deepseek.com",
     hasFree: true,
     freeNote: "5M free tokens on signup - no credit card required",
   },
@@ -711,7 +711,7 @@ export const APIKEY_PROVIDERS = {
     name: "OpenCode Go",
     icon: "opencode",
     color: "#6366f1",
-    website: "https://opencode.ai/zen/go",
+    website: "https://opencode.ai/go",
   },
   alibaba: {
     id: "alibaba",
@@ -730,7 +730,7 @@ export const APIKEY_PROVIDERS = {
     icon: "auto_awesome",
     color: "#FF6B9D",
     textIcon: "LC",
-    website: "https://longcat.chat",
+    website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
       "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
@@ -767,7 +767,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#F48120",
     textIcon: "CF",
-    website: "https://developers.cloudflare.com/workers-ai/",
+    website: "https://developers.cloudflare.com/workers-ai",
     hasFree: true,
     freeNote:
       "Free 10K Neurons/day: ~150 LLM responses or 500s Whisper audio — edge inference globally",
@@ -780,7 +780,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#4F0599",
     textIcon: "SCW",
-    website: "https://www.scaleway.com/en/ai/generative-apis/",
+    website: "https://www.scaleway.com/en/ai/generative-apis",
     hasFree: true,
     freeNote: "1M free tokens for new accounts — EU/GDPR compliant (Paris), Qwen3 235B & Llama 70B",
   },
