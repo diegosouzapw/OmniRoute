@@ -523,14 +523,17 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       authUrl: "https://prod.us-east-1.auth.desktop.kiro.dev",
     },
     models: [
-      { id: "claude-opus-4.7", name: "Claude Opus 4.7" },
+      { id: "auto-kiro", name: "Auto (Kiro picks best model)" },
       { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
+      { id: "claude-opus-4.5", name: "Claude Opus 4.5" },
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      // Dash aliases — Claude Code sends "claude-sonnet-4-6", Kiro API uses dots
-      { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
+      { id: "claude-3.7-sonnet", name: "Claude 3.7 Sonnet" },
+      // Dash aliases — Claude Code sends dashes, Kiro API uses dots
       { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-opus-4-5", name: "Claude Opus 4.5" },
       { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
       { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
       { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
