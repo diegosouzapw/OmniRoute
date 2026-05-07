@@ -77,12 +77,18 @@ function convertMessages(messages, tools, model) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
+        // Kiro API rejects requests with tool descriptions > ~10000 chars
+        const TOOL_DESC_MAX = 10000;
         userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
           const name = t.function?.name || t.name;
           let description = t.function?.description || t.description || "";
 
           if (!description.trim()) {
             description = `Tool: ${name}`;
+          }
+
+          if (description.length > TOOL_DESC_MAX) {
+            description = description.slice(0, TOOL_DESC_MAX - 3) + "...";
           }
 
           return {
