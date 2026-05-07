@@ -188,6 +188,44 @@ export interface TlsFetchOptions {
    * mangled. Default false (text mode).
    */
   byteResponse?: boolean;
+  /**
+   * Optional upstream proxy URL (`http://user:pass@host:port` or
+   * `socks5://...`). When set, the request is tunneled through this proxy
+   * before reaching chatgpt.com. Required for hosts whose bare IP is
+   * flagged by ChatGPT/Cloudflare (Russia, datacenter ranges, etc.) —
+   * without it, every call leaks the host IP and gets edge-rejected with
+   * a templated 401 / `Invalid session cookie`.
+   *
+   * Resolution order:
+   *   1. `options.proxyUrl` (per-call override from caller)
+   *   2. `process.env.OMNIROUTE_TLS_PROXY_URL` (single-flag opt-in)
+   *   3. `process.env.HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` (POSIX-standard fallback)
+   *
+   * The native `tls-client-node` binding does **not** consult Go's
+   * `http.ProxyFromEnvironment`, so the env vars need to be plumbed in
+   * here at the JS layer. The dashboard's global-fetch monkey-patch only
+   * reaches Node's undici, not the koffi-loaded shared library used here.
+   */
+  proxyUrl?: string;
+}
+
+/**
+ * Resolve the proxy URL for a tls-client request. Per-call value wins;
+ * otherwise we fall back to env. Returns undefined when no proxy is
+ * configured (caller passes `undefined` through to tls-client-node, which
+ * treats it as "no proxy").
+ */
+function resolveProxyUrl(perCall: string | undefined): string | undefined {
+  if (perCall && perCall.length > 0) return perCall;
+  const fromEnv =
+    process.env.OMNIROUTE_TLS_PROXY_URL ||
+    process.env.HTTPS_PROXY ||
+    process.env.https_proxy ||
+    process.env.HTTP_PROXY ||
+    process.env.http_proxy ||
+    process.env.ALL_PROXY ||
+    process.env.all_proxy;
+  return fromEnv && fromEnv.length > 0 ? fromEnv : undefined;
 }
 
 export interface TlsFetchResult {
@@ -240,6 +278,13 @@ export async function tlsFetchChatGpt(
     followRedirects: true,
     withRandomTLSExtensionOrder: true,
     isByteResponse: options.byteResponse === true,
+    // Plumb the configured proxy through to the native binding. tls-client-node
+    // consults `proxyUrl` in the per-call options (it does NOT auto-pick up
+    // HTTP_PROXY / HTTPS_PROXY env), so callers / env have to be threaded in
+    // explicitly. See `resolveProxyUrl()` for the lookup order. Without this
+    // line, every chatgpt-web call egresses with the bare host IP regardless
+    // of dashboard proxy config — see #2022.
+    proxyUrl: resolveProxyUrl(options.proxyUrl),
   };
 
   if (options.stream) {
