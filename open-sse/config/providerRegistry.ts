@@ -535,7 +535,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
       { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
       // Non-Claude models on Kiro subscription
-      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
+      { id: "deepseek-3.2", name: "DeepSeek V3.2" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "minimax-m2.1", name: "MiniMax M2.1" },
       { id: "glm-5", name: "GLM-5" },
