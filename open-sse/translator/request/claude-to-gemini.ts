@@ -7,6 +7,7 @@ import {
 } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
+import { resolveGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -70,12 +71,17 @@ export function claudeToGeminiRequest(model, body, stream) {
 
   // ── Build tool_use name lookup (for tool_result matching) ──────
   const toolUseNames = {};
+  const toolUseSignatures = {};
   if (body.messages && Array.isArray(body.messages)) {
     for (const msg of body.messages) {
       if (msg.role === "assistant" && Array.isArray(msg.content)) {
         for (const block of msg.content) {
           if (block.type === "tool_use" && block.id && block.name) {
             toolUseNames[block.id] = sanitizeToolName(block.name);
+            const signature = resolveGeminiThoughtSignature(block.id);
+            if (typeof signature === "string" && signature.length > 0) {
+              toolUseSignatures[block.id] = signature;
+            }
           }
         }
       }
@@ -160,14 +166,19 @@ export function claudeToGeminiRequest(model, body, stream) {
         // batch. If the assistant turn had no explicit thinking block, inject a fallback
         // signature into all functionCalls.
         if (geminiRole === "model") {
-          const hasFunctionCall = parts.some((p) => p.functionCall);
+          const functionCallParts = parts.filter((p) => p.functionCall);
+          const hasFunctionCall = functionCallParts.length > 0;
           const hasSignature = parts.some((p) => p.thoughtSignature);
           if (hasFunctionCall && !hasSignature) {
+            const persistedSignature = functionCallParts
+              .map((p) => p.functionCall?.id)
+              .map((id) => toolUseSignatures[id])
+              .find((signature) => typeof signature === "string" && signature.length > 0);
             for (let i = 0; i < parts.length; i++) {
               if (parts[i].functionCall) {
                 parts[i] = {
                   ...parts[i],
-                  thoughtSignature: DEFAULT_THINKING_GEMINI_SIGNATURE,
+                  thoughtSignature: persistedSignature || DEFAULT_THINKING_GEMINI_SIGNATURE,
                 };
               }
             }

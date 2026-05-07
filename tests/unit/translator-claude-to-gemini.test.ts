@@ -7,6 +7,12 @@ const { DEFAULT_SAFETY_SETTINGS } =
   await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const { DEFAULT_THINKING_GEMINI_SIGNATURE } =
   await import("../../open-sse/config/defaultThinkingSignature.ts");
+const { storeGeminiThoughtSignature, clearGeminiThoughtSignatures } =
+  await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+
+test.afterEach(() => {
+  clearGeminiThoughtSignatures();
+});
 
 test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", () => {
   const result = claudeToGeminiRequest(
@@ -130,6 +136,27 @@ test("Claude -> Gemini injects a fallback thoughtSignature on tool-call batches 
   assert.equal(result.contents[0].role, "model");
   assert.equal(result.contents[0].parts[0].functionCall.name, "read_file");
   assert.equal(result.contents[0].parts[0].thoughtSignature, DEFAULT_THINKING_GEMINI_SIGNATURE);
+});
+
+test("Claude -> Gemini reuses persisted thoughtSignature for replayed tool_use blocks", () => {
+  storeGeminiThoughtSignature("tu_cached", "sig-from-gemini");
+
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", id: "tu_cached", name: "Skill_ide", input: {} }],
+        },
+      ],
+    },
+    false
+  );
+
+  assert.equal(result.contents.length, 1);
+  assert.equal(result.contents[0].parts[0].functionCall.name, "Skill_ide");
+  assert.equal(result.contents[0].parts[0].thoughtSignature, "sig-from-gemini");
 });
 
 test("Claude -> Gemini sanitizes long tool names and exposes a restore map", () => {

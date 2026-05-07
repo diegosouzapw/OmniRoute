@@ -1,5 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
+import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 
 /**
  * Direct Gemini → Claude response translator.
@@ -84,6 +85,10 @@ export function geminiToClaudeResponse(chunk, state) {
         const restoredToolName = state.toolNameMap?.get(rawToolName) || rawToolName;
         const idx = state.contentBlockIndex++;
         const toolId = fc.id || `toolu_${Date.now()}_${idx}`;
+
+        if (typeof hasThoughtSig === "string" && hasThoughtSig.length > 0) {
+          storeGeminiThoughtSignature(toolId, hasThoughtSig);
+        }
 
         results.push({
           type: "content_block_start",

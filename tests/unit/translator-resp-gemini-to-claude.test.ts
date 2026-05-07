@@ -3,10 +3,16 @@ import assert from "node:assert/strict";
 
 const { geminiToClaudeResponse } =
   await import("../../open-sse/translator/response/gemini-to-claude.ts");
+const { getGeminiThoughtSignature, clearGeminiThoughtSignatures } =
+  await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
 
 function flatten(items) {
   return items.flatMap((item) => item || []);
 }
+
+test.afterEach(() => {
+  clearGeminiThoughtSignatures();
+});
 
 test("Gemini -> Claude stream: text block stays open across sequential text chunks", () => {
   const state = {};
@@ -111,6 +117,41 @@ test("Gemini -> Claude stream: functionCall becomes tool_use and MAX_TOKENS maps
   assert.equal(result[4].usage.output_tokens, 5);
   assert.equal(result[4].usage.cache_read_input_tokens, 1);
   assert.equal(result[5].type, "message_stop");
+});
+
+test("Gemini -> Claude stores thoughtSignature using emitted tool_use id", () => {
+  const state = {};
+  const result = geminiToClaudeResponse(
+    {
+      responseId: "resp-store-sig",
+      modelVersion: "gemini-2.5-pro",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                thoughtSignature: "sig-direct-claude",
+                functionCall: {
+                  name: "Skill_ide",
+                  args: { skill: "using-superpowers" },
+                },
+              },
+            ],
+          },
+          finishReason: "STOP",
+        },
+      ],
+    },
+    state
+  );
+
+  const toolUseStart = result.find((item) => item.type === "content_block_start");
+  assert.ok(toolUseStart, "Expected a tool_use block to be emitted");
+  assert.equal(
+    getGeminiThoughtSignature(toolUseStart.content_block.id),
+    "sig-direct-claude",
+    "tool_use id should retain the Gemini thought signature for replay"
+  );
 });
 
 test("Gemini -> Claude stream: STOP after prior tool use still maps to tool_use", () => {
