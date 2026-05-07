@@ -48,6 +48,16 @@ interface LegacyProxyConfig {
   keys?: Record<string, unknown>;
 }
 
+let proxyRegistryGeneration = 0;
+
+function bumpProxyRegistryGeneration() {
+  proxyRegistryGeneration++;
+}
+
+export function getProxyRegistryGeneration() {
+  return proxyRegistryGeneration;
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
 }
@@ -189,6 +199,7 @@ export async function createProxy(payload: ProxyPayload) {
   );
 
   backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
   return getProxyById(id, { includeSecrets: false });
 }
 
@@ -262,6 +273,7 @@ export async function updateProxy(id: string, payload: Partial<ProxyPayload>) {
   );
 
   backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
   return getProxyById(id, { includeSecrets: false });
 }
 
@@ -332,6 +344,7 @@ export async function assignProxyToScope(
       normalizedScopeId
     );
     backupDbFile("pre-write");
+    bumpProxyRegistryGeneration();
     return null;
   }
 
@@ -351,6 +364,7 @@ export async function assignProxyToScope(
   ).run(proxyId, normalizedScope, normalizedScopeId, now, now);
 
   backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
 
   const row = db
     .prepare(
@@ -383,6 +397,7 @@ export async function deleteProxyById(id: string, options?: { force?: boolean })
 
   const result = db.prepare("DELETE FROM proxy_registry WHERE id = ?").run(id);
   backupDbFile("pre-write");
+  bumpProxyRegistryGeneration();
   return result.changes > 0;
 }
 
