@@ -187,9 +187,10 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
 }
 
 function shouldCompressMessage(message: Message, config: RtkConfig): boolean {
-  if (message.role === "tool") return config.applyToToolResults || hasCodeFence(message.content);
+  if (message.role === "tool")
+    return config.applyToToolResults || (config.applyToCodeBlocks && hasCodeFence(message.content));
   if (message.role === "assistant")
-    return config.applyToAssistantMessages || hasCodeFence(message.content);
+    return config.applyToAssistantMessages || (config.applyToCodeBlocks && hasCodeFence(message.content));
   return false;
 }
 

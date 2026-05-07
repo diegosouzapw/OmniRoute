@@ -98,4 +98,38 @@ After.`,
     assert.equal(result.compressed, false);
     assert.deepEqual(result.body, body);
   });
+
+  it("does not compress fenced code when code block compression is disabled", () => {
+    const body = {
+      messages: [
+        {
+          role: "assistant",
+          content: `Before.
+
+\`\`\`txt
+${Array.from({ length: 20 }, () => "same code line").join("\n")}
+\`\`\`
+
+After.`,
+        },
+      ],
+    };
+    const result = applyRtkCompression(body, {
+      config: {
+        enabled: true,
+        intensity: "standard",
+        applyToToolResults: false,
+        applyToAssistantMessages: false,
+        applyToCodeBlocks: false,
+        enabledFilters: [],
+        disabledFilters: [],
+        maxLinesPerResult: 100,
+        maxCharsPerResult: 12000,
+        deduplicateThreshold: 3,
+      },
+    });
+
+    assert.equal(result.compressed, false);
+    assert.deepEqual(result.body, body);
+  });
 });
