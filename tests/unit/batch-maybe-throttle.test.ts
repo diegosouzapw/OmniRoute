@@ -27,7 +27,7 @@ test("maybeThrottle - missing remaining tokens (no numerator for token pressure)
     "x-ratelimit-remaining-req-minute": "50",
   });
   const result = maybeThrottle(headers);
-  assert.ok(result === null || (result >= 3000 && result <= 8000));
+  assert.ok(result === null || (result >= 20_000 && result <= 32_000));
 });
 
 test("maybeThrottle - high request pressure (remaining below 5%)", () => {
@@ -39,7 +39,7 @@ test("maybeThrottle - high request pressure (remaining below 5%)", () => {
   });
   const result = maybeThrottle(headers);
   assert.ok(result !== null, "Should return a delay under high pressure");
-  assert.ok(result >= 3000 && result <= 8000, `Delay should be 3-8s, got ${result}`);
+  assert.ok(result >= 20_000 && result <= 32_000, `Delay should be 20-32s, got ${result}`);
 });
 
 test("maybeThrottle - moderate request pressure (5-15%)", () => {
@@ -51,7 +51,7 @@ test("maybeThrottle - moderate request pressure (5-15%)", () => {
   });
   const result = maybeThrottle(headers);
   assert.ok(result !== null, "Should return a delay under moderate pressure");
-  assert.ok(result >= 500 && result <= 2000, `Delay should be 0.5-2s, got ${result}`);
+  assert.ok(result >= 7_000 && result <= 10_000, `Delay should be 7-10s, got ${result}`);
 });
 
 test("maybeThrottle - low request pressure (above 15%) - no throttling", () => {
@@ -74,7 +74,7 @@ test("maybeThrottle - high token pressure (remaining near zero)", () => {
   });
   const result = maybeThrottle(headers);
   assert.ok(result !== null, "Should return a delay under high token pressure");
-  assert.ok(result >= 3000 && result <= 8000, `Delay should be 3-8s, got ${result}`);
+  assert.ok(result >= 20_000 && result <= 32_000, `Delay should be 20-32s, got ${result}`);
 });
 
 test("maybeThrottle - zero remaining requests (edge case)", () => {
@@ -86,7 +86,7 @@ test("maybeThrottle - zero remaining requests (edge case)", () => {
   });
   const result = maybeThrottle(headers);
   assert.ok(result !== null, "Should throttle when remaining is 0");
-  assert.ok(result >= 3000 && result <= 8000, `Delay should be 3-8s, got ${result}`);
+  assert.ok(result >= 25_000 && result <= 35_000, `Delay should be 25-35s, got ${result}`);
 });
 
 test("maybeThrottle - zero limit (edge case - avoid division by zero)", () => {
@@ -119,8 +119,8 @@ test("maybeThrottle - both pressures, token pressure is tighter", () => {
   const result = maybeThrottle(headers);
   assert.ok(result !== null, "Should use the tighter of the two pressures");
   assert.ok(
-    result >= 3000 && result <= 8000,
-    `Delay should be 3-8s (high pressure from tokens), got ${result}`
+    result >= 20_000 && result <= 32_000,
+    `Delay should be 20-32s (high pressure from tokens), got ${result}`
   );
 });
 
@@ -130,5 +130,5 @@ test("maybeThrottle - malformed header values (NaN)", () => {
     "x-ratelimit-limit-req-minute": "100",
   });
   const result = maybeThrottle(headers);
-  assert.ok(result === null || (result >= 3000 && result <= 8000));
+  assert.ok(result === null || (result >= 20_000 && result <= 32_000));
 });

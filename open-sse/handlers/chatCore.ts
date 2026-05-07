@@ -559,10 +559,13 @@ function normalizeNonStreamingEventPayload(rawBody: string, contentType: string)
 }
 
 function getHeaderValueCaseInsensitive(
-  headers: Record<string, unknown> | null | undefined,
+  headers: Record<string, unknown> | Headers | null | undefined,
   targetName: string
 ) {
   if (!headers || typeof headers !== "object") return null;
+  if (headers instanceof Headers) {
+    return headers.get(targetName);
+  }
   const lowered = targetName.toLowerCase();
   for (const [key, value] of Object.entries(headers)) {
     if (key.toLowerCase() === lowered && typeof value === "string" && value.trim()) {
@@ -681,7 +684,8 @@ function resolveAccountSemaphoreKey({
 function buildClaudePromptCacheLogMeta(
   targetFormat: string,
   finalBody: Record<string, unknown> | null | undefined,
-  providerHeaders: Record<string, unknown> | null | undefined
+  providerHeaders: Record<string, unknown> | Headers | null | undefined,
+  clientHeaders?: Headers | Record<string, unknown> | null | undefined
 ) {
   if (targetFormat !== FORMATS.CLAUDE || !finalBody || typeof finalBody !== "object") return null;
 
@@ -750,7 +754,10 @@ function buildClaudePromptCacheLogMeta(
 
   const totalBreakpoints =
     systemBreakpoints.length + toolBreakpoints.length + messageBreakpoints.length;
-  const anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
+  let anthropicBeta = getHeaderValueCaseInsensitive(providerHeaders, "Anthropic-Beta");
+  if (!anthropicBeta) {
+    anthropicBeta = getHeaderValueCaseInsensitive(clientHeaders, "Anthropic-Beta");
+  }
 
   if (totalBreakpoints === 0 && !anthropicBeta) return null;
 
@@ -2945,7 +2952,8 @@ export async function handleChatCore({
     claudePromptCacheLogMeta = buildClaudePromptCacheLogMeta(
       targetFormat,
       finalBody,
-      providerHeaders
+      providerHeaders,
+      clientRawRequest?.headers
     );
 
     // Log target request (final request to provider)
@@ -3093,7 +3101,7 @@ export async function handleChatCore({
         if (retryResult.response.ok) {
           providerResponse = retryResult.response;
           providerUrl = retryResult.url;
-          providerHeaders = retryResult.headers;
+          providerHeaders = new Headers(retryResult.headers || {});
           finalBody = retryResult.transformedBody;
           reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
           updatePendingRequest(model, provider, connectionId, {
@@ -3446,7 +3454,7 @@ export async function handleChatCore({
               translatedBody.model = fbDecision.model;
               providerResponse = fbResult.response;
               providerUrl = fbResult.url;
-              providerHeaders = fbResult.headers;
+              providerHeaders = new Headers(fbResult.headers || {});
               finalBody = fbResult.transformedBody;
               reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
               log?.info?.(
@@ -3930,7 +3938,11 @@ export async function handleChatCore({
   }
 
   const responseHeaders: Record<string, string> = {
-    ...Object.fromEntries(providerResponse.headers.entries()),
+    ...Object.fromEntries(
+      Array.from(providerResponse.headers.entries()).filter(
+        ([k]) => k.toLowerCase() !== "content-type"
+      )
+    ),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     Connection: "keep-alive",

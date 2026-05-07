@@ -25,8 +25,8 @@ const { initBatchProcessor, stopBatchProcessor } =
 test("Batch processor produces output file for successful items", async () => {
   const originalFetch = globalThis.fetch;
   // Mock upstream provider to always return a successful embedding response
-  globalThis.fetch = async () =>
-    new Response(
+  globalThis.fetch = async (url, options) => {
+    return new Response(
       JSON.stringify({
         object: "list",
         data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
@@ -34,6 +34,19 @@ test("Batch processor produces output file for successful items", async () => {
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
+  };
+
+  // Prevent open-sse/utils/proxyFetch.ts from replacing globalThis.fetch
+  // when it is dynamically imported via the route handler chain.
+  // proxyFetch.ts has a module-level side effect that replaces globalThis.fetch
+  // with patchedFetch (which uses undici under the hood). By pre-setting its
+  // state with isPatched: true, we skip the replacement and keep our mock.
+  const { AsyncLocalStorage } = await import("node:async_hooks");
+  (globalThis as any)[Symbol.for("omniroute.proxyFetch.state")] = {
+    originalFetch: globalThis.fetch,
+    proxyContext: new AsyncLocalStorage(),
+    isPatched: true,
+  };
 
   try {
     await createProviderConnection({
