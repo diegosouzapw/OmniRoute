@@ -381,7 +381,7 @@ export function batchSaveCostEntries(
   tx(entries);
 }
 
-export function loadCostTotal(apiKeyId, sinceTimestamp) {
+export function loadCostTotal(apiKeyId: string, sinceTimestamp: number) {
   ensureBudgetSchema();
   const db = getDbInstance();
   const row = db
@@ -398,8 +398,7 @@ export function loadCostTotal(apiKeyId, sinceTimestamp) {
  * @param {number} sinceTimestamp
  * @returns {Array<{cost: number, timestamp: number}>}
  */
-
-export function loadCostEntries(apiKeyId, sinceTimestamp) {
+export function loadCostEntries(apiKeyId: string, sinceTimestamp: number) {
   ensureBudgetSchema();
   const db = getDbInstance();
   return db

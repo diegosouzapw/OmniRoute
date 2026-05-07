@@ -17,18 +17,20 @@ export type PricingSource = "default" | "litellm" | "modelsDev" | "user";
 export type PricingSourceMap = Record<string, Record<string, PricingSource>>;
 type ProxyValue = JsonRecord | string | null;
 type ProxyResolutionResult = { proxy: ProxyValue; level: string; levelId: string | null; source?: string };
-
-let proxyConfigGeneration = 0;
-let proxyResolutionCache: {
+type ProxyResolutionCacheEntry = {
   generation: number;
   registryGeneration: number;
-  connectionId: string;
   result: ProxyResolutionResult;
-} | null = null;
+};
+
+const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
+
+let proxyConfigGeneration = 0;
+const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
 
 function bumpProxyConfigGeneration() {
   proxyConfigGeneration++;
-  proxyResolutionCache = null;
+  proxyResolutionCache.clear();
 }
 
 function cacheProxyResolution(
@@ -39,7 +41,11 @@ function cacheProxyResolution(
 ) {
   if (generation !== proxyConfigGeneration) return;
   if (registryGeneration !== getProxyRegistryGeneration()) return;
-  proxyResolutionCache = { generation, registryGeneration, connectionId, result };
+  if (proxyResolutionCache.size >= PROXY_RESOLUTION_CACHE_MAX_ENTRIES) {
+    const oldestKey = proxyResolutionCache.keys().next().value;
+    if (oldestKey) proxyResolutionCache.delete(oldestKey);
+  }
+  proxyResolutionCache.set(connectionId, { generation, registryGeneration, result });
 }
 type ProxyMap = Record<string, ProxyValue>;
 
@@ -523,13 +529,13 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
 export async function resolveProxyForConnection(connectionId: string) {
   const startGeneration = proxyConfigGeneration;
   const startRegistryGeneration = getProxyRegistryGeneration();
+  const cached = proxyResolutionCache.get(connectionId);
   if (
-    proxyResolutionCache &&
-    proxyResolutionCache.generation === startGeneration &&
-    proxyResolutionCache.registryGeneration === startRegistryGeneration &&
-    proxyResolutionCache.connectionId === connectionId
+    cached &&
+    cached.generation === startGeneration &&
+    cached.registryGeneration === startRegistryGeneration
   ) {
-    return proxyResolutionCache.result;
+    return cached.result;
   }
 
   const registryResolved = await resolveProxyForConnectionFromRegistry(connectionId);
