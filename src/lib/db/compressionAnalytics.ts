@@ -26,6 +26,8 @@ export interface CompressionAnalyticsRow {
   output_mode?: string | null;
   rtk_raw_output_pointer?: string | null;
   rtk_raw_output_bytes?: number | null;
+  rtk_raw_output_pointers?: string | null;
+  rtk_raw_output_total_bytes?: number | null;
 }
 
 export interface CompressionAnalyticsSummary {
@@ -118,6 +120,14 @@ function ensureCompressionAnalyticsColumns(): void {
     "rtk_raw_output_bytes",
     "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_bytes INTEGER"
   );
+  addColumn(
+    "rtk_raw_output_pointers",
+    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_pointers TEXT"
+  );
+  addColumn(
+    "rtk_raw_output_total_bytes",
+    "ALTER TABLE compression_analytics ADD COLUMN rtk_raw_output_total_bytes INTEGER"
+  );
   columnsEnsuredForDb = db;
 }
 
@@ -131,9 +141,10 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
       duration_ms, request_id, actual_prompt_tokens, actual_completion_tokens,
       actual_total_tokens, actual_cache_read_tokens, actual_cache_write_tokens,
       estimated_usd_saved, mcp_description_tokens_saved, multimodal_skip_count,
-      receipt_source, validation_fallback, output_mode, rtk_raw_output_pointer, rtk_raw_output_bytes
+      receipt_source, validation_fallback, output_mode, rtk_raw_output_pointer, rtk_raw_output_bytes,
+      rtk_raw_output_pointers, rtk_raw_output_total_bytes
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `
   ).run(
     row.timestamp,
@@ -159,7 +170,9 @@ export function insertCompressionAnalyticsRow(row: CompressionAnalyticsRow): voi
     row.validation_fallback ? 1 : 0,
     row.output_mode ?? null,
     row.rtk_raw_output_pointer ?? null,
-    row.rtk_raw_output_bytes ?? null
+    row.rtk_raw_output_bytes ?? null,
+    row.rtk_raw_output_pointers ?? null,
+    row.rtk_raw_output_total_bytes ?? null
   );
 }
 

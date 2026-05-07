@@ -3,6 +3,7 @@ import { cavemanCompress } from "../caveman.ts";
 import { compressAggressive } from "../aggressive.ts";
 import { ultraCompress } from "../ultra.ts";
 import { createCompressionStats } from "../stats.ts";
+import { adaptBodyForCompression } from "../bodyAdapter.ts";
 import {
   DEFAULT_AGGRESSIVE_CONFIG,
   DEFAULT_ULTRA_CONFIG,
@@ -228,10 +229,12 @@ export const liteEngine: CompressionEngine = {
     stable: true,
   },
   apply(body, options) {
-    return applyLiteCompression(body, {
+    const adapter = adaptBodyForCompression(body);
+    const result = applyLiteCompression(adapter.body, {
       ...options,
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     });
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   },
   compress(body, config) {
     return this.apply(body, { stepConfig: config });
@@ -262,6 +265,7 @@ export const cavemanEngine: CompressionEngine = {
     stable: true,
   },
   apply(body, options) {
+    const adapter = adaptBodyForCompression(body);
     const cavemanConfig = {
       ...(options?.config?.cavemanConfig ?? {}),
       ...(options?.stepConfig ?? {}),
@@ -280,7 +284,11 @@ export const cavemanEngine: CompressionEngine = {
           }
         : {}),
     };
-    return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
+    const result = cavemanCompress(
+      adapter.body as Parameters<typeof cavemanCompress>[0],
+      cavemanConfig
+    );
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   },
   compress(body, config) {
     return this.apply(body, { stepConfig: config });
@@ -311,7 +319,8 @@ export const aggressiveEngine: CompressionEngine = {
     stable: true,
   },
   apply(body, options) {
-    const messages = (body.messages ?? []) as Array<{
+    const adapter = adaptBodyForCompression(body);
+    const messages = (adapter.body.messages ?? []) as Array<{
       role: string;
       content?: string | Array<{ type: string; text?: string }>;
       [key: string]: unknown;
@@ -325,12 +334,12 @@ export const aggressiveEngine: CompressionEngine = {
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
     const result = compressAggressive(messages, aggressiveConfig);
-    const compressedBody = { ...body, messages: result.messages };
+    const compressedBody = { ...adapter.body, messages: result.messages };
     return {
-      body: compressedBody,
+      body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
-        body,
+        adapter.body,
         compressedBody,
         "aggressive",
         ["aggressive"],
@@ -368,7 +377,8 @@ export const ultraEngine: CompressionEngine = {
     stable: true,
   },
   apply(body, options) {
-    const messages = (body.messages ?? []) as Array<{
+    const adapter = adaptBodyForCompression(body);
+    const messages = (adapter.body.messages ?? []) as Array<{
       role: string;
       content?: string | unknown[];
       [key: string]: unknown;
@@ -382,12 +392,12 @@ export const ultraEngine: CompressionEngine = {
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
     const result = ultraCompress(messages, ultraConfig);
-    const compressedBody = { ...body, messages: result.messages };
+    const compressedBody = { ...adapter.body, messages: result.messages };
     return {
-      body: compressedBody,
+      body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
-        body,
+        adapter.body,
         compressedBody,
         "ultra",
         ["ultra"],
