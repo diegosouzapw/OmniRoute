@@ -760,7 +760,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    defaultContextLength: 128000,
+    defaultContextLength: 200000,
     models: [{ id: "glm-5.1", name: "GLM-5.1" }],
     passthroughModels: true,
   },
