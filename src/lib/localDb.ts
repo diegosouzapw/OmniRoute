@@ -244,7 +244,7 @@ export {
   getFile,
   getFileContent,
   listFiles,
-  updateFileStatus,
+  countFiles,
   formatFileResponse,
   deleteFile,
 } from "./db/files";
@@ -255,6 +255,7 @@ export {
   getBatch,
   updateBatch,
   listBatches,
+  countBatches,
   getPendingBatches,
   getTerminalBatches,
 } from "./db/batches";

@@ -285,6 +285,8 @@ function isSchemaAlreadyApplied(
       );
     case "045":
       return hasColumn(db, "call_logs", "tokens_compressed");
+    case "051":
+      return !hasColumn(db, "files", "status");
     default:
       return false;
   }
@@ -802,7 +804,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
 
   // After applying all migrations, insert default settings if we just ran migration 46
   try {
-    if (appliedRecords.some((m) => m.name.startsWith("046_"))) {
+    if (appliedRecords.some((m) => m.name.startsWith("051_"))) {
       insertDefaultDatabaseSettings(db);
     }
   } catch (error) {

@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const file = getFile(id);
 
-  if (!file || (file.apiKeyId !== null && file.apiKeyId !== apiKeyId)) {
+  if (!file || (file.apiKeyId !== null && file.apiKeyId !== apiKeyId && !scope.isSessionAuth)) {
     return NextResponse.json(
       { error: { message: "File not found", type: "invalid_request_error" } },
       { status: 404, headers: CORS_HEADERS }
@@ -30,10 +30,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     );
   }
 
+  const sanitizedFilename = file.filename.replace(/[^\w.\-()\[\] ]/g, "_").slice(0, 255);
+  const encodedFilename = encodeURIComponent(file.filename);
+
   return new Response(content, {
     headers: {
       ...CORS_HEADERS,
       "Content-Type": file.mimeType || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${sanitizedFilename}"; filename*=UTF-8''${encodedFilename}`,
     },
   });
 }

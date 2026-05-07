@@ -429,7 +429,7 @@ export function resolveNestedComboTargets(
 export function getComboFromData(modelStr, combosData) {
   const combos = Array.isArray(combosData) ? combosData : combosData?.combos || [];
   const combo = combos.find((c) => c.name === modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
+  if (combo?.models && combo.models.length > 0) {
     return combo;
   }
   return null;
@@ -463,7 +463,7 @@ export function validateComboDAG(comboName, allCombos, visited = new Set(), dept
 
   const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
   const combo = combos.find((c) => c.name === comboName);
-  if (!combo || !combo.models) return;
+  if (!combo?.models) return;
 
   for (const entry of combo.models) {
     const modelName = normalizeModelEntry(entry).model;
@@ -522,7 +522,7 @@ function selectWeightedTarget<T extends { weight?: number }>(targets: T[]) {
     if (random <= 0) return target;
   }
 
-  return targets[targets.length - 1];
+  return targets.at(-1);
 }
 
 function orderTargetsForWeightedFallback<T extends { executionKey: string; weight: number }>(
@@ -535,7 +535,7 @@ function orderTargetsForWeightedFallback<T extends { executionKey: string; weigh
   if (!preserveExistingOrder) {
     rest.sort((a, b) => b.weight - a.weight);
   }
-  return [selected, ...rest].filter(Boolean) as T[];
+  return [selected, ...rest].filter(Boolean);
 }
 
 // shuffleArray and getNextModelFromDeck moved to src/shared/utils/shuffleDeck.ts
@@ -594,7 +594,7 @@ async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
  */
 function sortModelsByUsage(models, comboName) {
   const metrics = getComboMetrics(comboName);
-  if (!metrics || !metrics.byModel) return models;
+  if (!metrics?.byModel) return models;
 
   const withUsage = models.map((modelStr) => ({
     modelStr,
@@ -952,7 +952,7 @@ async function applyRequestTagRouting(
         matchesRoutingTags(
           getConnectionRoutingTags(connection.providerSpecificData),
           tags,
-          matchMode as RoutingTagMatchMode
+          matchMode
         )
       )
       .map((connection) => connection.id)
@@ -1109,7 +1109,7 @@ export async function handleComboChat({
               const tagged = injectModelTag([choice.message], modelStr);
               // If the message had tool_calls but no string content, injectModelTag
               // appends a synthetic assistant message — use the last one
-              const taggedMsg = tagged[tagged.length - 1];
+              const taggedMsg = tagged.at(-1);
               const updatedJson = {
                 ...json,
                 choices: [{ ...choice, message: taggedMsg }, ...(json.choices?.slice(1) || [])],
@@ -1148,12 +1148,12 @@ export async function handleComboChat({
             // Fix #721: Look for either non-empty content OR tool_calls in the
             // SSE data. Tool-call-only responses have content:null, so we inject
             // the tag when we see a finish_reason approaching, or on first content.
-            const contentMatch = text.match(/"content":"([^"]+)/);
+            const contentMatch = RegExp(/"content":"([^"]+)/).exec(text);
             if (contentMatch) {
               // Inject tag at the beginning of the first content value
               const injected = text.replace(
                 /"content":"([^"]+)/,
-                `"content":"${tagContent.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}$1`
+                `"content":"${tagContent.replaceAll("\\", "\\\\").replaceAll('"', String.raw`\"`)}$1`
               );
               tagInjected = true;
               controller.enqueue(encoder.encode(injected));
@@ -1216,7 +1216,7 @@ export async function handleComboChat({
             const text = sanitizeDecoder.decode(chunk, { stream: true });
             if (text) {
               if (text.includes("<omniModel>")) {
-                const cleaned = text.replace(
+                const cleaned = text.replaceAll(
                   /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
@@ -1230,7 +1230,7 @@ export async function handleComboChat({
             const tail = sanitizeDecoder.decode();
             if (tail) {
               if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replace(
+                const cleaned = tail.replaceAll(
                   /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
                   ""
                 );
@@ -1563,7 +1563,6 @@ export async function handleComboChat({
       if (result.ok) {
         const quality = await validateResponseQuality(result, clientRequestedStream, log);
         if (!quality.valid) {
-          const qualityFailureReason = `Upstream response failed quality validation: ${quality.reason}`;
           log.warn(
             "COMBO",
             `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
@@ -1613,7 +1612,7 @@ export async function handleComboChat({
             if (quotaInfo) {
               const resetCandidates = [quotaInfo.window5h?.resetAt, quotaInfo.window7d?.resetAt]
                 .filter((value): value is string => typeof value === "string" && value.length > 0)
-                .sort();
+                .sort((a, b) => a.localeCompare(b));
               const handoffSourceMessages =
                 Array.isArray(body?.messages) && body.messages.length > 0
                   ? body.messages
@@ -1931,7 +1930,6 @@ async function handleRoundRobinCombo({
         if (result.ok) {
           const quality = await validateResponseQuality(result, clientRequestedStream, log);
           if (!quality.valid) {
-            const qualityFailureReason = `Upstream response failed quality validation: ${quality.reason}`;
             log.warn(
               "COMBO-RR",
               `${modelStr} returned 200 but failed quality check: ${quality.reason}`
