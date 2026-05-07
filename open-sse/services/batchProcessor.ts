@@ -235,7 +235,7 @@ async function cleanupExpiredBatches(): Promise<void> {
     // Use asc order so oldest files are processed first; use a high limit to avoid missing old orphans.
     const allFiles = listFiles({ order: "asc", limit: 100 });
     for (const file of allFiles) {
-      if (file.purpose === "batch" && now - file.createdAt > 172800) {
+      if (file.purpose === "batch" && now - file.createdAt > DEFAULT_BATCH_EXPIRATION_SECONDS) {
         deleteFile(file.id);
       }
     }
