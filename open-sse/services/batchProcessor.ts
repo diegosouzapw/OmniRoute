@@ -497,6 +497,7 @@ function throttleDelay(pressure: number): number | null {
 }
 
 const toNumber = (v: string | null) => {
+  if (v === null || v.trim() === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };
