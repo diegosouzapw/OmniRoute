@@ -8,11 +8,11 @@ interface ThemeState {
   theme: string;
   colorTheme: string;
   customColor: string;
-  visualTheme: "classic" | "neo";
+  visualTheme: "classic" | "neo" | "aurora";
   setTheme: (theme: string) => void;
   setColorTheme: (colorTheme: string) => void;
   setCustomColorTheme: (color: string) => void;
-  setVisualTheme: (visualTheme: "classic" | "neo") => void;
+  setVisualTheme: (visualTheme: "classic" | "neo" | "aurora") => void;
   toggleTheme: () => void;
   initTheme: () => void;
 }
@@ -105,11 +105,11 @@ function applyColorTheme(colorTheme: string, customColor: string) {
   root.style.setProperty("--color-primary-hover", hoverColor);
 }
 
-function applyVisualTheme(visualTheme: "classic" | "neo") {
+function applyVisualTheme(visualTheme: "classic" | "neo" | "aurora") {
   if (typeof window === "undefined") return;
   const root = document.documentElement;
-  if (visualTheme === "neo") {
-    root.setAttribute("data-ui-theme", "neo");
+  if (visualTheme === "neo" || visualTheme === "aurora") {
+    root.setAttribute("data-ui-theme", visualTheme);
     return;
   }
   root.removeAttribute("data-ui-theme");

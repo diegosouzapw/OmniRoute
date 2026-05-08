@@ -82,7 +82,11 @@ export default function AppearanceTab() {
             data[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]
           ),
         });
-        if (data.visualTheme === "neo" || data.visualTheme === "classic") {
+        if (
+          data.visualTheme === "neo" ||
+          data.visualTheme === "classic" ||
+          data.visualTheme === "aurora"
+        ) {
           setVisualTheme(data.visualTheme);
         }
         setLoading(false);
@@ -228,11 +232,12 @@ export default function AppearanceTab() {
             {[
               { id: "classic", label: getSettingsLabel("uiVisualThemeClassic", "Classic") },
               { id: "neo", label: getSettingsLabel("uiVisualThemeNeo", "Neo Dark") },
+              { id: "aurora", label: getSettingsLabel("uiVisualThemeAurora", "Aurora Glass") },
             ].map((item) => (
               <button
                 key={item.id}
                 onClick={() => {
-                  const nextTheme = item.id as "classic" | "neo";
+                  const nextTheme = item.id as "classic" | "neo" | "aurora";
                   setVisualTheme(nextTheme);
                   updateSetting("visualTheme", nextTheme);
                 }}

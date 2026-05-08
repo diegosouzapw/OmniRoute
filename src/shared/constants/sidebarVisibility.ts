@@ -91,14 +91,14 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
       },
     ],
   },
-  { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
-  { id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
-  { id: "batch", href: "/dashboard/batch", i18nKey: "batch", icon: "view_list" },
-  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
-  { id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
-  { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
-  { id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
-  { id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
+  { id: "providers", href: "/dashboard/providers", i18nKey: "menuProviders", icon: "dns" },
+  { id: "combos", href: "/dashboard/combos", i18nKey: "menuCombos", icon: "layers" },
+  { id: "batch", href: "/dashboard/batch", i18nKey: "menuBatch", icon: "view_list" },
+  { id: "costs", href: "/dashboard/costs", i18nKey: "menuCosts", icon: "account_balance_wallet" },
+  { id: "analytics", href: "/dashboard/analytics", i18nKey: "menuAnalytics", icon: "analytics" },
+  { id: "cache", href: "/dashboard/cache", i18nKey: "menuCache", icon: "cached" },
+  { id: "limits", href: "/dashboard/limits", i18nKey: "menuLimits", icon: "tune" },
+  { id: "media", href: "/dashboard/cache/media", i18nKey: "menuMedia", icon: "perm_media" },
 ];
 
 const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [

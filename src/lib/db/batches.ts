@@ -1,6 +1,46 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
 import { v4 as uuidv4 } from "uuid";
 
+let batchesSchemaEnsured = false;
+
+function ensureBatchesSchema() {
+  if (batchesSchemaEnsured) return;
+  const db = getDbInstance();
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS batches (
+      id TEXT PRIMARY KEY,
+      endpoint TEXT NOT NULL,
+      completion_window TEXT NOT NULL,
+      status TEXT NOT NULL,
+      input_file_id TEXT NOT NULL,
+      output_file_id TEXT,
+      error_file_id TEXT,
+      created_at INTEGER NOT NULL,
+      in_progress_at INTEGER,
+      expires_at INTEGER,
+      finalizing_at INTEGER,
+      completed_at INTEGER,
+      failed_at INTEGER,
+      expired_at INTEGER,
+      cancelling_at INTEGER,
+      cancelled_at INTEGER,
+      request_counts_total INTEGER DEFAULT 0,
+      request_counts_completed INTEGER DEFAULT 0,
+      request_counts_failed INTEGER DEFAULT 0,
+      metadata TEXT,
+      api_key_id TEXT,
+      errors TEXT,
+      model TEXT,
+      usage TEXT,
+      output_expires_after_seconds INTEGER,
+      output_expires_after_anchor TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_batches_api_key ON batches(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_batches_status ON batches(status);
+  `);
+  batchesSchemaEnsured = true;
+}
+
 function parseBatchRow(row: any): BatchRecord {
   const camel = rowToCamel(row) as any;
   if (camel.metadata && typeof camel.metadata === "string") {
@@ -75,6 +115,7 @@ export function createBatch(
     | "requestCountsFailed"
   >
 ): BatchRecord {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const id = "batch_" + uuidv4().replaceAll("-", "").substring(0, 24);
   const createdAt = Math.floor(Date.now() / 1000);
@@ -109,6 +150,7 @@ export function createBatch(
 }
 
 export function getBatch(id: string): BatchRecord | null {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM batches WHERE id = ?").get(id);
   if (!row) return null;
@@ -116,6 +158,7 @@ export function getBatch(id: string): BatchRecord | null {
 }
 
 export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const snakeUpdates = objToSnake(updates) as any;
   if (snakeUpdates.metadata && typeof snakeUpdates.metadata !== "string") {
@@ -139,6 +182,7 @@ export function updateBatch(id: string, updates: Partial<BatchRecord>): boolean 
 }
 
 export function listBatches(apiKeyId?: string, limit: number = 20, after?: string): BatchRecord[] {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const afterBatch = after ? getBatch(after) : null;
   let rows: any[];
@@ -169,6 +213,7 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
 }
 
 export function getPendingBatches(): BatchRecord[] {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const rows = db
     .prepare(
@@ -179,6 +224,7 @@ export function getPendingBatches(): BatchRecord[] {
 }
 
 export function getTerminalBatches(): BatchRecord[] {
+  ensureBatchesSchema();
   const db = getDbInstance();
   const rows = db
     .prepare(

@@ -212,6 +212,101 @@
   box-shadow: inset 2px 0 0 rgba(103, 232, 249, 0.95);
 }
 
+/* Strong selected-state marker for all themes */
+.sidebar-link.is-active {
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-primary) 80%, #ffffff 20%);
+}
+
+.sidebar-link.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.dark[data-ui-theme="neo"] .sidebar-link.is-active {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0.08) 70%);
+  box-shadow: inset 2px 0 0 rgba(103, 232, 249, 0.95);
+}
+
+/* Aurora visual theme */
+:root[data-ui-theme="aurora"] {
+  --color-primary: #00c2a8;
+  --color-primary-hover: #00a48f;
+  --color-accent: #00d0ff;
+  --color-accent-hover: #00b4e3;
+  --color-accent-light: #7af8ff;
+}
+
+:root[data-ui-theme="aurora"] .dashboard-shell {
+  background:
+    radial-gradient(1100px 480px at -10% -10%, rgba(0, 194, 168, 0.16), transparent 60%),
+    radial-gradient(980px 430px at 110% -20%, rgba(0, 208, 255, 0.14), transparent 60%),
+    var(--color-bg);
+}
+
+:root[data-ui-theme="aurora"] .sidebar-root {
+  border-right-color: color-mix(in srgb, var(--color-border) 65%, #00c2a8 35%);
+  background:
+    radial-gradient(600px 180px at 0% -10%, rgba(0, 194, 168, 0.1), transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-sidebar) 88%, #ffffff 12%) 0%,
+      var(--color-sidebar) 100%
+    );
+}
+
+.dark[data-ui-theme="aurora"] {
+  --color-bg: #06161a;
+  --color-bg-alt: #0a1e23;
+  --color-bg-primary: #06161a;
+  --color-bg-subtle: #0a1e23;
+  --color-surface: #0f252b;
+  --color-sidebar: #0b1d22;
+  --color-border: rgba(107, 233, 223, 0.22);
+  --color-text-main: #dafdf9;
+  --color-text-primary: #dafdf9;
+  --color-text-muted: #87b9b3;
+}
+
+.dark[data-ui-theme="aurora"] .dashboard-shell {
+  background:
+    radial-gradient(1200px 580px at -8% -10%, rgba(0, 194, 168, 0.2), transparent 60%),
+    radial-gradient(1000px 540px at 108% -18%, rgba(0, 208, 255, 0.18), transparent 60%),
+    linear-gradient(180deg, #051015 0%, #06161a 100%);
+}
+
+.dark[data-ui-theme="aurora"] .header-root {
+  border-bottom-color: rgba(107, 233, 223, 0.22);
+  background: linear-gradient(180deg, rgba(9, 28, 33, 0.92) 0%, rgba(8, 23, 28, 0.9) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.dark[data-ui-theme="aurora"] .sidebar-root {
+  border-right-color: rgba(107, 233, 223, 0.26);
+  background:
+    radial-gradient(700px 250px at -20% -20%, rgba(0, 208, 255, 0.14), transparent 58%),
+    linear-gradient(180deg, #0b242a 0%, #081b20 100%);
+}
+
+.dark[data-ui-theme="aurora"] .sidebar-link:hover {
+  border-color: rgba(107, 233, 223, 0.24);
+  background: rgba(107, 233, 223, 0.1);
+}
+
+.dark[data-ui-theme="aurora"] .sidebar-link.is-active {
+  border-color: rgba(107, 233, 223, 0.4);
+  background: linear-gradient(90deg, rgba(0, 194, 168, 0.23) 0%, rgba(0, 208, 255, 0.12) 72%);
+  box-shadow: inset 2px 0 0 rgba(122, 248, 255, 0.98);
+}
+
 :root[data-ui-theme="neo"] .card-root,
 :root[data-ui-theme="neo"] .card-section {
   border-color: color-mix(in srgb, var(--color-border) 75%, #0ea5e9 25%);
