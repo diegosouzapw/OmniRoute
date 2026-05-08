@@ -190,3 +190,19 @@ test("translateRequest injects reasoning_content for DeepSeek assistant tool cal
 
   assert.equal(translated.messages[1].reasoning_content, "");
 });
+
+const { MAX_TOOLS_LIMIT } = await import("../../open-sse/config/constants.ts");
+test("MAX_TOOLS_LIMIT is set to 128 to match upstream provider limits", () => {
+  assert.equal(MAX_TOOLS_LIMIT, 128);
+});
+
+test("tool limit truncation: truncates array to 128 items", () => {
+  const tools = Array.from({ length: 200 }, (_, i) => ({
+    type: "function",
+    function: { name: `tool_${i}`, description: `tool ${i}`, parameters: { type: "object" } },
+  }));
+  const truncated = tools.length > MAX_TOOLS_LIMIT ? tools.slice(0, MAX_TOOLS_LIMIT) : tools;
+  assert.equal(truncated.length, 128);
+  assert.equal(truncated[0].function.name, "tool_0");
+  assert.equal(truncated[127].function.name, "tool_127");
+});

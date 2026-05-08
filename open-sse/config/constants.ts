@@ -184,3 +184,6 @@ export const DEFAULT_API_LIMITS = {
 
 // Skip patterns - requests containing these texts will bypass provider
 export const SKIP_PATTERNS = ["Please write a 5-10 word title for the following conversation:"];
+
+// Tool limit to prevent 400 errors from upstream providers (e.g., OpenAI API limit)
+export const MAX_TOOLS_LIMIT = 128;

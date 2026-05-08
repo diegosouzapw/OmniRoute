@@ -30,6 +30,7 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
+  MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
 } from "../config/constants.ts";
@@ -83,6 +84,12 @@ import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
+import {
+  getDetectedToolLimit,
+  setDetectedToolLimit,
+  parseToolLimitFromError,
+  shouldDetectLimit,
+} from "../services/toolLimitDetector.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -1537,6 +1544,18 @@ export async function handleChatCore({
     // sanitizeOpenAITool is safe to call on any input — it no-ops non-function
     // tools (e.g. Responses API built-ins) and non-object values.
     body.tools = body.tools.map((tool) => sanitizeOpenAITool(tool) as (typeof body.tools)[number]);
+
+    // Truncate tools to prevent 400 errors from upstream providers
+    // (e.g., OpenAI API returns: "'tools': maximum number of items is 128")
+    // Use dynamically detected limit per provider, fallback to MAX_TOOLS_LIMIT
+    const effectiveToolLimit = getDetectedToolLimit(provider);
+    if (body.tools.length > effectiveToolLimit) {
+      body.tools = body.tools.slice(0, effectiveToolLimit);
+      log?.debug?.(
+        "TOOLS",
+        `Truncated ${body.tools.length} tools to ${effectiveToolLimit} limit for ${provider}`
+      );
+    }
   }
 
   const memoryOwnerId = resolveMemoryOwnerId(apiKeyInfo as Record<string, unknown> | null);
@@ -3135,6 +3154,18 @@ export async function handleChatCore({
       message = details.message;
       retryAfterMs = details.retryAfterMs;
       upstreamErrorBody = details.responseBody;
+    }
+
+    // Dynamically detect and cache tool limits from 400 errors
+    if (shouldDetectLimit(message, statusCode)) {
+      const detectedLimit = parseToolLimitFromError(message, statusCode);
+      if (detectedLimit !== null) {
+        const currentLimit = getDetectedToolLimit(provider);
+        if (detectedLimit < currentLimit) {
+          setDetectedToolLimit(provider, detectedLimit);
+          log?.debug?.("TOOLS", `Detected new tool limit for ${provider}: ${detectedLimit}`);
+        }
+      }
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
