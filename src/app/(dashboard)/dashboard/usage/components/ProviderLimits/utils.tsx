@@ -341,6 +341,9 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.subscription,
     psd.tier,
     psd.accountTier,
+    // Claude OAuth bootstrap: rate_limit_tier has the Max 5x/20x multiplier.
+    psd.organizationRateLimitTier,
+    psd.organizationType,
   ];
 
   for (const candidate of candidates) {
@@ -366,6 +369,29 @@ export function normalizePlanTier(plan) {
   // Provider names that are not real plan tiers — treat as unknown
   if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) {
     return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
+  }
+
+  // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
+  // before the generic PRO/TEAM checks so underscored values don't fall through.
+  const claudeMatch = upper.match(/CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  if (claudeMatch) {
+    const family = claudeMatch[1];
+    const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
+    if (family === "MAX") {
+      return { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw };
+    }
+    if (family === "PRO") {
+      return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+    }
+    if (family === "TEAM") {
+      return { key: "team", label: "Team", variant: "info", rank: 6, raw };
+    }
+    if (family === "ENTERPRISE") {
+      return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
+    }
+    if (family === "FREE") {
+      return { key: "free", label: "Free", variant: "default", rank: 1, raw };
+    }
   }
 
   if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {

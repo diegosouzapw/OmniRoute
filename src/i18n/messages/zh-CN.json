@@ -3882,7 +3882,8 @@
     "weeklyLimitSummary": "Weekly budget limit summary",
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
-    "compareCompletedWithScore": "Comparison completed — {score}% pass rate"
+    "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "等待授权",

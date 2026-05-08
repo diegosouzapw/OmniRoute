@@ -3943,7 +3943,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "save": "Save",
-    "edit": "Edit"
+    "edit": "Edit",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",

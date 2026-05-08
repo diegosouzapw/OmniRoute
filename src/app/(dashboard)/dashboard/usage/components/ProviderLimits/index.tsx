@@ -214,6 +214,9 @@ export default function ProviderLimits() {
             plan: data.plan || null,
             message: data.message || null,
             raw: data,
+            stale: data._stale
+              ? { since: data._staleSince, reason: data._staleReason }
+              : null,
           },
         }));
         setLastRefreshedAt((prev) => ({
@@ -691,19 +694,30 @@ export default function ProviderLimits() {
                 </div>
 
                 {/* Last Refreshed */}
-                <div className="text-center text-[11px] text-text-muted">
-                  {refreshedAt ? (
-                    <span>
-                      {new Date(refreshedAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                      })}
-                    </span>
-                  ) : (
-                    "-"
-                  )}
+                <div className="text-center text-[11px]">
+                  {(() => {
+                    const stale = quota?.stale;
+                    const displayTime = stale?.since || refreshedAt;
+                    if (!displayTime) return <span className="text-text-muted">-</span>;
+                    const formatted = new Date(displayTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    });
+                    if (stale) {
+                      return (
+                        <span
+                          className="text-amber-500 cursor-help"
+                          title={t("staleQuotaTooltip")}
+                          aria-label={t("staleQuotaTooltip")}
+                        >
+                          {formatted}
+                        </span>
+                      );
+                    }
+                    return <span className="text-text-muted">{formatted}</span>;
+                  })()}
                 </div>
 
                 {/* Actions */}
