@@ -288,7 +288,30 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
+  let activeProviders: Set<string> | null = null;
+  try {
+    const { getProviderConnections } = await import("@/lib/localDb");
+    const conns = await getProviderConnections();
+    activeProviders = new Set(conns.filter((c: any) => c.is_active).map((c: any) => c.provider));
+  } catch {
+    // DB unavailable
+  }
+
+  const activeCandidates = activeProviders
+    ? providers.filter((p) => activeProviders!.has(p))
+    : [];
+
+  if (activeCandidates.length === 1) {
+    const provider = activeCandidates[0];
+    const canonicalModel = resolveProviderModelAlias(provider, modelId);
+    return { provider, model: canonicalModel, extendedContext };
+  }
+
+  if (
+    activeProviders?.has("codex") &&
+    providers.includes("codex") &&
+    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
+  ) {
     return {
       provider: "codex",
       model: modelId,
@@ -303,15 +326,6 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
       model: modelId,
       extendedContext,
     };
-  }
-
-  let activeProviders: Set<string> | null = null;
-  try {
-    const { getProviderConnections } = await import("@/lib/localDb");
-    const conns = await getProviderConnections();
-    activeProviders = new Set(conns.filter((c: any) => c.is_active).map((c: any) => c.provider));
-  } catch {
-    // DB unavailable
   }
 
   const eligibleProviders = activeProviders
