@@ -68,14 +68,37 @@ export function insertCloudAgentTask(task: CloudAgentTaskRow): void {
   ).run(task);
 }
 
+// Whitelist of allowed columns for update operations
+const ALLOWED_UPDATE_COLUMNS = new Set([
+  "status",
+  "prompt",
+  "source",
+  "options",
+  "result",
+  "activities",
+  "error",
+  "completed_at",
+]);
+
 export function updateCloudAgentTask(
   id: string,
   updates: Partial<Omit<CloudAgentTaskRow, "id">>
 ): void {
   const db = getDbInstance();
-  const fields = Object.keys(updates)
+
+  // Validate keys against whitelist to prevent SQL injection
+  const validUpdates: Partial<Omit<CloudAgentTaskRow, "id">> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (ALLOWED_UPDATE_COLUMNS.has(key)) {
+      (validUpdates as Record<string, unknown>)[key] = value;
+    }
+  }
+
+  const fields = Object.keys(validUpdates)
     .map((key) => `${key} = @${key}`)
     .join(", ");
+
+  if (!fields) return; // No valid updates
 
   db.prepare(
     `
@@ -83,7 +106,7 @@ export function updateCloudAgentTask(
     SET ${fields}, updated_at = datetime('now')
     WHERE id = @id
   `
-  ).run({ id, ...updates });
+  ).run({ id, ...validUpdates });
 }
 
 export function getCloudAgentTaskById(id: string): CloudAgentTaskRow | null {

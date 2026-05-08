@@ -106,13 +106,13 @@ export default function CloudAgentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "message",
-          content: messageInput,
+          message: messageInput,
         }),
       });
       if (res.ok) {
         const data = await res.json();
         setSelectedTask(data.task);
-        setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? data.task : t)));
+        setTasks((prev) => prev.map((task) => (task.id === selectedTask.id ? data.task : task)));
         setMessageInput("");
       }
     } catch (err) {

@@ -21,7 +21,7 @@ export class JulesAgent extends CloudAgentBase {
       prompt: params.prompt,
       source: {
         repository: {
-          owner: params.source.repoUrl.split("/").slice(-2, -1)[0],
+          owner: params.source.repoUrl.split("/").filter(Boolean).slice(-2, -1)[0] || "",
           name: params.source.repoName,
         },
         branch: params.source.branch || "main",

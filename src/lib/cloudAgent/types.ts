@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
 export const CLOUD_AGENT_STATUS = {
   QUEUED: "queued",
@@ -102,7 +102,7 @@ export const CreateCloudAgentTaskSchema = z.object({
 });
 
 export const UpdateCloudAgentTaskSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1),
   action: z.enum(["approve", "reject", "cancel", "message"]),
   message: z.string().optional(),
 });

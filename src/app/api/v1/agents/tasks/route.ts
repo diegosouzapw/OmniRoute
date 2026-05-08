@@ -6,12 +6,13 @@ import {
   getCloudAgentTaskById,
   getAllCloudAgentTasks,
   getCloudAgentTasksByProvider,
+  getCloudAgentTasksByStatus,
   updateCloudAgentTask,
   deleteCloudAgentTask,
 } from "@/lib/cloudAgent/db";
 import { CreateCloudAgentTaskSchema } from "@/lib/cloudAgent/types";
 import { CLOUD_AGENT_PROVIDERS } from "@/shared/constants/providers";
-import { z } from "zod/v4";
+import { z } from "zod";
 import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
@@ -39,7 +40,6 @@ export async function GET(request: NextRequest) {
     if (providerId) {
       tasks = getCloudAgentTasksByProvider(providerId, limit);
     } else if (status) {
-      const { getCloudAgentTasksByStatus } = await import("@/lib/cloudAgent/db");
       tasks = getCloudAgentTasksByStatus(status, limit);
     } else {
       tasks = getAllCloudAgentTasks(limit);

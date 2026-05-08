@@ -49,7 +49,7 @@ export default function ProxyTab() {
 
   const updateUsageTokenBuffer = async () => {
     const val = parseInt(bufferInput, 10);
-    if (isNaN(val) || val < 0 || val > 50000) return;
+    if (isNaN(val) || val < 0 || val > 50000 || val === usageTokenBuffer) return;
     setBufferSaving(true);
     try {
       const res = await fetch("/api/settings", {

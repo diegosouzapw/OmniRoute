@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractApiKey } from "@/sse/services/auth";
 import { getAgent } from "@/lib/cloudAgent/registry";
 import { getCloudAgentTaskById, updateCloudAgentTask } from "@/lib/cloudAgent/db";
-import { z } from "zod/v4";
+import { z } from "zod";
 import pino from "pino";
 
 const logger = pino({ name: "cloud-agents-api" });
