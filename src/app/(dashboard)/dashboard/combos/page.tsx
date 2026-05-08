@@ -2655,18 +2655,17 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     else delete saveData.context_cache_protection;
 
     // Validate and save context_length
-    if (contextLength !== undefined && contextLength !== null && contextLength !== "") {
+    if (contextLength !== undefined && contextLength !== null) {
       const ctxLen = Number(contextLength);
       if (isNaN(ctxLen) || !Number.isInteger(ctxLen)) {
-        setContextLengthError("Context length must be a valid integer");
+        setContextLengthError(t("agentFeaturesContextLengthErrorInteger"));
         setSaving(false);
         return;
       }
       if (ctxLen >= 1000 && ctxLen <= 2000000) {
         saveData.context_length = ctxLen;
       } else {
-        // Out of range - don't save, show error
-        setContextLengthError(`Context length must be between 1000 and 2000000`);
+        setContextLengthError(t("agentFeaturesContextLengthErrorRange"));
         setSaving(false);
         return;
       }
@@ -3806,10 +3805,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     }
                     const num = Number(value);
                     if (isNaN(num) || !Number.isInteger(num)) {
-                      setContextLengthError("Context length must be a valid integer");
-                      setContextLength(undefined);
+                      setContextLengthError(t("agentFeaturesContextLengthErrorInteger"));
+                      // Keep the raw input value so the user can correct it
                     } else if (num < 1000 || num > 2000000) {
-                      setContextLengthError("Context length must be between 1000 and 2000000");
+                      setContextLengthError(t("agentFeaturesContextLengthErrorRange"));
                       setContextLength(num);
                     } else {
                       setContextLength(num);
