@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Routingstrategi",
     "routingAdvancedGuideTitle": "Avancerad vägledning",
     "routingAdvancedGuideHint1": "Använd Fill First för förutsägbar prioritet, Round Robin för rättvisa och P2C för latensförmåga.",

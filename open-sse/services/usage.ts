@@ -28,6 +28,7 @@ import {
   updateAntigravityRemainingCredits,
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
+import { CLAUDE_CODE_VERSION } from "../executors/claudeIdentity.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
@@ -1711,16 +1712,27 @@ async function getAntigravitySubscriptionInfo(accessToken) {
  */
 async function getClaudeUsage(accessToken) {
   try {
-    // Primary: Try OAuth usage endpoint (works with Claude Code consumer OAuth tokens)
-    // Requires anthropic-beta: oauth-2025-04-20 header
-    const oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "anthropic-beta": "oauth-2025-04-20",
-        "anthropic-version": CLAUDE_CONFIG.apiVersion,
-      },
-    });
+    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
+    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let oauthResponse;
+    try {
+      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Accept-Encoding": "gzip, compress, deflate, br",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (oauthResponse.ok) {
       const data = await oauthResponse.json();

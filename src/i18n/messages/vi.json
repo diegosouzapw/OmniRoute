@@ -2890,6 +2890,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Chiến lược định tuyến",
     "routingAdvancedGuideTitle": "Hướng dẫn định tuyến nâng cao",
     "routingAdvancedGuideHint1": "Sử dụng Fill First để có mức độ ưu tiên có thể dự đoán được, Round Robin để đảm bảo tính công bằng và P2C để có khả năng phục hồi độ trễ.",

@@ -2890,6 +2890,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Strategia routingu",
     "routingAdvancedGuideTitle": "Zaawansowane wskazówki dotyczące tras",
     "routingAdvancedGuideHint1": "Użyj opcji Fill First, aby uzyskać przewidywalny priorytet, Round Robin, aby zapewnić uczciwość, i P2C, aby zapewnić odporność na opóźnienia.",

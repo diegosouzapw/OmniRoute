@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "라우팅 전략",
     "routingAdvancedGuideTitle": "고급 경로 안내",
     "routingAdvancedGuideHint1": "예측 가능한 우선순위를 위해서는 Fill First를 사용하고, 공정성을 위해서는 Round Robin을, 지연 시간 복원력을 위해서는 P2C를 사용하세요.",

@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Strategia de rutare",
     "routingAdvancedGuideTitle": "Ghid avansat de rutare",
     "routingAdvancedGuideHint1": "Folosiți Fill First pentru o prioritate previzibilă, Round Robin pentru corectitudine și P2C pentru rezistență la latență.",

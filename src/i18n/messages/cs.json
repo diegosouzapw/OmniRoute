@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} poskytovatel(ů) s aktivním CLI otiskem",
     "enableFingerprintTitle": "Povolit otisk pro {provider}",
     "disableFingerprintTitle": "Zakázat otisk pro {provider}",
+    "forcedFingerprintTitle": "Vždy aktivní pro {provider} — vyžadováno pro bezpečnost OAuth účtu; nelze vypnout.",
+    "forcedFingerprintBadge": "Vyžadováno",
     "routingStrategy": "Strategie směrování",
     "routingAdvancedGuideTitle": "Pokročilé pokyny směrování",
     "routingAdvancedGuideHint1": "Pro předvídatelnou prioritu použijte Fill First, pro spravedlivé rozdělení Round Robin a pro odolnost vůči zpoždění P2C.",

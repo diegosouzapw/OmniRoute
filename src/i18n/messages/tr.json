@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} sağlayıcıda CLI parmak izi etkin",
     "enableFingerprintTitle": "{provider} için parmak izini etkinleştir",
     "disableFingerprintTitle": "{provider} için parmak izini devre dışı bırak",
+    "forcedFingerprintTitle": "{provider} için her zaman etkin — OAuth hesap güvenliği için gerekli; kapatılamaz.",
+    "forcedFingerprintBadge": "Zorunlu",
     "routingStrategy": "Yönlendirme Stratejisi",
     "routingAdvancedGuideTitle": "Gelişmiş yönlendirme rehberliği",
     "routingAdvancedGuideHint1": "Öngörülebilir öncelik için Önce Doldur'u, adil dağılım için Round Robin'i ve gecikme dayanıklılığı için P2C'yi kullanın.",

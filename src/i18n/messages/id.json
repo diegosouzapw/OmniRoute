@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Strategi Perutean",
     "routingAdvancedGuideTitle": "Panduan perutean tingkat lanjut",
     "routingAdvancedGuideHint1": "Gunakan Fill First untuk prioritas yang dapat diprediksi, Round Robin untuk keadilan, dan P2C untuk ketahanan latensi.",

@@ -3057,6 +3057,8 @@
     "cliFingerprintEnabled": "已有 {count} 个提供商启用了 CLI 指纹",
     "enableFingerprintTitle": "为 {provider} 启用指纹",
     "disableFingerprintTitle": "为 {provider} 禁用指纹",
+    "forcedFingerprintTitle": "{provider} 始终启用 — OAuth 账户安全所必需；无法关闭。",
+    "forcedFingerprintBadge": "必需",
     "routingStrategy": "路由策略",
     "routingAdvancedGuideTitle": "高级路由指南",
     "routingAdvancedGuideHint1": "需要可预测优先级时使用 Fill First，需要公平分配时使用 Round Robin，需要延迟弹性时使用 P2C。",

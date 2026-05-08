@@ -2944,6 +2944,8 @@
     "cliFingerprintEnabled": "{count} провайдер(ов) с активным CLI-отпечатком",
     "enableFingerprintTitle": "Включить отпечаток для {provider}",
     "disableFingerprintTitle": "Отключить отпечаток для {provider}",
+    "forcedFingerprintTitle": "Всегда включено для {provider} — требуется для безопасности OAuth-аккаунта; отключить нельзя.",
+    "forcedFingerprintBadge": "Обязательно",
     "routingStrategy": "Стратегия маршрутизации",
     "routingAdvancedGuideTitle": "Расширенное руководство по маршрутизации",
     "routingAdvancedGuideHint1": "Используйте «Fill First» для предсказуемого приоритета, Round Robin для обеспечения справедливости и P2C для устойчивости к задержкам.",

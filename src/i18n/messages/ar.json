@@ -2890,6 +2890,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "استراتيجية التوجيه",
     "routingAdvancedGuideTitle": "توجيه التوجيه المتقدم",
     "routingAdvancedGuideHint1": "استخدمFill First للحصول على الأولوية التي يمكن التنبؤ بها، وRound Robin للعدالة، وP2C لمرونة زمن الاستجابة.",

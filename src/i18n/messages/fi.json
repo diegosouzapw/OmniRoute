@@ -2906,6 +2906,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Reititysstrategia",
     "routingAdvancedGuideTitle": "Edistynyt reititysopastus",
     "routingAdvancedGuideHint1": "Käytä Täytä ensin ennustettavaa prioriteettia varten, Round Robinia oikeudenmukaisuuden varmistamiseksi ja P2C:tä latenssin kestävyyteen.",
