@@ -375,6 +375,7 @@ const comboRuntimeConfigSchema = z
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
@@ -395,6 +396,10 @@ const comboRuntimeConfigSchema = z
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
     compositeTiers: compositeTiersSchema.optional(),
+    resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareTieBandPercent: z.coerce.number().min(0).max(100).optional(),
+    resetAwareExhaustionGuardPercent: z.coerce.number().min(0).max(100).optional(),
   })
   .strict();
 
@@ -439,6 +444,7 @@ export const updateSettingsSchema = z.object({
   bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+  codexServiceTier: z.object({ enabled: z.boolean() }).optional(),
   // Routing settings (#134)
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -1325,7 +1331,7 @@ export const updateComboSchema = z
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
     context_cache_protection: z.boolean().optional(),
-    context_length: z.number().int().min(1000).max(2000000).optional(),
+    context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
   })
   .superRefine((value, ctx) => {

@@ -53,6 +53,10 @@ import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
+import {
+  getCodexEffectiveFastServiceTier,
+  isCodexGlobalFastServiceTierEnabled,
+} from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
@@ -512,6 +516,7 @@ interface ConnectionRowProps {
   isOAuth: boolean;
   isClaude?: boolean;
   isCodex?: boolean;
+  codexFastGlobalEnabled?: boolean;
   isFirst: boolean;
   isLast: boolean;
   onMoveUp: () => void;
@@ -1015,6 +1020,8 @@ export default function ProviderDetailPage() {
   );
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
+  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
+  const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible =
@@ -1238,6 +1245,16 @@ export default function ProviderDetailPage() {
       .then((c) => setProxyConfig(c))
       .catch(() => {});
   }, [fetchConnections, fetchAliases]);
+
+  useEffect(() => {
+    if (providerId !== "codex") return;
+    fetch("/api/settings", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(data));
+      })
+      .catch(() => {});
+  }, [providerId]);
 
   const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
     if (!conns.length) return;
@@ -1683,6 +1700,32 @@ export default function ProviderDetailPage() {
     } catch (error) {
       console.error("Error toggling Codex quota policy:", error);
       notify.error("Failed to update Codex limit policy");
+    }
+  };
+
+  const handleToggleCodexGlobalFastServiceTier = async (enabled: boolean) => {
+    if (savingCodexGlobalFastServiceTier) return;
+    setSavingCodexGlobalFastServiceTier(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codexServiceTier: { enabled } }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        notify.error(data.error || "Failed to update Codex Fast setting");
+        return;
+      }
+
+      setCodexGlobalFastServiceTier(enabled);
+      notify.success(enabled ? "Codex Fast enabled globally" : "Codex Fast disabled globally");
+    } catch (error) {
+      console.error("Error toggling Codex Fast setting:", error);
+      notify.error("Failed to update Codex Fast setting");
+    } finally {
+      setSavingCodexGlobalFastServiceTier(false);
     }
   };
 
@@ -2795,9 +2838,22 @@ export default function ProviderDetailPage() {
       {/* Connections */}
       {!isUpstreamProxyProvider && (
         <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
+              {providerId === "codex" && (
+                <div title="Apply Codex Fast tier to all Codex connections by default">
+                  <Toggle
+                    size="sm"
+                    checked={codexGlobalFastServiceTier}
+                    onChange={handleToggleCodexGlobalFastServiceTier}
+                    disabled={savingCodexGlobalFastServiceTier}
+                    label="Fast default"
+                    ariaLabel="Toggle Codex Fast default"
+                    className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
+                  />
+                </div>
+              )}
               {/* Provider-level proxy indicator/button */}
               <button
                 onClick={() =>
@@ -2826,42 +2882,44 @@ export default function ProviderDetailPage() {
                   : t("providerProxy")}
               </button>
             </div>
-            {connections.length > 1 && (
-              <button
-                onClick={handleBatchTestAll}
-                disabled={batchTesting || !!retestingId}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                  batchTesting
-                    ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                }`}
-                title={t("testAll")}
-                aria-label={t("testAll")}
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {batchTesting ? "sync" : "play_arrow"}
-                </span>
-                {batchTesting ? t("testing") : t("testAll")}
-              </button>
-            )}
-            {!isCompatible ? (
-              <div className="flex items-center gap-2">
-                <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
-                  {providerSupportsPat ? "Add PAT" : t("add")}
-                </Button>
-                {providerId === "qoder" && (
-                  <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
-                    Experimental OAuth
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+              {connections.length > 1 && (
+                <button
+                  onClick={handleBatchTestAll}
+                  disabled={batchTesting || !!retestingId}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    batchTesting
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                  }`}
+                  title={t("testAll")}
+                  aria-label={t("testAll")}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {batchTesting ? "sync" : "play_arrow"}
+                  </span>
+                  {batchTesting ? t("testing") : t("testAll")}
+                </button>
+              )}
+              {!isCompatible ? (
+                <>
+                  <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                    {providerSupportsPat ? "Add PAT" : t("add")}
                   </Button>
-                )}
-              </div>
-            ) : (
-              connections.length === 0 && (
-                <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
-                  {t("add")}
-                </Button>
-              )
-            )}
+                  {providerId === "qoder" && (
+                    <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                      Experimental OAuth
+                    </Button>
+                  )}
+                </>
+              ) : (
+                connections.length === 0 && (
+                  <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                    {t("add")}
+                  </Button>
+                )
+              )}
+            </div>
           </div>
 
           {connections.length === 0 ? (
@@ -2904,6 +2962,7 @@ export default function ProviderDetailPage() {
                         connection={conn}
                         isOAuth={conn.authType === "oauth"}
                         isClaude={providerId === "claude"}
+                        codexFastGlobalEnabled={codexGlobalFastServiceTier}
                         isFirst={index === 0}
                         isLast={index === sorted.length - 1}
                         onMoveUp={() => handleSwapPriority(conn, sorted[index - 1])}
@@ -3022,6 +3081,7 @@ export default function ProviderDetailPage() {
                               connection={conn}
                               isOAuth={conn.authType === "oauth"}
                               isClaude={providerId === "claude"}
+                              codexFastGlobalEnabled={codexGlobalFastServiceTier}
                               isFirst={gi === 0 && index === 0}
                               isLast={
                                 gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -4966,6 +5026,7 @@ function ConnectionRow({
   isOAuth,
   isClaude,
   isCodex,
+  codexFastGlobalEnabled,
   isCcCompatible,
   cliproxyapiEnabled,
   isFirst,
@@ -5069,6 +5130,12 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
+  const codexFastEnabled = isCodex
+    ? getCodexEffectiveFastServiceTier(
+        connection.providerSpecificData,
+        codexFastGlobalEnabled === true
+      )
+    : false;
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
@@ -5209,6 +5276,19 @@ function ConnectionRow({
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
+                {codexFastEnabled && (
+                  <span
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-sky-500/15 text-sky-500"
+                    title={
+                      codexFastGlobalEnabled
+                        ? "Global Codex fast tier is active"
+                        : "Codex fast tier is active for this connection"
+                    }
+                  >
+                    <span className="material-symbols-outlined text-[13px]">bolt</span>
+                    Fast
+                  </span>
+                )}
                 <button
                   onClick={() => onToggleCodex5h?.(!codex5hEnabled)}
                   className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${

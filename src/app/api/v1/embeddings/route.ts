@@ -21,7 +21,7 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels, getProviderNodes } from "@/lib/localDb";
+import { getAllCustomModels, getProviderNodes, getApiKeyMetadata } from "@/lib/localDb";
 
 function toProviderScopedModelId(providerId: string, modelId: string): string {
   return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
@@ -87,7 +87,21 @@ export async function GET() {
  */
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
-export async function handleValidatedEmbeddingRequestBody(body: ValidatedEmbeddingBody) {
+interface EmbeddingHandlerOptions {
+  clientRawRequest?: {
+    endpoint: string;
+    body: Record<string, unknown>;
+    headers: Record<string, string>;
+  };
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  connectionId?: string | null;
+}
+
+export async function handleValidatedEmbeddingRequestBody(
+  body: ValidatedEmbeddingBody,
+  options: EmbeddingHandlerOptions = {}
+) {
   // Load local provider_nodes for embedding routing (only localhost — prevents auth bypass/SSRF)
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
@@ -202,20 +216,28 @@ export async function handleValidatedEmbeddingRequestBody(body: ValidatedEmbeddi
     log,
     resolvedProvider: providerConfig,
     resolvedModel,
+    clientRawRequest: options.clientRawRequest || null,
+    apiKeyId: options.apiKeyId || null,
+    apiKeyName: options.apiKeyName || null,
+    connectionId: options.connectionId || null,
   });
+
+  const responseHeaders = new Headers(result.headers);
 
   if (result.success) {
     if (credentials) await clearRecoveredProviderState(credentials);
+    responseHeaders.set("Content-Type", "application/json");
     return new Response(JSON.stringify(result.data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+      status: result.status,
+      headers: responseHeaders,
     });
   }
 
+  responseHeaders.set("Content-Type", "application/json");
   const errorPayload = toJsonErrorPayload(result.error, "Embedding provider error");
   return new Response(JSON.stringify(errorPayload), {
     status: result.status,
-    headers: { "Content-Type": "application/json" },
+    headers: responseHeaders,
   });
 }
 
@@ -234,9 +256,33 @@ export async function POST(request) {
   }
   const body = validation.data;
 
+  // Auth check
+  const apiKeyRaw = extractApiKey(request);
+  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
+  }
+  if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+  }
+
   // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  return handleValidatedEmbeddingRequestBody(body as ValidatedEmbeddingBody);
+  // Extract API key info for logging
+  const apiKeyMeta = apiKeyRaw ? await getApiKeyMetadata(apiKeyRaw) : null;
+
+  // Build client raw request for logging
+  const clientRawRequest = {
+    endpoint: "/v1/embeddings",
+    body: rawBody,
+    headers: Object.fromEntries(request.headers.entries()),
+  };
+
+  return handleValidatedEmbeddingRequestBody(body as ValidatedEmbeddingBody, {
+    clientRawRequest,
+    apiKeyId: apiKeyMeta?.id || null,
+    apiKeyName: apiKeyMeta?.name || null,
+    connectionId: null,
+  });
 }

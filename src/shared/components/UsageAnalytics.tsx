@@ -18,6 +18,7 @@ import {
   ProviderCostDonut,
   ModelOverTimeChart,
   ProviderTable,
+  ServiceTierBreakdown,
   ApiKeyFilterDropdown,
   CustomRangePicker,
 } from "./analytics";
@@ -310,10 +311,10 @@ export default function UsageAnalytics() {
                 color: "text-violet-500",
               },
               {
-                icon: "swap_horiz",
-                label: "Fallback Rate",
-                value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
-                color: "text-amber-500",
+                icon: "bolt",
+                label: "Fast Requests",
+                value: fmt(s.fastRequests || 0),
+                color: "text-sky-500",
               },
             ],
           },
@@ -329,6 +330,12 @@ export default function UsageAnalytics() {
                 label: "Diversity",
                 value: `${providerDiversity.toFixed(1)}%`,
                 color: "text-sky-500",
+              },
+              {
+                icon: "swap_horiz",
+                label: "Fallback Rate",
+                value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
+                color: "text-amber-500",
               },
             ],
           },
@@ -349,6 +356,9 @@ export default function UsageAnalytics() {
         <DailyTrendChart dailyTrend={analytics?.dailyTrend} />
         <ProviderCostDonut byProvider={analytics?.byProvider} />
       </div>
+
+      {/* Fast / Standard service tier split */}
+      <ServiceTierBreakdown byServiceTier={analytics?.byServiceTier} summary={s} />
 
       {/* Model Usage Over Time (stacked area) */}
       <ModelOverTimeChart

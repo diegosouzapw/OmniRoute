@@ -8,6 +8,7 @@ type ReadTimeoutOptions = {
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 600_000;
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 600_000;
+export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 30_000;
 export const DEFAULT_FETCH_CONNECT_TIMEOUT_MS = 30_000;
 export const DEFAULT_FETCH_KEEPALIVE_TIMEOUT_MS = 4_000;
 export const DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS = 30_000;
@@ -24,6 +25,7 @@ function hasEnvValue(env: EnvSource, name: string): boolean {
 export type UpstreamTimeoutConfig = {
   fetchTimeoutMs: number;
   streamIdleTimeoutMs: number;
+  streamReadinessTimeoutMs: number;
   fetchHeadersTimeoutMs: number;
   fetchBodyTimeoutMs: number;
   fetchConnectTimeoutMs: number;
@@ -89,10 +91,20 @@ export function getUpstreamTimeoutConfig(
       logger,
     }
   );
+  const streamReadinessTimeoutMs = readTimeoutMs(
+    env,
+    "STREAM_READINESS_TIMEOUT_MS",
+    DEFAULT_STREAM_READINESS_TIMEOUT_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
 
   return {
     fetchTimeoutMs,
     streamIdleTimeoutMs,
+    streamReadinessTimeoutMs,
     fetchHeadersTimeoutMs: readTimeoutMs(env, "FETCH_HEADERS_TIMEOUT_MS", fetchTimeoutMs, {
       allowZero: true,
       logger,

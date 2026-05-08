@@ -68,6 +68,23 @@ test("settings schemas accept combo configuration modes", () => {
   assert.equal(sharedSettingsSchema.safeParse({ comboConfigMode: "compact" }).success, false);
 });
 
+test("settings schemas accept global Codex fast tier setting", () => {
+  const payload = { codexServiceTier: { enabled: true } };
+  const routeParsed = settingsRouteSchema.parse(payload);
+  const sharedParsed = sharedSettingsSchema.parse(payload);
+
+  assert.deepEqual(routeParsed.codexServiceTier, { enabled: true });
+  assert.deepEqual(sharedParsed.codexServiceTier, { enabled: true });
+  assert.equal(
+    settingsRouteSchema.safeParse({ codexServiceTier: { enabled: "yes" } }).success,
+    false
+  );
+  assert.equal(
+    sharedSettingsSchema.safeParse({ codexServiceTier: { enabled: "yes" } }).success,
+    false
+  );
+});
+
 test("settings schemas accept endpoint tunnel visibility toggles", () => {
   const payload = {
     hideEndpointCloudflaredTunnel: true,

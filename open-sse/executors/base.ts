@@ -584,6 +584,20 @@ export class BaseExecutor {
             delete tb.thinking;
             delete tb.context_management;
             appliedThinking = "off";
+          } else if (!headerThinking && !headerEffort) {
+            // Default CC logic when no override headers are present
+            const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            if (isHaiku) {
+              delete tb.thinking;
+              delete tb.output_config;
+              delete tb.context_management;
+            } else if (tb.thinking === undefined && tb.output_config === undefined) {
+              tb.thinking = { type: "adaptive" };
+              tb.context_management = {
+                edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+              };
+              tb.output_config = { effort: "high" };
+            }
           }
 
           // Real CLI always pairs context_management with thinking. Mirror
@@ -600,26 +614,40 @@ export class BaseExecutor {
             | Record<string, unknown>
             | undefined;
 
-          let identitySource: "upstream-metadata" | "upstream-header" | "synthesized" =
-            "synthesized";
+          let identitySource:
+            | "upstream-metadata"
+            | "upstream-header"
+            | "synthesized"
+            | "synthesized-cloaked" = "synthesized";
           let sessionId: string;
           let deviceId: string;
           let accountUUID: string;
 
-          const upstreamUserId = parseUpstreamMetadataUserId(tb);
+          // For any Claude OAuth request, ignore client-supplied metadata.user_id /
+          // X-Claude-Code-Session-Id and synthesize per-account: the CC device_id from
+          // ~/.claude.json is shared across every account on one machine, which lets
+          // Anthropic correlate accounts behind one OmniRoute.
+          const cloakIdentity = isClaudeCodeClient || hasClaudeOAuthToken;
+          const upstreamUserId = cloakIdentity ? null : parseUpstreamMetadataUserId(tb);
           if (upstreamUserId) {
             sessionId = upstreamUserId.session_id;
             deviceId = upstreamUserId.device_id;
             accountUUID = upstreamUserId.account_uuid;
             identitySource = "upstream-metadata";
           } else {
-            const headerSid = passthroughUpstreamSessionId(
-              clientHeaders as Record<string, string | undefined> | undefined
-            );
+            const headerSid = cloakIdentity
+              ? null
+              : passthroughUpstreamSessionId(
+                  clientHeaders as Record<string, string | undefined> | undefined
+                );
             sessionId = headerSid ?? getSessionId(seed);
             deviceId = resolveCliUserID(psd, seed);
             accountUUID = resolveAccountUUID(psd, seed, activeCredentials?.accessToken);
-            identitySource = headerSid ? "upstream-header" : "synthesized";
+            identitySource = headerSid
+              ? "upstream-header"
+              : cloakIdentity
+                ? "synthesized-cloaked"
+                : "synthesized";
           }
 
           // system[0] (billing) and system[1] (sentinel) must not carry

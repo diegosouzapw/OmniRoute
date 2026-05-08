@@ -1,6 +1,8 @@
 name: Build Fork Image (ghcr.io)
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: fix/xiaomi-mimo-provider
+          ref: main
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -35,7 +37,6 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/gi99lin/omniroute:fix-xiaomi-mimo-provider
             ghcr.io/gi99lin/omniroute:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

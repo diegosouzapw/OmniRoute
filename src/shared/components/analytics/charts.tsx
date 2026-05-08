@@ -1081,6 +1081,71 @@ export function ModelTable({ byModel, summary }) {
   );
 }
 
+export function ServiceTierBreakdown({ byServiceTier, summary }) {
+  const data = useMemo(() => byServiceTier || [], [byServiceTier]);
+  const totalRequests = Number(summary?.totalRequests || 0);
+  const totalCost = Number(summary?.totalCost || 0);
+
+  if (!data.length) {
+    return null;
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="p-4 border-b border-border flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
+          Service Tier
+        </h3>
+        <span className="text-[11px] text-text-muted">Fast / Standard cost split</span>
+      </div>
+      <div className="divide-y divide-border">
+        {data.map((tier) => {
+          const isFast = tier.serviceTier === "priority";
+          const requestPct =
+            totalRequests > 0
+              ? ((Number(tier.requests || 0) / totalRequests) * 100).toFixed(1)
+              : "0";
+          const costPct =
+            totalCost > 0 ? ((Number(tier.cost || 0) / totalCost) * 100).toFixed(1) : "0";
+          return (
+            <div key={tier.serviceTier} className="p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`material-symbols-outlined text-[18px] ${
+                      isFast ? "text-sky-500" : "text-text-muted"
+                    }`}
+                  >
+                    {isFast ? "bolt" : "speed"}
+                  </span>
+                  <div>
+                    <div className="text-sm font-semibold text-text-main">{tier.label}</div>
+                    <div className="text-xs text-text-muted">
+                      {fmtFull(tier.requests)} requests · {fmt(tier.totalTokens)} tokens
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-sm font-semibold text-amber-500">
+                    {fmtCost(tier.cost)}
+                  </div>
+                  <div className="text-xs text-text-muted">{costPct}% of cost</div>
+                </div>
+              </div>
+              <div className="h-1.5 rounded-full bg-black/5 dark:bg-white/10 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${isFast ? "bg-sky-500" : "bg-text-muted/50"}`}
+                  style={{ width: `${requestPct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 // ── UsageDetail ────────────────────────────────────────────────────────────
 
 export function UsageDetail({ summary }) {

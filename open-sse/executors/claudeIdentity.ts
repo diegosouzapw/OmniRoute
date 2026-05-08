@@ -132,12 +132,17 @@ const ACCOUNT_FETCH_RETRY_MS = 5 * 60 * 1000;
 const accountUuidCache = new Map<string, { uuid: string | null; fetchedAt: number }>();
 const inflightFetches = new Set<string>();
 
-async function backgroundFetchAccountUUID(accessToken: string, seed: string): Promise<void> {
-  if (inflightFetches.has(seed)) return;
-  const cached = accountUuidCache.get(seed);
-  if (cached?.uuid) return;
-  if (cached && Date.now() - cached.fetchedAt < ACCOUNT_FETCH_RETRY_MS) return;
-  inflightFetches.add(seed);
+export type ClaudeBootstrap = {
+  account_uuid: string | null;
+  account_email: string | null;
+  organization_uuid: string | null;
+  organization_name: string | null;
+  organization_type: string | null;
+  organization_rate_limit_tier: string | null;
+};
+
+/** GET /api/claude_cli/bootstrap with the same headers real CLI uses. */
+export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeBootstrap | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), BOOTSTRAP_FETCH_TIMEOUT_MS);
   try {
@@ -151,13 +156,40 @@ async function backgroundFetchAccountUUID(accessToken: string, seed: string): Pr
       },
       signal: ctrl.signal,
     });
-    const data: any = res.ok ? await res.json().catch(() => null) : null;
-    const uuid: string | null = data?.oauth_account?.account_uuid || null;
-    setBounded(accountUuidCache, seed, { uuid, fetchedAt: Date.now() }, IDENTITY_CACHE_LIMIT);
+    if (!res.ok) return null;
+    const data: any = await res.json().catch(() => null);
+    const acct = data?.oauth_account;
+    if (!acct || typeof acct !== "object") return null;
+    return {
+      account_uuid: acct.account_uuid || null,
+      account_email: acct.account_email || null,
+      organization_uuid: acct.organization_uuid || null,
+      organization_name: acct.organization_name || null,
+      organization_type: acct.organization_type || null,
+      organization_rate_limit_tier: acct.organization_rate_limit_tier || null,
+    };
   } catch {
-    setBounded(accountUuidCache, seed, { uuid: null, fetchedAt: Date.now() }, IDENTITY_CACHE_LIMIT);
+    return null;
   } finally {
     clearTimeout(timer);
+  }
+}
+
+async function backgroundFetchAccountUUID(accessToken: string, seed: string): Promise<void> {
+  if (inflightFetches.has(seed)) return;
+  const cached = accountUuidCache.get(seed);
+  if (cached?.uuid) return;
+  if (cached && Date.now() - cached.fetchedAt < ACCOUNT_FETCH_RETRY_MS) return;
+  inflightFetches.add(seed);
+  try {
+    const bootstrap = await fetchClaudeBootstrap(accessToken);
+    setBounded(
+      accountUuidCache,
+      seed,
+      { uuid: bootstrap?.account_uuid ?? null, fetchedAt: Date.now() },
+      IDENTITY_CACHE_LIMIT
+    );
+  } finally {
     inflightFetches.delete(seed);
   }
 }

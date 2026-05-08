@@ -36,6 +36,7 @@ const PROVIDER_CONFIG = {
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
   glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
+  zai: { label: "Z.AI", color: "#2563EB" },
   glmt: { label: "GLM Thinking", color: "#2563EB" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
   minimax: { label: "MiniMax", color: "#7C3AED" },
@@ -214,6 +215,7 @@ export default function ProviderLimits() {
             plan: data.plan || null,
             message: data.message || null,
             raw: data,
+            stale: data._stale ? { since: data._staleSince, reason: data._staleReason } : null,
           },
         }));
         setLastRefreshedAt((prev) => ({
@@ -298,11 +300,12 @@ export default function ProviderLimits() {
       claude: 5,
       kiro: 6,
       glm: 7,
-      glmt: 8,
-      "kimi-coding": 9,
-      minimax: 10,
-      "minimax-cn": 11,
-      nanogpt: 12,
+      zai: 8,
+      glmt: 9,
+      "kimi-coding": 10,
+      minimax: 11,
+      "minimax-cn": 12,
+      nanogpt: 13,
     };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)
@@ -551,7 +554,12 @@ export default function ProviderLimits() {
                 {/* Account Info */}
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                    <ProviderIcon providerId={conn.provider} size={32} type="color" />
+                    <ProviderIcon
+                      providerId={conn.provider}
+                      size={32}
+                      type="color"
+                      className="object-contain"
+                    />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-semibold text-text-main truncate">
@@ -691,19 +699,30 @@ export default function ProviderLimits() {
                 </div>
 
                 {/* Last Refreshed */}
-                <div className="text-center text-[11px] text-text-muted">
-                  {refreshedAt ? (
-                    <span>
-                      {new Date(refreshedAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                      })}
-                    </span>
-                  ) : (
-                    "-"
-                  )}
+                <div className="text-center text-[11px]">
+                  {(() => {
+                    const stale = quota?.stale;
+                    const displayTime = stale?.since || refreshedAt;
+                    if (!displayTime) return <span className="text-text-muted">-</span>;
+                    const formatted = new Date(displayTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    });
+                    if (stale) {
+                      return (
+                        <span
+                          className="text-amber-500 cursor-help"
+                          title={t("staleQuotaTooltip")}
+                          aria-label={t("staleQuotaTooltip")}
+                        >
+                          {formatted}
+                        </span>
+                      );
+                    }
+                    return <span className="text-text-muted">{formatted}</span>;
+                  })()}
                 </div>
 
                 {/* Actions */}

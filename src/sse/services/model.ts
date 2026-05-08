@@ -1,6 +1,6 @@
 // Re-export from open-sse with localDb integration
 import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
   parseModel,
@@ -83,7 +83,7 @@ export async function getModelInfo(modelStr) {
     // stripModelPrefix: if enabled, strip provider prefix and re-resolve
     // the bare model name using existing heuristics (claude-* → anthropic, etc.)
     try {
-      const settings = await getSettings();
+      const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
         const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
         return { ...strippedResult, extendedContext };

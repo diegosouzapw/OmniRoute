@@ -381,13 +381,24 @@ export function batchSaveCostEntries(
   tx(entries);
 }
 
+export function loadCostTotal(apiKeyId: string, sinceTimestamp: number) {
+  ensureBudgetSchema();
+  const db = getDbInstance();
+  const row = db
+    .prepare(
+      "SELECT COALESCE(SUM(cost), 0) AS total FROM domain_cost_history WHERE api_key_id = ? AND timestamp >= ?"
+    )
+    .get(apiKeyId, sinceTimestamp) as { total?: number } | undefined;
+  return Number(row?.total || 0);
+}
+
 /**
  * Load cost entries for an API key within a time window.
  * @param {string} apiKeyId
  * @param {number} sinceTimestamp
  * @returns {Array<{cost: number, timestamp: number}>}
  */
-export function loadCostEntries(apiKeyId, sinceTimestamp) {
+export function loadCostEntries(apiKeyId: string, sinceTimestamp: number) {
   ensureBudgetSchema();
   const db = getDbInstance();
   return db

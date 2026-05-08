@@ -21,6 +21,7 @@ import ResilienceTab from "./components/ResilienceTab";
 import CliproxyapiSettingsTab from "./components/CliproxyapiSettingsTab";
 import PayloadRulesTab from "./components/PayloadRulesTab";
 import VisionBridgeSettingsTab from "./components/VisionBridgeSettingsTab";
+import RequestLimitsTab from "./components/RequestLimitsTab";
 import ModelRoutingSection from "@/shared/components/ModelRoutingSection";
 
 const tabs = [
@@ -136,6 +137,7 @@ export default function SettingsPage() {
           {activeTab === "advanced" && (
             <div className="flex flex-col gap-6">
               <PayloadRulesTab />
+              <RequestLimitsTab />
               <CliproxyapiSettingsTab />
             </div>
           )}

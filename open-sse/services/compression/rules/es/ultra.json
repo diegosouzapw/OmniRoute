@@ -1,0 +1,107 @@
+{
+  "language": "es",
+  "category": "ultra",
+  "rules": [
+    {
+      "name": "es_articles",
+      "pattern": "\\b(?:[Ee]l|[Ll]a|[Ll]os|[Ll]as|[Uu]n|[Uu]na|[Uu]nos|[Uu]nas)\\s+(?=[a-záéíóúñ])",
+      "flags": "g",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_leader_phrases",
+      "pattern": "^(?:voy a|puedo|podemos|vamos a|dejame|déjame|se puede)\\s+(?=[a-záéíóúñ])",
+      "replacement": "",
+      "context": "all",
+      "category": "terse",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_ultra_database_abbreviation",
+      "pattern": "\\bbase de datos\\b",
+      "replacement": "BD",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_config_abbreviation",
+      "pattern": "\\bconfiguracion\\b|\\bconfiguración\\b",
+      "replacement": "config",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_function_abbreviation",
+      "pattern": "\\bfuncion\\b|\\bfunción\\b",
+      "replacement": "fn",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_request_abbreviation",
+      "pattern": "\\b(?:peticion|petición|solicitud)\\b",
+      "replacement": "req",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_response_abbreviation",
+      "pattern": "\\brespuesta\\b",
+      "replacement": "res",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_implementation_abbreviation",
+      "pattern": "\\bimplementacion\\b|\\bimplementación\\b",
+      "replacement": "impl",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_authentication_abbreviation",
+      "pattern": "\\bautenticacion\\b|\\bautenticación\\b",
+      "replacement": "auth",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_authorization_abbreviation",
+      "pattern": "\\bautorizacion\\b|\\bautorización\\b",
+      "replacement": "authz",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_application_abbreviation",
+      "pattern": "\\baplicacion\\b|\\baplicación\\b",
+      "replacement": "app",
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    },
+    {
+      "name": "es_ultra_dependency_abbreviation",
+      "pattern": "\\b(?:dependencia|dependencias)\\b",
+      "replacement": "dep",
+      "replacementMap": {
+        "dependencia": "dep",
+        "dependencias": "deps"
+      },
+      "context": "all",
+      "category": "ultra",
+      "minIntensity": "ultra"
+    }
+  ]
+}

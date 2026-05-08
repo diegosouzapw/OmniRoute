@@ -49,7 +49,9 @@ export default function RoutingTab() {
   const cliCompatProviders = useMemo(
     () =>
       Array.isArray(settings.cliCompatProviders)
-        ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        ? settings.cliCompatProviders.map((providerId: string) =>
+            normalizeCliCompatProviderId(providerId)
+          )
         : [],
     [settings.cliCompatProviders]
   );
@@ -270,33 +272,54 @@ export default function RoutingTab() {
           {CLI_COMPAT_TOGGLE_IDS.map((providerId) => {
             const normalizedProviderId = normalizeCliCompatProviderId(providerId);
             const providerDisplay = CLI_COMPAT_PROVIDER_DISPLAY[providerId];
-            const checked = cliCompatProviderSet.has(normalizedProviderId);
+            // Claude OAuth force-applies the fingerprint regardless of this toggle
+            // (base.ts: shouldFingerprint), so render the tile as locked-on.
+            const forced = providerId === "claude";
+            const checked = forced || cliCompatProviderSet.has(normalizedProviderId);
             const label = providerDisplay?.name || providerId;
             const description = providerDisplay?.description || providerId;
+            const titleText = forced
+              ? t("forcedFingerprintTitle", { provider: label })
+              : checked
+                ? t("disableFingerprintTitle", { provider: label })
+                : t("enableFingerprintTitle", { provider: label });
 
             return (
               <button
                 key={providerId}
                 type="button"
-                onClick={() => toggleCliCompatProvider(providerId, !checked)}
-                disabled={loading}
+                onClick={() => {
+                  if (forced) return;
+                  toggleCliCompatProvider(providerId, !checked);
+                }}
+                disabled={loading || forced}
                 aria-pressed={checked}
-                title={checked ? t("disableFingerprintTitle", { provider: label }) : t("enableFingerprintTitle", { provider: label })}
+                aria-disabled={forced || undefined}
+                title={titleText}
                 className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all ${
                   checked
                     ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
                     : "border-border/50 hover:border-border hover:bg-surface/30"
-                } ${loading ? "cursor-not-allowed opacity-60" : ""}`}
+                } ${loading || forced ? "cursor-not-allowed" : ""} ${loading ? "opacity-60" : ""}`}
               >
                 <span
                   className={`material-symbols-outlined mt-0.5 text-[18px] ${checked ? "text-indigo-400" : "text-text-muted"}`}
                   aria-hidden="true"
                 >
-                  {checked ? "check_circle" : "radio_button_unchecked"}
+                  {forced ? "lock" : checked ? "check_circle" : "radio_button_unchecked"}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}>
-                    {label}
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                    >
+                      {label}
+                    </span>
+                    {forced ? (
+                      <span className="rounded-full border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-indigo-400">
+                        {t("forcedFingerprintBadge")}
+                      </span>
+                    ) : null}
                   </span>
                   <span className="mt-1 block text-xs text-text-muted">{description}</span>
                 </span>

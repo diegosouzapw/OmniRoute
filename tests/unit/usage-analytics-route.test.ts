@@ -150,6 +150,50 @@ test("GET /api/usage/analytics resolves Codex GPT-5.5 pricing through provider a
   assertClose(body.byModel[0].cost, 0.02);
 });
 
+test("GET /api/usage/analytics applies Codex Fast tier multipliers and exposes tier split", async () => {
+  const db = core.getDbInstance();
+  const timestamp = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.5", "codex-fast", 1000, 500, 1, 250, "priority", timestamp);
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.5", "codex-standard", 1000, 500, 1, 250, "standard", timestamp);
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.07);
+  assert.equal(body.summary.fastRequests, 1);
+  assert.equal(body.summary.standardRequests, 1);
+  assertClose(body.summary.fastCost, 0.05);
+  assertClose(body.summary.standardCost, 0.02);
+  assert.equal(body.byServiceTier.length, 2);
+  assertClose(body.byProvider[0].cost, 0.07);
+  assertClose(body.byModel[0].cost, 0.07);
+});
+
+test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {
+  await localDb.updatePricing({
+    codex: { "gpt-5.4": { input: 5, output: 30 } },
+  });
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("codex", "gpt-5.4", "codex-fast", 1000, 500, 1, 250, "priority", new Date().toISOString());
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.04);
+  assertClose(body.summary.fastCost, 0.04);
+});
+
 test("GET /api/usage/analytics maps Codex auto-review usage to GPT-5.5 pricing", async () => {
   const db = core.getDbInstance();
   db.prepare(

@@ -1589,6 +1589,9 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
     allCombos: null,
   });
 
+  // Give the async fire-and-forget LKGP update a chance to execute
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
   const persistedProvider = await settingsDb.getLKGP(
     "standalone-lkgp-save",
     "standalone-lkgp-save"

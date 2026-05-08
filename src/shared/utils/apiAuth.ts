@@ -54,6 +54,10 @@ function getRequestPathname(request: RequestLike | Request | null | undefined): 
   }
 }
 
+function isOnboardingBootstrapPath(pathname: string | null): boolean {
+  return pathname === "/dashboard/onboarding";
+}
+
 function getRequestMethod(request: RequestLike | Request | null | undefined): string {
   if (
     request &&
@@ -273,6 +277,10 @@ export async function isAuthRequired(
       if (!request) return false;
 
       const pathname = getRequestPathname(request);
+      if (isOnboardingBootstrapPath(pathname)) {
+        return false;
+      }
+
       if (pathname && isPublicApiRoute(pathname, getRequestMethod(request))) {
         return false;
       }

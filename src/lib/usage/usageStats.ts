@@ -87,7 +87,8 @@ export async function getUsageStats() {
         tokens_output,
         tokens_cache_read,
         tokens_cache_creation,
-        tokens_reasoning
+        tokens_reasoning,
+        service_tier
       FROM usage_history
       WHERE DATE(timestamp) >= ?
       
@@ -104,7 +105,8 @@ export async function getUsageStats() {
         total_output_tokens as tokens_output,
         0 as tokens_cache_read,
         0 as tokens_cache_creation,
-        0 as tokens_reasoning
+        0 as tokens_reasoning,
+        'standard' as service_tier
       FROM daily_usage_summary
       WHERE date < ?
       
@@ -211,6 +213,7 @@ export async function getUsageStats() {
     const connectionId = toStringOrEmpty(row.connection_id) || null;
     const apiKeyId = toStringOrEmpty(row.api_key_id) || null;
     const apiKeyName = toStringOrEmpty(row.api_key_name) || null;
+    const serviceTier = toStringOrEmpty(row.service_tier) || "standard";
 
     const promptTokens = toNumber(row.tokens_input);
     const completionTokens = toNumber(row.tokens_output);
@@ -223,7 +226,7 @@ export async function getUsageStats() {
       cacheCreation: toNumber(row.tokens_cache_creation),
       reasoning: toNumber(row.tokens_reasoning),
     };
-    const entryCost = await calculateCost(provider, model, entryTokens);
+    const entryCost = await calculateCost(provider, model, entryTokens, { serviceTier });
 
     stats.totalPromptTokens += promptTokens;
     stats.totalCompletionTokens += completionTokens;

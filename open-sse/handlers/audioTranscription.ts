@@ -355,10 +355,7 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
         data?.data?.text ||
         data?.text ||
         "";
-      return Response.json(
-        { text },
-        { headers: { ...CORS_HEADERS } }
-      );
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }
   } catch (err: unknown) {
     const status =

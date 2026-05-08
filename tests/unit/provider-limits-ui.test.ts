@@ -67,6 +67,7 @@ test("quota labels normalize session and weekly windows while preserving readabl
 });
 
 test("MiniMax providers are exposed to the limits dashboard support list", () => {
+  assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("zai"));
   assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("minimax"));
   assert.ok(providerConstants.USAGE_SUPPORTED_PROVIDERS.includes("minimax-cn"));
 });
@@ -103,4 +104,45 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(parsed[1].remainingPercentage, 100);
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[0].name), "Session");
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
+});
+
+test("Z.AI quota labels render 5h, weekly and monthly tool usage", () => {
+  assert.equal(providerLimitUtils.formatQuotaLabel("5 Hours Quota"), "5 Hours");
+  assert.equal(providerLimitUtils.formatQuotaLabel("Weekly Quota"), "Weekly");
+  assert.equal(providerLimitUtils.formatQuotaLabel("Monthly Tools"), "Monthly Tools");
+
+  const future = new Date(Date.now() + 5 * 60_000).toISOString();
+  const parsed = providerLimitUtils.parseQuotaData("zai", {
+    quotas: {
+      "5 Hours Quota": {
+        used: 15,
+        total: 100,
+        remaining: 85,
+        remainingPercentage: 85,
+        resetAt: future,
+      },
+      "Weekly Quota": {
+        used: 4,
+        total: 100,
+        remaining: 96,
+        remainingPercentage: 96,
+        resetAt: future,
+      },
+      "Monthly Tools": {
+        used: 0,
+        total: 100,
+        remaining: 100,
+        remainingPercentage: 100,
+        resetAt: future,
+      },
+    },
+  });
+
+  assert.equal(parsed.length, 3);
+  assert.equal(parsed[0].name, "5 Hours Quota");
+  assert.equal(parsed[0].remainingPercentage, 85);
+  assert.equal(parsed[1].name, "Weekly Quota");
+  assert.equal(parsed[1].remainingPercentage, 96);
+  assert.equal(parsed[2].name, "Monthly Tools");
+  assert.equal(parsed[2].remainingPercentage, 100);
 });

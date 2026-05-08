@@ -543,9 +543,27 @@ function tryParseJSON(str) {
   }
 }
 
+function stripCacheControl(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripCacheControl(item));
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (key === "cache_control") continue;
+    cleaned[key] = stripCacheControl(child);
+  }
+  return cleaned;
+}
+
 // OpenAI -> Claude format for Antigravity (without system prompt modifications)
 function openaiToClaudeRequestForAntigravity(model, body, stream) {
-  const result = openaiToClaudeRequest(model, body, stream);
+  const result = stripCacheControl(openaiToClaudeRequest(model, body, stream)) as ReturnType<
+    typeof openaiToClaudeRequest
+  >;
 
   // Strip prefix from tool names for Antigravity (doesn't use Claude OAuth)
   if (result.tools && Array.isArray(result.tools)) {

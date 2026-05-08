@@ -125,6 +125,7 @@ test("resolveModelOrError routes bare gpt-5.5 to Codex medium when Codex is the 
 
   assert.equal(result.provider, "codex");
   assert.equal(result.model, "gpt-5.5-medium");
+  assert.equal(result.targetFormat, "openai-responses");
 });
 
 test("resolveModelOrError keeps bare gpt-5.5 on OpenAI when OpenAI is the only active account", async () => {

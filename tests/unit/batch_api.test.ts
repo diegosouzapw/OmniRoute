@@ -71,10 +71,6 @@ test("Batch API and Processing", async () => {
   });
 
   assert.ok(file.id.startsWith("file-"), "File ID should start with file-");
-  assert.ok(
-    file.status === "validating" || !file.status,
-    "File status should be 'validating' by default or null"
-  );
 
   // 2. Create a batch
   const batch = createBatch({
@@ -151,16 +147,11 @@ test("Batch API and Processing", async () => {
   assert.strictEqual(currentBatch?.requestCountsCompleted, 2);
   assert.ok(currentBatch?.outputFileId, "Should have output file ID");
 
-  // Check file statuses
   const inputFileAfter = getFile(file.id);
-  assert.strictEqual(
-    inputFileAfter?.status,
-    "processed",
-    "Input file should be 'processed' after batch completion"
-  );
+  assert.ok(inputFileAfter, "Input file should exist");
 
   const outputFile = getFile(currentBatch.outputFileId!);
-  assert.strictEqual(outputFile?.status, "completed", "Output file should be 'completed'");
+  assert.ok(outputFile, "Output file should exist");
 
   // 4. Check output file content
   if (currentBatch?.outputFileId) {
@@ -250,13 +241,6 @@ test("Batch handles and counts failures correctly", async () => {
       );
       assert.ok(result.response.body.error, "Should contain error in body");
     }
-
-    // Check file statuses
-    const inputFile = getFile(file.id);
-    assert.strictEqual(inputFile?.status, "processed", "Input file should be 'processed'");
-
-    const errorFile = getFile(currentBatch.errorFileId!);
-    assert.strictEqual(errorFile?.status, "completed", "Error file should be 'completed'");
   } finally {
     stopBatchProcessor();
   }
@@ -624,7 +608,6 @@ test("Batch cleanup honors output_expires_after for output artifacts", async () 
     purpose: "batch_output",
     content: Buffer.from("{}"),
     apiKeyId: apiKey.id,
-    status: "completed",
   });
   const errorFile = createFile({
     bytes: 10,
@@ -632,7 +615,6 @@ test("Batch cleanup honors output_expires_after for output artifacts", async () 
     purpose: "batch_output",
     content: Buffer.from("{}"),
     apiKeyId: apiKey.id,
-    status: "completed",
   });
 
   const batch = createBatch({
@@ -690,7 +672,6 @@ test("Batch processor fails orphaned finalizing batches during startup recovery"
       String(recoveredBatch?.errors?.[0]?.message || ""),
       /interrupted during finalization/i
     );
-    assert.strictEqual(getFile(inputFile.id)?.status, "processed");
   } finally {
     stopBatchProcessor();
   }
@@ -855,8 +836,7 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
     while (
       remainingAttempts > 0 &&
       currentBatch &&
-      (!["cancelled", "completed", "failed", "expired"].includes(currentBatch.status) ||
-        getFile(file.id)?.status !== "processed")
+      !["cancelled", "completed", "failed", "expired"].includes(currentBatch.status)
     ) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       currentBatch = getBatch(batch.id);
@@ -866,7 +846,6 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
     assert.strictEqual(currentBatch?.status, "cancelled");
     assert.ok(!currentBatch?.outputFileId, "Cancelled batch must not emit an output file");
     assert.ok(!currentBatch?.errorFileId, "Cancelled batch must not emit an error file");
-    assert.strictEqual(getFile(file.id)?.status, "processed");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -958,7 +937,11 @@ test("File upload with expiration and spec-compliant response", async () => {
   assert.strictEqual(response.id, record.id);
   assert.strictEqual(response.object, "file");
   assert.strictEqual(response.expires_at, expiresAt);
-  assert.strictEqual(response.status, "validating");
+  assert.strictEqual(
+    "status" in response,
+    false,
+    `Response should not contain status (marker: ${new Error().stack})`
+  );
   assert.ok(!("content" in response), "Response should not contain content");
   assert.ok(!("apiKeyId" in response), "Response should not contain apiKeyId");
 });
@@ -972,7 +955,7 @@ test("Retrieve file spec compliance", async () => {
     purpose: "batch",
     content: Buffer.from("{}"),
     apiKeyId: apiKey.id,
-    status: "processed",
+    expiresAt: null,
   });
 
   const response = formatFileResponse(record);
@@ -984,7 +967,6 @@ test("Retrieve file spec compliance", async () => {
   assert.strictEqual(response.filename, "retrieve_test.jsonl");
   assert.strictEqual(response.object, "file");
   assert.strictEqual(response.purpose, "batch");
-  assert.strictEqual(response.status, "processed");
   assert.strictEqual(response.expires_at, null);
 
   // Ensure no internal fields leak

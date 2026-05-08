@@ -36,6 +36,11 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
+const CALL_LOG_ROTATE_THROTTLE_MS = 60_000;
+let lastCallLogRotationScheduledAt = 0;
+let callLogRotateInFlight = false;
+let callLogRotateScheduled = false;
+
 type CallLogSummaryRow = {
   id: string;
   timestamp: string | null;
@@ -721,16 +726,16 @@ export async function saveCallLog(entry: any) {
       requestSummary,
     });
 
-    rotateCallLogs();
+    scheduleCallLogRotation();
   } catch (error) {
     console.error("[callLogs] Failed to save call log:", (error as Error).message);
   }
 }
 
 export function rotateCallLogs() {
-  if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
-
   try {
+    if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - retentionMs).toISOString();
 
@@ -743,12 +748,40 @@ export function rotateCallLogs() {
   }
 }
 
-if (shouldPersistToDisk) {
-  try {
-    rotateCallLogs();
-  } catch {
-    // Best-effort startup cleanup.
+function runScheduledCallLogRotation() {
+  if (callLogRotateInFlight) return;
+  callLogRotateInFlight = true;
+  setImmediate(() => {
+    try {
+      rotateCallLogs();
+    } catch (error) {
+      console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
+    } finally {
+      callLogRotateInFlight = false;
+    }
+  });
+}
+
+export function scheduleCallLogRotation() {
+  if (!CALL_LOGS_DIR) return;
+  const elapsed = Date.now() - lastCallLogRotationScheduledAt;
+  if (elapsed >= CALL_LOG_ROTATE_THROTTLE_MS) {
+    lastCallLogRotationScheduledAt = Date.now();
+    runScheduledCallLogRotation();
+    return;
   }
+  if (callLogRotateScheduled) return;
+  callLogRotateScheduled = true;
+  lastCallLogRotationScheduledAt = Date.now();
+  const timer = setTimeout(() => {
+    callLogRotateScheduled = false;
+    runScheduledCallLogRotation();
+  }, CALL_LOG_ROTATE_THROTTLE_MS - elapsed);
+  timer.unref?.();
+}
+
+if (shouldPersistToDisk && process.env.NODE_ENV !== "test") {
+  scheduleCallLogRotation();
 }
 
 export async function getCallLogs(filter: any = {}) {
@@ -828,9 +861,7 @@ export async function getCallLogById(id: string) {
        LEFT JOIN provider_nodes pn ON pn.id = cl.provider
        WHERE cl.id = ?`
     )
-    .get(id) as
-    | CallLogSummaryRow
-    | undefined;
+    .get(id) as CallLogSummaryRow | undefined;
   if (!row) return null;
 
   const entry = mapSummaryRow(row);

@@ -217,7 +217,7 @@
     "path-to-regexp": "^8.4.0",
     "postcss": "^8.5.10",
     "ip-address": "10.1.1",
-    "hono": "^4.12.14",
+    "hono": "^4.12.18",
     "@hono/node-server": "^1.19.13",
     "react": "$react",
     "react-dom": "$react-dom"

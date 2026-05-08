@@ -665,7 +665,7 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 **MCP:** `omniroute --mcp` (stdio transport)
 
-**CLI options:** `omniroute --port 3000`, `omniroute --no-open`, `omniroute --help`
+**CLI options:** `omniroute setup`, `omniroute doctor`, `omniroute providers available`, `omniroute providers list`, `omniroute --port 3000`, `omniroute --no-open`, `omniroute --help`
 
 **Split-port mode:** `PORT=20128 DASHBOARD_PORT=20129 omniroute`
 

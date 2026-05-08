@@ -65,6 +65,46 @@
       "context": "all",
       "category": "filler",
       "minIntensity": "lite"
+    },
+    {
+      "name": "es_verbose_instructions",
+      "pattern": "\\b(?:proporciona una explicacion detallada de|proporciona una explicación detallada de|dame una explicacion completa de|dame una explicación completa de|escribe una explicacion en profundidad de|escribe una explicación en profundidad de|crea una explicacion exhaustiva de|crea una explicación exhaustiva de|explica en detalle)\\b",
+      "replacement": "explica ",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_redundant_openers",
+      "pattern": "^(?:hola|buenos dias|buenos días|buenas tardes|buenas|hey)\\s*[,.!?\\s]?\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_excessive_gratitude",
+      "pattern": "\\b(?:muchisimas gracias|muchísimas gracias|gracias de antemano|te lo agradezco mucho|lo agradezco mucho)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_uncertainty_fillers",
+      "pattern": "\\b(?:supongo que|imagino que|me da la impresion de que|me da la impresión de que|quizas|quizás)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_assistant_fillers",
+      "pattern": "^(?:aqui tienes|aquí tienes|debajo esta|debajo está|esto es)\\s+(?:un|una|el|la)?\\s*",
+      "replacement": "",
+      "context": "assistant",
+      "category": "filler",
+      "minIntensity": "lite"
     }
   ]
 }

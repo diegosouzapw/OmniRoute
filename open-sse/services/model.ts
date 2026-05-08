@@ -77,6 +77,12 @@ const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
 const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
+interface ProviderConnectionLike {
+  provider?: unknown;
+  isActive?: unknown;
+  is_active?: unknown;
+}
+
 /**
  * Resolve provider alias to provider ID
  */
@@ -159,25 +165,32 @@ function getInferredProvidersForModel(modelId) {
   return providers;
 }
 
-function isProviderConnectionActive(connection) {
-  if (!connection || typeof connection !== "object") return false;
-  if (connection.isActive !== undefined) return connection.isActive !== false;
-  if (connection.is_active !== undefined)
+function isProviderConnectionActive(connection: ProviderConnectionLike) {
+  if (connection.isActive !== undefined) {
+    return connection.isActive !== false && connection.isActive !== 0;
+  }
+  if (connection.is_active !== undefined) {
     return connection.is_active !== false && connection.is_active !== 0;
+  }
   return false;
 }
 
-function getProviderIdFromConnection(connection) {
-  if (!connection || typeof connection.provider !== "string" || !connection.provider) return null;
-  if (!isProviderConnectionActive(connection)) return null;
-  return resolveProviderAlias(connection.provider);
+function getProviderIdFromConnection(connection: unknown) {
+  if (!connection || typeof connection !== "object") return null;
+  const record = connection as ProviderConnectionLike;
+  if (typeof record.provider !== "string" || !record.provider) return null;
+  if (!isProviderConnectionActive(record)) return null;
+  return resolveProviderAlias(record.provider);
 }
 
 async function getActiveProviderSet() {
   try {
     const { getProviderConnections } = await import("@/lib/localDb");
-    const conns = await getProviderConnections();
-    return new Set(conns.map(getProviderIdFromConnection).filter(Boolean));
+    const conns = (await getProviderConnections()) as unknown[];
+    const providers = conns
+      .map(getProviderIdFromConnection)
+      .filter((provider): provider is string => Boolean(provider));
+    return new Set(providers);
   } catch {
     return null;
   }
@@ -346,26 +359,24 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
 
   const activeProviders = await getActiveProviderSet();
 
-  if (activeProviders) {
-    const activeCandidates = providers.filter((p) => activeProviders.has(p));
+  const activeCandidates = activeProviders ? providers.filter((p) => activeProviders.has(p)) : [];
 
-    if (activeCandidates.length === 1) {
-      const provider = activeCandidates[0];
-      const canonicalModel = resolveInferredProviderModel(provider, modelId);
-      return { provider, model: canonicalModel, extendedContext };
-    }
+  if (activeCandidates.length === 1) {
+    const provider = activeCandidates[0];
+    const canonicalModel = resolveInferredProviderModel(provider, modelId);
+    return { provider, model: canonicalModel, extendedContext };
+  }
 
-    if (
-      activeProviders.has("codex") &&
-      providers.includes("codex") &&
-      CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
-    ) {
-      return {
-        provider: "codex",
-        model: resolveInferredProviderModel("codex", modelId),
-        extendedContext,
-      };
-    }
+  if (
+    activeProviders?.has("codex") &&
+    providers.includes("codex") &&
+    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
+  ) {
+    return {
+      provider: "codex",
+      model: resolveInferredProviderModel("codex", modelId),
+      extendedContext,
+    };
   }
 
   // Preserve historical behavior: OpenAI stays default when model exists there
@@ -378,7 +389,7 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
   }
 
   const eligibleProviders = activeProviders
-    ? nonOpenAIProviders.filter((p) => activeProviders!.has(p))
+    ? nonOpenAIProviders.filter((p) => activeProviders.has(p))
     : nonOpenAIProviders;
 
   const candidatesToUse = eligibleProviders.length > 0 ? eligibleProviders : nonOpenAIProviders;

@@ -11,6 +11,7 @@ interface ToggleProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   title?: string;
+  ariaLabel?: string;
 }
 
 export default function Toggle({
@@ -21,6 +22,8 @@ export default function Toggle({
   disabled = false,
   size = "md",
   className,
+  title,
+  ariaLabel,
 }: ToggleProps) {
   const sizes = {
     sm: {
@@ -58,7 +61,8 @@ export default function Toggle({
         type="button"
         role="switch"
         aria-checked={checked}
-        aria-label={!label ? description || "Toggle" : undefined}
+        aria-label={ariaLabel || label || description || title || "Toggle"}
+        title={title}
         disabled={disabled}
         onClick={handleClick}
         className={cn(

@@ -651,7 +651,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^antigravity\//);
+    assert.match(init.headers["User-Agent"], /^Antigravity\//);
     return Response.json({
       models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
     });
@@ -664,7 +664,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
@@ -691,9 +691,9 @@ test("provider models route falls back through all Antigravity discovery endpoin
   assert.equal(body.source, "local_catalog");
   assert.match(body.warning, /local catalog/i);
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
-    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
+    "https://cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
 });

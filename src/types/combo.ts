@@ -10,6 +10,7 @@ export interface Combo {
   nodes: ComboNode[];
   maxRetries: number;
   retryDelayMs: number;
+  fallbackDelayMs?: number;
   timeoutMs: number;
   healthCheckEnabled: boolean;
   createdAt: string;

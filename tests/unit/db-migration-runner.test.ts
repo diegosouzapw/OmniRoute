@@ -660,3 +660,294 @@ test(
     }
   }
 );
+
+test(
+  "reconcileRenumberedMigrations resolves compression_settings 028→034 upgrade path",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      // Simulate a DB where compression_settings was applied at version 028
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "028",
+        "compression_settings"
+      );
+
+      // Disk has compression_settings at 034 (current location) and create_files_and_batches at 028
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        withMockedMigrationFs(
+          {
+            "028_create_files_and_batches.sql":
+              "CREATE TABLE IF NOT EXISTS files (id TEXT PRIMARY KEY);",
+            "034_compression_settings.sql":
+              "CREATE TABLE IF NOT EXISTS compression_settings_table (id TEXT PRIMARY KEY);",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        // The reconcile should have moved 028/compression_settings → 034/compression_settings
+        const row028 = db
+          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .get("028") as { version: string; name: string } | undefined;
+        const row034 = db
+          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .get("034") as { version: string; name: string } | undefined;
+
+        // After reconciliation, 028 should be free (or have create_files_and_batches)
+        // and 034 should have compression_settings
+        assert.equal(row034?.name, "compression_settings");
+
+        // No CRITICAL renumbering warning for version 028
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "reconcileRenumberedMigrations resolves compression_analytics 032→038 upgrade path",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      // Simulate DB where compression_analytics was applied at version 032
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "032",
+        "compression_analytics"
+      );
+
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        db.exec(`
+          CREATE TABLE api_keys (
+            id TEXT PRIMARY KEY,
+            key TEXT NOT NULL
+          );
+        `);
+        withMockedMigrationFs(
+          {
+            "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT;",
+            "038_compression_analytics.sql":
+              "CREATE TABLE IF NOT EXISTS compression_analytics (id TEXT PRIMARY KEY);",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        const row038 = db
+          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .get("038") as { version: string; name: string } | undefined;
+
+        assert.equal(row038?.name, "compression_analytics");
+
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "reconcileRenumberedMigrations resolves compression_cache_stats 033→039 upgrade path",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      // Simulate DB where compression_cache_stats was applied at version 033
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "033",
+        "compression_cache_stats"
+      );
+
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        withMockedMigrationFs(
+          {
+            "033_create_reasoning_cache.sql":
+              "CREATE TABLE IF NOT EXISTS reasoning_cache (id TEXT PRIMARY KEY);",
+            "039_compression_cache_stats.sql":
+              "CREATE TABLE IF NOT EXISTS compression_cache_stats_table (id TEXT PRIMARY KEY);",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        const row039 = db
+          .prepare("SELECT version, name FROM _omniroute_migrations WHERE version = ?")
+          .get("039") as { version: string; name: string } | undefined;
+
+        assert.equal(row039?.name, "compression_cache_stats");
+
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "full upgrade simulation: all 3 renumbered migrations reconciled without CRITICAL warnings",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+      // Simulate a user's DB that has all 3 old migration entries
+      const oldMigrations = [
+        ["027", "skill_mode_and_metadata"],
+        ["028", "compression_settings"],
+        ["029", "provider_connection_max_concurrent"],
+        ["032", "compression_analytics"],
+        ["033", "compression_cache_stats"],
+      ] as const;
+      for (const [v, n] of oldMigrations) {
+        db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(v, n);
+      }
+
+      // Disk has the current migration file layout
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        db.exec(`
+          CREATE TABLE api_keys (
+            id TEXT PRIMARY KEY,
+            key TEXT NOT NULL
+          );
+        `);
+        withMockedMigrationFs(
+          {
+            "027_skill_mode_and_metadata.sql":
+              "CREATE TABLE IF NOT EXISTS skill_meta (id TEXT PRIMARY KEY);",
+            "028_create_files_and_batches.sql":
+              "CREATE TABLE IF NOT EXISTS files (id TEXT PRIMARY KEY);",
+            "029_provider_connection_max_concurrent.sql":
+              "ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER;",
+            "032_apikey_lifecycle.sql": "ALTER TABLE api_keys ADD COLUMN revoked_at TEXT;",
+            "033_create_reasoning_cache.sql":
+              "CREATE TABLE IF NOT EXISTS reasoning_cache (id TEXT PRIMARY KEY);",
+            "034_compression_settings.sql":
+              "CREATE TABLE IF NOT EXISTS compression_settings_table (id TEXT PRIMARY KEY);",
+            "038_compression_analytics.sql":
+              "CREATE TABLE IF NOT EXISTS compression_analytics (id TEXT PRIMARY KEY);",
+            "039_compression_cache_stats.sql":
+              "CREATE TABLE IF NOT EXISTS compression_cache_stats_table (id TEXT PRIMARY KEY);",
+          },
+          () => runner.runMigrations(db)
+        );
+
+        // No CRITICAL renumbering warnings
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+
+        // Verify the reconciled entries
+        const row034 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("034") as { name: string } | undefined;
+        const row038 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("038") as { name: string } | undefined;
+        const row039 = db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("039") as { name: string } | undefined;
+
+        assert.equal(row034?.name, "compression_settings");
+        assert.equal(row038?.name, "compression_analytics");
+        assert.equal(row039?.name, "compression_cache_stats");
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);

@@ -3,6 +3,7 @@ import { trackPendingRequest } from "@/lib/usageDb";
 // Stream handler with disconnect detection - shared for all providers
 
 const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+const DISCONNECT_ABORT_DELAY_MS = 2_000;
 
 type StreamDisconnectEvent = {
   reason: string;
@@ -97,7 +98,7 @@ export function createStreamController({
       // Delay abort to allow cleanup
       abortTimeout = setTimeout(() => {
         abortController.abort();
-      }, 500);
+      }, DISCONNECT_ABORT_DELAY_MS);
 
       onDisconnect?.({ reason, duration: Date.now() - startTime });
     },
@@ -201,7 +202,9 @@ export function createDisconnectAwareStream(transformStream, streamController) {
     cancel(reason) {
       streamController.handleDisconnect(reason || "cancelled");
       reader.cancel();
-      writer.abort();
+      setTimeout(() => {
+        writer.abort();
+      }, DISCONNECT_ABORT_DELAY_MS).unref?.();
     },
   });
 }

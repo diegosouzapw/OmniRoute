@@ -6,10 +6,13 @@
 
 ### ✨ New Features
 
+- **feat(antigravity):** integrate Antigravity provider with dynamic `maxOutputTokens` calculation (bumping to `thinkingBudget + 1`) and standard Cloud Code envelope payload sanitization (#2055, #2063)
 - **feat(gemini-cli):** add custom projectId support for Gemini CLI transport (UI, DB, executor) (#1991)
 
 ### 🐛 Bug Fixes
 
+- **fix(cache):** optimize cache_control preservation logic and explicitly align tool schema with upstream Claude Code expectations
+- **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
 - **fix(routing):** dynamically filter bare model auto-resolution by active provider connections to prevent dead-routing (#2029)
 - **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
