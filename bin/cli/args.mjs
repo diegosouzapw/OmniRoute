@@ -5,6 +5,13 @@ export function parseArgs(argv = []) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
 
+    if (arg.startsWith("-") && !arg.startsWith("--") && arg.length > 1) {
+      for (const key of arg.slice(1)) {
+        flags[key] = true;
+      }
+      continue;
+    }
+
     if (!arg.startsWith("--")) {
       positionals.push(arg);
       continue;

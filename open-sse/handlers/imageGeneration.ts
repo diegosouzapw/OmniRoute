@@ -466,8 +466,8 @@ async function handleKieImageGeneration({
 
     payload = {
       prompt,
-      image_size: mapImageSize(size, "1:1"),
-      num_images: body.n || 1,
+      size: mapImageSize(size, "1:1"),
+      nVariants: body.n || 1,
     };
   }
 
