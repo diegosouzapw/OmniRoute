@@ -30,6 +30,7 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
+  MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
 } from "../config/constants.ts";
@@ -83,6 +84,12 @@ import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
+import {
+  getEffectiveToolLimit,
+  setDetectedToolLimit,
+  parseToolLimitFromError,
+  shouldDetectLimit,
+} from "../services/toolLimitDetector.ts";
 
 import {
   parseCodexQuotaHeaders,
@@ -2668,6 +2675,20 @@ export async function handleChatCore({
         );
       }
 
+      const effectiveToolLimit = getEffectiveToolLimit(provider);
+      if (
+        effectiveToolLimit < MAX_TOOLS_LIMIT &&
+        Array.isArray(bodyToSend.tools) &&
+        bodyToSend.tools.length > effectiveToolLimit
+      ) {
+        const truncatedTools = bodyToSend.tools.slice(0, effectiveToolLimit);
+        bodyToSend = { ...bodyToSend, tools: truncatedTools };
+        log?.debug?.(
+          "TOOL_LIMIT",
+          `Truncated ${bodyToSend.tools.length} tools to ${effectiveToolLimit} for ${provider}`
+        );
+      }
+
       // Qwen OAuth rejects requests without a non-empty `user` field.
       // Some minimal OpenAI-compatible clients omit it, so we backfill a
       // stable default only for OAuth mode (API key mode is unaffected).
@@ -3037,6 +3058,18 @@ export async function handleChatCore({
     parsedRetryAfterMs = errorDetails.retryAfterMs;
     upstreamErrorBody = errorDetails.responseBody;
     upstreamErrorParsed = true;
+  }
+
+  const errorMessageForToolDetection =
+    typeof upstreamErrorBody === "string"
+      ? upstreamErrorBody
+      : JSON.stringify(upstreamErrorBody ?? {});
+  if (shouldDetectLimit(errorMessageForToolDetection, parsedStatusCode)) {
+    const detectedLimit = parseToolLimitFromError(errorMessageForToolDetection);
+    if (detectedLimit) {
+      setDetectedToolLimit(provider, detectedLimit);
+      log?.info?.("TOOL_LIMIT", `Detected tool limit ${detectedLimit} for ${provider}`);
+    }
   }
 
   const isQwenExpiredError =
