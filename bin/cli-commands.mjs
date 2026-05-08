@@ -98,6 +98,20 @@ async function checkServerHealth() {
   }
 }
 
+// Fetch CLI tools status from existing API when server is running
+async function getCliToolsStatusFromApi() {
+  try {
+    const res = await fetch("http://localhost:20128/api/cli-tools/status", {
+      method: "GET",
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {}
+  return null;
+}
+
 // Main subcommand runner
 export async function runSubcommand(cmd, args) {
   switch (cmd) {
@@ -179,9 +193,11 @@ async function runDoctor(args) {
 ╚════════════════════════════════════╝
 `);
 
-  // Check server status
+  // Check server status and fetch from API if running
   console.log("┌─ OmniRoute Server ─────────────────┐");
   const serverRunning = await checkServerHealth();
+  const apiStatus = serverRunning ? await getCliToolsStatusFromApi() : null;
+
   if (serverRunning) {
     console.log("│ Status        ✓ Running             │");
   } else {
@@ -190,14 +206,30 @@ async function runDoctor(args) {
   }
   console.log("└─────────────────────────────────────┘");
 
-  // Check CLI tools
+  // Check CLI tools - use API if available, otherwise local detection
   console.log("\n┌─ CLI Tools ─────────────────────────┐");
-  const result = detectAllTools();
 
-  for (const tool of result.tools) {
-    const icon = tool.installed ? "✓" : "✗";
-    const state = tool.installed ? tool.version || "installed" : "not found";
-    console.log(`│ ${icon} ${tool.name.padEnd(14)} ${state.padEnd(18)}│`);
+  if (apiStatus) {
+    // Use API data (more accurate - reads actual config files)
+    for (const [toolId, data] of Object.entries(apiStatus)) {
+      const tool = getToolConfig(toolId);
+      const icon = data.installed ? "✓" : "✗";
+      const status =
+        data.configStatus === "configured"
+          ? "configured"
+          : data.installed
+            ? "installed"
+            : "not found";
+      console.log(`│ ${icon} ${tool.name.padEnd(14)} ${status.padEnd(18)}│`);
+    }
+  } else {
+    // Fallback to local detection
+    const result = detectAllTools();
+    for (const tool of result.tools) {
+      const icon = tool.installed ? "✓" : "✗";
+      const state = tool.installed ? tool.version || "installed" : "not found";
+      console.log(`│ ${icon} ${tool.name.padEnd(14)} ${state.padEnd(18)}│`);
+    }
   }
   console.log("└─────────────────────────────────────┘");
 
@@ -206,6 +238,11 @@ async function runDoctor(args) {
     console.log(`   Node: ${process.version}`);
     console.log(`   Platform: ${platform()}`);
     console.log(`   Home: ${homedir()}`);
+    if (apiStatus) {
+      console.log("   Data source: API (accurate config reading)");
+    } else {
+      console.log("   Data source: Local detection (basic)");
+    }
   }
 
   console.log("\n💡 Run 'omniroute doctor --verbose' for detailed diagnostics");
@@ -214,17 +251,22 @@ async function runDoctor(args) {
 async function runStatus(args) {
   const json = args.includes("--json");
 
-  const result = detectAllTools();
   const serverRunning = await checkServerHealth();
-  const installedCount = result.tools.filter((t) => t.installed).length;
+  const apiStatus = serverRunning ? await getCliToolsStatusFromApi() : null;
+
+  const localResult = detectAllTools();
+  const installedCount = apiStatus
+    ? Object.values(apiStatus).filter((d) => d.installed).length
+    : localResult.tools.filter((t) => t.installed).length;
 
   if (json) {
     console.log(
       JSON.stringify(
         {
           server: serverRunning ? "running" : "stopped",
-          tools: result.tools,
+          tools: apiStatus || localResult.tools,
           installed: installedCount,
+          source: apiStatus ? "api" : "local",
         },
         null,
         2
@@ -237,11 +279,21 @@ async function runStatus(args) {
 ┌─ OmniRoute Status ─────────────────┐
 │ Server       ${serverRunning ? "✓ Running" : "✗ Stopped".padEnd(25)}│
 │ Dashboard    http://localhost:20129  │
+│ Data         ${apiStatus ? "API (accurate)" : "Local (basic)".padEnd(18)}│
 └─────────────────────────────────────┘
 
 ┌─ CLI Tools (${installedCount} installed) ─────┐`);
 
-  for (const tool of result.tools) {
+  const tools = apiStatus
+    ? Object.entries(apiStatus).map(([id, data]) => ({
+        id,
+        name: getToolConfig(id).name,
+        installed: data.installed,
+        version: data.configStatus === "configured" ? "configured" : "",
+      }))
+    : localResult.tools;
+
+  for (const tool of tools) {
     const icon = tool.installed ? "✓" : "✗";
     const version = (tool.version || "").padEnd(12);
     console.log(`│ ${icon} ${tool.name.padEnd(14)} ${version}│`);
