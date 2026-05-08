@@ -8,15 +8,45 @@ export type KieCallbackBody = {
   callbackUrl?: unknown;
 };
 
+const FALLBACK_KIE_CALLBACK_URL = "https://omniroute.local/api/kie/callback";
+
 export function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function callbackUrlFromBaseUrl(baseUrl: string | undefined): string | null {
+  if (!baseUrl || baseUrl.trim().length === 0) return null;
+
+  try {
+    const url = new URL(baseUrl);
+    url.pathname = "/api/kie/callback";
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function getConfiguredKieCallbackUrl(): string {
+  const explicit =
+    process.env.KIE_CALLBACK_URL?.trim() || process.env.OMNIROUTE_KIE_CALLBACK_URL?.trim();
+  if (explicit) return explicit;
+
+  return (
+    callbackUrlFromBaseUrl(process.env.OMNIROUTE_PUBLIC_URL) ||
+    callbackUrlFromBaseUrl(process.env.NEXT_PUBLIC_APP_URL) ||
+    callbackUrlFromBaseUrl(process.env.APP_URL) ||
+    callbackUrlFromBaseUrl(process.env.PUBLIC_URL) ||
+    FALLBACK_KIE_CALLBACK_URL
+  );
 }
 
 export function getKieCallbackUrl(body: KieCallbackBody = {}): string {
   const callbackUrl = body.callBackUrl ?? body.callback_url ?? body.callbackUrl;
   return typeof callbackUrl === "string" && callbackUrl.trim().length > 0
     ? callbackUrl
-    : "https://omniroute.local/api/kie/callback";
+    : getConfiguredKieCallbackUrl();
 }
 
 export function parseKieResultJson(recordData: unknown): JsonObject {

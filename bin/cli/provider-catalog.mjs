@@ -1,9 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT_DIR = join(CLI_DIR, "..", "..");
+const require = createRequire(import.meta.url);
 
 export const COMMON_PROVIDERS = [
   { id: "openai", name: "OpenAI" },
@@ -23,91 +25,86 @@ function normalizeCatalogCategory(exportName) {
   return raw;
 }
 
-function readStringProperty(source, property) {
-  const match = source.match(new RegExp(`${property}:\\s*"([^"]*)"`));
-  return match?.[1] || null;
+function loadTypeScript() {
+  try {
+    return require("typescript");
+  } catch {
+    return null;
+  }
 }
 
-function readBooleanProperty(source, property) {
-  return new RegExp(`${property}:\\s*true`).test(source);
+function getPropertyName(ts, name) {
+  if (ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)) {
+    return name.text;
+  }
+  return null;
 }
 
-function findMatchingBrace(source, openIndex) {
-  let depth = 0;
-  let quote = null;
-  let escaped = false;
+function getObjectProperty(ts, objectLiteral, propertyName) {
+  return objectLiteral.properties.find(
+    (property) =>
+      ts.isPropertyAssignment(property) && getPropertyName(ts, property.name) === propertyName
+  );
+}
 
-  for (let index = openIndex; index < source.length; index += 1) {
-    const char = source[index];
+function getStringProperty(ts, objectLiteral, propertyName) {
+  const property = getObjectProperty(ts, objectLiteral, propertyName);
+  const initializer = property?.initializer;
+  if (!initializer) return null;
+  if (ts.isStringLiteral(initializer) || ts.isNoSubstitutionTemplateLiteral(initializer)) {
+    return initializer.text;
+  }
+  return null;
+}
 
-    if (quote) {
-      if (escaped) {
-        escaped = false;
-      } else if (char === "\\") {
-        escaped = true;
-      } else if (char === quote) {
-        quote = null;
+function getBooleanProperty(ts, objectLiteral, propertyName) {
+  const property = getObjectProperty(ts, objectLiteral, propertyName);
+  const initializer = property?.initializer;
+  return initializer?.kind === ts.SyntaxKind.TrueKeyword;
+}
+
+function extractProviderBlocks(source, filePath) {
+  const ts = loadTypeScript();
+  if (!ts) return [];
+
+  const providers = [];
+  const sourceFile = ts.createSourceFile(filePath, source, ts.ScriptTarget.Latest, true);
+
+  sourceFile.forEachChild((node) => {
+    if (!ts.isVariableStatement(node)) return;
+
+    for (const declaration of node.declarationList.declarations) {
+      if (!ts.isIdentifier(declaration.name)) continue;
+      const exportName = declaration.name.text;
+      if (!exportName.endsWith("_PROVIDERS")) continue;
+      if (!declaration.initializer || !ts.isObjectLiteralExpression(declaration.initializer)) {
+        continue;
       }
-      continue;
+
+      const category = normalizeCatalogCategory(exportName);
+      for (const property of declaration.initializer.properties) {
+        if (!ts.isPropertyAssignment(property)) continue;
+        if (!ts.isObjectLiteralExpression(property.initializer)) continue;
+
+        const key = getPropertyName(ts, property.name);
+        if (!key) continue;
+
+        const id = getStringProperty(ts, property.initializer, "id") || key;
+        const name = getStringProperty(ts, property.initializer, "name") || id;
+
+        providers.push({
+          id,
+          name,
+          category,
+          alias: getStringProperty(ts, property.initializer, "alias"),
+          website: getStringProperty(ts, property.initializer, "website"),
+          deprecated: getBooleanProperty(ts, property.initializer, "deprecated"),
+          hasFree: getBooleanProperty(ts, property.initializer, "hasFree"),
+          passthroughModels: getBooleanProperty(ts, property.initializer, "passthroughModels"),
+        });
+      }
     }
-
-    if (char === '"' || char === "'" || char === "`") {
-      quote = char;
-      continue;
-    }
-
-    if (char === "{") depth += 1;
-    if (char === "}") {
-      depth -= 1;
-      if (depth === 0) return index;
-    }
-  }
-
-  return -1;
-}
-
-function extractProviderEntries(blockSource, exportName) {
-  const providers = [];
-  const category = normalizeCatalogCategory(exportName);
-  const entryPattern = /(?:^|\n)\s{2}(?:"([^"]+)"|([A-Za-z0-9_-]+)):\s*\{/g;
-
-  for (const match of blockSource.matchAll(entryPattern)) {
-    const key = match[1] || match[2];
-    const openIndex = blockSource.indexOf("{", match.index);
-    const closeIndex = findMatchingBrace(blockSource, openIndex);
-    if (!key || openIndex < 0 || closeIndex < 0) continue;
-
-    const objectSource = blockSource.slice(openIndex, closeIndex + 1);
-    const id = readStringProperty(objectSource, "id") || key;
-    const name = readStringProperty(objectSource, "name") || id;
-
-    providers.push({
-      id,
-      name,
-      category,
-      alias: readStringProperty(objectSource, "alias"),
-      website: readStringProperty(objectSource, "website"),
-      deprecated: readBooleanProperty(objectSource, "deprecated"),
-      hasFree: readBooleanProperty(objectSource, "hasFree"),
-      passthroughModels: readBooleanProperty(objectSource, "passthroughModels"),
-    });
-  }
-
-  return providers;
-}
-
-function extractProviderBlocks(source) {
-  const providers = [];
-  const blockPattern = /^export const ([A-Z0-9_]+_PROVIDERS)\s*=\s*\{/gm;
-
-  for (const match of source.matchAll(blockPattern)) {
-    const exportName = match[1];
-    const openIndex = source.indexOf("{", match.index);
-    const closeIndex = findMatchingBrace(source, openIndex);
-    if (!exportName || openIndex < 0 || closeIndex < 0) continue;
-
-    providers.push(...extractProviderEntries(source.slice(openIndex + 1, closeIndex), exportName));
-  }
+  });
 
   return providers;
 }
@@ -124,9 +121,17 @@ function fallbackAvailableProviders() {
   }));
 }
 
+function resolveProviderCatalogPath(rootDir, options = {}) {
+  const configuredPath = options.catalogPath || process.env.OMNIROUTE_PROVIDER_CATALOG_PATH;
+  if (configuredPath) {
+    return isAbsolute(configuredPath) ? configuredPath : resolve(rootDir, configuredPath);
+  }
+  return join(rootDir, "src", "shared", "constants", "providers.ts");
+}
+
 export function loadAvailableProviders(options = {}) {
   const rootDir = typeof options === "string" ? options : options.rootDir || DEFAULT_ROOT_DIR;
-  const providersPath = join(rootDir, "src", "shared", "constants", "providers.ts");
+  const providersPath = resolveProviderCatalogPath(rootDir, options);
 
   if (!existsSync(providersPath)) {
     return fallbackAvailableProviders();
@@ -134,7 +139,7 @@ export function loadAvailableProviders(options = {}) {
 
   try {
     const source = readFileSync(providersPath, "utf-8");
-    const providers = extractProviderBlocks(source);
+    const providers = extractProviderBlocks(source, providersPath);
     if (providers.length === 0) return fallbackAvailableProviders();
 
     const seen = new Set();

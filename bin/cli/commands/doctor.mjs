@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { createDecipheriv, scryptSync } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import { parseArgs, hasFlag } from "../args.mjs";
+import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
 import { resolveDataDir, resolveStoragePath } from "../data-dir.mjs";
 import { printHeading } from "../io.mjs";
 
@@ -397,10 +397,26 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function checkServerLiveness() {
+function formatHostForUrl(host) {
+  return host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
+}
+
+function resolveLivenessUrl(options = {}) {
+  const explicitUrl = options.livenessUrl || process.env.OMNIROUTE_DOCTOR_LIVENESS_URL;
+  if (explicitUrl) return explicitUrl;
+
   const port = parsePort(process.env.PORT || "20128", 20128);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-  const url = `http://127.0.0.1:${dashboardPort}/api/health/degradation`;
+  const host = String(options.livenessHost || process.env.OMNIROUTE_DOCTOR_HOST || "127.0.0.1")
+    .trim()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "");
+
+  return `http://${formatHostForUrl(host || "127.0.0.1")}:${dashboardPort}/api/health/degradation`;
+}
+
+async function checkServerLiveness(options = {}) {
+  const url = resolveLivenessUrl(options);
 
   try {
     const response = await fetchWithTimeout(url);
@@ -430,7 +446,7 @@ export async function collectDoctorChecks(context = {}, options = {}) {
   checks.push(checkMemory());
 
   if (!options.skipLiveness) {
-    checks.push(await checkServerLiveness());
+    checks.push(await checkServerLiveness(options));
   }
 
   return {
@@ -451,10 +467,13 @@ Usage:
   omniroute doctor
   omniroute doctor --json
   omniroute doctor --no-liveness
+  omniroute doctor --host 0.0.0.0
 
 Options:
-  --json          Print machine-readable JSON
-  --no-liveness   Skip HTTP health endpoint probing
+  --json                 Print machine-readable JSON
+  --no-liveness          Skip HTTP health endpoint probing
+  --host <host>          Host for server liveness probing (default: 127.0.0.1)
+  --liveness-url <url>   Full health endpoint URL override
 
 Checks:
   config, database, storage/encryption, ports, Node runtime, native binary, memory, server liveness
@@ -477,6 +496,8 @@ export async function runDoctorCommand(argv, context = {}) {
 
   const result = await collectDoctorChecks(context, {
     skipLiveness: hasFlag(flags, "no-liveness"),
+    livenessHost: getStringFlag(flags, "host"),
+    livenessUrl: getStringFlag(flags, "liveness-url"),
   });
 
   if (hasFlag(flags, "json")) {

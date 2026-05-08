@@ -4,6 +4,8 @@ const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;
 const PREFIX = "enc:v1:";
+// Keep this salt in sync with the app-side field encryption format so credentials written by
+// CLI setup remain decryptable by the dashboard/server and vice versa.
 const STATIC_SALT = "omniroute-field-encryption-v1";
 
 let cachedKey = null;

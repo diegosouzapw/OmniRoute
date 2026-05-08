@@ -37,6 +37,23 @@ function joinUrl(baseUrl, suffix) {
   return `${baseUrl.replace(/\/+$/, "")}/${suffix.replace(/^\/+/, "")}`;
 }
 
+function providerEnvName(provider, suffix) {
+  const normalizedProvider = String(provider || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "_");
+  return `OMNIROUTE_PROVIDER_TEST_${normalizedProvider}_${suffix}`;
+}
+
+function resolveTestModel(input, config) {
+  const providerOverride = process.env[providerEnvName(input.provider, "MODEL")];
+  return (
+    input.defaultModel ||
+    providerOverride ||
+    process.env.OMNIROUTE_PROVIDER_TEST_MODEL ||
+    config.model
+  );
+}
+
 function resolveProviderConfig(input) {
   const config = PROVIDER_TEST_CONFIGS[input.provider];
   if (!config) return null;
@@ -44,7 +61,7 @@ function resolveProviderConfig(input) {
   return {
     ...config,
     baseUrl: input.baseUrl || config.baseUrl,
-    model: input.defaultModel || config.model,
+    model: resolveTestModel(input, config),
   };
 }
 

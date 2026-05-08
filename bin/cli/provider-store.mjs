@@ -49,12 +49,18 @@ function ensureProviderColumns(db) {
       .map((column) => column.name)
   );
 
-  for (const [name, type] of REQUIRED_PROVIDER_COLUMNS) {
+  const missingColumns = REQUIRED_PROVIDER_COLUMNS.filter(([name]) => {
     const normalizedName = name.replaceAll('"', "");
-    if (!existingColumns.has(normalizedName)) {
+    return !existingColumns.has(normalizedName);
+  });
+
+  if (missingColumns.length === 0) return;
+
+  db.transaction(() => {
+    for (const [name, type] of missingColumns) {
       db.prepare(`ALTER TABLE provider_connections ADD COLUMN ${name} ${type}`).run();
     }
-  }
+  })();
 }
 
 export function ensureProviderSchema(db) {
