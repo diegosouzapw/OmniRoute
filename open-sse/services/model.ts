@@ -74,6 +74,7 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
 const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
+const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
 export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
 
 /**
@@ -125,6 +126,61 @@ function hasKnownProviderModel(providerOrAlias, modelId) {
 
   const canonicalModel = resolveProviderModelAlias(providerId, modelId);
   return canonicalModel !== modelId && models.some((entry) => entry?.id === canonicalModel);
+}
+
+function hasCodexPreferredUnprefixedModel(modelId) {
+  const canonicalModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
+  if (!canonicalModel) return false;
+
+  const providerAlias = PROVIDER_ID_TO_ALIAS.codex || "codex";
+  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS.codex || [];
+  return models.some((entry) => entry?.id === canonicalModel);
+}
+
+function resolveInferredProviderModel(provider, modelId) {
+  const codexPreferredModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
+  if (provider === "codex" && codexPreferredModel) {
+    return codexPreferredModel;
+  }
+  return resolveProviderModelAlias(provider, modelId);
+}
+
+function getInferredProvidersForModel(modelId) {
+  const providers = [...(MODEL_TO_PROVIDERS.get(modelId) || [])];
+
+  if (
+    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId) &&
+    hasCodexPreferredUnprefixedModel(modelId) &&
+    !providers.includes("codex")
+  ) {
+    providers.push("codex");
+  }
+
+  return providers;
+}
+
+function isProviderConnectionActive(connection) {
+  if (!connection || typeof connection !== "object") return false;
+  if (connection.isActive !== undefined) return connection.isActive !== false;
+  if (connection.is_active !== undefined)
+    return connection.is_active !== false && connection.is_active !== 0;
+  return false;
+}
+
+function getProviderIdFromConnection(connection) {
+  if (!connection || typeof connection.provider !== "string" || !connection.provider) return null;
+  if (!isProviderConnectionActive(connection)) return null;
+  return resolveProviderAlias(connection.provider);
+}
+
+async function getActiveProviderSet() {
+  try {
+    const { getProviderConnections } = await import("@/lib/localDb");
+    const conns = await getProviderConnections();
+    return new Set(conns.map(getProviderIdFromConnection).filter(Boolean));
+  } catch {
+    return null;
+  }
 }
 
 function shouldTreatAsExactModelId(modelStr) {
@@ -276,7 +332,7 @@ function parseAliasTarget(target) {
 }
 
 async function resolveModelByProviderInference(modelId, extendedContext) {
-  const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
+  const providers = getInferredProvidersForModel(modelId);
 
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
@@ -288,12 +344,28 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
-    return {
-      provider: "codex",
-      model: modelId,
-      extendedContext,
-    };
+  const activeProviders = await getActiveProviderSet();
+
+  if (activeProviders) {
+    const activeCandidates = providers.filter((p) => activeProviders.has(p));
+
+    if (activeCandidates.length === 1) {
+      const provider = activeCandidates[0];
+      const canonicalModel = resolveInferredProviderModel(provider, modelId);
+      return { provider, model: canonicalModel, extendedContext };
+    }
+
+    if (
+      activeProviders.has("codex") &&
+      providers.includes("codex") &&
+      CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
+    ) {
+      return {
+        provider: "codex",
+        model: resolveInferredProviderModel("codex", modelId),
+        extendedContext,
+      };
+    }
   }
 
   // Preserve historical behavior: OpenAI stays default when model exists there
@@ -305,15 +377,6 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  let activeProviders: Set<string> | null = null;
-  try {
-    const { getProviderConnections } = await import("@/lib/localDb");
-    const conns = await getProviderConnections();
-    activeProviders = new Set(conns.filter((c: any) => c.is_active).map((c: any) => c.provider));
-  } catch {
-    // DB unavailable
-  }
-
   const eligibleProviders = activeProviders
     ? nonOpenAIProviders.filter((p) => activeProviders!.has(p))
     : nonOpenAIProviders;
@@ -322,7 +385,7 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
 
   if (candidatesToUse.length === 1) {
     const provider = candidatesToUse[0];
-    const canonicalModel = resolveProviderModelAlias(provider, modelId);
+    const canonicalModel = resolveInferredProviderModel(provider, modelId);
     return { provider, model: canonicalModel, extendedContext };
   }
 
