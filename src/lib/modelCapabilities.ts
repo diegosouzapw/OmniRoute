@@ -18,6 +18,16 @@ const REASONING_UNSUPPORTED_PATTERNS = [
   "antigravity/tab_",
 ];
 
+const MAX_TOKENS_UNSUPPORTED_PATTERNS = [
+  "o1-preview",
+  "o1-mini",
+  "o1",
+  "o3-mini",
+  "o3",
+  "gpt-5.4",
+  "gpt-5.5",
+];
+
 type CapabilityInput =
   | string
   | {
@@ -36,6 +46,7 @@ export interface ResolvedModelCapabilities {
   supportsThinking: boolean | null;
   supportsTools: boolean | null;
   supportsVision: boolean | null;
+  supportsMaxTokens: boolean;
   attachment: boolean | null;
   structuredOutput: boolean | null;
   temperature: boolean | null;
@@ -144,6 +155,16 @@ function heuristicReasoning(modelStr: string): boolean {
   return !blocked;
 }
 
+function heuristicMaxTokens(modelStr: string): boolean {
+  const normalized = String(modelStr || "").toLowerCase();
+  if (!normalized) return true;
+  const blocked = MAX_TOKENS_UNSUPPORTED_PATTERNS.some(
+    (pattern) =>
+      normalized === pattern || normalized.endsWith(`/${pattern}`) || normalized.includes(pattern)
+  );
+  return !blocked;
+}
+
 function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSpec | undefined {
   if (modelId) {
     const byCanonical = getModelSpec(modelId);
@@ -162,15 +183,20 @@ function resolveVisionCapability(
   modalitiesInput: string[],
   modalitiesOutput: string[]
 ): boolean | null {
-  if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
-  if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
-
   const allModalities = [...modalitiesInput, ...modalitiesOutput].map((entry) =>
     String(entry).toLowerCase()
   );
+
+  if (typeof synced?.attachment === "boolean") {
+    return synced.attachment;
+  }
+
   if (allModalities.some((entry) => entry.includes("image"))) {
     return true;
   }
+
+  if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
+  if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
 
   return null;
 }
@@ -194,18 +220,22 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     ) || "";
 
   const supportsTools =
-    typeof spec?.supportsTools === "boolean"
-      ? spec.supportsTools
-      : typeof registryModel?.toolCalling === "boolean"
-        ? registryModel.toolCalling
-        : (synced?.tool_call ?? null);
+    synced?.tool_call ??
+    (typeof registryModel?.toolCalling === "boolean" ? registryModel.toolCalling : null) ??
+    (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null);
 
   const supportsThinking =
-    typeof spec?.supportsThinking === "boolean"
-      ? spec.supportsThinking
-      : typeof registryModel?.supportsReasoning === "boolean"
-        ? registryModel.supportsReasoning
-        : (synced?.reasoning ?? null);
+    synced?.reasoning ??
+    (typeof registryModel?.supportsReasoning === "boolean"
+      ? registryModel.supportsReasoning
+      : null) ??
+    (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null);
+
+  const contextWindow =
+    synced?.limit_context ??
+    (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
+    spec?.contextWindow ??
+    null;
 
   return {
     provider: resolved.provider,
@@ -222,17 +252,14 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
       modalitiesInput,
       modalitiesOutput
     ),
+    supportsMaxTokens: heuristicMaxTokens(lookupKey),
     attachment: synced?.attachment ?? null,
     structuredOutput: synced?.structured_output ?? null,
     temperature: synced?.temperature ?? null,
-    contextWindow:
-      spec?.contextWindow ??
-      (typeof registryModel?.contextLength === "number" ? registryModel.contextLength : null) ??
-      synced?.limit_context ??
-      null,
-    maxInputTokens: synced?.limit_input ?? spec?.contextWindow ?? null,
+    contextWindow,
+    maxInputTokens: synced?.limit_input ?? contextWindow,
     maxOutputTokens:
-      spec?.maxOutputTokens ?? synced?.limit_output ?? MODEL_SPECS.__default__.maxOutputTokens,
+      synced?.limit_output ?? spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens,
     defaultThinkingBudget: spec?.defaultThinkingBudget ?? 0,
     thinkingBudgetCap: spec?.thinkingBudgetCap ?? null,
     thinkingOverhead: spec?.thinkingOverhead ?? null,
@@ -257,6 +284,11 @@ export function supportsToolCalling(input: CapabilityInput): boolean {
 export function supportsReasoning(input: CapabilityInput): boolean {
   if (typeof input === "string" && !String(input || "").trim()) return true;
   return getResolvedModelCapabilities(input).reasoning;
+}
+
+export function supportsMaxTokens(input: CapabilityInput): boolean {
+  if (typeof input === "string" && !String(input || "").trim()) return true;
+  return getResolvedModelCapabilities(input).supportsMaxTokens;
 }
 
 export function capMaxOutputTokens(input: CapabilityInput, requested?: number): number {

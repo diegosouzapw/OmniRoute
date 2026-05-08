@@ -79,6 +79,9 @@ export {
   deleteCombo,
 } from "./db/combos";
 
+export * from "./db/compressionCacheStats";
+export * from "./db/compressionCombos";
+
 export {
   // API Keys
   getApiKeys,
@@ -144,11 +147,20 @@ export {
 export type { PricingSource, PricingSourceMap } from "./db/settings";
 
 export {
+  getDatabaseSettings,
+  getUserDatabaseSettings,
+  updateDatabaseSettings,
+} from "./db/databaseSettings";
+
+export type { UserDatabaseSettings } from "./db/databaseSettings";
+
+export {
   // Proxy Registry
   listProxies,
   getProxyById,
   createProxy,
   updateProxy,
+  upsertProxy,
   deleteProxyById,
   getProxyAssignments,
   getProxyWhereUsed,
@@ -315,6 +327,8 @@ export {
   cleanupOldSnapshots,
 } from "./db/quotaSnapshots";
 
+export * from "./db/sessionAccountAffinity";
+
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
 export {
@@ -365,14 +379,35 @@ export {
 } from "./db/creditBalance";
 
 export {
+  insertCompressionAnalyticsRow,
+  getCompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export type {
+  CompressionAnalyticsRow,
+  CompressionAnalyticsSummary,
+} from "./db/compressionAnalytics";
+
+export {
   // Reasoning Replay Cache (#1628)
   setReasoningCache,
   getReasoningCache,
   deleteReasoningCache,
-  cleanupExpiredReasoning,
-  getReasoningCacheStats,
-  getReasoningCacheEntries,
   clearAllReasoningCache,
 } from "./db/reasoningCache";
 
 export type { ReasoningCacheEntry, ReasoningCacheStats } from "./db/reasoningCache";
+
+export {
+  // 1proxy Integration (#1788)
+  listOneproxyProxies,
+  getOneproxyStats,
+  upsertOneproxyProxy,
+  getOneproxyProxyById,
+  deleteOneproxyProxy,
+  clearAllOneproxyProxies,
+  getOneproxyProxyForRotation,
+  markOneproxyProxyFailed,
+} from "./db/oneproxy";
+
+export type { OneproxyProxyRecord, OneproxyStats } from "./db/oneproxy";

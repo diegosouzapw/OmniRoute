@@ -21,7 +21,7 @@ function noopLog() {
   };
 }
 
-function toPlainHeaders(headers) {
+function toPlainHeaders(headers: any) {
   if (!headers) return {};
   if (headers instanceof Headers) return Object.fromEntries(headers.entries());
   return Object.fromEntries(
@@ -55,7 +55,7 @@ function buildOpenAISseResponse(text = "hello") {
   );
 }
 
-function buildJsonResponse(status, payload) {
+function buildJsonResponse(status: number, payload: any) {
   return new Response(JSON.stringify(payload), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -75,8 +75,15 @@ async function invokeResponsesCore({
   credentials,
   responseFactory,
   signal,
+}: {
+  body?: any;
+  provider?: string;
+  model?: string;
+  credentials?: any;
+  responseFactory?: any;
+  signal?: AbortSignal;
 } = {}) {
-  const calls = [];
+  const calls: any[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     const call = {
@@ -263,10 +270,10 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
 test("handleResponsesCore injects SSE keepalive comments for Responses streams", async () => {
   const originalSetInterval = globalThis.setInterval;
   const originalClearInterval = globalThis.clearInterval;
-  const intervals = [];
+  const intervals: any[] = [];
   let nextId = 0;
 
-  globalThis.setInterval = (callback, delay = 0, ...args) => {
+  (globalThis as any).setInterval = (callback: any, delay = 0, ...args: any[]) => {
     const interval = {
       id: ++nextId,
       callback,
@@ -278,7 +285,7 @@ test("handleResponsesCore injects SSE keepalive comments for Responses streams",
     return interval;
   };
 
-  globalThis.clearInterval = (interval) => {
+  (globalThis as any).clearInterval = (interval: any) => {
     if (interval && typeof interval === "object") {
       interval.cleared = true;
     }
@@ -312,10 +319,10 @@ test("handleResponsesCore injects SSE keepalive comments for Responses streams",
 test("handleResponsesCore clears heartbeat timers immediately when the request signal aborts", async () => {
   const originalSetInterval = globalThis.setInterval;
   const originalClearInterval = globalThis.clearInterval;
-  const intervals = [];
+  const intervals: any[] = [];
   let nextId = 0;
 
-  globalThis.setInterval = (callback, delay = 0, ...args) => {
+  (globalThis as any).setInterval = (callback: any, delay = 0, ...args: any[]) => {
     const interval = {
       id: ++nextId,
       callback,
@@ -327,7 +334,7 @@ test("handleResponsesCore clears heartbeat timers immediately when the request s
     return interval;
   };
 
-  globalThis.clearInterval = (interval) => {
+  (globalThis as any).clearInterval = (interval: any) => {
     if (interval && typeof interval === "object") {
       interval.cleared = true;
     }

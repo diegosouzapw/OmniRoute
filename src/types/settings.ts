@@ -1,5 +1,9 @@
 import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
 import type { ResilienceSettings } from "@/lib/resilience/settings";
+import type {
+  AccountFallbackStrategyValue,
+  RoutingStrategyValue,
+} from "@/shared/constants/routingStrategies";
 
 /**
  * Application settings stored in SQLite key-value pairs.
@@ -7,14 +11,7 @@ import type { ResilienceSettings } from "@/lib/resilience/settings";
 export interface Settings {
   requireLogin: boolean;
   hasPassword: boolean;
-  fallbackStrategy:
-    | "fill-first"
-    | "round-robin"
-    | "p2c"
-    | "random"
-    | "least-used"
-    | "cost-optimized"
-    | "strict-random";
+  fallbackStrategy: AccountFallbackStrategyValue;
   stickyRoundRobinLimit: number;
   globalRandomRoutingEnabled?: boolean;
   globalRandomRoutingMode?: "strict" | "weighted";
@@ -23,14 +20,23 @@ export interface Settings {
   globalRandomRoutingBlockedModels?: string[];
   globalRandomRoutingExcludeCombos?: boolean;
   globalRandomRoutingWeights?: Record<string, number>;
+  requestRetry: number;
+  maxRetryIntervalSec: number;
+  maxBodySizeMb?: number;
   jwtSecret?: string;
+  mcpEnabled?: boolean;
+  mcpTransport?: "stdio" | "sse" | "streamable-http";
+  a2aEnabled?: boolean;
   hideHealthCheckLogs?: boolean;
+  hideEndpointCloudflaredTunnel?: boolean;
+  hideEndpointTailscaleFunnel?: boolean;
+  hideEndpointNgrokTunnel?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
 }
 
 export interface ComboDefaults {
-  strategy: "priority" | "weighted" | "round-robin" | "context-relay";
+  strategy: RoutingStrategyValue;
   maxRetries: number;
   retryDelayMs: number;
   maxComboDepth: number;

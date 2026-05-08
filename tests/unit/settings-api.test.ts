@@ -58,7 +58,7 @@ after(() => {
   harness.cleanup();
 });
 
-describe("Settings API - debugMode and hiddenSidebarItems", () => {
+describe("Settings API - persisted preferences", () => {
   describe("debugMode", () => {
     test("updateSettings with debugMode=true succeeds", async () => {
       const result = await harness.updateSettings({ debugMode: true });
@@ -134,6 +134,30 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
       );
     });
 
+    test("PATCH /api/settings persists endpoint tunnel visibility", async () => {
+      const response = await harness.settingsRoute.PATCH(
+        await makeManagementSessionRequest("http://localhost/api/settings", {
+          method: "PATCH",
+          body: {
+            hideEndpointCloudflaredTunnel: true,
+            hideEndpointTailscaleFunnel: true,
+            hideEndpointNgrokTunnel: true,
+          },
+        })
+      );
+      const body = (await response.json()) as Record<string, unknown>;
+
+      assert.equal(response.status, 200);
+      assert.equal(body.hideEndpointCloudflaredTunnel, true);
+      assert.equal(body.hideEndpointTailscaleFunnel, true);
+      assert.equal(body.hideEndpointNgrokTunnel, true);
+
+      const settings = await harness.getSettings();
+      assert.equal(settings.hideEndpointCloudflaredTunnel, true);
+      assert.equal(settings.hideEndpointTailscaleFunnel, true);
+      assert.equal(settings.hideEndpointNgrokTunnel, true);
+    });
+
     test("PUT /api/settings reuses the PATCH update flow", async () => {
       const response = await harness.settingsRoute.PUT(
         await makeManagementSessionRequest("http://localhost/api/settings", {
@@ -141,7 +165,7 @@ describe("Settings API - debugMode and hiddenSidebarItems", () => {
           body: { antigravitySignatureCacheMode: "bypass" },
         })
       );
-      const body = (await response.json()) as any;
+      const body = (await response.json()) as Record<string, unknown>;
 
       assert.equal(response.status, 200);
       assert.equal(body.antigravitySignatureCacheMode, "bypass");

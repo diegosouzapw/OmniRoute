@@ -208,6 +208,41 @@ test("rate limit manager parses retry hints from response bodies and locks model
   assert.equal(rateLimitManager.getRateLimitStatus("openai", "conn-body").active, true);
 });
 
+test("RATE_LIMIT_AUTO_ENABLE env var overrides dashboard auto-enable setting", async () => {
+  const conn = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Env Override",
+    apiKey: "sk-env",
+    isActive: true,
+  });
+
+  // Dashboard says auto-enable on, but env says off → off wins
+  const original = process.env.RATE_LIMIT_AUTO_ENABLE;
+  process.env.RATE_LIMIT_AUTO_ENABLE = "false";
+  try {
+    await rateLimitManager.initializeRateLimits();
+    assert.equal(rateLimitManager.isRateLimitEnabled(conn.id), false);
+  } finally {
+    if (original === undefined) delete process.env.RATE_LIMIT_AUTO_ENABLE;
+    else process.env.RATE_LIMIT_AUTO_ENABLE = original;
+  }
+
+  // Reset and verify the opposite: env=true forces on even when dashboard would be off
+  await rateLimitManager.__resetRateLimitManagerForTests();
+  process.env.RATE_LIMIT_AUTO_ENABLE = "true";
+  try {
+    await rateLimitManager.applyRequestQueueSettings({
+      ...resilienceSettings.DEFAULT_RESILIENCE_SETTINGS.requestQueue,
+      autoEnableApiKeyProviders: false,
+    });
+    assert.equal(rateLimitManager.isRateLimitEnabled(conn.id), true);
+  } finally {
+    if (original === undefined) delete process.env.RATE_LIMIT_AUTO_ENABLE;
+    else process.env.RATE_LIMIT_AUTO_ENABLE = original;
+  }
+});
+
 test("rate limit manager recomputes auto-enabled API key connections when queue settings change", async () => {
   const autoConnection = await providersDb.createProviderConnection({
     provider: "openai",

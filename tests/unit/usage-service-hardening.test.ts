@@ -5,9 +5,15 @@ const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
 
 const originalFetch = globalThis.fetch;
+const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  if (originalCreditsMode === undefined) {
+    delete process.env.ANTIGRAVITY_CREDITS;
+  } else {
+    process.env.ANTIGRAVITY_CREDITS = originalCreditsMode;
+  }
 });
 
 test("usage service covers GitHub free-plan parsing, auth denial and unsupported providers", async () => {
@@ -44,9 +50,9 @@ test("usage service covers GitHub free-plan parsing, auth denial and unsupported
   assert.equal(freeUsage.quotas.chat.remaining, 20);
   assert.equal(freeUsage.quotas.completions.remainingPercentage, 80);
   assert.equal(calls[0].headers.Authorization, "token gho-free");
-  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.38.0");
-  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.110.0");
-  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.38.0");
+  assert.equal(calls[0].headers["User-Agent"], "GitHubCopilotChat/0.45.1");
+  assert.equal(calls[0].headers["Editor-Version"], "vscode/1.117.0");
+  assert.equal(calls[0].headers["Editor-Plugin-Version"], "copilot-chat/0.45.1");
   assert.equal(calls[0].headers["X-GitHub-Api-Version"], "2025-04-01");
 
   globalThis.fetch = async () => new Response("forbidden", { status: 403 });
@@ -290,7 +296,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
             "gemini-unlimited": {
               quotaInfo: {},
             },
-            "gemini-open": {
+            "gemini-3.1-pro-high": {
               quotaInfo: { remainingFraction: 1 },
             },
             "internal-model": {
@@ -312,12 +318,12 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-open"]);
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-3.1-pro-high"]);
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
-  assert.equal(usage.quotas["gemini-open"].total, 0);
-  assert.equal(usage.quotas["gemini-open"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
+  assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
-  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
   assert.equal(
     loadCodeAssistCall?.init.headers["X-Goog-Api-Client"],
     "google-cloud-sdk vscode_cloudshelleditor/0.1"
@@ -405,6 +411,76 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\//);
   assert.equal(usage.plan, "Business");
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
+});
+
+test("usage service manual Antigravity refresh bypasses usage TTL caches", async () => {
+  process.env.ANTIGRAVITY_CREDITS = "retry";
+  let probeCalls = 0;
+  let modelCalls = 0;
+
+  globalThis.fetch = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes("loadCodeAssist")) {
+      return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), {
+        status: 200,
+      });
+    }
+
+    if (urlStr.includes("streamGenerateContent")) {
+      probeCalls++;
+      return new Response(
+        `data: ${JSON.stringify({ remainingCredits: [{ creditType: "GOOGLE_ONE_AI", creditAmount: String(100 - probeCalls) }] })}\n\n`,
+        { status: 200, headers: { "Content-Type": "text/event-stream" } }
+      );
+    }
+
+    if (urlStr.includes("fetchAvailableModels")) {
+      modelCalls++;
+      return new Response(
+        JSON.stringify({
+          models: {
+            "claude-sonnet-4-6": {
+              quotaInfo: { remainingFraction: 1 },
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    throw new Error(`unexpected fetch: ${url}`);
+  };
+
+  const connection = {
+    id: "ag-manual-refresh-service-test",
+    provider: "antigravity",
+    accessToken: "ag-manual-service-token",
+    projectId: "ag-project",
+  };
+
+  await usageService.getUsageForProvider(connection, { forceRefresh: true });
+  await usageService.getUsageForProvider(connection, { forceRefresh: true });
+
+  assert.equal(probeCalls, 2);
+  assert.equal(modelCalls, 2);
+});
+
+test("usage service handles missing Antigravity access tokens without probing upstream", async () => {
+  let fetchCalls = 0;
+
+  globalThis.fetch = async () => {
+    fetchCalls++;
+    return new Response("unexpected", { status: 500 });
+  };
+
+  const usage: any = await usageService.getUsageForProvider({
+    provider: "antigravity",
+    accessToken: undefined,
+  });
+
+  assert.equal(fetchCalls, 0);
+  assert.equal(usage.plan, "Free");
+  assert.match(usage.message, /Antigravity access token not available/i);
 });
 
 test("usage service covers Antigravity tier fallbacks and non-403 upstream failures", async () => {
@@ -1034,8 +1110,8 @@ test("usage service parses Cursor team quotas and clamps on-demand ratio", async
   assert.equal(calls.length, 3);
   for (const call of calls) {
     assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
-    assert.equal(call.init.headers["User-Agent"], "Cursor/3.1.0");
-    assert.equal(call.init.headers["x-cursor-client-version"], "3.1.0");
+    assert.equal(call.init.headers["User-Agent"], "Cursor/3.2.14");
+    assert.equal(call.init.headers["x-cursor-client-version"], "3.2.14");
   }
 
   assert.equal(usage.plan, "Cursor Team");
@@ -1149,9 +1225,9 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
   assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
     Authorization: "Bearer cursor-token",
     Accept: "application/json",
-    "User-Agent": "Cursor/3.1.0",
-    "x-cursor-client-version": "3.1.0",
-    "x-cursor-user-agent": "Cursor/3.1.0",
+    "User-Agent": "Cursor/3.2.14",
+    "x-cursor-client-version": "3.2.14",
+    "x-cursor-user-agent": "Cursor/3.2.14",
   });
   assert.equal(
     __testing.getCursorMonthlyRequestLimit(
@@ -1231,4 +1307,96 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
     }),
     "Custom sky"
   );
+});
+
+test("usage service covers NanoGPT PRO weekly token quota, FREE plan, auth denial and fetch failures", async () => {
+  const resetAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://nano-gpt.com/api/subscription/v1/usage");
+    assert.equal((init as any).headers.Authorization, "Bearer nanogpt-pro-key");
+    return new Response(
+      JSON.stringify({
+        active: true,
+        limits: {
+          weeklyInputTokens: 60_000_000,
+          dailyInputTokens: null,
+          dailyImages: 100,
+        },
+        dailyInputTokens: null,
+        weeklyInputTokens: {
+          used: 31_157_321,
+          remaining: 28_842_679,
+          percentUsed: 0.5192886833333333,
+          resetAt,
+        },
+        dailyImages: {
+          used: 0,
+          remaining: 100,
+          percentUsed: 0,
+          resetAt: Date.now() + 24 * 60 * 60 * 1000,
+        },
+        state: "active",
+      }),
+      { status: 200 }
+    );
+  };
+
+  const proUsage: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-pro-key",
+  });
+
+  assert.equal(proUsage.plan, "PRO");
+  assert.ok(proUsage.quotas["Weekly Tokens"]);
+  assert.equal(proUsage.quotas["Weekly Tokens"].used, 31_157_321);
+  assert.equal(proUsage.quotas["Weekly Tokens"].total, 60_000_000);
+  assert.equal(proUsage.quotas["Weekly Tokens"].remaining, 28_842_679);
+  assert.ok(proUsage.quotas["Weekly Tokens"].remainingPercentage < 100);
+  assert.equal(proUsage.quotas["Weekly Tokens"].resetAt, new Date(resetAt).toISOString());
+  assert.equal(proUsage.quotas["Daily Images"].used, 0);
+  assert.equal(proUsage.quotas["Daily Images"].remaining, 100);
+  assert.equal(proUsage.quotas["Daily Images"].remainingPercentage, 100);
+
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://nano-gpt.com/api/subscription/v1/usage");
+    assert.equal((init as any).headers.Authorization, "Bearer nanogpt-free-key");
+    return new Response(
+      JSON.stringify({
+        active: false,
+        limits: {},
+        state: "cancelled",
+      }),
+      { status: 200 }
+    );
+  };
+
+  const freeUsage: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-free-key",
+  });
+
+  assert.equal(freeUsage.plan, "FREE");
+  assert.deepEqual(freeUsage.quotas, {});
+
+  const noKey: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "",
+  });
+  assert.match(noKey.message, /NanoGPT API key not available/i);
+
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+  const invalidKey: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-bad-key",
+  });
+  assert.match(invalidKey.message, /Invalid NanoGPT API key/i);
+
+  globalThis.fetch = async () => {
+    throw new Error("nano-gpt.com unreachable");
+  };
+  const fetchError: any = await usageService.getUsageForProvider({
+    provider: "nanogpt",
+    apiKey: "nanogpt-fail-key",
+  });
+  assert.match(fetchError.message, /Unable to fetch usage: nano-gpt.com unreachable/i);
 });

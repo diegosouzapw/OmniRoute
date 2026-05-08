@@ -39,6 +39,7 @@ const CHAT_OPENAI_COMPAT_PROVIDER_IDS = [
   "nanogpt",
   "predibase",
   "bytez",
+  "reka",
 ];
 
 test("chat-openai-compat providers are registered across provider metadata, registry and local catalog", () => {
@@ -50,4 +51,14 @@ test("chat-openai-compat providers are registered across provider metadata, regi
     assert.ok(Array.isArray(models), `${providerId} models must be an array`);
     assert.ok(models.length > 0, `${providerId} models must not be empty`);
   }
+});
+
+test("upstage chat catalog does not include non-chat specialty models", () => {
+  const modelIds = REGISTRY.upstage.models.map((model) => model.id);
+
+  assert.ok(modelIds.includes("solar-pro3"));
+  assert.ok(modelIds.includes("solar-mini"));
+  assert.equal(modelIds.includes("document-parse"), false);
+  assert.equal(modelIds.includes("embedding-query"), false);
+  assert.equal(modelIds.includes("embedding-passage"), false);
 });

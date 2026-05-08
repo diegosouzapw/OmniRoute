@@ -1,3 +1,5 @@
+import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
+
 const DATAROBOT_API_V2_SEGMENT = "/api/v2";
 const DATAROBOT_LLMGW_CHAT_PATH = "/genai/llmgw/chat/completions/";
 const DATAROBOT_LLMGW_CATALOG_PATH = "/genai/llmgw/catalog/";
@@ -5,7 +7,7 @@ const DATAROBOT_LLMGW_CATALOG_PATH = "/genai/llmgw/catalog/";
 export const DATAROBOT_DEFAULT_BASE_URL = "https://app.datarobot.com";
 
 function normalizeBaseUrl(value: string | null | undefined): string {
-  return (value || "").trim().replace(/\/+$/, "");
+  return stripTrailingSlashes((value || "").trim());
 }
 
 export function normalizeDataRobotBaseUrl(value: string | null | undefined): string {
@@ -52,7 +54,7 @@ export function buildDataRobotCatalogUrl(value: string | null | undefined): stri
   }
 
   const parsed = new URL(normalized);
-  let basePath = parsed.pathname.replace(/\/+$/, "");
+  let basePath = stripTrailingSlashes(parsed.pathname);
 
   if (/\/api\/v2\/genai\/llmgw\/chat\/completions$/i.test(basePath)) {
     basePath = basePath.replace(/\/chat\/completions$/i, "");

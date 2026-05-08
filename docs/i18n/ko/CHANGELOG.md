@@ -6,14 +6,270 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+- **feat:** ongoing development
+
 ---
 
-## [3.7.0] — 2026-04-24
+## [3.7.5] — 2026-04-29
+
+### ✨ New Features
+
+- **feat(tunnels):** integrate native ngrok tunnel support with dashboard UI parity (#1753)
+- **feat(api-keys):** add rename support in the permissions modal — editable key name field with validation (#1796)
+
+### 🐛 Bug Fixes
+
+- **fix(dashboard):** add manual 'Clear All' button to terminate stalled long-running requests in Active Requests panel (#1799)
+- **fix(schema):** remove empty string values from optional tool parameters to prevent upstream validation errors (#1674)
+- **fix(providers):** ensure proper streaming cleanup and semaphore release to prevent stalls with nanoGPT (#1781)
+- **fix(db):** wrap quota_snapshots access in try/catch to gracefully handle pending database migrations (#1784)
+- **feat(providers):** add support for glm-cn (BigModel) provider (#1770)
+- **fix(grok-web):** fix Grok validator and cookie parsing (#1793)
+- **fix(antigravity):** scrub internal OmniRoute headers (#1794)
+- **fix(chatgpt-web):** restore validator + expand model catalog to ChatGPT Plus tier (#1792)
+- **fix(codex):** stabilize Copilot responses replay state (#1791)
+- **fix(antigravity):** cap Claude bridge output tokens (#1785)
+- **fix(schema):** strip `default` properties from tool-call JSON schemas during egress to prevent injection errors (#1782)
+- **fix(db):** add `quota_snapshots` table to core DB schema initialization to prevent startup failures on fresh installs
+- **fix(models):** apply blocked providers filter to non-chat catalog models (image, embedding, audio, etc.) (#1752)
+- **fix(antigravity):** stabilize streaming payload parsing and deduplicate usage/model metadata refreshes (#1748)
+- **fix(antigravity):** normalize Gemini bridge payloads — sanitize tool names, cap output tokens, and fix thinking budget (#1769)
+- **fix(sse):** propagate AbortSignal to pre-fetch semaphore and rate-limit awaits to prevent memory leaks (#1771)
+- **fix(models):** fix model sync import handling — separate synced models from custom models to prevent data loss (#1755)
+- **fix(codex):** improve VS Code Copilot /responses reasoning and tool follow-ups (#1750)
+- **fix(memory):** resolve build issues and implement memory UPSERT logic to prevent duplicate entries (#1763)
+- **fix(kiro):** support organization IDC OAuth with regional endpoints and refresh (#1754)
+- **fix(combo):** include 429 in provider circuit breaker to stop infinite retry loops on exhausted quotas (#1767)
+- **fix(claude):** respect client-set thinking/effort params — only inject adaptive thinking and high effort when the client hasn't explicitly set them, preventing forced quota drain on Claude Max accounts (#1761)
+- **fix(blackbox-web):** correct cookie name and populate session/subscription fields (#1776)
+- **fix(codex):** align client identity metadata (#1778)
+- **fix(claude):** fix support for claude-cli using Gemini provider (#1779)
+- **test(reasoning-cache):** isolate DB state using mkdtempSync to prevent 401 middleware errors
+
+### 🛠️ Maintenance
+
+- **chore(docs):** add MseeP.ai security assessment badge to README (#1727)
+- **chore(xiaomi):** update Xiaomi provider model list (#1759)
+- **chore(db):** move DB health endpoint to management API (#1757)
+- **chore(ui):** speed up endpoint initial render with background task loading (#1760)
+- **chore(workflows):** add strict PR contributor credit policy to prevent future merge credit loss
+
+### 🏆 Community Contributors Acknowledgment
+
+We identified that **37 community PRs** across past releases (v3.4.0 → v3.7.4) were manually integrated into release branches but closed instead of properly merged through GitHub, preventing contributors from receiving merge credit on their profiles. We sincerely apologize for this oversight and have since updated our workflows to ensure this never happens again.
+
+**The following contributors had their code and ideas integrated across multiple releases without proper merge credit. Thank you for your invaluable contributions to OmniRoute:**
+
+| Contributor                                            | Contributions (PRs)                                                      |
+| :----------------------------------------------------- | :----------------------------------------------------------------------- |
+| [@rdself](https://github.com/rdself)                   | #1742, #1357, #1356, #1089, #1069, #904, #880, #875, #853, #851, #974    |
+| [@oyi77](https://github.com/oyi77)                     | #1411, #1021, #990, #926, #908, #883, #881, #868, #862, #859, #850, #983 |
+| [@benzntech](https://github.com/benzntech)             | #1677, #1444, #1440, #1437, #1435                                        |
+| [@clousky2020](https://github.com/clousky2020)         | #1644, #1408                                                             |
+| [@christopher-s](https://github.com/christopher-s)     | #885, #868, #992                                                         |
+| [@kang-heewon](https://github.com/kang-heewon)         | #1235, #884                                                              |
+| [@backryun](https://github.com/backryun)               | #1627, #1358, #1722                                                      |
+| [@tombii](https://github.com/tombii)                   | #900, #856                                                               |
+| [@slewis3600](https://github.com/slewis3600)           | #1624                                                                    |
+| [@dhaern](https://github.com/dhaern)                   | #1647                                                                    |
+| [@JasonLandbridge](https://github.com/JasonLandbridge) | #1626                                                                    |
+| [@hartmark](https://github.com/hartmark)               | #1500                                                                    |
+| [@herjarsa](https://github.com/herjarsa)               | #1480                                                                    |
+| [@andruwa13](https://github.com/andruwa13)             | #1457                                                                    |
+| [@i1hwan](https://github.com/i1hwan)                   | #1386                                                                    |
+| [@xandr0s](https://github.com/xandr0s)                 | #1376                                                                    |
+| [@RaviTharuma](https://github.com/RaviTharuma)         | #1188                                                                    |
+| [@wlfonseca](https://github.com/wlfonseca)             | #1016                                                                    |
+| [@only4copilot](https://github.com/only4copilot)       | #1039, #855                                                              |
+| [@AndrewDragonIV](https://github.com/AndrewDragonIV)   | #898                                                                     |
+| [@dt418](https://github.com/dt418)                     | #896                                                                     |
+| [@willbnu](https://github.com/willbnu)                 | #882                                                                     |
+| [@defhouse](https://github.com/defhouse)               | #906                                                                     |
+| [@mercs2910](https://github.com/mercs2910)             | #1001                                                                    |
+| [@zen0bit](https://github.com/zen0bit)                 | #912                                                                     |
+| [@razllivan](https://github.com/razllivan)             | #987                                                                     |
+| [@foxy1402](https://github.com/foxy1402)               | #934                                                                     |
+| [@knopki](https://github.com/knopki)                   | #1434                                                                    |
+| [@dail45](https://github.com/dail45)                   | #1413                                                                    |
+
+---
+
+## [3.7.4] — 2026-04-28
+
+### ✨ New Features
+
+- **feat(ui):** add endpoint tunnel visibility settings (#1743)
+- **feat(cli):** refresh CLI fingerprint provider profiles (#1746)
+- **feat(proxy):** implement bulk proxy import via pipe-delimited parser with update-or-create (upsert) logic and real-time preview table
+- **feat(pwa):** add fullscreen installable PWA with manifest, service worker, and cross-platform app icons (#1728)
+
+### 보안
+
+- **security:** replace insecure `Math.random` with `crypto.getRandomValues` for fallback UUID generation to resolve CodeQL CWE-338 finding (#182)
+
+### 🐛 Bug Fixes
+
+- **fix(cc-compatible):** fix CC-compatible relay format and UI copy (#1742)
+- **fix(codex):** normalize max reasoning effort for Codex routing (#1744)
+- **fix(claude-code):** fix Claude Code gateway config helper (#1745)
+- **fix(db):** reconcile legacy `create_reasoning_cache` migration tracking to prevent version shadowing on `032` and resolve startup warnings (#1734)
+- **fix(db):** intercept `007` migration to use idempotent `IF NOT EXISTS` logic via `PRAGMA table_info`, preventing syntax crashes on fresh installs (#1733)
+- **fix(cc-compatible):** preserve Claude Code system skeleton to prevent request rejection by strict compatible upstream providers (#1740)
+
+- **fix(providers):** add API key validation for image-only providers and fix Stability AI requests to use `multipart/form-data` instead of JSON (#1726)
+- **fix(codex):** preserve `previous_response_id` and `conversation_id` fields when input array is empty to prevent schema validation errors (#1729)
+- **fix(searxng):** bypass UI validation block when `apiKeyOptional` is true and fix typing errors in provider dashboard to allow saving search providers without credentials (#1721)
+- **fix(proxy):** disable HTTP keep-alive and pipelining in Undici proxy dispatcher to prevent "Socket hang up" rotation failures
+- **stream:** correctly identify `thought` and `error` blocks in Antigravity/Gemini SSE streams to prevent premature 502 timeouts (#1725, #1705)
+
+### 🛠️ Maintenance
+
+- **workflow:** add phase 4 release monitoring instructions to `/generate-release` workflow
+- **test:** fix typescript compilation errors in unit tests to keep CI typecheck pipeline fully green
+- **test:** update responses store expectations for empty input arrays
+
+---
+
+## [3.7.3] — 2026-04-28
+
+### 🐛 Bug Fixes
+
+- **fix(claude):** strip existing billing headers from system array before injecting to prevent Anthropic prompt cache misses — stacked `x-anthropic-billing-header` blocks invalidated prefix matching, causing ~100% cache_create instead of cache_read (#1712)
+- **fix(claude):** strip `output_config.format` for non-Anthropic Claude-compatible providers during passthrough — third-party Claude endpoints (MiniMax, DeepSeek via aggregators) reject structured output fields with 400 errors (#1719)
+- **fix(combo):** set terminal error state on response quality validation failure — prevents misleading `ALL_ACCOUNTS_INACTIVE` 503 when the real issue is response quality validation (#1707, #1710)
+- **fix(combo):** treat combo fallback as target-level orchestration — all non-ok responses (including generic 400s) now fall through to the next target instead of being terminal; removes complex bad-request allowlist regex (#1713)
+- **fix(codex):** restore namespace MCP tools and hosted-tool whitelist — regression from #1581 that silently dropped all MCP tool groups and Responses-API hosted tools (#1715)
+- **fix(codex):** add neutral instructions for bare chat requests — Codex Responses backend rejects requests without `instructions`, making Codex unusable for normal chat (#1709)
+- **fix(proxy):** wrap proxy assignment queries in try-catch for missing `proxy_assignments` table — Electron installs where migration 004 hasn't run no longer crash with `no such table` error (#1706)
+- **fix(migration):** improve Windows file URL path resolution in migration runner — adds direct URL path extraction and `process.cwd()` fallback for CI-built bundles with leaked build-time paths (#1704)
+- **fix(ui):** fix light mode active request payload modal — add missing `--color-card` theme token, use opaque `bg-surface` instead of translucent `bg-card/70`, add backdrop blur (#1714)
+
+### 🔄 Updates
+
+- **chore(image-models):** refresh image generation model registry — replace stale FLUX aliases with FLUX Kontext / FLUX.2 mappings, remove deprecated FLUX Redux/Depth/Canny variants (#1722)
+
+---
+
+## [3.7.2] — 2026-04-28
+
+### ✨ New Features
+
+- **feat(authz):** introduce centralized proxy-based authz pipeline and lifecycle policy (#1632)
+- **feat(logs):** configure call log pipeline artifacts (#1650)
+- **feat(network):** add guarded remote image fetch utility
+- **feat(codex):** enable native Codex websocket responses on beta-gated models (#1658)
+- **feat(muse-spark-web):** continue the same meta.ai conversation across turns (#1673)
+
+### 🐛 Bug Fixes
+
+- **fix(responses):** sanitize empty string placeholders from tool-call optional arguments in stream delta accumulation to avoid breaking strict clients (#1674)
+- **fix(codex):** prevent unexpected protocol leakage and fabricated instructions on bare chat completion requests without tools (#1686)
+- **fix(executors):** truncate tools array to 128 items max in GitHub Copilot and OpenCode executors to mitigate 400 Bad Request errors from upstream (#1687)
+- **fix:** add body-read timeout to prevent stuck pending requests (#1680)
+- **fix(rate-limit):** replace unsupported Bottleneck `maxWait` option with job-level `expiration` to prevent indefinite queue stalls (#1694)
+- **fix(sse):** sanitize OpenAI tool schemas for strict upstream validators — strips null from enum arrays, normalizes tuple items, filters invalid required keys (#1692)
+- **fix(stream):** fail zombie SSE streams before accepting response — returns 504 instead of hanging indefinitely, enables combo fallback (#1693)
+- **fix(combo):** complete context truncation hotfix — cache getCombos() with 10s TTL, pass allCombosData to resolveComboTargets() for nested combo resolution, consolidate duplicated context overflow regex patterns (#1685)
+- **fix(codex):** raise default quota threshold from 90% to 99% to avoid premature account blocking when usable quota remains (#1697)
+- **fix(memory):** use `user` role for GLM/ZAI/Qianfan providers — providers with strict role constraints (no `system` role) now correctly receive memory context as a `user` message instead of a `system` message, preventing 422 validation errors (#1701)
+- **fix(oauth):** target specific connection by ID on re-auth token exchange — prevents duplicate account creation when re-authenticating an existing OAuth connection (#1702 — thanks @namhhitvn)
+- **feat(email-privacy):** integrate email visibility toggle in RequestLoggerV2 — log detail modal now respects global email privacy state, hiding email addresses by default (#1700 — thanks @namhhitvn)
+- **fix(combo):** trigger fallback on Anthropic `Invalid signature in thinking block` errors instead of returning 400 directly (#1696)
+- **fix:** combo retry loop stops immediately on client disconnect (499) (#1681)
+- **fix(search):** support optional bearer auth for SearXNG (#1683)
+- **fix(vision):** respect native GPT vision support — prevents VisionBridge from intercepting models that already handle images natively (#1678)
+- **fix(qwen):** use `security.auth` format instead of `modelProviders` for Qwen Code config generation (#1677)
+- **fix(codex):** remove stale websocket transport lookup that caused fallback errors (#1676)
+- **fix(chatgpt-web):** bound tls-client native deadlocks so requests never hang forever (#1664)
+- **fix(codex):** default gpt-5.5 to HTTP transport instead of WebSocket (#1660)
+- **fix(codex):** [urgent] fix gpt-5.5 websocket transport and model labels (#1656)
+- **fix(grokweb):** update Request and Response Specifications (#1655)
+- **fix(blackbox-web):** set isPremium flag to true to enable premium model access (#1661)
+- **fix(core):** avoid OpenAI stream options for Anthropic-compatible providers (#1654)
+- **fix(electron):** resolve MCP server start failure on Windows (#1662)
+- **fix(electron):** make Windows smoke test non-blocking (continue-on-error), pre-create userData dir for Windows + stream logs in CI, and add --no-sandbox and sandbox env for CI smoke tests
+- **fix(codex):** fix `getWreqWebsocket` ReferenceError causing 502 on all Codex requests (#1652, #1653)
+- **fix(codex):** default `store` to `false` — Codex OAuth backend rejects `store=true` (#1635)
+- **fix(db):** add post-migration guards for missing `batches` table and `combos.sort_order` column on DB upgrades (#1648, #1657)
+- **fix(db):** renumber duplicate migration `032` to prevent collision
+- **fix(perplexity-web):** update API version and user-agent to match upstream requirements (#1666)
+- **fix(docker):** copy SQLite migration files and explicitly trace in standalone build (#1665)
+- **fix(muse-spark-web):** update to Meta's Ecto-era persisted query — fixes 502 `Unknown type "RewriteOptionsInput"` after Meta retired the Abra mutation (#1668)
+- **fix(dev):** enable Turbopack by default and repair Codex CORS headers (#1669)
+- **fix(authz):** restore `REQUIRE_API_KEY` support in clientApi policy
+- **fix(auth):** align fallback API key format with test setup
+
+### 🛠️ Maintenance
+
+- **build(prepublish):** make Next.js build bundler configurable (webpack/turbopack)
+- **ci:** align sonar analysis scope
+- **ci:** stabilize release branch checks
+- **ci:** remove expired advanced security scans job
+
+### 🧪 Tests
+
+- **test:** fix TypeScript configuration errors in plan3-p0.test.ts
+- **test:** fix implicit any types across test suites
+- **test:** disable type checking in flaky unit tests
+- **test:** fix failing tests due to recent refactors
+- **fix(tests):** align integration tests with authz pipeline refactor
+- **fix(tests):** align test assertions with v3.7.2 source code changes
+- **fix(tests):** CORS test now checks object body instead of entire file
+- **fix(e2e):** fix E2E flakiness and implicit any type errors
+
+---
+
+## [3.7.1] — 2026-04-26
+
+### ✨ New Features
+
+- **feat(providers):** Add GPT-5.5 support to the Codex provider — includes 1.05M context window, tool calling, vision, and reasoning capabilities with proper pricing entries across `cx` and `openai` providers. Refactors `splitCodexReasoningSuffix()` into a shared helper for cleaner effort-level parsing (#1617 — thanks @Zhaba1337228).
+- **feat(cli):** Add `omniroute reset-encrypted-columns` recovery command — nulls encrypted credential columns (`api_key`, `access_token`, `refresh_token`, `id_token`) in `provider_connections` while preserving provider metadata, giving users affected by #1622 a clean recovery path without losing configurations.
+- **feat(i18n):** Expand locale coverage with nine new language packs (Bengali, Farsi, Gujarati, Indonesian, Marathi, Swahili, Tamil, Telugu, Urdu), bringing total language support from 32 to 41 locales.
+
+### 🐛 Bug Fixes
+
+- **fix(rate-limit):** Add per-model rate limiting for GitHub Copilot provider — a 429 on one model (e.g. `gpt-5.1-codex-max`) no longer locks the entire connection, matching the existing Gemini per-model quota pattern (#1624 — thanks @slewis3600).
+- **fix(cli-tools):** Preserve existing OpenCode configuration (MCP servers, custom providers, comments) when saving OmniRoute settings — uses `jsonc-parser` for tree-preserving edits instead of destructive JSON roundtrip. Fix API key clipboard copy to use raw keys instead of masked placeholders. Add theme-aware OpenCode light/dark SVG logos (#1626 — thanks @JasonLandbridge).
+- **fix(cli-tools):** Fix OpenCode guide step 3 `{{baseUrl}}` double-brace placeholder to use ICU-style `{baseUrl}` across all 41 locales, restoring next-intl interpolation (#1626).
+- **fix(codex):** Make `wreq-js` native module import lazy and optional to prevent server crash on startup when the platform-specific binary is missing — affects pnpm installs, Docker Alpine, macOS ARM, and Windows (#1612, #1613, #1616).
+- **fix(i18n):** Add 14 missing translation keys (`logs.runningRequests`, `logs.model`, `logs.provider`, `logs.account`, `logs.elapsed`, `logs.count`, `logs.payloads`, etc.) for the Active Requests panel across all locales. Replace 83 placeholder values in usage/evals namespace. Add 5 missing health namespace keys for rate limit status.
+- **fix(encryption):** Prevent `STORAGE_ENCRYPTION_KEY` from being silently regenerated during `npm install -g` upgrades, which made all previously-encrypted provider credentials permanently unrecoverable due to AES-GCM auth-tag mismatch (#1622).
+- **fix(startup):** Add decrypt-probe diagnostic at server bootstrap — if `STORAGE_ENCRYPTION_KEY` doesn't match encrypted credentials in the database, a prominent warning is logged directing users to restore the key or use the new recovery command.
+- **fix(cli-tools):** Allow `null` API key values in `cliModelConfigSchema` to prevent 400 Bad Request errors when saving cloud-based CLI tool configurations. Fix error handling across all 10 ToolCard components to safely extract messages from structured error objects, preventing React Error #31 crashes.
+- **fix(docker):** Set `NPM_CONFIG_LEGACY_PEER_DEPS=true` in the Docker builder layer before `npm ci` and remove duplicate `postinstallSupport.mjs` COPY instruction — fixes container image build failures introduced in v3.7.0 (#1630 — thanks @rdself).
+- **fix(antigravity):** Hide deprecated Gemini-routed Claude 4.5 models from public catalogs and model lists. Legacy `gemini-claude-*` aliases now silently resolve to current Claude 4.6 equivalents. Replace dynamic reverse-alias generation with an explicit allowlist for predictable model visibility (#1631 — thanks @backryun).
+- **fix(types):** Add explicit type annotations to sync-env test helpers and dynamic import casts to satisfy `typecheck:noimplicit:core` CI gate.
+- **fix(reasoning):** Implement Reasoning Replay Cache — hybrid memory/SQLite persistence for `reasoning_content` in multi-turn tool-calling flows. Automatically captures reasoning from DeepSeek V4, Kimi K2, Qwen-Thinking, and GLM models and re-injects it on follow-up turns to prevent HTTP 400 errors from strict reasoning-content validation. Includes dashboard telemetry tab, REST API, and 21 unit tests (#1628 — thanks @JasonLandbridge).
+- **fix(postinstall):** Extend postinstall native module repair to cover `wreq-js` — detects missing platform-specific `.node` binaries inside `app/node_modules/wreq-js/rust/` and copies them from the root install. Fixes global `pnpm` installs on macOS arm64 where the standalone app directory only contained Linux binaries (#1634 — thanks @MarcosT96).
+- **fix(migration):** Prevent compat-renamed migration slots from shadowing new migrations at the same version number. After rewriting `028_provider_connection_max_concurrent` → `029`, the runner now verifies the old version slot is clear, ensuring `028_create_files_and_batches` runs on v3.6.x → v3.7.x upgrades. Adds `batches` table as a physical schema sentinel for upgrade recovery (#1637 — thanks @V8-Software).
+- **fix(registry):** Route GitHub Copilot GPT 5.4/5.5 models through the Responses API (`targetFormat: "openai-responses"`). Fixes `gpt-5.4-mini` and `gpt-5.4` being rejected on `/chat/completions` by GitHub (#1641 — thanks @dhaern).
+- **fix(usage):** Correct MiniMax token plan quota display — the newer `/v1/token_plan/remains` endpoint reports used counts, not remaining counts. Rounds floating-point percentage artifacts in Provider Limits UI (#1642 — thanks @CruxExperts).
+- **fix(codex):** Lazy-load `wreq-js` WebSocket transport via `createRequire` instead of top-level import. Server boots cleanly when native module is unavailable and returns 503 only when Codex WebSocket is actually requested. Fixes #1612 (#1640 — thanks @dendyadinirwana).
+- **fix(electron):** Package Electron runtime dependencies into `resources/app/node_modules/` via separate `extraResources` FileSet. Adds cross-platform packaged app smoke test script and CI integration to prevent future regressions. Closes #1636 (#1639 — thanks @prateek).
+- **feat(account-fallback):** Add model-level daily quota lockout. When a provider returns 429 with `quota_exhausted`, cooldown is set to tomorrow 00:00 instead of exponential backoff. Detects daily quota patterns via `isDailyQuotaExhausted()` in chat handler (#1644 — thanks @clousky2020).
+- **fix(codex):** Use per-conversation `session_id`/`conversation_id` from client body as `prompt_cache_key` instead of account-wide `workspaceId`. The official Codex CLI uses `conversation_id` (a unique UUID per session); using the shared `workspaceId` capped cache hit-rate at ~49%. Includes 10 unit tests (#1643).
+- **fix(claude):** Stabilize billing header fingerprint to prevent Anthropic prompt-cache prefix invalidation. The fingerprint was derived from the first user message text, which changes every turn, mutating `system[]` and forcing ~100% `cache_create`. Now uses a stable per-day hash, preserving ~96% `cache_read` hit rate (#1638).
+- **fix(transport):** Harden GitHub and Kiro streaming — thread `clientHeaders` through `BaseExecutor.buildHeaders()` to eliminate mutable singleton state race condition on concurrent requests. Remove redundant `[DONE]` stripping TransformStream from GitHub executor. Add defensive `parseToolInput()` for malformed Kiro tool call arguments. Hoist `TextEncoder`/`TextDecoder` to module singletons and use zero-copy `subarray()` (#1645 — thanks @dhaern).
+- **fix(transport):** Prevent memory bloat and database exhaustion from large, fragmented streaming responses. Implemented `ByteQueue` in `kiro.ts` for zero-copy binary accumulation, refactored `antigravity.ts` for incremental SSE parsing, and enforced a strict 512KB tiered truncation limit (`MAX_CALL_LOG_ARTIFACT_BYTES`) on stream request logs and call artifacts (#1647).
+- **chore(ci):** Update build environment dependencies — bump Node to `24.15.0`, `actions/checkout@v6`, `docker/build-push-action@v7`, pin `actions/setup-python` to major tag (#1646 — thanks @backryun).
+
+### 문서
+
+- **docs(env):** Add `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` to `.env.example` with documentation for LM Studio and other local provider use cases (#1623).
+
+---
+
+## [3.7.0] — 2026-04-26
 
 ### ✨ New Features
 
 - **feat(providers):** Implement Image Generation and Editing capabilities for ChatGPT Web, including in-band chat image generation and caching (#1606).
 - **feat(ui):** Integrate OpenCode Zen/Go API tool logo SVG and polish API key copy-to-clipboard interactions (#1607).
+- **feat(providers):** Add CrofAI as a built-in API-key provider with quota/usage monitoring wired into the dashboard Limits page (#1604, #1606).
+- **feat(skills):** Add workspace-scoped built-in skills (`file_read`, `file_write`, `http_request`, `eval_code`, `execute_command`) with real sandbox execution via Docker, replacing stub responses. Browser skills now fail explicitly when runtime is not configured.
 
 - **feat(providers):** Integrate AgentRouter as a new OpenAI-compatible passthrough provider with $200 free credits via sign-up (Issue #1572).
 - **feat(ui):** Implement on-demand per-model testing in the provider dashboard, allowing single-token diagnostic checks without triggering rate-limits (Issue #1532).
@@ -114,6 +370,14 @@
 - **fix(combo):** Resolve context truncation bug in combo routing to prevent incomplete execution states. (#1517)
 - **fix(compression):** Implement bidirectional tool_pair cleaning for anthropic inputs (fixes #1592).
 - **fix:** Resolve v3.7.0 stabilization issues including dashboard navigation routing, ProxyRegistryManager component layout, and models API response merging (#1566, #1560, #1559).
+- **fix(cli):** Preserve TOML integer/boolean types in Codex config round-trip to prevent `tui.model_availability_nux` validation errors.
+- **fix(tailscale):** Support sudo auth prompts and live daemon socket detection for non-root tunnel management.
+- **fix(dashboard):** Stabilize usage tab loading and refresh behavior to prevent empty state flashes.
+- **fix(i18n):** Translate 519 untranslated pt-BR keys and add missing Windsurf/Cline/Kimi docs keys.
+- **fix(i18n):** Add missing dashboard message keys across all 30 locales.
+- **fix(cli):** Align OpenCode config preview and add multi-model selection (#1602).
+- **fix(security):** Harden management API auth and OpenAPI try-proxy endpoint.
+- **fix(security):** Resolve vulnerability scan findings for auth-guarded routes.
 
 ### ♻️ Refactoring
 
@@ -133,6 +397,7 @@
 - **test(security):** Update prompt injection test for fail-closed policy alignment.
 - **test(core):** Restore local test fixes for encryption and resilience modules.
 - **test(next):** Align transpile package expectations for the Next.js standalone build.
+- **test(ci):** Fix CI-only test failures from environment differences — clear `INITIAL_PASSWORD` and `JWT_SECRET` in integration tests, handle `XDG_CONFIG_HOME` for guide-settings tests.
 
 ### 문서
 

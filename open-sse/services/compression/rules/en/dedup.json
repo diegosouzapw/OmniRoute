@@ -1,0 +1,38 @@
+{
+  "language": "en",
+  "category": "dedup",
+  "rules": [
+    {
+      "name": "repeated_context",
+      "pattern": "\\b(?:As we discussed earlier|As mentioned before|As previously stated|As I said before)\\b[,.]?\\s*",
+      "replacement": "See above. ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "repeated_question",
+      "pattern": "\\b(?:Same question as before|I asked this earlier|This is the same question)\\b[,.]?\\s*",
+      "replacement": "[same question] ",
+      "context": "user",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "reestablished_context",
+      "pattern": "\\b(?:Going back to the code above|Referring back to|Returning to)\\b\\s*",
+      "replacement": "Re: ",
+      "context": "all",
+      "category": "dedup",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "summary_replacement",
+      "pattern": "\\b(?:To summarize what we've discussed|In summary of our conversation|To recap)\\b[,.]?\\s*",
+      "replacement": "Summary: ",
+      "context": "assistant",
+      "category": "dedup",
+      "minIntensity": "lite"
+    }
+  ]
+}

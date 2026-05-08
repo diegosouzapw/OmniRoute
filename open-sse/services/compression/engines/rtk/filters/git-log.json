@@ -1,0 +1,33 @@
+{
+  "id": "git-log",
+  "label": "Git Log",
+  "description": "Keep commit identifiers and subjects from verbose logs.",
+  "category": "git",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["git-log"],
+    "commands": ["^git\\s+log\\b"],
+    "patterns": ["^commit [0-9a-f]{7,40}", "^Author: "]
+  },
+  "rules": {
+    "includePatterns": ["^commit [0-9a-f]{7,40}", "^\\s{4}\\S"],
+    "dropPatterns": ["^Author: ", "^Date: ", "^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 40,
+    "tailLines": 20
+  },
+  "preserve": {
+    "errorPatterns": ["^commit "],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "git log",
+      "input": "commit abcdef1234567890\nAuthor: Dev <dev@example.com>\nDate: today\n\n    feat: add rtk\n",
+      "expected": "commit abcdef1234567890\n    feat: add rtk"
+    }
+  ]
+}

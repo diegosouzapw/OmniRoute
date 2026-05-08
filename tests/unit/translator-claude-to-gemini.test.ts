@@ -76,7 +76,7 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
   );
 
   assert.deepEqual(result.systemInstruction, {
-    role: "user",
+    role: "system",
     parts: [{ text: "Rules" }],
   });
   assert.equal(result.contents[0].role, "model");
@@ -92,6 +92,7 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
     },
   });
   assert.equal(result.generationConfig.maxOutputTokens, 256);
+  assert.match((result as any).tools[0].functionDeclarations[0].name, /^[a-zA-Z0-9_]+$/);
   assert.equal(result.generationConfig.temperature, 0.4);
   assert.equal(result.generationConfig.topP, 0.8);
   assert.deepEqual(result.generationConfig.thinkingConfig, {
@@ -103,6 +104,19 @@ test("Claude -> Gemini maps system, thinking, tool use, tool result and tools", 
     type: "object",
     properties: { city: { type: "string" } },
   });
+});
+
+test("Claude -> Gemini clamps maxOutputTokens to the model cap", () => {
+  const result = claudeToGeminiRequest(
+    "gemini-2.5-flash",
+    {
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      max_tokens: 999999,
+    },
+    false
+  );
+
+  assert.equal(result.generationConfig.maxOutputTokens, 8192);
 });
 
 test("Claude -> Gemini converts text and base64 images to Gemini parts", () => {

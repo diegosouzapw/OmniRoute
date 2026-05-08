@@ -7,6 +7,7 @@ import {
 } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
+import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 
 /**
  * Direct Claude → Gemini request translator.
@@ -49,7 +50,7 @@ export function claudeToGeminiRequest(model, body, stream) {
     result.generationConfig.topK = body.top_k;
   }
   if (body.max_tokens !== undefined) {
-    result.generationConfig.maxOutputTokens = body.max_tokens;
+    result.generationConfig.maxOutputTokens = capMaxOutputTokens(model, body.max_tokens);
   }
 
   // ── System instruction ─────────────────────────────────────────
@@ -62,7 +63,7 @@ export function claudeToGeminiRequest(model, body, stream) {
     }
     if (systemText) {
       result.systemInstruction = {
-        role: "user",
+        role: "system",
         parts: [{ text: systemText }],
       };
     }
@@ -177,7 +178,9 @@ export function claudeToGeminiRequest(model, body, stream) {
 
   // ── Thinking config ────────────────────────────────────────────
   // Priority: thinking.budget_tokens (Claude native) > output_config.effort (Claude Code).
-  if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
+  if (model.startsWith("gemma-4")) {
+    // gemma-4 models returns - 400: Thinking budget is not supported for this model
+  } else if (body.thinking?.type === "enabled" && body.thinking.budget_tokens) {
     result.generationConfig.thinkingConfig = {
       thinkingBudget: body.thinking.budget_tokens,
       includeThoughts: true,

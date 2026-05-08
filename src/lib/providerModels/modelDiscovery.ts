@@ -48,7 +48,10 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
     deduped.set(id, {
       id,
       name,
-      source: "api-sync",
+      source: "imported",
+      ...(toNonEmptyString(record.apiFormat)
+        ? { apiFormat: toNonEmptyString(record.apiFormat)! }
+        : {}),
       ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
       ...(typeof record.inputTokenLimit === "number"
         ? { inputTokenLimit: record.inputTokenLimit }

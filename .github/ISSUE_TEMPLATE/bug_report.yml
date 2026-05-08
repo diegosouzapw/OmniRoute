@@ -13,7 +13,7 @@ body:
     attributes:
       label: OmniRoute Version
       description: "Run `omniroute --version` or check the left sidebar in the dashboard."
-      placeholder: "e.g. 3.0.9"
+      placeholder: "e.g. 3.7.9"
     validations:
       required: true
 
@@ -44,7 +44,7 @@ body:
     id: os-version
     attributes:
       label: OS Version
-      placeholder: "e.g. Windows 11 23H2, macOS 15.3, Ubuntu 24.04"
+      placeholder: "e.g. Windows 11 25H2, macOS 26.5, Ubuntu 26.04"
     validations:
       required: false
 
@@ -53,7 +53,7 @@ body:
     attributes:
       label: Node.js Version
       description: "Run `node --version`. Skip if using Docker."
-      placeholder: "e.g. 22.12.0"
+      placeholder: "e.g. 24.15.0"
     validations:
       required: false
 
@@ -70,7 +70,7 @@ body:
     id: model
     attributes:
       label: Model(s) Involved
-      placeholder: "e.g. claude-sonnet-4-20250514, gpt-4o, gemini-2.5-pro"
+      placeholder: "e.g. claude-opus-4-7, gpt-5.5, gemini-3.1-pro"
     validations:
       required: false
 

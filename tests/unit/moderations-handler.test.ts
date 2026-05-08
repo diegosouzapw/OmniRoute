@@ -70,7 +70,8 @@ test("handleModeration proxies successful requests with default model and access
     input: "all clear",
   });
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
+  assert.match(response.headers.get("access-control-allow-methods") || "", /OPTIONS/);
   assert.deepEqual(await response.json(), {
     id: "modr-1",
     results: [{ flagged: false }],
@@ -92,7 +93,8 @@ test("handleModeration returns upstream error payloads with CORS headers", async
   assert.equal(response.status, 429);
   assert.equal(await response.text(), '{"error":"busy"}');
   assert.equal(response.headers.get("content-type"), "application/json");
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
+  assert.match(response.headers.get("access-control-allow-methods") || "", /OPTIONS/);
 });
 
 test("handleModeration returns a 500 when the upstream request throws", async () => {

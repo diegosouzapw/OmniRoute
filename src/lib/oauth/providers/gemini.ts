@@ -1,4 +1,5 @@
 import { GEMINI_CONFIG } from "../constants/oauth";
+import { getGeminiCliLoadCodeAssistMetadata } from "@omniroute/open-sse/services/geminiCliHeaders.ts";
 
 export const gemini = {
   config: GEMINI_CONFIG,
@@ -72,11 +73,7 @@ export const gemini = {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            metadata: {
-              ideType: "IDE_UNSPECIFIED",
-              platform: "PLATFORM_UNSPECIFIED",
-              pluginType: "GEMINI",
-            },
+            metadata: getGeminiCliLoadCodeAssistMetadata(),
           }),
         }
       );

@@ -71,10 +71,10 @@ describe("OpenRouter & GitHub registry entries (#960)", () => {
       assert.ok(p.models.length >= 2, `Expected ≥2 models, got ${p.models.length}`);
     });
 
-    it("parses openrouter/openai/dall-e-3 correctly", () => {
-      const result = parseImageModel("openrouter/openai/dall-e-3");
+    it("parses openrouter/openai/gpt-5.4-image-2 correctly", () => {
+      const result = parseImageModel("openrouter/openai/gpt-5.4-image-2");
       assert.equal(result.provider, "openrouter");
-      assert.equal(result.model, "openai/dall-e-3");
+      assert.equal(result.model, "openai/gpt-5.4-image-2");
     });
   });
 });

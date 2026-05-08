@@ -52,6 +52,11 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
 
   const result: JsonRecord = { ...schema };
 
+  // Fix #1782: Strip 'default' property to prevent upstream models from eagerly injecting optional fields
+  if ("default" in result) {
+    delete result.default;
+  }
+
   for (const field of NUMERIC_SCHEMA_FIELDS) {
     if (field in result) {
       result[field] = coerceNumericString(result[field]);

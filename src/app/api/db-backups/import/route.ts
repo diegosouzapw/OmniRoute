@@ -21,7 +21,7 @@ const REQUIRED_TABLES = ["provider_connections", "provider_nodes", "combos", "ap
  * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-3).
  */
 export async function POST(request: Request) {
-  if (await isAuthRequired()) {
+  if (await isAuthRequired(request)) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

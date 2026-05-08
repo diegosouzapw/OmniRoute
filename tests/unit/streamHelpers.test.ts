@@ -25,6 +25,11 @@ describe("hasValuableContent", () => {
       assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
     });
 
+    it("returns true for Copilot reasoning_text", () => {
+      const chunk = { choices: [{ delta: { reasoning_text: "thinking" } }] };
+      assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);
+    });
+
     it("returns true for finish_reason", () => {
       const chunk = { choices: [{ delta: {}, finish_reason: "stop" }] };
       assert.strictEqual(hasValuableContent(chunk, FORMATS.OPENAI), true);

@@ -18,7 +18,7 @@
  *   4. process.env            (shell / Docker -e flags, highest priority)
  */
 
-import { randomBytes, createDecipheriv } from "node:crypto";
+import { randomBytes, createDecipheriv, scryptSync, createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
@@ -246,14 +246,41 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
               const iv = Buffer.from(parts[2], "hex");
               const ct = Buffer.from(parts[3], "hex");
               const tag = Buffer.from(parts[4], "hex");
-              const key = Buffer.from(merged.STORAGE_ENCRYPTION_KEY, "hex");
-              const decipher = createDecipheriv("aes-256-gcm", key, iv);
-              decipher.setAuthTag(tag);
-              try {
+
+              // Try decrypting with both key derivation methods matching encryption.ts
+              const tryDecrypt = (derivedKey) => {
+                const decipher = createDecipheriv("aes-256-gcm", derivedKey, iv);
+                decipher.setAuthTag(tag);
                 decipher.update(ct);
                 decipher.final();
-                // Decrypt succeeded — key matches
+              };
+
+              // Dynamic salt (current): scryptSync(secret, sha256(secret).slice(0,16), 32)
+              const dynamicSalt = createHash("sha256")
+                .update(merged.STORAGE_ENCRYPTION_KEY)
+                .digest()
+                .slice(0, 16);
+              const dynamicKey = scryptSync(merged.STORAGE_ENCRYPTION_KEY, dynamicSalt, 32);
+
+              // Legacy salt (fallback): scryptSync(secret, "omniroute-field-encryption-v1", 32)
+              const legacySalt = "omniroute-field-encryption-v1";
+              const legacyKey = scryptSync(merged.STORAGE_ENCRYPTION_KEY, legacySalt, 32);
+
+              let keyMatched = false;
+              try {
+                tryDecrypt(dynamicKey);
+                keyMatched = true;
               } catch {
+                // Try legacy key as fallback
+                try {
+                  tryDecrypt(legacyKey);
+                  keyMatched = true;
+                } catch {
+                  // Both failed — key truly doesn't match
+                }
+              }
+
+              if (!keyMatched) {
                 log(
                   "⛔ STORAGE_ENCRYPTION_KEY does not match the key used to encrypt your stored credentials."
                 );

@@ -12,14 +12,22 @@ import {
 
 /**
  * Compute date range boundaries
- * @param {string} range - "1d" | "7d" | "30d" | "90d" | "ytd" | "all"
+ * @param {string} range - "1d" | "7d" | "30d" | "90d" | "ytd" | "all" | "custom"
+ * @param {string} [startDate] - ISO string for custom range start
+ * @param {string} [endDate] - ISO string for custom range end
  * @returns {{ start: Date, end: Date }}
  */
-function getDateRange(range: string) {
+function getDateRange(range: string, startDate?: string, endDate?: string) {
   const end = new Date();
   let start;
 
   switch (range) {
+    case "custom":
+      start = startDate ? new Date(startDate) : new Date(0);
+      return {
+        start,
+        end: endDate ? new Date(endDate) : end,
+      };
     case "1d":
       start = new Date(end);
       start.setDate(start.getDate() - 1);
@@ -78,9 +86,10 @@ function shortModelName(model: string) {
 export async function computeAnalytics(
   history: any[],
   range = "30d",
-  connectionMap: Record<string, string> = {}
+  connectionMap: Record<string, string> = {},
+  options: { startDate?: string; endDate?: string } = {}
 ) {
-  const { start, end } = getDateRange(range);
+  const { start, end } = getDateRange(range, options.startDate, options.endDate);
 
   // ---- Filtered entries ----
   const entries = history.filter((e) => {

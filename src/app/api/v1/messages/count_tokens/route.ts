@@ -38,23 +38,6 @@ export async function POST(request) {
   }
   const body = validation.data;
 
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "Missing API key" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      });
-    }
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) {
-      return new Response(JSON.stringify({ error: "Invalid API key" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...CORS_HEADERS },
-      });
-    }
-  }
-
   const estimated = buildEstimatedCountResponse(body);
   const requestedModel = typeof body.model === "string" ? body.model : "";
   if (!requestedModel) {

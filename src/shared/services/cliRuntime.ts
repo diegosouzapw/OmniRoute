@@ -717,6 +717,19 @@ const locateCommandCandidate = async (
           reason: null,
         };
       }
+
+      if (result.installed && result.reason === "not_executable") {
+        return {
+          command: commands[0],
+          installed: true,
+          commandPath: result.commandPath,
+          reason: "not_executable",
+        };
+      }
+
+      if (result.reason && result.reason !== "not_found") {
+        return { command: commands[0], ...result };
+      }
     }
   }
 

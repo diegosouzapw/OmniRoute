@@ -333,18 +333,18 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 > **Source:** `open-sse/executors/base.ts` → `buildHeaders()`
 
-| Variable                 | Default Value                                | When to Update                                                |
-| ------------------------ | -------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/1.0.83 (external, cli)`          | When Anthropic releases a new CLI version                     |
-| `CODEX_USER_AGENT`       | `codex-cli/0.92.0 (Windows 10.0.26100; x64)` | When OpenAI updates the Codex CLI                             |
-| `CODEX_CLIENT_VERSION`   | `0.92.0`                                     | Override Codex client version independently of full UA string |
-| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.26.7`                   | When GitHub Copilot Chat updates                              |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.104.0 darwin/arm64`           | When Antigravity IDE updates                                  |
-| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`            | When Kiro IDE updates                                         |
-| `QODER_USER_AGENT`       | `Qoder-Cli`                                  | When Qoder CLI updates                                        |
-| `QWEN_USER_AGENT`        | `QwenCode/0.12.3 (linux; x64)`               | When Qwen Code updates                                        |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                           | When Cursor updates                                           |
-| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/9.15.1`            | When Google API client updates                                |
+| Variable                 | Default Value                                 | When to Update                                                |
+| ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.121 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.125.0 (Windows 10.0.26100; x64)` | When OpenAI updates the Codex CLI                             |
+| `CODEX_CLIENT_VERSION`   | `0.125.0`                                     | Override Codex client version independently of full UA string |
+| `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.107.0 darwin/arm64`            | When Antigravity IDE updates                                  |
+| `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
+| `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.3 (linux; x64)`                | When Qwen Code updates                                        |
+| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
+| `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
 
 > [!TIP]
 > You can add User-Agent overrides for **any** provider using the pattern `{PROVIDER_ID}_USER_AGENT`. The executor dynamically constructs the env var name.
@@ -464,19 +464,21 @@ REQUEST_TIMEOUT_MS (global override)
 
 The logging system writes to both stdout and rotated log files. All configuration is read by `src/lib/logEnv.ts`.
 
-| Variable                    | Default                    | Description                                                                  |
-| --------------------------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `APP_LOG_LEVEL`             | `info`                     | Minimum log level: `debug`, `info`, `warn`, `error`.                         |
-| `APP_LOG_FORMAT`            | `text`                     | Output format: `text` (human-readable) or `json` (structured).               |
-| `APP_LOG_TO_FILE`           | `true`                     | Write logs to file alongside stdout.                                         |
-| `APP_LOG_FILE_PATH`         | `logs/application/app.log` | Log file path (relative to project root or `DATA_DIR`).                      |
-| `APP_LOG_MAX_FILE_SIZE`     | `50M`                      | Max file size before rotation. Accepts: `50M`, `1G`, `512K`, or plain bytes. |
-| `APP_LOG_RETENTION_DAYS`    | `7`                        | Days to keep rotated application log files.                                  |
-| `APP_LOG_MAX_FILES`         | `20`                       | Maximum rotated log file backups.                                            |
-| `CALL_LOG_RETENTION_DAYS`   | `7`                        | Days to keep request/call log entries in the database.                       |
-| `CALL_LOG_MAX_ENTRIES`      | `10000`                    | Max call log entries in the in-memory buffer.                                |
-| `CALL_LOGS_TABLE_MAX_ROWS`  | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                     |
-| `PROXY_LOGS_TABLE_MAX_ROWS` | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                    |
+| Variable                                  | Default                    | Description                                                                      |
+| ----------------------------------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| `APP_LOG_LEVEL`                           | `info`                     | Minimum log level: `debug`, `info`, `warn`, `error`.                             |
+| `APP_LOG_FORMAT`                          | `text`                     | Output format: `text` (human-readable) or `json` (structured).                   |
+| `APP_LOG_TO_FILE`                         | `true`                     | Write logs to file alongside stdout.                                             |
+| `APP_LOG_FILE_PATH`                       | `logs/application/app.log` | Log file path (relative to project root or `DATA_DIR`).                          |
+| `APP_LOG_MAX_FILE_SIZE`                   | `50M`                      | Max file size before rotation. Accepts: `50M`, `1G`, `512K`, or plain bytes.     |
+| `APP_LOG_RETENTION_DAYS`                  | `7`                        | Days to keep rotated application log files.                                      |
+| `APP_LOG_MAX_FILES`                       | `20`                       | Maximum rotated log file backups.                                                |
+| `CALL_LOG_RETENTION_DAYS`                 | `7`                        | Days to keep request/call log entries in the database.                           |
+| `CALL_LOG_MAX_ENTRIES`                    | `10000`                    | Max call log entries in the in-memory buffer.                                    |
+| `CALL_LOGS_TABLE_MAX_ROWS`                | `100000`                   | Max rows in the `call_logs` SQLite table before pruning.                         |
+| `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS` | `true`                     | Store stream chunks in pipeline artifacts when `call_log_pipeline_enabled=true`. |
+| `CALL_LOG_PIPELINE_MAX_SIZE_KB`           | `512`                      | Max pipeline call log artifact size in KB when `call_log_pipeline_enabled=true`. |
+| `PROXY_LOGS_TABLE_MAX_ROWS`               | `100000`                   | Max rows in the `proxy_logs` SQLite table before pruning.                        |
 
 ---
 
@@ -494,6 +496,12 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `STREAM_HISTORY_MAX`       | `50`                            | Max recent stream events in the Dashboard live view buffer.            |
 | `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
 | `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
+
+### Compression
+
+| Variable                              | Default | Description                                                                                                   |
+| ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS` | unset   | Trust project `.rtk/filters.json` without a `.rtk/trust.json` hash. Use only in controlled local development. |
 
 ### Low-RAM Docker Example
 
@@ -539,11 +547,16 @@ Automatic model pricing data synchronization from external sources.
 | `CLOUDFLARED_BIN`                         | auto-detect        | `src/lib/cloudflaredTunnel.ts`             | Custom path to `cloudflared` binary.                                                  |
 | `SEARCH_CACHE_TTL_MS`                     | `300000` (5 min)   | `open-sse/services/searchCache.ts`         | TTL for search API (Perplexity, Brave, etc.) response caching.                        |
 | `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE` | `false`            | `src/app/api/providers/route.ts`           | Allow multiple simultaneous connections per OpenAI-compatible provider.               |
-| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Enable experimental Claude Code compatible provider endpoint.                         |
+| `ENABLE_CC_COMPATIBLE_PROVIDER`           | `false`            | `src/shared/utils/featureFlags.ts`         | Reveal the experimental CC-compatible provider UI for Claude Code-only relays.        |
 | `CLIPROXYAPI_HOST`                        | `127.0.0.1`        | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge host (legacy integration).                                         |
 | `CLIPROXYAPI_PORT`                        | `5544`             | `open-sse/executors/cliproxyapi.ts`        | CLIProxyAPI bridge port.                                                              |
 | `CLIPROXYAPI_CONFIG_DIR`                  | `~/.cli-proxy-api` | `src/lib/versionManager/processManager.ts` | CLIProxyAPI config directory.                                                         |
 | `LOCAL_HOSTNAMES`                         | _(empty)_          | `open-sse/config/providerRegistry.ts`      | Comma-separated additional hostnames treated as "local" (Docker service names, etc.). |
+
+`ENABLE_CC_COMPATIBLE_PROVIDER` is only for third-party relays that accept Claude Code clients
+exclusively. OmniRoute rewrites requests so those relays accept them. If you only want to use
+Claude Code CLI, or you are not sure what these relays are, keep this disabled and add a regular
+Anthropic-compatible provider instead.
 
 ---
 

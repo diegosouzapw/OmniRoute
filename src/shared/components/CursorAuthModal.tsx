@@ -1,17 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
 
+type CursorAuthModalProps = {
+  isOpen: boolean;
+  onSuccess?: () => void;
+  onClose: () => void;
+  reauthConnection?: unknown;
+};
+
 /**
  * Cursor Auth Modal
  * Auto-detect and import token from Cursor IDE's local SQLite database
  */
-export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
+export default function CursorAuthModal({
+  isOpen,
+  onSuccess,
+  onClose,
+  reauthConnection: _,
+}: CursorAuthModalProps) {
   const t = useTranslations("cursorAuthModal");
   const [accessToken, setAccessToken] = useState("");
   const [machineId, setMachineId] = useState("");
@@ -185,9 +196,3 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
     </Modal>
   );
 }
-
-CursorAuthModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

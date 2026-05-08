@@ -135,14 +135,19 @@ jobs:
 
       - name: Smoke packaged Electron app
         if: matrix.platform != 'linux'
+        # Windows CI: requestSingleInstanceLock() fails due to USERPROFILE
+        # sanitization needed for the build step. Smoke is best-effort there.
+        continue-on-error: ${{ matrix.platform == 'windows' }}
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
         run: npm run electron:smoke:packaged
 
       - name: Smoke packaged Electron app (Linux)
         if: matrix.platform == 'linux'
         env:
           ELECTRON_SMOKE_TIMEOUT_MS: 60000
+          ELECTRON_SMOKE_STREAM_LOGS: "1"
         run: xvfb-run -a npm run electron:smoke:packaged
 
       - name: Collect installers

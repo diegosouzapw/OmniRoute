@@ -144,7 +144,7 @@ function convertMessages(messages, tools, model) {
 
             pendingToolResults.push({
               toolUseId: block.tool_use_id,
-              status: "success",
+              status: "SUCCESS",
               content: [{ text: text }],
             });
           });
@@ -156,7 +156,7 @@ function convertMessages(messages, tools, model) {
         const toolContent = typeof msg.content === "string" ? msg.content : "";
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
-          status: "success",
+          status: "SUCCESS",
           content: [{ text: toolContent }],
         });
       } else if (content) {
@@ -229,6 +229,13 @@ function convertMessages(messages, tools, model) {
   // If last message in history is userInputMessage, use it as currentMessage
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
+  } else if (!currentMessage) {
+    currentMessage = {
+      userInputMessage: {
+        content: "Continue",
+        modelId: model,
+      },
+    };
   }
 
   const firstHistoryItem = history[0];

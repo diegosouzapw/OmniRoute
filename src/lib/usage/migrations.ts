@@ -281,8 +281,10 @@ export function migrateUsageJsonToSqlite() {
               connectionId: entry.connectionId || null,
               apiKeyId: entry.apiKeyId || null,
               apiKeyName: entry.apiKeyName || null,
-              tokensInput: entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? 0,
-              tokensOutput: entry.tokens?.output ?? entry.tokens?.completion_tokens ?? 0,
+              tokensInput:
+                entry.tokens?.input ?? entry.tokens?.prompt_tokens ?? entry.tokens?.in ?? 0,
+              tokensOutput:
+                entry.tokens?.output ?? entry.tokens?.completion_tokens ?? entry.tokens?.out ?? 0,
               tokensCacheRead: entry.tokens?.cacheRead ?? entry.tokens?.cached_tokens ?? 0,
               tokensCacheCreation:
                 entry.tokens?.cacheCreation ?? entry.tokens?.cache_creation_input_tokens ?? 0,
@@ -358,7 +360,7 @@ export function migrateUsageJsonToSqlite() {
 
             if (detailExpected) {
               const artifact: CallLogArtifact = {
-                schemaVersion: 4,
+                schemaVersion: 5,
                 summary: {
                   id,
                   timestamp,

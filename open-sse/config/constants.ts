@@ -11,10 +11,16 @@ const upstreamTimeouts = getUpstreamTimeoutConfig(process.env, (message) => {
 // and Undici's bodyTimeout instead of this one-shot startup timer.
 export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 
-// Idle timeout for SSE streams (ms). Closes stream if no data for this duration.
-// Default: 120s balances deep-reasoning pauses with fast zombie stream detection (#473).
-// Extended-thinking models rarely pause >90s between chunks. Override with STREAM_IDLE_TIMEOUT_MS env var.
+// Idle timeout for SSE streams (ms). Before a stream is accepted, the same
+// budget is used to wait for the first useful event so HTTP 200 zombie streams
+// can fail fast and trigger fallback. After startup, it closes streams that go
+// idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
+
+// Timeout for reading the full response body after headers arrive (ms).
+// Prevents indefinite hangs when the upstream sends headers but stalls on the body.
+// Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
+export const FETCH_BODY_TIMEOUT_MS = upstreamTimeouts.fetchBodyTimeoutMs;
 
 // Provider configurations
 // OAuth credentials read from env vars with hardcoded fallbacks for backward compatibility.
@@ -133,22 +139,22 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 5000, // 5s (session tokens — short recovery)
     rateLimitCooldown: 60000, // 60s default when no retry-after header
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
-    circuitBreakerThreshold: 3, // Opens fast (low limit providers)
+    circuitBreakerThreshold: 8, // Scaled for 500+ connections (was 3)
     circuitBreakerReset: 60000, // 1min reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 3, // 3 transient failures trigger provider cooldown
-    providerFailureWindowMs: 600000, // 10min window for counting failures
+    providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
+    providerFailureWindowMs: 900000, // 15min window (was 10min)
     providerCooldownMs: 300000, // 5min cooldown when threshold reached
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
     rateLimitCooldown: 0, // 0 = respect retry-after header from provider
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
-    circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
+    circuitBreakerThreshold: 12, // Scaled for 500+ connections (was 5)
     circuitBreakerReset: 30000, // 30s reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 5, // 5 transient failures trigger provider cooldown
-    providerFailureWindowMs: 1200000, // 20min window for counting failures
+    providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
+    providerFailureWindowMs: 1800000, // 30min window (was 20min)
     providerCooldownMs: 600000, // 10min cooldown when threshold reached
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).

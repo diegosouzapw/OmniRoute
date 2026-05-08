@@ -115,7 +115,7 @@ test("getTransientBuildPaths leaves _tasks in place by default", () => {
     ["legacy app snapshot", "local Wine prefix"]
   );
   assert.equal(
-    paths.some((entry) => entry.sourcePath === "/repo/_tasks"),
+    paths.some((entry) => path.basename(entry.sourcePath) === "_tasks"),
     false
   );
 });
@@ -124,7 +124,7 @@ test("getTransientBuildPaths only moves _tasks when explicitly enabled", () => {
   const paths = getTransientBuildPaths("/repo", { OMNIROUTE_BUILD_MOVE_TASKS: "1" });
 
   assert.equal(
-    paths.some((entry) => entry.sourcePath === "/repo/_tasks"),
+    paths.some((entry) => path.basename(entry.sourcePath) === "_tasks"),
     true
   );
 });
@@ -170,6 +170,6 @@ test("syncStandaloneNativeAssets copies wreq-js native runtime into standalone o
 
     assert.equal(changed, true);
     assert.equal(await fs.readFile(destinationNativeFile, "utf8"), "native module bytes");
-    assert.match(logs[0] ?? "", /wreq-js\/rust/);
+    assert.match((logs[0] ?? "").replaceAll("\\", "/"), /wreq-js\/rust/);
   });
 });

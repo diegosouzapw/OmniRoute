@@ -355,8 +355,23 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
   assert.equal(jinaBody.source, "local_catalog");
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v3"));
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-embeddings-v5-text-small" &&
+        model.apiFormat === "embeddings" &&
+        model.supportedEndpoints?.includes("embeddings")
+    )
+  );
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-reranker-v3" &&
+        model.apiFormat === "rerank" &&
+        model.supportedEndpoints?.includes("rerank")
+    )
+  );
+  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-m0"));
 });
 
 test("provider models route returns the local catalog for Runway video models", async () => {
@@ -435,6 +450,25 @@ test("provider models route returns the local catalog for new built-in chat-open
   assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
 });
 
+test("provider models route merges Upstage chat and embedding catalogs", async () => {
+  const connection = await seedConnection("upstage", {
+    apiKey: "upstage-key",
+  });
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+  const modelIds = body.models.map((model) => model.id);
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "upstage");
+  assert.equal(body.source, "local_catalog");
+  assert.ok(modelIds.includes("solar-pro3"));
+  assert.ok(modelIds.includes("solar-mini"));
+  assert.ok(modelIds.includes("embedding-query"));
+  assert.ok(modelIds.includes("embedding-passage"));
+  assert.equal(modelIds.includes("document-parse"), false);
+});
+
 test("provider models route caches discovered opencode-go models per connection", async () => {
   const connection = await seedConnection("opencode-go", {
     apiKey: "opencode-go-key",
@@ -461,7 +495,7 @@ test("provider models route caches discovered opencode-go models per connection"
   assert.equal(firstResponse.status, 200);
   assert.equal(firstBody.source, "api");
   assert.deepEqual(firstBody.models, [{ id: "glm-5.1", name: "GLM 5.1" }]);
-  assert.deepEqual(cachedModels, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+  assert.deepEqual(cachedModels, [{ id: "glm-5.1", name: "GLM 5.1", source: "imported" }]);
 
   globalThis.fetch = async () => {
     throw new Error("cached route should not hit upstream");
@@ -472,7 +506,7 @@ test("provider models route caches discovered opencode-go models per connection"
 
   assert.equal(cachedResponse.status, 200);
   assert.equal(cachedBody.source, "cache");
-  assert.deepEqual(cachedBody.models, [{ id: "glm-5.1", name: "GLM 5.1", source: "api-sync" }]);
+  assert.deepEqual(cachedBody.models, [{ id: "glm-5.1", name: "GLM 5.1", source: "imported" }]);
   assert.equal(fetchCalls, 1);
 });
 
@@ -481,7 +515,7 @@ test("provider models route falls back to cached models when a refresh fails", a
     apiKey: "opencode-go-key",
   });
   await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
-    { id: "cached-go", name: "Cached Go", source: "api-sync" },
+    { id: "cached-go", name: "Cached Go", source: "imported" },
   ]);
   let fetchCalls = 0;
 
@@ -496,7 +530,7 @@ test("provider models route falls back to cached models when a refresh fails", a
   assert.equal(response.status, 200);
   assert.equal(body.source, "cache");
   assert.match(body.warning, /cached catalog/i);
-  assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "api-sync" }]);
+  assert.deepEqual(body.models, [{ id: "cached-go", name: "Cached Go", source: "imported" }]);
   assert.equal(fetchCalls, 1);
 });
 
@@ -505,7 +539,7 @@ test("provider models route clears cached discovery when a refresh returns no re
     apiKey: "opencode-go-key",
   });
   await modelsDb.replaceSyncedAvailableModelsForConnection("opencode-go", connection.id, [
-    { id: "cached-go", name: "Cached Go", source: "api-sync" },
+    { id: "cached-go", name: "Cached Go", source: "imported" },
   ]);
 
   globalThis.fetch = async () => {
@@ -1224,7 +1258,7 @@ test("provider models route discovers Modal models from the configured OpenAI-co
   ]);
 });
 
-test("provider models route discovers Reka models from the named OpenAI-compatible /v1 endpoint", async () => {
+test("provider models route always returns the Reka preset catalog", async () => {
   const connection = await seedConnection("reka", {
     apiKey: "reka-key",
     providerSpecificData: {
@@ -1232,13 +1266,8 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
     },
   });
 
-  globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://api.reka.ai/v1/models");
-    assert.equal(init.method, "GET");
-    assert.equal(init.headers.Authorization, "Bearer reka-key");
-    assert.equal(init.headers["X-Api-Key"], "reka-key");
-
-    return Response.json([{ id: "reka-core", name: "Reka Core" }, { id: "reka-flash" }]);
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed");
   };
 
   const response = await callRoute(connection.id);
@@ -1246,19 +1275,34 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "reka");
-  assert.equal(body.source, "api");
-  assert.deepEqual(body.models, [
-    {
-      id: "reka-core",
-      name: "Reka Core",
-      owned_by: "reka",
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
+});
+
+test("provider models route returns Reka local catalog without an API key", async () => {
+  const connection = await seedConnection("reka", {
+    providerSpecificData: {
+      baseUrl: "https://api.reka.ai/v1",
     },
-    {
-      id: "reka-flash",
-      name: "reka-flash",
-      owned_by: "reka",
-    },
-  ]);
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed without a token");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "reka");
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
 });
 
 test("provider models route discovers SAP models from AI_API_URL derived from deploymentUrl", async () => {

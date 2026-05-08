@@ -349,7 +349,7 @@ export function getSafeOutboundFetchErrorStatus(error: unknown) {
     error.code === "URL_GUARD_BLOCKED" ||
     error.code === "REDIRECT_BLOCKED"
   ) {
-    return 400;
+    return 503;
   }
 
   return null;

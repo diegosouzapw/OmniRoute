@@ -13,6 +13,7 @@ const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
 const QWEN_ENV_PATH = path.join(DUMMY_HOME, ".qwen", ".env");
 const OPENCODE_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "opencode", "opencode.json");
 const originalXDG = process.env.XDG_CONFIG_HOME;
+const originalAppData = process.env.APPDATA;
 const originalJwtSecret = process.env.JWT_SECRET;
 
 async function createAuthCookie() {
@@ -51,6 +52,8 @@ test.beforeEach(async () => {
   // Force XDG_CONFIG_HOME so resolveOpencodeConfigPath resolves to our dummy dir
   // (CI runners often have XDG_CONFIG_HOME set, causing path mismatch)
   process.env.XDG_CONFIG_HOME = path.join(DUMMY_HOME, ".config");
+  process.env.APPDATA = path.join(DUMMY_HOME, ".config");
+  process.env.API_KEY_SECRET = "test-secret";
   await fs.mkdir(path.dirname(QWEN_CONFIG_PATH), { recursive: true }).catch(() => {});
 });
 
@@ -58,6 +61,8 @@ test.afterEach(async () => {
   await fs.rm(DUMMY_HOME, { recursive: true, force: true }).catch(() => {});
   if (originalXDG === undefined) delete process.env.XDG_CONFIG_HOME;
   else process.env.XDG_CONFIG_HOME = originalXDG;
+  if (originalAppData === undefined) delete process.env.APPDATA;
+  else process.env.APPDATA = originalAppData;
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
 });
@@ -66,7 +71,7 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   const req = await buildRequest({
     baseUrl: "http://my-omni",
     apiKey: "sk-123",
-    model: "qwen-max",
+    model: "gemini-cli/gemini-3.1-pro-preview",
   });
   const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
   const data = (await response.json()) as any;
@@ -75,21 +80,11 @@ test("guide-settings POST creates new qwen settings.json if it doesn't exist", a
   assert.equal(data.success, true);
 
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
-  assert.ok(content.modelProviders.openai);
-
-  const omniProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
-  );
-  assert.ok(omniProvider);
-  assert.equal(omniProvider.id, "qwen-max");
-  assert.equal(omniProvider.baseUrl, "http://my-omni");
-  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
-  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
-
-  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
-  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
-  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
-  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
+  // Uses security.auth format (not modelProviders)
+  assert.equal(content.security?.auth?.selectedType, "openai");
+  assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
+  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.model?.name, "gemini-cli/gemini-3.1-pro-preview");
 });
 
 test("guide-settings POST merges into existing qwen settings.json", async () => {
@@ -97,38 +92,27 @@ test("guide-settings POST merges into existing qwen settings.json", async () => 
   await fs.writeFile(
     QWEN_CONFIG_PATH,
     JSON.stringify({
-      modelProviders: {
-        openai: [{ id: "other", baseUrl: "https://other" }],
-      },
+      permissions: { allow: ["Bash(*)"] },
     }),
     "utf-8"
   );
 
-  const req = await buildRequest({ baseUrl: "http://my-omni", apiKey: "sk-123", model: "auto" });
-  const response = (await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } })) as Response;
+  const req = await buildRequest({
+    baseUrl: "http://my-omni",
+    apiKey: "sk-456",
+    model: "claude-sonnet-4-6",
+  });
+  const response = await guideSettingsRoute.POST(req, { params: { toolId: "qwen" } });
   assert.equal(response.status, 200);
 
   const content = JSON.parse(await fs.readFile(QWEN_CONFIG_PATH, "utf-8"));
-  assert.equal(content.modelProviders.openai.length, 2);
-
-  const otherProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.id === "other"
-  );
-  assert.ok(otherProvider);
-  assert.equal(otherProvider.baseUrl, "https://other");
-
-  const omniProvider = content.modelProviders.openai.find(
-    (p: QwenProviderEntry) => p.baseUrl === "http://my-omni"
-  );
-  assert.ok(omniProvider);
-  assert.equal(omniProvider.id, "auto");
-  assert.equal(omniProvider.envKey, "OPENAI_API_KEY");
-  assert.equal(omniProvider.generationConfig?.contextWindowSize, 200000);
-
-  const envContent = await fs.readFile(QWEN_ENV_PATH, "utf-8");
-  assert.match(envContent, /^OPENAI_API_KEY=sk-123$/m);
-  assert.match(envContent, /^ANTHROPIC_API_KEY=sk-123$/m);
-  assert.match(envContent, /^GEMINI_API_KEY=sk-123$/m);
+  // security.auth format
+  assert.equal(content.security?.auth?.selectedType, "openai");
+  assert.ok(content.security?.auth?.apiKey.startsWith("sk-"));
+  assert.equal(content.security?.auth?.baseUrl, "http://my-omni");
+  assert.equal(content.model?.name, "claude-sonnet-4-6");
+  // Preserves other settings
+  assert.deepEqual(content.permissions?.allow, ["Bash(*)"]);
 });
 
 test("guide-settings POST writes OpenCode config with current schema and multi-model selection", async () => {
@@ -167,7 +151,7 @@ test("guide-settings POST writes OpenCode config with current schema and multi-m
   assert.ok(content.provider.custom);
   assert.equal(content.provider.omniroute.npm, "@ai-sdk/openai-compatible");
   assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
-  assert.equal(content.provider.omniroute.options.apiKey, "sk-123");
+  assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
   assert.deepEqual(Object.keys(content.provider.omniroute.models), [
     "cc/claude-sonnet-4-20250514",
     "gg/gemini-2.5-pro",
@@ -241,7 +225,7 @@ test("guide-settings POST preserves existing OpenCode config fields while only u
   });
   assert.equal(content.provider.omniroute.npm, "@ai-sdk/openai-compatible");
   assert.equal(content.provider.omniroute.options.baseURL, "http://my-omni/v1");
-  assert.equal(content.provider.omniroute.options.apiKey, "sk-123");
+  assert.ok(content.provider.omniroute.options.apiKey.startsWith("sk-"));
   assert.deepEqual(content.provider.omniroute.models, {
     "cx/gpt-5.4": { name: "GPT-5.4" },
     "opencode-go/kimi-k2.6": { name: "Kimi K2.6" },

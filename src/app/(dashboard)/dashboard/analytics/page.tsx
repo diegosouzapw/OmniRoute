@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { UsageAnalytics, CardSkeleton, SegmentedControl } from "@/shared/components";
 import EvalsTab from "../usage/components/EvalsTab";
 import SearchAnalyticsTab from "./SearchAnalyticsTab";
+import CompressionAnalyticsTab from "./CompressionAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";
 import ProviderUtilizationTab from "./ProviderUtilizationTab";
 import ComboHealthTab from "./ComboHealthTab";
@@ -19,6 +20,7 @@ export default function AnalyticsPage() {
     search: "Search request analytics — provider breakdown, cache hit rate, and cost tracking.",
     utilization: t("utilizationDescription"),
     comboHealth: t("comboHealthDescription"),
+    compression: t("compressionAnalyticsDescription"),
   };
 
   return (
@@ -39,6 +41,7 @@ export default function AnalyticsPage() {
           { value: "search", label: "Search" },
           { value: "utilization", label: t("utilization") },
           { value: "comboHealth", label: t("comboHealth") },
+          { value: "compression", label: t("compressionAnalyticsTitle") },
         ]}
         value={activeTab}
         onChange={setActiveTab}
@@ -56,6 +59,7 @@ export default function AnalyticsPage() {
       {activeTab === "search" && <SearchAnalyticsTab />}
       {activeTab === "utilization" && <ProviderUtilizationTab />}
       {activeTab === "comboHealth" && <ComboHealthTab />}
+      {activeTab === "compression" && <CompressionAnalyticsTab />}
     </div>
   );
 }

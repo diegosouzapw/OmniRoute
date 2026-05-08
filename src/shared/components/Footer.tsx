@@ -144,9 +144,9 @@ export default function Footer() {
             © {new Date().getFullYear()} {APP_CONFIG.name} Inc. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-text-muted">
-            <a href="/docs" className="hover:text-primary transition-colors">
+            <Link href="/docs" className="hover:text-primary transition-colors">
               Documentation
-            </a>
+            </Link>
             <Link href="/terms" className="hover:text-primary transition-colors">
               Terms
             </Link>

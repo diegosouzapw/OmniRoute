@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
@@ -9,6 +8,7 @@ import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableMod
 import {
   getModelCatalogSourceLabel,
   matchesModelCatalogQuery,
+  normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import {
   OAUTH_PROVIDERS,
@@ -25,6 +25,20 @@ const PROVIDER_ORDER = [
   ...Object.keys(APIKEY_PROVIDERS),
 ];
 
+type ModelSelectModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelect: (model: unknown) => void;
+  selectedModel?: string;
+  selectedModels?: string[];
+  activeProviders?: Array<{ provider: string }>;
+  title?: string;
+  modelAliases?: Record<string, string>;
+  addedModelValues?: string[];
+  multiSelect?: boolean;
+  showCombos?: boolean;
+};
+
 export default function ModelSelectModal({
   isOpen,
   onClose,
@@ -37,7 +51,7 @@ export default function ModelSelectModal({
   addedModelValues = [],
   multiSelect = false,
   showCombos = true,
-}) {
+}: ModelSelectModalProps) {
   const t = useTranslations("common");
   const resolvedTitle = title ?? t("selectModel");
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,7 +158,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${alias}/${cm.id}`,
             isCustom: true,
-            source: cm.source === "api-sync" ? "api-sync" : "custom",
+            source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
           }));
 
         const allModels = [...aliasModels, ...customEntries];
@@ -198,7 +212,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${nodePrefix}/${cm.id}`,
             isCustom: true,
-            source: cm.source === "api-sync" ? "api-sync" : "custom",
+            source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
           }));
 
         const allModels = [...nodeModels, ...fallbackEntries, ...customEntries];
@@ -231,7 +245,7 @@ export default function ModelSelectModal({
             name: cm.name || cm.id,
             value: `${alias}/${cm.id}`,
             isCustom: true,
-            source: cm.source === "api-sync" ? "api-sync" : "custom",
+            source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
           }));
 
         const allModels = [...systemEntries, ...customEntries];
@@ -442,21 +456,3 @@ export default function ModelSelectModal({
     </Modal>
   );
 }
-
-ModelSelectModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onSelect: PropTypes.func.isRequired,
-  selectedModel: PropTypes.string,
-  selectedModels: PropTypes.arrayOf(PropTypes.string),
-  activeProviders: PropTypes.arrayOf(
-    PropTypes.shape({
-      provider: PropTypes.string.isRequired,
-    })
-  ),
-  title: PropTypes.string,
-  modelAliases: PropTypes.object,
-  addedModelValues: PropTypes.arrayOf(PropTypes.string),
-  multiSelect: PropTypes.bool,
-  showCombos: PropTypes.bool,
-};

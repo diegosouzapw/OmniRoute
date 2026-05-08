@@ -90,6 +90,10 @@ export class GithubExecutor extends BaseExecutor {
       delete modifiedBody.response_format;
     }
 
+    if (Array.isArray(modifiedBody.tools) && modifiedBody.tools.length > 128) {
+      modifiedBody.tools = modifiedBody.tools.slice(0, 128);
+    }
+
     return modifiedBody;
   }
 

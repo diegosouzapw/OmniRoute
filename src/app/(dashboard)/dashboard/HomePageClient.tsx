@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import PropTypes from "prop-types";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,11 +11,55 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
   step: string;
   status: string;
   message: string;
+};
+
+type VersionInfo = {
+  current: string;
+  latest: string;
+  updateAvailable: boolean;
+  channel: string;
+  autoUpdateSupported: boolean;
+  autoUpdateError?: string | null;
+  news?: NewsAnnouncement | null;
+};
+
+type HomePageClientProps = {
+  machineId?: string;
+};
+
+type ProviderSummaryItem = {
+  id: string;
+  provider: {
+    id: string;
+    name: string;
+    color?: string;
+    textIcon?: string;
+    alias?: string;
+  };
+  total: number;
+  connected: number;
+  errors: number;
+  modelCount: number;
+  authType: "free" | "oauth" | "apikey" | string;
+};
+
+type ProviderMetricSummary = {
+  totalRequests?: number;
+  totalSuccesses?: number;
+  successRate?: number;
+  avgLatencyMs?: number;
+};
+
+type ProviderModelSummary = {
+  fullModel: string;
+  alias?: string;
+  model?: string;
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -32,7 +75,7 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
   return next;
 }
 
-export default function HomePageClient({ machineId }) {
+export default function HomePageClient({ machineId }: HomePageClientProps) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
@@ -43,7 +86,7 @@ export default function HomePageClient({ machineId }) {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [providerMetrics, setProviderMetrics] = useState({});
 
-  const [versionInfo, setVersionInfo] = useState<any>(null);
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
   const [updateSteps, setUpdateSteps] = useState<UpdateStep[]>([]);
   const [updatePhase, setUpdatePhase] = useState<"idle" | "running" | "done" | "failed">("idle");
@@ -540,29 +583,64 @@ export default function HomePageClient({ machineId }) {
 
       {/* Update Notification Banner */}
       {versionInfo?.updateAvailable && !showUpdateOverlay && (
-        <div className="bg-primary/10 border border-primary/20 text-primary px-5 py-4 rounded-xl flex items-center justify-between min-h-[64px]">
-          <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-[24px]">system_update_alt</span>
-            <div>
-              <p className="font-semibold text-sm">Update Available: v{versionInfo.latest}</p>
-              <p className="text-xs opacity-80 mt-0.5">
-                {versionInfo.autoUpdateSupported
-                  ? t("updateAvailableDesc") ||
-                    `You are currently using v${versionInfo.current}. Update to access the latest features and bug fixes.`
-                  : versionInfo.autoUpdateError ||
-                    "Manual update required for this installation type."}
-              </p>
+        <div className="flex flex-col gap-3">
+          <div className="flex min-h-[64px] items-center justify-between rounded-lg border border-primary/20 bg-primary/10 px-5 py-4 text-primary">
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="material-symbols-outlined shrink-0 text-[24px]">
+                system_update_alt
+              </span>
+              <div>
+                <p className="font-semibold text-sm">Update Available: v{versionInfo.latest}</p>
+                <p className="text-xs opacity-80 mt-0.5">
+                  {versionInfo.autoUpdateSupported
+                    ? t("updateAvailableDesc") ||
+                      `You are currently using v${versionInfo.current}. Update to access the latest features and bug fixes.`
+                    : versionInfo.autoUpdateError ||
+                      "Manual update required for this installation type."}
+                </p>
+              </div>
             </div>
+            <Button
+              size="sm"
+              onClick={versionInfo.autoUpdateSupported ? handleUpdate : undefined}
+              disabled={updating || !versionInfo.autoUpdateSupported}
+              className="ml-4 shrink-0 font-semibold"
+              title={versionInfo.autoUpdateError || ""}
+            >
+              {versionInfo.autoUpdateSupported ? t("updateNow") || "Update Now" : "Manual Update"}
+            </Button>
           </div>
-          <Button
-            size="sm"
-            onClick={versionInfo.autoUpdateSupported ? handleUpdate : undefined}
-            disabled={updating || !versionInfo.autoUpdateSupported}
-            className="shrink-0 ml-4 font-semibold"
-            title={versionInfo.autoUpdateError || ""}
-          >
-            {versionInfo.autoUpdateSupported ? t("updateNow") || "Update Now" : "Manual Update"}
-          </Button>
+
+          {/* News Notification Banner */}
+          {versionInfo?.news && (
+            <div className="flex min-h-[64px] items-center justify-between rounded-lg border border-border bg-surface px-5 py-4">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-bg text-text-muted">
+                  <span className="material-symbols-outlined text-[22px] text-primary">
+                    {versionInfo.news.icon || "campaign"}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-main">{versionInfo.news.title}</p>
+                  <p className="mt-0.5 max-w-[560px] text-xs leading-relaxed text-text-muted">
+                    {versionInfo.news.message}
+                  </p>
+                </div>
+              </div>
+
+              {versionInfo.news.link && (
+                <a
+                  href={versionInfo.news.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-4 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-bg px-4 py-2 text-xs font-semibold text-text-main transition-colors hover:border-primary/30 hover:text-primary"
+                >
+                  {versionInfo.news.linkLabel || "Ler Mais"}
+                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -728,11 +806,15 @@ export default function HomePageClient({ machineId }) {
   );
 }
 
-HomePageClient.propTypes = {
-  machineId: PropTypes.string,
-};
-
-function ProviderOverviewCard({ item, metrics, onClick }) {
+function ProviderOverviewCard({
+  item,
+  metrics,
+  onClick,
+}: {
+  item: ProviderSummaryItem;
+  metrics?: ProviderMetricSummary;
+  onClick: () => void;
+}) {
   const t = useTranslations("home");
   const tc = useTranslations("common");
 
@@ -793,32 +875,15 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
   );
 }
 
-ProviderOverviewCard.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    provider: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      color: PropTypes.string,
-      textIcon: PropTypes.string,
-      alias: PropTypes.string,
-    }).isRequired,
-    total: PropTypes.number.isRequired,
-    connected: PropTypes.number.isRequired,
-    errors: PropTypes.number.isRequired,
-    modelCount: PropTypes.number.isRequired,
-    authType: PropTypes.string.isRequired,
-  }).isRequired,
-  metrics: PropTypes.shape({
-    totalRequests: PropTypes.number,
-    totalSuccesses: PropTypes.number,
-    successRate: PropTypes.number,
-    avgLatencyMs: PropTypes.number,
-  }),
-  onClick: PropTypes.func.isRequired,
-};
-
-function ProviderModelsModal({ provider, models, onClose }) {
+function ProviderModelsModal({
+  provider,
+  models,
+  onClose,
+}: {
+  provider: ProviderSummaryItem;
+  models: ProviderModelSummary[];
+  onClose: () => void;
+}) {
   const [copiedModel, setCopiedModel] = useState(null);
   const notify = useNotificationStore();
   const router = useRouter();
@@ -920,9 +985,3 @@ function ProviderModelsModal({ provider, models, onClose }) {
     </Modal>
   );
 }
-
-ProviderModelsModal.propTypes = {
-  provider: PropTypes.object.isRequired,
-  models: PropTypes.array.isRequired,
-  onClose: PropTypes.func.isRequired,
-};

@@ -6,7 +6,7 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 
 // Constants for validation
-const MAX_KEY_NAME_LENGTH = 100;
+const MAX_KEY_NAME_LENGTH = 200;
 const MAX_SELECTED_MODELS = 500;
 
 // Debounce hook for search optimization
@@ -107,7 +107,9 @@ export default function ApiManagerPageClient() {
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [searchModel, setSearchModel] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
@@ -183,15 +185,12 @@ export default function ApiManagerPageClient() {
 
       for (const key of apiKeys) {
         // Match analytics entry by key name (reliable across both systems)
-        const analyticsMatch = byApiKey.find(
-          (entry: any) => entry.apiKeyName === key.name
-        );
+        const analyticsMatch = byApiKey.find((entry: any) => entry.apiKeyName === key.name);
 
         // The call-logs endpoint returns entries sorted by timestamp DESC,
         // so the first match is the most recent one.
-        const lastUsed = (logs || []).find(
-          (log: any) => log.apiKeyName === key.name
-        )?.timestamp || null;
+        const lastUsed =
+          (logs || []).find((log: any) => log.apiKeyName === key.name)?.timestamp || null;
 
         stats[key.id] = {
           totalRequests: analyticsMatch?.requests ?? 0,
@@ -229,20 +228,20 @@ export default function ApiManagerPageClient() {
     }
   };
 
-  const clearError = useCallback(() => setError(null), []);
+  const clearPageError = useCallback(() => setPageError(null), []);
 
   const handleCreateKey = async () => {
-    // Validate and sanitize input
-    const sanitizedName = sanitizeInput(newKeyName);
-    const validation = validateKeyName(sanitizedName, t);
-
+    // Validate raw input first, then sanitize
+    const validation = validateKeyName(newKeyName, t);
     if (!validation.valid) {
-      setError(validation.error || t("invalidKeyName"));
+      setNameError(validation.error || t("invalidKeyName"));
       return;
     }
+    const sanitizedName = sanitizeInput(newKeyName);
 
     setIsSubmitting(true);
-    clearError();
+    setNameError(null);
+    setCreateError(null);
 
     try {
       const res = await fetch("/api/keys", {
@@ -258,11 +257,11 @@ export default function ApiManagerPageClient() {
         setNewKeyName("");
         setShowAddModal(false);
       } else {
-        setError(data.error || t("failedCreateKey"));
+        setCreateError(data.error || t("failedCreateKey"));
       }
     } catch (error) {
       console.error("Error creating key:", error);
-      setError(t("failedCreateKeyRetry"));
+      setCreateError(t("failedCreateKeyRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -271,14 +270,14 @@ export default function ApiManagerPageClient() {
   const handleDeleteKey = async (id: string) => {
     // Validate ID format to prevent injection
     if (!id || typeof id !== "string" || !/^[a-zA-Z0-9_-]+$/.test(id)) {
-      setError(t("invalidKeyId"));
+      setPageError(t("invalidKeyId"));
       return;
     }
 
     if (!confirm(t("deleteConfirm"))) return;
 
     setIsSubmitting(true);
-    clearError();
+    clearPageError();
 
     try {
       const res = await fetch(`/api/keys/${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -286,11 +285,11 @@ export default function ApiManagerPageClient() {
         setKeys((prev) => prev.filter((k) => k.id !== id));
       } else {
         const data = await res.json();
-        setError(data.error || t("failedDeleteKey"));
+        setPageError(data.error || t("failedDeleteKey"));
       }
     } catch (error) {
       console.error("Error deleting key:", error);
-      setError(t("failedDeleteKeyRetry"));
+      setPageError(t("failedDeleteKeyRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -322,6 +321,7 @@ export default function ApiManagerPageClient() {
   };
 
   const handleUpdatePermissions = async (
+    name: string,
     allowedModels: string[],
     noLog: boolean,
     allowedConnections: string[],
@@ -332,15 +332,15 @@ export default function ApiManagerPageClient() {
   ) => {
     if (!editingKey || !editingKey.id) return;
 
+    const sanitizedName = sanitizeInput(name);
+
     // Validate models array
     if (!Array.isArray(allowedModels)) {
-      setError(t("invalidModelsSelection"));
       return;
     }
 
     // Limit number of selected models to prevent abuse
     if (allowedModels.length > MAX_SELECTED_MODELS) {
-      setError(t("cannotSelectMoreThanModels", { max: MAX_SELECTED_MODELS }));
       return;
     }
 
@@ -359,13 +359,14 @@ export default function ApiManagerPageClient() {
         : 0;
 
     setIsSubmitting(true);
-    clearError();
+    clearPageError();
 
     try {
       const res = await fetch(`/api/keys/${encodeURIComponent(editingKey.id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: sanitizedName,
           allowedModels: validModels,
           allowedConnections: validConnections,
           noLog,
@@ -382,11 +383,11 @@ export default function ApiManagerPageClient() {
         setEditingKey(null);
       } else {
         const data = await res.json();
-        setError(data.error || t("failedUpdatePermissions"));
+        setPageError(data.error || t("failedUpdatePermissions"));
       }
     } catch (error) {
       console.error("Error updating permissions:", error);
-      setError(t("failedUpdatePermissionsRetry"));
+      setPageError(t("failedUpdatePermissionsRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -435,12 +436,12 @@ export default function ApiManagerPageClient() {
   return (
     <div className="flex flex-col gap-8">
       {/* Error Banner */}
-      {error && (
+      {pageError && (
         <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
           <span className="material-symbols-outlined text-red-500">error</span>
-          <p className="text-sm text-red-700 dark:text-red-300 flex-1">{error}</p>
+          <p className="text-sm text-red-700 dark:text-red-300 flex-1">{pageError}</p>
           <button
-            onClick={clearError}
+            onClick={clearPageError}
             className="text-red-500 hover:text-red-700 transition-colors"
           >
             <span className="material-symbols-outlined">close</span>
@@ -514,7 +515,15 @@ export default function ApiManagerPageClient() {
             <h2 className="text-lg font-semibold">{t("keyManagement")}</h2>
             <p className="text-sm text-text-muted">{t("keyManagementDesc")}</p>
           </div>
-          <Button icon="add" onClick={() => setShowAddModal(true)}>
+          <Button
+            icon="add"
+            onClick={() => {
+              setNameError(null);
+              setCreateError(null);
+              clearPageError();
+              setShowAddModal(true);
+            }}
+          >
             {t("createKey")}
           </Button>
         </div>
@@ -548,7 +557,14 @@ export default function ApiManagerPageClient() {
             </div>
             <p className="text-text-main font-medium mb-2">{t("noKeys")}</p>
             <p className="text-sm text-text-muted mb-4">{t("noKeysDesc")}</p>
-            <Button icon="add" onClick={() => setShowAddModal(true)}>
+            <Button
+              icon="add"
+              onClick={() => {
+                setNameError(null);
+                setCreateError(null);
+                setShowAddModal(true);
+              }}
+            >
               {t("createFirstKey")}
             </Button>
           </div>
@@ -753,6 +769,8 @@ export default function ApiManagerPageClient() {
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
+          setNameError(null);
+          setCreateError(null);
         }}
       >
         <div className="flex flex-col gap-4">
@@ -762,24 +780,42 @@ export default function ApiManagerPageClient() {
             </label>
             <Input
               value={newKeyName}
-              onChange={(e) => setNewKeyName(e.target.value)}
+              onChange={(e) => {
+                setNewKeyName(e.target.value);
+                setNameError(null);
+              }}
               placeholder={t("keyNamePlaceholder")}
+              maxLength={MAX_KEY_NAME_LENGTH}
+              error={nameError}
               autoFocus
             />
             <p className="text-xs text-text-muted mt-1.5">{t("keyNameDesc")}</p>
           </div>
+          {createError && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
+              <span className="material-symbols-outlined text-red-500 text-sm">error</span>
+              <p className="text-sm text-red-700 dark:text-red-300 flex-1">{createError}</p>
+            </div>
+          )}
           <div className="flex gap-2">
             <Button
               onClick={() => {
                 setShowAddModal(false);
                 setNewKeyName("");
+                setNameError(null);
+                setCreateError(null);
               }}
               variant="ghost"
               fullWidth
             >
               {tc("cancel")}
             </Button>
-            <Button onClick={handleCreateKey} fullWidth disabled={!newKeyName.trim()}>
+            <Button
+              onClick={handleCreateKey}
+              fullWidth
+              disabled={!newKeyName.trim()}
+              loading={isSubmitting}
+            >
               {t("createKey")}
             </Button>
           </div>
@@ -862,6 +898,7 @@ const PermissionsModal = memo(function PermissionsModal({
   searchModel: string;
   onSearchChange: (v: string) => void;
   onSave: (
+    name: string,
     models: string[],
     noLog: boolean,
     connections: string[],
@@ -879,6 +916,7 @@ const PermissionsModal = memo(function PermissionsModal({
   const initialConnections = Array.isArray(apiKey?.allowedConnections)
     ? apiKey.allowedConnections
     : [];
+  const [keyName, setKeyName] = useState(apiKey?.name ?? "");
   const [selectedModels, setSelectedModels] = useState<string[]>(initialModels);
   const [allowAll, setAllowAll] = useState(initialModels.length === 0);
   const [noLogEnabled, setNoLogEnabled] = useState(apiKey?.noLog === true);
@@ -896,6 +934,8 @@ const PermissionsModal = memo(function PermissionsModal({
   const [scheduleTz, setScheduleTz] = useState(
     apiKey?.accessSchedule?.tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone
   );
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [selectedConnections, setSelectedConnections] = useState<string[]>(initialConnections);
   const [allowAllConnections, setAllowAllConnections] = useState(initialConnections.length === 0);
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(() => {
@@ -983,6 +1023,29 @@ const PermissionsModal = memo(function PermissionsModal({
   );
 
   const handleSave = useCallback(() => {
+    // Clear previous inline errors
+    setNameError(null);
+    setSaveError(null);
+
+    // Validate name inline before calling onSave
+    const validation = validateKeyName(keyName, t);
+    if (!validation.valid) {
+      setNameError(validation.error || t("invalidKeyName"));
+      return;
+    }
+
+    // Validate models selection
+    if (!allowAll && !Array.isArray(selectedModels)) {
+      setSaveError(t("invalidModelsSelection"));
+      return;
+    }
+
+    // Limit number of selected models to prevent abuse
+    if (!allowAll && selectedModels.length > MAX_SELECTED_MODELS) {
+      setSaveError(t("cannotSelectMoreThanModels", { max: MAX_SELECTED_MODELS }));
+      return;
+    }
+
     const schedule: AccessSchedule | null = scheduleEnabled
       ? {
           enabled: true,
@@ -993,6 +1056,7 @@ const PermissionsModal = memo(function PermissionsModal({
         }
       : null;
     onSave(
+      keyName,
       allowAll ? [] : selectedModels,
       noLogEnabled,
       allowAllConnections ? [] : selectedConnections,
@@ -1003,6 +1067,7 @@ const PermissionsModal = memo(function PermissionsModal({
     );
   }, [
     onSave,
+    keyName,
     allowAll,
     selectedModels,
     noLogEnabled,
@@ -1016,6 +1081,7 @@ const PermissionsModal = memo(function PermissionsModal({
     scheduleUntil,
     scheduleDays,
     scheduleTz,
+    t,
   ]);
 
   const selectedCount = selectedModels.length;
@@ -1028,6 +1094,34 @@ const PermissionsModal = memo(function PermissionsModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {/* Key Name */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">{t("keyName")}</p>
+            <p className="text-xs text-text-muted">{t("keyNameDesc")}</p>
+          </div>
+          <div className="w-48 shrink-0">
+            <Input
+              value={keyName}
+              onChange={(e) => {
+                setKeyName(e.target.value);
+                setNameError(null);
+              }}
+              placeholder={t("keyNamePlaceholder")}
+              maxLength={MAX_KEY_NAME_LENGTH}
+              error={nameError}
+            />
+          </div>
+        </div>
+
+        {/* Inline save error */}
+        {saveError && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
+            <span className="material-symbols-outlined text-red-500 text-sm">error</span>
+            <p className="text-sm text-red-700 dark:text-red-300 flex-1">{saveError}</p>
+          </div>
+        )}
+
         {/* Access Mode Toggle */}
         <div className="flex gap-2 p-1 bg-surface rounded-lg">
           <button

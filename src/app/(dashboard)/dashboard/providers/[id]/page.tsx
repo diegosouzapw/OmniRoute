@@ -3,7 +3,6 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNotificationStore } from "@/store/notificationStore";
-import PropTypes from "prop-types";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -55,6 +54,7 @@ import {
   getCodexRequestDefaults as _getCodexRequestDefaults,
 } from "@/lib/providers/requestDefaults";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
+import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -460,7 +460,7 @@ interface CooldownTimerProps {
 
 function getModelSourceBadgeClass(source?: string): string {
   switch (normalizeModelCatalogSource(source)) {
-    case "api-sync":
+    case "imported":
       return "border-sky-500/30 bg-sky-500/10 text-sky-300";
     case "custom":
       return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
@@ -504,6 +504,7 @@ interface ConnectionRowConnection {
   providerSpecificData?: Record<string, unknown>;
   expiresAt?: string;
   tokenExpiresAt?: string;
+  maxConcurrent?: number | null;
 }
 
 interface ConnectionRowProps {
@@ -969,7 +970,8 @@ export default function ProviderDetailPage() {
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [providerNode, setProviderNode] = useState(null);
-  const [showOAuthModal, setShowOAuthModal] = useState(false);
+  const [showOAuthModal, _setShowOAuthModal] = useState(false);
+  const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
@@ -1021,6 +1023,11 @@ export default function ProviderDetailPage() {
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
   const isAnthropicProtocolCompatible = isAnthropicCompatible || isCcCompatible;
 
+  const setShowOAuthModal = (show: boolean, connectionRow?: ConnectionRowConnection) => {
+    _setShowOAuthModal(show);
+    setReauthConnection(show && connectionRow ? connectionRow : null);
+  };
+
   const providerInfo = resolveDashboardProviderInfo(providerId, {
     providerNode,
     compatibleLabels: {
@@ -1035,12 +1042,12 @@ export default function ProviderDetailPage() {
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
-  // and user-managed custom/imported models without duplicating IDs.
+  // and user-managed custom models without duplicating IDs.
   const models = useMemo(() => {
     if (providerId === "gemini") {
       return syncedAvailableModels.map((model: any) => ({
         ...model,
-        source: model?.source === "api-sync" ? "api-sync" : "api-sync",
+        source: "imported",
       }));
     }
 
@@ -1055,7 +1062,7 @@ export default function ProviderDetailPage() {
       .map((model: any) => ({
         id: model.id,
         name: model.name || model.id,
-        source: "api-sync",
+        source: "imported",
       }));
     const knownIds = new Set([...registryIds, ...syncedExtras.map((model: any) => model.id)]);
     const customExtras = modelMeta.customModels
@@ -1063,7 +1070,7 @@ export default function ProviderDetailPage() {
       .map((cm: any) => ({
         id: cm.id,
         name: cm.name || cm.id,
-        source: cm.source === "api-sync" ? "api-sync" : "custom",
+        source: normalizeModelCatalogSource(cm.source) === "imported" ? "imported" : "custom",
       }));
     return [...builtInModels, ...syncedExtras, ...customExtras];
   }, [providerId, registryModels, syncedAvailableModels, modelMeta.customModels]);
@@ -2014,6 +2021,10 @@ export default function ProviderDetailPage() {
             modelId,
             modelName: model.name || modelId,
             source: "imported",
+            ...(typeof model.apiFormat === "string" ? { apiFormat: model.apiFormat } : {}),
+            ...(Array.isArray(model.supportedEndpoints)
+              ? { supportedEndpoints: model.supportedEndpoints }
+              : {}),
           }),
         });
         // Also create an alias for routing
@@ -2091,6 +2102,9 @@ export default function ProviderDetailPage() {
         typeof data.importedChanges?.total === "number"
           ? data.importedChanges.total
           : importedCount;
+      const totalChangedCount =
+        changedCount +
+        (typeof data.customModelChanges?.total === "number" ? data.customModelChanges.total : 0);
 
       if (importedModels.length === 0) {
         setImportProgress((prev) => ({
@@ -2107,7 +2121,7 @@ export default function ProviderDetailPage() {
           ],
           importedCount,
         }));
-        if (changedCount > 0) {
+        if (totalChangedCount > 0) {
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -2136,7 +2150,7 @@ export default function ProviderDetailPage() {
         importedCount,
       }));
 
-      if (changedCount > 0) {
+      if (totalChangedCount > 0) {
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -2724,7 +2738,7 @@ export default function ProviderDetailPage() {
 
       {isCompatible && providerNode && (
         <Card>
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold">
                 {isCcCompatible
@@ -2737,7 +2751,7 @@ export default function ProviderDetailPage() {
                 {getApiLabel()} · {(providerNode.baseUrl || "").replace(/\/$/, "")}/{getApiPath()}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
                 {t("add")}
               </Button>
@@ -2782,6 +2796,16 @@ export default function ProviderDetailPage() {
               </Button>
             </div>
           </div>
+          {isCcCompatible && (
+            <div className="mb-4 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+                  warning
+                </span>
+                <p>{t("ccCompatibleValidationHint")}</p>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
@@ -2928,7 +2952,9 @@ export default function ProviderDetailPage() {
                         }}
                         onDelete={() => handleDelete(conn.id)}
                         onReauth={
-                          conn.authType === "oauth" ? () => setShowOAuthModal(true) : undefined
+                          conn.authType === "oauth"
+                            ? () => setShowOAuthModal(true, conn)
+                            : undefined
                         }
                         onRefreshToken={
                           conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
@@ -3048,7 +3074,7 @@ export default function ProviderDetailPage() {
                               onDelete={() => handleDelete(conn.id)}
                               onReauth={
                                 conn.authType === "oauth"
-                                  ? () => setShowOAuthModal(true)
+                                  ? () => setShowOAuthModal(true, conn)
                                   : undefined
                               }
                               onRefreshToken={
@@ -3183,6 +3209,7 @@ export default function ProviderDetailPage() {
         (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             providerInfo={{ ...providerInfo, id: providerId }}
             onSuccess={handleOAuthSuccess}
             onClose={() => {
@@ -3192,6 +3219,7 @@ export default function ProviderDetailPage() {
         ) : providerId === "cursor" ? (
           <CursorAuthModal
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             onSuccess={handleOAuthSuccess}
             onClose={() => {
               setShowOAuthModal(false);
@@ -3200,6 +3228,7 @@ export default function ProviderDetailPage() {
         ) : (
           <OAuthModal
             isOpen={showOAuthModal}
+            reauthConnection={reauthConnection}
             provider={providerId}
             providerInfo={providerInfo}
             onSuccess={handleOAuthSuccess}
@@ -3514,12 +3543,12 @@ function ModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? t("testingModel")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : t("testModel")
             }
           >
             {testingModel ? (
@@ -3566,23 +3595,6 @@ function ModelRow({
     </div>
   );
 }
-
-ModelRow.propTypes = {
-  model: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-  }).isRequired,
-  fullModel: PropTypes.string.isRequired,
-  provider: PropTypes.string.isRequired,
-  copied: PropTypes.string,
-  onCopy: PropTypes.func.isRequired,
-  t: PropTypes.func,
-  showDeveloperToggle: PropTypes.bool,
-  effectiveModelNormalize: PropTypes.func.isRequired,
-  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
-  getUpstreamHeadersRecord: PropTypes.func.isRequired,
-  saveModelCompatFlags: PropTypes.func.isRequired,
-  compatDisabled: PropTypes.bool,
-};
 
 function ModelVisibilityToolbar({
   t,
@@ -3818,27 +3830,6 @@ function PassthroughModelsSection({
   );
 }
 
-PassthroughModelsSection.propTypes = {
-  providerAlias: PropTypes.string.isRequired,
-  modelAliases: PropTypes.object.isRequired,
-  customModels: PropTypes.array,
-  copied: PropTypes.string,
-  onCopy: PropTypes.func.isRequired,
-  onSetAlias: PropTypes.func.isRequired,
-  onDeleteAlias: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-  effectiveModelNormalize: PropTypes.func.isRequired,
-  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
-  getUpstreamHeadersRecord: PropTypes.func.isRequired,
-  saveModelCompatFlags: PropTypes.func.isRequired,
-  compatSavingModelId: PropTypes.string,
-  isModelHidden: PropTypes.func.isRequired,
-  onToggleHidden: PropTypes.func.isRequired,
-  onBulkToggleHidden: PropTypes.func.isRequired,
-  bulkTogglePending: PropTypes.bool,
-  togglingModelId: PropTypes.string,
-};
-
 function PassthroughModelRow({
   modelId,
   fullModel,
@@ -3900,12 +3891,12 @@ function PassthroughModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? t("testingModel")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : t("testModel")
             }
           >
             {testingModel ? (
@@ -3959,25 +3950,6 @@ function PassthroughModelRow({
     </div>
   );
 }
-
-PassthroughModelRow.propTypes = {
-  modelId: PropTypes.string.isRequired,
-  fullModel: PropTypes.string.isRequired,
-  source: PropTypes.string,
-  isHidden: PropTypes.bool,
-  copied: PropTypes.string,
-  onCopy: PropTypes.func.isRequired,
-  onDeleteAlias: PropTypes.func.isRequired,
-  t: PropTypes.func,
-  showDeveloperToggle: PropTypes.bool,
-  effectiveModelNormalize: PropTypes.func.isRequired,
-  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
-  getUpstreamHeadersRecord: PropTypes.func.isRequired,
-  saveModelCompatFlags: PropTypes.func.isRequired,
-  compatDisabled: PropTypes.bool,
-  onToggleHidden: PropTypes.func,
-  togglingHidden: PropTypes.bool,
-};
 
 // ============ Custom Models Section (for ALL providers) ============
 
@@ -4245,6 +4217,7 @@ function CustomModelsSection({
               <option value="chat-completions">{t("chatCompletions")}</option>
               <option value="responses">{t("responsesApi")}</option>
               <option value="embeddings">{t("embeddings")}</option>
+              <option value="rerank">Rerank</option>
               <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
               <option value="audio-speech">{t("audioSpeech")}</option>
               <option value="images-generations">{t("imagesGenerations")}</option>
@@ -4255,7 +4228,7 @@ function CustomModelsSection({
               {t("supportedEndpointsLabel")}
             </span>
             <div className="flex items-center gap-3">
-              {["chat", "embeddings", "images", "audio"].map((ep) => (
+              {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
                 <label
                   key={ep}
                   className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
@@ -4276,9 +4249,11 @@ function CustomModelsSection({
                     ? `💬 ${t("supportedEndpointChat")}`
                     : ep === "embeddings"
                       ? `📐 ${t("supportedEndpointEmbeddings")}`
-                      : ep === "images"
-                        ? `🖼️ ${t("supportedEndpointImages")}`
-                        : `🔊 ${t("supportedEndpointAudio")}`}
+                      : ep === "rerank"
+                        ? "Rerank"
+                        : ep === "images"
+                          ? `🖼️ ${t("supportedEndpointImages")}`
+                          : `🔊 ${t("supportedEndpointAudio")}`}
                 </label>
               ))}
             </div>
@@ -4380,6 +4355,7 @@ function CustomModelsSection({
                             <option value="chat-completions">{t("chatCompletions")}</option>
                             <option value="responses">{t("responsesApi")}</option>
                             <option value="embeddings">{t("embeddings")}</option>
+                            <option value="rerank">Rerank</option>
                             <option value="audio-transcriptions">{t("audioTranscriptions")}</option>
                             <option value="audio-speech">{t("audioSpeech")}</option>
                             <option value="images-generations">{t("imagesGenerations")}</option>
@@ -4390,7 +4366,7 @@ function CustomModelsSection({
                             {t("supportedEndpointsLabel")}
                           </span>
                           <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 min-w-0">
-                            {["chat", "embeddings", "images", "audio"].map((ep) => (
+                            {["chat", "embeddings", "rerank", "images", "audio"].map((ep) => (
                               <label
                                 key={ep}
                                 className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
@@ -4413,9 +4389,11 @@ function CustomModelsSection({
                                   ? `💬 ${t("supportedEndpointChat")}`
                                   : ep === "embeddings"
                                     ? `📐 ${t("supportedEndpointEmbeddings")}`
-                                    : ep === "images"
-                                      ? `🖼️ ${t("supportedEndpointImages")}`
-                                      : `🔊 ${t("supportedEndpointAudio")}`}
+                                    : ep === "rerank"
+                                      ? "Rerank"
+                                      : ep === "images"
+                                        ? `🖼️ ${t("supportedEndpointImages")}`
+                                        : `🔊 ${t("supportedEndpointAudio")}`}
                               </label>
                             ))}
                           </div>
@@ -4491,14 +4469,6 @@ function CustomModelsSection({
     </div>
   );
 }
-
-CustomModelsSection.propTypes = {
-  providerId: PropTypes.string.isRequired,
-  providerAlias: PropTypes.string.isRequired,
-  copied: PropTypes.string,
-  onCopy: PropTypes.func.isRequired,
-  onModelsChanged: PropTypes.func,
-};
 
 function CompatibleModelsSection({
   providerStorageAlias,
@@ -4787,42 +4757,6 @@ function CompatibleModelsSection({
   );
 }
 
-CompatibleModelsSection.propTypes = {
-  providerStorageAlias: PropTypes.string.isRequired,
-  providerDisplayAlias: PropTypes.string.isRequired,
-  modelAliases: PropTypes.object.isRequired,
-  customModels: PropTypes.array,
-  fallbackModels: PropTypes.array,
-  description: PropTypes.string.isRequired,
-  inputLabel: PropTypes.string.isRequired,
-  inputPlaceholder: PropTypes.string.isRequired,
-  copied: PropTypes.string,
-  onCopy: PropTypes.func.isRequired,
-  onSetAlias: PropTypes.func.isRequired,
-  onDeleteAlias: PropTypes.func.isRequired,
-  connections: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      isActive: PropTypes.bool,
-    })
-  ).isRequired,
-  isAnthropic: PropTypes.bool,
-  onImportWithProgress: PropTypes.func.isRequired,
-  t: PropTypes.func.isRequired,
-  effectiveModelNormalize: PropTypes.func.isRequired,
-  effectiveModelPreserveDeveloper: PropTypes.func.isRequired,
-  getUpstreamHeadersRecord: PropTypes.func.isRequired,
-  saveModelCompatFlags: PropTypes.func.isRequired,
-  compatSavingModelId: PropTypes.string,
-  onModelsChanged: PropTypes.func,
-  allowImport: PropTypes.bool.isRequired,
-  isModelHidden: PropTypes.func.isRequired,
-  onToggleHidden: PropTypes.func.isRequired,
-  onBulkToggleHidden: PropTypes.func.isRequired,
-  bulkTogglePending: PropTypes.bool,
-  togglingModelId: PropTypes.string,
-};
-
 function CooldownTimer({ until }: CooldownTimerProps) {
   const [remaining, setRemaining] = useState("");
 
@@ -4854,10 +4788,6 @@ function CooldownTimer({ until }: CooldownTimerProps) {
 
   return <span className="text-xs text-orange-500 font-mono">⏱ {remaining}</span>;
 }
-
-CooldownTimer.propTypes = {
-  until: PropTypes.string.isRequired,
-};
 
 const ERROR_TYPE_LABELS = {
   runtime_error: { labelKey: "errorTypeRuntime", variant: "warning" },
@@ -5233,6 +5163,15 @@ function ConnectionRow({
                 {t("autoPriority", { priority: connection.globalPriority })}
               </span>
             )}
+            {connection.maxConcurrent != null && connection.maxConcurrent > 0 && (
+              <span
+                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-zinc-500/15 text-zinc-500 dark:bg-zinc-400/15 dark:text-zinc-400"
+                title={t("accountConcurrencyCapLabel")}
+              >
+                <span className="material-symbols-outlined text-[11px]">dynamic_feed</span>
+                {connection.maxConcurrent}
+              </span>
+            )}
             {/* Rate Limit Protection — inline toggle with label */}
             <span className="text-text-muted/30 select-none">|</span>
             <button
@@ -5445,50 +5384,6 @@ function ConnectionRow({
   );
 }
 
-ConnectionRow.propTypes = {
-  connection: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-    email: PropTypes.string,
-    displayName: PropTypes.string,
-    rateLimitedUntil: PropTypes.string,
-    rateLimitProtection: PropTypes.bool,
-    testStatus: PropTypes.string,
-    isActive: PropTypes.bool,
-    priority: PropTypes.number,
-    lastError: PropTypes.string,
-    lastErrorType: PropTypes.string,
-    lastErrorSource: PropTypes.string,
-    errorCode: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    globalPriority: PropTypes.number,
-    providerSpecificData: PropTypes.object,
-  }).isRequired,
-  isOAuth: PropTypes.bool.isRequired,
-  isClaude: PropTypes.bool,
-  isCodex: PropTypes.bool,
-  isFirst: PropTypes.bool.isRequired,
-  isLast: PropTypes.bool.isRequired,
-  onMoveUp: PropTypes.func.isRequired,
-  onMoveDown: PropTypes.func.isRequired,
-  onToggleActive: PropTypes.func.isRequired,
-  onToggleRateLimit: PropTypes.func.isRequired,
-  onToggleClaudeExtraUsage: PropTypes.func,
-  onToggleCodex5h: PropTypes.func,
-  onToggleCodexWeekly: PropTypes.func,
-  isCcCompatible: PropTypes.bool,
-  cliproxyapiEnabled: PropTypes.bool,
-  onToggleCliproxyapiMode: PropTypes.func,
-  onRetest: PropTypes.func.isRequired,
-  isRetesting: PropTypes.bool,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
-  onReauth: PropTypes.func,
-  onApplyCodexAuthLocal: PropTypes.func,
-  isApplyingCodexAuthLocal: PropTypes.bool,
-  onExportCodexAuthFile: PropTypes.func,
-  isExportingCodexAuthFile: PropTypes.bool,
-};
-
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "azure-openai",
   "bailian-coding-plan",
@@ -5503,7 +5398,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-openai": "https://example-resource.openai.azure.com",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
-  "xiaomi-mimo": "https://token-plan-ams.xiaomimimo.com/v1",
+  "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
   petals: "https://chat.petals.dev/api/v1/generate",
 };
@@ -5761,6 +5656,7 @@ function AddApiKeyModal({
       }
 
       let isValid = false;
+      let validationError: string | null = null;
       try {
         setValidating(true);
         setValidationResult(null);
@@ -5778,6 +5674,9 @@ function AddApiKeyModal({
         });
         const data = await res.json();
         isValid = !!data.valid;
+        if (!isValid && data.error) {
+          validationError = data.error;
+        }
         setValidationResult(isValid ? "success" : "failed");
       } catch {
         setValidationResult("failed");
@@ -5786,8 +5685,13 @@ function AddApiKeyModal({
       }
 
       if (!isValid) {
-        setSaveError(t("apiKeyValidationFailed"));
-        return;
+        if (apiKeyOptional && !formData.apiKey) {
+          // Bypass validation block for local/optional providers when no key is provided
+          console.debug("Validation failed but apiKey is optional; proceeding to save.");
+        } else {
+          setSaveError(validationError || t("apiKeyValidationFailed"));
+          return;
+        }
       }
 
       const providerSpecificData: Record<string, unknown> = {};
@@ -5849,6 +5753,16 @@ function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {isCcCompatible && (
+          <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+            <div className="flex items-start gap-2">
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+                warning
+              </span>
+              <p>{t("ccCompatibleValidationHint")}</p>
+            </div>
+          </div>
+        )}
         <Input
           label={t("nameLabel")}
           value={formData.name}
@@ -5909,17 +5823,15 @@ function AddApiKeyModal({
             />
           </div>
         )}
-        {isCompatible && (
+        {isCompatible && !isCcCompatible && (
           <p className="text-xs text-text-muted">
-            {isCcCompatible
-              ? t("ccCompatibleValidationHint")
-              : isAnthropic
-                ? t("validationChecksAnthropicCompatible", {
-                    provider: providerName || t("anthropicCompatibleName"),
-                  })
-                : t("validationChecksOpenAiCompatible", {
-                    provider: providerName || t("openaiCompatibleName"),
-                  })}
+            {isAnthropic
+              ? t("validationChecksAnthropicCompatible", {
+                  provider: providerName || t("anthropicCompatibleName"),
+                })
+              : t("validationChecksOpenAiCompatible", {
+                  provider: providerName || t("openaiCompatibleName"),
+                })}
           </p>
         )}
         <button
@@ -6063,17 +5975,6 @@ function AddApiKeyModal({
   );
 }
 
-AddApiKeyModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  provider: PropTypes.string,
-  providerName: PropTypes.string,
-  isCompatible: PropTypes.bool,
-  isAnthropic: PropTypes.bool,
-  isCcCompatible: PropTypes.bool,
-  onSave: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-};
-
 function normalizeAndValidateHttpBaseUrl(rawValue, fallbackUrl) {
   const value = (typeof rawValue === "string" ? rawValue.trim() : "") || fallbackUrl;
   try {
@@ -6089,6 +5990,7 @@ function normalizeAndValidateHttpBaseUrl(rawValue, fallbackUrl) {
 
 function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnectionModalProps) {
   const t = useTranslations("providers");
+  const notify = useNotificationStore();
   const [formData, setFormData] = useState({
     name: "",
     priority: 1,
@@ -6152,7 +6054,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       : t("leaveBlankKeepCurrentApiKey");
 
   useEffect(() => {
-    if (connection) {
+    if (isOpen && connection) {
       const rawBaseUrl = connection.providerSpecificData?.baseUrl;
       const existingBaseUrl = typeof rawBaseUrl === "string" ? rawBaseUrl : "";
       const rawRegion = connection.providerSpecificData?.region;
@@ -6174,9 +6076,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         name: connection.name || "",
         priority: connection.priority || 1,
         maxConcurrent:
-          connection.maxConcurrent === null || connection.maxConcurrent === undefined
-            ? ""
-            : String(connection.maxConcurrent),
+          connection.maxConcurrent !== null && connection.maxConcurrent !== undefined
+            ? String(connection.maxConcurrent)
+            : "",
         apiKey: "",
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
@@ -6213,7 +6115,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, isVertex]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -6267,6 +6169,17 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult("failed");
     } finally {
       setValidating(false);
+    }
+  };
+
+  const handleAddParsedExtraKeys = (raw: string) => {
+    const { added, duplicates } = parseExtraApiKeys(raw, extraApiKeys);
+    if (added.length > 0) {
+      setExtraApiKeys((prev) => [...prev, ...added]);
+      notify.success(t("bulkPasteAdded", { count: added.length }));
+    }
+    if (duplicates > 0) {
+      notify.warning(t("bulkPasteDuplicatesIgnored", { count: duplicates }));
     }
   };
 
@@ -6720,12 +6633,23 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         {/* T07: Extra API Keys for round-robin rotation */}
         {!isOAuth && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-text-main">
-              {t("extraApiKeysLabel")}
-              <span className="ml-2 text-[11px] font-normal text-text-muted">
-                ({t("extraApiKeysHint")})
-              </span>
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="text-sm font-medium text-text-main">
+                {t("extraApiKeysLabel")}
+                <span className="ml-2 text-[11px] font-normal text-text-muted">
+                  ({t("extraApiKeysHint")})
+                </span>
+              </label>
+              {extraApiKeys.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setExtraApiKeys([])}
+                  className="px-2.5 py-1.5 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 text-xs font-medium transition-colors"
+                >
+                  {t("deleteAllExtraApiKeys")}
+                </button>
+              )}
+            </div>
             {extraApiKeys.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {extraApiKeys.map((key, idx) => (
@@ -6761,6 +6685,12 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                     setNewExtraKey("");
                   }
                 }}
+                onPaste={(e) => {
+                  const text = e.clipboardData.getData("text");
+                  if (!/\r?\n/.test(text)) return;
+                  e.preventDefault();
+                  handleAddParsedExtraKeys(text);
+                }}
               />
               <button
                 onClick={() => {
@@ -6775,6 +6705,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 {t("add")}
               </button>
             </div>
+            <p className="text-[11px] text-text-muted">{t("bulkPasteHint")}</p>
             {extraApiKeys.length > 0 && (
               <p className="text-[11px] text-text-muted">
                 {t("totalKeysRotating", { count: extraApiKeys.length + 1 })}
@@ -6818,20 +6749,6 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     </Modal>
   );
 }
-
-EditConnectionModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  connection: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-    email: PropTypes.string,
-    priority: PropTypes.number,
-    authType: PropTypes.string,
-    provider: PropTypes.string,
-  }),
-  onSave: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-};
 
 function EditCompatibleNodeModal({
   isOpen,
@@ -6948,6 +6865,16 @@ function EditCompatibleNodeModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {isCcCompatible && (
+          <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+            <div className="flex items-start gap-2">
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+                warning
+              </span>
+              <p>{t("ccCompatibleValidationHint")}</p>
+            </div>
+          </div>
+        )}
         <Input
           label={t("nameLabel")}
           value={formData.name}
@@ -7083,20 +7010,3 @@ function EditCompatibleNodeModal({
     </Modal>
   );
 }
-
-EditCompatibleNodeModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  node: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-    prefix: PropTypes.string,
-    apiType: PropTypes.string,
-    baseUrl: PropTypes.string,
-    chatPath: PropTypes.string,
-    modelsPath: PropTypes.string,
-  }),
-  onSave: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  isAnthropic: PropTypes.bool,
-  isCcCompatible: PropTypes.bool,
-};

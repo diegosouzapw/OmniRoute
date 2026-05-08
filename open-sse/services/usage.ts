@@ -8,6 +8,7 @@ import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
 } from "../config/antigravityUpstream.ts";
+import { isUserCallableAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { getGlmQuotaUrl } from "../config/glmProvider.ts";
 import {
   CURSOR_REGISTRY_VERSION,
@@ -18,7 +19,7 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  googApiClientHeader,
+  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -69,6 +70,10 @@ const CURSOR_USAGE_CONFIG = {
   userMetaUrl: "https://www.cursor.com/api/auth/me",
   subscriptionUrl: "https://www.cursor.com/api/subscription",
   clientVersion: CURSOR_REGISTRY_VERSION,
+};
+
+const NANOGPT_CONFIG = {
+  usageUrl: "https://nano-gpt.com/api/subscription/v1/usage",
 };
 
 const MINIMAX_USAGE_CONFIG = {
@@ -595,11 +600,91 @@ async function getBailianCodingPlanUsage(
 }
 
 /**
+ * NanoGPT Usage
+ * Fetches subscription-level quota from the NanoGPT API.
+ * Returns daily/weekly token limits and daily image limits for PRO accounts.
+ */
+async function getNanoGptUsage(apiKey: string) {
+  if (!apiKey) {
+    return { message: "NanoGPT API key not available. Add a key to view usage." };
+  }
+
+  try {
+    const res = await fetch(NANOGPT_CONFIG.usageUrl, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) return { message: "Invalid NanoGPT API key." };
+      return { message: `NanoGPT quota API error (${res.status})` };
+    }
+
+    const data = toRecord(await res.json());
+    const quotas: Record<string, UsageQuota> = {};
+
+    // active -> PRO, otherwise FREE
+    const plan = data.active ? "PRO" : "FREE";
+
+    if (data.active) {
+      // 1. Tokens limit
+      // dailyInputTokens if exists, else weeklyInputTokens
+      let tokenQuota = toRecord(data.dailyInputTokens);
+      let tokenLabel = "Daily Tokens";
+      if (!tokenQuota.resetAt) {
+        const weeklyQuota = toRecord(data.weeklyInputTokens);
+        if (weeklyQuota.remaining !== undefined) {
+          tokenQuota = weeklyQuota;
+          tokenLabel = "Weekly Tokens";
+        }
+      }
+
+      if (tokenQuota.remaining !== undefined) {
+        const used = toNumber(tokenQuota.used, 0);
+        const remaining = toNumber(tokenQuota.remaining, 0);
+        const total = used + remaining;
+        quotas[tokenLabel] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(tokenQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(tokenQuota.resetAt),
+          unlimited: false,
+        };
+      }
+
+      // 2. Images limit
+      const imageQuota = toRecord(data.dailyImages);
+      if (imageQuota.remaining !== undefined) {
+        const used = toNumber(imageQuota.used, 0);
+        const remaining = toNumber(imageQuota.remaining, 0);
+        const total = used + remaining;
+        quotas["Daily Images"] = {
+          used,
+          total,
+          remaining,
+          remainingPercentage: clampPercentage(100 - toNumber(imageQuota.percentUsed, 0) * 100),
+          resetAt: parseResetTime(imageQuota.resetAt),
+          unlimited: false,
+        };
+      }
+
+      if (Object.keys(quotas).length === 0) {
+        return { plan, message: "NanoGPT connected, but no active limits found." };
+      }
+    }
+
+    return { plan, quotas };
+  } catch (error) {
+    return { message: `NanoGPT connected. Unable to fetch usage: ${(error as Error).message}` };
+  }
+}
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
  */
-export async function getUsageForProvider(connection) {
+export async function getUsageForProvider(connection, options: { forceRefresh?: boolean } = {}) {
   const { id, provider, accessToken, apiKey, providerSpecificData, projectId, email } = connection;
 
   switch (provider) {
@@ -608,7 +693,7 @@ export async function getUsageForProvider(connection) {
     case "gemini-cli":
       return await getGeminiUsage(accessToken, providerSpecificData, projectId);
     case "antigravity":
-      return await getAntigravityUsage(accessToken, providerSpecificData, projectId, id);
+      return await getAntigravityUsage(accessToken, providerSpecificData, projectId, id, options);
     case "claude":
       return await getClaudeUsage(accessToken);
     case "codex":
@@ -634,6 +719,8 @@ export async function getUsageForProvider(connection) {
       return await getCursorUsage(accessToken);
     case "bailian-coding-plan":
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
+    case "nanogpt":
+      return await getNanoGptUsage(apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -651,7 +738,7 @@ function parseResetTime(resetValue) {
     if (resetValue instanceof Date) {
       date = resetValue;
     } else if (typeof resetValue === "number") {
-      date = new Date(resetValue);
+      date = new Date(resetValue < 1e12 ? resetValue * 1000 : resetValue);
     } else if (typeof resetValue === "string") {
       date = new Date(resetValue);
     } else {
@@ -1205,6 +1292,84 @@ function getGeminiCliPlanLabel(subscriptionInfo) {
 // Key: truncated accessToken → { data, fetchedAt }
 const _antigravitySubCache = new Map();
 const ANTIGRAVITY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const ANTIGRAVITY_MODELS_CACHE_TTL_MS = 60 * 1000;
+const ANTIGRAVITY_CREDIT_PROBE_TTL_MS = 5 * 60 * 1000;
+const _antigravityAvailableModelsCache = new Map<string, { data: unknown; fetchedAt: number }>();
+const _antigravityAvailableModelsInflight = new Map<string, Promise<unknown>>();
+const _antigravityCreditProbeCache = new Map<string, { data: number | null; fetchedAt: number }>();
+const _antigravityCreditProbeInflight = new Map<string, Promise<number | null>>();
+
+interface AntigravityUsageOptions {
+  forceRefresh?: boolean;
+}
+
+function buildAntigravityUsageCacheKey(accessToken: string, projectId?: string | null): string {
+  return `${accessToken.substring(0, 16)}:${projectId || "default"}`;
+}
+
+async function fetchAntigravityAvailableModelsCached(
+  accessToken: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {}
+): Promise<unknown> {
+  if (!accessToken) throw new Error("Access token is required");
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId);
+  const cached = _antigravityAvailableModelsCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_MODELS_CACHE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityAvailableModelsInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (const quotaApiUrl of ANTIGRAVITY_CONFIG.quotaApiUrls) {
+      try {
+        response = await fetch(quotaApiUrl, {
+          method: "POST",
+          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
+          body: JSON.stringify(projectId ? { project: projectId } : {}),
+          signal: AbortSignal.timeout(10000),
+        });
+
+        if (response.ok || response.status === 401 || response.status === 403) {
+          break;
+        }
+      } catch (error) {
+        lastError = error as Error;
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Antigravity API unavailable");
+    }
+
+    if (response.status === 403) {
+      return { __antigravityForbidden: true };
+    }
+
+    if (!response.ok) {
+      throw new Error(`Antigravity API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    _antigravityAvailableModelsCache.set(cacheKey, { data, fetchedAt: Date.now() });
+    return data;
+  })().finally(() => {
+    _antigravityAvailableModelsInflight.delete(cacheKey);
+  });
+
+  _antigravityAvailableModelsInflight.set(cacheKey, promise);
+  return promise;
+}
 
 /**
  * Map raw loadCodeAssist tier data to short display labels.
@@ -1279,6 +1444,46 @@ function getAntigravityPlanLabel(subscriptionInfo) {
 async function probeAntigravityCreditBalance(
   accessToken: string,
   accountId: string,
+  projectId?: string | null,
+  options: AntigravityUsageOptions = {}
+): Promise<number | null> {
+  if (!accessToken) return null;
+
+  const cacheKey = buildAntigravityUsageCacheKey(accessToken, projectId || accountId);
+  const cached = _antigravityCreditProbeCache.get(cacheKey);
+  if (
+    !options.forceRefresh &&
+    cached &&
+    Date.now() - cached.fetchedAt < ANTIGRAVITY_CREDIT_PROBE_TTL_MS
+  ) {
+    return cached.data;
+  }
+
+  const inflight = _antigravityCreditProbeInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = probeAntigravityCreditBalanceUncached(accessToken, accountId, projectId)
+    .then(
+      (data) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
+        return data;
+      },
+      (error) => {
+        _antigravityCreditProbeCache.set(cacheKey, { data: null, fetchedAt: Date.now() });
+        throw error;
+      }
+    )
+    .finally(() => {
+      _antigravityCreditProbeInflight.delete(cacheKey);
+    });
+
+  _antigravityCreditProbeInflight.set(cacheKey, promise);
+  return promise;
+}
+
+async function probeAntigravityCreditBalanceUncached(
+  accessToken: string,
+  accountId: string,
   projectId?: string | null
 ): Promise<number | null> {
   try {
@@ -1308,7 +1513,7 @@ async function probeAntigravityCreditBalance(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": googApiClientHeader(),
+        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
         Accept: "text/event-stream",
       };
 
@@ -1371,8 +1576,13 @@ async function getAntigravityUsage(
   accessToken,
   providerSpecificData,
   connectionProjectId?,
-  connectionId?
+  connectionId?,
+  options: AntigravityUsageOptions = {}
 ) {
+  if (!accessToken) {
+    return { plan: "Free", message: "Antigravity access token not available." };
+  }
+
   try {
     const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
     const projectId = connectionProjectId || subscriptionInfo?.cloudaicompanionProject || null;
@@ -1386,67 +1596,22 @@ async function getAntigravityUsage(
 
     // If no cached balance and credits mode is enabled, fire a minimal probe
     const creditsMode = getCreditsMode();
-    if (creditBalance === null && creditsMode !== "off") {
-      creditBalance = await probeAntigravityCreditBalance(accessToken, accountId, projectId);
+    if ((options.forceRefresh || creditBalance === null) && creditsMode !== "off") {
+      creditBalance = await probeAntigravityCreditBalance(
+        accessToken,
+        accountId,
+        projectId,
+        options
+      );
     }
 
-    // Fetch model list with quota info from fetchAvailableModels
-    let response: Response | null = null;
-    let lastError: Error | null = null;
-
-    for (const quotaApiUrl of ANTIGRAVITY_CONFIG.quotaApiUrls) {
-      try {
-        response = await fetch(quotaApiUrl, {
-          method: "POST",
-          headers: getAntigravityHeaders("fetchAvailableModels", accessToken),
-          body: JSON.stringify(projectId ? { project: projectId } : {}),
-          signal: AbortSignal.timeout(10000),
-        });
-
-        if (response.ok || response.status === 401 || response.status === 403) {
-          break;
-        }
-      } catch (error) {
-        lastError = error as Error;
-      }
-    }
-
-    if (!response) {
-      throw lastError || new Error("Antigravity API unavailable");
-    }
-
-    if (response.status === 403) {
+    const data = await fetchAntigravityAvailableModelsCached(accessToken, projectId, options);
+    const dataObj = toRecord(data);
+    if (dataObj.__antigravityForbidden === true) {
       return { message: "Antigravity access forbidden. Check subscription." };
     }
-
-    if (!response.ok) {
-      throw new Error(`Antigravity API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const dataObj = toRecord(data);
     const modelEntries = toRecord(dataObj.models);
     const quotas: Record<string, UsageQuota> = {};
-
-    // Models excluded from quota display — internal/special-purpose models that
-    // the Antigravity API returns quota for but are not user-callable via
-    // generateContent.  Matches CLIProxyAPI's hardcoded exclusion list.
-    const ANTIGRAVITY_EXCLUDED_MODELS = new Set([
-      "chat_20706",
-      "chat_23310",
-      "tab_flash_lite_preview",
-      "tab_jump_flash_lite_preview",
-      "gemini-2.5-flash-thinking",
-      "gemini-2.5-pro", // browser subagent model — not user-callable
-      "gemini-2.5-flash", // internal — quota always exhausted on free tier
-      "gemini-2.5-flash-lite", // internal — quota always exhausted on free tier
-      "gemini-2.5-flash-preview-image-generation", // image-gen only, not usable for chat
-      "gemini-3.1-flash-image-preview", // image-gen preview, not usable for chat
-      "gemini-3-flash-agent", // internal agent model — not user-callable
-      "gemini-3.1-flash-lite", // not usable for chat
-      "gemini-3-pro-low", // not usable for chat
-      "gemini-3-pro-high", // not usable for chat
-    ]);
 
     // Parse per-model quota info from fetchAvailableModels response.
     for (const [modelKey, infoValue] of Object.entries(modelEntries)) {
@@ -1456,7 +1621,7 @@ async function getAntigravityUsage(
       // Skip internal, excluded, and models without quota info
       if (
         info.isInternal === true ||
-        ANTIGRAVITY_EXCLUDED_MODELS.has(modelKey) ||
+        !isUserCallableAntigravityModelId(modelKey) ||
         Object.keys(quotaInfo).length === 0
       ) {
         continue;

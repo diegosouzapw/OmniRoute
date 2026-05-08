@@ -6,7 +6,6 @@
  * is auto-generated from this registry.
  */
 
-import { platform, arch } from "os";
 import { ANTIGRAVITY_BASE_URLS } from "./antigravityUpstream.ts";
 import { ANTIGRAVITY_PUBLIC_MODELS } from "./antigravityModelAliases.ts";
 import {
@@ -24,6 +23,7 @@ import {
   GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
+import { MARITALK_DEFAULT_BASE_URL } from "./maritalk.ts";
 import {
   CURSOR_REGISTRY_VERSION,
   getAntigravityProviderHeaders,
@@ -32,6 +32,8 @@ import {
   getKiroServiceHeaders,
   getQoderDefaultHeaders,
   getQwenOauthHeaders,
+  getRuntimePlatform,
+  getRuntimeArch,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 
@@ -131,9 +133,8 @@ const KIMI_CODING_SHARED = {
     "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
-    { id: "kimi-k2.5", name: "Kimi K2.5" },
-    { id: "kimi-k2.5-thinking", name: "Kimi K2.5 Thinking" },
-    { id: "kimi-latest", name: "Kimi Latest" },
+    { id: "kimi-k2.6", name: "Kimi K2.6" },
+    { id: "kimi-k2.6-thinking", name: "Kimi K2.6 Thinking" },
   ] as RegistryModel[],
 } as const;
 
@@ -191,7 +192,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
     "allenai/Olmo-3-32B-Think",
   ]),
-  moonshot: buildModels(["kimi-k2.5", "kimi-latest", "moonshot-v1-auto"]),
+  moonshot: buildModels(["kimi-k2.6", "kimi-k2.5"]),
   "meta-llama": buildModels([
     "Llama-3.3-70B-Instruct",
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
@@ -226,9 +227,9 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
-  upstage: buildModels(["solar-pro", "solar-mini", "solar-docvision", "solar-embedding-1-large"]),
-  maritalk: buildModels(["sabia-3", "sabia-3-small"]),
-  "xiaomi-mimo": buildModels(["mimo-v2-pro", "mimo-v2-omni", "mimo-v2-tts"]),
+  upstage: buildModels(["solar-pro3", "solar-mini"]),
+  maritalk: buildModels(["sabia-4", "sabia-3.1", "sabiazinho-4", "sabiazinho-3"]),
+  "xiaomi-mimo": buildModels(["mimo-v2.5-pro", "mimo-v2.5", "mimo-v2-omni", "mimo-v2-flash"]),
   "inference-net": buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",
     "deepseek-ai/DeepSeek-R1",
@@ -244,7 +245,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
 };
 
 function mapStainlessOs() {
-  switch (platform()) {
+  switch (getRuntimePlatform()) {
     case "darwin":
       return "MacOS";
     case "win32":
@@ -252,12 +253,12 @@ function mapStainlessOs() {
     case "linux":
       return "Linux";
     default:
-      return `Other::${platform()}`;
+      return `Other::${getRuntimePlatform()}`;
   }
 }
 
 function mapStainlessArch() {
-  switch (arch()) {
+  switch (getRuntimeArch()) {
     case "x64":
       return "x64";
     case "arm64":
@@ -265,7 +266,7 @@ function mapStainlessArch() {
     case "ia32":
       return "x86";
     default:
-      return `other::${arch()}`;
+      return `other::${getRuntimeArch()}`;
   }
 }
 
@@ -382,12 +383,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
-      { id: "codex-auto-review", name: "Codex Auto Review", targetFormat: "openai-responses" },
       { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
+      { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-low", name: "GPT 5.5 (Low)", ...GPT_5_5_CODEX_CAPABILITIES },
-      { id: "gpt-5.5-mini", name: "GPT 5.5 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT 5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT 5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
@@ -491,10 +490,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     models: [
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-5-mini", name: "GPT-5 Mini" },
-      { id: "gpt-5.2", name: "GPT-5.2" },
-      { id: "gpt-5.2-codex", name: "GPT-5.2 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
-      { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
       { id: "gpt-5.4", name: "GPT-5.4", targetFormat: "openai-responses" },
       { id: "gpt-5.5", name: "GPT-5.5", ...GPT_5_5_CODEX_CAPABILITIES },
@@ -508,7 +504,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
       { id: "grok-code-fast-1", name: "Grok Code Fast 1" },
       { id: "oswe-vscode-prime", name: "Raptor Mini" },
-      //{id: "?", name: "Goldeneye" },
+      //{ id: "?", name: "Goldeneye" },
     ],
   },
 
@@ -670,17 +666,39 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   agentrouter: {
     id: "agentrouter",
     alias: "agentrouter",
-    format: "openai",
+    format: "claude",
     executor: "default",
-    baseUrl: "https://agentrouter.org/v1/chat/completions",
+    baseUrl: "https://agentrouter.org/v1/messages",
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "x-api-key",
     defaultContextLength: 128000,
     headers: {
-      "HTTP-Referer": "https://endpoint-proxy.local",
-      "X-Title": "OmniRoute",
+      "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
+      "Anthropic-Beta": ANTHROPIC_BETA_CLAUDE_OAUTH,
+      "Anthropic-Dangerous-Direct-Browser-Access": "true",
+      "User-Agent": CLAUDE_CLI_USER_AGENT,
+      "X-App": "cli",
+      "X-Stainless-Helper-Method": "stream",
+      "X-Stainless-Retry-Count": "0",
+      "X-Stainless-Runtime-Version": CLAUDE_CLI_STAINLESS_RUNTIME_VERSION,
+      "X-Stainless-Package-Version": CLAUDE_CLI_STAINLESS_PACKAGE_VERSION,
+      "X-Stainless-Runtime": "node",
+      "X-Stainless-Lang": "js",
+      "X-Stainless-Arch": mapStainlessArch(),
+      "X-Stainless-Os": mapStainlessOs(),
+      "X-Stainless-Timeout": "600",
     },
-    models: [{ id: "auto", name: "Auto (Best Available)" }],
+    models: [
+      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },
+      { id: "claude-opus-4-6", name: "Claude 4.6 Opus" },
+      { id: "deepseek-r1-0528", name: "DeepSeek R1 0528" },
+      { id: "deepseek-v3.1", name: "DeepSeek V3.1" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
+      { id: "glm-4.5", name: "GLM 4.5" },
+      { id: "glm-4.6", name: "GLM 4.6" },
+      { id: "glm-5.1", name: "GLM 5.1" },
+    ],
+    passthroughModels: true,
   },
 
   openrouter: {
@@ -732,6 +750,19 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: GLM_SHARED_HEADERS,
     models: [...GLM_SHARED_MODELS],
+  },
+
+  "glm-cn": {
+    id: "glm-cn",
+    alias: "glm-cn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [{ id: "glm-5.1", name: "GLM-5.1" }],
+    passthroughModels: true,
   },
 
   glmt: {
@@ -1070,6 +1101,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "grok-4.3", name: "Grok 4.3" },
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
@@ -1086,22 +1118,37 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://chatgpt.com/backend-api/conversation",
     authType: "apikey",
     authHeader: "cookie",
-    models: [{ id: "gpt-5.3-instant", name: "GPT-5.3 Instant (via ChatGPT Web)" }],
+    models: [
+      { id: "gpt-5.5-pro", name: "GPT-5.5 Pro" }, //pro tier only
+      { id: "gpt-5.5-thinking", name: "GPT-5.5 Thinking" }, //plus, pro tier
+      { id: "gpt-5.5", name: "GPT-5.5 Instant" }, //free, plus, pro tier
+      { id: "gpt-5.4-pro", name: "GPT-5.4 Pro" }, //pro tier only
+      { id: "gpt-5.4-thinking", name: "GPT-5.4 Thinking" }, //plus, pro tier
+      { id: "gpt-5.4-thinking-mini", name: "GPT-5.4 Thinking Mini" }, //free-login only
+      { id: "gpt-5.3", name: "GPT-5.3 Instant" }, //free, free-login, plus, pro tier
+      { id: "gpt-5.3-mini", name: "GPT-5.3 Mini" }, //limit fallback
+      { id: "gpt-5.2-pro", name: "GPT-5.2 Pro" }, //pro tier only
+      { id: "gpt-5.2-thinking", name: "GPT-5.2 Thinking" }, //plus ~ tier
+      { id: "gpt-5.2-instant", name: "GPT-5.2 Instant" }, //plus ~ tier
+      { id: "o3", name: "o3" }, //plus ~ tier
+      { id: "gpt-4-5", name: "GPT-4.5" }, //pro tier only
+    ],
   },
 
   "grok-web": {
     id: "grok-web",
-    alias: "grok-web",
+    alias: "gw",
     format: "openai",
     executor: "grok-web",
     baseUrl: "https://grok.com/rest/app-chat/conversations/new",
     authType: "apikey",
     authHeader: "cookie",
+    passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok 4.1 Fast" },
-      { id: "expert", name: "Grok 4.20" },
-      { id: "heavy", name: "Grok 4.20 Heavy" },
-      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)" },
+      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
+      { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
+      { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
     ],
   },
 
@@ -1155,6 +1202,29 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "pplx-opus", name: "Claude Opus 4.7 (via Perplexity)" },
       { id: "pplx-kimi", name: "Kimi K2.6 (via Perplexity)" },
       { id: "pplx-nemotron", name: "Nemotron 3 Super (via Perplexity)" },
+    ],
+  },
+
+  "muse-spark-web": {
+    id: "muse-spark-web",
+    alias: "ms-web",
+    format: "openai",
+    executor: "muse-spark-web",
+    baseUrl: "https://www.meta.ai/api/graphql",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "muse-spark", name: "Muse Spark" },
+      {
+        id: "muse-spark-thinking",
+        name: "Muse Spark Thinking",
+        supportsReasoning: true,
+      },
+      {
+        id: "muse-spark-contemplating",
+        name: "Muse Spark Contemplating",
+        supportsReasoning: true,
+      },
     ],
   },
 
@@ -1914,9 +1984,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "maritalk",
     format: "openai",
     executor: "default",
-    baseUrl: "https://chat.maritaca.ai/api/chat/inference",
+    baseUrl: MARITALK_DEFAULT_BASE_URL,
     authType: "apikey",
-    authHeader: "bearer",
+    authHeader: "key",
     models: CHAT_OPENAI_COMPAT_MODELS.maritalk,
   },
 
@@ -1993,6 +2063,34 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "mistral-large-latest", name: "Mistral Large (via AI/ML API)" },
     ],
     passthroughModels: true,
+  },
+  // Free tier: 50 RPM, 500,000 TPM
+  "nous-research": {
+    id: "nous-research",
+    alias: "nous",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://inference-api.nousresearch.com/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Hermes-4-405B", name: "Hermes 4 7B (Nous Research)" },
+      { id: "Hermes-4-70B", name: "Hermes 4 70B (Nous Research)" },
+    ],
+  },
+
+  reka: {
+    id: "reka",
+    alias: "reka",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.reka.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "reka-flash-3", name: "Reka Flash 3" },
+      { id: "reka-edge-2603", name: "Reka Edge 2603" },
+    ],
   },
 };
 

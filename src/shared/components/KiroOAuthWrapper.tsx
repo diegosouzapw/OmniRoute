@@ -1,16 +1,29 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import PropTypes from "prop-types";
 import OAuthModal from "./OAuthModal";
 import KiroAuthModal from "./KiroAuthModal";
 import KiroSocialOAuthModal from "./KiroSocialOAuthModal";
+
+type KiroOAuthWrapperProps = {
+  isOpen: boolean;
+  providerInfo?: { id?: string; name?: string } | null;
+  onSuccess?: () => void;
+  onClose: () => void;
+  reauthConnection?: null | { id?: string };
+};
 
 /**
  * Kiro OAuth Wrapper
  * Orchestrates between method selection, device code flow, and social login flow
  */
-export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onClose }) {
+export default function KiroOAuthWrapper({
+  isOpen,
+  providerInfo,
+  onSuccess,
+  onClose,
+  reauthConnection,
+}: KiroOAuthWrapperProps) {
   const [authMethod, setAuthMethod] = useState(null); // null | "builder-id" | "idc" | "social" | "import"
   const [socialProvider, setSocialProvider] = useState(null); // "google" | "github"
   const [idcConfig, setIdcConfig] = useState(null);
@@ -78,6 +91,7 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
         provider={oauthProviderId}
         providerInfo={providerInfo}
         onSuccess={handleDeviceSuccess}
+        reauthConnection={reauthConnection}
         onClose={handleBack}
         idcConfig={idcConfig}
       />
@@ -99,13 +113,3 @@ export default function KiroOAuthWrapper({ isOpen, providerInfo, onSuccess, onCl
 
   return null;
 }
-
-KiroOAuthWrapper.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  providerInfo: PropTypes.shape({
-    id: PropTypes.string,
-    name: PropTypes.string,
-  }),
-  onSuccess: PropTypes.func,
-  onClose: PropTypes.func.isRequired,
-};

@@ -1,4 +1,4 @@
-# 🌐 Multilingual Documentation — 9router
+# 🌐 Multilingual Documentation — OmniRoute
 
 Translations of documentation into 39 languages. Code blocks remain in English.
 

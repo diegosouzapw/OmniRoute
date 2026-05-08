@@ -30,7 +30,8 @@ const PROVIDERS_WITHOUT_SYSTEM_ROLE = new Set([
  * Uses prefix matching (e.g., "glm-" matches "glm-4.7", "glm-4.5", etc.)
  */
 const MODELS_WITHOUT_SYSTEM_ROLE = [
-  "glm-", // ZhipuAI GLM models
+  "glm-", // ZhipuAI GLM models (prefix: glm-5.1, glm-4.7, etc.)
+  "glm", // Exact match for model id "glm" (e.g., Pollinations)
   "ernie-", // Baidu ERNIE models
 ];
 

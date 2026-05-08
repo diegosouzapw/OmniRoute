@@ -56,7 +56,6 @@ test("T34: max output tokens are capped by model spec", () => {
 test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup", () => {
   assert.equal(getModelSpec("gpt-5.5").contextWindow, 1050000);
   assert.equal(getModelSpec("gpt-5.5-high").maxOutputTokens, 128000);
-  assert.equal(getModelSpec("gpt-5.5-mini").contextWindow, 400000);
   assert.equal(typeof MODEL_SPECS["gemini-3.1-pro-high"], "object");
   assert.equal(getModelSpec("gemini-3-pro-high").maxOutputTokens, 65535);
   assert.equal(getModelSpec("gemini-3-pro-preview").maxOutputTokens, 65535);

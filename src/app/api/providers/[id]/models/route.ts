@@ -14,6 +14,7 @@ import {
 } from "@/lib/localDb";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
+  SafeOutboundFetchError,
   getSafeOutboundFetchErrorStatus,
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
@@ -48,6 +49,7 @@ import {
 import {
   ANTIGRAVITY_PUBLIC_MODELS,
   getClientVisibleAntigravityModelName,
+  isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
@@ -63,6 +65,17 @@ import {
 } from "@/lib/providerModels/modelDiscovery";
 
 type JsonRecord = Record<string, unknown>;
+type LocalCatalogModel = {
+  id: string;
+  name?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+};
+
+const antigravityDiscoveryInflight = new Map<
+  string,
+  Promise<Array<{ id: string; name: string }>>
+>();
 
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -110,6 +123,19 @@ const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
 
 function isNamedOpenAIStyleProvider(provider: string): boolean {
   return NAMED_OPENAI_STYLE_PROVIDERS.has(provider);
+}
+
+function mergeLocalCatalogModels<T extends LocalCatalogModel, U extends LocalCatalogModel>(
+  registryCatalogModels: T[],
+  specialtyCatalogModels: U[]
+): Array<T | U> {
+  if (registryCatalogModels.length === 0) return specialtyCatalogModels;
+
+  const registryModelIds = new Set(registryCatalogModels.map((model) => model.id));
+  return [
+    ...registryCatalogModels,
+    ...specialtyCatalogModels.filter((model) => !registryModelIds.has(model.id)),
+  ];
 }
 
 function buildOptionalBearerHeaders(token: string | null | undefined): Record<string, string> {
@@ -173,6 +199,10 @@ function normalizeAntigravityModelsResponse(data: unknown): Array<{ id: string; 
     .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
+function filterUserCallableAntigravityModels(models: Array<{ id: string; name: string }>) {
+  return models.filter((model) => isUserCallableAntigravityModelId(model.id));
+}
+
 function mapAntigravityModelForClient(model: { id: string; name: string }): {
   id: string;
   name: string;
@@ -182,6 +212,58 @@ function mapAntigravityModelForClient(model: { id: string; name: string }): {
     id: clientId,
     name: getClientVisibleAntigravityModelName(clientId, model.name),
   };
+}
+
+async function fetchAntigravityDiscoveryModelsCached(
+  accessToken: string,
+  connectionId: string,
+  proxy: unknown
+): Promise<Array<{ id: string; name: string }>> {
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}`;
+  const inflight = antigravityDiscoveryInflight.get(cacheKey);
+  if (inflight) return inflight;
+
+  const promise = (async () => {
+    await resolveAntigravityVersion();
+
+    for (const discoveryUrl of getAntigravityModelsDiscoveryUrls()) {
+      try {
+        const response = await safeOutboundFetch(discoveryUrl, {
+          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+          guard: getProviderOutboundGuard(),
+          proxyConfig: proxy,
+          method: "POST",
+          headers: getAntigravityHeaders("models", accessToken),
+          body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.warn(
+            `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
+          );
+          continue;
+        }
+
+        const models = filterUserCallableAntigravityModels(
+          normalizeAntigravityModelsResponse(await response.json())
+        ).map(mapAntigravityModelForClient);
+        if (models.length > 0) {
+          return models;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
+      }
+    }
+
+    return [];
+  })().finally(() => {
+    antigravityDiscoveryInflight.delete(cacheKey);
+  });
+
+  antigravityDiscoveryInflight.set(cacheKey, promise);
+  return promise;
 }
 
 function normalizeDataRobotCatalogResponse(data: unknown): Array<{ id: string; name: string }> {
@@ -332,63 +414,64 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
  * @param provider - Provider ID
  * @returns Array of models or undefined if provider doesn't use static models
  */
-export function getStaticModelsForProvider(
-  provider: string
-): Array<{ id: string; name: string }> | undefined {
+export function getStaticModelsForProvider(provider: string): LocalCatalogModel[] | undefined {
   const staticModelsFn = STATIC_MODEL_PROVIDERS[provider];
   if (staticModelsFn) {
     return staticModelsFn();
   }
 
+  const specialtyModels: LocalCatalogModel[] = [];
+  const appendModels = (
+    models: Array<{ id: string; name?: string }>,
+    metadata?: Pick<LocalCatalogModel, "apiFormat" | "supportedEndpoints">
+  ) => {
+    for (const model of models) {
+      if (specialtyModels.some((existing) => existing.id === model.id)) continue;
+      specialtyModels.push({
+        id: model.id,
+        name: model.name || model.id,
+        ...metadata,
+      });
+    }
+  };
+
   const embeddingProvider = getEmbeddingProvider(provider);
   if (embeddingProvider) {
-    return embeddingProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(embeddingProvider.models, {
+      apiFormat: "embeddings",
+      supportedEndpoints: ["embeddings"],
+    });
   }
 
   const rerankProvider = getRerankProvider(provider);
   if (rerankProvider) {
-    return rerankProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(rerankProvider.models, {
+      apiFormat: "rerank",
+      supportedEndpoints: ["rerank"],
+    });
   }
 
   const imageProvider = getImageProvider(provider);
   if (imageProvider) {
-    return imageProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(imageProvider.models);
   }
 
   const videoProvider = getVideoProvider(provider);
   if (videoProvider) {
-    return videoProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(videoProvider.models);
   }
 
   const speechProvider = getSpeechProvider(provider);
   if (speechProvider) {
-    return speechProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(speechProvider.models);
   }
 
   const transcriptionProvider = getTranscriptionProvider(provider);
   if (transcriptionProvider) {
-    return transcriptionProvider.models.map((model) => ({
-      id: model.id,
-      name: model.name || model.id,
-    }));
+    appendModels(transcriptionProvider.models);
   }
 
-  return undefined;
+  return specialtyModels.length > 0 ? specialtyModels : undefined;
 }
 
 // Provider models endpoints configuration
@@ -763,11 +846,12 @@ export async function GET(
     const specialtyCatalogModels = getStaticModelsForProvider(provider) || [];
 
     const toLocalCatalogModels = () => {
-      const localCatalog =
-        registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
-      return localCatalog.map((model: any) => ({
+      const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
+      return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
+        ...(model.apiFormat ? { apiFormat: model.apiFormat } : {}),
+        ...(model.supportedEndpoints ? { supportedEndpoints: model.supportedEndpoints } : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
@@ -864,6 +948,11 @@ export async function GET(
         source: "api",
       });
     };
+
+    if (provider === "reka") {
+      const localCatalog = buildLocalCatalogResponse();
+      if (localCatalog) return localCatalog;
+    }
 
     if (
       isOpenAICompatibleProvider(provider) ||
@@ -1561,7 +1650,6 @@ export async function GET(
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
       const staticModels = STATIC_MODEL_PROVIDERS.antigravity();
-      const discoveryUrls = getAntigravityModelsDiscoveryUrls();
 
       if (!accessToken) {
         const fallback = buildDiscoveryFallbackResponse({
@@ -1578,37 +1666,13 @@ export async function GET(
         });
       }
 
-      await resolveAntigravityVersion();
-
-      for (const discoveryUrl of discoveryUrls) {
-        try {
-          const response = await safeOutboundFetch(discoveryUrl, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            method: "POST",
-            headers: getAntigravityHeaders("models", accessToken),
-            body: JSON.stringify({}),
-          });
-
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.warn(
-              `[models] antigravity discovery failed at ${discoveryUrl} (${response.status}): ${errorText}`
-            );
-            continue;
-          }
-
-          const remoteModels = normalizeAntigravityModelsResponse(await response.json()).map(
-            mapAntigravityModelForClient
-          );
-          if (remoteModels.length > 0) {
-            return buildApiDiscoveryResponse(remoteModels);
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          console.warn(`[models] antigravity discovery threw for ${discoveryUrl}: ${message}`);
-        }
+      const remoteModels = await fetchAntigravityDiscoveryModelsCached(
+        accessToken,
+        connectionId,
+        proxy
+      );
+      if (remoteModels.length > 0) {
+        return buildApiDiscoveryResponse(remoteModels);
       }
 
       const fallback = buildDiscoveryFallbackResponse();
@@ -1718,15 +1782,16 @@ export async function GET(
       });
     }
 
-    const localCatalog =
-      registryCatalogModels.length > 0 ? registryCatalogModels : specialtyCatalogModels;
+    const localCatalog = mergeLocalCatalogModels(registryCatalogModels, specialtyCatalogModels);
     if (!config && localCatalog.length > 0) {
       return buildResponse({
         provider,
         connectionId,
-        models: localCatalog.map((m: any) => ({
+        models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
+          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
+          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",
@@ -1858,6 +1923,10 @@ export async function GET(
 
     return buildApiDiscoveryResponse(allModels);
   } catch (error) {
+    if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
     const status = getSafeOutboundFetchErrorStatus(error);
     if (status) {
       const message = error instanceof Error ? error.message : "Failed to fetch models";

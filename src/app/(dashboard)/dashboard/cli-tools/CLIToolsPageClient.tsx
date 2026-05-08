@@ -21,6 +21,7 @@ import {
   CustomCliCard,
 } from "./components";
 import { useTranslations } from "next-intl";
+import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 const AUTO_CONFIGURED_TOOL_IDS = new Set([
@@ -226,7 +227,7 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
     if (typeof window !== "undefined") {
       return window.location.origin;
     }
-    return "http://localhost:20128";
+    return DEFAULT_DISPLAY_BASE_URL;
   };
 
   if (loading || !statusesLoaded) {

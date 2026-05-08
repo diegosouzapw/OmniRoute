@@ -84,6 +84,15 @@ export const DOCS_USE_CASE_ITEMS = [
   { titleKey: "useCaseUsageVisibilityTitle", textKey: "useCaseUsageVisibilityText" },
 ] as const;
 
+export const DOCS_DEPLOYMENT_GUIDES = [
+  {
+    icon: "android",
+    titleKey: "deployTermuxTitle",
+    textKey: "deployTermuxText",
+    href: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/TERMUX_GUIDE.md",
+  },
+] as const;
+
 export const DOCS_TROUBLESHOOTING_KEYS = [
   "troubleshootingModelRouting",
   "troubleshootingAmbiguousModels",
@@ -95,6 +104,7 @@ export const DOCS_TROUBLESHOOTING_KEYS = [
 
 export const DOCS_TOC_ITEMS = [
   { href: "#quick-start", labelKey: "quickStart" },
+  { href: "#deployment", labelKey: "deploymentGuides" },
   { href: "#features", labelKey: "features" },
   { href: "#supported-providers", labelKey: "supportedProvidersToc" },
   { href: "#use-cases", labelKey: "commonUseCases" },

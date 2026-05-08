@@ -6,11 +6,11 @@ Unified AI proxy/router — route any LLM through one endpoint. Multi-provider s
 with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (29 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js ≥18 <24, ES Modules (`"type": "module"`)
+- **Runtime**: Next.js 16 (App Router), Node.js `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`, ES Modules (`"type": "module"`)
 - **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
@@ -132,7 +132,7 @@ All persistence uses SQLite through domain-specific modules:
 `backup.ts`, `proxies.ts`, `prompts.ts`, `webhooks.ts`, `detailedLogs.ts`,
 `domainState.ts`, `registeredKeys.ts`, `quotaSnapshots.ts`, `modelComboMappings.ts`,
 `cliToolState.ts`, `encryption.ts`, `readCache.ts`, `secrets.ts`, `stateReset.ts`,
-`contextHandoffs.ts`.
+`contextHandoffs.ts`, `compression.ts`.
 Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
 `src/lib/localDb.ts` is a **re-export layer only** — never add logic there.
 
@@ -142,7 +142,7 @@ Schema migrations live in `db/migrations/` and run via `migrationRunner.ts`.
   journaling. `SCHEMA_SQL` defines 15 base tables. Helpers: `rowToCamel`, `encryptConnectionFields`.
 - **`migrationRunner.ts`**: Applies versioned SQL files from `db/migrations/` inside transactions.
   Tracks applied migrations in `_omniroute_migrations` table.
-- **Migrations**: 21 files (`001_initial_schema.sql` → `021_combo_call_log_targets.sql`).
+- **Migrations**: 22 files (`001_initial_schema.sql` → `022_compression_settings.sql`).
   Each migration is idempotent and runs in a transaction.
 - **Domain modules** import `getDbInstance()` from `core.ts` for all CRUD operations.
   Each module owns a specific table/set of tables (e.g., `providers.ts` → `provider_connections`,
@@ -285,7 +285,35 @@ Includes request/response translators with helpers for image handling.
 `autoCombo/`, `intentClassifier.ts`, `taskAwareRouter.ts`, `thinkingBudget.ts`,
 `contextManager.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`,
 `emergencyFallback.ts`, `workflowFSM.ts`, `backgroundTaskDetector.ts`, `ipFilter.ts`,
-`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, and more.
+`signatureCache.ts`, `volumeDetector.ts`, `contextHandoff.ts`, `compression/` (prompt
+compression pipeline), and more.
+
+#### Prompt Compression Pipeline (`compression/`)
+
+Modular prompt compression that runs proactively before the existing reactive context manager.
+
+- **`strategySelector.ts`**: Selects compression mode based on config, compression combo assignments,
+  combo overrides, auto-trigger thresholds, and defaults. Priority: assigned compression combo >
+  combo override > auto-trigger > default mode > off.
+- **`lite.ts`**: 5 lite-mode techniques: `collapseWhitespace`, `dedupSystemPrompt`,
+  `compressToolResults`, `removeRedundantContent`, `replaceImageUrls`. Target: 10-15% savings at
+  <1ms latency.
+- **`caveman.ts` / `cavemanRules.ts`**: Caveman-style semantic condensation backed by built-in
+  rules plus file-loaded language packs under `compression/rules/`.
+- **`engines/rtk/`**: Rule-based terminal/tool-output compression inspired by RTK patterns. Detects
+  command output classes, applies JSON filter packs, deduplicates repeated lines, strips ANSI/code
+  noise, and preserves errors/actionable context. The RTK JSON DSL supports replace,
+  match-output short-circuit, strip/keep, per-line truncation, head/tail/max-line truncation,
+  inline tests, trust-gated project/global custom filters, and optional redacted raw-output
+  retention for authenticated recovery.
+- **`engines/registry.ts`**: Registers engines (`caveman`, `rtk`) and powers stacked pipelines.
+- **`stats.ts`**: Per-request compression stats tracking (original tokens, compressed tokens,
+  savings %, techniques used, engine breakdown, compression combo id).
+- **`types.ts`**: `CompressionMode` (off/lite/standard/aggressive/ultra/rtk/stacked),
+  `CompressionConfig`, `CompressionStats`, `CompressionResult`.
+- DB settings in `src/lib/db/compression.ts`, compression combos in
+  `src/lib/db/compressionCombos.ts`, API routes under `src/app/api/settings/compression/`,
+  `src/app/api/context/*`, and preview/language-pack routes under `src/app/api/compression/*`.
 
 #### Combo Routing Engine (`combo.ts`)
 
@@ -306,7 +334,7 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 
 ### MCP Server (`open-sse/mcp-server/`)
 
-29 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
+37 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
 
 **Core tools** (20): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
 route_request, cost_report, list_models_catalog, web_search, simulate_route, set_budget_guard,
@@ -314,6 +342,11 @@ set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
 best_combo_for_task, explain_route, get_session_snapshot, db_health_check, sync_pricing.
 
 **Cache tools** (2): cache_stats, cache_flush.
+
+**Compression tools** (5): compression_status, compression_configure, set_compression_engine,
+list_compression_combos, compression_combo_stats.
+
+**1proxy tools** (3): oneproxy_fetch, oneproxy_rotate, oneproxy_stats.
 
 **Memory tools** (3): memory_search, memory_add, memory_clear.
 
@@ -418,3 +451,4 @@ Request middleware including `promptInjectionGuard.ts`.
 - **Provider constants** validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
 - **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
 - **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
+- **⛔ NEVER close a contributor's PR** after using their code — always merge via GitHub so they get credit. See `.agents/workflows/review-prs.md` for full policy.

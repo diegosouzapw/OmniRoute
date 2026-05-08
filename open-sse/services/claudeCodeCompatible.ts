@@ -33,8 +33,8 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
   "interleaved-thinking-2025-05-14",
   "effort-2025-11-24",
 ].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.113";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.113 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.121";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.121 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
@@ -249,7 +249,6 @@ export function buildClaudeCodeCompatibleRequest({
     messages: normalizedMessages,
     systemBlocks: effectiveClaudeBody?.system as Record<string, unknown>[] | undefined,
     preserveCacheControl,
-    injectDefaultSkeleton: !effectiveClaudeBody,
   });
   const resolvedSessionId = sessionId || randomUUID();
   const effort = resolveClaudeCodeCompatibleEffort(sourceBody, normalizedBody, model);
@@ -550,12 +549,10 @@ function buildClaudeCodeCompatibleSystemBlocks({
   messages,
   systemBlocks,
   preserveCacheControl,
-  injectDefaultSkeleton,
 }: {
   messages: MessageLike[] | undefined;
   systemBlocks?: Array<Record<string, unknown>> | undefined;
   preserveCacheControl: boolean;
-  injectDefaultSkeleton: boolean;
 }) {
   const customSystemBlocks =
     Array.isArray(systemBlocks) && systemBlocks.length > 0
@@ -570,14 +567,29 @@ function buildClaudeCodeCompatibleSystemBlocks({
     return preparedBlock;
   });
 
-  if (!injectDefaultSkeleton) {
-    return preparedCustomSystemBlocks;
-  }
+  const hasDefaultSystemBlock = containsDefaultSystemSkeleton(preparedCustomSystemBlocks);
+
+  if (hasDefaultSystemBlock) return preparedCustomSystemBlocks;
 
   return [
     ...CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS.map((block) => ({ ...block })),
     ...preparedCustomSystemBlocks,
   ];
+}
+
+function containsDefaultSystemSkeleton(blocks: Array<Record<string, unknown>>) {
+  const skeleton = CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS;
+  if (skeleton.length === 0) return true;
+  if (blocks.length < skeleton.length) return false;
+
+  return blocks.some((_, startIndex) =>
+    skeleton.every((defaultBlock, offset) => {
+      const candidateBlock = blocks[startIndex + offset];
+      if (!candidateBlock) return false;
+
+      return Object.entries(defaultBlock).every(([key, value]) => candidateBlock[key] === value);
+    })
+  );
 }
 
 function convertClaudeCodeCompatibleMessage(message: MessageLike | null | undefined) {

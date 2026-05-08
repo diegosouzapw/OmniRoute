@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
+import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
+import { scrubProxyAndFingerprintHeaders } from "../../open-sse/services/antigravityHeaderScrub.ts";
 import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
@@ -42,13 +44,28 @@ test("AntigravityExecutor.buildUrl always targets the streaming endpoint", () =>
   );
 });
 
-test("AntigravityExecutor.buildHeaders includes auth and SSE accept", () => {
+test("AntigravityExecutor.buildHeaders includes native headers without OmniRoute internals", () => {
   const executor = new AntigravityExecutor();
   const headers = executor.buildHeaders({ accessToken: "ag-token" }, false);
 
   assert.equal(headers.Authorization, "Bearer ag-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.equal(headers["X-OmniRoute-Source"], "omniroute");
+  assert.equal(headers["X-OmniRoute-Source"], undefined);
+});
+
+test("Antigravity header scrub removes OmniRoute internal headers", () => {
+  const headers = scrubProxyAndFingerprintHeaders({
+    Authorization: "Bearer ag-token",
+    "X-OmniRoute-Source": "omniroute",
+    "X-OmniRoute-No-Cache": "true",
+    "X-Forwarded-For": "127.0.0.1",
+  });
+
+  assert.equal(headers.Authorization, "Bearer ag-token");
+  assert.equal(headers["X-OmniRoute-Source"], undefined);
+  assert.equal(headers["X-OmniRoute-No-Cache"], undefined);
+  assert.equal(headers["X-Forwarded-For"], undefined);
+  assert.equal(headers["Accept-Encoding"], "gzip, deflate, br");
 });
 
 test("AntigravityExecutor.transformRequest normalizes model, project and contents", async () => {
@@ -79,6 +96,14 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
 
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
+  assert.deepEqual(Object.keys(result), [
+    "project",
+    "model",
+    "userAgent",
+    "requestType",
+    "requestId",
+    "request",
+  ]);
   assert.equal(result.userAgent, "antigravity");
   assert.ok(result.request.sessionId);
   assert.deepEqual(result.request.toolConfig, {
@@ -367,17 +392,17 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       }
     );
   };
-  globalThis.setTimeout = (callback) => {
+  globalThis.setTimeout = ((callback) => {
     callback();
     return 0;
-  };
+  }) as typeof setTimeout;
 
   try {
     const result = await executor.execute({
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: false,
-      credentials: { accessToken: "token", projectId: "project-1" },
+      credentials: { accessToken: "token", projectId: "project-1" } as any,
       log: { debug() {}, warn() {} },
     });
     const payload = (await result.response.json()) as any;
@@ -419,7 +444,7 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: true,
-      credentials: { accessToken: "token", projectId: "project-1" },
+      credentials: { accessToken: "token", projectId: "project-1" } as any,
       log: { debug() {}, warn() {} },
     });
     const payload = (await result.response.json()) as any;
@@ -429,4 +454,86 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  seedAntigravityVersionCache("2026.04.17-test");
+  setCliCompatProviders(["antigravity"]);
+
+  globalThis.fetch = async (_url, init) => {
+    const headers = init?.headers as Record<string, string>;
+    const parsedBody = JSON.parse(String(init?.body));
+
+    assert.equal(headers["User-Agent"], "antigravity/2026.04.17-test darwin/arm64");
+    assert.deepEqual(Object.keys(parsedBody), [
+      "project",
+      "model",
+      "userAgent",
+      "requestType",
+      "requestId",
+      "enabledCreditTypes",
+      "request",
+    ]);
+
+    return new Response(
+      'data: {"response":{"candidates":[{"content":{"parts":[{"text":"OK"}]},"finishReason":"STOP"}]}}\n\n',
+      {
+        status: 200,
+        headers: { "Content-Type": "text/event-stream" },
+      }
+    );
+  };
+
+  try {
+    const result = await withEnv("ANTIGRAVITY_CREDITS", "always", () =>
+      executor.execute({
+        model: "antigravity/gemini-2.5-flash",
+        body: { request: { contents: [] } },
+        stream: false,
+        credentials: { accessToken: "token", projectId: "project-1" } as any,
+        log: { debug() {}, warn() {}, info() {} },
+      })
+    );
+
+    assert.equal(result.response.status, 200);
+  } finally {
+    setCliCompatProviders([]);
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for claude models", async () => {
+  const executor = new AntigravityExecutor();
+  const body = {
+    project: "project-1",
+    model: "claude-sonnet-4-6",
+    userAgent: "antigravity",
+    requestId: "agent-123",
+    requestType: "agent",
+    request: {
+      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+      system: [{ type: "text", text: "System prompt" }],
+      generationConfig: {
+        temperature: 1,
+        maxOutputTokens: 16384,
+      },
+    },
+  };
+
+  const result = (await executor.transformRequest("antigravity/claude-sonnet-4-6", body, true, {
+    projectId: "project-1",
+  })) as any;
+
+  assert.equal(result.project, "project-1");
+  assert.equal(result.model, "claude-sonnet-4-6");
+  assert.equal(result.requestType, "agent");
+  assert.ok(result.request.sessionId);
+  assert.deepEqual(result.request.messages, [
+    { role: "user", content: [{ type: "text", text: "Hello" }] },
+  ]);
+  assert.deepEqual(result.request.system, [{ type: "text", text: "System prompt" }]);
+  assert.equal(result.request.contents, undefined);
+  assert.equal(result.request.toolConfig, undefined);
 });

@@ -67,7 +67,7 @@ describe("transformToOmniRoute", () => {
         litellm_provider: "openai",
         mode: "embedding",
       },
-      "openai/dall-e-3": {
+      "openai/gpt-image-2": {
         input_cost_per_token: 0,
         output_cost_per_token: 0,
         litellm_provider: "openai",

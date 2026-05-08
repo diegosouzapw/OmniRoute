@@ -274,7 +274,7 @@ test("getStaticModelsForProvider returns local image catalogs for image-only pro
   assert.ok(models, "xAI should expose local image models");
   assert.deepEqual(
     models.map((model) => model.id),
-    ["grok-2-image-1212"]
+    ["grok-imagine-image-pro", "grok-imagine-image"]
   );
 });
 

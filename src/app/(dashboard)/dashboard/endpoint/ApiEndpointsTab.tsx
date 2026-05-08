@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/shared/components";
+import { useDisplayBaseUrl } from "@/shared/hooks";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -65,7 +66,9 @@ const WEBHOOK_EVENTS = [
 
 /* ─── Main Component ─────────────────────────────────── */
 export default function ApiEndpointsTab() {
+  const baseUrl = useDisplayBaseUrl();
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState<"catalog" | "webhooks">("catalog");
   const [search, setSearch] = useState("");
@@ -93,17 +96,26 @@ export default function ApiEndpointsTab() {
       const res = await fetch("/api/openapi/spec");
       if (res.ok) {
         const data = await res.json();
-        return data;
+        return { data: data as CatalogData, error: null };
       }
-    } catch {}
-    return null;
+      const body = await res.json().catch(() => null);
+      const message =
+        body && typeof body.error === "string"
+          ? body.error
+          : `API catalog request failed with HTTP ${res.status}`;
+      return { data: null, error: message };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load API catalog";
+      return { data: null, error: message };
+    }
   };
 
   useEffect(() => {
     let cancelled = false;
-    loadCatalog().then((data) => {
+    loadCatalog().then((result) => {
       if (!cancelled) {
-        setCatalog(data);
+        setCatalog(result.data);
+        setCatalogError(result.error);
         setLoading(false);
       }
     });
@@ -340,6 +352,32 @@ export default function ApiEndpointsTab() {
       </div>
 
       {/* ═══ API CATALOG ═══ */}
+      {section === "catalog" && !catalog && (
+        <Card className="p-6">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
+              <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-text-main">API catalog unavailable</h3>
+              <p className="text-xs text-text-muted mt-1">
+                {catalogError || "The OpenAPI specification could not be loaded."}
+              </p>
+              <a
+                href="/api/openapi/spec"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-1 mt-3 px-2.5 py-1.5 text-xs font-medium rounded-lg
+                           bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                Open JSON response
+              </a>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {section === "catalog" && catalog && (
         <>
           {/* Search & filter */}
@@ -500,7 +538,7 @@ export default function ApiEndpointsTab() {
                               Example
                             </p>
                             <code className="text-[11px] font-mono text-text-main break-all">
-                              curl -X {ep.method} http://localhost:20128
+                              curl -X {ep.method} {baseUrl}
                               {ep.path.replace("/api/", "/")}
                               {ep.security ? ' -H "Authorization: Bearer YOUR_KEY"' : ""}
                               {ep.requestBody

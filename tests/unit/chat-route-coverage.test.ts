@@ -163,33 +163,6 @@ test("handleChat treats Accept text/event-stream as stream=true and returns a se
   assert.match(raw, /\[DONE\]/);
 });
 
-test("handleChat enforces strict API key mode for missing and invalid keys", async () => {
-  process.env.REQUIRE_API_KEY = "true";
-
-  const missing = await handleChat(
-    buildRequest({
-      body: {
-        model: "openai/gpt-4o-mini",
-        stream: false,
-        messages: [{ role: "user", content: "missing auth" }],
-      },
-    })
-  );
-  const invalid = await handleChat(
-    buildRequest({
-      authKey: "sk-does-not-exist",
-      body: {
-        model: "openai/gpt-4o-mini",
-        stream: false,
-        messages: [{ role: "user", content: "invalid auth" }],
-      },
-    })
-  );
-
-  assert.equal(missing.status, 401);
-  assert.equal(invalid.status, 401);
-});
-
 test("handleChat rejects requests without a model", async () => {
   const response = await handleChat(
     buildRequest({

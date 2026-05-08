@@ -17,6 +17,29 @@ export function normalizeSessionCookieHeader(rawValue: string, defaultCookieName
   return `${defaultCookieName}=${normalized}`;
 }
 
+/**
+ * Extract a single cookie's value from whatever the user pasted. Handles:
+ *   - bare value:                    "eyJ0eXAi..."          → "eyJ0eXAi..."
+ *   - single pair:                   "sso=eyJ0eXAi..."      → "eyJ0eXAi..."
+ *   - full DevTools cookie blob:     "foo=1; sso=eyJ...; bar=2" → "eyJ..."
+ * Returns "" if a blob is given that does not contain the named cookie.
+ */
+export function extractCookieValue(rawValue: string, cookieName: string): string {
+  const trimmed = stripCookieInputPrefix(rawValue);
+  if (!trimmed) return "";
+
+  if (trimmed.includes(";")) {
+    const escaped = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = trimmed.match(new RegExp("(?:^|;\\s*)" + escaped + "=([^;\\s]+)"));
+    return match ? match[1] : "";
+  }
+
+  const prefix = `${cookieName}=`;
+  if (trimmed.startsWith(prefix)) return trimmed.slice(prefix.length);
+
+  return trimmed;
+}
+
 export function normalizeSessionCookieHeaders(
   rawValues: Array<string | null | undefined>,
   defaultCookieName: string

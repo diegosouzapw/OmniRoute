@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OmniRoute Caveman Rule Pack",
+  "type": "object",
+  "required": ["language", "category", "rules"],
+  "properties": {
+    "language": { "type": "string" },
+    "category": { "type": "string" },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "pattern"],
+        "properties": {
+          "name": { "type": "string" },
+          "pattern": { "type": "string" },
+          "flags": { "type": "string" },
+          "replacement": { "type": "string" },
+          "replacementMap": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "context": { "enum": ["all", "user", "system", "assistant"] },
+          "category": { "enum": ["filler", "context", "structural", "dedup", "terse", "ultra"] },
+          "minIntensity": { "enum": ["lite", "full", "ultra"] },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -172,8 +172,7 @@ test.describe("Proxy Registry smoke flow", () => {
       });
     });
 
-    await gotoDashboardRoute(page, "/dashboard/settings?tab=advanced");
-    await page.waitForLoadState("networkidle");
+    await gotoDashboardRoute(page, "/dashboard/system/proxy");
 
     await expect(page.getByRole("heading", { name: "Proxy Registry" })).toBeVisible();
 

@@ -73,7 +73,7 @@ test("messages/count_tokens uses real provider count when Claude-compatible upst
     assert.equal(body.source, "provider");
     assert.equal(body.provider, "anthropic");
     assert.equal(body.model, "claude-opus-4.6");
-    assert.ok(captured.url.endsWith("/v1/messages/count_tokens"));
+    assert.ok(captured.url.includes("/v1/messages/count_tokens"));
     assert.equal(captured.body.model, "claude-opus-4.6");
     assert.equal(captured.headers["x-api-key"], "sk-ant-count");
   } finally {

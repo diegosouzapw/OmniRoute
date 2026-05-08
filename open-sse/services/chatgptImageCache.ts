@@ -67,10 +67,7 @@ function evictExpired(now = Date.now()): void {
 function evictUntilWithinLimits(maxBytes: number, incomingBytes: number): void {
   // Drop oldest until both the entry-count and total-byte caps are satisfied.
   // Map iteration is insertion-ordered so the first key is the oldest entry.
-  while (
-    (cache.size >= MAX_ENTRIES || cacheBytes + incomingBytes > maxBytes) &&
-    cache.size > 0
-  ) {
+  while ((cache.size >= MAX_ENTRIES || cacheBytes + incomingBytes > maxBytes) && cache.size > 0) {
     const firstKey = cache.keys().next().value;
     if (!firstKey) break;
     deleteEntry(firstKey);
@@ -122,9 +119,7 @@ export function getChatGptImageConversationContext(
  * saved chatgpt.com conversation node and actually edit the image instead
  * of generating an unrelated one from scratch.
  */
-export function findChatGptImageBySha256(
-  hash: string
-): { id: string; entry: CachedImage } | null {
+export function findChatGptImageBySha256(hash: string): { id: string; entry: CachedImage } | null {
   evictExpired();
   const target = hash.toLowerCase();
   for (const [id, entry] of cache.entries()) {

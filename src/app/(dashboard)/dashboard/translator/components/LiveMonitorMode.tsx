@@ -118,6 +118,14 @@ export default function LiveMonitorMode() {
         />
       </div>
 
+      <div className="flex items-center gap-2 rounded-lg border border-amber-500/10 bg-amber-500/5 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+        <span className="material-symbols-outlined text-[14px]">memory</span>
+        <p>
+          {t("liveMonitorMemoryNote")}{" "}
+          <span className="text-text-muted">{t("liveMonitorMemoryCapNote")}</span>
+        </p>
+      </div>
+
       {/* Controls */}
       <Card>
         <div className="p-3 flex items-center justify-between">
@@ -169,6 +177,15 @@ export default function LiveMonitorMode() {
               </span>
               <p className="text-sm font-medium mb-1">{t("noTranslations")}</p>
               <p className="text-xs text-center max-w-sm">{t("eventsAppearHint")}</p>
+              <div className="mt-3 rounded-lg border border-border/40 bg-bg-subtle/50 px-4 py-3 text-left">
+                <p className="text-[10px] font-semibold text-text-muted">
+                  {t("eventSourcesLabel")}
+                </p>
+                <ul className="mt-1 space-y-1 text-[10px] text-text-muted">
+                  <li>{t("eventSourceTranslatorPage")}</li>
+                  <li>{t("eventSourceMainPipeline")}</li>
+                </ul>
+              </div>
               <div className="flex flex-wrap gap-2 mt-3 text-xs">
                 <span className="px-2 py-1 rounded-md bg-bg-subtle border border-border">
                   {t("chatTesterTab")}

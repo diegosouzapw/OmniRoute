@@ -9,7 +9,7 @@
  * Run with: node scripts/prepublish.mjs
  */
 
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -19,6 +19,7 @@ import {
   readFileSync,
   readdirSync,
   statSync,
+  chmodSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,6 +34,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
+const NPM_BIN = process.platform === "win32" ? "npm.cmd" : "npm";
+const NPX_BIN = process.platform === "win32" ? "npx.cmd" : "npx";
 
 const APP_DIR = join(ROOT, "app");
 
@@ -113,7 +116,7 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 2: Install dependencies ───────────────────────────
 console.log("  📦 Installing dependencies...");
-execSync("npm install", { cwd: ROOT, stdio: "inherit" });
+execFileSync(NPM_BIN, ["install"], { cwd: ROOT, stdio: "inherit" });
 
 // ── Step 2.5: Remove app/ directory before build ───────────
 // CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
@@ -128,7 +131,9 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("npx next build", {
+const nextBuildBundlerFlag =
+  process.env.OMNIROUTE_USE_TURBOPACK === "1" ? "--turbopack" : "--webpack";
+execFileSync(NPX_BIN, ["next", "build", nextBuildBundlerFlag], {
   cwd: ROOT,
   stdio: "inherit",
   env: {
@@ -358,7 +363,10 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
+    execFileSync(NPX_BIN, ["tsc", "-p", "tsconfig.mitm.tmp.json"], {
+      cwd: ROOT,
+      stdio: "inherit",
+    });
     const mitmServerSrc = join(mitmSrc, "server.cjs");
     if (existsSync(mitmServerSrc)) {
       cpSync(mitmServerSrc, join(mitmDest, "server.cjs"));
@@ -385,8 +393,17 @@ if (existsSync(mcpSrcFile)) {
   console.log("  🔨 Bundling MCP Server (TypeScript → JavaScript)...");
   mkdirSync(mcpDestDir, { recursive: true });
   try {
-    execSync(
-      `npx esbuild open-sse/mcp-server/server.ts --bundle --platform=node --packages=external --format=esm --outfile=app/open-sse/mcp-server/server.js`,
+    execFileSync(
+      NPX_BIN,
+      [
+        "esbuild",
+        "open-sse/mcp-server/server.ts",
+        "--bundle",
+        "--platform=node",
+        "--packages=external",
+        "--format=esm",
+        "--outfile=app/open-sse/mcp-server/server.js",
+      ],
       { cwd: ROOT, stdio: "inherit" }
     );
     console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");
@@ -402,11 +419,20 @@ const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
 if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
   try {
-    execSync(
-      `npx esbuild bin/omniroute.ts --bundle --platform=node --packages=external --format=esm --outfile=bin/omniroute.mjs`,
+    execFileSync(
+      NPX_BIN,
+      [
+        "esbuild",
+        "bin/omniroute.ts",
+        "--bundle",
+        "--platform=node",
+        "--packages=external",
+        "--format=esm",
+        "--outfile=bin/omniroute.mjs",
+      ],
       { cwd: ROOT, stdio: "inherit" }
     );
-    execSync(`chmod +x bin/omniroute.mjs`, { cwd: ROOT });
+    chmodSync(cliDestFile, 0o755);
     console.log("  ✅ CLI Entrypoint bundled to bin/omniroute.mjs");
   } catch (err: any) {
     console.warn("  ⚠️  CLI bundle error:", err.message);
@@ -435,6 +461,21 @@ if (existsSync(openapiSpecSrc)) {
   cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
 }
 
+const docsMarkdownSrc = join(ROOT, "docs");
+if (existsSync(docsMarkdownSrc)) {
+  const docsDest = join(APP_DIR, "docs");
+  mkdirSync(docsDest, { recursive: true });
+  const mdFiles = readdirSync(docsMarkdownSrc).filter(
+    (f) => f.endsWith(".md") || f.endsWith(".mdx")
+  );
+  for (const mdFile of mdFiles) {
+    cpSync(join(docsMarkdownSrc, mdFile), join(docsDest, mdFile));
+  }
+  if (mdFiles.length > 0) {
+    console.log(`[prepublish] Copied ${mdFiles.length} docs markdown files to app/docs/`);
+  }
+}
+
 const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
 if (existsSync(syncEnvSrc)) {
   const scriptsDest = join(APP_DIR, "scripts");
@@ -447,6 +488,23 @@ if (existsSync(migrationsSrc)) {
   const migrationsDest = join(APP_DIR, "src", "lib", "db", "migrations");
   mkdirSync(join(APP_DIR, "src", "lib", "db"), { recursive: true });
   cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
+}
+
+const runtimeAssetDirs = [
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+  },
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "rules"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "rules"),
+  },
+];
+for (const assetDir of runtimeAssetDirs) {
+  if (existsSync(assetDir.source)) {
+    mkdirSync(dirname(assetDir.destination), { recursive: true });
+    cpSync(assetDir.source, assetDir.destination, { recursive: true, force: true });
+  }
 }
 
 // ── Step 10: Ensure data/ directory exists ──────────────────

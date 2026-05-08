@@ -1,11 +1,5 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleImageEdit } from "@omniroute/open-sse/handlers/imageGeneration.ts";
-import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
-} from "@/sse/services/auth";
+import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
 import { parseImageModel, getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -31,7 +25,6 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 export async function OPTIONS() {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "*",
     },
@@ -84,7 +77,10 @@ export async function POST(request: Request) {
   try {
     formData = await request.formData();
   } catch (err) {
-    log.warn("IMAGE", `Invalid multipart body: ${err instanceof Error ? err.message : String(err)}`);
+    log.warn(
+      "IMAGE",
+      `Invalid multipart body: ${err instanceof Error ? err.message : String(err)}`
+    );
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid multipart body");
   }
 
@@ -98,18 +94,11 @@ export async function POST(request: Request) {
     return errorResponse(HTTP_STATUS.BAD_REQUEST, "Missing required field: image");
   }
 
-  const apiKey = extractApiKey(request);
-  if (!isValidApiKey(apiKey)) {
-    const policyError = enforceApiKeyPolicy(apiKey);
-    if (policyError) {
-      return new Response(JSON.stringify(policyError.body), {
-        status: policyError.status,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  }
-
   const fullModel = model || "cgpt-web/gpt-5.3-instant";
+
+  const policy = await enforceApiKeyPolicy(request, fullModel);
+  if (policy.rejection) return policy.rejection;
+
   const parsed = parseImageModel(fullModel);
   const providerConfig = getImageProvider(parsed.provider);
   if (!providerConfig) {
@@ -125,9 +114,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const credentials = await getProviderCredentials(parsed.provider, apiKey);
+  const allowedConnections =
+    policy.apiKeyInfo?.allowedConnections && policy.apiKeyInfo.allowedConnections.length > 0
+      ? policy.apiKeyInfo.allowedConnections
+      : null;
+  const credentials = await getProviderCredentials(
+    parsed.provider,
+    null,
+    allowedConnections,
+    fullModel
+  );
   if (!credentials) {
-    return errorResponse(HTTP_STATUS.UNAUTHORIZED, `No credentials for provider: ${parsed.provider}`);
+    return errorResponse(
+      HTTP_STATUS.UNAUTHORIZED,
+      `No credentials for provider: ${parsed.provider}`
+    );
   }
   if (credentials.allRateLimited) {
     return unavailableResponse(
@@ -163,10 +164,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const errorPayload = toJsonErrorPayload(
-    (result as any).error,
-    "Image edit provider error"
-  );
+  const errorPayload = toJsonErrorPayload((result as any).error, "Image edit provider error");
   return new Response(JSON.stringify(errorPayload), {
     status: (result as any).status,
     headers: { "Content-Type": "application/json" },

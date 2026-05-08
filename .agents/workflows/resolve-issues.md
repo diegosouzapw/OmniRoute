@@ -10,6 +10,8 @@ This workflow fetches all open issues from the project's GitHub repository, clas
 
 > **BRANCH RULE**: All work MUST happen on the current `release/vX.Y.Z` branch. Never create separate `fix/` branches. If no release branch exists yet, create one first using `/generate-release` Phase 1 steps 1–5.
 
+> **⛔ PR PROHIBITION**: If a fix is associated with a contributor's PR, you MUST merge their PR — NEVER close it and re-implement the fix yourself. See `/review-prs` workflow for the full policy. The `gh pr close` command is FORBIDDEN unless the repository owner explicitly requests it.
+
 ## Steps
 
 ### 1. Identify the GitHub Repository
@@ -80,7 +82,7 @@ For each bug issue, perform the full analysis:
 2. **Read ALL comments** — including bot triage comments (Kilo, etc.) and owner/community responses. Pay attention to:
    - Whether someone already responded with a fix
    - Whether a community member confirmed the issue is resolved
-   - Whether the issue was marked as duplicate by a bot
+   - Whether the issue was marked as duplicate by a bot. **WARNING: DO NOT blindly trust bot duplicate labels (e.g., kilo-duplicate). Bots make mistakes. You MUST read the full conversation and do your own independent analysis to determine if it is truly a duplicate or a distinct bug.**
 3. **Identify the claimed error** — extract the exact error message, status code, and provider/model involved
 
 #### 5b. Check Information Sufficiency
@@ -96,14 +98,14 @@ Verify the issue contains enough to act on:
 
 For each bug, classify into one of 5 actions:
 
-| Disposition                  | When to Apply                                                                               | Action                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **✅ CLOSE — Already Fixed** | Owner responded with fix + no user follow-up, OR community confirmed fix                    | Close with comment citing which version fixed it        |
-| **✅ CLOSE — Duplicate**     | Bot flagged >85% similarity + user provides no new info                                     | Close referencing the original issue                    |
-| **✅ CLOSE — Stale**         | We requested logs/info > 7 days ago with no reply                                           | Close thanking the user, invite to reopen if needed     |
-| **📝 RESPOND — Needs Info**  | Issue is real but missing critical reproduction details                                     | Comment asking for specifics per `/issue-triage`        |
-| **📝 RESPOND — User Config** | Error is caused by unsupported env (Node version, wrong model path, missing API enablement) | Comment explaining the user-side fix                    |
-| **🔧 FIX — Code Change**     | Root cause is confirmed in the codebase                                                     | Research, propose solution in report, wait for approval |
+| Disposition                  | When to Apply                                                                                                          | Action                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **✅ CLOSE — Already Fixed** | Owner responded with fix + no user follow-up, OR community confirmed fix                                               | Close with comment citing which version fixed it        |
+| **✅ CLOSE — Duplicate**     | You have independently verified the issue is a duplicate (do NOT rely solely on bot flags) + user provides no new info | Close referencing the original issue                    |
+| **✅ CLOSE — Stale**         | We requested logs/info > 7 days ago with no reply                                                                      | Close thanking the user, invite to reopen if needed     |
+| **📝 RESPOND — Needs Info**  | Issue is real but missing critical reproduction details                                                                | Comment asking for specifics per `/issue-triage`        |
+| **📝 RESPOND — User Config** | Error is caused by unsupported env (Node version, wrong model path, missing API enablement)                            | Comment explaining the user-side fix                    |
+| **🔧 FIX — Code Change**     | Root cause is confirmed in the codebase                                                                                | Research, propose solution in report, wait for approval |
 
 #### 5d. For "FIX — Code Change" Issues
 
@@ -114,7 +116,8 @@ Before coding, perform deep source analysis to formulate a plan:
 3. **Read the full source file** — don't rely on grep snippets; understand the surrounding logic
 4. **Verify the root cause** — confirm the bug is reproducible based on the code, not just a user misconfiguration
 5. **Formulate a proposed solution** — detail the exact files and lines you will change and how you will solve it.
-6. **DO NOT modify the codebase yet** — wait for user approval on your report first.
+6. **Create an Implementation Plan file** — write your proposed solution to `_tasks/features-vX.Y.Z/<ISSUE_NUMBER>-<short-description>.plan.md` (e.g. `_tasks/features-v3.7.6/1810-auto-restore-probe-failed-db.plan.md`) where `vX.Y.Z` is the current branch version. The plan should contain an Overview, Pre-Implementation Checklist, and detailed Implementation Steps (Files, Changes).
+7. **DO NOT modify the codebase yet** — wait for user approval on your report and plan first.
 
 #### 5e. For "RESPOND" Issues
 

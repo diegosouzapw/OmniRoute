@@ -361,7 +361,7 @@ export function DailyTrendChart({ dailyTrend }) {
         >
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 9, fill: "var(--color-text-muted)" }}
             axisLine={false}
             tickLine={false}
             interval={Math.max(Math.floor(chartData.length / 6), 0)}
@@ -781,7 +781,7 @@ export function WeeklyPattern({ weeklyPattern }) {
         <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="day"
-            tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 9, fill: "var(--color-text-muted)" }}
             axisLine={false}
             tickLine={false}
           />
@@ -791,7 +791,7 @@ export function WeeklyPattern({ weeklyPattern }) {
           />
           <Bar
             dataKey="Tokens"
-            fill="var(--text-muted)"
+            fill="var(--color-text-muted)"
             opacity={0.3}
             radius={[3, 3, 0, 0]}
             animationDuration={400}
@@ -844,7 +844,7 @@ export function MostActiveDay7d({ activityMap }) {
     <Card className="p-4 flex flex-col justify-center" style={{ flex: 1, minHeight: 0 }}>
       <h3
         className="text-xs font-semibold uppercase tracking-wider mb-2"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--color-text-muted)" }}
       >
         Most Active Day
       </h3>
@@ -853,12 +853,12 @@ export function MostActiveDay7d({ activityMap }) {
           <span className="text-xl font-bold capitalize" style={{ lineHeight: 1.2 }}>
             {data.weekday}
           </span>
-          <span className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+          <span className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
             {data.label} · {fmt(data.tokens)} tokens
           </span>
         </>
       ) : (
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+        <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
           No data in the last 7 days
         </span>
       )}
@@ -910,7 +910,7 @@ export function WeeklySquares7d({ activityMap }) {
     <Card className="p-4 flex flex-col justify-center" style={{ flex: 1, minHeight: 0 }}>
       <h3
         className="text-xs font-semibold uppercase tracking-wider mb-3"
-        style={{ color: "var(--text-muted)" }}
+        style={{ color: "var(--color-text-muted)" }}
       >
         Weekly
       </h3>
@@ -935,7 +935,7 @@ export function WeeklySquares7d({ activityMap }) {
               style={{
                 fontSize: 9,
                 fontWeight: 600,
-                color: "var(--text-muted)",
+                color: "var(--color-text-muted)",
                 letterSpacing: "0.03em",
               }}
             >
@@ -1235,13 +1235,13 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="dateLabel"
-            tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
             tickFormatter={(v) => fmt(v)}
             axisLine={false}
             tickLine={false}

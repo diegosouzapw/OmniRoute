@@ -59,6 +59,8 @@ async function main() {
           OMNIROUTE_BASE_URL: baseUrl,
         }),
     OMNIROUTE_E2E_BOOTSTRAP_MODE: process.env.OMNIROUTE_E2E_BOOTSTRAP_MODE || "open",
+    REQUIRE_API_KEY: explicitBaseUrl ? process.env.REQUIRE_API_KEY : "false",
+    ENABLE_CLI_TOOLS: "true",
   };
 
   if (!(await isServerReady())) {

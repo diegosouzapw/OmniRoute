@@ -4,6 +4,25 @@ description: Analyze open Pull Requests from the project's GitHub repository, ge
 
 # /review-prs — PR Review & Analysis Workflow
 
+## ⛔ ABSOLUTE PROHIBITION — Read Before Anything Else
+
+> **NEVER close a contributor's PR if you intend to use ANY of their code, ideas, or fixes.**
+>
+> **NEVER manually integrate contributor code into a release branch and then close their PR.**
+>
+> These actions are **STRICTLY FORBIDDEN** under all circumstances:
+>
+> 1. ❌ Closing a PR and cherry-picking/copying its code into a release branch
+> 2. ❌ Closing a PR "because of conflicts" and re-implementing the same fix yourself
+> 3. ❌ Closing a PR and committing a "similar" solution inspired by it
+> 4. ❌ Using `gh pr close` on any PR whose content was or will be used
+>
+> **Why**: Closing a PR after taking the contributor's work means they get ZERO credit on GitHub — no "Merged" badge, no contribution graph entry, no public record. This is effectively stealing their contribution. An audit found this happened to **37 PRs** in the past.
+>
+> **The ONLY acceptable flow**: Resolve conflicts IN the contributor's branch, push fixes TO their branch, then merge THEIR PR via `gh pr merge`. See Step 7 and Step 8 for the exact procedure.
+>
+> **When to close a PR**: ONLY when the user (repository owner) explicitly requests it, OR when the PR is clearly spam/malicious, OR when the author themselves asks to close it. In ALL other cases, leave it open.
+
 ## Overview
 
 This workflow fetches all open PRs from the project's GitHub repository, performs a critical analysis of each one, generates a detailed report, and waits for user approval before proceeding with implementation. **All improvements are committed on the current release branch** (`release/vX.Y.Z`).
@@ -180,18 +199,14 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
   git push
   ```
 
-- **Fallback (For external forks without maintainer edit access):**
-  If `git push` fails because the PR comes from an external fork without write access, you MUST:
-  1. Create a new branch ending in `-fix` (e.g., `checkout -b fix-pr-<NUMBER>`).
-  2. Push your branch to the main repo (`git push origin fix-pr-<NUMBER>`).
-  3. Create a Pull Request targeting the contributor's repository and branch (use `gh pr create --repo <contributor-repo> --base <contributor-branch> --head diegosouzapw:fix-pr-<NUMBER>`).
-  4. Once they accept our PR into their branch, their original PR to our `main` will automatically update and become green.
+- **Fallback (For external forks without maintainer edit access or severe conflicts):**
+  If `git push` fails because the PR comes from an external fork without write access, or there are extreme conflicts, you MUST NOT CLOSE THE PR.
+  Instead, use `git cherry-pick`, or a reverse merge to bring their changes into the release branch, fix the issues locally, and commit them. Ensure you preserve the contributor's authorship (`git commit --author="Contributor Name <email>"` if creating new commits).
+  Once you have integrated their work into the release branch, DO NOT close their PR. Instead, leave it open or try to merge it using the CLI if possible. Under NO CIRCUMSTANCES should you use `gh pr close`. Leave it open so the contributor retains credit.
 
 - Run the project's test suite locally to verify nothing breaks:
   // turbo
 - Run: `npm test` or equivalent test command
-
-### 8. Merge into Release Branch
 
 ### 8. Merge into Release Branch (NEVER CLOSE!)
 
@@ -200,23 +215,19 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 
 Even if the PR had severe conflicts or required significant architectural adjustments, you MUST:
 
-1. Resolve any conflicts and apply the fixes directly to their PR branch (as detailed in step 7).
-2. Once the PR branch is green, conflict-free, and correct, merge it into the release branch using the GitHub CLI.
-
-```bash
-# Merge the PR (base is already set to release/vX.Y.Z from step 3.5)
-gh pr merge <NUMBER> --repo <owner>/<repo> --squash --body "Integrated into release/vX.Y.Z"
-```
+1. Resolve any conflicts and apply the fixes directly to their PR branch (as detailed in step 7) or use cherry-picking into the release branch.
+2. If you managed to fix their branch, merge it into the release branch using the GitHub CLI:
+   `gh pr merge <NUMBER> --repo <owner>/<repo> --squash --body "Integrated into release/vX.Y.Z"`
+3. If you had to use cherry-picking because you couldn't push to their branch, DO NOT close the PR. GitHub will sometimes auto-detect the cherry-picked commits and mark it as Merged. If it doesn't, leave it open. The repository owner will handle it. NEVER run `gh pr close`.
 
 In ALL cases:
 
 - Post a **thank-you comment** on the PR via the GitHub API before or immediately after merging.
 - The message should:
   - Thank the author by name/username for their contribution.
-  - Explain what was adjusted or improved (if we pushed fixes to their branch).
+  - Explain what was adjusted or improved (if we pushed fixes to their branch or cherry-picked).
   - Note it will be included in the upcoming release.
   - Be friendly, professional, and encouraging.
-- Example: _"Thanks @author for this great contribution! 🎉 We've added a few small adjustments to your branch to align with our latest architecture, and it's now officially merged into the release/vX.Y.Z branch. It will be part of the next release. We appreciate your effort!"_
 
 ### 9. Sync Local Release Branch
 

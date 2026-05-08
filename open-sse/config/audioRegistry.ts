@@ -262,6 +262,18 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "generative", name: "Polly Generative" },
     ],
   },
+  "xiaomi-mimo": {
+    id: "xiaomi-mimo",
+    baseUrl: "https://api.xiaomimimo.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xiaomi-mimo-tts",
+    models: [
+      { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
+      { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
+      { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
+    ],
+  },
 };
 
 /**

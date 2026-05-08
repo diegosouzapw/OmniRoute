@@ -1,0 +1,202 @@
+{
+  "name": "long-coding-session",
+  "description": "Simulates a 50-message coding session with tool results, file contents, and error messages",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful coding assistant. Follow instructions carefully."
+    },
+    { "role": "user", "content": "I need to fix the authentication module. Can you help me?" },
+    {
+      "role": "assistant",
+      "content": "Of course! Let me start by examining the authentication module. I'll look at the relevant files first."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_001",
+          "type": "function",
+          "function": { "name": "read_file", "arguments": "{\"path\": \"src/auth/login.ts\"}" }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_001",
+      "name": "read_file",
+      "content": "File: src/auth/login.ts (lines 1-150)\n```typescript\nimport { Request, Response } from 'express';\nimport jwt from 'jsonwebtoken';\nimport bcrypt from 'bcryptjs';\nimport { UserRepository } from '../repositories/UserRepository';\nimport { SessionManager } from '../services/SessionManager';\nimport { RateLimiter } from '../middleware/RateLimiter';\nimport { Logger } from '../utils/Logger';\n\nconst JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-me';\nconst JWT_EXPIRY = '24h';\nconst MAX_LOGIN_ATTEMPTS = 5;\nconst LOCKOUT_DURATION_MS = 15 * 60 * 1000;\n\nexport async function handleLogin(req: Request, res: Response): Promise<void> {\n  const { email, password } = req.body;\n  \n  if (!email || !password) {\n    return res.status(400).json({ error: 'Email and password are required' });\n  }\n  \n  const rateLimitResult = await RateLimiter.check(email);\n  if (rateLimitResult.locked) {\n    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });\n  }\n  \n  try {\n    const user = await UserRepository.findByEmail(email);\n    if (!user) {\n      await RateLimiter.recordFailure(email);\n      return res.status(401).json({ error: 'Invalid credentials' });\n    }\n    \n    const isValid = await bcrypt.compare(password, user.passwordHash);\n    if (!isValid) {\n      await RateLimiter.recordFailure(email);\n      return res.status(401).json({ error: 'Invalid credentials' });\n    }\n    \n    await RateLimiter.reset(email);\n    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: JWT_EXPIRY });\n    await SessionManager.create(user.id, token);\n    \n    Logger.info('auth:login', { userId: user.id, email: user.email });\n    return res.json({ token, user: { id: user.id, email: user.email, name: user.name } });\n  } catch (error) {\n    Logger.error('auth:login', error);\n    return res.status(500).json({ error: 'Internal server error' });\n  }\n}\n```"
+    },
+    {
+      "role": "assistant",
+      "content": "I can see the login handler. It has rate limiting, JWT token generation, and session management. Let me also check the session manager to understand the full flow."
+    },
+    {
+      "role": "user",
+      "content": "Yes, check the session manager too. Also I'm getting a 500 error when trying to log in."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_002",
+          "type": "function",
+          "function": {
+            "name": "read_file",
+            "arguments": "{\"path\": \"src/services/SessionManager.ts\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_002",
+      "name": "read_file",
+      "content": "File: src/services/SessionManager.ts (lines 1-80)\n```typescript\nimport { Redis } from 'ioredis';\nimport { Logger } from '../utils/Logger';\n\nconst SESSION_TTL = 86400;\nconst SESSION_PREFIX = 'session:';\n\nexport class SessionManager {\n  private static redis: Redis;\n  \n  static async initialize(): Promise<void> {\n    SessionManager.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');\n    Logger.info('session:initialized', { status: 'connected' });\n  }\n  \n  static async create(userId: string, token: string): Promise<void> {\n    const key = `${SESSION_PREFIX}${token}`;\n    await SessionManager.redis.setex(key, SESSION_TTL, JSON.stringify({ userId, createdAt: Date.now() }));\n    Logger.info('session:created', { userId });\n  }\n  \n  static async validate(token: string): Promise<{ userId: string } | null> {\n    const key = `${SESSION_PREFIX}${token}`;\n    const data = await SessionManager.redis.get(key);\n    if (!data) return null;\n    return JSON.parse(data);\n  }\n  \n  static async destroy(token: string): Promise<void> {\n    const key = `${SESSION_PREFIX}${token}`;\n    await SessionManager.redis.del(key);\n    Logger.info('session:destroyed', { token: token.substring(0, 8) + '...' });\n  }\n}\n```"
+    },
+    {
+      "role": "assistant",
+      "content": "I see the issue. The SessionManager uses Redis but doesn't handle connection failures gracefully. If Redis is down, the `create` method will throw an unhandled error, causing the 500 you're seeing."
+    },
+    { "role": "user", "content": "That makes sense. Can you also check the error logs?" },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_003",
+          "type": "function",
+          "function": {
+            "name": "shell",
+            "arguments": "{\"command\": \"grep -r 'ECONNREFUSED\\|ETIMEDOUT\\|Redis connection' /var/log/app/ | tail -20\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_003",
+      "name": "shell",
+      "content": "2024-01-15 10:23:45 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:23:46 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:23:47 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:24:01 [WARN] Session fallback: using in-memory store\n2024-01-15 10:24:15 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:24:16 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:24:17 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:25:30 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:25:31 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:25:32 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:00 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:01 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:02 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:30 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:31 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:26:32 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:27:00 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:27:01 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:27:02 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379\n2024-01-15 10:27:30 [ERROR] Redis connection refused: ECONNREFUSED 127.0.0.1:6379"
+    },
+    {
+      "role": "assistant",
+      "content": "The logs confirm it — Redis is consistently refusing connections. The SessionManager needs a fallback mechanism. Let me write the fix."
+    },
+    {
+      "role": "user",
+      "content": "Great, please fix it. Also add proper error handling and a fallback to in-memory storage."
+    },
+    {
+      "role": "assistant",
+      "content": "I'll update the SessionManager with proper error handling and an in-memory fallback. Here's my plan:\n\n1. Add try/catch around all Redis operations\n2. Implement an in-memory Map as fallback\n3. Add connection health checks\n4. Add automatic Redis reconnection"
+    },
+    {
+      "role": "user",
+      "content": "Sounds good. Let me also see the test results after you make the changes."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_004",
+          "type": "function",
+          "function": {
+            "name": "shell",
+            "arguments": "{\"command\": \"npm test 2>&1 | tail -30\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_004",
+      "name": "shell",
+      "content": "Running tests...\n\n  auth/login.test.ts\n    ✓ should return 400 for missing email\n    ✓ should return 400 for missing password\n    ✓ should return 401 for invalid credentials\n    ✓ should return 401 for wrong password\n    ✓ should return 429 when rate limited\n    ✓ should return 500 on internal error\n    ✓ should return token on successful login\n    ✓ should create session on successful login\n    ✓ should reset rate limiter on successful login\n\n  services/SessionManager.test.ts\n    ✓ should create session in Redis\n    ✓ should validate existing session\n    ✓ should return null for invalid session\n    ✓ should destroy session\n    ✓ should handle Redis connection errors gracefully\n\n  14 tests passed\n  0 tests failed\n  Duration: 2.3s"
+    },
+    {
+      "role": "assistant",
+      "content": "All tests pass. Now let me implement the fix for the SessionManager."
+    },
+    {
+      "role": "user",
+      "content": "Perfect. Also, I noticed the password hashing is using bcryptjs which is synchronous. Can we switch to the async version?"
+    },
+    {
+      "role": "assistant",
+      "content": "Good catch. The `bcrypt.compare` call in the login handler is actually already async — `bcryptjs` exports both sync and async versions, and we're using the async one. But let me double-check the import."
+    },
+    {
+      "role": "user",
+      "content": "I also want to add rate limiting per IP address, not just per email. Can you look into that?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sure. Let me check the current rate limiter implementation first."
+    },
+    {
+      "role": "assistant",
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "call_005",
+          "type": "function",
+          "function": {
+            "name": "read_file",
+            "arguments": "{\"path\": \"src/middleware/RateLimiter.ts\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_005",
+      "name": "read_file",
+      "content": "File: src/middleware/RateLimiter.ts (lines 1-60)\n```typescript\nimport { Redis } from 'ioredis';\n\nconst MAX_ATTEMPTS = 5;\nconst WINDOW_MS = 15 * 60 * 1000;\n\nexport class RateLimiter {\n  private static redis: Redis;\n  private static attempts = new Map<string, { count: number; expiresAt: number }>();\n  \n  static async check(key: string): Promise<{ locked: boolean; remaining: number }> {\n    const now = Date.now();\n    const entry = RateLimiter.attempts.get(key);\n    if (!entry || entry.expiresAt < now) {\n      return { locked: false, remaining: MAX_ATTEMPTS };\n    }\n    return { locked: entry.count >= MAX_ATTEMPTS, remaining: MAX_ATTEMPTS - entry.count };\n  }\n  \n  static async recordFailure(key: string): Promise<void> {\n    const now = Date.now();\n    const entry = RateLimiter.attempts.get(key) || { count: 0, expiresAt: now + WINDOW_MS };\n    entry.count++;\n    RateLimiter.attempts.set(key, entry);\n  }\n  \n  static async reset(key: string): Promise<void> {\n    RateLimiter.attempts.delete(key);\n  }\n}\n```"
+    },
+    {
+      "role": "assistant",
+      "content": "I see — the RateLimiter uses an in-memory Map but doesn't use Redis. It also only keys by email, not IP. I'll add IP-based rate limiting as a separate layer."
+    },
+    {
+      "role": "user",
+      "content": "Good. Make sure the IP rate limiting has a higher threshold than the email-based one."
+    },
+    {
+      "role": "assistant",
+      "content": "Will do. I'll set IP rate limiting at 100 requests per 15 minutes, while keeping email-based at 5 attempts."
+    },
+    {
+      "role": "user",
+      "content": "Also, I want to add logging for all failed login attempts with the IP address."
+    },
+    {
+      "role": "assistant",
+      "content": "Understood. I'll add structured logging for failed attempts including IP, email, and timestamp."
+    },
+    {
+      "role": "user",
+      "content": "One more thing — can you add CORS headers to the auth endpoints?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, I'll add CORS middleware. What origins should we allow?"
+    },
+    {
+      "role": "user",
+      "content": "Allow https://app.example.com and https://admin.example.com for production, and http://localhost:3000 for development."
+    },
+    {
+      "role": "assistant",
+      "content": "Got it. I'll configure CORS with those origins and proper preflight handling."
+    },
+    { "role": "user", "content": "Thanks. Let me review the changes once you're done." },
+    {
+      "role": "assistant",
+      "content": "All changes are ready. Here's a summary:\n\n1. **SessionManager**: Added try/catch with in-memory fallback\n2. **RateLimiter**: Added IP-based rate limiting (100/15min)\n3. **Login handler**: Added structured error logging with IP\n4. **CORS**: Configured for app.example.com, admin.example.com, localhost:3000\n\nAll 14 tests pass. Ready for your review."
+    }
+  ]
+}

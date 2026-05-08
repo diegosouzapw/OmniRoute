@@ -3,7 +3,6 @@
   "/api/auth/logout",
   "/api/auth/status",
   "/api/init",
-  "/api/monitoring/health",
   "/api/v1/",
   "/api/cloud/",
   "/api/sync/bundle",
@@ -24,7 +23,10 @@
   "/api/checkout/confirm",
 ];
 
-const PUBLIC_READONLY_API_ROUTE_PREFIXES = ["/api/settings/require-login"];
+const PUBLIC_READONLY_API_ROUTE_PREFIXES = [
+  "/api/monitoring/health",
+  "/api/settings/require-login",
+];
 
 const PUBLIC_READONLY_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 

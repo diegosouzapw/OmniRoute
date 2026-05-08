@@ -19,9 +19,8 @@ export const FREE_PROVIDERS = {
     name: "Gemini CLI",
     icon: "terminal",
     color: "#4285F4",
-    deprecated: true,
-    deprecationReason:
-      "Google restricts third-party OAuth usage for Gemini CLI (Mar 2026). Pro models require paid plans. Use 'gemini' (API key) provider instead.",
+    authHint:
+      "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
   },
   kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
   "amazon-q": {
@@ -114,7 +113,6 @@ export const WEB_COOKIE_PROVIDERS = {
     textIcon: "GW",
     website: "https://grok.com",
     authHint: "Paste your sso= cookie value from grok.com",
-    passthroughModels: true,
   },
   "perplexity-web": {
     id: "perplexity-web",
@@ -160,6 +158,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "AR",
     passthroughModels: true,
     website: "https://agentrouter.org",
+    hasFree: true,
+    freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
   },
   openrouter: {
@@ -171,6 +171,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "OR",
     passthroughModels: true,
     website: "https://openrouter.ai",
+    hasFree: true,
+    freeNote: "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
   },
   qianfan: {
     id: "qianfan",
@@ -404,7 +406,8 @@ export const APIKEY_PROVIDERS = {
       "Use your Reka API key. OmniRoute supports the OpenAI-compatible base URL https://api.reka.ai/v1 and sends both Authorization and X-Api-Key headers for compatibility.",
     apiHint:
       "Reka Chat is OpenAI-compatible on /v1. OmniRoute probes /v1/models and routes chat traffic to /v1/chat/completions.",
-    passthroughModels: true,
+    hasFree: true,
+    freeNote: "$10/month recurring free API credits",
   },
   nlpcloud: {
     id: "nlpcloud",
@@ -463,6 +466,8 @@ export const APIKEY_PROVIDERS = {
     color: "#4D6BFE",
     textIcon: "DS",
     website: "https://deepseek.com",
+    hasFree: true,
+    freeNote: "5M free tokens on signup - no credit card required",
   },
   groq: {
     id: "groq",
@@ -483,6 +488,8 @@ export const APIKEY_PROVIDERS = {
     color: "#1A1A2E",
     textIcon: "BB",
     website: "https://blackbox.ai",
+    hasFree: true,
+    freeNote: "Free tier: unlimited basic chat plus Minimax-M2.5, no credit card required",
   },
   xai: {
     id: "xai",
@@ -501,6 +508,8 @@ export const APIKEY_PROVIDERS = {
     color: "#FF7000",
     textIcon: "MI",
     website: "https://mistral.ai",
+    hasFree: true,
+    freeNote: "Free Experiment tier: rate-limited access to all models, no credit card required",
   },
   perplexity: {
     id: "perplexity",
@@ -531,6 +540,8 @@ export const APIKEY_PROVIDERS = {
     color: "#7B2EF2",
     textIcon: "FW",
     website: "https://fireworks.ai",
+    hasFree: true,
+    freeNote: "$1 free starter credits on signup for API testing",
   },
   cerebras: {
     id: "cerebras",
@@ -551,6 +562,8 @@ export const APIKEY_PROVIDERS = {
     color: "#39594D",
     textIcon: "CO",
     website: "https://cohere.com",
+    hasFree: true,
+    freeNote: "Free Trial: 1,000 API calls/month for testing, no credit card required",
   },
   nvidia: {
     id: "nvidia",
@@ -571,6 +584,8 @@ export const APIKEY_PROVIDERS = {
     color: "#6C5CE7",
     textIcon: "NB",
     website: "https://nebius.com",
+    hasFree: true,
+    freeNote: "~$1 trial credits on signup for API testing",
   },
   siliconflow: {
     id: "siliconflow",
@@ -580,6 +595,8 @@ export const APIKEY_PROVIDERS = {
     color: "#5B6EF5",
     textIcon: "SF",
     website: "https://cloud.siliconflow.com",
+    hasFree: true,
+    freeNote: "$1 free credits plus permanently free models after identity verification",
   },
   hyperbolic: {
     id: "hyperbolic",
@@ -589,6 +606,8 @@ export const APIKEY_PROVIDERS = {
     color: "#00D4FF",
     textIcon: "HY",
     website: "https://hyperbolic.xyz",
+    hasFree: true,
+    freeNote: "$1-5 trial credits on signup for serverless inference",
   },
   nanobanana: {
     id: "nanobanana",
@@ -764,6 +783,8 @@ export const APIKEY_PROVIDERS = {
     color: "#2563EB",
     textIcon: "DI",
     website: "https://deepinfra.com",
+    hasFree: true,
+    freeNote: "Free signup credits for API testing and model exploration",
   },
   "vercel-ai-gateway": {
     id: "vercel-ai-gateway",
@@ -791,6 +812,8 @@ export const APIKEY_PROVIDERS = {
     color: "#DC2626",
     textIcon: "SN",
     website: "https://sambanova.ai",
+    hasFree: true,
+    freeNote: "$5 free credits on signup (30-day validity), no credit card required",
   },
   nscale: {
     id: "nscale",
@@ -800,6 +823,8 @@ export const APIKEY_PROVIDERS = {
     color: "#0891B2",
     textIcon: "NS",
     website: "https://nscale.com",
+    hasFree: true,
+    freeNote: "$5 free credits on signup for inference testing",
   },
   ovhcloud: {
     id: "ovhcloud",
@@ -818,6 +843,8 @@ export const APIKEY_PROVIDERS = {
     color: "#111827",
     textIcon: "BT",
     website: "https://baseten.co",
+    hasFree: true,
+    freeNote: "$30 free trial credits for GPU inference",
   },
   publicai: {
     id: "publicai",
@@ -827,6 +854,8 @@ export const APIKEY_PROVIDERS = {
     color: "#059669",
     textIcon: "PA",
     website: "https://publicai.co",
+    hasFree: true,
+    freeNote: "Free community inference tier for testing",
   },
   moonshot: {
     id: "moonshot",
@@ -863,6 +892,8 @@ export const APIKEY_PROVIDERS = {
     color: "#2563EB",
     textIcon: "MP",
     website: "https://morphllm.com",
+    hasFree: true,
+    freeNote: "Free tier: 250K credits/month, $0",
   },
   "featherless-ai": {
     id: "featherless-ai",
@@ -981,6 +1012,8 @@ export const APIKEY_PROVIDERS = {
     color: "#0284C7",
     textIcon: "AI21",
     website: "https://www.ai21.com",
+    hasFree: true,
+    freeNote: "$10 trial credits on signup (valid 3 months), no credit card required",
   },
   gigachat: {
     id: "gigachat",
@@ -1034,7 +1067,7 @@ export const APIKEY_PROVIDERS = {
     icon: "devices",
     color: "#EA580C",
     textIcon: "MM",
-    website: "https://www.mi.com",
+    website: "https://mimo.mi.com",
   },
   "inference-net": {
     id: "inference-net",
@@ -1044,6 +1077,8 @@ export const APIKEY_PROVIDERS = {
     color: "#2563EB",
     textIcon: "IN",
     website: "https://inference.net",
+    hasFree: true,
+    freeNote: "$25 free credits on signup plus research grants available",
   },
   nanogpt: {
     id: "nanogpt",
@@ -1062,6 +1097,8 @@ export const APIKEY_PROVIDERS = {
     color: "#0F766E",
     textIcon: "PB",
     website: "https://predibase.com",
+    hasFree: true,
+    freeNote: "$25 free trial credits (30-day validity)",
   },
   bytez: {
     id: "bytez",
@@ -1071,6 +1108,8 @@ export const APIKEY_PROVIDERS = {
     color: "#6366F1",
     textIcon: "BZ",
     website: "https://bytez.com",
+    hasFree: true,
+    freeNote: "$1 free credits, refreshes every 4 weeks",
   },
   aimlapi: {
     id: "aimlapi",
@@ -1093,6 +1132,8 @@ export const APIKEY_PROVIDERS = {
     color: "#FF4081",
     textIcon: "NV",
     website: "https://novita.ai",
+    hasFree: true,
+    freeNote: "$0.50 trial credits on signup (valid about 1 year)",
     passthroughModels: true,
   },
   piapi: {
@@ -1134,6 +1175,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "GH",
     website: "https://glhf.chat",
     authHint: "Bearer API key for the GLHF OpenAI-compatible gateway.",
+    hasFree: true,
+    freeNote: "Free tier for open-source model inference",
     passthroughModels: true,
   },
   cablyai: {
@@ -1194,7 +1237,8 @@ export const APIKEY_PROVIDERS = {
       "Use your Nous Portal API key. OmniRoute targets the official OpenAI-compatible inference endpoint at https://inference-api.nousresearch.com/v1.",
     apiHint:
       "Nous exposes an OpenAI-compatible /v1 surface with a large remote /models catalog. The /chat/completions endpoint requires a valid API key for programmatic inference.",
-    passthroughModels: true,
+    hasFree: true,
+    freeNote: "Free tier: 50 RPM, 500,000 TPM — no credit card",
   },
   petals: {
     id: "petals",
@@ -1253,6 +1297,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "VA",
     website: "https://www.voyageai.com",
     authHint: "Bearer API key for Voyage AI embeddings and rerank APIs.",
+    hasFree: true,
+    freeNote: "200M free tokens for embeddings and reranking",
   },
   "jina-ai": {
     id: "jina-ai",
@@ -1263,6 +1309,8 @@ export const APIKEY_PROVIDERS = {
     textIcon: "JA",
     website: "https://jina.ai",
     authHint: "Bearer API key for the Jina AI rerank API.",
+    hasFree: true,
+    freeNote: "10M free tokens on signup (non-commercial), no credit card required",
   },
   "fal-ai": {
     id: "fal-ai",
@@ -1310,6 +1358,57 @@ export const APIKEY_PROVIDERS = {
     website: "https://topazlabs.com",
   },
 };
+
+// Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
+export const IMAGE_ONLY_PROVIDER_IDS = new Set([
+  "nanobanana",
+  "fal-ai",
+  "stability-ai",
+  "black-forest-labs",
+  "recraft",
+  "topaz",
+]);
+
+export const AGGREGATOR_PROVIDER_IDS = new Set([
+  "openrouter",
+  "synthetic",
+  "kilo-gateway",
+  "aimlapi",
+  "novita",
+  "piapi",
+  "getgoapi",
+  "laozhang",
+  "vercel-ai-gateway",
+  "agentrouter",
+  "glhf",
+  "cablyai",
+  "thebai",
+  "fenayai",
+  "empower",
+  "poe",
+  "chutes",
+]);
+
+export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
+  "azure-openai",
+  "azure-ai",
+  "bedrock",
+  "watsonx",
+  "oci",
+  "sap",
+  "vertex",
+  "vertex-partner",
+  "databricks",
+  "datarobot",
+  "clarifai",
+  "snowflake",
+  "heroku",
+  "modal",
+]);
+
+export const VIDEO_PROVIDER_IDS = new Set(["runwayml"]);
+
+export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 
 // Local / Self-Hosted Providers
 export const LOCAL_PROVIDERS = {
@@ -1543,7 +1642,8 @@ export const SEARCH_PROVIDERS = {
     color: "#1A237E",
     textIcon: "SX",
     website: "https://docs.searxng.org",
-    authHint: "Set your SearXNG base URL. API key is optional for public/self-hosted instances.",
+    authHint:
+      "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
 };
 
@@ -1744,6 +1844,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  "nanogpt",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

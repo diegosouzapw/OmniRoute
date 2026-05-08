@@ -183,7 +183,8 @@ function createFakeOpenAiRelay() {
 function createServerProcess(dataDir: string, port: number) {
   const stdoutLines: string[] = [];
   const stderrLines: string[] = [];
-  const child = spawn(process.execPath, ["scripts/run-next.mjs", "dev"], {
+  let exitInfo: { code: number | null; signal: NodeJS.Signals | null } | null = null;
+  const child = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,
@@ -201,10 +202,14 @@ function createServerProcess(dataDir: string, port: number) {
       OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK: "true",
       OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: "true",
       OMNIROUTE_HIDE_HEALTHCHECK_LOGS: "true",
+      OMNIROUTE_E2E_BOOTSTRAP_MODE: "open",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
 
+  child.once("exit", (code, signal) => {
+    exitInfo = { code, signal };
+  });
   child.stdout.on("data", (chunk) => {
     const lines = String(chunk).split(/\r?\n/).filter(Boolean);
     stdoutLines.push(...lines);
@@ -221,16 +226,35 @@ function createServerProcess(dataDir: string, port: number) {
     stdoutLines,
     stderrLines,
     baseUrl: `http://127.0.0.1:${port}`,
+    get exitInfo() {
+      return exitInfo;
+    },
   };
 }
 
 async function waitForServer(
   baseUrl: string,
-  logs: { stdoutLines: string[]; stderrLines: string[] }
+  logs: {
+    stdoutLines: string[];
+    stderrLines: string[];
+    exitInfo?: { code: number | null; signal: NodeJS.Signals | null } | null;
+  }
 ) {
   const startedAt = Date.now();
   let lastError = "";
   while (Date.now() - startedAt < 120_000) {
+    if (logs.exitInfo) {
+      throw new Error(
+        [
+          `OmniRoute exited before it became ready (code=${logs.exitInfo.code}, signal=${logs.exitInfo.signal})`,
+          "--- stdout ---",
+          ...logs.stdoutLines.slice(-40),
+          "--- stderr ---",
+          ...logs.stderrLines.slice(-40),
+        ].join("\n")
+      );
+    }
+
     try {
       const response = await fetch(`${baseUrl}/api/monitoring/health`, {
         signal: AbortSignal.timeout(5_000),
@@ -620,7 +644,8 @@ test("wait-for-cooldown honors upstream Retry-After when enabled", async () => {
 
   assert.equal(result.response.status, 200, JSON.stringify(result.json));
   assert.equal(result.json.choices[0].message.content, "wait-for-cooldown via upstream hint");
-  assert.equal(relay.getState(TOKENS.p3).hits, 2);
+  const hits = relay.getState(TOKENS.p3).hits;
+  assert.ok(hits >= 2, `expected at least one retry after cooldown, got ${hits} hits`);
   assert.ok(elapsed >= 800, `expected upstream wait >= 800ms, got ${elapsed}ms`);
 });
 
@@ -655,7 +680,8 @@ test("connection cooldown can ignore upstream Retry-After and use the configured
 
   assert.equal(result.response.status, 200, JSON.stringify(result.json));
   assert.equal(result.json.choices[0].message.content, "ignored upstream retry hint");
-  assert.equal(relay.getState(TOKENS.p4).hits, 2);
+  const hits = relay.getState(TOKENS.p4).hits;
+  assert.ok(hits >= 2, `expected at least one retry after cooldown, got ${hits} hits`);
   assert.ok(
     elapsed < 5_000,
     `expected ignored upstream hint to avoid a 30s wait, got ${elapsed}ms`

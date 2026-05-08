@@ -9,8 +9,8 @@ import {
 
 test("model catalog source normalization groups manual and synced rows separately", () => {
   assert.equal(normalizeModelCatalogSource("manual"), "custom");
-  assert.equal(normalizeModelCatalogSource("imported"), "api-sync");
-  assert.equal(normalizeModelCatalogSource("api-sync"), "api-sync");
+  assert.equal(normalizeModelCatalogSource("imported"), "imported");
+  assert.equal(normalizeModelCatalogSource("api-sync"), "imported");
   assert.equal(normalizeModelCatalogSource("fallback"), "fallback");
   assert.equal(normalizeModelCatalogSource("alias"), "alias");
   assert.equal(normalizeModelCatalogSource(undefined), "system");
@@ -19,7 +19,7 @@ test("model catalog source normalization groups manual and synced rows separatel
 test("model catalog source labels stay user-facing", () => {
   assert.equal(getModelCatalogSourceLabel("system"), "Built-in");
   assert.equal(getModelCatalogSourceLabel("custom"), "Custom");
-  assert.equal(getModelCatalogSourceLabel("api-sync"), "Synced");
+  assert.equal(getModelCatalogSourceLabel("imported"), "Imported");
   assert.equal(getModelCatalogSourceLabel("fallback"), "Fallback");
   assert.equal(getModelCatalogSourceLabel("alias"), "Alias");
 });
@@ -29,7 +29,7 @@ test("model catalog query matches id, display name, alias and source label", () 
     modelId: "qwen/qwen3-coder-480b-a35b-instruct",
     modelName: "Qwen3 Coder 480B",
     alias: "best-qwen",
-    source: "api-sync",
+    source: "imported",
   };
 
   assert.equal(matchesModelCatalogQuery("", target), true);

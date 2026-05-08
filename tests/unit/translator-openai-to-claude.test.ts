@@ -83,8 +83,7 @@ test("OpenAI -> Claude maps system messages, parameters and assistant cache mark
   assert.equal(result.temperature, 0.25);
   assert.equal(result.top_p, 0.8);
   assert.deepEqual(result.stop_sequences, ["DONE"]);
-  assert.equal(result.system[0].text, CLAUDE_SYSTEM_PROMPT);
-  assert.equal(result.system[1].text, "Rule A\nRule B\nRule C");
+  assert.equal(result.system[0].text, "Rule A\nRule B\nRule C");
   assert.equal(result.messages[0].role, "user");
   assert.deepEqual(result.messages[0].content, [{ type: "text", text: "Hello" }]);
   assert.equal(result.messages[1].role, "assistant");
@@ -220,8 +219,8 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
   );
 
   assert.deepEqual(schemaResult.tool_choice, { type: "any" });
-  assert.match(schemaResult.system[1].text, /strictly follows this JSON schema/i);
-  assert.match(schemaResult.system[1].text, /"answer"/);
+  assert.match(schemaResult.system[0].text, /strictly follows this JSON schema/i);
+  assert.match(schemaResult.system[0].text, /"answer"/);
 
   const jsonObjectResult = openaiToClaudeRequest(
     "claude-4-sonnet",
@@ -234,7 +233,7 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
   );
 
   assert.deepEqual(jsonObjectResult.tool_choice, { type: "tool", name: "emit_json" });
-  assert.match(jsonObjectResult.system[1].text, /Respond ONLY with a JSON object/i);
+  assert.match(jsonObjectResult.system[0].text, /Respond ONLY with a JSON object/i);
 });
 
 test("OpenAI -> Claude turns reasoning settings into thinking budgets and expands max tokens", () => {

@@ -15,6 +15,7 @@ import {
   launchAutoUpdate,
   validateAutoUpdateRuntime,
 } from "@/lib/system/autoUpdate";
+import { NEWS_JSON_URL, parseActiveNewsPayload } from "@/shared/utils/releaseNotes";
 
 const execFileAsync = promisify(execFile);
 
@@ -50,16 +51,32 @@ function isNewer(a: string | null, b: string): boolean {
   return aPat > bPat;
 }
 
+async function getNews() {
+  try {
+    const res = await fetch(NEWS_JSON_URL, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return parseActiveNewsPayload(data);
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   if (!(await isAuthenticated(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const current = getCurrentVersion();
-  const latest = await getLatestNpmVersion();
-  const updateAvailable = isNewer(latest, current);
   const config = getAutoUpdateConfig();
-  const validation = await validateAutoUpdateRuntime(config);
+
+  const [latest, news, validation] = await Promise.all([
+    getLatestNpmVersion(),
+    getNews(),
+    validateAutoUpdateRuntime(config),
+  ]);
+
+  const updateAvailable = isNewer(latest, current);
 
   return NextResponse.json({
     current,
@@ -68,6 +85,7 @@ export async function GET(req: NextRequest) {
     channel: config.mode,
     autoUpdateSupported: validation.supported,
     autoUpdateError: validation.reason,
+    news,
   });
 }
 

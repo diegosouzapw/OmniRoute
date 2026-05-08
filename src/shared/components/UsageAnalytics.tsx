@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Card from "./Card";
 import { CardSkeleton } from "./Loading";
 import { fmtCompact as fmt, fmtFull, fmtCost } from "@/shared/utils/formatting";
@@ -18,6 +18,8 @@ import {
   ProviderCostDonut,
   ModelOverTimeChart,
   ProviderTable,
+  ApiKeyFilterDropdown,
+  CustomRangePicker,
 } from "./analytics";
 
 // ============================================================================
@@ -30,24 +32,89 @@ export default function UsageAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Custom date range state
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const customPickerAnchorRef = useRef<HTMLDivElement>(null);
+
+  // API key filter state
+  const [selectedApiKeys, setSelectedApiKeys] = useState<string[]>([]);
+  const [availableApiKeys, setAvailableApiKeys] = useState<{ id: string; name: string }[]>([]);
+
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/usage/analytics?range=${range}`);
+      const params = new URLSearchParams();
+      params.set("range", range);
+      if (range === "custom" && customStart && customEnd) {
+        params.set("startDate", customStart);
+        params.set("endDate", customEnd);
+      }
+      if (selectedApiKeys.length > 0) {
+        params.set("apiKeyIds", selectedApiKeys.join(","));
+      }
+      const res = await fetch(`/api/usage/analytics?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setAnalytics(data);
       setError(null);
+
+      // Update available keys from unfiltered data (only when no filter is active).
+      // Use apiKeyName as the stable identifier — it is always populated
+      // for every OmniRoute API key regardless of the downstream provider.
+      if (selectedApiKeys.length === 0 && data.byApiKey?.length > 0) {
+        const seen = new Set<string>();
+        const keys: { id: string; name: string }[] = [];
+        for (const k of data.byApiKey) {
+          const name = k.apiKeyName || k.apiKeyId || "unknown";
+          if (seen.has(name)) continue;
+          seen.add(name);
+          keys.push({ id: name, name });
+        }
+        setAvailableApiKeys(keys);
+      }
     } catch (err) {
       setError((err as any).message);
     } finally {
       setLoading(false);
     }
-  }, [range]);
+  }, [range, customStart, customEnd, selectedApiKeys]);
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
+
+  const handleRangeSelect = useCallback((value: string) => {
+    if (value === "custom") {
+      setShowCustomPicker(true);
+    } else {
+      setRange(value);
+      setShowCustomPicker(false);
+    }
+  }, []);
+
+  const handleCustomApply = useCallback((start: string, end: string) => {
+    setCustomStart(start);
+    setCustomEnd(end);
+    setRange("custom");
+    setShowCustomPicker(false);
+  }, []);
+
+  // Format custom range label for display
+  const customRangeLabel = useMemo(() => {
+    if (range !== "custom" || !customStart || !customEnd) return null;
+    const fmt = (iso: string) => {
+      const d = new Date(iso);
+      return d.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    };
+    return `${fmt(customStart)} — ${fmt(customEnd)}`;
+  }, [range, customStart, customEnd]);
 
   const ranges = [
     { value: "1d", label: "1D" },
@@ -111,26 +178,74 @@ export default function UsageAnalytics() {
 
   return (
     <div className="flex flex-col gap-5 min-w-0">
-      {/* Header + Time Range */}
-      <div className="flex items-center justify-between">
+      {/* Header + Filters */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
           Usage Analytics
         </h2>
-        <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5">
-          {ranges.map((r) => (
+        <div className="flex items-center gap-2.5">
+          {/* API Key Filter */}
+          <ApiKeyFilterDropdown
+            available={availableApiKeys}
+            selected={selectedApiKeys}
+            onChange={setSelectedApiKeys}
+          />
+
+          {/* Period Selector + Custom */}
+          <div
+            className="relative flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5"
+            ref={customPickerAnchorRef}
+          >
+            {ranges.map((r) => (
+              <button
+                key={r.value}
+                onClick={() => handleRangeSelect(r.value)}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  range === r.value
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
             <button
-              key={r.value}
-              onClick={() => setRange(r.value)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                range === r.value
+              onClick={() => handleRangeSelect("custom")}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${
+                range === "custom"
                   ? "bg-primary text-white shadow-sm"
                   : "text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5"
               }`}
             >
-              {r.label}
+              <span className="material-symbols-outlined text-[13px]">date_range</span>
+              {customRangeLabel || "Custom"}
+              {range === "custom" && customRangeLabel && (
+                <span
+                  role="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRange("30d");
+                    setCustomStart("");
+                    setCustomEnd("");
+                  }}
+                  className="ml-0.5 opacity-70 hover:opacity-100"
+                >
+                  <span className="material-symbols-outlined text-[11px]">close</span>
+                </span>
+              )}
             </button>
-          ))}
+
+            {/* Custom Range Picker Popover */}
+            {showCustomPicker && (
+              <CustomRangePicker
+                start={customStart}
+                end={customEnd}
+                onApply={handleCustomApply}
+                onClose={() => setShowCustomPicker(false)}
+              />
+            )}
+          </div>
         </div>
       </div>
 

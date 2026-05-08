@@ -1,4 +1,4 @@
-import { getCorsOrigin } from "./cors.ts";
+import { CORS_HEADERS } from "./cors.ts";
 import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
@@ -34,7 +34,6 @@ export function errorResponse(statusCode, message) {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
     },
   });
 }
@@ -263,11 +262,16 @@ export async function parseUpstreamError(response, provider = null) {
     retryAfterMs = MAX_RETRY_MS;
   }
 
+  const responseHeaders: Record<string, string> | null = response.headers
+    ? Object.fromEntries(response.headers.entries())
+    : null;
+
   return {
     statusCode: response.status,
     message: messageStr,
     retryAfterMs,
     responseBody,
+    responseHeaders,
   };
 }
 
@@ -348,7 +352,6 @@ export function providerCircuitOpenResponse(
       status: 503,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
         "Retry-After": String(retryAfterSec),
         "X-OmniRoute-Provider-Breaker": "open",
       },
@@ -397,7 +400,6 @@ export function modelCooldownResponse({
       status: 429,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": getCorsOrigin(),
         "Retry-After": String(retryAfterSec),
       },
     }

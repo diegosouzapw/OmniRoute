@@ -24,6 +24,11 @@ function toString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }
 
+function normalizeResponsesReasoningEffort(value: unknown): string {
+  const effort = toString(value).toLowerCase();
+  return effort === "max" ? "xhigh" : effort;
+}
+
 function unsupportedFeature(message: string): Error & { statusCode: number; errorType: string } {
   const error = new Error(message) as Error & { statusCode: number; errorType: string };
   error.statusCode = 400;
@@ -325,7 +330,7 @@ export function openaiToOpenAIResponsesRequest(
     const msg = toRecord(messageValue);
     const role = toString(msg.role);
 
-    if (role === "system") {
+    if (role === "system" || role === "developer") {
       if (!hasSystemMessage) {
         result.instructions = typeof msg.content === "string" ? msg.content : "";
         hasSystemMessage = true;
@@ -558,7 +563,7 @@ export function openaiToOpenAIResponsesRequest(
   if (root.reasoning !== undefined) {
     result.reasoning = root.reasoning;
   } else if (root.reasoning_effort !== undefined) {
-    const effort = toString(root.reasoning_effort);
+    const effort = normalizeResponsesReasoningEffort(root.reasoning_effort);
     if (effort) {
       result.reasoning = { effort };
     }

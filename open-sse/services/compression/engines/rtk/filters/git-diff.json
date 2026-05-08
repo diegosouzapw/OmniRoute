@@ -1,0 +1,33 @@
+{
+  "id": "git-diff",
+  "label": "Git Diff",
+  "description": "Drop low-signal diff metadata while preserving files, hunks, and changed lines.",
+  "category": "git",
+  "priority": 94,
+  "match": {
+    "outputTypes": ["git-diff"],
+    "commands": ["^git\\s+(?:diff|show)\\b"],
+    "patterns": ["^diff --git ", "^@@\\s+-\\d+,\\d+\\s+\\+\\d+,\\d+\\s+@@"]
+  },
+  "rules": {
+    "includePatterns": [],
+    "dropPatterns": ["^index [0-9a-f]+\\.\\.[0-9a-f]+.*$", "^--- a/", "^\\+\\+\\+ b/"],
+    "collapsePatterns": ["^\\s*$"],
+    "deduplicate": true,
+    "maxLines": 180,
+    "headLines": 40,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["^diff --git ", "^@@ ", "^[+-](?![+-]{2})"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "git (?:diff|show)",
+      "input": "diff --git a/a.ts b/a.ts\n@@ -1,2 +1,2 @@\n-console.log(\"old\")\n+console.log(\"new\")\n",
+      "expected": "diff --git a/a.ts b/a.ts\n@@ -1,2 +1,2 @@\n-console.log(\"old\")\n+console.log(\"new\")\n"
+    }
+  ]
+}

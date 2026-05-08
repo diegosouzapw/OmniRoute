@@ -69,15 +69,33 @@ export async function PUT(request, { params }) {
     const allCombos = await getCombos();
 
     const comboName = validation.data.name || currentCombo.name;
-    const body = validation.data.models
+    const normalizedUpdate = { ...validation.data };
+    if (normalizedUpdate.compressionOverride !== undefined) {
+      const legacyCompressionOverride = normalizedUpdate.compressionOverride;
+      const nextConfig =
+        currentCombo.config &&
+        typeof currentCombo.config === "object" &&
+        !Array.isArray(currentCombo.config)
+          ? { ...currentCombo.config }
+          : {};
+      if (legacyCompressionOverride) {
+        nextConfig.compressionMode = legacyCompressionOverride;
+      } else {
+        delete nextConfig.compressionMode;
+      }
+      normalizedUpdate.config = nextConfig;
+      delete normalizedUpdate.compressionOverride;
+    }
+
+    const body = normalizedUpdate.models
       ? {
-          ...validation.data,
-          models: normalizeComboModels(validation.data.models, {
+          ...normalizedUpdate,
+          models: normalizeComboModels(normalizedUpdate.models, {
             comboName,
             allCombos,
           }),
         }
-      : validation.data;
+      : normalizedUpdate;
     const nextComboState = {
       ...currentCombo,
       ...body,

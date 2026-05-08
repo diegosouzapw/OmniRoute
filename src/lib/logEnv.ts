@@ -6,6 +6,7 @@ const DEFAULT_APP_LOG_MAX_SIZE = 50 * 1024 * 1024;
 const DEFAULT_APP_LOG_MAX_FILES = 20;
 const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
 const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
+const DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB = 512;
 const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
 
@@ -13,6 +14,14 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const parsed = Number.parseInt(value, 10);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseBoolean(value: string | undefined, fallback: boolean): boolean {
+  if (!value) return fallback;
+  const normalized = value.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  return fallback;
 }
 
 export function parseFileSize(raw: string | undefined): number {
@@ -66,6 +75,19 @@ export function getCallLogMaxEntries(): number {
 
 export function getCallLogsTableMaxRows(): number {
   return parsePositiveInt(process.env.CALL_LOGS_TABLE_MAX_ROWS, DEFAULT_CALL_LOGS_TABLE_MAX_ROWS);
+}
+
+export function getCallLogPipelineCaptureStreamChunks(): boolean {
+  return parseBoolean(process.env.CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS, true);
+}
+
+export function getCallLogPipelineMaxSizeBytes(): number {
+  return (
+    parsePositiveInt(
+      process.env.CALL_LOG_PIPELINE_MAX_SIZE_KB,
+      DEFAULT_CALL_LOG_PIPELINE_MAX_SIZE_KB
+    ) * 1024
+  );
 }
 
 export function getProxyLogsTableMaxRows(): number {

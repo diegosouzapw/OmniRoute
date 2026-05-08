@@ -11,9 +11,9 @@ import {
   GITHUB_COPILOT_REFRESH_USER_AGENT,
   KIRO_AMZ_USER_AGENT,
   KIRO_SDK_USER_AGENT,
-  QODER_DASHSCOPE_COMPAT_USER_AGENT,
-  QWEN_CLI_USER_AGENT,
+  QWEN_CLI_VERSION,
   getCursorUsageHeaders,
+  getQwenCliUserAgent,
   getGitHubCopilotChatHeaders,
   getGitHubCopilotInternalUserHeaders,
   getGitHubCopilotRefreshHeaders,
@@ -47,13 +47,19 @@ test("provider header profiles expose dedicated refresh, qwen, qoder, kiro and c
   assert.equal(refreshHeaders["Editor-Plugin-Version"], GITHUB_COPILOT_REFRESH_PLUGIN_VERSION);
 
   const qwenHeaders = getQwenOauthHeaders();
-  assert.equal(qwenHeaders["User-Agent"], QWEN_CLI_USER_AGENT);
-  assert.equal(qwenHeaders["X-Dashscope-UserAgent"], QWEN_CLI_USER_AGENT);
+  assert.equal(qwenHeaders["User-Agent"], getQwenCliUserAgent());
+  assert.equal(
+    qwenHeaders["User-Agent"],
+    `QwenCode/${QWEN_CLI_VERSION} (${process.platform}; ${process.arch})`
+  );
+  assert.notEqual(qwenHeaders["User-Agent"], "QwenCode/0.15.3 (linux; x64)");
+  assert.equal(qwenHeaders["X-Dashscope-UserAgent"], getQwenCliUserAgent());
   assert.equal(qwenHeaders["X-Stainless-Package-Version"], "5.11.0");
+  assert.equal(qwenHeaders["X-Stainless-Runtime-Version"], process.version);
 
   const qoderHeaders = getQoderDashscopeCompatHeaders();
-  assert.equal(qoderHeaders["user-agent"], QODER_DASHSCOPE_COMPAT_USER_AGENT);
-  assert.equal(qoderHeaders["x-dashscope-useragent"], QODER_DASHSCOPE_COMPAT_USER_AGENT);
+  assert.equal(qoderHeaders["user-agent"], getQwenCliUserAgent());
+  assert.equal(qoderHeaders["x-dashscope-useragent"], getQwenCliUserAgent());
 
   const kiroHeaders = getKiroServiceHeaders("application/json");
   assert.equal(kiroHeaders.Accept, "application/json");
@@ -65,4 +71,25 @@ test("provider header profiles expose dedicated refresh, qwen, qoder, kiro and c
   assert.equal(cursorHeaders["User-Agent"], `Cursor/${CURSOR_REGISTRY_VERSION}`);
   assert.equal(cursorHeaders["x-cursor-user-agent"], `Cursor/${CURSOR_REGISTRY_VERSION}`);
   assert.equal(cursorHeaders["x-cursor-client-version"], CURSOR_REGISTRY_VERSION);
+});
+
+test("provider header profiles tolerate browser-like process shims", async () => {
+  const originalPlatform = process.platform;
+  const originalArch = process.arch;
+  const originalVersion = process.version;
+
+  Object.defineProperty(process, "platform", { value: undefined, configurable: true });
+  Object.defineProperty(process, "arch", { value: undefined, configurable: true });
+  Object.defineProperty(process, "version", { value: undefined, configurable: true });
+
+  try {
+    assert.equal(getQwenCliUserAgent(), `QwenCode/${QWEN_CLI_VERSION} (unknown; unknown)`);
+    const qwenHeaders = getQwenOauthHeaders();
+    assert.equal(qwenHeaders["User-Agent"], `QwenCode/${QWEN_CLI_VERSION} (unknown; unknown)`);
+    assert.equal(qwenHeaders["X-Stainless-Runtime-Version"], "unknown");
+  } finally {
+    Object.defineProperty(process, "platform", { value: originalPlatform, configurable: true });
+    Object.defineProperty(process, "arch", { value: originalArch, configurable: true });
+    Object.defineProperty(process, "version", { value: originalVersion, configurable: true });
+  }
 });

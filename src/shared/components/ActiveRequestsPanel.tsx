@@ -62,12 +62,25 @@ export default function ActiveRequestsPanel() {
     };
   }, []);
 
+  const handleClearAll = async () => {
+    if (!window.confirm(t("confirmClearActiveRequests") || "Clear all active requests?")) return;
+    try {
+      const res = await fetch("/api/logs/active", { method: "DELETE" });
+      if (res.ok) {
+        setRows([]);
+        setSelectedRow(null);
+      }
+    } catch (error) {
+      console.error("Failed to clear active requests:", error);
+    }
+  };
+
   if (!loading && rows.length === 0) {
     return null;
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card/70">
+    <div className="rounded-xl border border-border bg-surface">
       <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-text-main">
@@ -75,9 +88,19 @@ export default function ActiveRequestsPanel() {
           </h3>
           <p className="text-xs text-text-muted">{t("runningRequestsDesc")}</p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          {loading ? t("loading") : t("activeCount", { count: rows.length })}
+        <div className="flex items-center gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            {loading ? t("loading") : t("activeCount", { count: rows.length })}
+          </div>
+          {rows.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
+            >
+              {t("clearAll") || "Clear All"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -120,8 +143,8 @@ export default function ActiveRequestsPanel() {
       </div>
 
       {selectedRow && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
-          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm">
+          <div className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
               <div>
                 <h4 className="text-lg font-semibold text-text-main">

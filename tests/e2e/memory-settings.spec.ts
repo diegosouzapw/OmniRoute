@@ -81,7 +81,7 @@ test.describe("Memory settings", () => {
       deleteCalls: 0,
     };
 
-    await page.route("**/api/settings", async (route) => {
+    await page.route(/\/api\/settings$/, async (route) => {
       const method = route.request().method();
       if (method === "GET") {
         await fulfillJson(route, state.settings);
@@ -101,7 +101,7 @@ test.describe("Memory settings", () => {
       await fulfillJson(route, { error: "Method not allowed in settings stub" }, 405);
     });
 
-    await page.route("**/api/settings/memory", async (route) => {
+    await page.route(/\/api\/settings\/memory$/, async (route) => {
       const method = route.request().method();
       if (method === "GET") {
         await fulfillJson(route, state.config);

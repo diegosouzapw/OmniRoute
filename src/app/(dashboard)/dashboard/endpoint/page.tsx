@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { SegmentedControl } from "@/shared/components";
+import { Card, SegmentedControl } from "@/shared/components";
 import EndpointPageClient from "./EndpointPageClient";
 import McpDashboardPage from "./components/MCPDashboard";
 import A2ADashboardPage from "./components/A2ADashboard";
@@ -30,40 +30,39 @@ function ServiceToggle({
   onToggle: () => void;
   toggling: boolean;
 }) {
+  const online = enabled && status.online;
+  const loading = enabled && status.loading;
+
   return (
     <div className="flex items-center gap-3 ml-auto">
       <div
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
         style={{
-          borderColor: status.loading
+          borderColor: loading
             ? "var(--color-border)"
-            : status.online
+            : online
               ? "rgba(34,197,94,0.3)"
               : "rgba(239,68,68,0.3)",
-          background: status.loading
+          background: loading
             ? "transparent"
-            : status.online
+            : online
               ? "rgba(34,197,94,0.1)"
               : "rgba(239,68,68,0.1)",
-          color: status.loading
-            ? "var(--color-text-muted)"
-            : status.online
-              ? "rgb(34,197,94)"
-              : "rgb(239,68,68)",
+          color: loading ? "var(--color-text-muted)" : online ? "rgb(34,197,94)" : "rgb(239,68,68)",
         }}
       >
         <span
           className="inline-block w-2 h-2 rounded-full"
           style={{
-            background: status.loading
+            background: loading
               ? "var(--color-text-muted)"
-              : status.online
+              : online
                 ? "rgb(34,197,94)"
                 : "rgb(239,68,68)",
-            animation: status.online ? "pulse 2s infinite" : "none",
+            animation: online ? "pulse 2s infinite" : "none",
           }}
         />
-        {status.loading ? "..." : status.online ? "Online" : "Offline"}
+        {loading ? "..." : online ? "Online" : "Offline"}
       </div>
 
       <button
@@ -94,6 +93,38 @@ function ServiceToggle({
         {toggling ? "..." : enabled ? "ON" : "OFF"}
       </span>
     </div>
+  );
+}
+
+function DisabledServicePanel({ title, description }: { title: string; description: string }) {
+  return (
+    <Card className="p-6">
+      <div className="flex items-start gap-3">
+        <div
+          className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg"
+          style={{ background: "var(--color-bg-tertiary)" }}
+        >
+          <span
+            aria-hidden="true"
+            className="relative block size-5 rounded-full border-2"
+            style={{ borderColor: "var(--color-text-muted)", color: "var(--color-text-muted)" }}
+          >
+            <span
+              className="absolute left-1/2 top-[-3px] h-3 w-0.5 -translate-x-1/2 rounded-full"
+              style={{ background: "var(--color-text-muted)" }}
+            />
+          </span>
+        </div>
+        <div>
+          <h2 className="text-base font-semibold" style={{ color: "var(--color-text)" }}>
+            {title}
+          </h2>
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+            {description}
+          </p>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -378,7 +409,15 @@ export default function EndpointPage() {
 
       {activeTab === "endpoint-proxy" && <EndpointPageClient machineId="" />}
       {activeTab === "mcp" && <McpDashboardPage />}
-      {activeTab === "a2a" && <A2ADashboardPage />}
+      {activeTab === "a2a" &&
+        (a2aEnabled ? (
+          <A2ADashboardPage />
+        ) : (
+          <DisabledServicePanel
+            title="A2A is disabled"
+            description="Enable A2A above to view task telemetry, agent details, and validation tools."
+          />
+        ))}
       {activeTab === "api-endpoints" && <ApiEndpointsTab />}
     </div>
   );

@@ -438,7 +438,7 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     (_url, init = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
       assert.equal(
         init.headers["X-Goog-Api-Client"],
         "google-cloud-sdk vscode_cloudshelleditor/0.1"
@@ -459,7 +459,7 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     (_url, init = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/9.15.1");
+      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
       assert.equal(
         init.headers["X-Goog-Api-Client"],
         "google-cloud-sdk vscode_cloudshelleditor/0.1"

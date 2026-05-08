@@ -164,11 +164,10 @@ test("VB-S02: passthroughs for vision-capable model (gpt-4o)", async () => {
   }
 });
 
-test("VB-S02b: forces Vision Bridge for GPT-family models even when model capabilities advertise vision", async () => {
+test("VB-S02b: respects native vision support for GPT-family models", async () => {
   const guardrail = createGuardrail();
 
-  for (const model of ["gpt-5.4", "gpt-5.4-mini", "gpt-4o", "openai/gpt-4o-mini"]) {
-    mockVisionResponse = `Forced bridge description for ${model}`;
+  for (const model of ["gpt-5.5", "gpt-5.5-high", "codex/gpt-5.5", "openai/gpt-4o-mini"]) {
     visionCallCount = 0;
 
     const payload = createPayload({
@@ -189,9 +188,13 @@ test("VB-S02b: forces Vision Bridge for GPT-family models even when model capabi
 
     const result = await guardrail.preCall(payload, createContext({ model }));
 
-    assert.strictEqual(result.block, false, `expected passthrough=false for ${model}`);
-    assert.ok(result.modifiedPayload, `expected modified payload for ${model}`);
-    assert.strictEqual(visionCallCount, 1, `expected one forced bridge call for ${model}`);
+    assert.strictEqual(result.block, false, `expected passthrough for ${model}`);
+    assert.strictEqual(
+      result.modifiedPayload,
+      undefined,
+      `expected unmodified payload for ${model}`
+    );
+    assert.strictEqual(visionCallCount, 0, `expected no bridge call for ${model}`);
   }
 });
 

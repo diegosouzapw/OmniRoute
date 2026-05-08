@@ -14,7 +14,11 @@ function getDataDir() {
 
 // Configuration
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
-const LOCAL_PORT = 443;
+const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
+const LOCAL_PORT =
+  Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
+    ? parsedLocalPort
+    : 443;
 const ROUTER_BASE_URL = (
   process.env.OMNIROUTE_BASE_URL ||
   process.env.BASE_URL ||
@@ -40,6 +44,24 @@ if (!API_KEY) {
 
 // Load SSL certificates
 const certDir = path.join(DATA_DIR, "mitm");
+const STATS_FILE = path.join(certDir, "stats.json");
+const stats = {
+  startedAt: null,
+  totalRequests: 0,
+  interceptedRequests: 0,
+  activeConnections: 0,
+  lastRequestAt: null,
+  lastInterceptAt: null,
+};
+
+function writeStats() {
+  try {
+    fs.writeFileSync(STATS_FILE, JSON.stringify(stats, null, 2));
+  } catch {
+    // Stats are best-effort and should not affect proxy traffic.
+  }
+}
+
 const sslOptions = {
   key: fs.readFileSync(path.join(certDir, "server.key")),
   cert: fs.readFileSync(path.join(certDir, "server.crt")),
@@ -248,6 +270,10 @@ async function intercept(req, res, bodyBuffer, mappedModel) {
 }
 
 const server = https.createServer(sslOptions, async (req, res) => {
+  stats.totalRequests++;
+  stats.lastRequestAt = new Date().toISOString();
+  writeStats();
+
   const bodyBuffer = await collectBodyRaw(req);
 
   // Save request log if enabled
@@ -271,12 +297,27 @@ const server = https.createServer(sslOptions, async (req, res) => {
     return passthrough(req, res, bodyBuffer);
   }
 
+  stats.interceptedRequests++;
+  stats.lastInterceptAt = new Date().toISOString();
+  writeStats();
+
   console.log(`🔀 ${model} → ${mappedModel}`);
   return intercept(req, res, bodyBuffer, mappedModel);
 });
 
 server.listen(LOCAL_PORT, () => {
+  stats.startedAt = new Date().toISOString();
+  writeStats();
   console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
+});
+
+server.on("connection", (socket) => {
+  stats.activeConnections++;
+  writeStats();
+  socket.on("close", () => {
+    stats.activeConnections = Math.max(0, stats.activeConnections - 1);
+    writeStats();
+  });
 });
 
 server.on("error", (error) => {

@@ -15,7 +15,7 @@ import { runJsonMigration, type LegacyJsonData } from "@/lib/db/jsonMigration";
  * 🔒 A pre-import backup is created automatically before any data is written.
  */
 export async function POST(request: Request) {
-  if (await isAuthRequired()) {
+  if (await isAuthRequired(request)) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -44,7 +44,9 @@ export async function POST(request: Request) {
       data = JSON.parse(rawText) as LegacyJsonData;
     } catch {
       return NextResponse.json(
-        { error: "Invalid JSON: the file could not be parsed. Please upload a valid .json backup." },
+        {
+          error: "Invalid JSON: the file could not be parsed. Please upload a valid .json backup.",
+        },
         { status: 400 }
       );
     }
@@ -65,7 +67,9 @@ export async function POST(request: Request) {
 
     console.log(
       `[JSON Import] Imported ${counts.connections} connections, ${counts.nodes} nodes, ` +
-        `${counts.combos} combos, ${counts.apiKeys} API keys`
+        `${counts.combos} combos, ${counts.apiKeys} API keys, ` +
+        `${counts.usageHistory} usage rows, ${counts.domainCostHistory} cost rows, ` +
+        `${counts.domainBudgets} budgets`
     );
 
     return NextResponse.json({

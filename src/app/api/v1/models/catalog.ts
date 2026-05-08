@@ -1,4 +1,3 @@
-import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { PROVIDER_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import {
@@ -9,7 +8,6 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
@@ -26,6 +24,7 @@ import {
   enrichCatalogModelEntry,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -80,6 +79,59 @@ function getVisionCapabilityFields(modelId: string) {
     input_modalities: ["text", "image"],
     output_modalities: ["text"],
   };
+}
+
+function extractBearer(headers: Headers): string | null {
+  const authHeader = headers.get("authorization") || headers.get("Authorization");
+  if (!authHeader?.trim().toLowerCase().startsWith("bearer ")) return null;
+  return authHeader.trim().slice(7).trim() || null;
+}
+
+async function validateCatalogBearer(apiKey: string): Promise<boolean> {
+  const { validateApiKey } = await import("@/lib/db/apiKeys");
+  return validateApiKey(apiKey);
+}
+
+async function getModelCatalogAuthRejection(
+  request: Request,
+  settings: Record<string, any>,
+  headers: Record<string, string>
+): Promise<Response | null> {
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
+
+  const bearer = extractBearer(request.headers);
+  if (bearer) {
+    if (await validateCatalogBearer(bearer)) return null;
+    return Response.json(
+      {
+        error: {
+          message: "Invalid API key",
+          type: "invalid_api_key",
+          code: "invalid_api_key",
+        },
+      },
+      {
+        status: 401,
+        headers,
+      }
+    );
+  }
+
+  if (await isDashboardSessionAuthenticated(request)) return null;
+
+  return Response.json(
+    {
+      error: {
+        message: "Authentication required",
+        type: "invalid_api_key",
+        code: "invalid_api_key",
+      },
+    },
+    {
+      status: 401,
+      headers,
+    }
+  );
 }
 
 function buildAliasMaps() {
@@ -142,41 +194,28 @@ function buildAliasMaps() {
  */
 export async function getUnifiedModelsResponse(
   request: Request,
-  corsHeaders: Record<string, string> = {
-    "Access-Control-Allow-Origin": CORS_ORIGIN,
-  }
+  corsHeaders: Record<string, string> = {}
 ) {
   const diagnosticHeaders = getCatalogDiagnosticsHeaders({ request });
   try {
-    // Issue #100: Optionally require authentication for /models (security hardening)
-    // When enabled, unauthenticated requests get 401 with proper error response.
-    // Supports API key (Bearer token) for external clients and JWT cookie for dashboard.
     let settings: Record<string, any> = {};
     try {
       settings = await getSettings();
     } catch {}
-    if (settings.requireAuthForModels === true) {
-      if (!(await isAuthenticated(request))) {
-        return Response.json(
-          {
-            error: {
-              message: "Authentication required",
-              type: "invalid_request_error",
-              code: "invalid_api_key",
-            },
-          },
-          {
-            status: 401,
-            headers: {
-              ...corsHeaders,
-              ...diagnosticHeaders,
-            },
-          }
-        );
-      }
-    }
+
+    const authRejection = await getModelCatalogAuthRejection(request, settings, {
+      ...corsHeaders,
+      ...diagnosticHeaders,
+    });
+    if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
+    const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
+      aliasToProviderId[aliasOrProviderId] ||
+      (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
+      FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
+      fallbackProviderId ||
+      aliasOrProviderId;
 
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders: Set<string> = new Set(
@@ -289,7 +328,7 @@ export async function getUnifiedModelsResponse(
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
       // Skip blocked providers (Issue #96)
       if (blockedProviders.has(alias) || blockedProviders.has(canonicalProviderId)) continue;
@@ -299,10 +338,6 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Get default context length from registry (provider-level default)
-      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
-      const defaultContextLength = registryEntry?.defaultContextLength;
-
       for (const model of providerModels) {
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
@@ -310,8 +345,6 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-        // Model-level context length overrides provider default
-        const contextLength = model.contextLength || defaultContextLength;
 
         models.push({
           id: aliasId,
@@ -321,7 +354,6 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
-          ...(contextLength ? { context_length: contextLength } : {}),
           ...(visionFields || {}),
         });
 
@@ -339,7 +371,6 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: model.id,
             parent: aliasId,
-            ...(contextLength ? { context_length: contextLength } : {}),
             ...(providerVisionFields || {}),
           });
         }
@@ -351,10 +382,11 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
+        if (providerId === "reka") continue;
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
         const parentProviderType = nodeIdToProviderType[providerId];
 
         if (
@@ -372,12 +404,15 @@ export async function getUnifiedModelsResponse(
 
           const aliasId = `${alias}/${sm.id}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
           const syncedFields = {
             ...(modelType ? { type: modelType } : {}),
+            ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
@@ -445,19 +480,52 @@ export async function getUnifiedModelsResponse(
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
+
+      // FIX #1752: Ensure blocked providers are not returned for non-chat models
+      if (
+        blockedProviders.has(alias) ||
+        blockedProviders.has(canonicalProviderId) ||
+        blockedProviders.has(provider)
+      ) {
+        return false;
+      }
+
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
+
+    const hasEquivalentSpecialtyModel = (
+      providerId: string,
+      rawModelId: string,
+      type: string,
+      scopedModelId: string
+    ) =>
+      models.some((model: any) => {
+        if (model?.id === scopedModelId) return true;
+        if (model?.owned_by !== providerId || model?.type !== type) return false;
+        const existingRoot =
+          typeof model?.root === "string"
+            ? model.root
+            : typeof model?.id === "string"
+              ? model.id.split("/").pop()
+              : null;
+        return existingRoot === rawModelId;
+      });
 
     // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
       if (!isProviderActive(embModel.provider)) continue;
       const rawModelId = embModel.id.split("/").pop() || embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
+        continue;
+      }
       models.push({
         id: embModel.id,
         object: "model",
         created: timestamp,
         owned_by: embModel.provider,
+        root: rawModelId,
         type: "embedding",
         dimensions: embModel.dimensions,
       });
@@ -486,11 +554,15 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(rerankModel.provider)) continue;
       const rawModelId = rerankModel.id.split("/").pop() || rerankModel.id;
       if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
+        continue;
+      }
       models.push({
         id: rerankModel.id,
         object: "model",
         created: timestamp,
         owned_by: rerankModel.provider,
+        root: rawModelId,
         type: "rerank",
       });
     }
@@ -558,6 +630,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
+        if (providerId === "reka") continue;
         const providerCustomModels = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
               (model): model is Record<string, unknown> =>
@@ -567,7 +640,7 @@ export async function getUnifiedModelsResponse(
         // For compatible providers, use the prefix from provider nodes
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
         // Only include if provider is active — check alias, canonical ID, raw providerId,
         // or the parent provider type (for compatible providers whose node ID is a UUID)
@@ -605,8 +678,15 @@ export async function getUnifiedModelsResponse(
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          if (
+            modelType &&
+            hasEquivalentSpecialtyModel(canonicalProviderId, modelId, modelType, aliasId)
+          ) {
+            continue;
+          }
           const visionFields =
             modelType === "chat"
               ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
@@ -706,10 +786,9 @@ export async function getUnifiedModelsResponse(
     }
 
     // Filter by API key permissions if requested
-    const authHeader = request.headers.get("authorization");
+    const apiKey = extractBearer(request.headers);
     let finalModels = models;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const apiKey = authHeader.slice(7);
+    if (apiKey) {
       const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
 
       const filtered = [];
@@ -726,7 +805,24 @@ export async function getUnifiedModelsResponse(
       finalModels = filtered;
     }
 
-    const enrichedModels = finalModels.map((model) => enrichCatalogModelEntry(model));
+    const getDefaultContextFallback = (model: any): number | undefined => {
+      if (typeof model.context_length === "number") return undefined;
+      if (model.owned_by === "combo") return undefined;
+      if (model.type && model.type !== "chat") return undefined;
+
+      const provider = typeof model.owned_by === "string" ? model.owned_by : null;
+      if (!provider) return undefined;
+      const canonicalId = aliasToProviderId[provider] || provider;
+      return REGISTRY[canonicalId]?.defaultContextLength;
+    };
+
+    const enrichedModels = finalModels.map((model) => {
+      const enriched = enrichCatalogModelEntry(model);
+      const fallbackContextLength = getDefaultContextFallback(enriched);
+      return fallbackContextLength
+        ? { ...enriched, context_length: fallbackContextLength }
+        : enriched;
+    });
 
     return Response.json(
       {

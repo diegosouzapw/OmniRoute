@@ -30,9 +30,7 @@ test.describe("Settings Toggles", () => {
     );
 
   test("Debug mode toggle should work", async ({ page }) => {
-    await gotoDashboardRoute(page, "/dashboard/settings");
-    await waitForSettingsShell(page);
-    await page.getByRole("tab", { name: /advanced/i }).click();
+    await gotoDashboardRoute(page, "/dashboard/system/proxy");
 
     const debugToggle = getDebugToggle(page);
 
@@ -99,9 +97,7 @@ test.describe("Settings Toggles", () => {
   });
 
   test("Debug mode should persist after page reload", async ({ page }) => {
-    await gotoDashboardRoute(page, "/dashboard/settings");
-    await waitForSettingsShell(page);
-    await page.getByRole("tab", { name: /advanced/i }).click();
+    await gotoDashboardRoute(page, "/dashboard/system/proxy");
 
     const debugToggle = getDebugToggle(page);
 
@@ -113,8 +109,7 @@ test.describe("Settings Toggles", () => {
     const nextState = initialState === "true" ? "false" : "true";
     await expect(debugToggle).toHaveAttribute("aria-checked", nextState, { timeout: 15000 });
     await page.reload();
-    await waitForSettingsShell(page);
-    await page.getByRole("tab", { name: /advanced/i }).click();
+    await page.waitForLoadState("domcontentloaded");
     const reloadedToggle = getDebugToggle(page);
     await expect(reloadedToggle).toBeEnabled({ timeout: 15000 });
     await expect(reloadedToggle).toHaveAttribute("aria-checked", nextState, {

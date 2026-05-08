@@ -606,6 +606,7 @@ export default function CombosPage() {
   const [comboDragOverIndex, setComboDragOverIndex] = useState(null);
   const [savingComboOrder, setSavingComboOrder] = useState(false);
   const [comboConfigMode, setComboConfigMode] = useState("guided");
+  const [promptCompressionEnabled, setPromptCompressionEnabled] = useState(false);
   const [selectedIntelligentComboId, setSelectedIntelligentComboId] = useState<string | null>(null);
   const comboDragIndexRef = useRef<number | null>(null);
   const activeFilter = normalizeIntelligentRoutingFilter(searchParams.get("filter"));
@@ -650,6 +651,10 @@ export default function CombosPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((settings) => setComboConfigMode(normalizeComboConfigMode(settings?.comboConfigMode)))
       .catch(() => setComboConfigMode("guided"));
+    fetch("/api/settings/compression")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((settings) => setPromptCompressionEnabled(settings?.enabled === true))
+      .catch(() => setPromptCompressionEnabled(false));
     fetch("/api/settings/proxy")
       .then((r) => (r.ok ? r.json() : null))
       .then((c) => setProxyConfig(c))
@@ -1128,6 +1133,7 @@ export default function CombosPage() {
               <ComboCard
                 combo={combo}
                 metrics={metrics[combo.name]}
+                compressionEnabled={promptCompressionEnabled}
                 providerNodes={providerNodes}
                 copied={copied}
                 onCopy={copy}
@@ -1499,6 +1505,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
 function ComboCard({
   combo,
   metrics,
+  compressionEnabled,
   copied,
   onCopy,
   onEdit,
@@ -1524,6 +1531,46 @@ function ComboCard({
   const tc = useTranslations("common");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const strategyDescription = getStrategyDescription(t, strategy);
+  const hasRuntimeConfig = combo?.config && typeof combo.config === "object";
+  const initialCompressionMode =
+    typeof combo?.config?.compressionMode === "string"
+      ? combo.config.compressionMode
+      : hasRuntimeConfig
+        ? ""
+        : combo.compressionOverride || "";
+  const [compressionOverride, setCompressionOverride] = useState(initialCompressionMode);
+  const [isSavingCompression, setIsSavingCompression] = useState(false);
+
+  useEffect(() => {
+    setCompressionOverride(initialCompressionMode);
+  }, [initialCompressionMode]);
+
+  const handleCompressionOverrideChange = async (value) => {
+    setCompressionOverride(value);
+    setIsSavingCompression(true);
+    const nextConfig = { ...(combo.config || {}) };
+    if (value) {
+      nextConfig.compressionMode = value;
+    } else {
+      delete nextConfig.compressionMode;
+    }
+    try {
+      const response = await fetch(`/api/combos/${combo.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: nextConfig }),
+      });
+      if (!response.ok) {
+        console.error("Failed to update compression override");
+        setCompressionOverride(initialCompressionMode);
+      }
+    } catch (error) {
+      console.error("Error updating compression override:", error);
+      setCompressionOverride(initialCompressionMode);
+    } finally {
+      setIsSavingCompression(false);
+    }
+  };
 
   return (
     <Card
@@ -1656,7 +1703,23 @@ function ComboCard({
               {isDisabled ? "Disabled" : "Active"}
             </span>
           </div>
-          <div className="flex items-center gap-1 transition-opacity">
+          <div className="flex items-center gap-1.5 transition-opacity">
+            {compressionEnabled && (
+              <select
+                value={compressionOverride}
+                onChange={(e) => handleCompressionOverrideChange(e.target.value)}
+                disabled={isSavingCompression}
+                className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
+                title="Compression Override"
+              >
+                <option value="">Default</option>
+                <option value="off">Off</option>
+                <option value="lite">Lite</option>
+                <option value="standard">Standard</option>
+                <option value="aggressive">Aggressive</option>
+                <option value="ultra">Ultra</option>
+              </select>
+            )}
             <button
               onClick={onTest}
               disabled={testing}

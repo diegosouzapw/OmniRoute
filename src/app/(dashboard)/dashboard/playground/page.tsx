@@ -233,6 +233,14 @@ export default function PlaygroundPage() {
   const isImageEndpoint = selectedEndpoint === "images";
   const supportsVision = isChatEndpoint && isVisionModel(selectedModel);
 
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
   // Load connections for a given provider — filtered from allConnections
   const providerConnections = allConnections.filter((c) => {
     if (!selectedProvider) return false;

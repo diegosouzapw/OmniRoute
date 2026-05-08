@@ -21,8 +21,14 @@ import {
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
-  const { colorTheme, customColor, visualTheme, setColorTheme, setCustomColorTheme, setVisualTheme } =
-    useThemeStore();
+  const {
+    colorTheme,
+    customColor,
+    visualTheme,
+    setColorTheme,
+    setCustomColorTheme,
+    setVisualTheme,
+  } = useThemeStore();
   const t = useTranslations("settings");
   const tSidebar = useTranslations("sidebar");
   const [settings, setSettings] = useState<Record<string, any>>({});
@@ -37,6 +43,9 @@ export default function AppearanceTab() {
   );
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
   const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
+  const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
+  const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
+  const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -208,9 +217,7 @@ export default function AppearanceTab() {
         </div>
 
         <div className="pt-4 border-t border-border">
-          <p className="font-medium mb-1">
-            {getSettingsLabel("uiVisualTheme", "Visual Theme")}
-          </p>
+          <p className="font-medium mb-1">{getSettingsLabel("uiVisualTheme", "Visual Theme")}</p>
           <p className="text-sm text-text-muted mb-3">
             {getSettingsLabel(
               "uiVisualThemeDesc",
@@ -291,6 +298,77 @@ export default function AppearanceTab() {
             <Button onClick={() => setCustomColorTheme(customThemeColor)} disabled={!isValidHex}>
               {t("themeCreate")}
             </Button>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("endpointTunnelVisibility", "Endpoint tunnel visibility")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "endpointTunnelVisibilityDesc",
+                "Hide tunnel controls from the Endpoint page without changing tunnel state."
+              )}
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface/40 divide-y divide-border/70">
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("showCloudflareTunnel", "Cloudflare Quick Tunnel")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showCloudflareTunnelDesc",
+                    "Show Cloudflare Quick Tunnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showCloudflaredTunnel}
+                onChange={(checked) => updateSetting("hideEndpointCloudflaredTunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("showTailscaleFunnel", "Tailscale Funnel")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showTailscaleFunnelDesc",
+                    "Show Tailscale Funnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showTailscaleFunnel}
+                onChange={(checked) => updateSetting("hideEndpointTailscaleFunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">{getSettingsLabel("showNgrokTunnel", "ngrok Tunnel")}</p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "showNgrokTunnelDesc",
+                    "Show ngrok Tunnel controls on the Endpoint page."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={showNgrokTunnel}
+                onChange={(checked) => updateSetting("hideEndpointNgrokTunnel", !checked)}
+                disabled={loading}
+              />
+            </div>
           </div>
         </div>
 

@@ -87,7 +87,7 @@ export async function GET() {
           const response = await fetch(customFaviconUrl, {
             signal: controller.signal,
             headers: {
-              "User-Agent": "OmniRoute/1.0",
+              "User-Agent": "OmniRoute/2.0",
             },
           });
           clearTimeout(timeoutId);

@@ -26,7 +26,7 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
   ...ANTHROPIC_BETA_BASE.slice(3),
 ].join(",");
 
-export const CLAUDE_CLI_VERSION = "2.1.92";
+export const CLAUDE_CLI_VERSION = "2.1.121";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
-export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.80.0";
-export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.14.0";
+export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.81.0";
+export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";

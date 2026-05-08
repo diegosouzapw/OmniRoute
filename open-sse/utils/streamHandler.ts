@@ -1,4 +1,8 @@
+import { trackPendingRequest } from "@/lib/usageDb";
+
 // Stream handler with disconnect detection - shared for all providers
+
+const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
 
 type StreamDisconnectEvent = {
   reason: string;
@@ -10,6 +14,7 @@ type StreamControllerOptions = {
   log?: unknown;
   provider?: string;
   model?: string;
+  connectionId?: string | null;
 };
 
 type StreamController = ReturnType<typeof createStreamController>;
@@ -38,11 +43,13 @@ export function createStreamController({
   log,
   provider,
   model,
+  connectionId,
 }: StreamControllerOptions = {}) {
   const abortController = new AbortController();
   const startTime = Date.now();
   let disconnected = false;
   let abortTimeout: ReturnType<typeof setTimeout> | null = null;
+  let pendingRequestCleared = false;
 
   const logStream = (status) => {
     const duration = Date.now() - startTime;
@@ -50,6 +57,24 @@ export function createStreamController({
     console.log(
       `[${getTimeString()}] 🌊 [STREAM] ${p} | ${model || "unknown"} | ${duration}ms | ${status}`
     );
+  };
+
+  const clearPendingRequest = (error?: unknown) => {
+    if (pendingRequestCleared) return;
+    if (
+      error &&
+      typeof error === "object" &&
+      (error as Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] === true
+    ) {
+      pendingRequestCleared = true;
+      return;
+    }
+
+    pendingRequestCleared = true;
+    if (!model && !provider && !connectionId) return;
+    try {
+      trackPendingRequest(model || "", provider || "", connectionId ?? null, false);
+    } catch {}
   };
 
   return {
@@ -64,6 +89,10 @@ export function createStreamController({
       disconnected = true;
 
       logStream(`disconnect: ${reason}`);
+
+      // Decrement pending request counter — the TransformStream flush() won't
+      // fire when the client aborts mid-stream, so we must clean up here.
+      clearPendingRequest();
 
       // Delay abort to allow cleanup
       abortTimeout = setTimeout(() => {
@@ -92,6 +121,8 @@ export function createStreamController({
         clearTimeout(abortTimeout);
         abortTimeout = null;
       }
+
+      clearPendingRequest(error);
 
       if (error instanceof Error && error.name === "AbortError") {
         logStream("aborted");

@@ -691,6 +691,9 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
           }
           if (deltaRecord.reasoning_content !== undefined) {
             delta.reasoning_content = deltaRecord.reasoning_content;
+          }
+          if (deltaRecord.reasoning_text !== undefined) {
+            delta.reasoning_text = deltaRecord.reasoning_text;
           } else if (typeof deltaRecord.reasoning === "string" && deltaRecord.reasoning) {
             // Alias: some providers use 'reasoning' instead of 'reasoning_content'
             delta.reasoning_content = deltaRecord.reasoning;

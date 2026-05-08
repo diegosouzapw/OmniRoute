@@ -17,5 +17,33 @@
       "level": "off"
     }
   },
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  // "files.exclude": {
+  //   "**/_references": true,
+  //   "**/_mono_repo": true,
+  //   "**/electron": true,
+  //   "**/node_modules": true,
+  //   "**/.next": true,
+  //   "**/coverage": true,
+  //   "**/omniroute-*.tgz": true,
+  //   "**/_tasks": true
+  // },
+  "files.watcherExclude": {
+    "**/_references/**": true,
+    "**/_mono_repo/**": true,
+    "**/electron/**": true,
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/coverage/**": true,
+    "**/_tasks/**": true
+  },
+  "search.exclude": {
+    "**/_references": true,
+    "**/_mono_repo": true,
+    "**/electron": true,
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/coverage": true,
+    "**/_tasks": true
+  }
 }

@@ -7,6 +7,8 @@ import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
 import { resolveProxyForConnectionFromRegistry } from "./proxies";
+import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
+import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -49,7 +51,12 @@ export async function getSettings() {
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
     requireLogin: true,
+    mcpEnabled: false,
+    a2aEnabled: false,
     hiddenSidebarItems: [],
+    hideEndpointCloudflaredTunnel: false,
+    hideEndpointTailscaleFunnel: false,
+    hideEndpointNgrokTunnel: false,
     comboConfigMode: "guided",
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
@@ -60,6 +67,8 @@ export async function getSettings() {
     globalRandomRoutingBlockedModels: [],
     globalRandomRoutingExcludeCombos: true,
     globalRandomRoutingWeights: {},
+    wsAuth: false,
+    maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -220,8 +229,16 @@ export async function getPricingForModel(provider: string, model: string) {
   if (pricing[provider]?.[model]) return pricing[provider][model];
 
   const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
+  // Check if provider is an ID -> map to ALIAS
   const alias = PROVIDER_ID_TO_ALIAS[provider];
   if (alias && pricing[alias]) return pricing[alias][model] || null;
+
+  // Check if provider is an ALIAS -> map to ID (search values)
+  for (const [id, mappedAlias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
+    if (mappedAlias === provider && pricing[id]?.[model]) {
+      return pricing[id][model];
+    }
+  }
 
   const np = provider?.replace(/-cn$/, "");
   if (np && np !== provider && pricing[np]) return pricing[np][model] || null;

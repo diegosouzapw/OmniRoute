@@ -168,6 +168,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
   const sap = new DefaultExecutor("sap");
   const modal = new DefaultExecutor("modal");
   const reka = new DefaultExecutor("reka");
+  const maritalk = new DefaultExecutor("maritalk");
   const snowflake = new DefaultExecutor("snowflake");
   const gigachat = new DefaultExecutor("gigachat");
 
@@ -240,6 +241,14 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
     "https://api.reka.ai/v1/chat/completions"
   );
   assert.equal(
+    maritalk.buildUrl("sabia-4", true, 0, {
+      providerSpecificData: {
+        baseUrl: "https://chat.maritaca.ai/api/chat/inference",
+      },
+    }),
+    "https://chat.maritaca.ai/api/chat/completions"
+  );
+  assert.equal(
     snowflake.buildUrl("llama3.3-70b", true, 0, {
       providerSpecificData: { baseUrl: "https://account.snowflakecomputing.com" },
     }),
@@ -259,6 +268,40 @@ test("DefaultExecutor.buildUrl falls back to OpenAI config for unknown providers
   assert.equal(executor.buildUrl("gpt-4.1", true), PROVIDERS.openai.baseUrl);
 });
 
+test("DefaultExecutor.buildUrl applies urlSuffix for zai and glm-coding-apikey", () => {
+  const zai = new DefaultExecutor("zai");
+  const glmCodingApikey = new DefaultExecutor("glm-coding-apikey");
+  assert.equal(
+    zai.buildUrl("glm-5", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.z.ai/api/anthropic/v1/messages" },
+    }),
+    "https://api.z.ai/api/anthropic/v1/messages?beta=true"
+  );
+  assert.equal(
+    glmCodingApikey.buildUrl("glm-4.7", true, 0, {
+      providerSpecificData: { baseUrl: "https://api.z.ai/api/anthropic/v1/messages" },
+    }),
+    "https://api.z.ai/api/anthropic/v1/messages?beta=true"
+  );
+  assert.equal(zai.buildUrl("glm-5", true), "https://api.z.ai/api/anthropic/v1/messages?beta=true");
+});
+
+test("DefaultExecutor.buildUrl applies urlSuffix from registry for unknown providers with suffix", () => {
+  const executor = new DefaultExecutor("unknown-provider");
+  assert.equal(executor.buildUrl("gpt-4.1", true), PROVIDERS.openai.baseUrl);
+});
+
+test("DefaultExecutor.buildHeaders uses x-api-key for zai and glm-coding-apikey", () => {
+  const zai = new DefaultExecutor("zai");
+  const glmCodingApikey = new DefaultExecutor("glm-coding-apikey");
+  const zaiHeaders = zai.buildHeaders({ apiKey: "zai-key" }, true);
+  const glmHeaders = glmCodingApikey.buildHeaders({ apiKey: "glm-key" }, true);
+  assert.equal(zaiHeaders["x-api-key"], "zai-key");
+  assert.equal(glmHeaders["x-api-key"], "glm-key");
+  assert.equal(zaiHeaders["Authorization"], undefined);
+  assert.equal(glmHeaders["Authorization"], undefined);
+});
+
 test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => {
   const gemini = new DefaultExecutor("gemini");
   const claude = new DefaultExecutor("claude");
@@ -266,6 +309,7 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
   const oci = new DefaultExecutor("oci");
   const sap = new DefaultExecutor("sap");
   const modal = new DefaultExecutor("modal");
+  const maritalk = new DefaultExecutor("maritalk");
 
   const geminiApiKeyHeaders = gemini.buildHeaders({ apiKey: "gem-key" }, true);
   const geminiOAuthHeaders = gemini.buildHeaders({ accessToken: "gem-token" }, false);
@@ -294,6 +338,7 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
     },
     true
   );
+  const maritalkHeaders = maritalk.buildHeaders({ apiKey: "maritalk-key" }, true);
 
   assert.equal(geminiApiKeyHeaders["x-goog-api-key"], "gem-key");
   assert.equal(geminiApiKeyHeaders.Accept, "text/event-stream");
@@ -310,6 +355,7 @@ test("DefaultExecutor.buildHeaders handles Gemini and Claude auth modes", () => 
   assert.equal(sapHeaders.Authorization, "Bearer sap-key");
   assert.equal(sapHeaders["AI-Resource-Group"], "shared");
   assert.equal(modalHeaders.Authorization, "Bearer modal-key");
+  assert.equal(maritalkHeaders.Authorization, "Key maritalk-key");
 });
 
 test("DefaultExecutor.buildHeaders handles GLM, default auth and anthropic-compatible headers", () => {
@@ -582,13 +628,78 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
   assert.equal((requestBodies[1] as any).output_config, undefined);
 });
 
-test("DefaultExecutor.transformRequest is a passthrough and preserves model ids with slashes", () => {
+test("DefaultExecutor.transformRequest injects OpenAI stream usage and preserves model ids with slashes", () => {
   const executor = new DefaultExecutor("openai");
   const body = { model: "zai-org/GLM-5-FP8", messages: [{ role: "user", content: "hi" }] };
   const result = executor.transformRequest("zai-org/GLM-5-FP8", body, true, {});
 
-  assert.equal(result, body);
+  assert.notEqual(result, body);
   assert.equal(result.model, "zai-org/GLM-5-FP8");
+  assert.deepEqual((result as any).stream_options, { include_usage: true });
+  assert.equal((body as any).stream_options, undefined);
+});
+
+test("DefaultExecutor.transformRequest only injects stream usage for OpenAI chat targets", () => {
+  const openAICompat = new DefaultExecutor("openai-compatible-test");
+  const openAIResponsesCompat = new DefaultExecutor("openai-compatible-responses-test");
+
+  const chatBody = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };
+  const responsesBody = { model: "gpt-4.1", input: "hi" };
+
+  const chatResult = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  });
+  const responsesResult = openAIResponsesCompat.transformRequest("gpt-4.1", responsesBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1" },
+  });
+
+  assert.deepEqual((chatResult as any).stream_options, { include_usage: true });
+  assert.equal((responsesResult as any).stream_options, undefined);
+});
+
+test("DefaultExecutor.transformRequest respects disableStreamOptions for OpenAI chat targets", () => {
+  const openAICompat = new DefaultExecutor("openai-compatible-test");
+  const chatBody = { model: "gpt-4.1", messages: [{ role: "user", content: "hi" }] };
+
+  const chatResultDisabled = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1", disableStreamOptions: true },
+  });
+
+  const chatResultEnabled = openAICompat.transformRequest("gpt-4.1", chatBody, true, {
+    providerSpecificData: { baseUrl: "https://proxy.example/v1", disableStreamOptions: false },
+  });
+
+  assert.equal((chatResultDisabled as any).stream_options, undefined);
+  assert.deepEqual((chatResultEnabled as any).stream_options, { include_usage: true });
+});
+
+test("DefaultExecutor.transformRequest strips stream_options from Anthropic-compatible targets", () => {
+  const anthropicCompat = new DefaultExecutor("anthropic-compatible-test");
+  const anthropicCcCompat = new DefaultExecutor("anthropic-compatible-cc-test");
+
+  const anthropicBody = {
+    model: "claude-sonnet-4-6",
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 1,
+    stream_options: { include_usage: true },
+  };
+  const ccBody = {
+    model: "claude-sonnet-4-6",
+    messages: [{ role: "user", content: "hi" }],
+    max_tokens: 1,
+  };
+
+  const anthropicResult = anthropicCompat.transformRequest(
+    "claude-sonnet-4-6",
+    anthropicBody,
+    true,
+    {}
+  );
+  const ccResult = anthropicCcCompat.transformRequest("claude-sonnet-4-6", ccBody, true, {});
+
+  assert.notEqual(anthropicResult, anthropicBody);
+  assert.equal((anthropicResult as any).stream_options, undefined);
+  assert.equal((ccResult as any).stream_options, undefined);
 });
 
 test("DefaultExecutor.transformRequest neutralizes incompatible tool_choice for Qwen thinking", () => {

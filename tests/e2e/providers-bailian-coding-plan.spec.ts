@@ -69,17 +69,13 @@ test.describe("Bailian Coding Plan Provider", () => {
     }
 
     const addKeyButton = page.getByRole("button", {
-      name: /add.*api.*key|add.*key|add.*connection|connect/i,
+      name: /add.*api.*key|add.*key|add.*connection|connect|adicionar.*chave/i,
     });
 
-    if (
-      await addKeyButton
-        .first()
-        .isVisible({ timeout: 15000 })
-        .catch(() => false)
-    ) {
-      await addKeyButton.first().click();
-    }
+    // Wait for the button to appear instead of immediately checking visibility
+    await addKeyButton.first().waitFor({ state: "visible", timeout: 15000 });
+    await expect(addKeyButton.first()).toBeEnabled({ timeout: 5000 });
+    await addKeyButton.first().click();
 
     const dialog = page.getByRole("dialog").first();
     await expect(dialog).toBeVisible({ timeout: 10000 });
@@ -184,17 +180,13 @@ test.describe("Bailian Coding Plan Provider", () => {
     }
 
     const addKeyButton = page.getByRole("button", {
-      name: /add.*api.*key|add.*key|add.*connection|connect/i,
+      name: /add.*api.*key|add.*key|add.*connection|connect|adicionar.*chave/i,
     });
 
-    if (
-      await addKeyButton
-        .first()
-        .isVisible({ timeout: 15000 })
-        .catch(() => false)
-    ) {
-      await addKeyButton.first().click();
-    }
+    // Wait for the button to appear instead of immediately checking visibility
+    await addKeyButton.first().waitFor({ state: "visible", timeout: 15000 });
+    await expect(addKeyButton.first()).toBeEnabled({ timeout: 5000 });
+    await addKeyButton.first().click();
 
     const dialog = page.getByRole("dialog").first();
     await expect(dialog).toBeVisible({ timeout: 10000 });

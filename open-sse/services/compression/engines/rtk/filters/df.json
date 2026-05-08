@@ -1,0 +1,34 @@
+{
+  "id": "df",
+  "label": "df",
+  "description": "Keep filesystem usage table headers and mounted filesystems.",
+  "category": "shell",
+  "priority": 67,
+  "match": {
+    "outputTypes": ["shell-df"],
+    "commands": ["^df\\b"],
+    "patterns": ["^Filesystem\\s+.*Use%"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^tmpfs\\s", "^udev\\s", "^\\s*$"],
+    "includePatterns": ["^Filesystem\\s+", "^/dev/\\S+\\s+"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 80,
+    "headLines": 25,
+    "tailLines": 25
+  },
+  "preserve": {
+    "errorPatterns": ["No such file", "Permission denied"],
+    "summaryPatterns": ["Use%", "^/dev/"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "df -h",
+      "input": "Filesystem      Size  Used Avail Use% Mounted on\nudev            2.0G     0  2.0G   0% /dev\n/dev/sda1        50G   45G  5.0G  90% /\n",
+      "expected": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        50G   45G  5.0G  90% /"
+    }
+  ]
+}

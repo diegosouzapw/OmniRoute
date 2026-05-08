@@ -220,9 +220,11 @@ export class BaseExecutor {
   buildHeaders(
     credentials: ProviderCredentials,
     stream = true,
-    clientHeaders?: Record<string, string> | null
+    clientHeaders?: Record<string, string> | null,
+    model?: string
   ): Record<string, string> {
     void clientHeaders;
+    void model;
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...this.config.headers,
@@ -267,6 +269,42 @@ export class BaseExecutor {
     void model;
     void stream;
     void credentials;
+
+    // Fix #1674: Remove empty string values from optional parameters
+    // like tool descriptions to avoid upstream validation failures.
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+      const cloned = { ...body } as Record<string, unknown>;
+
+      if (Array.isArray(cloned.tools)) {
+        cloned.tools = cloned.tools.map((tool: unknown) => {
+          if (tool && typeof tool === "object" && !Array.isArray(tool)) {
+            const toolRecord = tool as JsonRecord;
+            const toolFunction = toolRecord.function;
+            if (toolFunction && typeof toolFunction === "object" && !Array.isArray(toolFunction)) {
+              const func = { ...(toolFunction as JsonRecord) };
+              if (func.description === "") delete func.description;
+              if (typeof func.name !== "string" || func.name.trim() === "") {
+                func.name = "unnamed_tool";
+              }
+              return { ...toolRecord, function: func };
+            }
+          }
+          return tool;
+        });
+      }
+
+      // Fix #1884: Cursor sends prompt_cache_retention which breaks strict upstream endpoints
+      delete cloned.prompt_cache_retention;
+
+      // Also clean up top level optional fields that commonly cause issues when empty
+      const optionalKeys = ["user", "stop", "seed", "response_format"];
+      for (const key of optionalKeys) {
+        if (cloned[key] === "") delete cloned[key];
+      }
+
+      return cloned;
+    }
+
     return body;
   }
 
@@ -409,7 +447,7 @@ export class BaseExecutor {
 
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, stream, urlIndex, activeCredentials);
-      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders);
+      const headers = this.buildHeaders(activeCredentials, stream, clientHeaders, model);
       applyConfiguredUserAgent(headers, activeCredentials?.providerSpecificData);
 
       const ccRequestDefaults = isClaudeCodeCompatible(this.provider)
@@ -466,7 +504,7 @@ export class BaseExecutor {
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
 
-          const ccVersion = "2.1.114";
+          const ccVersion = "2.1.121";
           // Fix #1638: Use a stable fingerprint instead of message-derived one.
           // The original computeFingerprint() hashed first-user-message chars, which
           // changes every conversation turn. This mutated the system[] prefix on each
@@ -482,6 +520,18 @@ export class BaseExecutor {
 
           if (Array.isArray(tb.system)) {
             const sysBlocks = tb.system as Array<Record<string, unknown>>;
+            // Fix #1712: Remove any existing billing headers from the client
+            // to prevent stacking that breaks Anthropic prompt cache prefix matching.
+            for (let i = sysBlocks.length - 1; i >= 0; i--) {
+              const block = sysBlocks[i];
+              if (
+                block &&
+                typeof block.text === "string" &&
+                block.text.startsWith("x-anthropic-billing-header:")
+              ) {
+                sysBlocks.splice(i, 1);
+              }
+            }
             const firstSystemCacheControl =
               sysBlocks[0] &&
               typeof sysBlocks[0] === "object" &&
@@ -515,17 +565,25 @@ export class BaseExecutor {
 
           const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
 
-          if (supportsAdaptiveThinking && !tb.thinking) {
+          // Fix #1761: Only inject adaptive thinking/high effort if the client didn't
+          // explicitly set these fields. This allows users to opt-out by sending
+          // `thinking: null` or `output_config: { effort: "low" }` to prevent forced
+          // quota drain on Claude Max accounts.
+          const originalBody = body as Record<string, unknown>;
+          const clientExplicitThinking = originalBody?.thinking !== undefined;
+          const clientExplicitEffort = originalBody?.output_config !== undefined;
+
+          if (supportsAdaptiveThinking && !tb.thinking && !clientExplicitThinking) {
             tb.thinking = { type: "adaptive" };
           }
 
-          if (supportsAdaptiveThinking && !tb.context_management) {
+          if (supportsAdaptiveThinking && !tb.context_management && !clientExplicitThinking) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
-          if (supportsAdaptiveThinking && !tb.output_config) {
+          if (supportsAdaptiveThinking && !tb.output_config && !clientExplicitEffort) {
             tb.output_config = { effort: "high" };
           }
 

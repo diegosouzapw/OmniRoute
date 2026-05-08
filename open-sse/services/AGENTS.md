@@ -48,6 +48,19 @@
 - **`volumeDetector.ts`** — Detects request volume spikes; triggers rate-limit escalation or load-shedding.
 - **`contextHandoff.ts`** — Serializes/restores session context for agent handoff (A2A protocol).
 
+### Prompt Compression Pipeline
+
+- **`compression/`** — Modular prompt compression running proactively before `contextManager.ts`.
+  - `strategySelector.ts` — Selects mode (off/lite/standard/aggressive/ultra/rtk/stacked) with compression combo assignments, combo overrides, and auto-trigger.
+  - `lite.ts` — 5 lite techniques: whitespace collapse, system prompt dedup, tool result truncation, redundant removal, image URL placeholder.
+  - `caveman.ts` / `cavemanRules.ts` — Caveman-style semantic condensation with file-loaded rule packs and language-aware rule selection.
+  - `engines/registry.ts` — Engine registry used by standalone RTK/Caveman execution and stacked pipelines.
+  - `engines/rtk/` — RTK tool-output compression: command detection, JSON filter packs, deduplication, smart truncation, ANSI/code noise stripping.
+  - `stats.ts` — Per-request compression stats (original/compressed tokens, savings %, techniques).
+  - `types.ts` — Shared types (`CompressionMode`, `CompressionConfig`, `CompressionStats`, `CompressionResult`).
+  - `index.ts` — Barrel re-exports.
+  - Dashboard/API surface: `/dashboard/context/caveman`, `/dashboard/context/rtk`, `/dashboard/context/combos`, `/api/context/*`, and `/api/compression/preview`.
+
 ### Auto-Routing & Adaptive
 
 - **`autoCombo/`** — Auto-generates combo configs based on historical performance, cost, and latency.

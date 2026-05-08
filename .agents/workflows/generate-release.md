@@ -213,11 +213,43 @@ Inform the user:
 
 ---
 
-## Phase 2: Post-Merge (only after user confirms)
+## Phase 2: Post-Merge Validation (Local VPS)
 
-> Run these steps only AFTER the user has merged the PR.
+> Run these steps only AFTER the user has merged the PR into `main` and all CI jobs have passed.
 
-### 11. Create Git Tag and GitHub Release (MANDATORY)
+### 11. Deploy to Local VPS for Final Validation (MANDATORY)
+
+Before cutting the official git tag and publishing to the world, deploy the `main` branch to the Local VPS for a final homologation test.
+
+```bash
+git checkout main
+git pull origin main
+
+# Build and pack locally
+cd /home/diegosouzapw/dev/proxys/OmniRoute && rm -f omniroute-*.tgz && rm -rf .next/cache app/.next/cache && npm run build:cli && rm -rf app/logs app/coverage app/.git app/.app-build-backup* && npm pack --ignore-scripts
+
+# Deploy to LOCAL VPS (192.168.0.15)
+scp omniroute-*.tgz root@192.168.0.15:/tmp/
+ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Local done'"
+
+# Verify
+curl -s -o /dev/null -w "LOCAL:  HTTP %{http_code}\n" http://192.168.0.15:20128/
+```
+
+### 12. 🛑 STOP — Notify User & Await Final OK
+
+**This is a mandatory stop point.**
+Inform the user that the `main` branch is now running on the Local VPS.
+Wait for the user to manually test and give the **OK**.
+**DO NOT proceed to Phase 3 until the user confirms the local deploy is stable.**
+
+---
+
+## Phase 3: Official Launch
+
+> Run these steps only AFTER the user gives the final OK from the Phase 2 local validation.
+
+### 13. Create Git Tag and GitHub Release (MANDATORY)
 
 // turbo
 
@@ -227,19 +259,19 @@ git pull origin main
 VERSION=$(node -p "require('./package.json').version")
 
 # Extracts the changelog section for this version
-NOTES=$(awk '/^## \['"$VERSION"'\]/{flag=1; next} /^## \[[0-9]+/{if(flag) exit} flag' CHANGELOG.md | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+NOTES=$(awk "/^## \\[$VERSION\\]/{flag=1; next} /^---/{if(flag) {flag=0; exit}} flag" CHANGELOG.md | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 if [ -z "$NOTES" ]; then NOTES="OmniRoute v$VERSION Release"; fi
 
 git tag -a "v$VERSION" -m "Release v$VERSION"
-git push origin --tags
-gh release create "v$VERSION" --title "v$VERSION" --notes "$NOTES" --target main
+git push origin "v$VERSION"
+gh release create "v$VERSION" --repo diegosouzapw/OmniRoute --title "v$VERSION" --notes "$NOTES" --target main || gh release edit "v$VERSION" --repo diegosouzapw/OmniRoute --title "v$VERSION" --notes "$NOTES"
 ```
 
 ### 14. 🐳 Trigger Docker Hub build (MANDATORY — keep npm and Docker in sync)
 
 > **CRITICAL**: Docker Hub and npm MUST always publish the same version.
 > The Docker image is built automatically via GitHub Actions when a new tag is pushed.
-> After pushing the tag in step 11-12, **verify the workflow runs**:
+> After pushing the tag in step 13, **verify the workflow runs**:
 
 ```bash
 # Verify the Docker workflow triggered
@@ -247,40 +279,63 @@ gh run list --repo diegosouzapw/OmniRoute --workflow docker-publish.yml --limit 
 
 # Wait for the Docker build to complete (usually 5–10 min)
 gh run watch --repo diegosouzapw/OmniRoute
-
-# After completion, verify on Docker Hub:
-# https://hub.docker.com/r/diegosouzapw/omniroute/tags
 ```
 
-If the Docker build was not triggered automatically, trigger it manually:
+### 15. Publish to NPM (Optional/Automated)
+
+Normally handled by CI, but if manual publish is required:
 
 ```bash
-gh workflow run docker-publish.yml --repo diegosouzapw/OmniRoute --ref v2.x.y
+npm publish
 ```
 
-### 15. Deploy to BOTH VPS environments (MANDATORY)
+### 16. Deploy to AKAMAI VPS (Production)
 
-> Always deploy to **both** environments after every release.
-> See `/deploy-vps` workflow for detailed steps.
+Now that the release is officially cut, deploy it to the Akamai VPS.
 
 ```bash
-# Build and pack locally
-cd /home/diegosouzapw/dev/proxys/9router && rm -f omniroute-*.tgz && rm -rf .next/cache app/.next/cache && npm run build:cli && rm -rf app/logs app/coverage app/.git app/.app-build-backup* && npm pack --ignore-scripts
-
-# Deploy to LOCAL VPS (192.168.0.15)
-scp omniroute-*.tgz root@192.168.0.15:/tmp/
-ssh root@192.168.0.15 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Local done'"
-
 # Deploy to AKAMAI VPS (69.164.221.35)
 scp omniroute-*.tgz root@69.164.221.35:/tmp/
 ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Akamai done'"
 
-# Verify both
-curl -s -o /dev/null -w "LOCAL:  HTTP %{http_code}\n" http://192.168.0.15:20128/
+# Verify
 curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
 ```
 
-### 16. Preserve release branch
+## Phase 4: Release Monitoring & Artifact Validation
+
+> After triggering the official release, actively monitor the CI pipelines until all artifacts are successfully generated. If any pipeline fails, stop and apply the necessary corrections before continuing.
+
+### 18. Monitor CI Pipelines
+
+Wait for and verify the successful completion of the following automated jobs:
+
+1. **Docker Hub Publish**
+2. **Electron Build**
+3. **NPM Registry Publish** (Check with `npm info omniroute version`)
+
+```bash
+# Monitor Docker Hub workflow
+gh run list --repo diegosouzapw/OmniRoute --workflow docker-publish.yml --limit 1
+gh run watch <RUN_ID>
+
+# Monitor Electron build
+gh run list --repo diegosouzapw/OmniRoute --workflow electron-release.yml --limit 1
+gh run watch <RUN_ID>
+
+# Verify NPM version
+npm info omniroute version
+```
+
+### 19. Handle Failures (If Any)
+
+If a workflow fails:
+
+- Use `gh run view <RUN_ID> --log-failed` to identify the error.
+- Apply the fix on the `main` branch.
+- If necessary, re-trigger the workflow using `gh workflow run <workflow_name.yml> --repo diegosouzapw/OmniRoute --ref v2.x.y`
+
+### 20. Preserve release branch
 
 ```bash
 # Branch is kept for historical purposes. Do not delete.

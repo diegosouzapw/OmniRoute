@@ -14,19 +14,19 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..");
 
-function readProjectFile(relPath) {
+function readProjectFile(relPath: string) {
   const full = join(ROOT, relPath);
   if (!existsSync(full)) return null;
   return readFileSync(full, "utf8");
 }
 
-function assertFileExists(relPath) {
+function assertFileExists(relPath: string) {
   const full = join(ROOT, relPath);
   assert.ok(existsSync(full), `${relPath} should exist`);
   return full;
 }
 
-function assertRouteMethods(relPath, methods) {
+function assertRouteMethods(relPath: string, methods: string[]) {
   const src = readProjectFile(relPath);
   assert.ok(src, `${relPath} should exist`);
   for (const method of methods) {
@@ -34,7 +34,7 @@ function assertRouteMethods(relPath, methods) {
   }
 }
 
-function listProjectFiles(relPath) {
+function listProjectFiles(relPath: string): string[] {
   const full = join(ROOT, relPath);
   if (!existsSync(full)) return [];
 
@@ -128,23 +128,25 @@ describe("Pipeline Wiring — sse chat handler", () => {
 });
 
 describe("Pipeline Wiring — middleware proxy", () => {
-  const src = readProjectFile("src/proxy.ts");
+  const proxySrc = readProjectFile("src/proxy.ts");
+  const pipelineSrc = readProjectFile("src/server/authz/pipeline.ts");
 
-  it("should exist", () => {
-    assert.ok(src, "src/proxy.ts should exist");
+  it("should exist and delegate to authz pipeline", () => {
+    assert.ok(proxySrc, "src/proxy.ts should exist");
+    assert.match(proxySrc, /runAuthzPipeline/);
   });
 
-  it("should generate request id for tracing", () => {
-    assert.match(src, /generateRequestId/);
-    assert.match(src, /X-Request-Id/);
+  it("should generate request id for tracing in the authz pipeline", () => {
+    assert.ok(pipelineSrc, "src/server/authz/pipeline.ts should exist");
+    assert.match(pipelineSrc, /generateRequestId|X-Request-Id/);
   });
 
-  it("should enforce body size guard for API writes", () => {
-    assert.match(src, /checkBodySize|getBodySizeLimit/);
+  it("should enforce body size guard in the authz pipeline", () => {
+    assert.match(pipelineSrc, /checkBodySize|getBodySizeLimit|bodySize/i);
   });
 
-  it("should resolve JWT secret lazily at request time", () => {
-    assert.match(src, /function getJwtSecret/);
+  it("should resolve JWT secret in the authz pipeline", () => {
+    assert.match(pipelineSrc, /getJwtSecret|jwtSecret|JWT_SECRET/i);
   });
 });
 
@@ -253,6 +255,27 @@ describe("API Routes — dashboard and tool consumers", () => {
     assertRouteMethods("src/app/api/usage/proxy-logs/route.ts", ["GET", "DELETE"]);
     assertRouteMethods("src/app/api/usage/call-logs/route.ts", ["GET"]);
     assertRouteMethods("src/app/api/usage/call-logs/[id]/route.ts", ["GET"]);
+  });
+
+  it("keeps the active request payload modal on opaque theme surfaces", () => {
+    const activeRequests = readProjectFile("src/shared/components/ActiveRequestsPanel.tsx");
+    const globals = readProjectFile("src/app/globals.css");
+
+    assert.ok(activeRequests, "ActiveRequestsPanel should exist");
+    assert.ok(globals, "globals.css should exist");
+    assert.match(globals, /--color-card:\s+#ffffff/);
+    assert.match(globals, /--color-card:\s+#161b22/);
+    assert.match(globals, /--color-card:\s+var\(--color-card\)/);
+    assert.match(activeRequests, /rounded-xl border border-border bg-surface/);
+    assert.match(activeRequests, /backdrop-blur-sm/);
+    assert.match(
+      activeRequests,
+      /rounded-2xl[^"]*border border-border[^"]*bg-surface[^"]*shadow-2xl/
+    );
+    assert.doesNotMatch(activeRequests, /bg-card\/70/);
+    assert.doesNotMatch(activeRequests, /rounded-2xl[^"]*bg-card/);
+    assert.doesNotMatch(activeRequests, /shadow-\[/);
+    assert.doesNotMatch(activeRequests, /border-black\/10/);
   });
 
   it("keeps usage quota wired through A2A and MCP tools", () => {

@@ -5,7 +5,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel, cleanNulls } from "./core";
 import { backupDbFile } from "./backup";
-import { encryptConnectionFields, decryptConnectionFields } from "./encryption";
+import {
+  encryptConnectionFields,
+  decryptConnectionFields,
+  migrateLegacyEncryptedString,
+} from "./encryption";
 import { invalidateDbCache } from "./readCache";
 import { normalizeProviderSpecificData } from "@/lib/providers/requestDefaults";
 
@@ -485,6 +489,67 @@ export async function getDistinctGroups(): Promise<string[]> {
     )
     .all() as Array<{ group?: string }>;
   return rows.map((r) => String(r.group ?? "")).filter(Boolean);
+}
+
+// ──────────────── Auto Migration ────────────────
+
+/**
+ * Scans all connections and re-encrypts any fields using the old dynamic salt
+ * so they use the new canonical static salt.
+ */
+export function autoMigrateLegacyEncryptedConnections(): number {
+  const db = getDbInstance() as unknown as DbLike;
+  const rows = db.prepare("SELECT * FROM provider_connections").all();
+  let migratedCount = 0;
+
+  for (const row of rows) {
+    const camelRow = rowToCamel(row);
+    if (!camelRow) continue;
+
+    let updatedRow = false;
+
+    const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"];
+    for (const field of encryptedFields) {
+      if (typeof camelRow[field] === "string") {
+        const { updated, value } = migrateLegacyEncryptedString(camelRow[field] as string);
+        if (updated) {
+          camelRow[field] = value;
+          updatedRow = true;
+        }
+      }
+    }
+
+    if (updatedRow) {
+      // camelRow[field] is already re-encrypted!
+      // But _updateConnectionRow does not re-encrypt automatically, so we pass it safely.
+      // Wait, _updateConnectionRow runs the full data through `encryptConnectionFields`,
+      // but `encryptConnectionFields` will re-encrypt plain text.
+      // BUT `migrateLegacyEncryptedString` returns ALREADY ENCRYPTED ciphertext!
+      // Wait... if we pass ALREADY ENCRYPTED text to `_updateConnectionRow`,
+      // `encryptConnectionFields` in `_updateConnectionRow` will encrypt it AGAIN!
+      // Let's modify the DB directly so we don't double encrypt.
+
+      db.prepare(
+        "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
+      ).run({
+        id: camelRow.id,
+        apiKey: camelRow.apiKey ?? null,
+        idToken: camelRow.idToken ?? null,
+        accessToken: camelRow.accessToken ?? null,
+        refreshToken: camelRow.refreshToken ?? null,
+        updatedAt: new Date().toISOString(),
+      });
+      migratedCount++;
+    }
+  }
+
+  if (migratedCount > 0) {
+    backupDbFile("pre-write");
+    invalidateDbCache("connections");
+    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
+  }
+
+  return migratedCount;
 }
 
 // ──────────────── Provider Nodes ────────────────

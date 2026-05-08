@@ -143,6 +143,12 @@ const pendingRequests: {
   details: Object.create(null) as Record<string, Record<string, PendingRequestDetail>>,
 };
 
+/** Prototype-pollution denylist — prevents crafted model/provider names from mutating Object.prototype. */
+const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+function isSafeKey(key: string): boolean {
+  return !UNSAFE_KEYS.has(key);
+}
+
 /**
  * Track a pending request.
  */
@@ -154,6 +160,7 @@ export function trackPendingRequest(
   metadata?: PendingRequestMetadata
 ) {
   const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
   const normalizedMetadata = normalizePendingMetadata(metadata);
 
   // Use hasOwnProperty guard to prevent prototype pollution via crafted keys
@@ -194,7 +201,11 @@ export function trackPendingRequest(
           ...normalizedMetadata,
         };
       } else {
-        Object.assign(pendingRequests.details[connectionId][modelKey], normalizedMetadata);
+        const merged = {
+          ...pendingRequests.details[connectionId][modelKey],
+          ...normalizedMetadata,
+        };
+        pendingRequests.details[connectionId][modelKey] = merged;
       }
     } else if (!started && nextCount === 0) {
       delete pendingRequests.details[connectionId][modelKey];
@@ -213,9 +224,11 @@ export function updatePendingRequest(
 ) {
   if (!connectionId) return;
   const modelKey = provider ? `${model} (${provider})` : model;
+  if (!isSafeKey(modelKey)) return;
   const existing = pendingRequests.details[connectionId]?.[modelKey];
   if (!existing) return;
-  Object.assign(existing, normalizePendingMetadata(metadata));
+  const merged = { ...existing, ...normalizePendingMetadata(metadata) };
+  pendingRequests.details[connectionId][modelKey] = merged;
 }
 
 /**
@@ -226,19 +239,57 @@ export function getPendingRequests() {
   return pendingRequests;
 }
 
+/**
+ * Clear all pending request counts.
+ * Used for admin reset when counts leak due to uncaught timeouts or process-level errors.
+ */
+export function clearPendingRequests() {
+  pendingRequests.byModel = Object.create(null) as Record<string, number>;
+  pendingRequests.byAccount = Object.create(null) as Record<string, Record<string, number>>;
+  pendingRequests.details = Object.create(null) as Record<
+    string,
+    Record<string, PendingRequestDetail>
+  >;
+}
+
 // ──────────────── getUsageDb Shim (backward compat) ────────────────
+
+const MAX_ROWS = 10000;
 
 /**
  * Returns an object compatible with the old LowDB interface.
  * Only `api/usage/analytics/route.js` uses this — it reads `db.data.history`.
+ *
+ * @param sinceIso - ISO timestamp to filter from (inclusive)
+ * @param limit - Max rows to return (default 10,000)
+ * @param cursor - Timestamp cursor for pagination (exclusive, for next page)
  */
-export async function getUsageDb(sinceIso?: string | null) {
+export async function getUsageDb(sinceIso?: string | null, limit?: number, cursor?: string | null) {
   const db = getDbInstance();
-  const rows = sinceIso
-    ? db
-        .prepare("SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC")
-        .all(sinceIso)
-    : db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all();
+  const maxRows = Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : MAX_ROWS;
+
+  let rows;
+  if (cursor) {
+    // Cursor-based pagination (next page after cursor)
+    // Use > cursor to get rows after the last timestamp of previous page (ASC order)
+    rows = sinceIso
+      ? db
+          .prepare(
+            `SELECT * FROM usage_history WHERE timestamp >= ? AND timestamp > ? ORDER BY timestamp ASC LIMIT ?`
+          )
+          .all(sinceIso, cursor, maxRows)
+      : db
+          .prepare(`SELECT * FROM usage_history WHERE timestamp > ? ORDER BY timestamp ASC LIMIT ?`)
+          .all(cursor, maxRows);
+  } else if (sinceIso) {
+    // Initial query with date filter
+    rows = db
+      .prepare(`SELECT * FROM usage_history WHERE timestamp >= ? ORDER BY timestamp ASC LIMIT ?`)
+      .all(sinceIso, maxRows);
+  } else {
+    // No filter - get all (with limit)
+    rows = db.prepare(`SELECT * FROM usage_history ORDER BY timestamp ASC LIMIT ?`).all(maxRows);
+  }
 
   const history = rows.map((row) => {
     const r = asRecord(row);
@@ -264,7 +315,10 @@ export async function getUsageDb(sinceIso?: string | null) {
     };
   });
 
-  return { data: { history } };
+  // Provide next cursor if we hit the limit (more rows exist)
+  const nextCursor = rows.length === maxRows ? (rows[rows.length - 1] as any)?.timestamp : null;
+
+  return { data: { history, nextCursor } };
 }
 
 // ──────────────── Save Request Usage ────────────────

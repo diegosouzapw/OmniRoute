@@ -54,10 +54,10 @@ test("handleImageGeneration routes OpenAI-compatible providers and forwards imag
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "city skyline",
         n: 2,
-        size: "1024x1792",
+        size: "1024x1536",
         quality: "hd",
         response_format: "url",
         style: "vivid",
@@ -70,10 +70,10 @@ test("handleImageGeneration routes OpenAI-compatible providers and forwards imag
     assert.equal(captured.url, "https://api.openai.com/v1/images/generations");
     assert.equal(captured.headers.Authorization, "Bearer image-key");
     assert.deepEqual(captured.body, {
-      model: "dall-e-3",
+      model: "gpt-image-2",
       prompt: "city skyline",
       n: 2,
-      size: "1024x1792",
+      size: "1024x1536",
       quality: "hd",
       response_format: "url",
       style: "vivid",
@@ -250,32 +250,32 @@ test("handleImageGeneration treats unknown provider prefixes as invalid image mo
 
 test("image registry resolves flux aliases and exposes planned catalog aliases", () => {
   assert.deepEqual(parseImageModel("flux-kontext"), {
-    provider: "pollinations",
-    model: "flux-kontext",
+    provider: "black-forest-labs",
+    model: "flux-kontext-pro",
   });
   assert.deepEqual(parseImageModel("pollinations/kontext"), {
-    provider: "pollinations",
-    model: "flux-kontext",
+    provider: "black-forest-labs",
+    model: "flux-kontext-pro",
   });
-  assert.deepEqual(parseImageModel("flux-redux"), {
+  assert.deepEqual(parseImageModel("flux-2-dev"), {
     provider: "together",
-    model: "black-forest-labs/FLUX.1-redux",
+    model: "black-forest-labs/FLUX.2-dev",
   });
 
   const modelIds = new Set(getAllImageModels().map((model) => model.id));
-  const fluxRedux = getAllImageModels().find((model) => model.id === "flux-redux");
+  const flux2Dev = getAllImageModels().find((model) => model.id === "flux-2-dev");
   const fluxKontext = getAllImageModels().find((model) => model.id === "flux-kontext");
   for (const alias of [
     "flux-kontext",
     "flux-kontext-max",
-    "flux-redux",
-    "flux-depth",
-    "flux-canny",
-    "flux-dev-lora",
+    "flux-2-max",
+    "flux-2-pro",
+    "flux-2-flex",
+    "flux-2-dev",
   ]) {
     assert.equal(modelIds.has(alias), true, `Expected alias ${alias} in image catalog`);
   }
-  assert.deepEqual(fluxRedux?.inputModalities, ["text", "image"]);
+  assert.deepEqual(flux2Dev?.inputModalities, ["text", "image"]);
   assert.deepEqual(fluxKontext?.inputModalities, ["text", "image"]);
 });
 
@@ -354,7 +354,7 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
       requestCapture = {
         url: stringUrl,
         headers: options.headers,
-        body: JSON.parse(String(options.body || "{}")),
+        body: options.body,
       };
 
       return new Response(JSON.stringify({ image: "c3RhYmlsaXR5LWltYWdl" }), {
@@ -383,10 +383,65 @@ test("handleImageGeneration routes Stability AI edit models to native endpoints"
     assert.equal(result.success, true);
     assert.equal(requestCapture.url, "https://api.stability.ai/v2beta/stable-image/edit/inpaint");
     assert.equal(requestCapture.headers.Authorization, "Bearer stability-key");
-    assert.equal(requestCapture.body.image, "BAU=");
-    assert.equal(requestCapture.body.mask, "AA==");
-    assert.equal(requestCapture.body.output_format, "png");
+    assert.equal(requestCapture.headers.Accept, "application/json");
+    assert.equal(requestCapture.headers["Content-Type"], undefined);
+    assert.ok(requestCapture.body instanceof FormData);
+    assert.equal(requestCapture.body.get("prompt"), "replace the sky with aurora");
+    assert.equal(requestCapture.body.get("negative_prompt"), "rain");
+    assert.equal(requestCapture.body.get("output_format"), "png");
+    assert.equal((requestCapture.body.get("image") as Blob).size, 2);
+    assert.equal((requestCapture.body.get("mask") as Blob).size, 1);
     assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWltYWdl");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration sends Stability AI text generation as multipart form data", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCapture;
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://api.stability.ai/v2beta/stable-image/generate/core") {
+      requestCapture = {
+        url: stringUrl,
+        headers: options.headers,
+        body: options.body,
+      };
+
+      return new Response(JSON.stringify({ image: "c3RhYmlsaXR5LWNvcmU=" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "stability-ai/stable-image-core",
+        prompt: "city near beach",
+        size: "1024x1024",
+        response_format: "b64_json",
+      },
+      credentials: { apiKey: "stability-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(requestCapture.url, "https://api.stability.ai/v2beta/stable-image/generate/core");
+    assert.equal(requestCapture.headers.Authorization, "Bearer stability-key");
+    assert.equal(requestCapture.headers.Accept, "application/json");
+    assert.equal(requestCapture.headers["Content-Type"], undefined);
+    assert.ok(requestCapture.body instanceof FormData);
+    assert.equal(requestCapture.body.get("prompt"), "city near beach");
+    assert.equal(requestCapture.body.get("mode"), "text-to-image");
+    assert.equal(requestCapture.body.get("aspect_ratio"), "1:1");
+    assert.equal(requestCapture.body.get("output_format"), "png");
+    assert.equal(result.data.data[0].b64_json, "c3RhYmlsaXR5LWNvcmU=");
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -1130,7 +1185,7 @@ test("handleImageGeneration logs OpenAI-compatible upstream failures and transpo
   try {
     const failed = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "broken upstream",
       },
       credentials: { apiKey: "image-key" },
@@ -1151,7 +1206,7 @@ test("handleImageGeneration logs OpenAI-compatible upstream failures and transpo
   try {
     const errored = await handleImageGeneration({
       body: {
-        model: "openai/dall-e-3",
+        model: "openai/gpt-image-2",
         prompt: "transport issue",
       },
       credentials: { apiKey: "image-key" },

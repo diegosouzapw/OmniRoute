@@ -191,6 +191,8 @@ curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,
 Set `APP_LOG_TO_FILE=true` in your `.env` file. Application logs are written under `logs/`.
 Request artifacts are stored under `${DATA_DIR}/call_logs/` when the call log pipeline is
 enabled in settings.
+When pipeline capture is enabled, set `CALL_LOG_PIPELINE_CAPTURE_STREAM_CHUNKS=false` to omit
+stream chunk payloads, or tune `CALL_LOG_PIPELINE_MAX_SIZE_KB` to change the artifact cap in KB.
 
 ### Check Provider Health
 

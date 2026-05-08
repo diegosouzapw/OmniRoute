@@ -11,6 +11,7 @@ import { getDbInstance } from "../db/core";
 import { getPendingRequests } from "./usageHistory";
 import { getAccountDisplayName } from "@/lib/display/names";
 import { calculateCost } from "./costCalculator";
+import { getRawDataCutoffDate, isAggregationEnabled } from "./aggregateHistory";
 
 type JsonRecord = Record<string, unknown>;
 type UsageBucket = {
@@ -56,10 +57,58 @@ function toStringOrEmpty(value: unknown): string {
 
 /**
  * Get aggregated usage stats.
+ * Uses UNION of recent raw data and older aggregated data when aggregation is enabled.
  */
 export async function getUsageStats() {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all() as unknown[];
+  const aggregationEnabled = await isAggregationEnabled();
+
+  let rows: unknown[];
+
+  if (aggregationEnabled) {
+    const cutoffDate = await getRawDataCutoffDate();
+
+    // UNION: recent raw data + older aggregated data
+    const unionQuery = `
+      SELECT 
+        provider,
+        model,
+        timestamp,
+        connection_id,
+        api_key_id,
+        api_key_name,
+        tokens_input,
+        tokens_output,
+        tokens_cache_read,
+        tokens_cache_creation,
+        tokens_reasoning
+      FROM usage_history
+      WHERE DATE(timestamp) >= ?
+      
+      UNION ALL
+      
+      SELECT 
+        provider,
+        model,
+        date || ' 12:00:00' as timestamp,
+        NULL as connection_id,
+        NULL as api_key_id,
+        NULL as api_key_name,
+        total_input_tokens as tokens_input,
+        total_output_tokens as tokens_output,
+        0 as tokens_cache_read,
+        0 as tokens_cache_creation,
+        0 as tokens_reasoning
+      FROM daily_usage_summary
+      WHERE date < ?
+      
+      ORDER BY timestamp ASC
+    `;
+
+    rows = db.prepare(unionQuery).all(cutoffDate, cutoffDate) as unknown[];
+  } else {
+    rows = db.prepare("SELECT * FROM usage_history ORDER BY timestamp ASC").all() as unknown[];
+  }
 
   const { getProviderConnections } = await import("@/lib/localDb");
   let allConnections: unknown[] = [];

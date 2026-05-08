@@ -14,6 +14,7 @@ const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const proxiesRoute = await import("../../src/app/api/v1/management/proxies/route.ts");
 const settingsProxyRoute = await import("../../src/app/api/settings/proxy/route.ts");
+const settingsMitmRoute = await import("../../src/app/api/settings/mitm/route.ts");
 const v1ModelsRoute = await import("../../src/app/api/v1/models/route.ts");
 
 const MACHINE_ID = "1234567890abcdef";
@@ -420,6 +421,50 @@ test("critical routes: settings proxy prefers registry assignment for global loo
   assert.equal(body.proxy.type, "https");
   assert.equal(body.proxy.host, "registry.proxy.local");
   assert.equal(body.proxy.username, "global-user");
+});
+
+test("critical routes: MITM settings reject non-443 transparent interception ports", async () => {
+  await enableManagementAuth();
+
+  const mitmDir = path.join(TEST_DATA_DIR, "mitm");
+  fs.mkdirSync(mitmDir, { recursive: true });
+  fs.writeFileSync(path.join(mitmDir, "settings.json"), JSON.stringify({ port: 9443 }));
+
+  const staleConfig = await settingsMitmRoute.GET(
+    await makeManagementSessionRequest("http://localhost/api/settings/mitm")
+  );
+  const staleConfigBody = (await staleConfig.json()) as any;
+
+  const invalidPort = await settingsMitmRoute.PUT(
+    await makeManagementSessionRequest("http://localhost/api/settings/mitm", {
+      method: "PUT",
+      body: { port: 9443 },
+    })
+  );
+  const invalidPortBody = (await invalidPort.json()) as any;
+
+  const validPort = await settingsMitmRoute.PUT(
+    await makeManagementSessionRequest("http://localhost/api/settings/mitm", {
+      method: "PUT",
+      body: { port: 443 },
+    })
+  );
+  const validPortBody = (await validPort.json()) as any;
+  const staleAntigravityTarget = staleConfigBody.targets.find(
+    (target: any) => target.id === "antigravity"
+  );
+  const validAntigravityTarget = validPortBody.targets.find(
+    (target: any) => target.id === "antigravity"
+  );
+
+  assert.equal(staleConfig.status, 200);
+  assert.equal(staleConfigBody.port, 443);
+  assert.equal(staleAntigravityTarget?.localPort, 443);
+  assert.equal(invalidPort.status, 400);
+  assert.match(invalidPortBody.error, /requires port 443/i);
+  assert.equal(validPort.status, 200);
+  assert.equal(validPortBody.port, 443);
+  assert.equal(validAntigravityTarget?.localPort, 443);
 });
 
 test("critical routes: settings proxy covers global fallback and socks5 gating", async () => {

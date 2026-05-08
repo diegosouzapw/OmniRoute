@@ -797,7 +797,7 @@ test("createSSETransformStreamWithLogger flushes Responses API terminal events o
 
   assert.match(text, /response\.created/);
   assert.match(text, /response\.completed/);
-  assert.match(text, /\[DONE\]/);
+  assert.doesNotMatch(text, /\[DONE\]/);
 });
 
 test("createPassthroughStreamWithLogger reuses passthrough mode helpers", async () => {
@@ -971,4 +971,64 @@ test("createRequestLogger caps retained stream chunk item count", async () => {
     "one",
     "[stream chunk log truncated after 2 chunks]",
   ]);
+});
+
+// T-VERIFY: passthrough mode failure decrements pending requests
+// Regression test for missing trackPendingRequest(false) on passthrough failure
+import { getPendingRequests, clearPendingRequests } from "../../src/lib/usage/usageHistory.ts";
+
+test("createSSEStream passthrough mode decrements pending requests on failure", async () => {
+  // Clear any existing pending requests first
+  clearPendingRequests();
+  const initial = getPendingRequests();
+  assert.equal(Object.keys(initial.byModel).length, 0, "should start with no pending requests");
+
+  let failurePayload = null;
+  const testProvider = "openai-compatible-test-failure";
+  const testModel = "gpt-test";
+  const testConnectionId = "test-conn-123";
+
+  await assert.rejects(
+    readTransformed(
+      [
+        `data: ${JSON.stringify({
+          type: "response.failed",
+          response: {
+            id: "resp_failed_test",
+            object: "response",
+            model: testModel,
+            status: "failed",
+            error: {
+              code: "test_failure",
+              message: "Test failure for pending request tracking",
+            },
+          },
+        })}\n\n`,
+      ],
+      {
+        mode: "passthrough",
+        sourceFormat: FORMATS.OPENAI_RESPONSES,
+        provider: testProvider,
+        model: testModel,
+        connectionId: testConnectionId,
+        body: { input: "hello" },
+        onFailure(payload) {
+          failurePayload = payload;
+        },
+      }
+    ),
+    /Test failure|Upstream failure/
+  );
+
+  assert.ok(failurePayload, "should report the stream failure");
+
+  // Verify pending requests are properly decremented after failure
+  const pending = getPendingRequests();
+  const modelKey = `${testModel} (${testProvider})`;
+  const count = pending.byModel[modelKey] || 0;
+  assert.equal(
+    count,
+    0,
+    `pending request count for ${modelKey} should be 0 after failure, got ${count}`
+  );
 });

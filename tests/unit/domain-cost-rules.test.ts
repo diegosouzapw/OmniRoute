@@ -91,54 +91,74 @@ test("checkBudget reports warning and blocks when projected spend exceeds the da
 });
 
 test("getDailyTotal and getCostSummary split daily and monthly totals correctly", () => {
-  costRules.setBudget("key-summary", {
-    dailyLimitUsd: 50,
-    monthlyLimitUsd: 100,
-    warningThreshold: 0.75,
-  });
+  const OriginalDate = global.Date;
+  const mockNow = Date.UTC(2026, 4, 15, 12, 0, 0); // May 15, 2026
 
-  const now = Date.now();
-  const today = now - 1_000;
-  const yesterday = now - 24 * 60 * 60 * 1000;
-  const lastMonth = new Date();
-  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  try {
+    global.Date = class extends OriginalDate {
+      constructor(...args: any[]) {
+        if (args.length === 0) {
+          super(mockNow);
+        } else {
+          super(...(args as []));
+        }
+      }
+      static now() {
+        return mockNow;
+      }
+    } as any;
 
-  domainState.saveCostEntry("key-summary", 2.5, today);
-  domainState.saveCostEntry("key-summary", 1.5, yesterday);
-  domainState.saveCostEntry("key-summary", 9.9, lastMonth.getTime());
-
-  assert.equal(costRules.getDailyTotal("key-summary"), 2.5);
-  assert.deepEqual(costRules.getCostSummary("key-summary"), {
-    dailyTotal: 2.5,
-    monthlyTotal: 4,
-    totalEntries: 2,
-    budget: {
+    costRules.setBudget("key-summary", {
       dailyLimitUsd: 50,
-      weeklyLimitUsd: 0,
       monthlyLimitUsd: 100,
       warningThreshold: 0.75,
+    });
+
+    const now = Date.now();
+    const today = now - 1_000;
+    const yesterday = now - 24 * 60 * 60 * 1000;
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    domainState.saveCostEntry("key-summary", 2.5, today);
+    domainState.saveCostEntry("key-summary", 1.5, yesterday);
+    domainState.saveCostEntry("key-summary", 9.9, lastMonth.getTime());
+
+    assert.equal(costRules.getDailyTotal("key-summary"), 2.5);
+    assert.deepEqual(costRules.getCostSummary("key-summary"), {
+      dailyTotal: 2.5,
+      monthlyTotal: 4,
+      totalEntries: 2,
+      budget: {
+        dailyLimitUsd: 50,
+        weeklyLimitUsd: 0,
+        monthlyLimitUsd: 100,
+        warningThreshold: 0.75,
+        resetInterval: "daily",
+        resetTime: "00:00",
+        budgetResetAt: costRules.getBudget("key-summary")?.budgetResetAt ?? null,
+        lastBudgetResetAt: costRules.getBudget("key-summary")?.lastBudgetResetAt ?? null,
+        warningEmittedAt: null,
+        warningPeriodStart: null,
+      },
+      totalCostToday: 2.5,
+      totalCostMonth: 4,
+      totalCostPeriod: 2.5,
+      activeLimitUsd: 50,
       resetInterval: "daily",
       resetTime: "00:00",
       budgetResetAt: costRules.getBudget("key-summary")?.budgetResetAt ?? null,
       lastBudgetResetAt: costRules.getBudget("key-summary")?.lastBudgetResetAt ?? null,
-      warningEmittedAt: null,
-      warningPeriodStart: null,
-    },
-    totalCostToday: 2.5,
-    totalCostMonth: 4,
-    totalCostPeriod: 2.5,
-    activeLimitUsd: 50,
-    resetInterval: "daily",
-    resetTime: "00:00",
-    budgetResetAt: costRules.getBudget("key-summary")?.budgetResetAt ?? null,
-    lastBudgetResetAt: costRules.getBudget("key-summary")?.lastBudgetResetAt ?? null,
-    periodStartAt: costRules.getBudget("key-summary")?.lastBudgetResetAt ?? null,
-    nextResetAt: costRules.getBudget("key-summary")?.budgetResetAt ?? null,
-    dailyLimitUsd: 50,
-    weeklyLimitUsd: 0,
-    monthlyLimitUsd: 100,
-    warningThreshold: 0.75,
-  });
+      periodStartAt: costRules.getBudget("key-summary")?.lastBudgetResetAt ?? null,
+      nextResetAt: costRules.getBudget("key-summary")?.budgetResetAt ?? null,
+      dailyLimitUsd: 50,
+      weeklyLimitUsd: 0,
+      monthlyLimitUsd: 100,
+      warningThreshold: 0.75,
+    });
+  } finally {
+    global.Date = OriginalDate;
+  }
 });
 
 test("costRules covers DB-loaded budgets, malformed entries and storage failure fallbacks", () => {

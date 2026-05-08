@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import PropTypes from "prop-types";
 import { useSearchParams, useRouter } from "next/navigation";
 import Card from "./Card";
 import Badge from "./Badge";
@@ -22,12 +21,6 @@ function SortIcon({
   if (currentSort !== field) return <span className="ml-1 opacity-20">↕</span>;
   return <span className="ml-1">{currentOrder === "asc" ? "↑" : "↓"}</span>;
 }
-
-SortIcon.propTypes = {
-  field: PropTypes.string.isRequired,
-  currentSort: PropTypes.string.isRequired,
-  currentOrder: PropTypes.string.isRequired,
-};
 
 function MiniBarGraph({
   data,
@@ -50,11 +43,6 @@ function MiniBarGraph({
     </div>
   );
 }
-
-MiniBarGraph.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.number).isRequired,
-  colorClass: PropTypes.string,
-};
 
 export default function UsageStats() {
   const t = useTranslations("stats");

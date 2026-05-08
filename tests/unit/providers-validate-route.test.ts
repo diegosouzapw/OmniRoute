@@ -129,7 +129,7 @@ test("providers validate route blocks private baseUrl values by default", async 
 
     const response = await validateRoute.POST(request);
 
-    assert.equal(response.status, 400);
+    assert.equal(response.status, 503);
     assert.deepEqual(await response.json(), {
       error: "Blocked private or local provider URL",
     });

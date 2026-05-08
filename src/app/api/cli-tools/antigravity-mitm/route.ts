@@ -7,6 +7,7 @@ import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
+import { isRoot } from "@/mitm/systemCommands";
 
 // GET - Check MITM status
 export async function GET(request) {
@@ -60,9 +61,10 @@ export async function POST(request) {
     const apiKey = await resolveApiKey(apiKeyId, rawApiKey);
     const { startMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
     const isWin = process.platform === "win32";
+    const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";
 
-    if (!apiKey || (!isWin && !pwd)) {
+    if (!apiKey || (!isWin && !pwd && !isRootUser)) {
       return NextResponse.json(
         { error: isWin ? "Missing apiKey" : "Missing apiKey or sudoPassword" },
         { status: 400 }
@@ -114,9 +116,10 @@ export async function DELETE(request) {
     const { sudoPassword } = validation.data;
     const { stopMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
     const isWin = process.platform === "win32";
+    const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";
 
-    if (!isWin && !pwd) {
+    if (!isWin && !pwd && !isRootUser) {
       return NextResponse.json({ error: "Missing sudoPassword" }, { status: 400 });
     }
 

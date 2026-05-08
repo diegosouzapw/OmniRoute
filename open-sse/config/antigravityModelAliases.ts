@@ -39,6 +39,11 @@ const CLIENT_VISIBLE_MODEL_NAMES = Object.freeze(
   }, {})
 );
 
+const PUBLIC_MODEL_IDS = new Set(ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id));
+const UPSTREAM_PUBLIC_MODEL_IDS = new Set(
+  ANTIGRAVITY_PUBLIC_MODELS.map((model) => resolveAntigravityModelId(model.id))
+);
+
 export function resolveAntigravityModelId(modelId: string): string {
   if (!modelId) return modelId;
   return (ANTIGRAVITY_MODEL_ALIASES as AntigravityModelAliasMap)[modelId] || modelId;
@@ -54,4 +59,11 @@ export function getClientVisibleAntigravityModelName(
   fallbackName?: string
 ): string {
   return CLIENT_VISIBLE_MODEL_NAMES[modelId] || fallbackName || modelId;
+}
+
+export function isUserCallableAntigravityModelId(modelId: string): boolean {
+  if (!modelId) return false;
+  const clientId = toClientAntigravityModelId(modelId);
+  const upstreamId = resolveAntigravityModelId(modelId);
+  return PUBLIC_MODEL_IDS.has(clientId) || UPSTREAM_PUBLIC_MODEL_IDS.has(upstreamId);
 }

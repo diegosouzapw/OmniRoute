@@ -221,7 +221,27 @@ export function createResponsesApiTransformStream(logger = null) {
   const closeToolCall = (controller, idx) => {
     const callId = state.funcCallIds[idx];
     if (callId && !state.funcItemDone[idx]) {
-      const args = state.funcArgsBuf[idx] || "{}";
+      let args = state.funcArgsBuf[idx] || "{}";
+
+      // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders
+      try {
+        const parsed = JSON.parse(args);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          let modified = false;
+          for (const [k, v] of Object.entries(parsed)) {
+            if (v === "" || (Array.isArray(v) && v.length === 0)) {
+              delete parsed[k];
+              modified = true;
+            }
+          }
+          if (modified) {
+            args = JSON.stringify(parsed);
+            state.funcArgsBuf[idx] = args;
+          }
+        }
+      } catch (e) {
+        // Ignore malformed JSON
+      }
 
       emit(controller, "response.function_call_arguments.done", {
         type: "response.function_call_arguments.done",
@@ -484,15 +504,26 @@ export function createResponsesApiTransformStream(logger = null) {
 
             if (tc.function?.arguments) {
               const refCallId = state.funcCallIds[tcIdx] || newCallId;
+              let deltaStr = tc.function.arguments;
+
+              // Fix #1674 & #1852: Strip empty strings and empty arrays from streaming deltas
+              if (deltaStr.includes('""') || deltaStr.includes("[]") || deltaStr.includes("[ ]")) {
+                deltaStr = deltaStr
+                  .replace(/,"[a-zA-Z0-9_]+":""/g, "")
+                  .replace(/"[a-zA-Z0-9_]+":"",/g, "")
+                  .replace(/,"[a-zA-Z0-9_]+":\s*\[\s*\]/g, "")
+                  .replace(/"[a-zA-Z0-9_]+":\s*\[\s*\],?/g, "");
+              }
+
               if (refCallId) {
                 emit(controller, "response.function_call_arguments.delta", {
                   type: "response.function_call_arguments.delta",
                   item_id: `fc_${refCallId}`,
                   output_index: tcIdx,
-                  delta: tc.function.arguments,
+                  delta: deltaStr,
                 });
               }
-              state.funcArgsBuf[tcIdx] += tc.function.arguments;
+              state.funcArgsBuf[tcIdx] += deltaStr;
             }
           }
         }

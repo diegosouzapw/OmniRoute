@@ -121,8 +121,8 @@ Add to `~/.bashrc` (or `~/.zshrc`), then run `source ~/.bashrc`:
 # OmniRoute Universal Endpoint
 export OPENAI_BASE_URL="http://localhost:20128/v1"
 export OPENAI_API_KEY="sk-your-omniroute-key"
-export ANTHROPIC_BASE_URL="http://localhost:20128/v1"
-export ANTHROPIC_API_KEY="sk-your-omniroute-key"
+export ANTHROPIC_BASE_URL="http://localhost:20128"
+export ANTHROPIC_AUTH_TOKEN="sk-your-omniroute-key"
 export GEMINI_BASE_URL="http://localhost:20128/v1"
 export GEMINI_API_KEY="sk-your-omniroute-key"
 ```
@@ -137,17 +137,18 @@ export GEMINI_API_KEY="sk-your-omniroute-key"
 ### Claude Code
 
 ```bash
-# Via CLI:
-claude config set --global api-base-url http://localhost:20128/v1
-
-# Or create ~/.claude/settings.json:
+# Create ~/.claude/settings.json:
 mkdir -p ~/.claude && cat > ~/.claude/settings.json << EOF
 {
-  "apiBaseUrl": "http://localhost:20128/v1",
-  "apiKey": "sk-your-omniroute-key"
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20128",
+    "ANTHROPIC_AUTH_TOKEN": "sk-your-omniroute-key"
+  }
 }
 EOF
 ```
+
+Use the unified Anthropic gateway root for Claude Code. Do not append `/v1` here.
 
 **Test:** `claude "say hello"`
 
@@ -370,6 +371,7 @@ They run as internal routes and use OmniRoute's model routing automatically.
 ```bash
 # Install all CLIs and configure for OmniRoute (replace with your key and server URL)
 OMNIROUTE_URL="http://localhost:20128/v1"
+OMNIROUTE_ANTHROPIC_URL="http://localhost:20128"
 OMNIROUTE_KEY="sk-your-omniroute-key"
 
 npm install -g @anthropic-ai/claude-code @openai/codex opencode-ai cline kilocode @qwen-code/qwen-code
@@ -380,13 +382,13 @@ apt-get install -y unzip 2>/dev/null; curl -fsSL https://cli.kiro.dev/install | 
 # Write configs
 mkdir -p ~/.claude ~/.codex ~/.config/opencode ~/.continue
 
-cat > ~/.claude/settings.json   <<< "{\"apiBaseUrl\":\"$OMNIROUTE_URL\",\"apiKey\":\"$OMNIROUTE_KEY\"}"
+cat > ~/.claude/settings.json   <<< "{\"env\":{\"ANTHROPIC_BASE_URL\":\"$OMNIROUTE_ANTHROPIC_URL\",\"ANTHROPIC_AUTH_TOKEN\":\"$OMNIROUTE_KEY\"}}"
 cat > ~/.codex/config.yaml      <<< "model: auto\napiKey: $OMNIROUTE_KEY\napiBaseUrl: $OMNIROUTE_URL"
 cat >> ~/.bashrc << EOF
 export OPENAI_BASE_URL="$OMNIROUTE_URL"
 export OPENAI_API_KEY="$OMNIROUTE_KEY"
-export ANTHROPIC_BASE_URL="$OMNIROUTE_URL"
-export ANTHROPIC_API_KEY="$OMNIROUTE_KEY"
+export ANTHROPIC_BASE_URL="$OMNIROUTE_ANTHROPIC_URL"
+export ANTHROPIC_AUTH_TOKEN="$OMNIROUTE_KEY"
 EOF
 
 source ~/.bashrc

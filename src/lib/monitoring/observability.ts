@@ -56,6 +56,7 @@ interface BuildSessionsSummaryOptions {
 interface BuildTelemetryPayloadOptions {
   summary: {
     count: number;
+    avg?: number;
     p50: number;
     p95: number;
     p99: number;
@@ -118,6 +119,7 @@ export function buildTelemetryPayload({
   return {
     ...summary,
     totalRequests: summary.count,
+    avgLatencyMs: summary.avg ?? summary.p50,
     sessions: {
       activeCount: sessions.activeCount,
       stickyBoundCount: sessions.stickyBoundCount,

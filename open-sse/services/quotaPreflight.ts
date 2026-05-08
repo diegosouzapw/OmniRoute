@@ -26,7 +26,7 @@ export type QuotaFetcher = (
   connection?: Record<string, unknown>
 ) => Promise<QuotaInfo | null>;
 
-const EXHAUSTION_THRESHOLD = 0.95;
+const EXHAUSTION_THRESHOLD = 0.98;
 const WARN_THRESHOLD = 0.8;
 
 const quotaFetcherRegistry = new Map<string, QuotaFetcher>();

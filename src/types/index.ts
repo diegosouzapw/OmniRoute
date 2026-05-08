@@ -10,3 +10,5 @@ export type { ApiKey } from "./apiKey";
 export type { Combo, ComboStrategy, ComboNode } from "./combo";
 export type { UsageEntry, UsageStats, ProviderUsageStats, ModelUsageStats, CallLog } from "./usage";
 export type { Settings, ComboDefaults, ProxyConfig, KVPair } from "./settings";
+export type { DatabaseSettings } from "./databaseSettings";
+export { DEFAULT_DATABASE_SETTINGS } from "./databaseSettings";

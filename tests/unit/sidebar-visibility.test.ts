@@ -14,7 +14,7 @@ test("system sidebar items place logs before health", () => {
   assert.ok(systemSection, "expected system sidebar section to exist");
   assert.deepEqual(
     systemSection.items.map((item) => item.id),
-    ["logs", "health", "settings"]
+    ["logs", "audit", "webhooks", "health", "proxy", "settings"]
   );
 });
 
@@ -42,23 +42,60 @@ test("primary sidebar items place limits after cache", () => {
   );
 });
 
-test("sidebar visibility drops stale audit entries from saved settings", () => {
+test("context sidebar section sits between primary and cli", () => {
+  const sectionIds = sidebarVisibility.SIDEBAR_SECTIONS.map((section) => section.id);
+  assert.deepEqual(sectionIds.slice(0, 3), ["primary", "context", "cli"]);
+
+  const contextSection = sidebarVisibility.SIDEBAR_SECTIONS.find(
+    (section) => section.id === "context"
+  );
+  assert.ok(contextSection, "expected Context & Cache sidebar section to exist");
+  assert.deepEqual(
+    contextSection.items.map((item) => ({ id: item.id, href: item.href })),
+    [
+      { id: "context-caveman", href: "/dashboard/context/caveman" },
+      { id: "context-rtk", href: "/dashboard/context/rtk" },
+      { id: "context-combos", href: "/dashboard/context/combos" },
+    ]
+  );
+});
+
+test("sidebar visibility drops stale entries from saved settings", () => {
   const allSidebarItemIds = sidebarVisibility.SIDEBAR_SECTIONS.flatMap((section) =>
     section.items.map((item) => item.id)
   );
 
-  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("audit"), false);
-  assert.equal(allSidebarItemIds.includes("audit"), false);
-  assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["audit", "logs"]), ["logs"]);
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("auto-combo"), false);
+  assert.equal(allSidebarItemIds.includes("auto-combo"), false);
+  assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo", "logs"]), ["logs"]);
+});
+
+test("help sidebar exposes changelog after docs and issues", () => {
+  const helpSection = sidebarVisibility.SIDEBAR_SECTIONS.find((section) => section.id === "help");
+
+  assert.ok(helpSection, "expected help sidebar section to exist");
+  assert.deepEqual(
+    helpSection.items.map((item) => ({
+      id: item.id,
+      href: item.href,
+      i18nKey: item.i18nKey,
+    })),
+    [
+      { id: "docs", href: "/docs", i18nKey: "docs" },
+      {
+        id: "issues",
+        href: "https://github.com/diegosouzapw/OmniRoute/issues",
+        i18nKey: "issues",
+      },
+      { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog" },
+    ]
+  );
+  assert.equal(sidebarVisibility.HIDEABLE_SIDEBAR_ITEM_IDS.includes("changelog"), true);
 });
 
 test("legacy dashboard routes redirect to their consolidated surfaces", async () => {
   const autoComboPage = await readFile(
     join(repoRoot, "src/app/(dashboard)/dashboard/auto-combo/page.tsx"),
-    "utf8"
-  );
-  const auditPage = await readFile(
-    join(repoRoot, "src/app/(dashboard)/dashboard/audit/page.tsx"),
     "utf8"
   );
   const usagePage = await readFile(
@@ -67,6 +104,11 @@ test("legacy dashboard routes redirect to their consolidated surfaces", async ()
   );
 
   assert.match(autoComboPage, /redirect\("\/dashboard\/combos\?filter=intelligent"\)/);
-  assert.match(auditPage, /redirect\("\/dashboard\/logs\?tab=audit-logs"\)/);
   assert.match(usagePage, /redirect\("\/dashboard\/logs"\)/);
+
+  const compressionPage = await readFile(
+    join(repoRoot, "src/app/(dashboard)/dashboard/compression/page.tsx"),
+    "utf8"
+  );
+  assert.match(compressionPage, /redirect\("\/dashboard\/context\/caveman"\)/);
 });

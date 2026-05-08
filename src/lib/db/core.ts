@@ -16,6 +16,7 @@ import {
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
+import { autoMigrateLegacyEncryptedConnections } from "./providers";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -91,6 +92,44 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "upstream_proxy_config", maxRows: 5_000 },
   { table: "webhooks", maxRows: 5_000 },
 ];
+
+function isNativeSqliteLoadError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Module did not self-register") ||
+    message.includes("NODE_MODULE_VERSION") ||
+    message.includes("ERR_DLOPEN_FAILED") ||
+    (error as any)?.code === "ERR_DLOPEN_FAILED"
+  );
+}
+
+function createNativeSqliteLoadError(error: unknown): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  const detail =
+    `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
+    "This usually happens after switching Node.js versions without rebuilding native modules. " +
+    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
+    `Original error: ${message}`;
+  const wrapped = new Error(detail);
+  wrapped.name = "NativeSqliteLoadError";
+  (wrapped as any).cause = error;
+  (wrapped as any).code = (error as any)?.code || "ERR_DLOPEN_FAILED";
+  return wrapped;
+}
+
+function openSqliteDatabase(
+  sqliteFile: string,
+  options?: ConstructorParameters<typeof Database>[1]
+): SqliteDatabase {
+  try {
+    return new Database(sqliteFile, options);
+  } catch (error: unknown) {
+    if (isNativeSqliteLoadError(error)) {
+      throw createNativeSqliteLoadError(error);
+    }
+    throw error;
+  }
+}
 
 // Ensure data directory exists — with fallback for restricted home directories (#133)
 if (!isCloud && !fs.existsSync(DATA_DIR)) {
@@ -237,6 +276,7 @@ const SCHEMA_SQL = `
     tokens_cache_read INTEGER DEFAULT NULL,
     tokens_cache_creation INTEGER DEFAULT NULL,
     tokens_reasoning INTEGER DEFAULT NULL,
+    tokens_compressed INTEGER DEFAULT NULL,
     cache_source TEXT DEFAULT "upstream",
     request_type TEXT,
     source_format TEXT,
@@ -350,6 +390,22 @@ const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_sc_sig ON semantic_cache(signature);
   CREATE INDEX IF NOT EXISTS idx_sc_model ON semantic_cache(model);
+
+  CREATE TABLE IF NOT EXISTS quota_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider TEXT NOT NULL,
+    connection_id TEXT NOT NULL,
+    window_key TEXT NOT NULL,
+    remaining_percentage REAL,
+    is_exhausted INTEGER DEFAULT 0,
+    next_reset_at TEXT,
+    window_duration_ms INTEGER,
+    raw_data TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_provider_time ON quota_snapshots(provider, created_at);
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_connection_time ON quota_snapshots(connection_id, created_at);
+  CREATE INDEX IF NOT EXISTS idx_quota_snapshots_created_at ON quota_snapshots(created_at);
 `;
 
 // ──────────────── Column Mapping ────────────────
@@ -616,17 +672,22 @@ function summarizeSkippedTables(tables: SkippedTableSnapshot[]): string {
 function listProbeFailureBackups(sqliteFile: string): string[] {
   const directory = path.dirname(sqliteFile);
   const baseName = path.basename(sqliteFile);
+  const prefix = `${baseName}.probe-failed-`;
   if (!fs.existsSync(directory)) return [];
 
   return fs
     .readdirSync(directory)
-    .filter((name) => name.startsWith(`${baseName}.probe-failed-`))
-    .map((name) => path.join(directory, name))
+    .filter((name) => name.startsWith(prefix))
+    .map((name) => ({
+      path: path.join(directory, name),
+      timestamp: Number(name.slice(prefix.length)),
+    }))
     .sort((left, right) => {
-      const leftMtime = fs.statSync(left).mtimeMs;
-      const rightMtime = fs.statSync(right).mtimeMs;
-      return rightMtime - leftMtime;
-    });
+      const leftTimestamp = Number.isFinite(left.timestamp) ? left.timestamp : 0;
+      const rightTimestamp = Number.isFinite(right.timestamp) ? right.timestamp : 0;
+      return rightTimestamp - leftTimestamp || right.path.localeCompare(left.path);
+    })
+    .map((backup) => backup.path);
 }
 
 function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
@@ -644,7 +705,7 @@ function captureCriticalDbState(sqliteFile: string): PreservedCriticalDbState {
 
   let probe: SqliteDatabase | null = null;
   try {
-    probe = new Database(sqliteFile, { readonly: true });
+    probe = openSqliteDatabase(sqliteFile, { readonly: true });
 
     for (const tableSpec of CRITICAL_DB_TABLES) {
       if (!hasTable(probe, tableSpec.table)) continue;
@@ -771,6 +832,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
     tokens_cache_read: number | null;
     tokens_cache_creation: number | null;
     tokens_reasoning: number | null;
+    tokens_compressed: number | null;
     request_type: string | null;
     source_format: string | null;
     target_format: string | null;
@@ -822,7 +884,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   const tx = db.transaction(() => {
     for (const row of pendingRows) {
       const artifact: CallLogArtifact = {
-        schemaVersion: 4,
+        schemaVersion: 5,
         summary: {
           id: row.id,
           timestamp: row.timestamp || new Date().toISOString(),
@@ -841,6 +903,7 @@ function offloadLegacyCallLogDetails(db: SqliteDatabase) {
             cacheRead: row.tokens_cache_read ?? null,
             cacheWrite: row.tokens_cache_creation ?? null,
             reasoning: row.tokens_reasoning ?? null,
+            compressed: row.tokens_compressed ?? null,
           },
           requestType: row.request_type || null,
           sourceFormat: row.source_format || null,
@@ -993,7 +1056,7 @@ export function getDbInstance(): SqliteDatabase {
     if (isBuildPhase) {
       console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
     }
-    const memoryDb = new Database(":memory:");
+    const memoryDb = openSqliteDatabase(":memory:");
     memoryDb.pragma("journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
@@ -1009,11 +1072,20 @@ export function getDbInstance(): SqliteDatabase {
   const jsonDbFile = JSON_DB_FILE;
   const probeFailureBackups = listProbeFailureBackups(sqliteFile);
   if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
-    throw new Error(
-      `[DB] Manual recovery required before startup. ` +
-        `Detected preserved database from a previous probe failure: ${probeFailureBackups[0]}. ` +
-        `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
-    );
+    const latestBackup = probeFailureBackups[0];
+    try {
+      fs.renameSync(latestBackup, sqliteFile);
+      console.log(
+        `[DB] Auto-restored preserved database from previous probe failure: ${path.basename(latestBackup)}`
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `[DB] Manual recovery required before startup. ` +
+          `Failed to auto-restore preserved database ${latestBackup}: ${msg}. ` +
+          `Restore the preserved file or another backup to ${sqliteFile} before restarting.`
+      );
+    }
   }
 
   let preservedCriticalState: PreservedCriticalDbState = {
@@ -1059,7 +1131,7 @@ export function getDbInstance(): SqliteDatabase {
   // Uses a single probe connection that becomes the real connection when possible.
   if (fs.existsSync(sqliteFile)) {
     try {
-      const probe = new Database(sqliteFile, { readonly: true });
+      const probe = openSqliteDatabase(sqliteFile, { readonly: true });
       const hasOldSchema = probe
         .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'")
         .get();
@@ -1080,7 +1152,7 @@ export function getDbInstance(): SqliteDatabase {
           console.log(
             `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
-          const fixDb = new Database(sqliteFile);
+          const fixDb = openSqliteDatabase(sqliteFile);
           try {
             fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
             fixDb.pragma("wal_checkpoint(TRUNCATE)");
@@ -1112,12 +1184,7 @@ export function getDbInstance(): SqliteDatabase {
       console.warn("[DB] Could not probe existing DB:", message);
 
       // If the error is a Node module/ABI failure, throw it immediately to avoid renaming the database
-      if (
-        message.includes("Module did not self-register") ||
-        message.includes("could not be found") ||
-        message.includes("ERR_DLOPEN_FAILED") ||
-        (e as any)?.code === "ERR_DLOPEN_FAILED"
-      ) {
+      if (isNativeSqliteLoadError(e) || message.includes("could not be found")) {
         throw e;
       }
 
@@ -1151,7 +1218,7 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  const db = new Database(sqliteFile);
+  const db = openSqliteDatabase(sqliteFile);
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
   db.pragma("synchronous = NORMAL");
@@ -1172,89 +1239,9 @@ export function getDbInstance(): SqliteDatabase {
     INSERT OR IGNORE INTO _omniroute_migrations (version, name)
     VALUES ('001', 'initial_schema');
   `);
-  if (hasColumn(db, "combos", "sort_order")) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "020",
-      "combo_sort_order"
-    );
-  }
-  if (hasColumn(db, "provider_connections", "max_concurrent")) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "029",
-      "provider_connection_max_concurrent"
-    );
-  }
-  if (hasColumn(db, "call_logs", "request_type")) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "007",
-      "search_request_type"
-    );
-  }
-  if (hasColumn(db, "call_logs", "requested_model")) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "009",
-      "requested_model"
-    );
-  }
-  if (
-    hasColumn(db, "call_logs", "tokens_cache_read") &&
-    hasColumn(db, "call_logs", "tokens_cache_creation") &&
-    hasColumn(db, "call_logs", "tokens_reasoning")
-  ) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "018",
-      "call_logs_detailed_tokens"
-    );
-  }
-  if (
-    hasColumn(db, "call_logs", "combo_step_id") &&
-    hasColumn(db, "call_logs", "combo_execution_key")
-  ) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "021",
-      "combo_call_log_targets"
-    );
-  }
-  const hasCacheSource = hasColumn(db, "call_logs", "cache_source");
-  if (hasCacheSource) {
-    const cacheSourceLegacy = db
-      .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
-      .get("022", "call_logs_cache_source") as { version?: string } | undefined;
-    if (cacheSourceLegacy) {
-      const cacheSourceCurrent = db
-        .prepare("SELECT version FROM _omniroute_migrations WHERE version = ?")
-        .get("026") as { version?: string } | undefined;
-      if (cacheSourceCurrent) {
-        db.prepare("DELETE FROM _omniroute_migrations WHERE version = ? AND name = ?").run(
-          "022",
-          "call_logs_cache_source"
-        );
-      } else {
-        db.prepare(
-          "UPDATE _omniroute_migrations SET version = ?, name = ? WHERE version = ? AND name = ?"
-        ).run("026", "call_logs_cache_source", "022", "call_logs_cache_source");
-      }
-    }
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "026",
-      "call_logs_cache_source"
-    );
-  }
-  if (
-    hasColumn(db, "call_logs", "detail_state") &&
-    hasColumn(db, "call_logs", "request_summary") &&
-    hasColumn(db, "call_logs", "has_request_body") &&
-    hasColumn(db, "call_logs", "has_response_body") &&
-    !hasColumn(db, "call_logs", "request_body") &&
-    !hasColumn(db, "call_logs", "response_body") &&
-    !hasColumn(db, "call_logs", "error")
-  ) {
-    db.prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
-      "025",
-      "call_logs_summary_storage"
-    );
-  }
+
   runMigrations(db, { isNewDb });
+
   offloadLegacyCallLogDetails(db);
 
   // Auto-migrate from db.json if exists
@@ -1300,6 +1287,15 @@ export function getDbInstance(): SqliteDatabase {
   }
 
   setDb(db);
+
+  // Re-encrypt any tokens using the legacy dynamic salt to canonical static salt
+  try {
+    autoMigrateLegacyEncryptedConnections();
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[DB] Legacy encryption migration failed: ${message}`);
+  }
+
   startDbHealthCheckScheduler(db);
   console.log(`[DB] SQLite database ready: ${sqliteFile}`);
   return db;
@@ -1532,4 +1528,97 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
   } catch (err) {
     console.error("[DB] Migration from db.json failed:", err.message);
   }
+}
+
+// ──────────────── Auto-Vacuum Management ────────────────
+
+export function setAutoVacuum(mode: "NONE" | "FULL" | "INCREMENTAL"): void {
+  const db = getDbInstance();
+
+  const currentMode = db.pragma("auto_vacuum", { simple: true }) as number;
+  const modeMap: Record<string, number> = {
+    NONE: 0,
+    FULL: 1,
+    INCREMENTAL: 2,
+  };
+
+  const targetMode = modeMap[mode];
+
+  if (currentMode === targetMode) {
+    console.log(`[DB] auto_vacuum already set to ${mode}`);
+    return;
+  }
+
+  console.log(`[DB] Changing auto_vacuum from ${currentMode} to ${mode} (${targetMode})`);
+
+  db.pragma(`auto_vacuum = ${targetMode}`);
+
+  db.exec("VACUUM");
+
+  const newMode = db.pragma("auto_vacuum", { simple: true }) as number;
+  console.log(`[DB] auto_vacuum changed to ${newMode}`);
+}
+
+export function getAutoVacuumMode(): "NONE" | "FULL" | "INCREMENTAL" {
+  const db = getDbInstance();
+  const mode = db.pragma("auto_vacuum", { simple: true }) as number;
+
+  const modeMap: Record<number, "NONE" | "FULL" | "INCREMENTAL"> = {
+    0: "NONE",
+    1: "FULL",
+    2: "INCREMENTAL",
+  };
+
+  return modeMap[mode] || "NONE";
+}
+
+export function runManualVacuum(): { success: boolean; duration: number; error?: string } {
+  const db = getDbInstance();
+  const startTime = Date.now();
+
+  try {
+    console.log("[DB] Starting manual VACUUM...");
+    db.exec("VACUUM");
+    const duration = Date.now() - startTime;
+    console.log(`[DB] Manual VACUUM completed in ${duration}ms`);
+    return { success: true, duration };
+  } catch (err: any) {
+    const duration = Date.now() - startTime;
+    console.error("[DB] Manual VACUUM failed:", err);
+    return { success: false, duration, error: err.message };
+  }
+}
+
+export function setPageSize(pageSize: number): void {
+  const db = getDbInstance();
+  const currentPageSize = db.pragma("page_size", { simple: true }) as number;
+
+  if (currentPageSize === pageSize) {
+    console.log(`[DB] page_size already set to ${pageSize}`);
+    return;
+  }
+
+  console.log(`[DB] Changing page_size from ${currentPageSize} to ${pageSize}`);
+  db.pragma(`page_size = ${pageSize}`);
+  db.exec("VACUUM");
+
+  const newPageSize = db.pragma("page_size", { simple: true }) as number;
+  console.log(`[DB] page_size changed to ${newPageSize}`);
+}
+
+export function setCacheSize(cacheSizeKb: number): void {
+  const db = getDbInstance();
+  const currentCacheSize = db.pragma("cache_size", { simple: true }) as number;
+  const targetCacheSize = -cacheSizeKb;
+
+  if (currentCacheSize === targetCacheSize) {
+    console.log(`[DB] cache_size already set to ${cacheSizeKb}KB`);
+    return;
+  }
+
+  console.log(`[DB] Changing cache_size from ${Math.abs(currentCacheSize)}KB to ${cacheSizeKb}KB`);
+  db.pragma(`cache_size = ${targetCacheSize}`);
+
+  const newCacheSize = db.pragma("cache_size", { simple: true }) as number;
+  console.log(`[DB] cache_size changed to ${Math.abs(newCacheSize)}KB`);
 }

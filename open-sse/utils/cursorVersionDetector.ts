@@ -12,7 +12,7 @@ import { createRequire } from "module";
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
-const FALLBACK_VERSION = "3.1.15";
+const FALLBACK_VERSION = "3.2.14";
 
 let cachedVersion: string | null = null;
 let cachedAt = 0;

@@ -120,9 +120,10 @@ test("buildClaudeCodeCompatibleRequest promotes source system/developer messages
       content: [{ type: "text", text: "draft answer" }],
     },
   ]);
-  assert.equal(payload.system.length, 2);
-  assert.equal(payload.system[0].text, "system note");
-  assert.equal(payload.system[1].text, "developer note");
+  assert.equal(payload.system.length, 3);
+  assert.match((payload as any).system[0].text, /Claude Agent SDK/);
+  assert.equal(payload.system[1].text, "system note");
+  assert.equal(payload.system[2].text, "developer note");
   assert.equal(payload.tools.length, 1);
   assert.deepEqual(payload.tools[0], {
     name: "lookup_account",
@@ -155,11 +156,32 @@ test("buildClaudeCodeCompatibleRequest prefers existing Claude top-level system 
     now: new Date("2026-01-02T12:00:00.000Z"),
   });
 
-  assert.equal(payload.system.length, 1);
-  assert.equal((payload.system[0] as any).text, "top-level system");
+  assert.equal(payload.system.length, 2);
+  assert.match((payload.system[0] as any).text, /Claude Agent SDK/);
+  assert.equal((payload.system[1] as any).text, "top-level system");
   assert.deepEqual(payload.messages, [
     { role: "user", content: [{ type: "text", text: "hello" }] },
   ]);
+});
+
+test("buildClaudeCodeCompatibleRequest does not duplicate an existing default system skeleton", () => {
+  const payload = buildClaudeCodeCompatibleRequest({
+    claudeBody: {
+      system: [
+        {
+          type: "text",
+          text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
+        },
+      ],
+      messages: [{ role: "user", content: "hello" }],
+    },
+    model: "claude-sonnet-4-6",
+    cwd: "/tmp/claude-code-compatible",
+    now: new Date("2026-01-02T12:00:00.000Z"),
+  });
+
+  assert.equal(payload.system.length, 1);
+  assert.match((payload.system[0] as any).text, /Claude Agent SDK/);
 });
 
 test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-control stripping", () => {
@@ -229,12 +251,16 @@ test("buildClaudeCodeCompatibleRequest covers Claude-native bodies and cache-con
   assert.equal((JSON as any).parse(stripped.metadata.user_id).session_id, "explicit-session");
   assert.equal(stripped.messages.at(-1).role, "user");
   assert.equal((stripped as any).system[0].cache_control, undefined);
+  assert.match((stripped.system[0] as any).text, /Claude Agent SDK/);
+  assert.equal((stripped.system[1] as any).text, "sys");
   assert.equal((stripped as any).messages[0].content[0].cache_control, undefined);
   assert.equal(stripped.tools[0].cache_control, undefined);
   assert.deepEqual(stripped.thinking, { type: "enabled", budget_tokens: 12 });
   assert.deepEqual(stripped.output_config, { effort: "high", format: "compact" });
   assert.equal(stripped.metadata.foo, "bar");
-  (assert as any).deepEqual((preserved.system[0] as any).cache_control, { type: "ephemeral" });
+  assert.match((preserved.system[0] as any).text, /Claude Agent SDK/);
+  assert.equal((preserved.system[0] as any).cache_control, undefined);
+  (assert as any).deepEqual((preserved.system[1] as any).cache_control, { type: "ephemeral" });
   (assert as any).equal((preserved.messages[0].content[0] as any).cache_control.type, "ephemeral");
   assert.equal((preserved.tools[0].cache_control as any).type, "ephemeral");
 });

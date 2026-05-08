@@ -11,7 +11,8 @@ export type RuntimeReloadSection =
   | "usageTracking"
   | "healthCheckLogs"
   | "thoughtSignature"
-  | "modelsDevSync";
+  | "modelsDevSync"
+  | "corsOrigins";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
@@ -29,6 +30,7 @@ interface RuntimeSettingsSnapshot {
   hideHealthCheckLogs: boolean;
   modelsDevSyncEnabled: boolean;
   modelsDevSyncInterval: number | null;
+  corsOrigins: string;
 }
 
 const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
@@ -42,6 +44,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   hideHealthCheckLogs: false,
   modelsDevSyncEnabled: false,
   modelsDevSyncInterval: null,
+  corsOrigins: "",
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
@@ -176,6 +179,7 @@ export function buildRuntimeSettingsSnapshot(
     hideHealthCheckLogs: settings.hideHealthCheckLogs === true,
     modelsDevSyncEnabled: settings.modelsDevSyncEnabled === true,
     modelsDevSyncInterval: normalizeNumber(settings.modelsDevSyncInterval),
+    corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
   };
 }
 
@@ -246,6 +250,11 @@ async function applyThoughtSignatureSection(mode: string) {
   const { setGeminiThoughtSignatureMode } =
     await import("@omniroute/open-sse/services/geminiThoughtSignatureStore.ts");
   setGeminiThoughtSignatureMode(mode);
+}
+
+async function applyCorsOriginsSection(corsOrigins: string) {
+  const { setRuntimeAllowedOrigins } = await import("@/server/cors/origins");
+  setRuntimeAllowedOrigins(corsOrigins);
 }
 
 async function applyModelsDevSyncSection(
@@ -376,6 +385,11 @@ export async function applyRuntimeSettings(
   ) {
     await applyModelsDevSyncSection(previousSnapshot, currentSnapshot, force);
     markChanged("modelsDevSync");
+  }
+
+  if (force || hasChanged(currentSnapshot.corsOrigins, previousSnapshot.corsOrigins)) {
+    await applyCorsOriginsSection(currentSnapshot.corsOrigins);
+    markChanged("corsOrigins");
   }
 
   lastAppliedSnapshot = currentSnapshot;

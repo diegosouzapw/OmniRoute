@@ -113,6 +113,49 @@ test("handleEmbedding supports resolved local providers without auth and preserv
   }
 });
 
+test("handleEmbedding routes Upstage embedding models through the embedding endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        data: [{ object: "embedding", embedding: [0.1, 0.2], index: 0 }],
+        usage: { prompt_tokens: 2, total_tokens: 2 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleEmbedding({
+      body: {
+        model: "upstage/embedding-query",
+        input: "Solar embeddings are useful",
+      },
+      credentials: { apiKey: "upstage-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(captured.url, "https://api.upstage.ai/v1/embeddings");
+    assert.equal(captured.headers.Authorization, "Bearer upstage-key");
+    assert.deepEqual(captured.body, {
+      model: "embedding-query",
+      input: "Solar embeddings are useful",
+    });
+    assert.equal(result.data.model, "upstage/embedding-query");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleEmbedding rejects invalid model strings without provider prefix", async () => {
   const result = await handleEmbedding({
     body: { model: "not-a-known-embedding-model", input: "hello" },

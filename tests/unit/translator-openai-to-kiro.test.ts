@@ -99,12 +99,12 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal((context.toolResults as any).length, 2);
   assert.deepEqual(context.toolResults[0], {
     toolUseId: "call_1",
-    status: "success",
+    status: "SUCCESS",
     content: [{ text: "file contents" }],
   });
   assert.deepEqual(context.toolResults[1], {
     toolUseId: "call_1",
-    status: "success",
+    status: "SUCCESS",
     content: [{ text: "done" }],
   });
   assert.equal(context.tools[0].toolSpecification.name, "read_file");
