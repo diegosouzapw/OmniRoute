@@ -113,7 +113,7 @@ test("resolveModelOrError keeps non-Codex gpt-5.5 Responses requests on OpenAI",
   assert.equal(result.model, "gpt-5.5");
 });
 
-test("resolveModelOrError routes bare gpt-5.5 to Codex when Codex is the only active account", async () => {
+test("resolveModelOrError routes bare gpt-5.5 to Codex medium when Codex is the only active account", async () => {
   await seedConnection("codex");
 
   const result = await resolveModelOrError(
@@ -124,7 +124,7 @@ test("resolveModelOrError routes bare gpt-5.5 to Codex when Codex is the only ac
   );
 
   assert.equal(result.provider, "codex");
-  assert.equal(result.model, "gpt-5.5");
+  assert.equal(result.model, "gpt-5.5-medium");
   assert.equal(result.targetFormat, "openai-responses");
 });
 
