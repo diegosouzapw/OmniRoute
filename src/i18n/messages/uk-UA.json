@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Тестовий ключ API",
     "testKeyPlaceholder": "sk-... (лише для перевірки)",
     "providerNotFound": "Постачальник не знайдено",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Видалити це підключення?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

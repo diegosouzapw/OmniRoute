@@ -2336,7 +2336,7 @@
     "testKeyLabel": "בדוק מפתח API",
     "testKeyPlaceholder": "sk-... (לאימות בלבד)",
     "providerNotFound": "הספק לא נמצא",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "למחוק את החיבור הזה?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

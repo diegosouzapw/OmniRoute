@@ -2336,7 +2336,7 @@
     "testKeyLabel": "ทดสอบคีย์ API",
     "testKeyPlaceholder": "sk-... (สำหรับการตรวจสอบเท่านั้น)",
     "providerNotFound": "ไม่พบผู้ให้บริการ",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "ลบการเชื่อมต่อนี้ใช่ไหม",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

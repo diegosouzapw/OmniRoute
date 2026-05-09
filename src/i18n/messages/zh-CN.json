@@ -2435,7 +2435,7 @@
     "testKeyLabel": "测试 API 密钥",
     "testKeyPlaceholder": "sk-...（仅用于验证）",
     "providerNotFound": "未找到提供商",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "删除这个连接吗？",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

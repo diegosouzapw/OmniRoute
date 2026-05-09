@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Test API klíč",
     "testKeyPlaceholder": "sk-... (pouze pro ověření)",
     "providerNotFound": "Poskytovatel nenalezen",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Smazat toto připojení?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

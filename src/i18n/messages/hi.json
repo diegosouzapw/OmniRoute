@@ -2336,7 +2336,7 @@
     "testKeyLabel": "परीक्षण एपीआई कुंजी",
     "testKeyPlaceholder": "एसके-... (केवल सत्यापन के लिए)",
     "providerNotFound": "प्रदाता नहीं मिला",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "यह कनेक्शन हटाएं?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

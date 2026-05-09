@@ -2360,7 +2360,7 @@
     "testKeyLabel": "Тестовый ключ API",
     "testKeyPlaceholder": "sk-... (только для проверки)",
     "providerNotFound": "Провайдер не найден",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Удалить это соединение?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

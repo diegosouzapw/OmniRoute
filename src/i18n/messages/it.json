@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Testare la chiave API",
     "testKeyPlaceholder": "sk-... (solo per la convalida)",
     "providerNotFound": "Fornitore non trovato",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Eliminare questa connessione?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

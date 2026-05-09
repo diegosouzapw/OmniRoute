@@ -2953,15 +2953,14 @@ export default function ProviderDetailPage() {
             </div>
           ) : (
             (() => {
-              // Group connections by tag (providerSpecificData.tag)
               const sorted = [...connections].sort((a, b) => (a.priority || 0) - (b.priority || 0));
               const hasAnyTag = sorted.some(
                 (c) => c.providerSpecificData?.tag as string | undefined
               );
+              const allSelected = selectedIds.size === connections.length && connections.length > 0;
+              const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
 
               if (!hasAnyTag) {
-                const allSelected = selectedIds.size === connections.length && connections.length > 0;
-                const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
                 return (
                   <>
                     <div className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
@@ -3088,7 +3087,40 @@ export default function ProviderDetailPage() {
               });
 
               return (
-                <div className="flex flex-col gap-0">
+                <>
+                  {selectedIds.size > 0 || connections.length > 0 ? (
+                    <div className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          ref={(el) => {
+                            if (el) el.indeterminate = someSelected;
+                          }}
+                          onChange={handleToggleSelectAll}
+                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-text-muted">
+                          {selectedIds.size > 0
+                            ? `${selectedIds.size} selected`
+                            : `${connections.length} accounts`}
+                        </span>
+                      </label>
+
+                      {selectedIds.size > 0 && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          icon="delete"
+                          loading={batchDeleting}
+                          onClick={handleBatchDelete}
+                        >
+                          {t("batchDeleteSelected", { count: selectedIds.size })}
+                        </Button>
+                      )}
+                    </div>
+                  ) : null}
+                  <div className="flex flex-col gap-0">
                   {groupKeys.map((tag, gi) => {
                     const groupConns = groupMap.get(tag)!;
                     return (
@@ -3199,12 +3231,11 @@ export default function ProviderDetailPage() {
                           ))}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-          </div>
+                    </>
+                  );
+                }
+              })()}
+            </div>
         </Card>
       )}
 

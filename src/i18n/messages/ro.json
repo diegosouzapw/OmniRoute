@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Testați cheia API",
     "testKeyPlaceholder": "sk-... (doar pentru validare)",
     "providerNotFound": "Furnizorul nu a fost găsit",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Ștergeți această conexiune?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

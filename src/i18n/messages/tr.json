@@ -2336,7 +2336,7 @@
     "testKeyLabel": "API Anahtarını Test Et",
     "testKeyPlaceholder": "sk-... (yalnızca doğrulama için)",
     "providerNotFound": "Sağlayıcı bulunamadı",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Bu bağlantı silinsin mi?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

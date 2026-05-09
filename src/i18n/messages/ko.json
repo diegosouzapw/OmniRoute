@@ -2336,7 +2336,7 @@
     "testKeyLabel": "테스트 API 키",
     "testKeyPlaceholder": "sk-...(검증용으로만)",
     "providerNotFound": "공급자를 찾을 수 없습니다.",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "이 연결을 삭제하시겠습니까?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

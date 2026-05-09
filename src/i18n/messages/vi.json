@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Khóa API kiểm tra",
     "testKeyPlaceholder": "sk-... (chỉ để xác nhận)",
     "providerNotFound": "Không tìm thấy nhà cung cấp",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Xóa kết nối này?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

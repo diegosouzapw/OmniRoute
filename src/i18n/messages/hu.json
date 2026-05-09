@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Teszt API-kulcs",
     "testKeyPlaceholder": "sk-... (csak érvényesítés céljából)",
     "providerNotFound": "Szolgáltató nem található",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Törli ezt a kapcsolatot?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Test API-nøgle",
     "testKeyPlaceholder": "sk-... (kun til validering)",
     "providerNotFound": "Udbyder blev ikke fundet",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Vil du slette denne forbindelse?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

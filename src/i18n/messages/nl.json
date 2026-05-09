@@ -2336,7 +2336,7 @@
     "testKeyLabel": "API-sleutel testen",
     "testKeyPlaceholder": "sk-... (alleen ter validatie)",
     "providerNotFound": "Aanbieder niet gevonden",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Deze verbinding verwijderen?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

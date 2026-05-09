@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Subukan ang API Key",
     "testKeyPlaceholder": "sk-... (para sa pagpapatunay lamang)",
     "providerNotFound": "Hindi nahanap ang provider",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Tanggalin ang koneksyon na ito?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

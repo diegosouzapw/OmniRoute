@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Testa API-nyckel",
     "testKeyPlaceholder": "sk-... (endast för validering)",
     "providerNotFound": "Det gick inte att hitta leverantören",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Vill du ta bort den här anslutningen?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

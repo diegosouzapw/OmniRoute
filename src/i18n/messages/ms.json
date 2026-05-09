@@ -2336,7 +2336,7 @@
     "testKeyLabel": "Uji Kunci API",
     "testKeyPlaceholder": "sk-... (untuk pengesahan sahaja)",
     "providerNotFound": "Pembekal tidak ditemui",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Padamkan sambungan ini?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",

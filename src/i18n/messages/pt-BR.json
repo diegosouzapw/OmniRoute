@@ -2458,7 +2458,7 @@
     "testKeyLabel": "Chave de API de Teste",
     "testKeyPlaceholder": "sk-... (apenas para validação)",
     "providerNotFound": "Provedor não encontrado",
-    "deleteConnectionConfirm": "Delete this connection?",
+    "deleteConnectionConfirm": "Excluir esta conexão?",
     "batchDeleteSelected": "Delete Selected ({count})",
     "batchDeleteConfirm": "Delete {count} connection(s)? This action cannot be undone.",
     "batchDeleteSuccess": "Deleted {count} connection(s)",
