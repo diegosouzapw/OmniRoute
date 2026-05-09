@@ -330,16 +330,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 function sanitizeAntigravityGeminiRequest(
-  request: Record<string, unknown>,
-  fallbackContents: unknown[],
-  credentials: Record<string, unknown> | null | undefined
+  request: Record<string, unknown>
 ): Record<string, unknown> {
   const clean: Record<string, unknown> = {};
 
   if (Array.isArray(request.contents)) {
     clean.contents = request.contents;
-  } else if (fallbackContents.length > 0) {
-    clean.contents = fallbackContents;
   }
 
   if (asRecord(request.systemInstruction)) {
@@ -358,7 +354,9 @@ function sanitizeAntigravityGeminiRequest(
     clean.toolConfig = request.toolConfig;
   }
 
-  clean.sessionId = getAntigravitySessionId(credentials, request.sessionId);
+  if (typeof request.sessionId === "string") {
+    clean.sessionId = request.sessionId;
+  }
 
   return clean;
 }
@@ -477,7 +475,7 @@ export class AntigravityExecutor extends BaseExecutor {
     };
 
     const transformedRequest = isClaude
-      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest, contents, credentials)
+      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest)
       : rawTransformedRequest;
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
