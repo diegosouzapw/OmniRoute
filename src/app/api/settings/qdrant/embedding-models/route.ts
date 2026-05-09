@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { AI_MODELS } from "@/shared/constants/models";
+import { getProviderConnections } from "@/lib/db/providers";
 
 type EmbeddingModelOption = {
   value: string;
@@ -30,7 +31,47 @@ export async function GET(request: NextRequest) {
       }))
       .sort((a, b) => a.value.localeCompare(b.value));
 
-    // Ensure the default always exists as a safe fallback
+    // Add OpenRouter account models that explicitly support embeddings.
+    try {
+      const connections = (await getProviderConnections({
+        provider: "openrouter",
+        isActive: true,
+      })) as Array<Record<string, unknown>>;
+      const apiKey = connections.find(
+        (c) => typeof c.apiKey === "string" && (c.apiKey as string).trim().length > 0
+      )?.apiKey as string | undefined;
+
+      if (apiKey) {
+        const res = await fetch(
+          "https://openrouter.ai/api/v1/models?output_modalities=embeddings",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+            },
+            cache: "no-store",
+          }
+        );
+        if (res.ok) {
+          const data = (await res.json().catch(() => null)) as any;
+          const rows = Array.isArray(data?.data) ? data.data : [];
+          for (const row of rows) {
+            const id = typeof row?.id === "string" ? row.id.trim() : "";
+            if (!id) continue;
+            const value = `openrouter/${id}`;
+            if (options.some((o) => o.value === value)) continue;
+            options.push({
+              value,
+              label: `${value} - ${String(row?.name || id)}`,
+            });
+          }
+        }
+      }
+    } catch {
+      // Best effort only: keep endpoint fast and resilient.
+    }
+
+    // Ensure the default always exists as a safe fallback.
     if (!options.some((o) => o.value === "openai/text-embedding-3-small")) {
       options.unshift({
         value: "openai/text-embedding-3-small",
@@ -38,9 +79,10 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    options.sort((a, b) => a.value.localeCompare(b.value));
+
     return NextResponse.json({ models: options });
   } catch (error) {
     return NextResponse.json({ error: String(error), models: [] }, { status: 500 });
   }
 }
-

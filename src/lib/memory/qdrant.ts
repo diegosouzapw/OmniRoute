@@ -1,5 +1,5 @@
 import { getSettings } from "@/lib/db/settings";
-import { getProviderConnections } from "@/lib/db/providers";
+import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -116,45 +116,34 @@ async function ensureCollection(cfg: QdrantConfig, vectorSize: number): Promise<
   }
 }
 
+async function getCollectionVectorName(cfg: QdrantConfig): Promise<string | null> {
+  const res = await qdrantFetch(cfg, `/collections/${encodeURIComponent(cfg.collection)}`, {
+    method: "GET",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => null)) as any;
+  const vectors = data?.result?.config?.params?.vectors;
+  if (!vectors || typeof vectors !== "object" || Array.isArray(vectors)) {
+    return null;
+  }
+  const names = Object.keys(vectors);
+  if (names.length === 0) return null;
+  return names[0] || null;
+}
+
 async function embedText(cfg: QdrantConfig, text: string): Promise<number[]> {
-  const modelStr = cfg.embeddingModel;
-  const [providerIdRaw, modelRaw] = modelStr.split("/", 2);
-  const providerId = (providerIdRaw || "").trim();
-  const model = (modelRaw || "").trim();
-
-  // Keep this intentionally narrow for now to avoid pulling server routing internals into the core build.
-  // We can expand to more providers later.
-  if (providerId !== "openai" || !model) {
-    throw new Error(
-      `Embedding model not supported for Qdrant yet: ${modelStr}. Use openai/<model> for now.`
-    );
+  const modelStr = cfg.embeddingModel.trim();
+  if (!modelStr.includes("/")) {
+    throw new Error(`Invalid embedding model '${modelStr}'. Use provider/model format.`);
   }
 
-  const conns = (await getProviderConnections({ provider: "openai", isActive: true })) as Array<
-    Record<string, unknown>
-  >;
-  const apiKey = conns.find(
-    (c) => typeof c.apiKey === "string" && (c.apiKey as string).trim().length > 0
-  )?.apiKey as string | undefined;
-  if (!apiKey) {
-    throw new Error("OpenAI provider is not configured (missing apiKey).");
-  }
-
-  const res = await fetch("https://api.openai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      input: text,
-      encoding_format: "float",
-    }),
+  const res = await handleValidatedEmbeddingRequestBody({
+    model: modelStr,
+    input: text,
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(txt.slice(0, 300) || `OpenAI embeddings failed (${res.status})`);
+    throw new Error(txt.slice(0, 300) || `Embeddings request failed (${res.status})`);
   }
   const data = (await res.json().catch(() => null)) as any;
   const vec = data?.data?.[0]?.embedding;
@@ -181,6 +170,7 @@ export async function upsertSemanticMemoryPoint(input: {
   try {
     const vector = await embedText(cfg, `${input.key}\n\n${input.content}`);
     await ensureCollection(cfg, vector.length);
+    const vectorName = await getCollectionVectorName(cfg);
 
     const createdAtUnix = Math.floor(new Date(input.createdAt).getTime() / 1000);
     const expiresAtUnix = input.expiresAt
@@ -206,7 +196,13 @@ export async function upsertSemanticMemoryPoint(input: {
       {
         method: "PUT",
         body: JSON.stringify({
-          points: [{ id: input.id, vector, payload }],
+          points: [
+            {
+              id: input.id,
+              vector: vectorName ? { [vectorName]: vector } : vector,
+              payload,
+            },
+          ],
         }),
       }
     );
@@ -242,6 +238,7 @@ export async function searchSemanticMemory(
   try {
     const vector = await embedText(cfg, query);
     await ensureCollection(cfg, vector.length);
+    const vectorName = await getCollectionVectorName(cfg);
 
     const res = await qdrantFetch(
       cfg,
@@ -249,7 +246,7 @@ export async function searchSemanticMemory(
       {
         method: "POST",
         body: JSON.stringify({
-          vector,
+          vector: vectorName ? { name: vectorName, vector } : vector,
           limit: Math.max(1, Math.min(20, topK)),
           filter: {
             must: [

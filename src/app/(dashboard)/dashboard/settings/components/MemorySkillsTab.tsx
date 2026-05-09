@@ -72,6 +72,7 @@ export default function MemorySkillsTab() {
   const [qdrantCleanupLoading, setQdrantCleanupLoading] = useState(false);
   const [qdrantCleanupMsg, setQdrantCleanupMsg] = useState("");
   const [embeddingOptions, setEmbeddingOptions] = useState<EmbeddingModelOption[]>([]);
+  const [qdrantHelpOpen, setQdrantHelpOpen] = useState(false);
 
   const [skillsmpApiKey, setSkillsmpApiKey] = useState("");
   const [skillsmpSaving, setSkillsmpSaving] = useState(false);
@@ -560,7 +561,39 @@ export default function MemorySkillsTab() {
           </div>
 
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-            <label className="text-sm font-medium block mb-2">Modelo de embedding</label>
+            <div className="flex items-center gap-2 mb-2">
+              <label className="text-sm font-medium block">Modelo de embedding</label>
+              <button
+                type="button"
+                onClick={() => setQdrantHelpOpen((v) => !v)}
+                className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-border/70 text-xs text-text-muted hover:bg-white/10"
+                title="Ajuda rápida de configuração"
+                aria-label="Ajuda rápida de configuração"
+              >
+                ?
+              </button>
+            </div>
+            {qdrantHelpOpen && (
+              <div className="mb-3 p-3 rounded-lg bg-background/60 border border-border/60 text-xs text-text-muted leading-relaxed">
+                <p className="font-medium text-white mb-1">
+                  Configuração rápida (Qdrant + OpenRouter)
+                </p>
+                <p>1. Host: IP/URL do Qdrant, Porta: 6333, Collection: omniroute_memory.</p>
+                <p>
+                  2. Se usar{" "}
+                  <span className="font-mono">nvidia/llama-nemotron-embed-vl-1b-v2:free</span>, use
+                  dimensão 2048 na collection.
+                </p>
+                <p>
+                  3. Modelo no campo:{" "}
+                  <span className="font-mono">
+                    openrouter/nvidia/llama-nemotron-embed-vl-1b-v2:free
+                  </span>
+                  .
+                </p>
+                <p>4. Salvar, testar conexão e depois testar busca.</p>
+              </div>
+            )}
             <select
               value={qdrant.embeddingModel}
               onChange={(e) => setQdrant((s) => ({ ...s, embeddingModel: e.target.value }))}
