@@ -41,6 +41,7 @@ const PROVIDER_CONFIG = {
   minimax: { label: "MiniMax", color: "#7C3AED" },
   "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
   nanogpt: { label: "NanoGPT", color: "#4F46E5" },
+  deepseek: { label: "DeepSeek", color: "#4D6BFE" },
 };
 
 const TIER_FILTERS = [
@@ -630,7 +631,7 @@ export default function ProviderLimits() {
                           }`}
                         >
                           {q.isCredits ? (
-                            /* ── AI Credits counter ── */
+                            /* ── AI Credits / Balance counter ── */
                             <>
                               <span
                                 className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap"
@@ -642,9 +643,12 @@ export default function ProviderLimits() {
                                 className="text-[12px] font-bold tabular-nums"
                                 style={{ color: colors.text }}
                               >
-                                {q.creditCount ?? q.remaining}
+                                {q.currency === "CNY" ? "¥" : q.currency === "USD" ? "$" : ""}
+                                {(q.creditCount ?? q.remaining).toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </span>
-                              <span className="text-[10px] text-text-muted">left</span>
                             </>
                           ) : (
                             /* ── Standard quota bar ── */
