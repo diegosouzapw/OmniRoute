@@ -23,6 +23,11 @@ interface QdrantSettings {
   apiKeyMasked: string | null;
 }
 
+interface EmbeddingModelOption {
+  value: string;
+  label: string;
+}
+
 const STRATEGIES = [
   { value: "recent", labelKey: "recent", descKey: "recentDesc" },
   { value: "semantic", labelKey: "semantic", descKey: "semanticDesc" },
@@ -66,6 +71,7 @@ export default function MemorySkillsTab() {
   >([]);
   const [qdrantCleanupLoading, setQdrantCleanupLoading] = useState(false);
   const [qdrantCleanupMsg, setQdrantCleanupMsg] = useState("");
+  const [embeddingOptions, setEmbeddingOptions] = useState<EmbeddingModelOption[]>([]);
 
   const [skillsmpApiKey, setSkillsmpApiKey] = useState("");
   const [skillsmpSaving, setSkillsmpSaving] = useState(false);
@@ -80,8 +86,9 @@ export default function MemorySkillsTab() {
       fetch("/api/settings/memory").then((res) => (res.ok ? res.json() : null)),
       fetch("/api/settings").then((res) => (res.ok ? res.json() : null)),
       fetch("/api/settings/qdrant").then((res) => (res.ok ? res.json() : null)),
+      fetch("/api/settings/qdrant/embedding-models").then((res) => (res.ok ? res.json() : null)),
     ])
-      .then(([memData, settingsData, qdrantData]) => {
+      .then(([memData, settingsData, qdrantData, embeddingData]) => {
         if (memData) setConfig(memData);
         if (settingsData?.skillsmpApiKey) {
           setSkillsmpApiKey(settingsData.skillsmpApiKey);
@@ -89,6 +96,9 @@ export default function MemorySkillsTab() {
         if (qdrantData) {
           setQdrant(qdrantData);
           setQdrantApiKeyInput("");
+        }
+        if (embeddingData?.models && Array.isArray(embeddingData.models)) {
+          setEmbeddingOptions(embeddingData.models);
         }
         if (
           settingsData?.skillsProvider === "skillsmp" ||
@@ -551,6 +561,18 @@ export default function MemorySkillsTab() {
 
           <div className="p-4 rounded-lg bg-surface/30 border border-border/30">
             <label className="text-sm font-medium block mb-2">Modelo de embedding</label>
+            <select
+              value={qdrant.embeddingModel}
+              onChange={(e) => setQdrant((s) => ({ ...s, embeddingModel: e.target.value }))}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">Selecionar modelo de embedding...</option>
+              {embeddingOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.value}
+                </option>
+              ))}
+            </select>
             <input
               value={qdrant.embeddingModel}
               onChange={(e) => setQdrant((s) => ({ ...s, embeddingModel: e.target.value }))}
