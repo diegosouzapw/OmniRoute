@@ -52,6 +52,7 @@ const TIER_FILTERS = [
   { key: "ultra", labelKey: "tierUltra" },
   { key: "pro", labelKey: "tierPro" },
   { key: "plus", labelKey: "tierPlus" },
+  { key: "lite", label: "Lite" },
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
@@ -337,6 +338,7 @@ export default function ProviderLimits() {
       ultra: 0,
       pro: 0,
       plus: 0,
+      lite: 0,
       free: 0,
       unknown: 0,
     };
@@ -508,7 +510,7 @@ export default function ProviderLimits() {
                 color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
               }}
             >
-              <span>{t(tier.labelKey)}</span>
+              <span>{tier.label || t(tier.labelKey)}</span>
               <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
             </button>
           );
@@ -620,8 +622,11 @@ export default function ProviderLimits() {
                       const remainingPercentage = Math.round(remainingPercentageRaw);
                       const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
-                      const shortName = formatQuotaLabel(q.name);
+                      const shortName = q.displayName || formatQuotaLabel(q.name);
                       const staleAfterReset = q.staleAfterReset === true;
+                      const details = Array.isArray(q.details)
+                        ? q.details.filter((detail) => detail && detail.used > 0)
+                        : [];
 
                       return (
                         <div
@@ -658,6 +663,16 @@ export default function ProviderLimits() {
                               >
                                 {shortName}
                               </span>
+
+                              {details.length > 0 ? (
+                                <span className="text-[10px] text-text-muted whitespace-nowrap">
+                                  {details
+                                    .map(
+                                      (detail) => `${formatQuotaLabel(detail.name)} ${detail.used}`
+                                    )
+                                    .join(" · ")}
+                                </span>
+                              ) : null}
 
                               {/* Countdown */}
                               {staleAfterReset ? (
@@ -781,7 +796,10 @@ export default function ProviderLimits() {
           <div className="py-6 px-4 text-center text-text-muted text-[13px]">
             {t("noAccountsForTierFilter")}{" "}
             <strong>
-              {t(TIER_FILTERS.find((tier) => tier.key === tierFilter)?.labelKey || "tierUnknown")}
+              {(() => {
+                const tier = TIER_FILTERS.find((tier) => tier.key === tierFilter);
+                return tier?.label || t(tier?.labelKey || "tierUnknown");
+              })()}
             </strong>
             .
           </div>

@@ -106,6 +106,10 @@ type UsageQuota = {
   resetAt: string | null;
   unlimited: boolean;
   displayName?: string;
+  details?: Array<{
+    name: string;
+    used: number;
+  }>;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -120,6 +124,32 @@ function toNumber(value: unknown, fallback = 0): number {
         ? Number(value)
         : Number.NaN;
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toPercentage(value: unknown): number {
+  return Math.max(0, Math.min(100, toNumber(value, 0)));
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .trim()
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getGlmTokenQuotaName(
+  limit: JsonRecord,
+  existingQuotas: Record<string, UsageQuota>
+): string {
+  const unit = toNumber(limit.unit, 0);
+  const number = toNumber(limit.number, 0);
+
+  if (unit === 3 && number === 5) return "session";
+  if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
+
+  return existingQuotas.session ? "weekly" : "session";
 }
 
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
@@ -576,33 +606,71 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   }
 
   const json = await res.json();
+  if (toNumber(json.code, 200) === 401 || json.success === false) {
+    throw new Error("Invalid API key");
+  }
+
   const data = toRecord(json.data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
   for (const limit of limits) {
     const src = toRecord(limit);
-    const label = getGlmQuotaLabel(src.type, src.unit);
-    if (!label) continue;
-
-    const usedPercent = toNumber(src.percentage, 0);
+    const type = String(src.type || "").toUpperCase();
     const resetMs = toNumber(src.nextResetTime, 0);
-    const remaining = Math.max(0, 100 - usedPercent);
+    const resetAt = resetMs > 0 ? new Date(resetMs).toISOString() : null;
 
-    quotas[label] = {
-      used: usedPercent,
-      total: 100,
-      remaining,
-      remainingPercentage: remaining,
-      resetAt: resetMs > 0 ? new Date(resetMs).toISOString() : null,
-      unlimited: false,
-    };
+    if (type === "TOKENS_LIMIT") {
+      const quotaName = getGlmTokenQuotaName(src, quotas);
+      const usedPercent = toPercentage(src.percentage);
+      const remaining = Math.max(0, 100 - usedPercent);
+
+      quotas[quotaName] = {
+        used: usedPercent,
+        total: 100,
+        remaining,
+        remainingPercentage: remaining,
+        resetAt,
+        unlimited: false,
+      };
+      continue;
+    }
+
+    if (type === "TIME_LIMIT") {
+      const total = toNumber(src.usage, toNumber(src.total, 0));
+      const remaining = toNumber(src.remaining, Math.max(0, 100 - toPercentage(src.percentage)));
+      const used = toNumber(src.currentValue, Math.max(0, total - remaining));
+      const remainingPercentage =
+        total > 0 ? Math.max(0, Math.min(100, Math.round((remaining / total) * 100))) : 0;
+
+      quotas["mcp_monthly"] = {
+        used,
+        total,
+        remaining,
+        remainingPercentage,
+        resetAt,
+        unlimited: false,
+        displayName: "Monthly",
+        details: Array.isArray(src.usageDetails)
+          ? src.usageDetails.map((item) => {
+              const detail = toRecord(item);
+              return {
+                name: String(detail.modelCode || detail.name || "usage"),
+                used: toNumber(detail.usage, 0),
+              };
+            })
+          : undefined,
+      };
+    }
   }
 
-  const levelRaw = typeof data.level === "string" ? data.level : "";
-  const plan = levelRaw
-    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
-    : "Unknown";
+  const levelRaw =
+    typeof data.planName === "string"
+      ? data.planName
+      : typeof data.level === "string"
+        ? data.level
+        : "";
+  const plan = levelRaw ? toTitleCase(levelRaw.replace(/\s*plan$/i, "")) : null;
 
   return { plan, quotas: orderGlmQuotas(quotas) };
 }
@@ -754,9 +822,12 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "qoder":
       return await getQoderUsage(accessToken);
     case "glm":
-    case "zai":
+    case "glm-cn":
     case "glmt":
-      return await getGlmUsage(apiKey, providerSpecificData);
+      return await getGlmUsage(apiKey, {
+        ...(providerSpecificData || {}),
+        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
+      });
     case "minimax":
     case "minimax-cn":
       return await getMiniMaxUsage(apiKey, provider);

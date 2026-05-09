@@ -895,24 +895,31 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
             level: "pro",
             limits: [
               {
+                type: "TIME_LIMIT",
+                usage: 1000,
+                currentValue: 12,
+                remaining: 988,
+                percentage: "1.2",
+                nextResetTime: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                usageDetails: [
+                  { modelCode: "search-prime", usage: 5 },
+                  { modelCode: "web-reader", usage: 7 },
+                  { modelCode: "zread", usage: 0 },
+                ],
+              },
+              {
                 type: "TOKENS_LIMIT",
                 unit: 3,
-                usage: 15,
-                currentValue: 85,
-                percentage: "15",
+                number: 5,
+                percentage: "64",
                 nextResetTime: Date.now() + 120_000,
               },
               {
                 type: "TOKENS_LIMIT",
-                unit: 6,
-                percentage: "64",
-                nextResetTime: Date.now() + 604_800_000,
-              },
-              {
-                type: "TIME_LIMIT",
-                unit: 5,
-                percentage: "7",
-                nextResetTime: Date.now() + 300_000,
+                unit: 4,
+                number: 7,
+                percentage: "25",
+                nextResetTime: Date.now() + 7 * 24 * 60 * 60 * 1000,
               },
               {
                 type: "OTHER_LIMIT",
@@ -934,21 +941,19 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
     providerSpecificData: { apiRegion: "invalid-region" },
   });
   assert.equal(glm.plan, "Pro");
-  assert.equal(glm.quotas["5 Hours Quota"].used, 15);
-  assert.equal(glm.quotas["5 Hours Quota"].remaining, 85);
-  assert.equal(glm.quotas["Weekly Quota"].used, 64);
-  assert.equal(glm.quotas["Weekly Quota"].remaining, 36);
-  assert.equal(glm.quotas["Monthly Tools"].used, 7);
-  assert.equal(glm.quotas["Monthly Tools"].remaining, 93);
-
-  const zai: any = await usageService.getUsageForProvider({
-    provider: "zai",
-    apiKey: "glm-key",
-  });
-  assert.equal(zai.plan, "Pro");
-  assert.equal(zai.quotas["5 Hours Quota"].used, 15);
-  assert.equal(zai.quotas["Weekly Quota"].remaining, 36);
-  assert.equal(zai.quotas["Monthly Tools"].remaining, 93);
+  assert.equal(glm.quotas.session.used, 64);
+  assert.equal(glm.quotas.session.remaining, 36);
+  assert.equal(glm.quotas.weekly.used, 25);
+  assert.equal(glm.quotas.weekly.remaining, 75);
+  assert.equal(glm.quotas.mcp_monthly.used, 12);
+  assert.equal(glm.quotas.mcp_monthly.remaining, 988);
+  assert.equal(glm.quotas.mcp_monthly.remainingPercentage, 99);
+  assert.equal(glm.quotas.mcp_monthly.displayName, "Monthly");
+  assert.deepEqual(glm.quotas.mcp_monthly.details, [
+    { name: "search-prime", used: 5 },
+    { name: "web-reader", used: 7 },
+    { name: "zread", used: 0 },
+  ]);
 
   const glmt: any = await usageService.getUsageForProvider({
     provider: "glmt",
@@ -958,6 +963,28 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
   assert.equal(glmt.plan, "Pro");
   assert.equal(glmt.quotas["5 Hours Quota"].used, 15);
   assert.equal(glmt.quotas["Weekly Quota"].remaining, 36);
+
+  let glmCnUrl = "";
+  globalThis.fetch = async (url) => {
+    glmCnUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        data: {
+          planName: "Lite Plan",
+          limits: [{ type: "TOKENS_LIMIT", percentage: "64" }],
+        },
+      }),
+      { status: 200 }
+    );
+  };
+  const glmCn: any = await usageService.getUsageForProvider({
+    provider: "glm-cn",
+    apiKey: "glm-cn-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+  assert.match(glmCnUrl, /open\.bigmodel\.cn/);
+  assert.equal(glmCn.plan, "Lite");
+  assert.equal(glmCn.quotas.session.remaining, 36);
 
   globalThis.fetch = async () => new Response("nope", { status: 401 });
   await assert.rejects(
@@ -1141,8 +1168,8 @@ test("usage service parses Cursor team quotas and clamps on-demand ratio", async
   assert.equal(calls.length, 3);
   for (const call of calls) {
     assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
-    assert.equal(call.init.headers["User-Agent"], "Cursor/3.2.14");
-    assert.equal(call.init.headers["x-cursor-client-version"], "3.2.14");
+    assert.equal(call.init.headers["User-Agent"], "Cursor/3.3");
+    assert.equal(call.init.headers["x-cursor-client-version"], "3.3");
   }
 
   assert.equal(usage.plan, "Cursor Team");
@@ -1256,9 +1283,9 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
   assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
     Authorization: "Bearer cursor-token",
     Accept: "application/json",
-    "User-Agent": "Cursor/3.2.14",
-    "x-cursor-client-version": "3.2.14",
-    "x-cursor-user-agent": "Cursor/3.2.14",
+    "User-Agent": "Cursor/3.3",
+    "x-cursor-client-version": "3.3",
+    "x-cursor-user-agent": "Cursor/3.3",
   });
   assert.equal(
     __testing.getCursorMonthlyRequestLimit(

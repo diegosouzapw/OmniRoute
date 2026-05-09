@@ -22,11 +22,16 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   agentic_request_freetrial: "Agentic (Trial)",
   credits: "AI Credits",
   models: "Models",
-  "5 Hours Quota": "5 Hours",
-  "Weekly Quota": "Weekly",
-  "Monthly Tools": "Monthly Tools",
-  tokens: "Tokens",
-  time_limit: "Time Limit",
+  mcp_monthly: "Monthly",
+  "search-prime": "Web Search",
+  "web-reader": "Web Reader",
+  zread: "Zread",
+};
+
+const GLM_QUOTA_ORDER: Record<string, number> = {
+  session: 0,
+  weekly: 1,
+  mcp_monthly: 2,
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -202,9 +207,10 @@ export function parseQuotaData(provider, data) {
   if (!data || typeof data !== "object") return [];
 
   const normalizedQuotas = [];
+  const providerId = String(provider || "").toLowerCase();
 
   try {
-    switch (provider.toLowerCase()) {
+    switch (providerId) {
       case "github":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
@@ -212,6 +218,21 @@ export function parseQuotaData(provider, data) {
               return;
             }
             normalizedQuotas.push(normalizeQuotaEntry(name, quota));
+          });
+        }
+        break;
+
+      case "glm":
+      case "glm-cn":
+      case "glmt":
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
+            normalizedQuotas.push(
+              normalizeQuotaEntry(name, quota, {
+                displayName: quota?.displayName,
+                details: Array.isArray(quota?.details) ? quota.details : undefined,
+              })
+            );
           });
         }
         break;
@@ -330,6 +351,14 @@ export function parseQuotaData(provider, data) {
     });
   }
 
+  if (providerId === "glm" || providerId === "glm-cn" || providerId === "glmt") {
+    normalizedQuotas.sort((a, b) => {
+      const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
+      const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;
+      return orderA - orderB;
+    });
+  }
+
   return normalizedQuotas;
 }
 
@@ -361,7 +390,7 @@ export function resolvePlanValue(plan, providerSpecificData) {
 
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
- * Supported tiers: enterprise, business, team, ultra, pro, plus, free, unknown.
+ * Supported tiers: enterprise, business, team, ultra, pro, plus, lite, free, unknown.
  */
 export function normalizePlanTier(plan) {
   const raw = typeof plan === "string" ? plan.trim() : "";
@@ -424,8 +453,16 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
   }
 
+  if (upper.includes("MAX")) {
+    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
+  }
+
   if (upper.includes("PRO") || upper.includes("PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+  }
+
+  if (upper.includes("LITE") || upper.includes("LIGHT")) {
+    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
   }
 
   if (upper.includes("PLUS") || upper.includes("PAID")) {

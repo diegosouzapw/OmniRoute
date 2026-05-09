@@ -16,6 +16,9 @@ test("paid individual tiers use non-gray badge variants", () => {
   assert.equal(providerLimitUtils.normalizePlanTier("Plus").variant, "success");
   assert.equal(providerLimitUtils.normalizePlanTier("Pro").variant, "success");
   assert.equal(providerLimitUtils.normalizePlanTier("Student").variant, "success");
+  assert.equal(providerLimitUtils.normalizePlanTier("Lite").key, "lite");
+  assert.equal(providerLimitUtils.normalizePlanTier("Lite").label, "Lite");
+  assert.notEqual(providerLimitUtils.normalizePlanTier("Lite").variant, "default");
   assert.equal(providerLimitUtils.normalizePlanTier("Free").variant, "default");
 });
 
@@ -64,6 +67,7 @@ test("quota labels normalize session and weekly windows while preserving readabl
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly (7d)"), "Weekly");
   assert.equal(providerLimitUtils.formatQuotaLabel("weekly sonnet (7d)"), "Weekly Sonnet");
   assert.equal(providerLimitUtils.formatQuotaLabel("code_review"), "Code Review");
+  assert.equal(providerLimitUtils.formatQuotaLabel("mcp_monthly"), "Monthly");
 });
 
 test("MiniMax providers are exposed to the limits dashboard support list", () => {
@@ -106,43 +110,17 @@ test("MiniMax quota payloads use generic provider parsing and stale resets still
   assert.equal(providerLimitUtils.formatQuotaLabel(parsed[1].name), "Weekly");
 });
 
-test("Z.AI quota labels render 5h, weekly and monthly tool usage", () => {
-  assert.equal(providerLimitUtils.formatQuotaLabel("5 Hours Quota"), "5 Hours");
-  assert.equal(providerLimitUtils.formatQuotaLabel("Weekly Quota"), "Weekly");
-  assert.equal(providerLimitUtils.formatQuotaLabel("Monthly Tools"), "Monthly Tools");
-
-  const future = new Date(Date.now() + 5 * 60_000).toISOString();
-  const parsed = providerLimitUtils.parseQuotaData("zai", {
+test("GLM quota rows are ordered by session, weekly, then monthly", () => {
+  const parsed = providerLimitUtils.parseQuotaData("glm", {
     quotas: {
-      "5 Hours Quota": {
-        used: 15,
-        total: 100,
-        remaining: 85,
-        remainingPercentage: 85,
-        resetAt: future,
-      },
-      "Weekly Quota": {
-        used: 4,
-        total: 100,
-        remaining: 96,
-        remainingPercentage: 96,
-        resetAt: future,
-      },
-      "Monthly Tools": {
-        used: 0,
-        total: 100,
-        remaining: 100,
-        remainingPercentage: 100,
-        resetAt: future,
-      },
+      mcp_monthly: { used: 10, total: 100, remainingPercentage: 90 },
+      weekly: { used: 20, total: 100, remainingPercentage: 80 },
+      session: { used: 30, total: 100, remainingPercentage: 70 },
     },
   });
 
-  assert.equal(parsed.length, 3);
-  assert.equal(parsed[0].name, "5 Hours Quota");
-  assert.equal(parsed[0].remainingPercentage, 85);
-  assert.equal(parsed[1].name, "Weekly Quota");
-  assert.equal(parsed[1].remainingPercentage, 96);
-  assert.equal(parsed[2].name, "Monthly Tools");
-  assert.equal(parsed[2].remainingPercentage, 100);
+  assert.deepEqual(
+    parsed.map((quota) => quota.name),
+    ["session", "weekly", "mcp_monthly"]
+  );
 });

@@ -58,6 +58,142 @@ test("GLM import uses international coding endpoint when apiRegion is internatio
   }
 });
 
+test("GLM import normalizes custom coding models URLs without duplicating endpoints", async () => {
+  await resetStorage();
+  const cases = [
+    {
+      baseUrl: "https://api.z.ai/api/coding/paas/v4",
+      expectedUrl: "https://api.z.ai/api/coding/paas/v4/models",
+    },
+    {
+      baseUrl: "https://api.z.ai/api/coding/paas/v4/models",
+      expectedUrl: "https://api.z.ai/api/coding/paas/v4/models",
+    },
+  ];
+
+  const originalFetch = globalThis.fetch;
+  const seenUrls: string[] = [];
+  const connections = [];
+
+  for (const [index, testCase] of cases.entries()) {
+    connections.push(
+      await providersDb.createProviderConnection({
+        provider: "glm",
+        authType: "apikey",
+        name: `glm-custom-${index}`,
+        apiKey: "glm-key",
+        providerSpecificData: { baseUrl: testCase.baseUrl },
+      })
+    );
+  }
+
+  globalThis.fetch = async (url, init = {}) => {
+    const expected = cases[seenUrls.length];
+    assert.ok(expected, `unexpected GLM discovery call to ${String(url)}`);
+    assert.equal(String(url), expected.expectedUrl);
+    assert.equal(init.headers.Authorization, "Bearer glm-key");
+    assert.equal(init.headers["x-api-key"], undefined);
+    assert.equal(init.headers["anthropic-version"], undefined);
+    seenUrls.push(String(url));
+    return Response.json({ data: [{ id: "glm-5", name: "GLM 5" }] });
+  };
+
+  try {
+    for (const connection of connections) {
+      const response = await modelsRoute.GET(
+        new Request(`http://localhost/api/providers/${connection.id}/models`),
+        { params: { id: connection.id } }
+      );
+      assert.equal(response.status, 200);
+    }
+
+    assert.deepEqual(
+      seenUrls,
+      cases.map((testCase) => testCase.expectedUrl)
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GLM import falls back to Anthropic model discovery when coding discovery fails", async () => {
+  await resetStorage();
+  const connection = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: "glm-discovery-fallback",
+    apiKey: "glm-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+
+  const originalFetch = globalThis.fetch;
+  const seenUrls: string[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    seenUrls.push(String(url));
+    if (seenUrls.length === 1) {
+      assert.equal(String(url), "https://api.z.ai/api/coding/paas/v4/models");
+      assert.equal(init.headers.Authorization, "Bearer glm-key");
+      assert.equal(init.headers["x-api-key"], undefined);
+      return new Response(JSON.stringify({ error: "bad gateway" }), { status: 502 });
+    }
+
+    assert.equal(String(url), "https://api.z.ai/api/anthropic/v1/models");
+    assert.equal(init.headers.Authorization, undefined);
+    assert.equal(init.headers["x-api-key"], "glm-key");
+    assert.equal(init.headers["anthropic-version"], "2023-06-01");
+    return Response.json({ data: [{ id: "glm-5.1", name: "GLM 5.1" }] });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      provider: "glm",
+      connectionId: connection.id,
+      models: [{ id: "glm-5.1", name: "GLM 5.1" }],
+      source: "api",
+    });
+    assert.deepEqual(seenUrls, [
+      "https://api.z.ai/api/coding/paas/v4/models",
+      "https://api.z.ai/api/anthropic/v1/models",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GLM import preserves auth failures instead of falling back across transports", async () => {
+  await resetStorage();
+  const connection = await providersDb.createProviderConnection({
+    provider: "glm",
+    authType: "apikey",
+    name: "glm-auth-fail",
+    apiKey: "bad-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+
+  const originalFetch = globalThis.fetch;
+  const seenUrls: string[] = [];
+  globalThis.fetch = async (url) => {
+    seenUrls.push(String(url));
+    return new Response(JSON.stringify({ error: "invalid api key" }), { status: 401 });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models?refresh=true`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 401);
+    assert.deepEqual(seenUrls, ["https://api.z.ai/api/coding/paas/v4/models"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("GLMT import shares the GLM coding models endpoint and surfaces provider metadata correctly", async () => {
   await resetStorage();
   const connection = await providersDb.createProviderConnection({
@@ -118,6 +254,38 @@ test("GLM import uses China coding endpoint when apiRegion is china", async () =
     const body = (await response.json()) as any;
     assert.equal(body.provider, "glm");
     assert.equal(body.models.length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GLM China provider import uses the specialized GLM discovery path", async () => {
+  await resetStorage();
+  const connection = await providersDb.createProviderConnection({
+    provider: "glm-cn",
+    authType: "apikey",
+    name: "glm-cn-provider",
+    apiKey: "glm-cn-key",
+    providerSpecificData: {},
+  });
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://open.bigmodel.cn/api/coding/paas/v4/models");
+    assert.equal(init.headers.Authorization, "Bearer glm-cn-key");
+    assert.equal(init.headers["x-api-key"], undefined);
+    return Response.json({ data: [{ id: "glm-5", name: "GLM 5" }] });
+  };
+
+  try {
+    const response = await modelsRoute.GET(
+      new Request(`http://localhost/api/providers/${connection.id}/models`),
+      { params: { id: connection.id } }
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as any;
+    assert.equal(body.provider, "glm-cn");
+    assert.deepEqual(body.models, [{ id: "glm-5", name: "GLM 5" }]);
   } finally {
     globalThis.fetch = originalFetch;
   }

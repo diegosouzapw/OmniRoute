@@ -5668,6 +5668,10 @@ function getProviderBaseUrlPlaceholder(providerId?: string | null) {
   }
 }
 
+function isGlmProvider(providerId?: string | null) {
+  return providerId === "glm" || providerId === "glm-cn" || providerId === "glmt";
+}
+
 function parseRoutingTagsInput(value: string): string[] | undefined {
   const tags = Array.from(
     new Set(
@@ -5723,7 +5727,7 @@ function AddApiKeyModal({
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
   const defaultRegion = "us-central1";
-  const isGlm = provider === "glm" || provider === "glmt";
+  const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
@@ -6225,7 +6229,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
-  const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
+  const isGlm = isGlmProvider(connection?.provider);
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";

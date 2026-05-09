@@ -253,11 +253,12 @@ function getTargetProvider(modelStr: string, providerId?: string | null): string
   return providerId || parsed.provider || parsed.providerAlias || "unknown";
 }
 
-function isStreamReadinessTimeoutErrorBody(errorBody: unknown): boolean {
+function isStreamReadinessFailureErrorBody(errorBody: unknown): boolean {
   if (!errorBody || typeof errorBody !== "object") return false;
   const error = (errorBody as Record<string, unknown>).error;
   if (!error || typeof error !== "object") return false;
-  return (error as Record<string, unknown>).code === "STREAM_READINESS_TIMEOUT";
+  const code = (error as Record<string, unknown>).code;
+  return code === "STREAM_READINESS_TIMEOUT" || code === "STREAM_EARLY_EOF";
 }
 
 function toRecordedTarget(target: ResolvedComboTarget) {
@@ -2124,8 +2125,9 @@ export async function handleComboChat({
         }
       }
 
-      const isStreamReadinessTimeout =
-        result.status === 504 && isStreamReadinessTimeoutErrorBody(errorBody);
+      const isStreamReadinessFailure =
+        (result.status === 502 || result.status === 504) &&
+        isStreamReadinessFailureErrorBody(errorBody);
 
       // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
       // There is no point trying fallback models when nobody is listening.
@@ -2157,13 +2159,13 @@ export async function handleComboChat({
       );
 
       // Trigger shared provider circuit breaker for 5xx errors and connection failures
-      if (isProviderFailureCode(result.status)) {
+      if (!isStreamReadinessFailure && isProviderFailureCode(result.status)) {
         recordProviderFailure(provider, log, target.connectionId, profile);
       }
 
       // Check if this is a transient error worth retrying on same model
       const isTransient =
-        !isStreamReadinessTimeout && [408, 429, 500, 502, 503, 504].includes(result.status);
+        !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
       if (retry < maxRetries && isTransient) {
         continue; // Retry same model
       }
@@ -2432,8 +2434,12 @@ async function handleRoundRobinCombo({
             if (text) {
               errorText = text.substring(0, 500);
               errorBody = JSON.parse(text);
+              const parsedError = errorBody?.error;
               errorText =
-                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+                (typeof parsedError === "object" && parsedError?.message) ||
+                (typeof parsedError === "string" ? parsedError : null) ||
+                errorBody?.message ||
+                errorText;
               retryAfter = errorBody?.retryAfter || null;
             }
           } catch {
@@ -2474,8 +2480,9 @@ async function handleRoundRobinCombo({
           }
         }
 
-        const isStreamReadinessTimeout =
-          result.status === 504 && isStreamReadinessTimeoutErrorBody(errorBody);
+        const isStreamReadinessFailure =
+          (result.status === 502 || result.status === 504) &&
+          isStreamReadinessFailureErrorBody(errorBody);
 
         // Round-robin uses the same target-level fallback rule as other combo
         // strategies: non-ok target responses fall through to the next target.
@@ -2498,7 +2505,11 @@ async function handleRoundRobinCombo({
         );
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.
-        if (TRANSIENT_FOR_SEMAPHORE.includes(result.status) && cooldownMs > 0) {
+        if (
+          !isStreamReadinessFailure &&
+          TRANSIENT_FOR_SEMAPHORE.includes(result.status) &&
+          cooldownMs > 0
+        ) {
           semaphore.markRateLimited(semaphoreKey, cooldownMs);
           log.warn("COMBO-RR", `${modelStr} error ${result.status}, cooldown ${cooldownMs}ms`);
         }
@@ -2512,7 +2523,7 @@ async function handleRoundRobinCombo({
 
         // Transient error → retry same model
         const isTransient =
-          !isStreamReadinessTimeout && [408, 429, 500, 502, 503, 504].includes(result.status);
+          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient) {
           continue;
         }

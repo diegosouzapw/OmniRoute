@@ -18,9 +18,10 @@ import {
 } from "./anthropicHeaders.ts";
 import { getCodexDefaultHeaders } from "./codexClient.ts";
 import {
+  GLM_REQUEST_DEFAULTS,
   GLMT_REQUEST_DEFAULTS,
+  GLM_TIMEOUT_MS,
   GLMT_TIMEOUT_MS,
-  GLM_SHARED_HEADERS,
   GLM_SHARED_MODELS,
 } from "./glmProvider.ts";
 import { MARITALK_DEFAULT_BASE_URL } from "./maritalk.ts";
@@ -46,6 +47,7 @@ export interface RegistryModel {
   supportsReasoning?: boolean;
   supportsVision?: boolean;
   supportsXHighEffort?: boolean;
+  maxOutputTokens?: number;
   targetFormat?: string;
   strip?: readonly string[];
   unsupportedParams?: readonly string[];
@@ -798,41 +800,41 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   glm: {
     id: "glm",
     alias: "glm",
-    format: "claude",
-    executor: "default",
-    baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+    format: "openai",
+    executor: "glm",
+    baseUrl: "https://api.z.ai/api/coding/paas/v4/chat/completions",
     defaultContextLength: 200000,
-    urlSuffix: "?beta=true",
     authType: "apikey",
-    authHeader: "x-api-key",
-    headers: GLM_SHARED_HEADERS,
+    authHeader: "bearer",
+    requestDefaults: GLM_REQUEST_DEFAULTS,
+    timeoutMs: GLM_TIMEOUT_MS,
     models: [...GLM_SHARED_MODELS],
   },
 
   "glm-cn": {
     id: "glm-cn",
-    alias: "glm-cn",
+    alias: "glmcn",
     format: "openai",
-    executor: "default",
+    executor: "glm",
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     defaultContextLength: 200000,
-    models: [{ id: "glm-5.1", name: "GLM-5.1" }],
+    requestDefaults: GLM_REQUEST_DEFAULTS,
+    timeoutMs: GLM_TIMEOUT_MS,
+    models: [...GLM_SHARED_MODELS],
     passthroughModels: true,
   },
 
   glmt: {
     id: "glmt",
     alias: "glmt",
-    format: "claude",
-    executor: "default",
-    baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+    format: "openai",
+    executor: "glm",
+    baseUrl: "https://api.z.ai/api/coding/paas/v4/chat/completions",
     defaultContextLength: 200000,
-    urlSuffix: "?beta=true",
     authType: "apikey",
-    authHeader: "x-api-key",
-    headers: GLM_SHARED_HEADERS,
+    authHeader: "bearer",
     requestDefaults: GLMT_REQUEST_DEFAULTS,
     timeoutMs: GLMT_TIMEOUT_MS,
     models: [...GLM_SHARED_MODELS],

@@ -26,12 +26,13 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-async function createCombo(name, model) {
+async function createCombo(name, model, overrides = {}) {
   return combosDb.createCombo({
     name,
     models: [{ provider: "openai", model }],
     strategy: "priority",
     config: { temperature: 0 },
+    ...overrides,
   });
 }
 
@@ -179,6 +180,40 @@ test("resolveComboForModel skips corrupted combo payloads and keeps scanning", a
 
   assert.ok(resolved);
   assert.equal(resolved.name, "fallback");
+});
+
+test("resolveComboForModel skips inactive mapped combos and keeps scanning", async () => {
+  const inactiveCombo = await createCombo("inactive", "gpt-4o", { isActive: false });
+  const fallbackCombo = await createCombo("fallback", "gpt-4o-mini");
+
+  await mappingsDb.createModelComboMapping({
+    pattern: "gpt-4*",
+    comboId: inactiveCombo.id,
+    priority: 10,
+  });
+  await mappingsDb.createModelComboMapping({
+    pattern: "gpt-*",
+    comboId: fallbackCombo.id,
+    priority: 1,
+  });
+
+  const resolved = await mappingsDb.resolveComboForModel("gpt-4o");
+
+  assert.ok(resolved);
+  assert.equal(resolved.name, "fallback");
+});
+
+test("resolveComboForModel returns null when only matching combo is inactive", async () => {
+  const inactiveCombo = await createCombo("inactive", "gpt-4o", { isActive: false });
+
+  await mappingsDb.createModelComboMapping({
+    pattern: "gpt-4*",
+    comboId: inactiveCombo.id,
+  });
+
+  const resolved = await mappingsDb.resolveComboForModel("gpt-4o");
+
+  assert.equal(resolved, null);
 });
 
 test("resolveComboForModel returns null when nothing matches", async () => {

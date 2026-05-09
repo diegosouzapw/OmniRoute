@@ -3996,6 +3996,12 @@ export async function handleChatCore({
   });
   if (streamReadiness.ok === false) {
     const { response: failureResponse, reason } = streamReadiness;
+    const failure = {
+      status: failureResponse.status,
+      message: reason,
+      code: streamReadiness.code,
+      type: streamReadiness.type,
+    };
     trackPendingRequest(model, provider, connectionId, false);
     appendRequestLog({
       model,
@@ -4011,7 +4017,7 @@ export async function handleChatCore({
       claudeCacheMeta: claudePromptCacheLogMeta,
       cacheSource: "upstream",
     });
-    persistFailureUsage(failureResponse.status, "stream_readiness_timeout");
+    persistFailureUsage(failureResponse.status, streamReadiness.code);
     // Do NOT call onStreamFailure — a stream stall is an upstream issue,
     // not an account/quota failure. Marking the account unavailable here
     // would lock out legitimate accounts when the upstream hangs.
@@ -4019,7 +4025,7 @@ export async function handleChatCore({
       success: false,
       status: failureResponse.status,
       error: reason,
-      errorType: "stream_readiness_timeout",
+      errorType: streamReadiness.type,
       response: failureResponse,
     };
   }

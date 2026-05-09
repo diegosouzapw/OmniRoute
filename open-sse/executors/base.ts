@@ -205,6 +205,10 @@ export class BaseExecutor {
     return Math.max(1, Math.floor(configured));
   }
 
+  getCountTokensTimeoutMs() {
+    return this.getTimeoutMs();
+  }
+
   buildUrl(
     model: string,
     stream: boolean,
@@ -379,12 +383,12 @@ export class BaseExecutor {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let activeSignal = signal || null;
     let controller: AbortController | null = null;
-    const timeoutMs = this.getTimeoutMs();
+    const timeoutMs = this.getCountTokensTimeoutMs();
 
-    if (!activeSignal) {
+    if (timeoutMs > 0) {
       controller = new AbortController();
       timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
-      activeSignal = controller.signal;
+      activeSignal = signal ? mergeAbortSignals(signal, controller.signal) : controller.signal;
     }
 
     try {
