@@ -126,7 +126,7 @@ function mergeDatabaseSettingsNamespace(
   for (const section of DATABASE_SETTINGS_SECTIONS) {
     const defaultSection = DEFAULT_DATABASE_SETTINGS[section] as Record<string, unknown>;
     const sectionTarget = target[section] as Record<string, unknown>;
-    const flatAliases = LEGACY_FLAT_KEYS[section];
+    const flatAliases = LEGACY_FLAT_KEYS[section] as Partial<Record<string, string[]>>;
 
     for (const key of Object.keys(defaultSection)) {
       for (const alias of flatAliases[key] ?? []) {

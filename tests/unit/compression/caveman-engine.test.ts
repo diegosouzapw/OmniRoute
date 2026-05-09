@@ -229,4 +229,29 @@ describe("caveman engine", () => {
     });
     assert.ok(result.stats.durationMs < 25, `Expected <25ms, got ${result.stats.durationMs}ms`);
   });
+
+  it("cleans whitespace and punctuation artifacts without regex backtracking", () => {
+    const body = {
+      messages: [
+        {
+          role: "user",
+          content: "\n\nPlease\t make sure to keep this   stable   !!!   \n\n\n\nThank you.",
+        },
+      ],
+    };
+    const result = cavemanCompress(body, {
+      enabled: true,
+      compressRoles: ["user"],
+      skipRules: [],
+      minMessageLength: 0,
+      preservePatterns: [],
+    });
+    const text = result.body.messages[0].content as string;
+
+    assert.doesNotMatch(text, /^\n/);
+    assert.doesNotMatch(text, /\n$/);
+    assert.doesNotMatch(text, /\n\n\n/);
+    assert.doesNotMatch(text, /[ \t]+[,.!?;:]/);
+    assert.doesNotMatch(text, /[ \t]{2,}/);
+  });
 });

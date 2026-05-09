@@ -230,6 +230,11 @@ function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | nul
   return copy;
 }
 
+function getRequestTargetModel(body: Record<string, unknown>): string {
+  const target = body.model;
+  return typeof target === "string" && target.length > 0 ? target : "unknown";
+}
+
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
@@ -635,7 +640,7 @@ export class AntigravityExecutor extends BaseExecutor {
 
         log?.debug?.(
           "TELEMETRY",
-          `[Antigravity] Execute - URL: ${url}, Model: ${model}, Target: ${(transformedBody as any)?.model || "unknown"}, RetryAttempt: ${retryAttemptsByUrl[urlIndex]}`
+          `[Antigravity] Execute - URL: ${url}, Model: ${model}, Target: ${getRequestTargetModel(transformedBody)}, RetryAttempt: ${retryAttemptsByUrl[urlIndex]}`
         );
 
         const response = await fetch(url, {

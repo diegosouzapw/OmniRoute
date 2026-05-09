@@ -204,15 +204,186 @@ export function applyRulesToText(
 
 function cleanupArtifacts(text: string): string {
   let result = text;
-  if (result.includes("  ")) result = result.replace(/[ \t]{2,}/g, " ");
-  if (/[\t ]+[,.;:!?]/.test(result)) result = result.replace(/[ \t]([,.;:!?])/g, "$1");
-  if (/[.!?]{2,}/.test(result)) result = result.replace(/([.!?]){2,}/g, "$1");
-  if (/[ \t]\n/.test(result)) result = result.replace(/[ \t]+$/gm, "");
+  if (hasRepeatedHorizontalWhitespace(result)) {
+    result = collapseHorizontalWhitespaceRuns(result);
+  }
+  result = removeHorizontalWhitespaceBeforePunctuation(result);
+  result = collapseRepeatedSentencePunctuation(result);
+  if (result.includes(" \n") || result.includes("\t\n")) {
+    result = stripLineTrailingHorizontalWhitespace(result);
+  }
   if (result.endsWith(" ") || result.endsWith("\t")) result = result.trimEnd();
-  if (result.includes("\n\n\n")) result = result.replace(/\n{3,}/g, "\n\n");
-  if (result.startsWith("\n")) result = result.replace(/^\n+/, "");
-  if (result.endsWith("\n")) result = result.replace(/\n+$/, "");
+  if (result.includes("\n\n\n")) result = collapseExcessNewlines(result);
+  if (result.startsWith("\n")) result = trimLeadingNewlines(result);
+  if (result.endsWith("\n")) result = trimTrailingNewlines(result);
   return result;
+}
+
+function isHorizontalWhitespace(char: string): boolean {
+  return char === " " || char === "\t";
+}
+
+function isSentencePunctuation(char: string): boolean {
+  return char === "." || char === "!" || char === "?";
+}
+
+function isCleanupPunctuation(char: string): boolean {
+  return (
+    char === "," || char === "." || char === ";" || char === ":" || char === "!" || char === "?"
+  );
+}
+
+function hasRepeatedHorizontalWhitespace(text: string): boolean {
+  let previousWasWhitespace = false;
+  for (const char of text) {
+    const currentIsWhitespace = isHorizontalWhitespace(char);
+    if (currentIsWhitespace && previousWasWhitespace) return true;
+    previousWasWhitespace = currentIsWhitespace;
+  }
+  return false;
+}
+
+function collapseHorizontalWhitespaceRuns(text: string): string {
+  let output = "";
+  let changed = false;
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (!isHorizontalWhitespace(char)) {
+      output += char;
+      continue;
+    }
+
+    const start = index;
+    while (index + 1 < text.length && isHorizontalWhitespace(text[index + 1])) {
+      index++;
+    }
+
+    if (index > start) {
+      output += " ";
+      changed = true;
+    } else {
+      output += char;
+    }
+  }
+
+  return changed ? output : text;
+}
+
+function removeHorizontalWhitespaceBeforePunctuation(text: string): string {
+  let output = "";
+  let changed = false;
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (!isHorizontalWhitespace(char)) {
+      output += char;
+      continue;
+    }
+
+    const start = index;
+    while (index + 1 < text.length && isHorizontalWhitespace(text[index + 1])) {
+      index++;
+    }
+
+    const nextChar = text[index + 1];
+    if (nextChar && isCleanupPunctuation(nextChar)) {
+      changed = true;
+      continue;
+    }
+
+    output += text.slice(start, index + 1);
+  }
+
+  return changed ? output : text;
+}
+
+function collapseRepeatedSentencePunctuation(text: string): string {
+  let output = "";
+  let changed = false;
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (!isSentencePunctuation(char)) {
+      output += char;
+      continue;
+    }
+
+    let lastPunctuation = char;
+    const start = index;
+    while (index + 1 < text.length && isSentencePunctuation(text[index + 1])) {
+      index++;
+      lastPunctuation = text[index];
+    }
+
+    if (index > start) changed = true;
+    output += lastPunctuation;
+  }
+
+  return changed ? output : text;
+}
+
+function trimEndHorizontalWhitespace(text: string): string {
+  let end = text.length;
+  while (end > 0 && isHorizontalWhitespace(text[end - 1])) {
+    end--;
+  }
+  return end === text.length ? text : text.slice(0, end);
+}
+
+function stripLineTrailingHorizontalWhitespace(text: string): string {
+  const lines = text.split("\n");
+  let changed = false;
+  const cleanedLines = lines.map((line) => {
+    const cleaned = trimEndHorizontalWhitespace(line);
+    if (cleaned !== line) changed = true;
+    return cleaned;
+  });
+  return changed ? cleanedLines.join("\n") : text;
+}
+
+function collapseExcessNewlines(text: string): string {
+  let output = "";
+  let changed = false;
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (char !== "\n") {
+      output += char;
+      continue;
+    }
+
+    const start = index;
+    while (index + 1 < text.length && text[index + 1] === "\n") {
+      index++;
+    }
+
+    const newlineCount = index - start + 1;
+    if (newlineCount > 2) {
+      output += "\n\n";
+      changed = true;
+    } else {
+      output += text.slice(start, index + 1);
+    }
+  }
+
+  return changed ? output : text;
+}
+
+function trimLeadingNewlines(text: string): string {
+  let start = 0;
+  while (start < text.length && text[start] === "\n") {
+    start++;
+  }
+  return start === 0 ? text : text.slice(start);
+}
+
+function trimTrailingNewlines(text: string): string {
+  let end = text.length;
+  while (end > 0 && text[end - 1] === "\n") {
+    end--;
+  }
+  return end === text.length ? text : text.slice(0, end);
 }
 
 function recapitalizeSentences(text: string): string {

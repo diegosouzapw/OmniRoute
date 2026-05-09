@@ -284,13 +284,13 @@ test("handleChat returns stream readiness timeout without entering cooldown-awar
 test("handleChat aborts the pending cooldown wait when the client disconnects", async () => {
   await seedConnection("openai", {
     apiKey: "sk-openai-cooldown-abort",
-    rateLimitedUntil: new Date(Date.now() + 250).toISOString(),
+    rateLimitedUntil: new Date(Date.now() + 5_000).toISOString(),
     lastError: "abort retry wait",
     errorCode: 429,
   });
   await settingsDb.updateSettings({
     requestRetry: 1,
-    maxRetryIntervalSec: 1,
+    maxRetryIntervalSec: 10,
   });
 
   let fetchCalls = 0;
@@ -302,6 +302,7 @@ test("handleChat aborts the pending cooldown wait when the client disconnects", 
   const controller = new AbortController();
   setTimeout(() => controller.abort(), 40);
 
+  const startedAt = Date.now();
   const response = await handleChat(
     buildRequestWithSignal(
       {
@@ -312,9 +313,11 @@ test("handleChat aborts the pending cooldown wait when the client disconnects", 
       controller.signal
     )
   );
+  const elapsedMs = Date.now() - startedAt;
   const body = (await response.json()) as any;
 
   assert.equal(fetchCalls, 0);
+  assert.ok(elapsedMs < 1_000, `should abort cooldown wait promptly, got ${elapsedMs}ms`);
   assert.equal(response.status, 499);
   assert.equal(body.error.message, "Request aborted");
 });

@@ -16,7 +16,8 @@ import {
   writeCallArtifact,
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
-import { autoMigrateLegacyEncryptedConnections } from "./providers";
+import { migrateLegacyEncryptedString } from "./encryption";
+import { invalidateDbCache } from "./readCache";
 
 type SqliteDatabase = import("better-sqlite3").Database;
 type JsonRecord = Record<string, unknown>;
@@ -99,8 +100,14 @@ function isNativeSqliteLoadError(error: unknown): boolean {
     message.includes("Module did not self-register") ||
     message.includes("NODE_MODULE_VERSION") ||
     message.includes("ERR_DLOPEN_FAILED") ||
-    (error as any)?.code === "ERR_DLOPEN_FAILED"
+    getErrorCode(error) === "ERR_DLOPEN_FAILED"
   );
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object" || !("code" in error)) return undefined;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : undefined;
 }
 
 function createNativeSqliteLoadError(error: unknown): Error {
@@ -110,10 +117,10 @@ function createNativeSqliteLoadError(error: unknown): Error {
     "This usually happens after switching Node.js versions without rebuilding native modules. " +
     "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
     `Original error: ${message}`;
-  const wrapped = new Error(detail);
+  const wrapped = new Error(detail) as Error & { cause?: unknown; code?: string };
   wrapped.name = "NativeSqliteLoadError";
-  (wrapped as any).cause = error;
-  (wrapped as any).code = (error as any)?.code || "ERR_DLOPEN_FAILED";
+  wrapped.cause = error;
+  wrapped.code = getErrorCode(error) || "ERR_DLOPEN_FAILED";
   return wrapped;
 }
 
@@ -972,7 +979,7 @@ function shouldRunStartupDbHealthCheck(): boolean {
   return !isAutomatedTestProcess();
 }
 
-function createHealthCheckBackup(db: SqliteDatabase): boolean {
+function createManagedDbBackup(db: SqliteDatabase, reason: string): boolean {
   const isTest = isAutomatedTestProcess();
   if (isTest) return false;
 
@@ -983,17 +990,70 @@ function createHealthCheckBackup(db: SqliteDatabase): boolean {
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const backupPath = path.join(backupDir, `db_${timestamp}_health-check-repair.sqlite`);
+    const backupPath = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
     const escapedBackupPath = backupPath.replace(/'/g, "''");
 
     db.exec(`VACUUM INTO '${escapedBackupPath}'`);
-    console.log(`[DB] Health-check backup created: ${backupPath}`);
+    console.log(`[DB] Backup created (${reason}): ${backupPath}`);
     return true;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.warn("[DB] Failed to create health-check backup:", message);
+    console.warn(`[DB] Failed to create ${reason} backup:`, message);
     return false;
   }
+}
+
+function createHealthCheckBackup(db: SqliteDatabase): boolean {
+  return createManagedDbBackup(db, "health-check-repair");
+}
+
+function autoMigrateLegacyEncryptedConnections(db: SqliteDatabase): number {
+  const rows = db.prepare("SELECT * FROM provider_connections").all() as JsonRecord[];
+  const updateStmt = db.prepare(
+    "UPDATE provider_connections SET api_key = @apiKey, id_token = @idToken, access_token = @accessToken, refresh_token = @refreshToken, updated_at = @updatedAt WHERE id = @id"
+  );
+  const encryptedFields = ["apiKey", "idToken", "accessToken", "refreshToken"] as const;
+  let migratedCount = 0;
+  let backupCreated = false;
+
+  for (const row of rows) {
+    const camelRow = rowToCamel(row);
+    if (!camelRow) continue;
+
+    let updatedRow = false;
+    for (const field of encryptedFields) {
+      if (typeof camelRow[field] !== "string") continue;
+
+      const { updated, value } = migrateLegacyEncryptedString(camelRow[field]);
+      if (updated) {
+        camelRow[field] = value;
+        updatedRow = true;
+      }
+    }
+
+    if (!updatedRow) continue;
+    if (!backupCreated) {
+      createManagedDbBackup(db, "legacy-encryption-migration");
+      backupCreated = true;
+    }
+
+    updateStmt.run({
+      id: camelRow.id,
+      apiKey: camelRow.apiKey ?? null,
+      idToken: camelRow.idToken ?? null,
+      accessToken: camelRow.accessToken ?? null,
+      refreshToken: camelRow.refreshToken ?? null,
+      updatedAt: new Date().toISOString(),
+    });
+    migratedCount++;
+  }
+
+  if (migratedCount > 0) {
+    invalidateDbCache("connections");
+    console.log(`[DB] Auto-migrated ${migratedCount} connection(s) to new static-salt encryption.`);
+  }
+
+  return migratedCount;
 }
 
 let dbHealthCheckTimer: NodeJS.Timeout | null = null;
@@ -1290,7 +1350,7 @@ export function getDbInstance(): SqliteDatabase {
 
   // Re-encrypt any tokens using the legacy dynamic salt to canonical static salt
   try {
-    autoMigrateLegacyEncryptedConnections();
+    autoMigrateLegacyEncryptedConnections(db);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[DB] Legacy encryption migration failed: ${message}`);
@@ -1582,10 +1642,11 @@ export function runManualVacuum(): { success: boolean; duration: number; error?:
     const duration = Date.now() - startTime;
     console.log(`[DB] Manual VACUUM completed in ${duration}ms`);
     return { success: true, duration };
-  } catch (err: any) {
+  } catch (err: unknown) {
     const duration = Date.now() - startTime;
     console.error("[DB] Manual VACUUM failed:", err);
-    return { success: false, duration, error: err.message };
+    const message = err instanceof Error ? err.message : String(err);
+    return { success: false, duration, error: message };
   }
 }
 

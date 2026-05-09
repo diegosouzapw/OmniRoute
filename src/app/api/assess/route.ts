@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { Assessor } from "@/domain/assessment/assessor";
 import { Categorizer } from "@/domain/assessment/categorizer";
 import { SelfHealer } from "@/domain/assessment/selfHealer";
-import { type AssessmentScope, type AssessmentTrigger } from "@/domain/assessment/types";
+import {
+  type AssessmentScope,
+  type AssessmentTrigger,
+  type ModelCategory,
+} from "@/domain/assessment/types";
+import { validateBody } from "@/shared/validation/helpers";
 
 const assessor = new Assessor(
   process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? "",
@@ -12,11 +18,56 @@ const assessor = new Assessor(
 const categorizer = new Categorizer();
 const healer = new SelfHealer();
 
+const modelCategories = new Set<ModelCategory>([
+  "coding",
+  "reasoning",
+  "reasoning_deep",
+  "chat",
+  "fast",
+  "vision",
+  "tool_call",
+  "structured_output",
+]);
+
+const assessmentScopeSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("all") }),
+  z.object({ type: z.literal("provider"), providerId: z.string().min(1) }),
+  z.object({ type: z.literal("model"), modelId: z.string().min(1) }),
+]);
+
+const assessmentPostSchema = z.object({
+  scope: assessmentScopeSchema.optional().default({ type: "all" }),
+  trigger: z
+    .enum(["scheduled", "on_demand", "on_provider_change", "on_error", "startup"])
+    .optional()
+    .default("on_demand"),
+});
+
+type ModelListItem = { id: string };
+
+function isModelCategory(value: string): value is ModelCategory {
+  return modelCategories.has(value as ModelCategory);
+}
+
+function isModelListItem(value: unknown): value is ModelListItem {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "id" in value &&
+    typeof (value as { id?: unknown }).id === "string"
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const scope: AssessmentScope = body.scope ?? { type: "all" };
-    const trigger: AssessmentTrigger = body.trigger ?? "on_demand";
+    const rawBody = await request.json();
+    const validation = validateBody(assessmentPostSchema, rawBody);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
+    const scope: AssessmentScope = validation.data.scope;
+    const trigger: AssessmentTrigger = validation.data.trigger;
 
     let models: Array<{ providerId: string; modelId: string }>;
 
@@ -63,7 +114,9 @@ export async function GET(request: NextRequest) {
     let results = assessor.getAllAssessments();
     if (status) results = results.filter((a) => a.status === status);
     if (provider) results = results.filter((a) => a.providerId === provider);
-    if (category) results = results.filter((a) => a.categories.includes(category as any));
+    if (category && isModelCategory(category)) {
+      results = results.filter((a) => a.categories.includes(category));
+    }
 
     return NextResponse.json({ models: results });
   }
@@ -93,10 +146,12 @@ async function getAllModels(): Promise<Array<{ providerId: string; modelId: stri
         Authorization: `Bearer ${process.env.OMNIROUTe_API_KEY ?? process.env.API_KEY ?? ""}`,
       },
     });
-    const data = await resp.json();
-    return (data.data ?? [])
-      .filter((m: any) => m.id?.startsWith("auto/"))
-      .map((m: any) => ({ providerId: "auto", modelId: m.id.replace("auto/", "") }));
+    const data = (await resp.json()) as { data?: unknown };
+    const models = Array.isArray(data.data) ? data.data : [];
+    return models
+      .filter(isModelListItem)
+      .filter((model) => model.id.startsWith("auto/"))
+      .map((model) => ({ providerId: "auto", modelId: model.id.replace("auto/", "") }));
   } catch {
     return [];
   }

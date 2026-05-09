@@ -331,11 +331,15 @@ jobs:
           name: coverage-report
           path: .
       - name: Explain SonarQube skip
-        if: ${{ env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
+        if: ${{ github.event_name != 'pull_request' || env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == '' }}
         run: |
-          echo "SonarQube scan skipped because SONAR_TOKEN or SONAR_HOST_URL is not configured." >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "SonarQube scan skipped on non-PR events to keep main pushes governed by repository CI gates." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "SonarQube scan skipped because SONAR_TOKEN or SONAR_HOST_URL is not configured." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: SonarQube Scan
-        if: ${{ env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
+        if: ${{ github.event_name == 'pull_request' && env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != '' }}
         uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}

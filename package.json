@@ -219,6 +219,7 @@
     "dompurify": "^3.4.2",
     "path-to-regexp": "^8.4.0",
     "postcss": "^8.5.10",
+    "ip-address": "10.1.1",
     "hono": "^4.12.14",
     "@hono/node-server": "^1.19.13",
     "react": "$react",

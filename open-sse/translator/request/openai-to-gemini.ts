@@ -58,7 +58,7 @@ type GeminiFunctionDeclaration = {
 type GeminiRequest = {
   model: string;
   contents?: GeminiContent[];
-  [key: string]: any;
+  [key: string]: unknown;
   generationConfig: GeminiGenerationConfig;
   safetySettings: unknown;
   systemInstruction?: GeminiContent;
@@ -81,7 +81,7 @@ type CloudCodeEnvelope = {
     session_id?: string;
     sessionId?: string;
     contents?: GeminiContent[];
-    [key: string]: any;
+    [key: string]: unknown;
     systemInstruction?: GeminiContent;
     generationConfig: GeminiGenerationConfig;
     tools?: Array<{
@@ -101,6 +101,15 @@ type GeminiToolNameOptions = {
   functionResponseShape?: "result" | "output";
 };
 
+type OpenAIToolCallLike = {
+  thoughtSignature?: unknown;
+  thought_signature?: unknown;
+  function?: {
+    thoughtSignature?: unknown;
+    thought_signature?: unknown;
+  };
+};
+
 function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, string> | null {
   const changedEntries = [...toolNameMap.entries()].filter(
     ([sanitizedName, originalName]) => sanitizedName !== originalName
@@ -108,16 +117,17 @@ function buildChangedToolNameMap(toolNameMap: Map<string, string>): Map<string, 
   return changedEntries.length > 0 ? new Map(changedEntries) : null;
 }
 
-function extractClientThoughtSignature(toolCall) {
+function extractClientThoughtSignature(toolCall: unknown): string | null {
   if (!toolCall || typeof toolCall !== "object") return null;
+  const candidate = toolCall as OpenAIToolCallLike;
 
-  return (
-    toolCall.thoughtSignature ||
-    toolCall.thought_signature ||
-    toolCall.function?.thoughtSignature ||
-    toolCall.function?.thought_signature ||
-    null
-  );
+  const signature =
+    candidate.thoughtSignature ||
+    candidate.thought_signature ||
+    candidate.function?.thoughtSignature ||
+    candidate.function?.thought_signature ||
+    null;
+  return typeof signature === "string" && signature.length > 0 ? signature : null;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)

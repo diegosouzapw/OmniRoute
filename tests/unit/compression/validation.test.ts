@@ -117,6 +117,13 @@ describe("compression preservation and validation", () => {
     assert.ok(validation.errors.length >= 2);
   });
 
+  it("formats validation previews with linear whitespace collapsing", () => {
+    const original = `Use \`${"\t".repeat(5000)}exact_token\` in the request.`;
+    const validation = validateCompression(original, "Use token.");
+    assert.equal(validation.valid, false);
+    assert.match(validation.errors.join("\n"), /inline code changed or missing: ` exact_token`/);
+  });
+
   it("falls back to original when validation detects structural loss", () => {
     const original = "Please make sure to use `the exact token` in the request.";
     const result = cavemanCompress(
