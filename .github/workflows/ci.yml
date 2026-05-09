@@ -102,6 +102,42 @@ jobs:
             cat .artifacts/pr-test-policy.md >> "$GITHUB_STEP_SUMMARY"
           fi
 
+  advanced-security:
+    name: Advanced Security Scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.before || github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:node-runtime
+      - name: Dependency audit
+        run: npm audit --audit-level=high --omit=dev
+      - name: Check for known vulnerabilities
+        run: npx is-my-node-vulnerable
+      - name: Run Snyk Vulnerability checks
+        if: github.actor != 'dependabot[bot]' && secrets.SNYK_TOKEN != ''
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+      - name: Explain Snyk skip
+        if: github.actor != 'dependabot[bot]' && secrets.SNYK_TOKEN == ''
+        run: |
+          echo "Snyk scan skipped because SNYK_TOKEN is not configured for this repository." >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: Build
     runs-on: ubuntu-latest
