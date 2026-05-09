@@ -27,6 +27,21 @@ function parseToolInput(value: unknown) {
   }
 }
 
+function normalizeKiroToolSchema(schema: unknown) {
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
+    return { type: "object", properties: {}, required: [] };
+  }
+
+  return {
+    type: "object",
+    properties: {},
+    ...(schema as Record<string, unknown>),
+    required: Array.isArray((schema as { required?: unknown }).required)
+      ? (schema as { required: unknown[] }).required
+      : [],
+  };
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -83,7 +98,9 @@ function convertMessages(messages, tools, model) {
               name,
               description,
               inputSchema: {
-                json: t.function?.parameters || t.parameters || t.input_schema || {},
+                json: normalizeKiroToolSchema(
+                  t.function?.parameters || t.parameters || t.input_schema || {}
+                ),
               },
             },
           };
@@ -144,7 +161,7 @@ function convertMessages(messages, tools, model) {
 
             pendingToolResults.push({
               toolUseId: block.tool_use_id,
-              status: "SUCCESS",
+              status: "success",
               content: [{ text: text }],
             });
           });
@@ -156,7 +173,7 @@ function convertMessages(messages, tools, model) {
         const toolContent = typeof msg.content === "string" ? msg.content : "";
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
-          status: "SUCCESS",
+          status: "success",
           content: [{ text: toolContent }],
         });
       } else if (content) {
@@ -226,10 +243,13 @@ function convertMessages(messages, tools, model) {
     flushPending();
   }
 
-  // If last message in history is userInputMessage, use it as currentMessage
+  // Kiro requires currentMessage to be a user turn. If the request ends with a
+  // user turn, move that final turn into currentMessage. If it ends with an
+  // assistant/tool turn, keep chronological history intact and ask Kiro to
+  // continue instead of reordering prior turns.
   if (history.length > 0 && history[history.length - 1].userInputMessage) {
     currentMessage = history.pop();
-  } else if (!currentMessage) {
+  } else {
     currentMessage = {
       userInputMessage: {
         content: "Continue",

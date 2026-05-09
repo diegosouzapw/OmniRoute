@@ -99,15 +99,20 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal((context.toolResults as any).length, 2);
   assert.deepEqual(context.toolResults[0], {
     toolUseId: "call_1",
-    status: "SUCCESS",
+    status: "success",
     content: [{ text: "file contents" }],
   });
   assert.deepEqual(context.toolResults[1], {
     toolUseId: "call_1",
-    status: "SUCCESS",
+    status: "success",
     content: [{ text: "done" }],
   });
   assert.equal(context.tools[0].toolSpecification.name, "read_file");
+  assert.deepEqual(context.tools[0].toolSpecification.inputSchema.json, {
+    type: "object",
+    properties: { path: { type: "string" } },
+    required: [],
+  });
 });
 
 test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empty input", () => {
@@ -192,6 +197,29 @@ test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empt
     (toolUseResult.conversationState.history[1] as any).assistantResponseMessage.toolUses[0].input,
     {}
   );
+});
+
+test("OpenAI -> Kiro uses Continue currentMessage when the request ends with assistant history", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "First user" },
+        { role: "assistant", content: "Assistant answer" },
+      ],
+    },
+    false,
+    null
+  );
+
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /^\[Context: Current time is .*Z\]\n\nContinue$/
+  );
+  assert.deepEqual(result.conversationState.history, [
+    { userInputMessage: { content: "First user", modelId: "claude-sonnet-4" } },
+    { assistantResponseMessage: { content: "Assistant answer" } },
+  ]);
 });
 
 test("OpenAI -> Kiro derives a stable conversationId for the same first history turn", () => {
