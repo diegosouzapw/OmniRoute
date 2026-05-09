@@ -138,7 +138,7 @@ export function countFiles(options: { apiKeyId?: string; purpose?: string } = {}
     query += " AND purpose = ?";
     params.push(purpose);
   }
-  const row = db.prepare(query).get(...params);
+  const row = db.prepare(query).get(...params) as { c: number } | undefined;
   return row ? Number(row.c) : 0;
 }
 
