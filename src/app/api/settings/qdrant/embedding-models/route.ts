@@ -42,16 +42,21 @@ export async function GET(request: NextRequest) {
       )?.apiKey as string | undefined;
 
       if (apiKey) {
-        const res = await fetch(
-          "https://openrouter.ai/api/v1/models?output_modalities=embeddings",
-          {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 7000);
+        let res: Response;
+        try {
+          res = await fetch("https://openrouter.ai/api/v1/models?output_modalities=embeddings", {
             method: "GET",
             headers: {
               Authorization: `Bearer ${apiKey}`,
             },
             cache: "no-store",
-          }
-        );
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
         if (res.ok) {
           const data = (await res.json().catch(() => null)) as any;
           const rows = Array.isArray(data?.data) ? data.data : [];

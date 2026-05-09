@@ -1,5 +1,5 @@
 import { getSettings } from "@/lib/db/settings";
-import { handleValidatedEmbeddingRequestBody } from "@/app/api/v1/embeddings/route";
+import { createEmbeddingResponse } from "@/lib/embeddings/service";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -126,6 +126,13 @@ async function getCollectionVectorName(cfg: QdrantConfig): Promise<string | null
   if (!vectors || typeof vectors !== "object" || Array.isArray(vectors)) {
     return null;
   }
+  // Unnamed/single-vector config: { size, distance, ... } (not a named map)
+  if (
+    Object.prototype.hasOwnProperty.call(vectors, "size") &&
+    (typeof vectors.size === "number" || typeof vectors.size === "string")
+  ) {
+    return null;
+  }
   const names = Object.keys(vectors);
   if (names.length === 0) return null;
   return names[0] || null;
@@ -137,7 +144,7 @@ async function embedText(cfg: QdrantConfig, text: string): Promise<number[]> {
     throw new Error(`Invalid embedding model '${modelStr}'. Use provider/model format.`);
   }
 
-  const res = await handleValidatedEmbeddingRequestBody({
+  const res = await createEmbeddingResponse({
     model: modelStr,
     input: text,
   });
