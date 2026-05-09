@@ -299,15 +299,17 @@ export function parseQuotaData(provider, data) {
 
       case "deepseek":
         // DeepSeek balance: credits-style display with currency
-        // Handles both "credits" and "credits_usd"/"credits_cny" key formats
+        // Match any "credits" key with optional 3-letter currency suffix
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([quotaKey, quota]: [string, any]) => {
-            // Match credits_usd, credits_cny, or legacy credits
-            if (/^credits(?:_usd|_cny)?$/.test(quotaKey)) {
+            // Match credits, credits_usd, credits_cny, credits_eur, etc.
+            const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
+            if (match) {
               const remaining = Number(quota?.remaining ?? 0);
-              const currency = quota?.currency ?? (quotaKey.includes("cny") ? "CNY" : "USD");
+              // Extract currency from key suffix or use quota.currency, fallback to USD
+              const currency = quota?.currency ?? (match[1] ? match[1].toUpperCase() : "USD");
               normalizedQuotas.push({
-                name: `${currency}`,
+                name: currency,
                 used: 0,
                 total: 0,
                 remaining,

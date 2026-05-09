@@ -44,6 +44,17 @@ const PROVIDER_CONFIG = {
   deepseek: { label: "DeepSeek", color: "#4D6BFE" },
 };
 
+// Currency symbol mapping
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  CNY: "¥",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  KRW: "₩",
+  INR: "₹",
+};
+
 const TIER_FILTERS = [
   { key: "all", labelKey: "tierAll" },
   { key: "enterprise", labelKey: "tierEnterprise" },
@@ -643,7 +654,7 @@ export default function ProviderLimits() {
                                 className="text-[12px] font-bold tabular-nums"
                                 style={{ color: colors.text }}
                               >
-                                {q.currency === "CNY" ? "¥" : q.currency === "USD" ? "$" : ""}
+                                {CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? ""}
                                 {(q.creditCount ?? q.remaining).toLocaleString(undefined, {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
