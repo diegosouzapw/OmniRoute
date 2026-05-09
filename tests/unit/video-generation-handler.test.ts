@@ -124,16 +124,18 @@ test("handleVideoGeneration polls KIE market tasks and returns video URLs", asyn
   };
 
   try {
+    assert.ok(VIDEO_PROVIDERS.kie.models.some((model) => model.id === "kling-3.0/video"));
+
     const result = await handleVideoGeneration({
       body: {
-        model: "kie/kling-2.6/text-to-video",
+        model: "kie/kling-3.0/video",
         prompt: "cinematic shot of neon city rain",
       },
       credentials: { apiKey: "kie-key" },
       log: null,
     });
 
-    assert.equal(createBody.model, "kling-2.6/text-to-video");
+    assert.equal(createBody.model, "kling-3.0/video");
     assert.equal(createBody.input.prompt, "cinematic shot of neon city rain");
     assert.match(pollUrl, /taskId=kie-video-task/);
     assert.equal(result.success, true);

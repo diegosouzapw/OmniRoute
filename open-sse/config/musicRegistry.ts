@@ -32,8 +32,8 @@ export const MUSIC_PROVIDERS: Record<string, MusicProvider> = {
     authHeader: "bearer",
     format: "kie-music",
     models: [
-      { id: "suno-v3.5", name: "Suno V3.5" },
       { id: "suno-v4.0", name: "Suno V4.0" },
+      { id: "suno-v3.5", name: "Suno V3.5" },
     ],
   },
 
