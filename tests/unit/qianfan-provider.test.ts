@@ -22,12 +22,12 @@ test("qianfan registers Baidu ERNIE as an OpenAI-compatible API key provider", (
   assert.equal(registryEntry.authHeader, "bearer");
   assert.equal(registryEntry.baseUrl, "https://qianfan.baidubce.com/v2/chat/completions");
   assert.equal(registryEntry.defaultContextLength, 128000);
-  assert.equal(registryEntry.passthroughModels, true);
+  assert.equal(registryEntry.passthroughModels, undefined);
 
   assert.ok(APIKEY_PROVIDERS.qianfan, "qianfan should be visible in API key providers");
   assert.equal(APIKEY_PROVIDERS.qianfan.name, "Baidu Qianfan");
   assert.equal(APIKEY_PROVIDERS.qianfan.website, "https://cloud.baidu.com/product/wenxinworkshop");
-  assert.equal(APIKEY_PROVIDERS.qianfan.passthroughModels, true);
+  assert.equal(APIKEY_PROVIDERS.qianfan.passthroughModels, undefined);
 
   assert.equal(PROVIDERS.qianfan.baseUrl, registryEntry.baseUrl);
   assert.equal(PROVIDERS.qianfan.format, "openai");
@@ -39,15 +39,16 @@ test("qianfan exposes ERNIE chat models in the local model catalog", () => {
   const models = getModelsByProviderId("qianfan");
   const modelIds = models.map((model) => model.id);
 
-  assert.ok(modelIds.includes("ernie-4.5-turbo-128k"));
-  assert.ok(modelIds.includes("ernie-x1-turbo-32k"));
-  assert.ok(modelIds.includes("ernie-4.5-8k-preview"));
+  assert.ok(modelIds.includes("ernie-5.1"));
+  assert.ok(modelIds.includes("ernie-5.0-thinking-latest"));
+  assert.ok(modelIds.includes("ernie-x1.1"));
+  assert.equal(models.find((model) => model.id === "ernie-x1.1")?.contextLength, 64000);
   assert.ok(models.every((model) => typeof model.name === "string" && model.name.length > 0));
 });
 
-test("qianfan accepts known and passthrough model IDs", () => {
-  assert.equal(isValidModel("qianfan", "ernie-4.5-turbo-128k"), true);
-  assert.equal(isValidModel("qianfan", "future-qianfan-openai-compatible-model"), true);
+test("qianfan accepts known model IDs", () => {
+  assert.equal(isValidModel("qianfan", "ernie-5.1"), true);
+  assert.equal(isValidModel("qianfan", "future-qianfan-openai-compatible-model"), false);
 });
 
 test("qianfan provider creation schema accepts API-key connections", () => {

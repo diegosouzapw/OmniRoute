@@ -105,7 +105,7 @@ const EXAMPLE_BODIES: Record<string, string> = {
     2
   ),
   "/v1/images/generations": JSON.stringify(
-    { model: "openai/dall-e-3", prompt: "A sunset over mountains", n: 1 },
+    { model: "openai/gpt-image-2", prompt: "A sunset over mountains", n: 1 },
     null,
     2
   ),

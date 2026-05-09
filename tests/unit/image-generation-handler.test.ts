@@ -1747,7 +1747,7 @@ test("handleImageGeneration (codex) propagates upstream HTTP errors", async () =
   }
 });
 
-test("handleImageGeneration (codex) forwards size and maps DALL-E quality to hosted tool config", async () => {
+test("handleImageGeneration (codex) forwards size and maps GPT-Image quality to hosted tool config", async () => {
   const originalFetch = globalThis.fetch;
   let captured;
   globalThis.fetch = async (_url, options = {}) => {

@@ -182,7 +182,6 @@ export const APIKEY_PROVIDERS = {
     color: "#2468F2",
     textIcon: "BD",
     website: "https://cloud.baidu.com/product/wenxinworkshop",
-    passthroughModels: true,
     apiHint:
       "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
   },

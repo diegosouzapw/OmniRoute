@@ -67,7 +67,7 @@ test("VertexExecutor.buildUrl defaults to us-central1 and unknown-project when p
 
 test("VertexExecutor.buildUrl routes partner and org-prefixed models to the global partner endpoint", () => {
   const executor = new VertexExecutor();
-  const deepseek = executor.buildUrl("deepseek-v3.2", false, 0, {
+  const deepseek = executor.buildUrl("DeepSeek-V4-Flash", false, 0, {
     apiKey: createServiceAccountJson({ projectId: "proj-deepseek" }),
   });
   const metaLlama = executor.buildUrl("meta/llama-3.1-405b-instruct-maas", true, 0, {

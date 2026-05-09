@@ -85,7 +85,7 @@ Quality: Production-ready models
 ```
 Combo: "always-on"
   1. cc/claude-opus-4-7        (best quality)
-  2. cx/gpt-5.2-codex          (second subscription)
+  2. cx/gpt-5.5                (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
   5. if/kimi-k2-thinking       (free unlimited)
@@ -123,7 +123,7 @@ Dashboard → Providers → Connect Claude Code
 
 Models:
   cc/claude-opus-4-7
-  cc/claude-sonnet-4-5-20250929
+  cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
@@ -137,8 +137,8 @@ Dashboard → Providers → Connect Codex
 → 5-hour + weekly reset
 
 Models:
-  cx/gpt-5.2-codex
-  cx/gpt-5.1-codex-max
+  cx/gpt-5-5
+  cx/gpt-5-3-codex-spark
 ```
 
 #### Gemini CLI (FREE 180K/month!)
@@ -149,8 +149,8 @@ Dashboard → Providers → Connect Gemini CLI
 → 180K completions/month + 1K/day
 
 Models:
-  gc/gemini-3-flash-preview
-  gc/gemini-2.5-pro
+  gc/gemini-3-flash
+  gc/gemini-3.1-flash-lite-preview
 ```
 
 **Best Value:** Huge free tier! Use this before paid tiers.
@@ -163,8 +163,8 @@ Dashboard → Providers → Connect GitHub
 → Monthly reset (1st of month)
 
 Models:
-  gh/gpt-5
-  gh/claude-4.5-sonnet
+  gh/gpt-5.4
+  gh/claude-4.6-sonnet
   gh/gemini-3.1-pro-preview
 ```
 
@@ -172,7 +172,7 @@ Models:
 
 #### GLM-4.7 (Daily reset, $0.6/1M)
 
-1. Sign up: [Zhipu AI](https://open.bigmodel.cn/)
+1. Sign up: [Zhipu AI](https://open.bigmodel.cn)
 2. Get API key from Coding Plan
 3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
 
@@ -180,24 +180,24 @@ Models:
 
 #### MiniMax M2.1 (5h reset, $0.20/1M)
 
-1. Sign up: [MiniMax](https://www.minimax.io/)
+1. Sign up: [MiniMax](https://www.minimax.io)
 2. Get API key → Dashboard → Add API Key
 
 **Use:** `minimax/MiniMax-M2.1` — **Pro Tip:** Cheapest option for long context (1M tokens)!
 
 #### Kimi K2 ($9/month flat)
 
-1. Subscribe: [Moonshot AI](https://platform.moonshot.ai/)
+1. Subscribe: [Moonshot AI](https://platform.moonshot.ai)
 2. Get API key → Dashboard → Add API Key
 
-**Use:** `kimi/kimi-latest` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
+**Use:** `kimi/kimi-k2.5` — **Pro Tip:** Fixed $9/month for 10M tokens = $0.90/1M effective cost!
 
 #### Baidu Qianfan / ERNIE
 
 1. Sign up: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
 2. Create a Qianfan API key → Dashboard → Add API Key: Provider: `qianfan`
 
-**Use:** `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`, or another Qianfan OpenAI-compatible model ID.
+**Use:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, or another Qianfan OpenAI-compatible model ID.
 
 ### 🆓 FREE Providers
 
@@ -207,14 +207,6 @@ Models:
 Dashboard → Connect Qoder → OAuth login → Unlimited usage
 
 Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
-```
-
-#### Qwen (3 FREE models)
-
-```bash
-Dashboard → Connect Qwen → Device code auth → Unlimited usage
-
-Models: qw/qwen3-coder-plus, qw/qwen3-coder-flash
 ```
 
 #### Kiro (Claude FREE)
@@ -240,7 +232,7 @@ Name: premium-coding
 Models:
   1. cc/claude-opus-4-7 (Subscription primary)
   2. glm/glm-4.7 (Cheap backup, $0.6/1M)
-  3. minimax/MiniMax-M2.1 (Cheapest fallback, $0.20/1M)
+  3. minimax/MiniMax-M2.7 (Cheapest fallback, $0.3/1M)
 
 Use in CLI: premium-coding
 ```
@@ -535,7 +527,7 @@ post_install() {
 | Variable                                | Default                              | Description                                                                                               |
 | --------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------- |
 | `JWT_SECRET`                            | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)                                                             |
-| `INITIAL_PASSWORD`                      | `123456`                             | First login password                                                                                      |
+| `INITIAL_PASSWORD`                      | `CHANGEME`                           | First login password                                                                                      |
 | `DATA_DIR`                              | `~/.omniroute`                       | Data directory (db, usage, logs)                                                                          |
 | `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
 | `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
@@ -564,45 +556,45 @@ For the full environment variable reference, see the [README](../README.md).
 <details>
 <summary><b>View all available models</b></summary>
 
-**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
+**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-6`, `cc/claude-haiku-4-5-20251001`
 
-**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.2-codex`, `cx/gpt-5.1-codex-max`
+**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.5`, `cx/gpt-5.4`, `cx/gpt-5.3-codex-spark`, `cx/gpt-5.3-codex`
 
-**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-2.5-pro`
+**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-3.1-flash-lite-preview`
 
-**GitHub Copilot (`gh/`)**: `gh/gpt-5`, `gh/claude-4.5-sonnet`
+**GitHub Copilot (`gh/`)**: `gh/gpt-5-5`, `gh/gpt-5-4`, `gh/claude-opus-4.7`, `gh/claude-sonnet-4.6`, `gh/claude-haiku-4.5`
 
-**GLM (`glm/`)** — $0.6/1M: `glm/glm-4.7`
+**GLM (`glm/`)** — $0.6/1M: `glm/glm-5.1`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.1`
+**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.5`
 
 **Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
 
-**Qwen (`qw/`)** — FREE: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
+**Qwen (`qw/`)**: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
 
 **Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
 
-**DeepSeek (`ds/`)**: `ds/deepseek-chat`, `ds/deepseek-reasoner`
+**DeepSeek (`ds/`)**: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
 **Groq (`groq/`)**: `groq/llama-3.3-70b-versatile`, `groq/llama-4-maverick-17b-128e-instruct`
 
-**xAI (`xai/`)**: `xai/grok-4`, `xai/grok-4-0709-fast-reasoning`, `xai/grok-code-mini`
+**xAI (`xai/`)**: `xai/grok-4.3`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Mistral (`mistral/`)**: `mistral/mistral-large-2501`, `mistral/codestral-2501`
+**Mistral (`mistral/`)**: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Perplexity (`pplx/`)**: `pplx/sonar-pro`, `pplx/sonar`
+**Perplexity (`pplx/`)**: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
 **Together AI (`together/`)**: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
 
 **Fireworks AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
 
-**Cerebras (`cerebras/`)**: `cerebras/llama-3.3-70b`
+**Cerebras (`cerebras/`)**: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
 **Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
 
 **NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
 
-**Baidu Qianfan (`qianfan/`)**: `qianfan/ernie-4.5-turbo-128k`, `qianfan/ernie-x1-turbo-32k`
+**Baidu Qianfan (`qianfan/`)**: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
 
 </details>
 
@@ -618,10 +610,10 @@ Add any model ID to any provider without waiting for an app update:
 # Via API
 curl -X POST http://localhost:20128/api/provider-models \
   -H "Content-Type: application/json" \
-  -d '{"provider": "openai", "modelId": "gpt-4.5-preview", "modelName": "GPT-4.5 Preview"}'
+  -d '{"provider": "openai", "modelId": "gpt-5.2", "modelName": "GPT-5.2"}'
 
 # List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
+# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-5.2"
 ```
 
 Or use Dashboard: **Providers → [Provider] → Custom Models**.
@@ -748,8 +740,8 @@ underscores_in_headers on;
 Create wildcard patterns to remap model names:
 
 ```
-Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-5-20250929
-Pattern: gpt-*               →  Target: gh/gpt-5.1-codex
+Pattern: claude-sonnet-*     →  Target: cc/claude-sonnet-4-6
+Pattern: gpt-*               →  Target: gh/gpt-5.3-codex
 ```
 
 Wildcards support `*` (any characters) and `?` (single character).
@@ -761,7 +753,7 @@ Define global fallback chains that apply across all requests:
 ```
 Chain: production-fallback
   1. cc/claude-opus-4-7
-  2. gh/gpt-5.1-codex
+  2. gh/gpt-5.3-codex
   3. glm/glm-4.7
 ```
 
