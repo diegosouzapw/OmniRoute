@@ -107,6 +107,26 @@ test("GlmExecutor normalizes GLM coding and Anthropic URLs without duplicating e
     }),
     "https://proxy.example.com/api/anthropic/v1/messages/count_tokens?beta=true"
   );
+
+  assert.equal(
+    executor.buildUrl("glm-5.1", true, 0, {
+      providerSpecificData: {
+        baseUrl:
+          "https://proxy.example.com/api/coding/paas/v4/chat/completions?tenant=alpha&route=glm",
+      },
+    }),
+    "https://proxy.example.com/api/coding/paas/v4/chat/completions?tenant=alpha&route=glm"
+  );
+
+  assert.equal(
+    executor.buildCountTokensUrl("glm-5.1", {
+      providerSpecificData: {
+        anthropicBaseUrl:
+          "https://proxy.example.com/api/anthropic/v1/messages/count_tokens?tenant=alpha&route=glm",
+      },
+    }),
+    "https://proxy.example.com/api/anthropic/v1/messages/count_tokens?tenant=alpha&route=glm&beta=true"
+  );
 });
 
 test("GlmExecutor separates OpenAI-compatible coding headers from Anthropic headers", () => {
@@ -491,6 +511,46 @@ test("GlmExecutor preserves non-OK streaming upstream status before readiness", 
     assert.deepEqual(calls, ["https://api.z.ai/api/coding/paas/v4/chat/completions"]);
     assert.equal(result.response.status, 401);
     assert.match(await result.response.text(), /invalid api key/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GlmExecutor translates Anthropic JSON errors to OpenAI-shaped fallback responses", async () => {
+  const executor = new GlmExecutor("glm");
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        type: "error",
+        error: { type: "invalid_request_error", message: "bad anthropic fallback" },
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const result = await executor.execute({
+      model: "glm-5.1",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      stream: false,
+      credentials: {
+        apiKey: "glm-key",
+        providerSpecificData: {
+          baseUrl: "https://api.z.ai/api/anthropic/v1/messages",
+          primaryTransport: "anthropic",
+        },
+      },
+    });
+
+    assert.equal(result.targetFormat, "openai");
+    assert.equal(result.response.status, 400);
+    const json = await result.response.json();
+    assert.equal(json.error.message, "bad anthropic fallback");
   } finally {
     globalThis.fetch = originalFetch;
   }

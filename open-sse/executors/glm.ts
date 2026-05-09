@@ -105,6 +105,45 @@ async function translateJsonResponse(response: Response): Promise<Response> {
   });
 }
 
+async function translateAnthropicJsonResponse(response: Response): Promise<Response> {
+  const parsed = await response.json().catch(() => null);
+  const translated = response.ok
+    ? translateNonStreamingResponse(parsed, FORMATS.CLAUDE, FORMATS.OPENAI)
+    : translateAnthropicJsonError(parsed);
+  const headers = cloneHeaders(response.headers);
+  headers.set("content-type", "application/json");
+  headers.delete("content-length");
+  return new Response(JSON.stringify(translated), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function translateAnthropicJsonError(parsed: unknown): JsonRecord {
+  const root = asRecord(parsed) || {};
+  const error = asRecord(root.error) || root;
+  const message =
+    typeof error.message === "string" && error.message.trim()
+      ? error.message
+      : typeof root.message === "string" && root.message.trim()
+        ? root.message
+        : "GLM Anthropic transport error";
+  const type =
+    typeof error.type === "string" && error.type.trim()
+      ? error.type
+      : typeof root.type === "string" && root.type.trim()
+        ? root.type
+        : "upstream_error";
+
+  return {
+    error: {
+      message,
+      type,
+    },
+  };
+}
+
 function translateSseResponse(response: Response, provider: string, model: string): Response {
   if (!response.body) return response;
   const transform = createSSETransformStreamWithLogger(
@@ -277,12 +316,13 @@ export class GlmExecutor extends DefaultExecutor {
 
     const result = { response, url, headers, transformedBody };
 
-    if (transport === "anthropic" && result.response.ok) {
-      const translatedResponse = input.stream
-        ? translateSseResponse(result.response, this.provider, input.model)
-        : isJsonResponse(result.response)
-          ? await translateJsonResponse(result.response)
-          : result.response;
+    if (transport === "anthropic") {
+      const translatedResponse =
+        input.stream && result.response.ok
+          ? translateSseResponse(result.response, this.provider, input.model)
+          : isJsonResponse(result.response)
+            ? await translateAnthropicJsonResponse(result.response)
+            : result.response;
       return {
         ...result,
         response: translatedResponse,
@@ -298,7 +338,7 @@ export class GlmExecutor extends DefaultExecutor {
       url,
       headers,
       transformedBody,
-      targetFormat: transport === "anthropic" ? FORMATS.CLAUDE : FORMATS.OPENAI,
+      targetFormat: FORMATS.OPENAI,
     };
   }
 

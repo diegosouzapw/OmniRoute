@@ -24,6 +24,7 @@ const { initTranslators } = await import("../../open-sse/translator/index.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const { setCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
 const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
+const { GEMINI_CLI_VERSION } = await import("../../open-sse/services/geminiCliHeaders.ts");
 const { getCircuitBreaker, resetAllCircuitBreakers } =
   await import("../../src/shared/utils/circuitBreaker.ts");
 const { clearProviderFailure } = await import("../../open-sse/services/accountFallback.ts");
@@ -936,7 +937,9 @@ test("chat pipeline sends Gemini CLI OAuth requests with native Cloud Code trans
   assert.equal(generateCall.headers.Accept, "application/json");
   assert.match(
     generateCall.headers["User-Agent"],
-    /^GeminiCLI\/0\.40\.1\/gemini-3-flash-preview .* google-api-nodejs-client\/9\.15\.1$/
+    new RegExp(
+      `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-3-flash-preview .* google-api-nodejs-client/9\\.15\\.1$`
+    )
   );
   assert.match(generateCall.headers["X-Goog-Api-Client"], /^gl-node\/\d+\.\d+\.\d+$/);
   assert.equal(generateCall.body.project, "fresh-project");

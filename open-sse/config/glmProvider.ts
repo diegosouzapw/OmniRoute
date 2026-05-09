@@ -144,6 +144,11 @@ function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function splitUrlQueryAndHash(url: string): { base: string; suffix: string } {
+  const match = url.match(/^([^?#]*)(.*)$/);
+  return { base: match?.[1] ?? url, suffix: match?.[2] ?? "" };
+}
+
 export function getGlmApiRegion(providerSpecificData: unknown): GlmApiRegion {
   const data = asRecord(providerSpecificData);
   return data.apiRegion === "china" ? "china" : "international";
@@ -179,35 +184,38 @@ export function getGlmQuotaUrl(providerSpecificData: unknown): string {
   return GLM_QUOTA_URLS[getGlmApiRegion(providerSpecificData)];
 }
 
-function stripKnownGlmEndpointSuffix(baseUrl: string): string {
-  return baseUrl
-    .split("?")[0]
+function stripKnownGlmEndpointSuffix(baseUrl: string): { base: string; suffix: string } {
+  const parts = splitUrlQueryAndHash(baseUrl);
+  const base = parts.base
     .replace(/\/+$/g, "")
     .replace(/\/(?:v\d+\/)?messages\/count_tokens$/i, "")
     .replace(/\/(?:v\d+\/)?messages$/i, "")
     .replace(/\/chat\/completions$/i, "")
     .replace(/\/models$/i, "");
+  return { base, suffix: parts.suffix };
 }
 
 function joinGlmBaseAndPath(baseUrl: string, path: string): string {
-  const base = stripKnownGlmEndpointSuffix(baseUrl);
+  const { base, suffix } = stripKnownGlmEndpointSuffix(baseUrl);
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const versionMatch = base.match(/\/v\d+$/i);
   if (
     versionMatch &&
     normalizedPath.toLowerCase().startsWith(`${versionMatch[0].toLowerCase()}/`)
   ) {
-    return `${base}${normalizedPath.slice(versionMatch[0].length)}`;
+    return `${base}${normalizedPath.slice(versionMatch[0].length)}${suffix}`;
   }
-  return `${base}${normalizedPath}`;
+  return `${base}${normalizedPath}${suffix}`;
 }
 
 function stripQueryAndTrailingSlash(baseUrl: string): string {
-  return baseUrl.split("?")[0].replace(/\/+$/g, "");
+  return splitUrlQueryAndHash(baseUrl).base.replace(/\/+$/g, "");
 }
 
 function addBetaQuery(url: string): string {
-  return `${stripQueryAndTrailingSlash(url)}?beta=true`;
+  const parsed = new URL(url);
+  parsed.searchParams.set("beta", "true");
+  return parsed.toString();
 }
 
 export function isAnthropicGlmBaseUrl(baseUrl: string): boolean {
