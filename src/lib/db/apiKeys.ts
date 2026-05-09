@@ -737,7 +737,7 @@ export async function getApiKeyMetadata(
       revokedAt: null,
       expiresAt: null,
       ipAllowlist: [],
-      scopes: [],
+      scopes: ["manage"],
     };
   }
 

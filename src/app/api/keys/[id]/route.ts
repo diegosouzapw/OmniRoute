@@ -84,7 +84,7 @@ export async function PATCH(request, { params }) {
     if (isActive !== undefined) payload.isActive = isActive;
     if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
-    if (scopes !== undefined) (payload as Record<string, unknown>).scopes = scopes;
+    if (scopes !== undefined) payload.scopes = scopes;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {

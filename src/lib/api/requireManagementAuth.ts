@@ -20,25 +20,24 @@ export async function requireManagementAuth(request: Request): Promise<Response 
 
   const apiKey = extractApiKey(request);
   if (apiKey) {
-    let validKey = false;
+    let meta: Awaited<ReturnType<typeof getApiKeyMetadata>>;
     try {
-      validKey = await isValidApiKey(apiKey);
+      if (!(await isValidApiKey(apiKey))) {
+        return createErrorResponse({
+          status: 401,
+          message: "Invalid API key",
+          type: "invalid_request",
+        });
+      }
+      meta = await getApiKeyMetadata(apiKey);
     } catch {
-      // DB unavailable or similar transient error — treat as unauthenticated
-    }
-    if (!validKey) {
       return createErrorResponse({
-        status: 401,
-        message: "Invalid API key",
-        type: "invalid_request",
+        status: 503,
+        message: "Service temporarily unavailable",
+        type: "server_error",
       });
     }
 
-    // Env passthrough key (OMNIROUTE_API_KEY / ROUTER_API_KEY) is root by design
-    const envKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
-    if (envKey && apiKey === envKey) return null;
-
-    const meta = await getApiKeyMetadata(apiKey);
     if (meta && hasManageScope(meta.scopes)) return null;
 
     return createErrorResponse({
