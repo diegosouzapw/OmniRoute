@@ -515,15 +515,8 @@ export async function regenerateApiKey(id: string) {
   );
   updateStmt.run(newKey, newHash, newPrefix, id);
 
-  // Invalidate old caches
-  if (typeof row.key === "string") {
-    _keyValidationCache.delete(row.key);
-    _keyMetadataCache.delete(row.key);
-  }
-  if (typeof row.key_hash === "string") {
-    _keyValidationCache.delete(row.key_hash);
-    _keyMetadataCache.delete(row.key_hash);
-  }
+  // Invalidate all caches
+  clearApiKeyCaches();
 
   // Redis invalidation
   try {
