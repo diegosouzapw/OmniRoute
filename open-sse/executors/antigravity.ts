@@ -27,6 +27,7 @@ import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
+import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import {
   deriveAntigravityMachineId,
   generateAntigravityRequestId,
@@ -322,6 +323,46 @@ function applyAntigravityGenerationDefaults(request: Record<string, unknown>): v
   request.generationConfig = generationConfig;
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function sanitizeAntigravityGeminiRequest(
+  request: Record<string, unknown>,
+  fallbackContents: unknown[],
+  credentials: Record<string, unknown> | null | undefined
+): Record<string, unknown> {
+  const clean: Record<string, unknown> = {};
+
+  if (Array.isArray(request.contents)) {
+    clean.contents = request.contents;
+  } else if (fallbackContents.length > 0) {
+    clean.contents = fallbackContents;
+  }
+
+  if (asRecord(request.systemInstruction)) {
+    clean.systemInstruction = request.systemInstruction;
+  }
+
+  clean.generationConfig = asRecord(request.generationConfig)
+    ? { ...(request.generationConfig as Record<string, unknown>) }
+    : {};
+
+  const geminiTools = buildGeminiTools(request.tools);
+  if (geminiTools) {
+    clean.tools = geminiTools;
+    clean.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
+  } else if (asRecord(request.toolConfig)) {
+    clean.toolConfig = request.toolConfig;
+  }
+
+  clean.sessionId = getAntigravitySessionId(credentials, request.sessionId);
+
+  return clean;
+}
+
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
@@ -424,7 +465,7 @@ export class AntigravityExecutor extends BaseExecutor {
       }
     }
 
-    const transformedRequest = {
+    const rawTransformedRequest = {
       ...normalizedBody.request,
       ...(contents.length > 0 && { contents }),
       sessionId: getAntigravitySessionId(credentials, normalizedBody.request?.sessionId),
@@ -435,13 +476,9 @@ export class AntigravityExecutor extends BaseExecutor {
           : normalizedBody.request?.toolConfig,
     };
 
-    if (isClaude) {
-      delete transformedRequest.messages;
-      delete transformedRequest.system;
-      delete transformedRequest.max_tokens;
-      delete transformedRequest.stream;
-      delete transformedRequest.temperature;
-    }
+    const transformedRequest = isClaude
+      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest, contents, credentials)
+      : rawTransformedRequest;
 
     // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
     const requestContents = transformedRequest.contents;
