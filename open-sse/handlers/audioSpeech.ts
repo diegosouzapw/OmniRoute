@@ -428,7 +428,21 @@ async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) 
  * POST { text, voiceId, modelId, audioConfig } → JSON { audioContent: "<base64>" }
  * Docs: https://docs.inworld.ai/api-reference/ttsAPI/texttospeech/synthesize-speech
  */
+const INWORLD_AUDIO_FORMATS = {
+  mp3: { audioEncoding: "MP3", mimeType: "audio/mpeg" },
+  wav: { audioEncoding: "WAV", mimeType: "audio/wav" },
+  opus: { audioEncoding: "OPUS", mimeType: "audio/opus" },
+  pcm: { audioEncoding: "PCM", mimeType: "audio/pcm" },
+};
+
 async function handleInworldSpeech(providerConfig, body, modelId, token) {
+  const requestedFormat =
+    typeof body.response_format === "string" ? body.response_format.toLowerCase() : "mp3";
+  const audioFormat = INWORLD_AUDIO_FORMATS[requestedFormat];
+  if (!audioFormat) {
+    return errorResponse(400, "Inworld TTS supports response_format mp3, wav, opus, or pcm only");
+  }
+
   const res = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: {
@@ -440,7 +454,7 @@ async function handleInworldSpeech(providerConfig, body, modelId, token) {
       voiceId: body.voice || undefined,
       modelId,
       audioConfig: {
-        audioEncoding: body.response_format === "wav" ? "LINEAR16" : "MP3",
+        audioEncoding: audioFormat.audioEncoding,
       },
     }),
   });
@@ -452,7 +466,10 @@ async function handleInworldSpeech(providerConfig, body, modelId, token) {
   const data = await res.json();
   // Decode base64 audioContent to binary
   const audioBuffer = Uint8Array.from(atob(data.audioContent ?? ""), (c) => c.charCodeAt(0));
-  const mimeType = body.response_format === "wav" ? "audio/wav" : "audio/mpeg";
+  const mimeType =
+    typeof data.contentType === "string" && data.contentType
+      ? data.contentType
+      : audioFormat.mimeType;
 
   return new Response(audioBuffer, {
     status: 200,
