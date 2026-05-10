@@ -585,36 +585,53 @@ const NON_STREAMING_SSE_TERMINAL_TYPES = new Set([
   "response.incomplete",
 ]);
 
-function hasNonStreamingSseTerminalSignal(text: string): boolean {
-  const lines = String(text || "").split(/\r?\n/);
-  let currentEvent = "";
+type NonStreamingSseTerminalState = {
+  currentEvent: string;
+  pendingLine: string;
+};
+
+function processNonStreamingSseTerminalLine(
+  state: NonStreamingSseTerminalState,
+  rawLine: string
+): boolean {
+  const trimmed = rawLine.trim();
+  if (!trimmed || trimmed.startsWith(":")) {
+    if (!trimmed) state.currentEvent = "";
+    return false;
+  }
+
+  if (trimmed.startsWith("event:")) {
+    state.currentEvent = trimmed.slice(6).trim();
+    return false;
+  }
+
+  if (!trimmed.startsWith("data:")) return false;
+  const data = trimmed.slice(5).trim();
+  if (data === "[DONE]") return true;
+  if (!data) return false;
+
+  try {
+    const parsed = JSON.parse(data);
+    const eventType =
+      parsed && typeof parsed === "object" && typeof parsed.type === "string"
+        ? parsed.type
+        : state.currentEvent;
+    return NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType);
+  } catch {
+    // Keep reading malformed data so the parser can report a useful upstream error.
+    return false;
+  }
+}
+
+function appendNonStreamingSseTerminalSignal(
+  state: NonStreamingSseTerminalState,
+  chunk: string
+): boolean {
+  const lines = `${state.pendingLine}${chunk}`.split(/\r?\n/);
+  state.pendingLine = lines.pop() ?? "";
 
   for (const rawLine of lines) {
-    const trimmed = rawLine.trim();
-    if (!trimmed || trimmed.startsWith(":")) {
-      if (!trimmed) currentEvent = "";
-      continue;
-    }
-
-    if (trimmed.startsWith("event:")) {
-      currentEvent = trimmed.slice(6).trim();
-      continue;
-    }
-
-    if (!trimmed.startsWith("data:")) continue;
-    const data = trimmed.slice(5).trim();
-    if (!data || data === "[DONE]") return true;
-
-    try {
-      const parsed = JSON.parse(data);
-      const eventType =
-        parsed && typeof parsed === "object" && typeof parsed.type === "string"
-          ? parsed.type
-          : currentEvent;
-      if (NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType)) return true;
-    } catch {
-      // Keep reading malformed data so the parser can report a useful upstream error.
-    }
+    if (processNonStreamingSseTerminalLine(state, rawLine)) return true;
   }
 
   return false;
@@ -662,6 +679,10 @@ async function readNonStreamingResponseBody(
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  const terminalState: NonStreamingSseTerminalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
   let rawBody = "";
   const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
 
@@ -676,8 +697,9 @@ async function readNonStreamingResponseBody(
       if (done) break;
       if (!value) continue;
 
-      rawBody += decoder.decode(value, { stream: true });
-      if (hasNonStreamingSseTerminalSignal(rawBody)) {
+      const decodedChunk = decoder.decode(value, { stream: true });
+      rawBody += decodedChunk;
+      if (appendNonStreamingSseTerminalSignal(terminalState, decodedChunk)) {
         await reader.cancel("non-streaming bridge consumed terminal SSE event").catch(() => {});
         break;
       }

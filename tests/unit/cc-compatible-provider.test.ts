@@ -574,29 +574,32 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
 test("handleChatCore stops buffering CC-compatible SSE once a non-stream response completes", async () => {
   const encoder = new TextEncoder();
   let upstreamCancelled = false;
+  const upstreamChunks = [
+    "data:\n\n",
+    [
+      "event: message_start",
+      'data: {"type":"message_start","message":{"id":"msg_3","type":"message","role":"assistant","model":"claude-sonnet-4-6","usage":{"input_tokens":4,"output_tokens":0}}}',
+      "",
+      "event: content_block_delta",
+      'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Finished but connection stayed open"}}',
+      "",
+      "event: message_delta",
+      'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":6}}',
+      "",
+      "event: message_stop",
+      'data: {"type":"message_stop"}',
+      "",
+    ].join("\n"),
+  ];
+  let chunkIndex = 0;
 
   globalThis.fetch = async () =>
     new Response(
       new ReadableStream<Uint8Array>({
-        start(controller) {
-          controller.enqueue(
-            encoder.encode(
-              [
-                "event: message_start",
-                'data: {"type":"message_start","message":{"id":"msg_3","type":"message","role":"assistant","model":"claude-sonnet-4-6","usage":{"input_tokens":4,"output_tokens":0}}}',
-                "",
-                "event: content_block_delta",
-                'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Finished but connection stayed open"}}',
-                "",
-                "event: message_delta",
-                'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":6}}',
-                "",
-                "event: message_stop",
-                'data: {"type":"message_stop"}',
-                "",
-              ].join("\n")
-            )
-          );
+        pull(controller) {
+          if (chunkIndex < upstreamChunks.length) {
+            controller.enqueue(encoder.encode(upstreamChunks[chunkIndex++]));
+          }
         },
         cancel() {
           upstreamCancelled = true;

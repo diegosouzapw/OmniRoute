@@ -29,7 +29,6 @@ function delayedClaudeStartStream(): ReadableStream<Uint8Array> {
           [
             "event: message_start",
             `data: ${JSON.stringify({
-              type: "message_start",
               message: {
                 id: "msg_1",
                 type: "message",
@@ -139,6 +138,28 @@ test("hasStreamReadinessSignal accepts Claude stream start events", () => {
           role: "assistant",
           model: "claude-sonnet-4-6",
         },
+      })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `event: message_start\ndata: ${JSON.stringify({
+        message: {
+          id: "msg_2",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4-6",
+        },
+      })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `event: content_block_start\ndata: ${JSON.stringify({
+        index: 0,
+        content_block: { type: "text", text: "" },
       })}\n\n`
     ),
     true
