@@ -32,6 +32,7 @@ export interface ComboDefaults {
   strategy: RoutingStrategyValue;
   maxRetries: number;
   retryDelayMs: number;
+  fallbackDelayMs?: number;
   maxComboDepth: number;
   trackMetrics: boolean;
   concurrencyPerModel?: number;

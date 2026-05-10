@@ -42,8 +42,8 @@ function validateKeyName(
   if (name.length > MAX_KEY_NAME_LENGTH) {
     return { valid: false, error: t("keyNameTooLong", { max: MAX_KEY_NAME_LENGTH }) };
   }
-  // Only allow alphanumeric, spaces, hyphens, underscores
-  if (!/^[a-zA-Z0-9_\-\s]+$/.test(name)) {
+  // Allow Unicode letters (accented chars), numbers, spaces, hyphens, underscores
+  if (!/^[\p{L}\p{N}_\-\s]+$/u.test(name)) {
     return {
       valid: false,
       error: t("keyNameInvalid"),
@@ -74,6 +74,7 @@ interface ApiKey {
   maxSessions?: number;
   accessSchedule?: AccessSchedule | null;
   rateLimits?: Array<{ limit: number; window: number }> | null;
+  scopes?: string[];
   createdAt: string;
 }
 
@@ -191,6 +192,9 @@ export default function ApiManagerPageClient() {
         // Match call logs by unique ID as well for the lastUsed timestamp
         const lastUsed =
           (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
+          (logs || []).find(
+            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+          )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests,
@@ -355,6 +359,7 @@ export default function ApiManagerPageClient() {
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null
+    scopes: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
 
@@ -403,6 +408,7 @@ export default function ApiManagerPageClient() {
           maxSessions: normalizedMaxSessions,
           accessSchedule,
           rateLimits,
+          scopes,
         }),
       });
 
@@ -617,6 +623,7 @@ export default function ApiManagerPageClient() {
                 Array.isArray(key.allowedConnections) && key.allowedConnections.length > 0;
               const noLogEnabled = key.noLog === true;
               const keyIsActive = key.isActive !== false; // default true
+              const hasManageScope = Array.isArray(key.scopes) && key.scopes.includes("manage");
               const maxSessions = typeof key.maxSessions === "number" ? key.maxSessions : 0;
               const hasSessionLimit = maxSessions > 0;
               const activeSessions = sessionCounts[key.id] || 0;
@@ -706,6 +713,14 @@ export default function ApiManagerPageClient() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[11px] font-medium">
                           <span className="material-symbols-outlined text-[12px]">group</span>
                           Sessions: {activeSessions}/{maxSessions}
+                        </span>
+                      )}
+                      {hasManageScope && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[11px] font-medium">
+                          <span className="material-symbols-outlined text-[12px]">
+                            admin_panel_settings
+                          </span>
+                          manage
                         </span>
                       )}
                       {!keyIsActive && (
@@ -957,6 +972,7 @@ const PermissionsModal = memo(function PermissionsModal({
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
     rateLimits: Array<{ limit: number; window: number }> | null
+    scopes: string[]
   ) => void;
 }) {
   const t = useTranslations("apiManager");
@@ -975,6 +991,9 @@ const PermissionsModal = memo(function PermissionsModal({
   const [keyIsActive, setKeyIsActive] = useState(apiKey?.isActive !== false);
   const [keyIsBanned, setKeyIsBanned] = useState(apiKey?.isBanned === true);
   const [expiresAt, setExpiresAt] = useState(apiKey?.expiresAt ?? "");
+  const [manageEnabled, setManageEnabled] = useState(
+    Array.isArray(apiKey?.scopes) && apiKey.scopes.includes("manage")
+  );
   const [maxSessions, setMaxSessions] = useState(
     typeof apiKey?.maxSessions === "number" && apiKey.maxSessions > 0 ? apiKey.maxSessions : 0
   );
@@ -1123,6 +1142,7 @@ const PermissionsModal = memo(function PermissionsModal({
       maxSessions,
       schedule,
       rateLimits.length > 0 ? rateLimits : null
+      manageEnabled ? ["manage"] : []
     );
   }, [
     onSave,
@@ -1137,6 +1157,7 @@ const PermissionsModal = memo(function PermissionsModal({
     keyIsBanned,
     expiresAt,
     maxSessions,
+    manageEnabled,
     scheduleEnabled,
     scheduleFrom,
     scheduleUntil,
@@ -1501,6 +1522,13 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-sm font-bold text-red-700 dark:text-red-400">Banned Status</p>
             <p className="text-xs text-red-600 dark:text-red-300">
               Immediately revoke all access. Used for suspected abuse or compromised keys.
+        {/* Management API Access Toggle */}
+        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">Management API Access</p>
+            <p className="text-xs text-text-muted">
+              Allow this key to call management routes (providers, combos, settings) via{" "}
+              <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
             </p>
           </div>
           <button
@@ -1534,6 +1562,19 @@ const PermissionsModal = memo(function PermissionsModal({
             }}
             className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
           />
+        </div>
+
+            aria-checked={manageEnabled}
+            onClick={() => setManageEnabled((prev) => !prev)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              manageEnabled
+                ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
+                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+            {manageEnabled ? tc("enabled") : tc("disabled")}
+          </button>
         </div>
 
         {/* Selected Models Summary (only in restrict mode) */}

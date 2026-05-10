@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import crypto from "node:crypto";
 import { PROVIDERS } from "../config/constants.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -19,7 +18,6 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -28,11 +26,19 @@ import {
   updateAntigravityRemainingCredits,
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
+import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "./antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
     return PROVIDERS.antigravity.clientId;
@@ -515,7 +521,46 @@ async function getCrofUsage(apiKey: string) {
   return { quotas };
 }
 
+const GLM_QUOTA_ORDER = ["5 Hours Quota", "Weekly Quota", "Monthly Tools", "Tokens", "Time Limit"];
+
+function getGlmQuotaLabel(type: unknown, unit: unknown): string | null {
+  const normalized = typeof type === "string" ? type.trim().toUpperCase() : "";
+  const unitValue = toNumber(unit, -1);
+
+  switch (normalized) {
+    case "TOKENS_LIMIT":
+    case "TOKEN_LIMIT":
+      if (unitValue === 3) return "5 Hours Quota";
+      if (unitValue === 6) return "Weekly Quota";
+      return "Tokens";
+    case "TIME_LIMIT":
+    case "TIME_USAGE_LIMIT":
+      if (unitValue === 5) return "Monthly Tools";
+      return "Time Limit";
+    default:
+      return null;
+  }
+}
+
+function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
+  const ordered: Record<string, UsageQuota> = {};
+
+  for (const key of GLM_QUOTA_ORDER) {
+    if (quotas[key]) ordered[key] = quotas[key];
+  }
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    if (!ordered[key]) ordered[key] = quota;
+  }
+
+  return ordered;
+}
+
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
+  if (!apiKey) {
+    return { message: "API key not available. Add a coding plan API key to view usage." };
+  }
+
   const quotaUrl = getGlmQuotaUrl(providerSpecificData);
 
   const res = await fetch(quotaUrl, {
@@ -537,13 +582,14 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 
   for (const limit of limits) {
     const src = toRecord(limit);
-    if (src.type !== "TOKENS_LIMIT") continue;
+    const label = getGlmQuotaLabel(src.type, src.unit);
+    if (!label) continue;
 
     const usedPercent = toNumber(src.percentage, 0);
     const resetMs = toNumber(src.nextResetTime, 0);
     const remaining = Math.max(0, 100 - usedPercent);
 
-    quotas["session"] = {
+    quotas[label] = {
       used: usedPercent,
       total: 100,
       remaining,
@@ -558,7 +604,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
     ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
     : "Unknown";
 
-  return { plan, quotas };
+  return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
 /**
@@ -708,6 +754,7 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "qoder":
       return await getQoderUsage(accessToken);
     case "glm":
+    case "zai":
     case "glmt":
       return await getGlmUsage(apiKey, providerSpecificData);
     case "minimax":
@@ -1493,13 +1540,13 @@ async function probeAntigravityCreditBalanceUncached(
     for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
-      const sessionId = `-${crypto.randomUUID()}`;
+      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
       const body = {
         project: projectId,
         model: "gemini-2-flash",
         userAgent: "antigravity",
         requestType: "agent",
-        requestId: `credits-probe-${Date.now()}`,
+        requestId: generateAntigravityRequestId(),
         enabledCreditTypes: ["GOOGLE_ONE_AI"],
         request: {
           model: "gemini-2-flash",
@@ -1513,7 +1560,11 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
+        "x-client-name": "antigravity",
+        "x-client-version": getCachedAntigravityVersion(),
+        "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
+        "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+        "x-goog-user-project": projectId,
         Accept: "text/event-stream",
       };
 
@@ -1710,17 +1761,30 @@ async function getAntigravitySubscriptionInfo(accessToken) {
  * Claude Usage - Try to fetch from Anthropic API
  */
 async function getClaudeUsage(accessToken) {
+  // Refresh bootstrap in parallel; best-effort, failure non-fatal.
+  const bootstrapPromise = fetchClaudeBootstrap(accessToken).catch(() => null);
   try {
-    // Primary: Try OAuth usage endpoint (works with Claude Code consumer OAuth tokens)
-    // Requires anthropic-beta: oauth-2025-04-20 header
-    const oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "anthropic-beta": "oauth-2025-04-20",
-        "anthropic-version": CLAUDE_CONFIG.apiVersion,
-      },
-    });
+    // Real CLI uses axios here, not Stainless — UA is `claude-code/<version>`
+    // (not `claude-cli/...`) and the shape is simpler than /v1/messages.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let oauthResponse;
+    try {
+      oauthResponse = await fetch(CLAUDE_CONFIG.oauthUsageUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Accept-Encoding": "gzip, compress, deflate, br",
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "User-Agent": `claude-code/${CLAUDE_CODE_VERSION}`,
+          "anthropic-beta": "oauth-2025-04-20",
+        },
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     if (oauthResponse.ok) {
       const data = await oauthResponse.json();
@@ -1752,11 +1816,15 @@ async function getClaudeUsage(accessToken) {
         quotas["weekly (7d)"] = createQuotaObject(data.seven_day);
       }
 
-      // Parse model-specific weekly windows (e.g., seven_day_sonnet, seven_day_opus)
+      // Map Anthropic's internal codenames (e.g., omelette → Designer) for display.
+      const MODEL_DISPLAY_NAMES: Record<string, string> = {
+        omelette: "designer",
+      };
       for (const [key, value] of Object.entries(data)) {
         const valueRecord = toRecord(value);
         if (key.startsWith("seven_day_") && key !== "seven_day" && hasUtilization(valueRecord)) {
-          const modelName = key.replace("seven_day_", "");
+          const codename = key.replace("seven_day_", "");
+          const modelName = MODEL_DISPLAY_NAMES[codename] || codename;
           quotas[`weekly ${modelName} (7d)`] = createQuotaObject(valueRecord);
         }
       }
@@ -1775,6 +1843,7 @@ async function getClaudeUsage(accessToken) {
         plan: planRaw || "Claude Code",
         quotas,
         extraUsage: data.extra_usage ?? null,
+        bootstrap: await bootstrapPromise,
       };
     }
 
@@ -1782,9 +1851,13 @@ async function getClaudeUsage(accessToken) {
     console.warn(
       `[Claude Usage] OAuth endpoint returned ${oauthResponse.status}, falling back to legacy`
     );
-    return await getClaudeUsageLegacy(accessToken);
+    const legacy = await getClaudeUsageLegacy(accessToken);
+    return { ...legacy, bootstrap: await bootstrapPromise };
   } catch (error) {
-    return { message: `Claude connected. Unable to fetch usage: ${(error as Error).message}` };
+    return {
+      message: `Claude connected. Unable to fetch usage: ${(error as Error).message}`,
+      bootstrap: await bootstrapPromise,
+    };
   }
 }
 

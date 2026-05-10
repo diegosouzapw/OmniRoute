@@ -9,9 +9,7 @@ const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
 test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
   const antigravity = REGISTRY.antigravity;
   assert.ok(Array.isArray(antigravity.baseUrls));
-  assert.ok(
-    antigravity.baseUrls.some((u) => u === "https://daily-cloudcode-pa.sandbox.googleapis.com")
-  );
+  assert.equal(antigravity.baseUrls[0], "https://daily-cloudcode-pa.sandbox.googleapis.com");
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
 });
 

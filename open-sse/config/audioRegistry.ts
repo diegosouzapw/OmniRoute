@@ -100,6 +100,18 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     format: "openai",
     models: [{ id: "qwen3-asr", name: "Qwen3 ASR" }],
   },
+
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/speech-to-text", name: "ElevenLabs STT" },
+      { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
+    ],
+  },
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
@@ -244,6 +256,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     models: [
       { id: "PlayDialog", name: "PlayDialog" },
       { id: "Play3.0-mini", name: "Play3.0 Mini" },
+    ],
+  },
+
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/text-to-speech-multilingual-v2", name: "ElevenLabs TTS v2" },
+      { id: "elevenlabs/text-to-speech-turbo-2-5", name: "ElevenLabs TTS Turbo 2.5" },
+      { id: "elevenlabs/text-to-dialogue-v3", name: "ElevenLabs Text to Dialogue v3" },
+      { id: "elevenlabs/sound-effect-v2", name: "ElevenLabs Sound Effect v2" },
     ],
   },
 

@@ -707,7 +707,7 @@
     "cacheShort": "Cache",
     "memory": "Memory",
     "skills": "Skills",
-    "batch": "Batch Testing",
+    "batch": "Batch Jobs",
     "themeSystem": "Theme System",
     "whitelabelingDesc": "Whitelabeling Desc",
     "switchThemes": "Switch Themes",
@@ -1396,6 +1396,8 @@
     "randomDesc": "Einheitliche Zufallsauswahl, dann Rückgriff auf verbleibende Modelle",
     "leastUsedDesc": "Wählt das Modell mit den wenigsten Anfragen aus und gleicht die Last über die Zeit aus",
     "costOptimizedDesc": "Leitet basierend auf dem Preis zuerst zum günstigsten Modell weiter",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Gewichtet Restquote gegen 5h- und Wochen-Resets und rotiert ähnliche Scores per Round Robin",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each model once before reshuffling",
     "models": "Modelle",
@@ -1446,6 +1448,11 @@
         "when": "Kostenreduzierung steht für Sie an erster Stelle.",
         "avoid": "Preisdaten fehlen oder sind veraltet.",
         "example": "Hintergrund- oder Batch-Jobs, bei denen geringere Kosten bevorzugt werden."
+      },
+      "reset-aware": {
+        "when": "Du routest über mehrere Konten mit Quota-Telemetrie und unterschiedlichen Reset-Fenstern.",
+        "avoid": "Für die meisten Konten fehlen Quota-Telemetriedaten.",
+        "example": "Bevorzuge ein Konto mit 60 % Wochen-Restquote und Reset morgen vor 80 % mit späterem Reset."
       },
       "strict-random": {
         "when": "Use when you want perfectly even spread — each model used once before repeating.",
@@ -1554,6 +1561,13 @@
         "tip1": "Sichere Preisabdeckung für alle ausgewählten Modelle.",
         "tip2": "Behalte einen Qualitäts-Fallback für schwierige Prompts.",
         "tip3": "Ideal für Batch/Hintergrundjobs, bei denen Kosten das Haupt-KPI sind."
+      },
+      "reset-aware": {
+        "title": "Reset-bewusste Kontorotation",
+        "description": "Gewichtet verbleibende Provider-Quote gegen Reset-Zeitpunkte.",
+        "tip1": "Nutze explizite Kontoschritte oder Tag-Routing für Provider mit Quota-Telemetrie.",
+        "tip2": "Passe 5h- und Wochengewichtung an, wenn kurzfristige Erschöpfung riskant ist.",
+        "tip3": "Halte das Tie-Band klein, damit gleichwertige Konten fair rotieren."
       },
       "strict-random": {
         "title": "Shuffle deck distribution",
@@ -2890,6 +2904,8 @@
     "cliFingerprintEnabled": "{count} provider(s) with CLI fingerprint active",
     "enableFingerprintTitle": "Enable fingerprint for {provider}",
     "disableFingerprintTitle": "Disable fingerprint for {provider}",
+    "forcedFingerprintTitle": "Always enabled for {provider} — required for OAuth account safety; cannot be turned off.",
+    "forcedFingerprintBadge": "Required",
     "routingStrategy": "Routing-Strategie",
     "routingAdvancedGuideTitle": "Erweiterte Routenführung",
     "routingAdvancedGuideHint1": "Verwenden Sie Fill First für vorhersehbare Priorität, Round Robin für Fairness und P2C für Latenzstabilität.",
@@ -2906,6 +2922,8 @@
     "leastUsedDesc": "Wählen Sie das zuletzt verwendete Konto aus",
     "costOpt": "Kosten Opt",
     "costOptDesc": "Bevorzugen Sie das günstigste verfügbare Konto",
+    "resetAware": "Reset-Aware RR",
+    "resetAwareDesc": "Bevorzugt Konten mit gesunder Restquote und näherem Reset",
     "strictRandom": "Strict Random",
     "strictRandomDesc": "Shuffle deck — uses each account once before reshuffling",
     "stickyLimit": "Sticky-Limit",
@@ -3771,7 +3789,8 @@
     "weeklyLimitSummary": "Weekly budget limit summary",
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
-    "compareCompletedWithScore": "Comparison completed — {score}% pass rate"
+    "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
+    "staleQuotaTooltip": "Last refresh failed — showing cached data"
   },
   "modals": {
     "waitingAuth": "Warten auf Autorisierung",
@@ -4607,5 +4626,12 @@
     "noProxyLogs": "No proxy logs yet. Configure proxies and make API calls to see them here.",
     "noMatchingLogs": "No logs match the current filters.",
     "tlsFingerprint": "Chrome 124 TLS Fingerprint"
+  },
+  "agentFeatures": {
+    "agentFeaturesContextLength": "Context length",
+    "agentFeaturesContextLengthPlaceholder": "e.g. 128000",
+    "agentFeaturesContextLengthHint": "Defines the context window for this combo in /v1/models.",
+    "agentFeaturesContextLengthErrorInteger": "Context length must be a valid integer",
+    "agentFeaturesContextLengthErrorRange": "Context length must be between 1000 and 2000000"
   }
 }

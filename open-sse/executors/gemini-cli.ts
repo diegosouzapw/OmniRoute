@@ -126,7 +126,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
     return `${this.config.baseUrl}:${action}`;
   }
 
-  buildHeaders(credentials, stream = true, clientHeaders?: Record<string, string> | null, model?: string) {
+  buildHeaders(
+    credentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string
+  ) {
     void clientHeaders;
     const raw = getGeminiCliHeaders(
       normalizeGeminiModel(model || "unknown"),
@@ -264,7 +269,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
         console.warn(
           "[OmniRoute] loadCodeAssist returned no project — attempting managed project onboarding"
         );
-        projectId = await this.onboardManagedProject(accessToken, extractDefaultTierId(data), {}, currentModel);
+        projectId = await this.onboardManagedProject(
+          accessToken,
+          extractDefaultTierId(data),
+          {},
+          currentModel
+        );
       }
 
       if (!projectId) {
@@ -287,9 +297,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
   async transformRequest(model, body, stream, credentials) {
     const currentModel = normalizeGeminiModel(model);
     const normalizedBody =
-      shouldStripCloudCodeThinking(this.provider, currentModel) &&
-      body &&
-      typeof body === "object"
+      shouldStripCloudCodeThinking(this.provider, currentModel) && body && typeof body === "object"
         ? stripCloudCodeThinkingConfig(body)
         : body;
 
@@ -304,7 +312,11 @@ export class GeminiCLIExecutor extends BaseExecutor {
 
     const envelope: Record<string, any> = {
       model: currentModel,
-      project: bodyRecord.project || credentials.projectId || "",
+      project:
+        bodyRecord.project ||
+        credentials.projectId ||
+        (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
+        "",
       user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
       request: {
         ...requestRecord,
@@ -318,8 +330,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
     }
 
-    // Refresh the project ID via loadCodeAssist (cached for 30s).
-    if (credentials.accessToken) {
+    // Refresh the project ID via loadCodeAssist (cached for 30s) only when project not provided
+    // and credentials have an access token
+    if (!envelope.project && credentials.accessToken) {
       const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
       if (freshProject) {
         envelope.project = freshProject;

@@ -8,6 +8,7 @@ export const ROUTING_STRATEGY_VALUES = [
   "random",
   "least-used",
   "cost-optimized",
+  "reset-aware",
   "strict-random",
   "auto",
   "lkgp",
@@ -122,6 +123,13 @@ export const ROUTING_STRATEGIES: RoutingStrategyOption[] = [
     combosDescKey: "costOptimizedDesc",
     settingsDescKey: "costOptDesc",
     icon: "savings",
+  },
+  {
+    value: "reset-aware",
+    labelKey: "resetAware",
+    combosDescKey: "resetAwareDesc",
+    settingsDescKey: "resetAwareDesc",
+    icon: "event_repeat",
   },
   {
     value: "strict-random",
