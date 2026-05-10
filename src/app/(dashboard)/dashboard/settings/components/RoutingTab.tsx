@@ -49,7 +49,9 @@ export default function RoutingTab() {
   const cliCompatProviders = useMemo(
     () =>
       Array.isArray(settings.cliCompatProviders)
-        ? settings.cliCompatProviders.map((providerId: string) => normalizeCliCompatProviderId(providerId))
+        ? settings.cliCompatProviders.map((providerId: string) =>
+            normalizeCliCompatProviderId(providerId)
+          )
         : [],
     [settings.cliCompatProviders]
   );
@@ -308,7 +310,9 @@ export default function RoutingTab() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
-                    <span className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}>
+                    <span
+                      className={`block text-sm font-medium ${checked ? "text-indigo-400" : ""}`}
+                    >
                       {label}
                     </span>
                     {forced ? (

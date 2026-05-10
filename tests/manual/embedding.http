@@ -1,11 +1,34 @@
 ###
-# @name Embedding - Test embedding response
+# @name Embedding - should require authentication
+# this should return an error about invalid authentication, not a 200
+POST {{omniroute-address}}/v1/embeddings
+Authorization: Bearer invalid
+Content-Type: application/json
+
+{
+  "model": "mistral/mistral-embed",
+  "input": "The food was delicious and the waiter was very attentive."
+}
+
+###
+# @name Embedding
 POST {{omniroute-address}}/v1/embeddings
 Authorization: Bearer {{OMNIROUTE_API_KEY}}
 Content-Type: application/json
 
 {
-  "model": "pinecone/llama-text-embed-v2",
+  "model": "mistral/mistral-embed",
   "input": "The food was delicious and the waiter was very attentive."
+}
+
+###
+# @name Embedding - long input
+POST {{omniroute-address}}/v1/embeddings
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "model": "mistral/mistral-embed",
+  "input": "# Lorem Ipsum\n\n## Index (use lorem to find dolor)\n- **Sit**: amet.md\n- **Consectetur**: adipiscing.md\n- **Elit**: elit.md\n- **Sed**: sed.md\n- **Do**: eiusmod-insights.md (evergreen behavioral profile)\n- **Tempor**: tempor-plan.md\n- **Technical notes**: See daily logs in `logs/YYYY-MM-DD.md` (search with `search_tool`)\n\n## Project Goal: The Lorem Ipsum Dolor\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n## Durable preferences / facts\n- Running directly on `dev-server-01` (no SSH required for local scripts).\n- Date-stamped log files decay (half-life ~30 days). Undated files never decay.\n- **Always write it down**: Use `logs/YYYY-MM-DD.md` for daily logs; rely on `README.md` only for evergreen facts.\n- Use `search_tool` to locate information across README.md and dated logs before answering questions about prior work, decisions, or todos.\n- When searching it may also be that you should search online using the web skill.\n- **Embeddings**: Use Mistral embedding endpoint (`https://api.mistral.ai/v1/embeddings`, model: `mistral-embed`) with `MISTRAL_API_KEY`. Verified working on 2026-04-18.\n\n## Code Examples\n```typescript\nconst lorem = \"ipsum dolor\";\nconsole.log(lorem);\n```\n\n## Special Characters Test: \"quotes\", 'apostrophes', `backticks`, \\backslashes\\, \\n newlines, \\t tabs, & ampersands, <tags>, ${interpolation}.\n\n## Unicode: café, naïve, 🚀 rocket, 中文, 日本語, 한국어."
 }
 

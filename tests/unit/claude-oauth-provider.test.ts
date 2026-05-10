@@ -103,5 +103,7 @@ test("Claude OAuth token mapper reads plan fields from userinfo extras after tok
 test("Claude OAuth token mapper leaves providerSpecificData.plan undefined without plan fields", () => {
   const mapped = claude.mapTokens({ access_token: "token-1", scope: "user:profile" });
 
-  assert.equal(mapped.providerSpecificData, undefined);
+  assert.ok(mapped.providerSpecificData);
+  assert.ok(typeof mapped.providerSpecificData.cliUserID === "string");
+  assert.equal(mapped.providerSpecificData.plan, undefined);
 });

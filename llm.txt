@@ -201,7 +201,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── chatCore.ts           # Main chat completions handler
 │   │   ├── responsesHandler.ts   # OpenAI Responses API handler
 │   │   ├── embeddings.ts         # Embedding generation
-│   │   ├── imageGeneration.ts    # Image generation (DALL-E, FLUX, SD, etc.)
+│   │   ├── imageGeneration.ts    # Image generation (GPT-Image, FLUX, SD, etc.)
 │   │   ├── videoGeneration.ts    # Video generation
 │   │   ├── musicGeneration.ts    # Music generation
 │   │   ├── audioSpeech.ts        # Text-to-speech
@@ -327,7 +327,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **CLI Tools** — One-click configuration for 10+ AI CLI tools
 - **CLI Agents** — Grid of 14+ built-in agents with ProviderIcon and install detection + custom agent registration
 - **Playground** — Test any model with Monaco editor, streaming responses
-- **Media** — Image/video/music generation (DALL-E, FLUX, etc.) + audio transcription (up to 2GB files)
+- **Media** — Image/video/music generation (GPT-Image, FLUX, etc.) + audio transcription (up to 2GB files)
 - **Search Tools** — Search provider configuration and testing
 - **Memory** — Memory system management and visualization
 - **Skills** — Skills framework management and execution

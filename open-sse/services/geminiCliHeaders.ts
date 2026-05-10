@@ -4,7 +4,7 @@ import {
   normalizeCloudCodePlatform,
 } from "./cloudCodeHeaders.ts";
 
-export const GEMINI_CLI_VERSION = "0.40.1";
+export const GEMINI_CLI_VERSION = "0.41.2";
 export const GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION = "9.15.1";
 
 const GEMINI_CLI_LOAD_CODE_ASSIST_METADATA = Object.freeze({

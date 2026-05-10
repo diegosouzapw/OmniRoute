@@ -142,9 +142,7 @@ export type ClaudeBootstrap = {
 };
 
 /** GET /api/claude_cli/bootstrap with the same headers real CLI uses. */
-export async function fetchClaudeBootstrap(
-  accessToken: string
-): Promise<ClaudeBootstrap | null> {
+export async function fetchClaudeBootstrap(accessToken: string): Promise<ClaudeBootstrap | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), BOOTSTRAP_FETCH_TIMEOUT_MS);
   try {

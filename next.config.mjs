@@ -189,6 +189,14 @@ const nextConfig = {
         source: "/v1",
         destination: "/api/v1",
       },
+      {
+        source: "/v1beta/:path*",
+        destination: "/api/v1beta/:path*",
+      },
+      {
+        source: "/v1beta",
+        destination: "/api/v1beta",
+      },
     ];
   },
 };

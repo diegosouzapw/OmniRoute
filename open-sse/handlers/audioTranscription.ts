@@ -1,4 +1,4 @@
-import { CORS_HEADERS, getCorsOrigin } from "../utils/cors.ts";
+import { CORS_HEADERS } from "../utils/cors.ts";
 import { Buffer } from "node:buffer";
 /**
  * Audio Transcription Handler
@@ -317,7 +317,7 @@ async function handleKieAudioTranscription(providerConfig, file, modelId, token)
       },
       {
         status,
-        headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+        headers: { ...CORS_HEADERS },
       }
     );
   }
@@ -329,7 +329,7 @@ async function handleKieAudioTranscription(providerConfig, file, modelId, token)
 
   return Response.json(
     { text: data?.data?.text || data?.text || "" },
-    { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
+    { headers: { ...CORS_HEADERS } }
   );
 }
 
@@ -355,10 +355,7 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
         data?.data?.text ||
         data?.text ||
         "";
-      return Response.json(
-        { text },
-        { headers: { "Access-Control-Allow-Origin": getCorsOrigin() } }
-      );
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }
   } catch (err: unknown) {
     const status =

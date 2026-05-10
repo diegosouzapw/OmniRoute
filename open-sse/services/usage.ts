@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import crypto from "node:crypto";
 import { PROVIDERS } from "../config/constants.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -17,9 +16,9 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
+import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
   antigravityUserAgent,
-  getAntigravityCreditProbeApiClientHeader,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
@@ -29,11 +28,18 @@ import {
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "./antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
   quotaApiUrls: getAntigravityFetchAvailableModelsUrls(),
-  loadProjectApiUrl: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
+  loadProjectApiUrl: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
   tokenUrl: "https://oauth2.googleapis.com/token",
   get clientId() {
     return PROVIDERS.antigravity.clientId;
@@ -101,6 +107,13 @@ type UsageQuota = {
   resetAt: string | null;
   unlimited: boolean;
   displayName?: string;
+  details?: Array<{
+    name: string;
+    used: number;
+  }>;
+  currency?: string;
+  grantedBalance?: number;
+  toppedUpBalance?: number;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -115,6 +128,32 @@ function toNumber(value: unknown, fallback = 0): number {
         ? Number(value)
         : Number.NaN;
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function toPercentage(value: unknown): number {
+  return Math.max(0, Math.min(100, toNumber(value, 0)));
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .trim()
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getGlmTokenQuotaName(
+  limit: JsonRecord,
+  existingQuotas: Record<string, UsageQuota>
+): string {
+  const unit = toNumber(limit.unit, 0);
+  const number = toNumber(limit.number, 0);
+
+  if (unit === 3 && number === 5) return "session";
+  if ((unit === 4 && number === 7) || (unit === 3 && number >= 24 * 7)) return "weekly";
+
+  return existingQuotas.session ? "weekly" : "session";
 }
 
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
@@ -516,7 +555,46 @@ async function getCrofUsage(apiKey: string) {
   return { quotas };
 }
 
+const GLM_QUOTA_ORDER = ["5 Hours Quota", "Weekly Quota", "Monthly Tools", "Tokens", "Time Limit"];
+
+function getGlmQuotaLabel(type: unknown, unit: unknown): string | null {
+  const normalized = typeof type === "string" ? type.trim().toUpperCase() : "";
+  const unitValue = toNumber(unit, -1);
+
+  switch (normalized) {
+    case "TOKENS_LIMIT":
+    case "TOKEN_LIMIT":
+      if (unitValue === 3) return "5 Hours Quota";
+      if (unitValue === 6) return "Weekly Quota";
+      return "Tokens";
+    case "TIME_LIMIT":
+    case "TIME_USAGE_LIMIT":
+      if (unitValue === 5) return "Monthly Tools";
+      return "Time Limit";
+    default:
+      return null;
+  }
+}
+
+function orderGlmQuotas(quotas: Record<string, UsageQuota>): Record<string, UsageQuota> {
+  const ordered: Record<string, UsageQuota> = {};
+
+  for (const key of GLM_QUOTA_ORDER) {
+    if (quotas[key]) ordered[key] = quotas[key];
+  }
+
+  for (const [key, quota] of Object.entries(quotas)) {
+    if (!ordered[key]) ordered[key] = quota;
+  }
+
+  return ordered;
+}
+
 async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string, unknown>) {
+  if (!apiKey) {
+    return { message: "API key not available. Add a coding plan API key to view usage." };
+  }
+
   const quotaUrl = getGlmQuotaUrl(providerSpecificData);
 
   const res = await fetch(quotaUrl, {
@@ -532,34 +610,73 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
   }
 
   const json = await res.json();
+  if (toNumber(json.code, 200) === 401 || json.success === false) {
+    throw new Error("Invalid API key");
+  }
+
   const data = toRecord(json.data);
   const limits: unknown[] = Array.isArray(data.limits) ? data.limits : [];
   const quotas: Record<string, UsageQuota> = {};
 
   for (const limit of limits) {
     const src = toRecord(limit);
-    if (src.type !== "TOKENS_LIMIT") continue;
-
-    const usedPercent = toNumber(src.percentage, 0);
+    const type = String(src.type || "").toUpperCase();
     const resetMs = toNumber(src.nextResetTime, 0);
-    const remaining = Math.max(0, 100 - usedPercent);
+    const resetAt = resetMs > 0 ? new Date(resetMs).toISOString() : null;
 
-    quotas["session"] = {
-      used: usedPercent,
-      total: 100,
-      remaining,
-      remainingPercentage: remaining,
-      resetAt: resetMs > 0 ? new Date(resetMs).toISOString() : null,
-      unlimited: false,
-    };
+    if (type === "TOKENS_LIMIT") {
+      const quotaName = getGlmTokenQuotaName(src, quotas);
+      const usedPercent = toPercentage(src.percentage);
+      const remaining = Math.max(0, 100 - usedPercent);
+
+      quotas[quotaName] = {
+        used: usedPercent,
+        total: 100,
+        remaining,
+        remainingPercentage: remaining,
+        resetAt,
+        unlimited: false,
+      };
+      continue;
+    }
+
+    if (type === "TIME_LIMIT") {
+      const total = toNumber(src.usage, toNumber(src.total, 0));
+      const remaining = toNumber(src.remaining, Math.max(0, 100 - toPercentage(src.percentage)));
+      const used = toNumber(src.currentValue, Math.max(0, total - remaining));
+      const remainingPercentage =
+        total > 0 ? Math.max(0, Math.min(100, Math.round((remaining / total) * 100))) : 0;
+
+      quotas["mcp_monthly"] = {
+        used,
+        total,
+        remaining,
+        remainingPercentage,
+        resetAt,
+        unlimited: false,
+        displayName: "Monthly",
+        details: Array.isArray(src.usageDetails)
+          ? src.usageDetails.map((item) => {
+              const detail = toRecord(item);
+              return {
+                name: String(detail.modelCode || detail.name || "usage"),
+                used: toNumber(detail.usage, 0),
+              };
+            })
+          : undefined,
+      };
+    }
   }
 
-  const levelRaw = typeof data.level === "string" ? data.level : "";
-  const plan = levelRaw
-    ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1).toLowerCase()
-    : "Unknown";
+  const levelRaw =
+    typeof data.planName === "string"
+      ? data.planName
+      : typeof data.level === "string"
+        ? data.level
+        : "";
+  const plan = levelRaw ? toTitleCase(levelRaw.replace(/\s*plan$/i, "")) : null;
 
-  return { plan, quotas };
+  return { plan, quotas: orderGlmQuotas(quotas) };
 }
 
 /**
@@ -597,6 +714,55 @@ async function getBailianCodingPlanUsage(
     };
   } catch (error) {
     return { message: `Bailian Coding Plan error: ${(error as Error).message}` };
+  }
+}
+
+/**
+ * DeepSeek Usage
+ * Fetches balance from the DeepSeek balance API.
+ * Returns all balances (USD and CNY) as "credits" for credits-style UI display.
+ */
+async function getDeepseekUsage(connectionId: string, apiKey: string) {
+  try {
+    const connection = { apiKey };
+    const quota = await fetchDeepseekQuota(connectionId, connection);
+
+    if (!quota) {
+      return { message: "DeepSeek API key not available. Add a key to view usage." };
+    }
+
+    const deepseekQuota = quota as DeepseekQuota;
+    const { balances, isAvailable, limitReached } = deepseekQuota;
+
+    const quotas: Record<string, UsageQuota> = {};
+
+    // Show all balances as credits-style entries (e.g., credits_usd, credits_cny)
+    // The UI will display them as "🪙 Balance (USD) $50.00"
+    for (const balanceInfo of balances) {
+      const key = `credits_${balanceInfo.currency.toLowerCase()}`;
+      quotas[key] = {
+        used: 0,
+        total: 0,
+        remaining: balanceInfo.balance,
+        remainingPercentage: 100,
+        resetAt: null,
+        unlimited: true,
+        currency: balanceInfo.currency,
+        grantedBalance: balanceInfo.grantedBalance,
+        toppedUpBalance: balanceInfo.toppedUpBalance,
+      };
+    }
+
+    const plan = isAvailable ? "DeepSeek" : "DeepSeek (Insufficient Balance)";
+
+    return {
+      plan,
+      quotas,
+      isAvailable,
+      limitReached,
+    };
+  } catch (error) {
+    return { message: `DeepSeek error: ${(error as Error).message}` };
   }
 }
 
@@ -709,8 +875,12 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
     case "qoder":
       return await getQoderUsage(accessToken);
     case "glm":
+    case "glm-cn":
     case "glmt":
-      return await getGlmUsage(apiKey, providerSpecificData);
+      return await getGlmUsage(apiKey, {
+        ...(providerSpecificData || {}),
+        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
+      });
     case "minimax":
     case "minimax-cn":
       return await getMiniMaxUsage(apiKey, provider);
@@ -722,6 +892,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     case "nanogpt":
       return await getNanoGptUsage(apiKey);
+    case "deepseek":
+      return await getDeepseekUsage(id, apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
@@ -1494,13 +1666,13 @@ async function probeAntigravityCreditBalanceUncached(
     for (const baseUrl of ANTIGRAVITY_BASE_URLS) {
       const url = `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 
-      const sessionId = `-${crypto.randomUUID()}`;
+      const sessionId = getAntigravitySessionId({ connectionId: accountId, projectId });
       const body = {
         project: projectId,
         model: "gemini-2-flash",
         userAgent: "antigravity",
         requestType: "agent",
-        requestId: `credits-probe-${Date.now()}`,
+        requestId: generateAntigravityRequestId(),
         enabledCreditTypes: ["GOOGLE_ONE_AI"],
         request: {
           model: "gemini-2-flash",
@@ -1514,7 +1686,11 @@ async function probeAntigravityCreditBalanceUncached(
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": antigravityUserAgent(),
-        "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
+        "x-client-name": "antigravity",
+        "x-client-version": getCachedAntigravityVersion(),
+        "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
+        "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+        "x-goog-user-project": projectId,
         Accept: "text/event-stream",
       };
 

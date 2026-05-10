@@ -86,6 +86,8 @@ test("createDisconnectAwareStream cancel propagates disconnect reason and aborts
 
   await stream.cancel("client-gone");
 
+  await new Promise((resolve) => setTimeout(resolve, 2050));
+
   assert.equal(aborted, true);
   assert.equal(controller.isConnected(), false);
   assert.equal(disconnectEvent.reason, "client-gone");
@@ -156,7 +158,7 @@ test("createStreamController aborts after delayed disconnect and tolerates abort
   errorOnlyController.handleError(new DOMException("aborted", "AbortError"));
   errorOnlyController.handleError({ statusCode: 418 });
 
-  await new Promise((resolve) => setTimeout(resolve, 550));
+  await new Promise((resolve) => setTimeout(resolve, 2050));
 
   assert.equal(controller.signal.aborted, true);
   assert.equal(controller.isConnected(), false);

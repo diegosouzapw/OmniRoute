@@ -4,6 +4,7 @@ export interface ProviderRequestDefaults {
   maxTokens?: number;
   temperature?: number;
   thinkingBudgetTokens?: number;
+  thinkingType?: "enabled" | "adaptive";
 }
 
 function asRecord(value: unknown): JsonRecord | null {

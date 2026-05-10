@@ -25,6 +25,7 @@ export {
   ProviderCostDonut,
   ModelOverTimeChart,
   ProviderTable,
+  ServiceTierBreakdown,
 } from "./charts";
 
 export { default as ApiKeyFilterDropdown } from "./ApiKeyFilterDropdown";
