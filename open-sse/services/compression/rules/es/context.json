@@ -33,6 +33,55 @@
       "context": "all",
       "category": "context",
       "minIntensity": "lite"
+    },
+    {
+      "name": "es_compound_collapse",
+      "pattern": "\\by cualquier potencial\\b",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_explanatory_prefix",
+      "pattern": "\\b(?:la funcion parece manejar|la función parece manejar|el codigo parece|el código parece|la clase es|este modulo es|este módulo es)\\b",
+      "replacement": "Función:",
+      "replacementMap": {
+        "la funcion parece manejar": "Función:",
+        "la función parece manejar": "Función:",
+        "el codigo parece": "Código:",
+        "el código parece": "Código:",
+        "la clase es": "Clase:",
+        "este modulo es": "Módulo:",
+        "este módulo es": "Módulo:"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_meta_commentary",
+      "pattern": "^(?:Ten en cuenta que|Recuerda que|Nota que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_purpose_statement",
+      "pattern": "\\b(?:con el proposito de|con el propósito de|con la meta de|con el objetivo de|en un esfuerzo por|por cada)\\b",
+      "replacement": "para",
+      "replacementMap": {
+        "con el proposito de": "para",
+        "con el propósito de": "para",
+        "con la meta de": "para",
+        "con el objetivo de": "para",
+        "en un esfuerzo por": "para",
+        "por cada": "por"
+      },
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
     }
   ]
 }

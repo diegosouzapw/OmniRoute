@@ -35,6 +35,10 @@ export function registerQuotaFetcher(provider: string, fetcher: QuotaFetcher): v
   quotaFetcherRegistry.set(provider, fetcher);
 }
 
+export function getQuotaFetcher(provider: string): QuotaFetcher | undefined {
+  return quotaFetcherRegistry.get(provider) || quotaFetcherRegistry.get(provider.toLowerCase());
+}
+
 export function isQuotaPreflightEnabled(connection: Record<string, unknown>): boolean {
   const psd = connection?.providerSpecificData as Record<string, unknown> | undefined;
   return psd?.quotaPreflightEnabled === true;
@@ -49,7 +53,7 @@ export async function preflightQuota(
     return { proceed: true };
   }
 
-  const fetcher = quotaFetcherRegistry.get(provider);
+  const fetcher = getQuotaFetcher(provider);
   if (!fetcher) {
     return { proceed: true };
   }

@@ -1,5 +1,6 @@
 import path from "path";
 import os from "os";
+import fs from "fs";
 
 export const APP_NAME = "omniroute";
 
@@ -33,6 +34,18 @@ export function getLegacyDotDataDir() {
 
 export function getDefaultDataDir() {
   const homeDir = safeHomeDir();
+  const legacyDir = getLegacyDotDataDir();
+
+  // Preserve legacy path if it exists to avoid data loss on updates (e.g., Windows migration)
+  if (fs.existsSync(legacyDir)) {
+    try {
+      if (fs.statSync(legacyDir).isDirectory()) {
+        return legacyDir;
+      }
+    } catch {
+      // Ignore stat errors
+    }
+  }
 
   if (process.platform === "win32") {
     const appData = process.env.APPDATA || path.join(homeDir, "AppData", "Roaming");
@@ -45,7 +58,7 @@ export function getDefaultDataDir() {
     return path.join(xdgConfigHome, APP_NAME);
   }
 
-  return getLegacyDotDataDir();
+  return legacyDir;
 }
 
 export function resolveDataDir({ isCloud = false }: { isCloud?: boolean } = {}): string {

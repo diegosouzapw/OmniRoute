@@ -65,14 +65,19 @@ export async function POST(request: Request) {
   if (authError) return authError;
 
   let rawBody: unknown;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return createErrorResponse({
-      status: 400,
-      message: "Invalid JSON body",
-      type: "invalid_request",
-    });
+  const contentType = request.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    try {
+      rawBody = await request.json();
+    } catch {
+      return createErrorResponse({
+        status: 400,
+        message: "Invalid JSON body",
+        type: "invalid_request",
+      });
+    }
+  } else {
+    rawBody = {};
   }
 
   try {

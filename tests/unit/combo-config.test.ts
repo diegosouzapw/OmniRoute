@@ -14,6 +14,7 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.strategy, "priority");
   assert.equal(first.maxRetries, 1);
   assert.equal(first.retryDelayMs, 2000);
+  assert.equal(first.fallbackDelayMs, 0);
   assert.ok(!("timeoutMs" in first));
   assert.ok(!("healthCheckEnabled" in first));
   assert.equal(first.handoffThreshold, 0.85);
@@ -40,6 +41,7 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
         openai: {
           timeoutMs: 60000,
           retryDelayMs: 500,
+          fallbackDelayMs: 100,
         },
       },
     },
@@ -48,6 +50,7 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
 
   assert.equal(result.strategy, "round-robin");
   assert.equal(result.retryDelayMs, 500);
+  assert.equal(result.fallbackDelayMs, 100);
   assert.equal(result.maxRetries, 4);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));

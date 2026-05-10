@@ -16,27 +16,24 @@ describe("RTK code stripper", () => {
     assert.equal(detectCodeLanguage("class Main { }"), "java");
   });
 
-  it("removes single-line and multi-line comments", () => {
+  it("preserves comments and string literals safely", () => {
     const js = stripCode(
-      "// comment\nconst value = 1;\n/* block */\nconsole.log(value);",
+      "// comment\nconst url = 'https://example.com/a//b';\n/* block */\nconsole.log(url);",
       "javascript"
     );
-    const py = stripCode('"""doc"""\n# comment\nprint("ok")', "python");
-    const rb = stripCode("=begin\ncomment\n=end\n# comment\nputs 'ok'", "ruby");
 
-    assert.ok(!js.text.includes("comment"));
-    assert.ok(!js.text.includes("block"));
-    assert.ok(!py.text.includes("doc"));
-    assert.ok(!rb.text.includes("comment"));
+    assert.ok(js.text.includes("// comment"));
+    assert.ok(js.text.includes("https://example.com/a//b"));
+    assert.ok(js.text.includes("/* block */"));
   });
 
-  it("preserves docstrings when configured", () => {
+  it("preserves Python docstrings and comments", () => {
     const result = stripCode('"""doc"""\n# comment\nprint("ok")', "python", {
       preserveDocstrings: true,
     });
 
     assert.ok(result.text.includes("doc"));
-    assert.ok(!result.text.includes("# comment"));
+    assert.ok(result.text.includes("# comment"));
   });
 
   it("applies to fenced code blocks through RTK runtime", () => {
@@ -44,7 +41,13 @@ describe("RTK code stripper", () => {
       messages: [
         {
           role: "assistant",
-          content: "```ts\n// remove\nconst value: number = 1;\n```\nDone.",
+          content: `Before.
+
+\`\`\`txt
+${Array.from({ length: 20 }, () => "same code line").join("\n")}
+\`\`\`
+
+After.`,
         },
       ],
     };
@@ -65,8 +68,68 @@ describe("RTK code stripper", () => {
 
     assert.equal(result.compressed, true);
     const serialized = JSON.stringify(result.body.messages);
-    assert.match(serialized, /const value/);
-    assert.doesNotMatch(serialized, /remove/);
+    assert.match(serialized, /Before/);
+    assert.match(serialized, /After/);
+    assert.match(serialized, /same code line/);
+    assert.match(serialized, /\[rtk:dropped/);
     assert.ok(result.stats?.techniquesUsed.includes("rtk-code-strip"));
+  });
+
+  it("does not compress non-code text when only code block compression is enabled", () => {
+    const content = Array.from({ length: 20 }, () => "same prose line").join("\n");
+    const body = {
+      messages: [{ role: "assistant", content }],
+    };
+    const result = applyRtkCompression(body, {
+      config: {
+        enabled: true,
+        intensity: "standard",
+        applyToToolResults: false,
+        applyToAssistantMessages: false,
+        applyToCodeBlocks: true,
+        enabledFilters: [],
+        disabledFilters: [],
+        maxLinesPerResult: 100,
+        maxCharsPerResult: 12000,
+        deduplicateThreshold: 3,
+      },
+    });
+
+    assert.equal(result.compressed, false);
+    assert.deepEqual(result.body, body);
+  });
+
+  it("does not compress fenced code when code block compression is disabled", () => {
+    const body = {
+      messages: [
+        {
+          role: "assistant",
+          content: `Before.
+
+\`\`\`txt
+${Array.from({ length: 20 }, () => "same code line").join("\n")}
+\`\`\`
+
+After.`,
+        },
+      ],
+    };
+    const result = applyRtkCompression(body, {
+      config: {
+        enabled: true,
+        intensity: "standard",
+        applyToToolResults: false,
+        applyToAssistantMessages: false,
+        applyToCodeBlocks: false,
+        enabledFilters: [],
+        disabledFilters: [],
+        maxLinesPerResult: 100,
+        maxCharsPerResult: 12000,
+        deduplicateThreshold: 3,
+      },
+    });
+
+    assert.equal(result.compressed, false);
+    assert.deepEqual(result.body, body);
   });
 });

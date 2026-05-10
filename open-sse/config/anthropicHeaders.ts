@@ -26,7 +26,10 @@ export const ANTHROPIC_BETA_CLAUDE_OAUTH = [
   ...ANTHROPIC_BETA_BASE.slice(3),
 ].join(",");
 
-export const CLAUDE_CLI_VERSION = "2.1.121";
+// Static-config fallbacks for providerRegistry.ts. Runtime cloak in base.ts
+// emits the same values via CLAUDE_CODE_VERSION in claudeIdentity.ts —
+// keep both in sync.
+export const CLAUDE_CLI_VERSION = "2.1.131";
 export const CLAUDE_CLI_USER_AGENT = `claude-cli/${CLAUDE_CLI_VERSION} (external, cli)`;
 export const CLAUDE_CLI_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CLI_STAINLESS_RUNTIME_VERSION = "v24.3.0";

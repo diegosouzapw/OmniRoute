@@ -49,6 +49,7 @@ export async function GET(request: Request) {
               strategy: "priority",
               maxRetries: 1,
               retryDelayMs: 2000,
+              fallbackDelayMs: 0,
               handoffThreshold: 0.85,
               handoffModel: "",
               maxMessagesForSummary: 30,

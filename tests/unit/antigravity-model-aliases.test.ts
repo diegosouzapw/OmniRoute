@@ -56,26 +56,45 @@ test("AntigravityExecutor.transformRequest resolves alias models before dispatch
     { projectId: "project-1" }
   );
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.model, "gemini-3.1-pro-high");
 });
 
-test("AntigravityExecutor.transformRequest keeps Claude bridge output cap and strips unsupported thinking", async () => {
+test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatible Cloud Code schema", async () => {
   const executor = new AntigravityExecutor();
   const bridged = openaiToAntigravityRequest(
-    "claude-sonnet-4-6",
+    "claude-opus-4-6-thinking",
     {
       messages: [{ role: "user", content: "Hello" }],
       max_completion_tokens: 32_000,
+      temperature: 0.5,
       reasoning_effort: "high",
     },
     true,
     { projectId: "project-1" } as any
   );
 
-  const result = await executor.transformRequest("antigravity/claude-sonnet-4-6", bridged, true, {
-    projectId: "project-1",
-  });
+  const result = await executor.transformRequest(
+    "antigravity/claude-opus-4-6-thinking",
+    bridged,
+    true,
+    {
+      projectId: "project-1",
+    }
+  );
 
-  assert.equal(result.request.max_tokens, 16_384);
-  assert.equal(result.request.thinking, undefined);
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  const request = result.request as any;
+  assert.deepEqual(request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
+  assert.equal(request.generationConfig.maxOutputTokens, 32769);
+  assert.equal(request.generationConfig.temperature, 0.5);
+  assert.equal(request.generationConfig.topK, 40);
+  assert.equal(request.generationConfig.topP, 1);
+  assert.equal(request.messages, undefined);
+  assert.equal(request.system, undefined);
+  assert.equal(request.max_tokens, undefined);
+  assert.equal(request.stream, undefined);
+  assert.equal(request.temperature, undefined);
+  assert.equal(request.thinking, undefined);
+  assert.equal(request.generationConfig.thinkingConfig, undefined);
 });

@@ -13,6 +13,7 @@ import { createCompressionStats } from "./stats.ts";
 import { registerBuiltinCompressionEngines } from "./engines/index.ts";
 import { getCompressionEngine } from "./engines/registry.ts";
 import { applyRtkCompression } from "./engines/rtk/index.ts";
+import { adaptBodyForCompression } from "./bodyAdapter.ts";
 import {
   detectCachingContext,
   getCacheAwareStrategy,
@@ -73,19 +74,27 @@ export function applyCompression(
   if (mode === "off") {
     return { body, compressed: false, stats: null };
   }
-  if (mode === "lite") {
-    return applyLiteCompression(body, {
-      ...options,
-      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
-    });
-  }
   if (mode === "rtk") {
     return applyRtkCompression(body, {
       config: options?.config?.rtkConfig,
     });
   }
+  const adapter = adaptBodyForCompression(body);
+  const compressionBody = adapter.body;
+  if (mode === "lite") {
+    const result = applyLiteCompression(compressionBody, {
+      ...options,
+      preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
+    });
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
+  }
   if (mode === "stacked") {
-    return applyStackedCompression(body, options?.config?.stackedPipeline, options);
+    const result = applyStackedCompression(
+      compressionBody,
+      options?.config?.stackedPipeline,
+      options
+    );
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "standard") {
     const cavemanConfig = {
@@ -105,10 +114,14 @@ export function applyCompression(
           }
         : {}),
     };
-    return cavemanCompress(body as Parameters<typeof cavemanCompress>[0], cavemanConfig);
+    const result = cavemanCompress(
+      compressionBody as Parameters<typeof cavemanCompress>[0],
+      cavemanConfig
+    );
+    return adapter.adapted ? { ...result, body: adapter.restore(result.body) } : result;
   }
   if (mode === "aggressive") {
-    const messages = (body.messages ?? []) as Array<{
+    const messages = (compressionBody.messages ?? []) as Array<{
       role: string;
       content?: string | Array<{ type: string; text?: string }>;
       [key: string]: unknown;
@@ -121,12 +134,12 @@ export function applyCompression(
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
     const result = compressAggressive(messages, aggressiveConfig);
-    const compressedBody = { ...body, messages: result.messages };
+    const compressedBody = { ...compressionBody, messages: result.messages };
     return {
-      body: compressedBody,
+      body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
-        body,
+        compressionBody,
         compressedBody,
         mode,
         ["aggressive"],
@@ -136,7 +149,7 @@ export function applyCompression(
     };
   }
   if (mode === "ultra") {
-    const messages = (body.messages ?? []) as Array<{
+    const messages = (compressionBody.messages ?? []) as Array<{
       role: string;
       content?: string | unknown[];
       [key: string]: unknown;
@@ -149,12 +162,12 @@ export function applyCompression(
       preserveSystemPrompt: options?.config?.preserveSystemPrompt !== false,
     };
     const result = ultraCompress(messages, ultraConfig);
-    const compressedBody = { ...body, messages: result.messages };
+    const compressedBody = { ...compressionBody, messages: result.messages };
     return {
-      body: compressedBody,
+      body: adapter.restore(compressedBody),
       compressed: result.stats.savingsPercent > 0,
       stats: createCompressionStats(
-        body,
+        compressionBody,
         compressedBody,
         mode,
         ["ultra"],

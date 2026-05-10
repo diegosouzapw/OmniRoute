@@ -20,7 +20,15 @@ import { stripTrailingSlashes } from "../utils/urlSanitize.ts";
 
 import { getSpeechProvider, parseSpeechModel } from "../config/audioRegistry.ts";
 import { buildAuthHeaders } from "../config/registryUtils.ts";
+import { kieExecutor } from "../executors/kie.ts";
 import { errorResponse } from "../utils/error.ts";
+import {
+  getKieCallbackUrl,
+  getKieErrorMessage,
+  getKieErrorStatus,
+  isJsonObject,
+  parseKieResultJson,
+} from "../utils/kieTask.ts";
 import { signAwsRequest } from "../utils/awsSigV4.ts";
 
 /**
@@ -68,6 +76,89 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
       "Transfer-Encoding": "chunked",
     },
   });
+}
+
+function normalizeKieElevenLabsVoice(voice: unknown): string {
+  const value = typeof voice === "string" ? voice.trim() : "";
+  const aliases: Record<string, string> = {
+    alloy: "Rachel",
+    echo: "Adam",
+    fable: "Brian",
+    onyx: "Antoni",
+    nova: "Bella",
+    shimmer: "Dorothy",
+  };
+  return aliases[value.toLowerCase()] || value || "Rachel";
+}
+
+function findAudioUrlDeep(value: unknown): string | null {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    if (/^https?:\/\//i.test(value) && !/\.(jpg|jpeg|png|webp|gif|svg)(\?|$)/i.test(value)) {
+      return value;
+    }
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const url = findAudioUrlDeep(item);
+      if (url) return url;
+    }
+    return null;
+  }
+
+  if (isJsonObject(value)) {
+    const preferredKeys = [
+      "audio_url",
+      "audioUrl",
+      "stream_audio_url",
+      "streamAudioUrl",
+      "resultUrl",
+      "url",
+      "downloadUrl",
+      "resultUrls",
+    ];
+
+    for (const key of preferredKeys) {
+      const url = findAudioUrlDeep(value[key]);
+      if (url) return url;
+    }
+
+    for (const item of Object.values(value)) {
+      const url = findAudioUrlDeep(item);
+      if (url) return url;
+    }
+  }
+
+  return null;
+}
+
+function findKieAudioUrl(recordData: unknown): string | null {
+  const record = isJsonObject(recordData) ? recordData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
+  const resultJson = parseKieResultJson(recordData);
+  const response = data.response;
+  const nestedData = data.data;
+  const candidates = [
+    response,
+    data,
+    resultJson,
+    ...(Array.isArray(response) ? response : []),
+    ...(Array.isArray(nestedData) ? nestedData : []),
+    ...(Array.isArray(resultJson.data) ? resultJson.data : []),
+    ...(Array.isArray(resultJson.result) ? resultJson.result : []),
+  ];
+
+  for (const item of candidates) {
+    const url = findAudioUrlDeep(item);
+    if (url) {
+      return url;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -441,6 +532,101 @@ async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
 }
 
 /**
+ * Handle Kie.ai TTS
+ * Kie.ai has model-specific endpoints or uses unified jobs API.
+ */
+async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  const voice = normalizeKieElevenLabsVoice(body.voice);
+
+  const payload = {
+    model: modelId,
+    callBackUrl: getKieCallbackUrl(body),
+    input: {
+      text: body.input,
+      voice,
+      stability: typeof body.stability === "number" ? body.stability : 0.5,
+      similarity_boost: typeof body.similarity_boost === "number" ? body.similarity_boost : 0.75,
+      style: typeof body.style === "number" ? body.style : 0,
+      speed: typeof body.speed === "number" ? body.speed : 1,
+      timestamps: body.timestamps === true,
+      previous_text: body.previous_text || "",
+      next_text: body.next_text || "",
+      language_code: body.language_code || "",
+    },
+  };
+
+  let data;
+  try {
+    data = await kieExecutor.createTask({
+      baseUrl,
+      token,
+      payload,
+    });
+  } catch (err: unknown) {
+    const status = getKieErrorStatus(err, 502);
+    return Response.json(
+      {
+        error: { message: getKieErrorMessage(err, "Kie audio createTask failed"), code: status },
+      },
+      {
+        status,
+        headers: { ...CORS_HEADERS },
+      }
+    );
+  }
+
+  const taskId = data?.data?.taskId || data?.taskId;
+  if (taskId) {
+    return pollKieAudioResult(baseUrl, modelId, taskId, token);
+  }
+
+  const audioUrl = findKieAudioUrl(data);
+  if (typeof audioUrl === "string" && audioUrl.length > 0) {
+    const audioRes = await fetch(audioUrl);
+    return audioStreamResponse(audioRes);
+  }
+
+  return errorResponse(
+    502,
+    data?.msg || data?.message || "Kie audio generation did not return taskId or audio URL"
+  );
+}
+
+/**
+ * Internal polling for Kie.ai async audio tasks
+ */
+async function pollKieAudioResult(baseUrl, modelId, taskId, token) {
+  void modelId;
+  const statusUrl = kieExecutor.getTaskStatusUrl(baseUrl);
+  try {
+    const { data, state } = await kieExecutor.pollTask({
+      statusUrl,
+      taskId: String(taskId),
+      token,
+      timeoutMs: 60000,
+      pollIntervalMs: 2000,
+    });
+
+    if (state === "success") {
+      const url = findKieAudioUrl(data);
+      if (url) {
+        const audioRes = await fetch(url);
+        return audioStreamResponse(audioRes);
+      }
+      return errorResponse(502, "Kie audio task completed without audio URL");
+    }
+  } catch (err: unknown) {
+    return errorResponse(
+      getKieErrorStatus(err, 504),
+      getKieErrorMessage(err, "Kie audio generation timed out or failed")
+    );
+  }
+
+  return errorResponse(504, "Kie audio generation timed out or failed");
+}
+
+/**
  * Handle AWS Polly TTS
  * POST /v1/speech signed with AWS SigV4.
  * The configured apiKey stores AWS Secret Access Key; providerSpecificData.accessKeyId stores
@@ -656,7 +842,7 @@ export async function handleAudioSpeech({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, aws-polly, xiaomi-mimo, coqui, tortoise, qwen`
+      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, kie, aws-polly, xiaomi-mimo, coqui, tortoise, qwen`
     );
   }
 
@@ -699,6 +885,10 @@ export async function handleAudioSpeech({
 
     if (providerConfig.format === "playht") {
       return handlePlayHtSpeech(providerConfig, body, modelId, token);
+    }
+
+    if (providerConfig.format === "kie-audio") {
+      return handleKieAudioSpeech(providerConfig, body, modelId, token);
     }
 
     if (providerConfig.format === "aws-polly") {

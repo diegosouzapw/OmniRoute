@@ -15,7 +15,7 @@ export async function GET(request) {
   if (authError) return authError;
 
   try {
-    const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager");
+    const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager.runtime");
     const status = await getMitmStatus();
     return NextResponse.json({
       running: status.running,
@@ -59,7 +59,8 @@ export async function POST(request) {
     // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
     const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
     const apiKey = await resolveApiKey(apiKeyId, rawApiKey);
-    const { startMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
+    const { startMitm, getCachedPassword, setCachedPassword } =
+      await import("@/mitm/manager.runtime");
     const isWin = process.platform === "win32";
     const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";
@@ -114,7 +115,8 @@ export async function DELETE(request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { sudoPassword } = validation.data;
-    const { stopMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
+    const { stopMitm, getCachedPassword, setCachedPassword } =
+      await import("@/mitm/manager.runtime");
     const isWin = process.platform === "win32";
     const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";

@@ -104,6 +104,64 @@ test("handleMusicGeneration executes ComfyUI audio workflow and normalizes wav o
   }
 });
 
+test("handleMusicGeneration polls KIE music tasks and returns audio URLs", async () => {
+  const originalFetch = globalThis.fetch;
+  let createBody;
+  let pollUrl = "";
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.kie.ai/api/v1/generate") {
+      createBody = JSON.parse(String(options.body || "{}"));
+      return new Response(JSON.stringify({ code: 200, data: { taskId: "kie-music-task" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl.startsWith("https://api.kie.ai/api/v1/generate/record-info")) {
+      pollUrl = stringUrl;
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          data: {
+            status: "SUCCESS",
+            response: {
+              sunoData: [{ audioUrl: "https://example.com/kie-music.mp3" }],
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleMusicGeneration({
+      body: {
+        model: "kie/V4",
+        prompt: "relaxing piano ambience",
+      },
+      credentials: { apiKey: "kie-key" },
+      log: null,
+    });
+
+    assert.equal(createBody.model, "V4");
+    assert.equal(createBody.customMode, false);
+    assert.equal(createBody.instrumental, true);
+    assert.equal(createBody.prompt, "relaxing piano ambience");
+    assert.match(pollUrl, /taskId=kie-music-task/);
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "https://example.com/kie-music.mp3");
+    assert.equal(result.data.data[0].format, "mp3");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleMusicGeneration rejects unsupported provider formats", async () => {
   const originalProvider = MUSIC_PROVIDERS.fakeprovider;
 

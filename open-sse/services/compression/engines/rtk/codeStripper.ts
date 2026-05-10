@@ -50,40 +50,6 @@ export function detectCodeLanguage(text: string): CodeLanguage {
   return "unknown";
 }
 
-function removeSlashComments(text: string): string {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/^\s*\/\/.*$/gm, "")
-    .replace(/\s+\/\/\s.*$/gm, "");
-}
-
-function removeHashComments(text: string): string {
-  return text.replace(/^\s*#.*$/gm, "").replace(/\s+#\s.*$/gm, "");
-}
-
-function stripByLanguage(
-  text: string,
-  language: CodeLanguage,
-  options: Required<CodeStripperOptions>
-): string {
-  if (!options.removeComments) return text;
-
-  if (language === "javascript" || language === "typescript" || language === "rust") {
-    return removeSlashComments(text);
-  }
-  if (language === "go" || language === "java") return removeSlashComments(text);
-  if (language === "python") {
-    const withoutDocstrings = options.preserveDocstrings
-      ? text
-      : text.replace(/("""[\s\S]*?"""|'''[\s\S]*?''')/g, "");
-    return removeHashComments(withoutDocstrings);
-  }
-  if (language === "ruby") {
-    return removeHashComments(text.replace(/^=begin[\s\S]*?^=end/gm, ""));
-  }
-  return text;
-}
-
 export function stripCode(
   text: string,
   language: CodeLanguage = "unknown",
@@ -101,7 +67,7 @@ export function stripCode(
     preserveDocstrings: options.preserveDocstrings === true,
   };
   const originalLines = text.split(/\r?\n/).length;
-  let result = stripByLanguage(text, resolvedLanguage, opts);
+  let result = text;
 
   if (opts.removeEmptyLines) result = result.replace(/^\s*$(?:\r?\n)?/gm, "");
   if (opts.collapseWhitespace) {
@@ -111,7 +77,7 @@ export function stripCode(
       .join("\n");
   }
 
-  result = result.trim();
+  result = result.replace(/^\s*\n/, "").replace(/\n\s*$/, "");
   const strippedLines = Math.max(0, originalLines - (result ? result.split(/\r?\n/).length : 0));
   return { text: result, strippedLines, language: resolvedLanguage };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, Button, Badge } from "@/shared/components";
+import { Card, Button, Badge, Toggle } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 
 const rowCountFormatter = new Intl.NumberFormat("en-US");
@@ -73,6 +73,11 @@ export default function SystemStorageTab() {
   const [dbSettingsLoading, setDbSettingsLoading] = useState(true);
   const [dbSettingsSaving, setDbSettingsSaving] = useState(false);
   const [dbStatsRefreshing, setDbStatsRefreshing] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
+  const [usageTokenBuffer, setUsageTokenBuffer] = useState<number | null>(null);
+  const [bufferInput, setBufferInput] = useState("");
+  const [bufferSaving, setBufferSaving] = useState(false);
+  const [generalLoading, setGeneralLoading] = useState(true);
 
   const loadBackups = async () => {
     setBackupsLoading(true);
@@ -245,7 +250,64 @@ export default function SystemStorageTab() {
   useEffect(() => {
     loadStorageHealth();
     loadDatabaseSettings();
+    loadGeneralSettings();
   }, []);
+
+  const loadGeneralSettings = async () => {
+    setGeneralLoading(true);
+    try {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setDebugMode(data.debugMode === true);
+        const buf = typeof data.usageTokenBuffer === "number" ? data.usageTokenBuffer : 2000;
+        setUsageTokenBuffer(buf);
+        setBufferInput(String(buf));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGeneralLoading(false);
+    }
+  };
+
+  const updateDebugMode = async (value: boolean) => {
+    const previousValue = debugMode;
+    setDebugMode(value);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ debugMode: value }),
+      });
+      if (!res.ok) {
+        setDebugMode(previousValue);
+      }
+    } catch (err) {
+      setDebugMode(previousValue);
+      console.error("Failed to update debugMode:", err);
+    }
+  };
+
+  const updateUsageTokenBuffer = async () => {
+    const val = parseInt(bufferInput, 10);
+    if (isNaN(val) || val < 0 || val > 50000) return;
+    setBufferSaving(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usageTokenBuffer: val }),
+      });
+      if (res.ok) {
+        setUsageTokenBuffer(val);
+      }
+    } catch (err) {
+      console.error("Failed to update usageTokenBuffer:", err);
+    } finally {
+      setBufferSaving(false);
+    }
+  };
 
   /** Triggers a browser file download from an existing Blob. */
   const triggerDownload = (blob: Blob, filename: string) => {
@@ -1774,6 +1836,72 @@ export default function SystemStorageTab() {
           </div>
         </div>
       )}
+
+      {/* Debug Mode */}
+      <div className="mt-6 pt-3 border-t border-border/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className="material-symbols-outlined text-[18px] text-text-muted"
+              aria-hidden="true"
+            >
+              bug_report
+            </span>
+            <div>
+              <p className="font-medium">{t("debugToggle")}</p>
+            </div>
+          </div>
+          <Toggle checked={debugMode} onChange={updateDebugMode} disabled={generalLoading} />
+        </div>
+      </div>
+
+      {/* Usage Token Buffer */}
+      <div className="mt-4 pt-3 border-t border-border/50">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <span
+              className="material-symbols-outlined text-[18px] text-text-muted"
+              aria-hidden="true"
+            >
+              pin
+            </span>
+            <div>
+              <p className="font-medium">Usage Token Buffer</p>
+              <p className="text-sm text-text-muted mt-1">
+                Extra tokens added to reported usage to account for system prompt overhead. Set to 0
+                to report raw provider token counts. Default: 2000.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={0}
+              max={50000}
+              value={bufferInput}
+              onChange={(e) => setBufferInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") updateUsageTokenBuffer();
+              }}
+              className="w-32 px-3 py-1.5 rounded bg-surface-2 border border-border text-sm text-text-primary"
+              disabled={generalLoading}
+            />
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={updateUsageTokenBuffer}
+              disabled={
+                bufferSaving || generalLoading || parseInt(bufferInput, 10) === usageTokenBuffer
+              }
+            >
+              {bufferSaving ? tc("saving") : tc("save")}
+            </Button>
+            {usageTokenBuffer !== null && parseInt(bufferInput, 10) !== usageTokenBuffer && (
+              <span className="text-xs text-text-muted">Current: {usageTokenBuffer}</span>
+            )}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

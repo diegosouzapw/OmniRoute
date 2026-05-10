@@ -11,6 +11,7 @@ import {
   stripClaudeCodeCompatibleEndpointSuffix,
   stripAnthropicMessagesSuffix,
 } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
+import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -544,6 +545,13 @@ async function validateAnthropicLikeProvider({
     return { valid: false, error: "Missing base URL" };
   }
 
+  // OAuth tokens need the same Claude Code cloak as production traffic in
+  // base.ts; a bare validation request gets flagged on the user:sessions:
+  // claude_code scope.
+  if (typeof apiKey === "string" && apiKey.startsWith("sk-ant-oat")) {
+    return validateClaudeOAuthInline({ apiKey, modelId, providerSpecificData });
+  }
+
   const requestHeaders = applyCustomUserAgent(
     {
       "Content-Type": "application/json",
@@ -578,6 +586,45 @@ async function validateAnthropicLikeProvider({
   }
 
   return { valid: true, error: null };
+}
+
+// Probe a Claude OAuth credential through the same executor that handles
+// production traffic so the cloak/signing/identity logic isn't duplicated.
+async function validateClaudeOAuthInline({
+  apiKey,
+  modelId,
+  providerSpecificData = {},
+}: {
+  apiKey: string;
+  modelId: string | null | undefined;
+  providerSpecificData?: Record<string, unknown>;
+}) {
+  const testModelId =
+    providerSpecificData?.validationModelId || modelId || "claude-haiku-4-5-20251001";
+
+  try {
+    const { response } = await getExecutor("claude").execute({
+      model: testModelId,
+      body: {
+        model: testModelId,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      },
+      stream: false,
+      credentials: { accessToken: apiKey, providerSpecificData },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid OAuth token" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    // 2xx and non-auth 4xx (429 quota, 400 model) both mean the token is valid.
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateGeminiLikeProvider({
@@ -751,6 +798,55 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
   } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateKieProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    // Use credit check endpoint as requested by user based on Kie.ai docs.
+    const response = await validationRead("https://api.kie.ai/api/v1/chat/credit", {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid Kie.ai API key" };
+    }
+
+    // Fallback: if credits endpoint is 404/not supported, try minimal chat probe.
+    const chatRes = await validationWrite("https://api.kie.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "gpt-4o-mini",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      chatRes.ok ||
+      (chatRes.status >= 400 &&
+        chatRes.status < 500 &&
+        chatRes.status !== 401 &&
+        chatRes.status !== 403)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${chatRes.status}` };
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -2920,6 +3016,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       validateImageProviderApiKey({ provider: "topaz", apiKey, providerSpecificData }),
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,

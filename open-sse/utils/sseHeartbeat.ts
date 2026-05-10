@@ -1,4 +1,4 @@
-const DEFAULT_INTERVAL_MS = 15_000;
+export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
 type SseHeartbeatTransformOptions = {
   intervalMs?: number;
@@ -6,7 +6,7 @@ type SseHeartbeatTransformOptions = {
 };
 
 export function createSseHeartbeatTransform({
-  intervalMs = DEFAULT_INTERVAL_MS,
+  intervalMs = DEFAULT_SSE_HEARTBEAT_INTERVAL_MS,
   signal,
 }: SseHeartbeatTransformOptions = {}) {
   let intervalId: ReturnType<typeof setInterval> | undefined;
@@ -14,13 +14,13 @@ export function createSseHeartbeatTransform({
 
   const stop = () => {
     if (!intervalId) return;
-    clearInterval(intervalId);
+    globalThis.clearInterval(intervalId);
     intervalId = undefined;
   };
 
   return new TransformStream<Uint8Array, Uint8Array>({
     start(controller) {
-      intervalId = setInterval(() => {
+      intervalId = globalThis.setInterval(() => {
         if (signal?.aborted) {
           stop();
           return;

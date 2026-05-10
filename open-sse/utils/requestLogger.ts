@@ -66,6 +66,10 @@ function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
 
   for (const key of Object.keys(masked)) {
     const lowerKey = key.toLowerCase();
+    // Whitelist x-ratelimit- headers from redaction
+    if (lowerKey.startsWith("x-ratelimit-")) {
+      continue;
+    }
     if (!sensitiveKeys.some((candidate) => lowerKey.includes(candidate))) {
       continue;
     }

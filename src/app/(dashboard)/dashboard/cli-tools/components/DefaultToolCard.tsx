@@ -8,6 +8,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 import { buildOpenCodeConfigDocument } from "@/shared/services/opencodeConfig";
 import { useTheme } from "@/shared/hooks/useTheme";
 import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 export default function DefaultToolCard({
   toolId,
@@ -659,19 +660,7 @@ export default function DefaultToolCard({
         </span>
       );
     }
-    return (
-      <Image
-        src={`/providers/${toolId}.png`}
-        alt={tool.name}
-        width={32}
-        height={32}
-        className="size-8 object-contain rounded-lg"
-        sizes="32px"
-        onError={(e) => {
-          (e.currentTarget as HTMLElement).style.display = "none";
-        }}
-      />
-    );
+    return <ProviderIcon providerId={toolId} size={32} type="color" />;
   };
 
   return (

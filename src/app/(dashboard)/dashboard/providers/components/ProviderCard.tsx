@@ -21,6 +21,7 @@ interface ProviderStats {
   errorTime?: string | null;
   allDisabled?: boolean;
   expiryStatus?: "expired" | "expiring_soon" | string | null;
+  codexFastActive?: boolean;
 }
 
 interface ProviderCardProps {
@@ -56,7 +57,8 @@ function getStatusDisplay(
   connected: number,
   error: number,
   errorCode: string | null | undefined,
-  t: ReturnType<typeof useTranslations>
+  t: ReturnType<typeof useTranslations>,
+  afterConnected?: ReactNode
 ) {
   const parts: ReactNode[] = [];
   if (connected > 0) {
@@ -65,6 +67,7 @@ function getStatusDisplay(
         {t("connected", { count: connected })}
       </Badge>
     );
+    if (afterConnected) parts.push(afterConnected);
   }
   if (error > 0) {
     const errText = errorCode
@@ -97,6 +100,17 @@ export default function ProviderCard({
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
+  const codexFastChip =
+    providerId === "codex" && stats.codexFastActive ? (
+      <span
+        key="fast"
+        className="inline-flex items-center gap-0.5 rounded-full bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-sky-600 dark:text-sky-400"
+        title="Codex Fast tier is active"
+      >
+        <span className="material-symbols-outlined text-[10px] leading-none">bolt</span>
+        Fast
+      </span>
+    ) : null;
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
@@ -183,7 +197,7 @@ export default function ProviderCard({
                   </Badge>
                 ) : (
                   <>
-                    {getStatusDisplay(connected, error, stats.errorCode, t)}
+                    {getStatusDisplay(connected, error, stats.errorCode, t, codexFastChip)}
                     {(authType === "free" || provider.hasFree === true) && (
                       <Badge
                         variant="success"

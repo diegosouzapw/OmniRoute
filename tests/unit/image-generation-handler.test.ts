@@ -128,6 +128,66 @@ test("handleImageGeneration uses synthetic OpenAI-compatible routing for resolve
   }
 });
 
+test("handleImageGeneration polls KIE image tasks and returns URLs on success", async () => {
+  const originalFetch = globalThis.fetch;
+  let createPayload;
+  let pollUrl = "";
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://api.kie.ai/api/v1/gpt4o-image/generate") {
+      createPayload = JSON.parse(String(options.body || "{}"));
+      return new Response(JSON.stringify({ code: 200, data: { taskId: "kie-task-1" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl.startsWith("https://api.kie.ai/api/v1/gpt4o-image/record-info")) {
+      pollUrl = stringUrl;
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          data: {
+            status: "SUCCESS",
+            response: {
+              resultUrls: ["https://example.com/kie-image.png"],
+            },
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "kie/gpt4o-image",
+        prompt: "city skyline at dusk",
+        size: "1:1",
+        n: 1,
+      },
+      credentials: { apiKey: "kie-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(createPayload.prompt, "city skyline at dusk");
+    assert.equal(createPayload.size, "1:1");
+    assert.equal(createPayload.nVariants, 1);
+    assert.match(pollUrl, /taskId=kie-task-1/);
+    assert.equal(result.data.data[0].url, "https://example.com/kie-image.png");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleImageGeneration maps Hyperbolic size parameters and normalizes base64 images", async () => {
   const originalFetch = globalThis.fetch;
   let captured;

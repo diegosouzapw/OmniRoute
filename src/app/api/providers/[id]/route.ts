@@ -126,6 +126,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       healthCheckInterval,
       group,
       maxConcurrent,
+      projectId,
       providerSpecificData: incomingPsd,
     } = body;
 
@@ -152,6 +153,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
+    if (projectId !== undefined) updateData.projectId = projectId;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {

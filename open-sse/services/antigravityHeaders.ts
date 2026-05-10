@@ -16,14 +16,13 @@ import {
 type AntigravityHeaderProfile = "loadCodeAssist" | "fetchAvailableModels" | "models";
 
 const ANTIGRAVITY_VERSION = ANTIGRAVITY_FALLBACK_VERSION;
-export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = "google-api-nodejs-client/10.3.0";
-export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT =
-  "google-cloud-sdk vscode_cloudshelleditor/0.1";
+export const ANTIGRAVITY_CHROME_VERSION = "132.0.6834.160";
+export const ANTIGRAVITY_ELECTRON_VERSION = "39.2.3";
+export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = `vscode/1.X.X (Antigravity/${ANTIGRAVITY_FALLBACK_VERSION})`;
+export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
 export const ANTIGRAVITY_CREDIT_PROBE_API_CLIENT = "google-genai-sdk/1.30.0 gl-node/v22.21.1";
 const LOAD_CODE_ASSIST_METADATA = Object.freeze({
-  ideType: "IDE_UNSPECIFIED",
-  platform: "PLATFORM_UNSPECIFIED",
-  pluginType: "GEMINI",
+  ideType: "ANTIGRAVITY",
 });
 
 function withOptionalBearerAuth(
@@ -37,20 +36,20 @@ function withOptionalBearerAuth(
 }
 
 /**
- * Antigravity User-Agent: "antigravity/VERSION darwin/arm64"
- *
- * Always claims darwin/arm64 regardless of actual server OS.
- * Real Antigravity is a macOS desktop tool — most users are on macOS.
- * Claiming linux/amd64 from a datacenter IP is MORE suspicious than
- * darwin/arm64. Matches CLIProxyAPI's proven production behavior.
+ * Antigravity desktop User-Agent:
+ * "Antigravity/VERSION (Macintosh; Intel Mac OS X 10_15_7) Chrome/132... Electron/39..."
  */
 export function antigravityUserAgent(): string {
-  return `antigravity/${getCachedAntigravityVersion()} darwin/arm64`;
+  return `Antigravity/${getCachedAntigravityVersion()} (Macintosh; Intel Mac OS X 10_15_7) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
 }
 
 export async function resolveAntigravityUserAgent(): Promise<string> {
   const version = await resolveAntigravityVersion();
-  return `antigravity/${version} darwin/arm64`;
+  return `Antigravity/${version} (Macintosh; Intel Mac OS X 10_15_7) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
+}
+
+export function antigravityNativeOAuthUserAgent(): string {
+  return `vscode/1.X.X (Antigravity/${getCachedAntigravityVersion()})`;
 }
 
 export function getAntigravityLoadCodeAssistMetadata(): Record<string, string> {
@@ -70,9 +69,7 @@ export function getAntigravityHeaders(
       return withOptionalBearerAuth(
         {
           "Content-Type": "application/json",
-          "User-Agent": ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-          "X-Goog-Api-Client": ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-          "Client-Metadata": getAntigravityLoadCodeAssistClientMetadata(),
+          "User-Agent": antigravityNativeOAuthUserAgent(),
         },
         accessToken
       );

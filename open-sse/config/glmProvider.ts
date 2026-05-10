@@ -1,4 +1,4 @@
-import { ANTHROPIC_BETA_API_KEY, ANTHROPIC_VERSION_HEADER } from "./anthropicHeaders.ts";
+import { ANTHROPIC_VERSION_HEADER } from "./anthropicHeaders.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -6,7 +6,6 @@ export type GlmApiRegion = "international" | "china";
 
 export const GLM_SHARED_HEADERS = Object.freeze({
   "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-  "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
 });
 
 export const GLM_SHARED_MODELS = Object.freeze([

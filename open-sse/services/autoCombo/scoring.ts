@@ -10,6 +10,8 @@
  *   6. Stability    (0.10) — variance-based prediction of consistency
  */
 
+import type { RoutingHint } from "../manifestAdapter";
+
 export interface ScoringFactors {
   quota: number;
   health: number;
@@ -17,7 +19,9 @@ export interface ScoringFactors {
   latencyInv: number;
   taskFit: number;
   stability: number;
-  tierPriority: number; // T10: Ultra > Pro > Free account tier boost
+  tierPriority: number;
+  tierAffinity: number;
+  specificityMatch: number;
 }
 
 export interface ScoringWeights {
@@ -27,18 +31,21 @@ export interface ScoringWeights {
   latencyInv: number;
   taskFit: number;
   stability: number;
-  tierPriority: number; // T10
+  tierPriority: number;
+  tierAffinity: number;
+  specificityMatch: number;
 }
 
-// T10: Rebalanced — stability 0.10→0.05, tierPriority 0.05 added. Sum = 1.0.
 export const DEFAULT_WEIGHTS: ScoringWeights = {
-  quota: 0.2,
-  health: 0.25,
-  costInv: 0.2,
-  latencyInv: 0.15,
-  taskFit: 0.1,
+  quota: 0.17,
+  health: 0.22,
+  costInv: 0.17,
+  latencyInv: 0.13,
+  taskFit: 0.08,
   stability: 0.05,
   tierPriority: 0.05,
+  tierAffinity: 0.05,
+  specificityMatch: 0.08,
 };
 
 export interface ProviderCandidate {
@@ -66,6 +73,7 @@ export interface ScoredProvider {
 
 /**
  * Calculate weighted score from factors.
+ * Supports tierAffinity + specificityMatch weights when manifest routing is enabled.
  */
 export function calculateScore(factors: ScoringFactors, weights: ScoringWeights): number {
   return (
@@ -75,18 +83,14 @@ export function calculateScore(factors: ScoringFactors, weights: ScoringWeights)
     weights.latencyInv * factors.latencyInv +
     weights.taskFit * factors.taskFit +
     weights.stability * factors.stability +
-    weights.tierPriority * factors.tierPriority
+    weights.tierPriority * factors.tierPriority +
+    (weights.tierAffinity ?? 0) * factors.tierAffinity +
+    (weights.specificityMatch ?? 0) * factors.specificityMatch
   );
 }
 
 /**
  * T10: Convert account tier string to a normalized score [0..1].
- * Ultra = 1.0 (most quota, fastest reset)
- * Pro   = 0.67
- * Standard = 0.33
- * Free  = 0.0
- * Accounts with faster reset cycles (shorter quotaResetIntervalSecs) also get
- * a small adjustment: monthly accounts are penalized vs. daily accounts.
  */
 export function calculateTierScore(
   tier: string | undefined,
@@ -98,29 +102,63 @@ export function calculateTierScore(
     standard: 0.33,
     free: 0.0,
   };
-  const baseScore = BASE_TIER_SCORES[tier?.toLowerCase() ?? ""] ?? 0.33; // unknown defaults to standard
+  const baseScore = BASE_TIER_SCORES[tier?.toLowerCase() ?? ""] ?? 0.33;
 
-  // Bonus for faster reset intervals (daily quota > weekly > monthly)
-  // maxInterval ~ 30 days (2_592_000s). Normalize: [0..1] where 0=monthly, 1=per-minute
   const resetBonus =
     quotaResetIntervalSecs != null && quotaResetIntervalSecs > 0
       ? Math.max(0, 1 - quotaResetIntervalSecs / 2_592_000)
       : 0;
 
-  // Blend: 80% tier level, 20% reset frequency
   return Math.min(1, baseScore * 0.8 + resetBonus * 0.2);
 }
 
-/**
- * Calculate individual factors for a provider within its pool.
- */
+function calculateTierAffinity(
+  candidate: ProviderCandidate,
+  hint: RoutingHint | undefined | null
+): number {
+  if (!hint) return 0.5;
+  try {
+    const { classifyTier } = require("../tierResolver");
+    const assignment = classifyTier(candidate.provider, candidate.model);
+    const tierOrder = ["free", "cheap", "premium"];
+    const providerTierIdx = tierOrder.indexOf(assignment.tier);
+    const minTierIdx = tierOrder.indexOf(hint.recommendedMinTier);
+
+    if (providerTierIdx === minTierIdx) return 1.0;
+    if (Math.abs(providerTierIdx - minTierIdx) === 1) return 0.7;
+    return 0.3;
+  } catch {
+    return 0.5;
+  }
+}
+
+function calculateSpecificityMatch(
+  candidate: ProviderCandidate,
+  hint: RoutingHint | undefined | null
+): number {
+  if (!hint) return 0.5;
+  try {
+    const { classifyTier } = require("../tierResolver");
+    const assignment = classifyTier(candidate.provider, candidate.model);
+    const specificityScore = hint.specificity.score;
+
+    if (assignment.tier === "free") return specificityScore <= 15 ? 0.9 : 0.2;
+    if (assignment.tier === "cheap")
+      return specificityScore > 15 && specificityScore <= 50 ? 0.9 : 0.4;
+    if (assignment.tier === "premium") return specificityScore > 50 ? 0.9 : 0.3;
+    return 0.5;
+  } catch {
+    return 0.5;
+  }
+}
+
 export function calculateFactors(
   candidate: ProviderCandidate,
   pool: ProviderCandidate[],
   taskType: string,
-  getTaskFitness: (model: string, taskType: string) => number
+  getTaskFitness: (model: string, taskType: string) => number,
+  manifestHint?: RoutingHint | null
 ): ScoringFactors {
-  // Pool-wide maximums for normalization
   const maxCost = Math.max(...pool.map((p) => p.costPer1MTokens), 0.001);
   const maxLatency = Math.max(...pool.map((p) => p.p95LatencyMs), 1);
   const maxStdDev = Math.max(...pool.map((p) => p.latencyStdDev), 0.001);
@@ -138,21 +176,21 @@ export function calculateFactors(
     taskFit: getTaskFitness(candidate.model, taskType),
     stability: 1 - candidate.latencyStdDev / maxStdDev,
     tierPriority: calculateTierScore(candidate.accountTier, candidate.quotaResetIntervalSecs),
+    tierAffinity: calculateTierAffinity(candidate, manifestHint),
+    specificityMatch: calculateSpecificityMatch(candidate, manifestHint),
   };
 }
 
-/**
- * Score and rank all providers in a pool.
- */
 export function scorePool(
   pool: ProviderCandidate[],
   taskType: string,
   weights: ScoringWeights = DEFAULT_WEIGHTS,
-  getTaskFitness: (model: string, taskType: string) => number = () => 0.5
+  getTaskFitness: (model: string, taskType: string) => number = () => 0.5,
+  manifestHint?: RoutingHint | null
 ): ScoredProvider[] {
   return pool
     .map((candidate) => {
-      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness);
+      const factors = calculateFactors(candidate, pool, taskType, getTaskFitness, manifestHint);
       return {
         provider: candidate.provider,
         model: candidate.model,

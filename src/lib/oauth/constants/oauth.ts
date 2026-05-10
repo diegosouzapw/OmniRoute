@@ -63,7 +63,9 @@ export const GEMINI_CONFIG = {
     process.env.GEMINI_OAUTH_CLIENT_ID ||
     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
   clientSecret:
-    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET || process.env.GEMINI_OAUTH_CLIENT_SECRET || "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",
+    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET ||
+    process.env.GEMINI_OAUTH_CLIENT_SECRET ||
+    "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",
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -150,12 +152,13 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: "https://cloudcode-pa.googleapis.com",
+  apiEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com",
   apiVersion: "v1internal",
-  loadCodeAssistEndpoint: "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist",
-  onboardUserEndpoint: "https://cloudcode-pa.googleapis.com/v1internal:onboardUser",
+  loadCodeAssistEndpoint:
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
+  onboardUserEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:onboardUser",
   fetchAvailableModelsEndpoint:
-    "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
   loadCodeAssistUserAgent: ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   loadCodeAssistApiClient: ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),

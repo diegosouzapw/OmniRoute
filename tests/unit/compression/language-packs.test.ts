@@ -48,6 +48,37 @@ describe("Caveman language packs", () => {
     assert.ok(text.includes("auth"));
   });
 
+  it("keeps the Spanish pack aligned with English rule categories", () => {
+    const esRules = loadAllRulesForLanguage("es", { refresh: true });
+    assert.ok(esRules.length >= 40, `es expected 40+ rules, got ${esRules.length}`);
+    assert.ok(
+      esRules.some((rule) => rule.category === "dedup"),
+      "es missing dedup"
+    );
+    assert.ok(
+      esRules.some((rule) => rule.category === "ultra"),
+      "es missing ultra"
+    );
+    assert.ok(
+      esRules.some((rule) => rule.category === "terse"),
+      "es missing terse"
+    );
+  });
+
+  it("applies expanded Spanish rules without touching technical terms", () => {
+    const esRules = getRulesForContext("user", "ultra", "es");
+    const { text } = applyRulesToText(
+      "Por favor proporciona una explicación detallada de la base de datos y autenticación en src/auth.ts",
+      esRules
+    );
+
+    assert.ok(!text.toLowerCase().includes("por favor"));
+    assert.ok(!text.toLowerCase().includes("explicación detallada"));
+    assert.ok(text.includes("BD"));
+    assert.ok(text.includes("auth"));
+    assert.ok(text.includes("src/auth.ts"));
+  });
+
   it("builds localized output mode instructions", () => {
     const config = { enabled: true, intensity: "full" as const, autoClarity: true };
 

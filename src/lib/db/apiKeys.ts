@@ -254,7 +254,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, name, machine_id, allowed_models, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, max_sessions, revoked_at, expires_at, ip_allowlist, scopes FROM api_keys WHERE key = ?"
     );
     _stmtInsertKey = db.prepare(
-      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     _stmtDeleteKey = db.prepare("DELETE FROM api_keys WHERE id = ?");
   }
@@ -413,7 +413,7 @@ function parseNullableTimestamp(value: unknown): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-export async function createApiKey(name: string, machineId: string) {
+export async function createApiKey(name: string, machineId: string, scopes: string[] = []) {
   if (!machineId) {
     throw new Error("machineId is required");
   }
@@ -433,6 +433,7 @@ export async function createApiKey(name: string, machineId: string) {
     allowedConnections: [], // Empty array means all connections allowed
     noLog: false,
     createdAt: now,
+    scopes,
   };
 
   const stmt = getPreparedStatements(db);
@@ -444,7 +445,8 @@ export async function createApiKey(name: string, machineId: string) {
     "[]",
     0,
     apiKey.createdAt,
-    apiKey.key.slice(0, 12)
+    apiKey.key.slice(0, 12),
+    JSON.stringify(scopes)
   );
   setNoLog(apiKey.id, false);
 
@@ -468,6 +470,7 @@ export async function updateApiKeyPermissions(
         maxRequestsPerMinute?: number | null;
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
+        scopes?: string[] | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -487,6 +490,7 @@ export async function updateApiKeyPermissions(
           maxRequestsPerDay: update.maxRequestsPerDay,
           maxRequestsPerMinute: update.maxRequestsPerMinute,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
+          scopes: (update as { scopes?: string[] | null }).scopes,
         };
 
   if (
@@ -499,7 +503,8 @@ export async function updateApiKeyPermissions(
     normalized.accessSchedule === undefined &&
     normalized.maxRequestsPerDay === undefined &&
     normalized.maxRequestsPerMinute === undefined &&
-    (normalized as Record<string, unknown>).maxSessions === undefined
+    (normalized as Record<string, unknown>).maxSessions === undefined &&
+    (normalized as Record<string, unknown>).scopes === undefined
   ) {
     return false;
   }
@@ -517,6 +522,7 @@ export async function updateApiKeyPermissions(
     maxRequestsPerDay?: number | null;
     maxRequestsPerMinute?: number | null;
     maxSessions?: number;
+    scopes?: string;
   } = { id };
 
   if (normalized.name !== undefined) {
@@ -571,6 +577,12 @@ export async function updateApiKeyPermissions(
   if (maxSessionsUpdate !== undefined) {
     updates.push("max_sessions = @maxSessions");
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
+  }
+
+  const scopesUpdate = (normalized as Record<string, unknown>).scopes;
+  if (scopesUpdate !== undefined) {
+    updates.push("scopes = @scopes");
+    params.scopes = JSON.stringify(Array.isArray(scopesUpdate) ? scopesUpdate : []);
   }
 
   const result = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
@@ -725,7 +737,7 @@ export async function getApiKeyMetadata(
       revokedAt: null,
       expiresAt: null,
       ipAllowlist: [],
-      scopes: [],
+      scopes: ["manage"],
     };
   }
 

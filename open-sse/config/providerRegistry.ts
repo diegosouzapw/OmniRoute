@@ -130,7 +130,6 @@ const KIMI_CODING_SHARED = {
   authHeader: "x-api-key",
   headers: {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-    "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
   },
   models: [
     { id: "kimi-k2.6", name: "Kimi K2.6" },
@@ -153,10 +152,28 @@ const GPT_5_5_CODEX_CAPABILITIES = {
 
 const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   deepinfra: buildModels([
-    "Qwen/Qwen3-Coder-480B-A35B-Instruct",
-    "deepseek-ai/DeepSeek-R1",
-    "meta-llama/Llama-3.3-70B-Instruct",
+    "anthropic/claude-4-opus",
     "anthropic/claude-4-sonnet",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "google/gemma-4-31B-it",
+    "google/gemma-4-26B-A4B-it",
+    "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning",
+    "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+    "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    "NousResearch/Hermes-3-Llama-3.1-405B",
+    "deepseek-ai/DeepSeek-V4-Pro",
+    "deepseek-ai/DeepSeek-V4-Flash",
+    "zai-org/GLM-5.1",
+    "moonshotai/Kimi-K2.6",
+    "MiniMaxAI/MiniMax-M2.5",
+    "Qwen/Qwen3.6-35B-A3B",
+    "Qwen/Qwen3.5-397B-A17B",
+    "Qwen/Qwen3.5-122B-A10B",
+    "XiaomiMiMo/MiMo-V2.5-Pro",
+    "XiaomiMiMo/MiMo-V2.5",
   ]),
   "vercel-ai-gateway": buildModels([
     "openai/gpt-4.1",
@@ -171,14 +188,18 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "qwen25-coder-32b-instruct",
   ]),
   sambanova: buildModels([
-    "DeepSeek-V3.1",
+    "MiniMax-M2.7",
+    "DeepSeek-V3.2",
     "Llama-4-Maverick-17B-128E-Instruct",
-    "Qwen3-32B",
+    "Meta-Llama-3.3-70B-Instruct",
     "gpt-oss-120b",
   ]),
   nscale: buildModels([
-    "Qwen/QwQ-32B",
-    "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "moonshotai/Kimi-K2.5",
+    "Qwen/Qwen3-235B-A22B-Instruct-2507",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "meta-llama/Llama-4-Scout-17B-16E-Instruct",
     "meta-llama/Llama-3.3-70B-Instruct",
   ]),
   ovhcloud: buildModels([
@@ -186,7 +207,14 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "Qwen2.5-Coder-32B-Instruct",
     "Mistral-Small-3.2-24B-Instruct-2506",
   ]),
-  baseten: buildModels(["moonshotai/Kimi-K2.5", "zai-org/GLM-5", "deepseek-ai/DeepSeek-V3.1"]),
+  baseten: buildModels([
+    "moonshotai/Kimi-K2.6",
+    "deepseek-ai/DeepSeek-V4-Pro",
+    "zai-org/GLM-5",
+    "MiniMaxAI/MiniMax-M2.5",
+    "nvidia/Nemotron-120B-A12B",
+    "openai/gpt-oss-120b",
+  ]),
   publicai: buildModels([
     "swiss-ai/apertus-70b-instruct",
     "aisingapore/Qwen-SEA-LION-v4-32B-IT",
@@ -194,16 +222,29 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
   ]),
   moonshot: buildModels(["kimi-k2.6", "kimi-k2.5"]),
   "meta-llama": buildModels([
-    "Llama-3.3-70B-Instruct",
     "Llama-4-Maverick-17B-128E-Instruct-FP8",
     "Llama-4-Scout-17B-16E-Instruct-FP8",
+    "Llama-3.3-70B-Instruct",
   ]),
   "v0-vercel": buildModels(["v0-1.0-md", "v0-1.5-lg", "v0-1.5-md"]),
-  morph: buildModels(["morph-v3-fast", "morph-v3-large"]),
+  morph: buildModels(["morph-v3-large", "morph-v3-fast"]),
   "featherless-ai": buildModels(["featherless-ai/Qwerky-72B", "featherless-ai/Qwerky-QwQ-32B"]),
   friendliai: buildModels(["meta-llama-3.1-70b-instruct", "meta-llama-3.1-8b-instruct"]),
   llamagate: buildModels(["qwen2.5-coder-7b", "deepseek-coder-6.7b", "qwen3-vl-8b"]),
-  heroku: buildModels(["claude-3-5-sonnet-latest", "claude-4-sonnet"]),
+  heroku: buildModels([
+    "claude-opus-4-7",
+    "claude-4-6-sonnet",
+    "claude-4-5-haiku",
+    "glm-4-7",
+    "kimi-k2-5",
+    "minimax-m2-1",
+    "deepseek-v3-2",
+    "qwen3-coder-480b",
+    "qwen3-235b",
+    "gpt-oss-120b",
+    "nova-pro",
+    "nova-2-lite",
+  ]),
   galadriel: buildModels(["galadriel-latest"]),
   databricks: buildModels([
     "databricks-gpt-5",
@@ -223,7 +264,7 @@ const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "kimi-k2-thinking-251104",
     "glm-4-7-251222",
   ]),
-  ai21: buildModels(["jamba-large-1.7", "jamba-mini-1.7", "jamba-1.5-large"]),
+  ai21: buildModels(["jamba-large-1.7", "jamba-mini-2"]),
   gigachat: buildModels(["GigaChat-2-Max", "GigaChat-2-Pro", "GigaChat-2-Lite"]),
   venice: buildModels(["venice-latest"]),
   codestral: buildModels(["codestral-2405", "codestral-latest"]),
@@ -274,6 +315,27 @@ function mapStainlessArch() {
 
 export const REGISTRY: Record<string, RegistryEntry> = {
   // ─── OAuth Providers ───────────────────────────────────────────────────
+  kie: {
+    id: "kie",
+    alias: "kie",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.kie.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    models: [
+      { id: "claude-opus-4-7", name: "Claude 4.7 Opus" },
+      { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet" },
+      { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku" },
+      { id: "gpt-5-5", name: "GPT 5.5" },
+      { id: "gpt-5-4", name: "GPT 5.4" },
+      { id: "gpt-5-2", name: "GPT 5.2" },
+      { id: "gemini-3-1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-2-5-pro", name: "Gemini 2.5 Pro" },
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+    ],
+  },
   claude: {
     id: "claude",
     alias: "cc",
@@ -383,6 +445,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       tokenUrl: "https://auth.openai.com/oauth/token",
     },
     models: [
+      { id: "gpt-5.5", name: "GPT 5.5", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-high", name: "GPT 5.5 (High)", ...GPT_5_5_CODEX_CAPABILITIES },
       { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)", ...GPT_5_5_CODEX_CAPABILITIES },
@@ -488,7 +551,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     defaultContextLength: 128000,
     headers: getGitHubCopilotChatHeaders(),
     models: [
-      { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-5-mini", name: "GPT-5 Mini" },
       { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", targetFormat: "openai-responses" },
       { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", targetFormat: "openai-responses" },
@@ -581,7 +643,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.4-nano", name: "GPT-5.4 Nano" },
       { id: "gpt-4.1", name: "GPT-4.1" },
       { id: "gpt-4o", name: "GPT-4o" },
-      { id: "o4-mini", name: "O4 mini", unsupportedParams: REASONING_UNSUPPORTED },
       { id: "o3", name: "O3", unsupportedParams: REASONING_UNSUPPORTED },
     ],
   },
@@ -689,14 +750,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "X-Stainless-Timeout": "600",
     },
     models: [
-      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },
       { id: "claude-opus-4-6", name: "Claude 4.6 Opus" },
-      { id: "deepseek-r1-0528", name: "DeepSeek R1 0528" },
-      { id: "deepseek-v3.1", name: "DeepSeek V3.1" },
-      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
-      { id: "glm-4.5", name: "GLM 4.5" },
-      { id: "glm-4.6", name: "GLM 4.6" },
+      { id: "claude-haiku-4-5-20251001", name: "Claude 4.5 Haiku" },
       { id: "glm-5.1", name: "GLM 5.1" },
+      { id: "deepseek-v3.2", name: "DeepSeek V3.2" },
     ],
     passthroughModels: true,
   },
@@ -760,7 +817,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
-    defaultContextLength: 128000,
+    defaultContextLength: 200000,
     models: [{ id: "glm-5.1", name: "GLM-5.1" }],
     passthroughModels: true,
   },
@@ -793,7 +850,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
@@ -818,7 +874,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "x-api-key",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       { id: "glm-5.1", name: "GLM 5.1" },
@@ -939,7 +994,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // T12/T28: MiniMax default upgraded from M2.5 to M2.7
@@ -961,7 +1015,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     headers: {
       "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
-      "Anthropic-Beta": ANTHROPIC_BETA_API_KEY,
     },
     models: [
       // Keep parity with minimax to ensure model discovery works for minimax-cn connections.
@@ -1105,8 +1158,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "grok-4.20-multi-agent-0309", name: "Grok 4.20 Multi Agent" },
       { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 Reasoning" },
       { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20" },
-      { id: "grok-4-1-fast-reasoning", name: "Grok 4.1 Fast Reasoning" },
-      { id: "grok-4-1-fast-non-reasoning", name: "Grok 4.1 Fast" },
     ],
   },
 
@@ -1145,7 +1196,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "cookie",
     passthroughModels: true,
     models: [
-      { id: "fast", name: "Grok Fast", toolCalling: true },
+      { id: "fast", name: "Grok 4.20", toolCalling: true },
       { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
       { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
@@ -1162,7 +1213,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "bearer",
     models: [
       { id: "mistral-large-latest", name: "Mistral Large 3" },
-      { id: "mistral-medium-latest", name: "Mistral Medium 3.1" },
+      { id: "mistral-medium-3-5", name: "Mistral Medium 3.5" },
       { id: "mistral-small-latest", name: "Mistral Small 4" },
       { id: "devstral-latest", name: "Devstral 2" },
       { id: "codestral-latest", name: "Codestral" },
@@ -1263,7 +1314,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "accounts/fireworks/models/minimax-m2p7", name: "MiniMax M2.7" },
       { id: "accounts/fireworks/models/qwen3p6-plus", name: "Qwen3.6 Plus" },
       { id: "accounts/fireworks/models/glm-5p1", name: "GLM 5.1" },
-      { id: "accounts/fireworks/models/deepseek-v3p2", name: "DeepSeek V3.2" },
+      { id: "accounts/fireworks/models/deepseek-v4-pro", name: "DeepSeek V4 Pro" },
     ],
   },
 
@@ -1293,6 +1344,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     // Note: rate limits vary by plan (free = "Light usage", Pro = more, Max = 5x Pro).
     // Users can generate API keys at https://ollama.com/settings/api-keys
     models: [
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
       { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
       { id: "kimi-k2.6", name: "Kimi K2.6" },
       { id: "glm-5.1", name: "GLM 5.1" },
@@ -1313,11 +1365,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "command-r-plus-08-2024", name: "Command R+ (Aug 2024)" },
-      { id: "command-r-08-2024", name: "Command R (Aug 2024)" },
-      { id: "command-a-03-2025", name: "Command A (Mar 2025)" },
-      { id: "command-a-vision-07-2025", name: "Command A Vision (Jul 2025)" },
       { id: "command-a-reasoning-08-2025", name: "Command A Reasoning (Aug 2025)" },
+      { id: "command-a-vision-07-2025", name: "Command A Vision (Jul 2025)" },
+      { id: "command-a-03-2025", name: "Command A (Mar 2025)" },
+      { id: "command-r-08-2024", name: "Command R (Aug 2024)" },
     ],
   },
 

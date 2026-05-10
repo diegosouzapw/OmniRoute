@@ -72,6 +72,7 @@ export async function PATCH(request, { params }) {
       isActive,
       maxSessions,
       accessSchedule,
+      scopes,
     } = validation.data;
 
     const payload: Parameters<typeof updateApiKeyPermissions>[1] = {};
@@ -83,6 +84,7 @@ export async function PATCH(request, { params }) {
     if (isActive !== undefined) payload.isActive = isActive;
     if (maxSessions !== undefined) payload.maxSessions = maxSessions;
     if (accessSchedule !== undefined) payload.accessSchedule = accessSchedule;
+    if (scopes !== undefined) payload.scopes = scopes;
 
     const updated = await updateApiKeyPermissions(id, payload);
     if (!updated) {
@@ -102,6 +104,7 @@ export async function PATCH(request, { params }) {
       ...(isActive !== undefined && { isActive }),
       ...(maxSessions !== undefined && { maxSessions }),
       ...(accessSchedule !== undefined && { accessSchedule }),
+      ...(scopes !== undefined && { scopes }),
     });
   } catch (error) {
     log.error("keys", "Error updating key permissions", error);
