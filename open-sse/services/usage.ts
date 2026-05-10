@@ -156,6 +156,12 @@ function getGlmTokenQuotaName(
   return existingQuotas.session ? "weekly" : "session";
 }
 
+function getGlmQuotaDisplayName(quotaName: string): string {
+  if (quotaName === "session") return "5 Hours Quota";
+  if (quotaName === "weekly") return "Weekly Quota";
+  return quotaName;
+}
+
 function getFieldValue(source: unknown, snakeKey: string, camelKey: string): unknown {
   const obj = toRecord(source);
   return obj[snakeKey] ?? obj[camelKey] ?? null;
@@ -635,6 +641,13 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
         remaining,
         remainingPercentage: remaining,
         resetAt,
+        displayName: getGlmQuotaDisplayName(quotaName),
+        details: Array.isArray(src.models)
+          ? src.models.map((m: any) => ({
+              name: String(m.model || ""),
+              used: toNumber(m.percentage, 0),
+            }))
+          : [],
         unlimited: false,
       };
       continue;
@@ -876,6 +889,7 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getQoderUsage(accessToken);
     case "glm":
     case "glm-cn":
+    case "zai":
     case "glmt":
       return await getGlmUsage(apiKey, {
         ...(providerSpecificData || {}),

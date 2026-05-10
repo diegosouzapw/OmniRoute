@@ -854,8 +854,10 @@ export async function GET(
       return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
-        ...(model.apiFormat ? { apiFormat: model.apiFormat } : {}),
-        ...(model.supportedEndpoints ? { supportedEndpoints: model.supportedEndpoints } : {}),
+        ...((model as any).apiFormat ? { apiFormat: (model as any).apiFormat } : {}),
+        ...((model as any).supportedEndpoints
+          ? { supportedEndpoints: (model as any).supportedEndpoints }
+          : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
@@ -902,7 +904,7 @@ export async function GET(
       }
     ) => {
       const status = getSafeOutboundFetchErrorStatus(error);
-      if (status === 400) return null;
+      if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
     };
 
@@ -1852,8 +1854,10 @@ export async function GET(
         models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
-          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+          ...((m as any).apiFormat ? { apiFormat: (m as any).apiFormat } : {}),
+          ...((m as any).supportedEndpoints
+            ? { supportedEndpoints: (m as any).supportedEndpoints }
+            : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",

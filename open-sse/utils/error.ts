@@ -4,6 +4,19 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
 /**
+ * Sanitize an error message to prevent stack trace exposure in API responses.
+ * Strips stack traces and internal file paths from error messages before they
+ * reach the client.
+ */
+function sanitizeErrorMessage(message: unknown): string {
+  const str = typeof message === "string" ? message : String(message ?? "");
+  // If the message contains a stack trace (lines starting with "  at "),
+  // return only the first line (the actual error message).
+  const firstLine = str.split("\n")[0] || str;
+  return firstLine;
+}
+
+/**
  * Build OpenAI-compatible error response body
  * @param {number} statusCode - HTTP status code
  * @param {string} message - Error message
@@ -28,8 +41,8 @@ export function buildErrorBody(statusCode, message) {
  * @returns {Response} HTTP Response object
  */
 export function errorResponse(statusCode, message) {
-  return new Response(JSON.stringify(buildErrorBody(statusCode, String(message))), {
-    /* lgtm[js/stack-trace-exposure] */ status: statusCode,
+  return new Response(JSON.stringify(buildErrorBody(statusCode, sanitizeErrorMessage(message))), {
+    status: statusCode,
     headers: {
       "Content-Type": "application/json",
     },
@@ -116,6 +129,8 @@ export async function parseUpstreamError(response, provider = null) {
   let message = "";
   let retryAfterMs = null;
   let responseBody = null;
+  let errorCode = undefined;
+  let errorType = undefined;
 
   try {
     const text = await response.text();
@@ -125,6 +140,8 @@ export async function parseUpstreamError(response, provider = null) {
     try {
       const json = JSON.parse(text);
       message = json.error?.message || json.message || json.error || text;
+      errorCode = json.error?.code || json.code;
+      errorType = json.error?.type || json.type;
     } catch {
       message = text;
     }
@@ -179,6 +196,8 @@ export async function parseUpstreamError(response, provider = null) {
   return {
     statusCode: response.status,
     message: messageStr,
+    errorCode,
+    errorType,
     retryAfterMs,
     responseBody,
     responseHeaders,
@@ -195,19 +214,34 @@ export async function parseUpstreamError(response, provider = null) {
 export function createErrorResult(
   statusCode: number,
   message: string,
-  retryAfterMs: number | null = null
+  retryAfterMs: number | null = null,
+  errorCode?: string,
+  errorType?: string
 ) {
+  const body = buildErrorBody(statusCode, message);
+  if (errorCode) {
+    (body.error as any).code = errorCode;
+  }
+  if (errorType) {
+    (body.error as any).type = errorType;
+  }
+
   const result: {
     success: false;
     status: number;
     error: string;
+    errorType?: string;
     response: Response;
     retryAfterMs?: number;
   } = {
     success: false,
     status: statusCode,
     error: message,
-    response: errorResponse(statusCode, message),
+    errorType,
+    response: new Response(JSON.stringify(body), {
+      status: statusCode,
+      headers: { "Content-Type": "application/json" },
+    }),
   };
 
   // Add retryAfterMs if available (for Antigravity quota errors)

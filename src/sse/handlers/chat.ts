@@ -3,6 +3,8 @@ import {
   getProviderCredentialsWithQuotaPreflight,
   markAccountUnavailable,
   extractApiKey,
+  isValidApiKey,
+  extractSessionAffinityKey,
 } from "../services/auth";
 import {
   getRuntimeProviderProfile,
@@ -208,6 +210,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   // T04: client-provided external session header has priority over generated fingerprint.
   const externalSessionId = extractExternalSessionId(request.headers);
   const sessionId = externalSessionId || generateStableSessionId(body);
+  const sessionAffinityKey = extractSessionAffinityKey(body, request.headers) || sessionId;
   const requestedConnectionId = request.headers.get("x-omniroute-connection")?.trim() || null;
   if (sessionId) {
     touchSession(sessionId);
@@ -358,6 +361,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         allowedConnections,
         resolvedModel,
         {
+          sessionKey: sessionAffinityKey,
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
         }
       );
@@ -400,6 +404,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           telemetry,
           {
             sessionId,
+            sessionAffinityKey,
             forceLiveComboTest: isComboLiveTest,
             forcedConnectionId: target?.connectionId ?? null,
             allowedConnectionIds: target?.allowedConnectionIds ?? null,
@@ -450,7 +455,12 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           combo.name,
           apiKeyInfo,
           telemetry,
-          { sessionId, emergencyFallbackTried: true, forceLiveComboTest: isComboLiveTest },
+          {
+            sessionId,
+            sessionAffinityKey,
+            emergencyFallbackTried: true,
+            forceLiveComboTest: isComboLiveTest,
+          },
           combo.strategy,
           true
         );
@@ -486,6 +496,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     telemetry,
     {
       sessionId,
+      sessionAffinityKey,
       forceLiveComboTest: isComboLiveTest,
       forcedConnectionId: requestedConnectionId,
     },
@@ -524,6 +535,7 @@ async function handleSingleModelChat(
     emergencyFallbackTried?: boolean;
     forceLiveComboTest?: boolean;
     sessionId?: string | null;
+    sessionAffinityKey?: string | null;
     forcedConnectionId?: string | null;
     allowedConnectionIds?: string[] | null;
     comboStepId?: string | null;
@@ -670,6 +682,7 @@ async function handleSingleModelChat(
               effectiveAllowedConnections,
               model,
               {
+                sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
                 ...(forceLiveComboTest
                   ? {
@@ -859,6 +872,25 @@ async function handleSingleModelChat(
         // Stream readiness timeout is an upstream stall, not an account/quota failure.
         // Do NOT mark the account as unavailable or trip the circuit breaker.
         return result.response;
+      }
+
+      if (result.errorType === "account_semaphore_capacity") {
+        // Local concurrency pressure is not an upstream quota failure. Prefer another
+        // account when possible; pinned combo steps fall through to combo orchestration.
+        if (hasForcedConnection) {
+          return result.response;
+        }
+
+        log.warn(
+          "AUTH",
+          `Account ${accountId}... at local concurrency cap, trying fallback account`
+        );
+        excludedConnectionIds.add(credentials.connectionId);
+        lastError = result.error;
+        lastStatus = result.status;
+        requestRetryLastError = result.error;
+        requestRetryLastStatus = result.status;
+        continue;
       }
 
       // Emergency fallback for budget exhaustion (402 / billing / quota keywords):

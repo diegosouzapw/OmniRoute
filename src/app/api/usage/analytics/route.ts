@@ -555,6 +555,7 @@ export async function GET(request: Request) {
           COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           LOWER(provider) as provider,
           LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -563,6 +564,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
+
         ${whereClause}
         GROUP BY serviceTier, LOWER(provider), LOWER(model)
       `
