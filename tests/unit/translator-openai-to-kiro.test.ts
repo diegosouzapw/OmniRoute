@@ -254,3 +254,38 @@ test("OpenAI -> Kiro still returns a valid payload for minimal requests", () => 
   );
   assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "claude-sonnet-4");
 });
+
+test("OpenAI -> Kiro merges adjacent user history turns after role normalization", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "system", content: "System rules" },
+        { role: "user", content: "First question" },
+        { role: "assistant", content: "Answer 1" },
+        { role: "tool", tool_call_id: "call_orphan", content: "tool log" },
+        { role: "user", content: "Follow-up" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const history = result.conversationState.history as Array<{
+    userInputMessage?: { content: string };
+    assistantResponseMessage?: { content: string };
+  }>;
+
+  for (let i = 1; i < history.length; i++) {
+    assert.equal(
+      Boolean(history[i - 1].userInputMessage) && Boolean(history[i].userInputMessage),
+      false,
+      "history should not contain adjacent userInputMessage turns"
+    );
+  }
+
+  const firstUser = history[0].userInputMessage;
+  assert.ok(firstUser, "first history turn should be a user turn");
+  assert.equal(firstUser.content, "System rules\n\nFirst question");
+  assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
+});

@@ -288,7 +288,45 @@ function convertMessages(messages, tools, model) {
     }
   });
 
-  return { history, currentMessage };
+  // Kiro expects history to alternate between user and assistant turns. After
+  // normalizing `system`/`tool` roles into `userInputMessage`, the history can
+  // contain adjacent user turns, which Kiro can reject. Merge consecutive
+  // `userInputMessage` entries by concatenating their content and preserving
+  // any attached `userInputMessageContext` (e.g. accumulated toolResults).
+  const mergedHistory: typeof history = [];
+  for (const item of history) {
+    const previous = mergedHistory[mergedHistory.length - 1];
+    if (item.userInputMessage && previous?.userInputMessage) {
+      const previousContent = previous.userInputMessage.content || "";
+      const currentContent = item.userInputMessage.content || "";
+      previous.userInputMessage.content = previousContent
+        ? `${previousContent}\n\n${currentContent}`
+        : currentContent;
+
+      if (item.userInputMessage.userInputMessageContext) {
+        const previousContext = previous.userInputMessage.userInputMessageContext || {};
+        const nextContext = item.userInputMessage.userInputMessageContext;
+        const mergedContext: Record<string, unknown> = { ...previousContext };
+
+        for (const [key, value] of Object.entries(nextContext)) {
+          const existing = (previousContext as Record<string, unknown>)[key];
+          if (Array.isArray(existing) && Array.isArray(value)) {
+            mergedContext[key] = [...existing, ...value];
+          } else if (existing === undefined) {
+            mergedContext[key] = value;
+          } else {
+            mergedContext[key] = value;
+          }
+        }
+
+        previous.userInputMessage.userInputMessageContext = mergedContext;
+      }
+    } else {
+      mergedHistory.push(item);
+    }
+  }
+
+  return { history: mergedHistory, currentMessage };
 }
 
 /**
