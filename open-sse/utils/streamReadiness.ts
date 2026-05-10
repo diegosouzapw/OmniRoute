@@ -66,6 +66,20 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
+function hasAcceptedStreamStartPayload(payload: unknown): boolean {
+  if (!isRecord(payload)) return false;
+
+  // Anthropic/Claude streams can legitimately start with lifecycle frames and
+  // then spend a long time thinking before the first text/tool delta arrives.
+  // Treating the start frame as readiness prevents false 504s while ping-only
+  // zombie streams still fail below.
+  const type = typeof payload.type === "string" ? payload.type : "";
+  if (type === "message_start" && isRecord(payload.message)) return true;
+  if (type === "content_block_start" && isRecord(payload.content_block)) return true;
+
+  return false;
+}
+
 export function hasUsefulStreamContent(text: string): boolean {
   const lines = text.split(/\r?\n/);
 
@@ -80,6 +94,29 @@ export function hasUsefulStreamContent(text: string): boolean {
 
     try {
       if (hasUsefulJsonPayload(JSON.parse(data))) return true;
+    } catch {
+      if (data.length > 0) return true;
+    }
+  }
+
+  return false;
+}
+
+export function hasStreamReadinessSignal(text: string): boolean {
+  const lines = text.split(/\r?\n/);
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith(":")) continue;
+    if (/^event:\s*(?:ping|keepalive)$/i.test(trimmed)) continue;
+    if (!trimmed.startsWith("data:")) continue;
+
+    const data = trimmed.slice(5).trim();
+    if (!data || data === "[DONE]") continue;
+
+    try {
+      const parsed = JSON.parse(data);
+      if (hasUsefulJsonPayload(parsed) || hasAcceptedStreamStartPayload(parsed)) return true;
     } catch {
       if (data.length > 0) return true;
     }
@@ -247,7 +284,7 @@ export async function ensureStreamReadiness(
       chunks.push(readResult.value);
       bufferedText += decoder.decode(readResult.value, { stream: true });
 
-      if (hasUsefulStreamContent(bufferedText)) {
+      if (hasStreamReadinessSignal(bufferedText)) {
         options.log?.debug?.(
           "STREAM",
           `Stream readiness confirmed in ${Date.now() - startedAt}ms (${options.provider || "provider"}/${options.model || "unknown"})`

@@ -32,6 +32,7 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
+  FETCH_BODY_TIMEOUT_MS,
   MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
@@ -571,6 +572,124 @@ function normalizeNonStreamingEventPayload(rawBody: string, contentType: string)
   if (contentType.includes("application/x-ndjson")) {
     return convertNDJSONToSSE(rawBody);
   }
+  return rawBody;
+}
+
+const NON_STREAMING_SSE_TERMINAL_TYPES = new Set([
+  "message_stop",
+  "response.completed",
+  "response.done",
+  "response.cancelled",
+  "response.canceled",
+  "response.failed",
+  "response.incomplete",
+]);
+
+function hasNonStreamingSseTerminalSignal(text: string): boolean {
+  const lines = String(text || "").split(/\r?\n/);
+  let currentEvent = "";
+
+  for (const rawLine of lines) {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith(":")) {
+      if (!trimmed) currentEvent = "";
+      continue;
+    }
+
+    if (trimmed.startsWith("event:")) {
+      currentEvent = trimmed.slice(6).trim();
+      continue;
+    }
+
+    if (!trimmed.startsWith("data:")) continue;
+    const data = trimmed.slice(5).trim();
+    if (!data || data === "[DONE]") return true;
+
+    try {
+      const parsed = JSON.parse(data);
+      const eventType =
+        parsed && typeof parsed === "object" && typeof parsed.type === "string"
+          ? parsed.type
+          : currentEvent;
+      if (NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType)) return true;
+    } catch {
+      // Keep reading malformed data so the parser can report a useful upstream error.
+    }
+  }
+
+  return false;
+}
+
+function createBodyTimeoutError(timeoutMs: number): Error {
+  const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
+  err.name = "BodyTimeoutError";
+  return err;
+}
+
+function readStreamChunkWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  timeoutMs: number
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (timeoutMs <= 0) return reader.read();
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(createBodyTimeoutError(timeoutMs)), timeoutMs);
+    reader.read().then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+}
+
+async function readNonStreamingResponseBody(
+  response: Response,
+  contentType: string,
+  upstreamStream: boolean
+): Promise<string> {
+  if (
+    !upstreamStream ||
+    !response.body ||
+    (!contentType.includes("text/event-stream") && !contentType.includes("application/x-ndjson"))
+  ) {
+    return withBodyTimeout<string>(response.text());
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let rawBody = "";
+  const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
+
+  try {
+    while (true) {
+      const timeoutMs = deadline > 0 ? deadline - Date.now() : 0;
+      if (deadline > 0 && timeoutMs <= 0) {
+        throw createBodyTimeoutError(FETCH_BODY_TIMEOUT_MS);
+      }
+
+      const { done, value } = await readStreamChunkWithTimeout(reader, timeoutMs);
+      if (done) break;
+      if (!value) continue;
+
+      rawBody += decoder.decode(value, { stream: true });
+      if (hasNonStreamingSseTerminalSignal(rawBody)) {
+        await reader.cancel("non-streaming bridge consumed terminal SSE event").catch(() => {});
+        break;
+      }
+    }
+  } catch (error) {
+    await reader.cancel(error).catch(() => {});
+    throw error;
+  } finally {
+    rawBody += decoder.decode();
+    reader.releaseLock();
+  }
+
   return rawBody;
 }
 
@@ -2959,7 +3078,12 @@ export async function handleChatCore({
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
-        const payload = await withBodyTimeout<string>(rawResult.response.text());
+        const contentType = (headers.get("content-type") || "").toLowerCase();
+        const payload = await readNonStreamingResponseBody(
+          rawResult.response,
+          contentType,
+          upstreamStream
+        );
         acquireAccountSemaphoreRelease();
 
         return {
@@ -3578,7 +3702,11 @@ export async function handleChatCore({
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     let responsePayloadFormat = targetFormat;
-    const rawBody = await withBodyTimeout<string>(providerResponse.text());
+    const rawBody = await readNonStreamingResponseBody(
+      providerResponse,
+      contentType,
+      upstreamStream
+    );
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
       contentType.includes("text/event-stream") ||
