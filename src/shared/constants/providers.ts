@@ -1880,6 +1880,37 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
+// ── Cloud Agent Providers ───────────────────────────────────────────────────
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jules",
+    name: "Jules",
+    icon: "engineering",
+    color: "#EAB308",
+    textIcon: "JU",
+    website: "https://jules.google.com",
+  },
+  devin: {
+    id: "devin",
+    alias: "devin",
+    name: "Devin",
+    icon: "smart_toy",
+    color: "#2563EB",
+    textIcon: "DV",
+    website: "https://devin.ai",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "code",
+    color: "#10B981",
+    textIcon: "CX",
+    website: "https://chatgpt.com/codex",
+  },
+};
+
 // ── System Providers (virtual, not user-connectable) ──────────────────────────
 export const SYSTEM_PROVIDERS = {
   auto: {
