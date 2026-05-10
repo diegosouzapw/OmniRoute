@@ -813,7 +813,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 
   "glm-cn": {
     id: "glm-cn",
-    alias: "glmcn",
+    alias: "glm-cn",
     format: "openai",
     executor: "glm",
     baseUrl: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions",
