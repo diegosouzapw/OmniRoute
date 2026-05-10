@@ -54,6 +54,7 @@ function convertMessages(messages, tools, model) {
             tools?: Array<Record<string, unknown>>;
           };
         };
+        _toolDocs?: string;
       } = {
         userInputMessage: {
           content: content,
@@ -77,8 +78,10 @@ function convertMessages(messages, tools, model) {
         if (!userMsg.userInputMessage.userInputMessageContext) {
           userMsg.userInputMessage.userInputMessageContext = {};
         }
-        // Kiro API rejects requests with tool descriptions > ~10000 chars
+        // Kiro API rejects requests with tool descriptions > ~10000 chars.
+        // Move long descriptions to system prompt (same approach as kiro-gateway).
         const TOOL_DESC_MAX = 10000;
+        const toolDocs: string[] = [];
         userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
           const name = t.function?.name || t.name;
           let description = t.function?.description || t.description || "";
@@ -88,7 +91,8 @@ function convertMessages(messages, tools, model) {
           }
 
           if (description.length > TOOL_DESC_MAX) {
-            description = description.slice(0, TOOL_DESC_MAX - 3) + "...";
+            toolDocs.push(`## Tool: ${name}\n\n${description}`);
+            description = `[Full documentation in system prompt under '## Tool: ${name}']`;
           }
 
           return {
@@ -101,6 +105,10 @@ function convertMessages(messages, tools, model) {
             },
           };
         });
+        // Attach tool docs to message so buildKiroPayload can prepend to content
+        if (toolDocs.length > 0) {
+          userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
+        }
       }
 
       history.push(userMsg);
@@ -326,6 +334,12 @@ export function buildKiroPayload(model, body, stream, credentials) {
   let finalContent = currentMessage?.userInputMessage?.content || "";
   const timestamp = new Date().toISOString();
   finalContent = `[Context: Current time is ${timestamp}]\n\n${finalContent}`;
+
+  // Prepend tool documentation for tools with long descriptions (moved from toolSpecification)
+  const toolDocs = (currentMessage as { _toolDocs?: string } | null)?._toolDocs;
+  if (toolDocs) {
+    finalContent = `# Tool Documentation\n\n${toolDocs}\n\n---\n\n${finalContent}`;
+  }
 
   const payload: {
     conversationState: {
