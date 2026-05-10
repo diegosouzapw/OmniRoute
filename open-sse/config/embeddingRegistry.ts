@@ -138,6 +138,14 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     ],
   },
 
+  gemini: {
+    id: "gemini",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "text-embedding-004", name: "Text Embedding 004", dimensions: 768 }],
+  },
+
   "voyage-ai": {
     id: "voyage-ai",
     baseUrl: "https://api.voyageai.com/v1/embeddings",

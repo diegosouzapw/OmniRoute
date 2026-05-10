@@ -7,6 +7,7 @@ import {
 import {
   getProviderConnections,
   createProviderConnection,
+  deleteProviderConnections,
   getProviderNodeById,
   isCloudEnabled,
 } from "@/models";
@@ -189,6 +190,58 @@ export async function POST(request: Request) {
   } catch (error) {
     console.log("Error creating provider:", error);
     return NextResponse.json({ error: "Failed to create provider" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
+  const auditContext = getAuditRequestContext(request);
+
+  let body: { ids?: string[] };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  if (!Array.isArray(body.ids) || body.ids.length === 0) {
+    return NextResponse.json(
+      { error: "ids must be a non-empty array of connection IDs" },
+      { status: 400 }
+    );
+  }
+
+  if (body.ids.length > 100) {
+    return NextResponse.json(
+      { error: "Cannot delete more than 100 connections at once" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const deleted = await deleteProviderConnections(body.ids);
+
+    await syncToCloudIfEnabled();
+
+    logAuditEvent({
+      action: "provider.credentials.batch_revoked",
+      actor: "admin",
+      resourceType: "provider_credentials",
+      status: "success",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: { count: deleted, ids: body.ids },
+    });
+
+    return NextResponse.json(
+      { message: `Deleted ${deleted} connection(s)`, deleted },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.log("Error batch deleting connections:", error);
+    return NextResponse.json({ error: "Failed to batch delete connections" }, { status: 500 });
   }
 }
 

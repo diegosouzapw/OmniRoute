@@ -1,4 +1,4 @@
-﻿import {
+import {
   parseEmbeddingModel,
   getAllEmbeddingModels,
 } from "@omniroute/open-sse/config/embeddingRegistry.ts";
@@ -9,8 +9,9 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels } from "@/lib/localDb";
-import { createEmbeddingResponse } from "@/lib/embeddings/service";
+import { getAllCustomModels, getApiKeyMetadata } from "@/lib/localDb";
+import { createEmbeddingResponse, type EmbeddingHandlerOptions } from "@/lib/embeddings/service";
+import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 
 function toProviderScopedModelId(providerId: string, modelId: string): string {
   return modelId.startsWith(`${providerId}/`) ? modelId : `${providerId}/${modelId}`;
@@ -66,16 +67,11 @@ export async function GET() {
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
-export async function handleValidatedEmbeddingRequestBody(body: ValidatedEmbeddingBody) {
-  const { provider } = parseEmbeddingModel(body.model);
-  if (!provider) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `Invalid embedding model: ${body.model}. Use format: provider/model`
-    );
-  }
-
-  return createEmbeddingResponse(body);
+export async function handleValidatedEmbeddingRequestBody(
+  body: ValidatedEmbeddingBody,
+  options: EmbeddingHandlerOptions = {}
+) {
+  return createEmbeddingResponse(body, options);
 }
 
 export async function POST(request) {
@@ -93,8 +89,33 @@ export async function POST(request) {
   }
   const body = validation.data;
 
+  // Auth check
+  const apiKeyRaw = extractApiKey(request);
+  if (process.env.REQUIRE_API_KEY === "true" && !apiKeyRaw) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Authentication required");
+  }
+  if (apiKeyRaw && !(await isValidApiKey(apiKeyRaw))) {
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+  }
+
+  // Enforce API key policies (model restrictions + budget limits)
   const policy = await enforceApiKeyPolicy(request, body.model);
   if (policy.rejection) return policy.rejection;
 
-  return handleValidatedEmbeddingRequestBody(body as ValidatedEmbeddingBody);
+  // Extract API key info for logging
+  const apiKeyMeta = apiKeyRaw ? await getApiKeyMetadata(apiKeyRaw) : null;
+
+  // Build client raw request for logging
+  const clientRawRequest = {
+    endpoint: "/v1/embeddings",
+    body: rawBody,
+    headers: Object.fromEntries(request.headers.entries()),
+  };
+
+  return handleValidatedEmbeddingRequestBody(body as ValidatedEmbeddingBody, {
+    clientRawRequest,
+    apiKeyId: apiKeyMeta?.id || null,
+    apiKeyName: apiKeyMeta?.name || null,
+    connectionId: null,
+  });
 }

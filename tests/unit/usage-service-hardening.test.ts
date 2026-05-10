@@ -323,19 +323,13 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
   assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
-  assert.equal(loadCodeAssistCall?.init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-  assert.equal(
-    loadCodeAssistCall?.init.headers["X-Goog-Api-Client"],
-    "google-cloud-sdk vscode_cloudshelleditor/0.1"
-  );
-  assert.equal(
-    loadCodeAssistCall?.init.headers["Client-Metadata"],
-    JSON.stringify({
-      ideType: "IDE_UNSPECIFIED",
-      platform: "PLATFORM_UNSPECIFIED",
-      pluginType: "GEMINI",
-    })
-  );
+  assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
+  assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+  assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
+  assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
+  assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
+    ideType: "ANTIGRAVITY",
+  });
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {
@@ -369,7 +363,7 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
 
     try {
       const parsedUrl = new URL(String(url));
-      if (parsedUrl.hostname === "cloudcode-pa.googleapis.com") {
+      if (parsedUrl.hostname === "daily-cloudcode-pa.sandbox.googleapis.com") {
         return new Response("bad gateway", { status: 502 });
       }
       if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
@@ -403,12 +397,12 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
     [
-      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
     ]
   );
-  assert.match(quotaCalls[2].init.headers["User-Agent"], /^antigravity\//);
+  assert.match(quotaCalls[2].init.headers["User-Agent"], /^Antigravity\//);
   assert.equal(usage.plan, "Business");
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
 });
@@ -862,7 +856,7 @@ test("usage service covers Codex auth failures, Kiro hard failures, Kimi no-quot
   assert.equal(qwenCatch.message, "Unable to fetch Qwen usage.");
 });
 
-test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
+test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () => {
   const qwenMissingUrl: any = await usageService.getUsageForProvider({
     provider: "qwen",
     accessToken: "qwen-token",
@@ -883,6 +877,15 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
   });
   assert.match(qoder.message, /Usage tracked per request/i);
 
+  const glmMissingKey: any = await usageService.getUsageForProvider({
+    provider: "glm",
+    apiKey: "",
+  });
+  assert.equal(
+    glmMissingKey.message,
+    "API key not available. Add a coding plan API key to view usage."
+  );
+
   globalThis.fetch = async (url, init = {}) => {
     if (String(url).includes("/api/monitor/usage/quota/limit")) {
       assert.equal((init as any).headers.Authorization, "Bearer glm-key");
@@ -892,9 +895,31 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
             level: "pro",
             limits: [
               {
+                type: "TIME_LIMIT",
+                usage: 1000,
+                currentValue: 12,
+                remaining: 988,
+                percentage: "1.2",
+                nextResetTime: Date.now() + 30 * 24 * 60 * 60 * 1000,
+                usageDetails: [
+                  { modelCode: "search-prime", usage: 5 },
+                  { modelCode: "web-reader", usage: 7 },
+                  { modelCode: "zread", usage: 0 },
+                ],
+              },
+              {
                 type: "TOKENS_LIMIT",
+                unit: 3,
+                number: 5,
                 percentage: "64",
                 nextResetTime: Date.now() + 120_000,
+              },
+              {
+                type: "TOKENS_LIMIT",
+                unit: 4,
+                number: 7,
+                percentage: "25",
+                nextResetTime: Date.now() + 7 * 24 * 60 * 60 * 1000,
               },
               {
                 type: "OTHER_LIMIT",
@@ -918,6 +943,17 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
   assert.equal(glm.plan, "Pro");
   assert.equal(glm.quotas.session.used, 64);
   assert.equal(glm.quotas.session.remaining, 36);
+  assert.equal(glm.quotas.weekly.used, 25);
+  assert.equal(glm.quotas.weekly.remaining, 75);
+  assert.equal(glm.quotas.mcp_monthly.used, 12);
+  assert.equal(glm.quotas.mcp_monthly.remaining, 988);
+  assert.equal(glm.quotas.mcp_monthly.remainingPercentage, 99);
+  assert.equal(glm.quotas.mcp_monthly.displayName, "Monthly");
+  assert.deepEqual(glm.quotas.mcp_monthly.details, [
+    { name: "search-prime", used: 5 },
+    { name: "web-reader", used: 7 },
+    { name: "zread", used: 0 },
+  ]);
 
   const glmt: any = await usageService.getUsageForProvider({
     provider: "glmt",
@@ -925,8 +961,30 @@ test("usage service covers Qwen, Qoder, GLM and GLMT branches", async () => {
     providerSpecificData: { apiRegion: "international" },
   });
   assert.equal(glmt.plan, "Pro");
-  assert.equal(glmt.quotas.session.used, 64);
-  assert.equal(glmt.quotas.session.remaining, 36);
+  assert.equal(glmt.quotas["5 Hours Quota"].used, 15);
+  assert.equal(glmt.quotas["Weekly Quota"].remaining, 36);
+
+  let glmCnUrl = "";
+  globalThis.fetch = async (url) => {
+    glmCnUrl = String(url);
+    return new Response(
+      JSON.stringify({
+        data: {
+          planName: "Lite Plan",
+          limits: [{ type: "TOKENS_LIMIT", percentage: "64" }],
+        },
+      }),
+      { status: 200 }
+    );
+  };
+  const glmCn: any = await usageService.getUsageForProvider({
+    provider: "glm-cn",
+    apiKey: "glm-cn-key",
+    providerSpecificData: { apiRegion: "international" },
+  });
+  assert.match(glmCnUrl, /open\.bigmodel\.cn/);
+  assert.equal(glmCn.plan, "Lite");
+  assert.equal(glmCn.quotas.session.remaining, 36);
 
   globalThis.fetch = async () => new Response("nope", { status: 401 });
   await assert.rejects(
@@ -1110,8 +1168,8 @@ test("usage service parses Cursor team quotas and clamps on-demand ratio", async
   assert.equal(calls.length, 3);
   for (const call of calls) {
     assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
-    assert.equal(call.init.headers["User-Agent"], "Cursor/3.2.14");
-    assert.equal(call.init.headers["x-cursor-client-version"], "3.2.14");
+    assert.equal(call.init.headers["User-Agent"], "Cursor/3.3");
+    assert.equal(call.init.headers["x-cursor-client-version"], "3.3");
   }
 
   assert.equal(usage.plan, "Cursor Team");
@@ -1225,9 +1283,9 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
   assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
     Authorization: "Bearer cursor-token",
     Accept: "application/json",
-    "User-Agent": "Cursor/3.2.14",
-    "x-cursor-client-version": "3.2.14",
-    "x-cursor-user-agent": "Cursor/3.2.14",
+    "User-Agent": "Cursor/3.3",
+    "x-cursor-client-version": "3.3",
+    "x-cursor-user-agent": "Cursor/3.3",
   });
   assert.equal(
     __testing.getCursorMonthlyRequestLimit(

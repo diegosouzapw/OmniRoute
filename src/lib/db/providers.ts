@@ -435,6 +435,24 @@ export async function deleteProviderConnection(id: string) {
   return true;
 }
 
+export async function deleteProviderConnections(ids: string[]): Promise<number> {
+  if (ids.length === 0) return 0;
+  const db = getDbInstance();
+
+  const deletedCount = db.transaction(() => {
+    const placeholders = ids.map(() => "?").join(",");
+    db.prepare(`DELETE FROM quota_snapshots WHERE connection_id IN (${placeholders})`).run(...ids);
+    const result = db.prepare(
+      `DELETE FROM provider_connections WHERE id IN (${placeholders})`
+    ).run(...ids);
+    return result.changes ?? 0;
+  })();
+
+  backupDbFile("pre-write");
+  invalidateDbCache("connections");
+  return deletedCount;
+}
+
 export async function deleteProviderConnectionsByProvider(providerId: string) {
   const db = getDbInstance() as unknown as DbLike;
   const connectionIds = db

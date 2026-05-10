@@ -129,7 +129,7 @@ function runEndpointBackgroundTask(taskName: string, task: () => Promise<unknown
   });
 }
 
-export default function APIPageClient({ machineId }: APIPageClientProps) {
+export default function APIPageClient({ machineId }: Readonly<APIPageClientProps>) {
   const [resolvedMachineId, setResolvedMachineId] = useState(machineId || "");
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
@@ -1098,11 +1098,11 @@ export default function APIPageClient({ machineId }: APIPageClientProps) {
   };
   const tailscaleActionLabel = tailscaleStatus?.running
     ? translateOrFallback("tailscaleDisable", "Stop Funnel")
-    : !tailscaleStatus?.installed
-      ? translateOrFallback("tailscaleInstallAndEnable", "Install & Enable")
-      : !tailscaleStatus?.loggedIn
-        ? translateOrFallback("tailscaleLoginAndEnable", "Login & Enable")
-        : translateOrFallback("tailscaleEnable", "Enable Funnel");
+    : tailscaleStatus?.installed
+      ? tailscaleStatus?.loggedIn
+        ? translateOrFallback("tailscaleEnable", "Enable Funnel")
+        : translateOrFallback("tailscaleLoginAndEnable", "Login & Enable")
+      : translateOrFallback("tailscaleInstallAndEnable", "Install & Enable");
   const tailscaleUrlNotice = translateOrFallback(
     "tailscaleUrlNotice",
     "Uses your Tailscale .ts.net address. Login and Funnel approval may be required on first use."
@@ -1147,7 +1147,7 @@ export default function APIPageClient({ machineId }: APIPageClientProps) {
   return (
     <div className="flex flex-col gap-8">
       {/* Endpoint Card */}
-      <Card className={cloudEnabled ? "" : ""}>
+      <Card className={""}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold">{t("title")}</h2>
@@ -1368,10 +1368,10 @@ export default function APIPageClient({ machineId }: APIPageClientProps) {
                     onClick={() => {
                       if (tailscaleStatus?.running) {
                         void handleTailscaleDisable();
-                      } else if (!tailscaleStatus?.installed) {
-                        setShowTailscaleInstallModal(true);
-                      } else {
+                      } else if (tailscaleStatus?.installed) {
                         void handleTailscaleEnable();
+                      } else {
+                        setShowTailscaleInstallModal(true);
                       }
                     }}
                     loading={tailscaleBusy}
@@ -1606,6 +1606,15 @@ export default function APIPageClient({ machineId }: APIPageClientProps) {
               {t("sectionDescription") ||
                 "OpenAI-compatible APIs and operational protocol endpoints"}
             </p>
+            <a
+              href="https://developers.openai.com/api/reference/overview"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
+            >
+              OpenAI API Reference
+              <span className="material-symbols-outlined text-[13px]">open_in_new</span>
+            </a>
           </div>
           <SegmentedControl
             options={[
@@ -2347,13 +2356,13 @@ function ProviderModelsModal({
   copy,
   copied,
   onClose,
-}: {
+}: Readonly<{
   provider: EndpointProviderSummary;
   models: EndpointModelSummary[];
   copy: CopyHandler;
   copied?: string | null;
   onClose: () => void;
-}) {
+}>) {
   const t = useTranslations("endpoint");
   const tc = useTranslations("common");
   // Get provider alias for matching models
@@ -2445,7 +2454,7 @@ function EndpointSection({
   copied,
   baseUrl,
   modelsLoading = false,
-}: {
+}: Readonly<{
   icon: string;
   iconColor: string;
   iconBg: string;
@@ -2459,7 +2468,7 @@ function EndpointSection({
   copied?: string | null;
   baseUrl: string;
   modelsLoading?: boolean;
-}) {
+}>) {
   const t = useTranslations("endpoint");
   const grouped = useMemo(() => {
     const map = {};
@@ -2468,9 +2477,7 @@ function EndpointSection({
       if (!map[owner]) map[owner] = [];
       map[owner].push(m);
     }
-    return Object.entries(map).sort(
-      (a: any, b: any) => (b[1] as any).length - (a[1] as any).length
-    );
+    return Object.entries(map).sort((a: any, b: any) => b[1].length - a[1].length);
   }, [models]);
 
   const resolveProvider = (id) => AI_PROVIDERS[id] || getProviderByAlias(id);

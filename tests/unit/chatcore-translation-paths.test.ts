@@ -604,9 +604,11 @@ test("chatCore preserves cache_control automatically for Claude Code single-mode
   });
 
   assert.equal(hasCacheControl(call.body), true);
-  assert.deepEqual(call.body.system[0].cache_control, { type: "ephemeral", ttl: "5m" });
+  // system[0] and system[1] are now the billing line and sentinel injected by base.ts for Claude Code
+  assert.deepEqual(call.body.system[2].cache_control, { type: "ephemeral", ttl: "5m" });
   assert.deepEqual(call.body.messages[0].content[0].cache_control, { type: "ephemeral" });
-  assert.deepEqual(call.body.tools[0].cache_control, { type: "ephemeral", ttl: "30m" });
+  // base.ts executor explicitly strips cache_control from tools for Claude Code clients
+  assert.equal(call.body.tools[0].cache_control, undefined);
 });
 
 test("chatCore auto cache policy becomes false for nondeterministic combos", async () => {
@@ -1944,9 +1946,10 @@ test("chatCore records Claude prompt cache and cache usage metadata in call logs
   assert.equal(result.success, true);
   assert.ok(detail);
   assert.equal(detail.requestBody._omniroute.claudePromptCache.applied, true);
-  assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  // Breakpoints: system[2] (1), message content (1), assistant response (1). Tools cache_control is stripped by base.ts.
+  assert.equal(detail.requestBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(detail.responseBody._omniroute.claudePromptCache.applied, true);
-  assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 4);
+  assert.equal(detail.responseBody._omniroute.claudePromptCache.totalBreakpoints, 3);
   assert.equal(typeof detail.responseBody._omniroute.claudePromptCache.anthropicBeta, "string");
   assert.match(detail.responseBody._omniroute.claudePromptCache.anthropicBeta, /prompt-caching/i);
   assert.deepEqual(detail.responseBody._omniroute.claudePromptCacheUsage, {

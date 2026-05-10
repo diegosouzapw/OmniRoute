@@ -15,7 +15,21 @@ import { getProviderNodes } from "@/lib/localDb";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
-export async function createEmbeddingResponse(body: ValidatedEmbeddingBody): Promise<Response> {
+interface EmbeddingHandlerOptions {
+  clientRawRequest?: {
+    endpoint: string;
+    body: Record<string, unknown>;
+    headers: Record<string, string>;
+  };
+  apiKeyId?: string | null;
+  apiKeyName?: string | null;
+  connectionId?: string | null;
+}
+
+export async function createEmbeddingResponse(
+  body: ValidatedEmbeddingBody,
+  options: EmbeddingHandlerOptions = {}
+): Promise<Response> {
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
     const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];
@@ -120,19 +134,27 @@ export async function createEmbeddingResponse(body: ValidatedEmbeddingBody): Pro
     log,
     resolvedProvider: providerConfig,
     resolvedModel,
+    clientRawRequest: options.clientRawRequest || null,
+    apiKeyId: options.apiKeyId || null,
+    apiKeyName: options.apiKeyName || null,
+    connectionId: options.connectionId || null,
   });
+
+  const responseHeaders = new Headers(result.headers);
 
   if (result.success) {
     if (credentials) await clearRecoveredProviderState(credentials);
+    responseHeaders.set("Content-Type", "application/json");
     return new Response(JSON.stringify(result.data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+      status: result.status,
+      headers: responseHeaders,
     });
   }
 
+  responseHeaders.set("Content-Type", "application/json");
   const errorPayload = toJsonErrorPayload(result.error, "Embedding provider error");
   return new Response(JSON.stringify(errorPayload), {
     status: result.status,
-    headers: { "Content-Type": "application/json" },
+    headers: responseHeaders,
   });
 }

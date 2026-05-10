@@ -76,6 +76,141 @@ API routes follow a consistent pattern: `Route → CORS preflight → Zod body v
 
 ---
 
+## Resilience Runtime State
+
+OmniRoute has three related but distinct temporary-failure mechanisms. Keep their
+scope separate when debugging routing behavior.
+
+### Provider Circuit Breaker
+
+**Scope**: whole provider, e.g. `glm`, `openai`, `anthropic`.
+
+**Purpose**: stop sending traffic to a provider that is repeatedly failing at the
+upstream/service level, so one unhealthy provider does not slow down every request.
+
+**Implementation**:
+
+- Core class: `src/shared/utils/circuitBreaker.ts`
+- Chat gate/execution wiring: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- Runtime status API: `src/app/api/monitoring/health/route.ts`
+- Shared wrappers: `open-sse/services/accountFallback.ts`
+- Persisted state table: `domain_circuit_breakers`
+
+**States**:
+
+- `CLOSED`: normal traffic is allowed.
+- `OPEN`: provider is temporarily blocked; callers get a provider-circuit-open response
+  or combo routing skips to another target.
+- `HALF_OPEN`: reset timeout has elapsed; allow a probe request. Success closes the
+  breaker, failure opens it again.
+
+**Defaults** (`open-sse/config/constants.ts`):
+
+- OAuth providers: threshold `3`, reset timeout `60s`.
+- API-key providers: threshold `5`, reset timeout `30s`.
+- Local providers: threshold `2`, reset timeout `15s`.
+
+Only provider-level failure statuses should trip the provider breaker:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Do not trip the whole-provider breaker for normal account/key/model errors like most
+`401`, `403`, or `429` cases. Those usually belong to connection cooldown or model
+lockout. A generic API-key provider `403` should be recoverable unless it is classified
+as a terminal provider/account error.
+
+The breaker uses lazy recovery, not a background timer. When `OPEN` expires, reads such
+as `getStatus()`, `canExecute()`, and `getRetryAfterMs()` refresh the state to
+`HALF_OPEN`, so dashboards and combo candidate builders do not keep excluding an
+expired provider forever.
+
+### Connection Cooldown
+
+**Scope**: one provider connection/account/key.
+
+**Purpose**: temporarily skip one bad key/account while allowing other connections for
+the same provider to continue serving requests.
+
+**Implementation**:
+
+- Write/update path: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Account selection/filtering: `src/sse/services/auth.ts::getProviderCredentials...`
+- Cooldown calculation: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Settings: `src/lib/resilience/settings.ts`
+
+Important fields on provider connections:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+During account selection, a connection is skipped while:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Cooldowns are also lazy: when `rateLimitedUntil` is in the past, the connection becomes
+eligible again. On successful use, `clearAccountError()` clears `testStatus`,
+`rateLimitedUntil`, error fields, and `backoffLevel`.
+
+Default connection cooldown behavior:
+
+- OAuth base cooldown: `5s`.
+- API-key base cooldown: `3s`.
+- API-key `429` should prefer upstream retry hints (`Retry-After`, reset headers, or
+  parseable reset text) when available.
+- Repeated recoverable failures use exponential backoff:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+The anti-thundering-herd guard prevents concurrent failures on the same connection from
+repeatedly extending the cooldown or double-incrementing `backoffLevel`.
+
+Terminal states are not cooldowns. `banned`, `expired`, and `credits_exhausted` are
+intended to stay unavailable until credentials/settings change or an operator resets
+them. Do not overwrite terminal states with transient cooldown state.
+
+### Model Lockout
+
+**Scope**: provider + connection + model.
+
+**Purpose**: avoid disabling a whole connection when only one model is unavailable or
+quota-limited for that connection.
+
+Examples:
+
+- Per-model quota providers returning `429`.
+- Local providers returning `404` for one missing model.
+- Provider-specific mode/model permission failures such as selected Grok modes.
+
+Model lockout lives in `open-sse/services/accountFallback.ts` and lets the same
+connection continue serving other models.
+
+### Debugging Guidance
+
+- If all keys for a provider are skipped, inspect both provider breaker state and each
+  connection's `rateLimitedUntil`/`testStatus`.
+- If a provider appears permanently excluded after the reset window, check whether code
+  is reading raw `state` instead of using `getStatus()`/`canExecute()`.
+- If one provider key fails but others should work, prefer connection cooldown over
+  provider breaker.
+- If only one model fails, prefer model lockout over connection cooldown.
+- If a state should self-recover, it should have a future timestamp/reset timeout and a
+  read path that refreshes expired state. Permanent statuses require manual credential
+  or config changes.
+
+---
+
 ## Key Conventions
 
 ### Code Style

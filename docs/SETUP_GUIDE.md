@@ -61,10 +61,41 @@ See the [Docker Guide](DOCKER_GUIDE.md) for complete Docker setup including Comp
 | Command                 | Description                                                 |
 | ----------------------- | ----------------------------------------------------------- |
 | `omniroute`             | Start server (`PORT=20128`, API and dashboard on same port) |
+| `omniroute setup`       | Guided CLI onboarding for password and first provider       |
+| `omniroute doctor`      | Run local health checks without starting the server         |
+| `omniroute providers`   | Discover, list, validate, and test providers from CLI       |
 | `omniroute --port 3000` | Set canonical/API port to 3000                              |
 | `omniroute --mcp`       | Start MCP server (stdio transport)                          |
 | `omniroute --no-open`   | Don't auto-open browser                                     |
 | `omniroute --help`      | Show help                                                   |
+
+Headless setup can be scripted with flags or environment variables:
+
+```bash
+omniroute setup --non-interactive --password "$OMNIROUTE_PASSWORD"
+omniroute setup --non-interactive --add-provider --provider openai --api-key "$OPENAI_API_KEY"
+omniroute setup --non-interactive --add-provider --provider openai --api-key "$OPENAI_API_KEY" --test-provider
+```
+
+Run local diagnostics without opening the dashboard:
+
+```bash
+omniroute doctor
+omniroute doctor --json
+omniroute doctor --no-liveness
+```
+
+Manage providers from SSH or scripts without opening the dashboard:
+
+```bash
+omniroute providers available
+omniroute providers available --search openai
+omniroute providers available --category api-key
+omniroute providers list
+omniroute providers test <id-or-name>
+omniroute providers test-all
+omniroute providers validate
+```
 
 ---
 

@@ -9,6 +9,11 @@ import {
 } from "../systemCommands.ts";
 
 const IS_WIN = process.platform === "win32";
+const IS_MAC = process.platform === "darwin";
+
+const LINUX_CERT_NAME = "omniroute-mitm.crt";
+const LINUX_CA_DIR = "/usr/local/share/ca-certificates";
+const LINUX_CERT_DEST = `${LINUX_CA_DIR}/${LINUX_CERT_NAME}`;
 
 // Get SHA1 fingerprint from cert file using Node.js crypto
 function getCertFingerprint(certPath: string): string {
@@ -25,10 +30,9 @@ function getCertFingerprint(certPath: string): string {
  * Check if certificate is already installed in system store
  */
 export async function checkCertInstalled(certPath: string): Promise<boolean> {
-  if (IS_WIN) {
-    return checkCertInstalledWindows(certPath);
-  }
-  return checkCertInstalledMac(certPath);
+  if (IS_WIN) return checkCertInstalledWindows(certPath);
+  if (IS_MAC) return checkCertInstalledMac(certPath);
+  return checkCertInstalledLinux(certPath);
 }
 
 async function checkCertInstalledMac(certPath: string): Promise<boolean> {
@@ -41,6 +45,15 @@ async function checkCertInstalledMac(certPath: string): Promise<boolean> {
       "/Library/Keychains/System.keychain",
     ]);
     return output.toUpperCase().includes(fingerprint);
+  } catch {
+    return false;
+  }
+}
+
+async function checkCertInstalledLinux(certPath: string): Promise<boolean> {
+  try {
+    if (!fs.existsSync(LINUX_CERT_DEST)) return false;
+    return getCertFingerprint(certPath) === getCertFingerprint(LINUX_CERT_DEST);
   } catch {
     return false;
   }
@@ -71,8 +84,10 @@ export async function installCert(sudoPassword: string, certPath: string): Promi
 
   if (IS_WIN) {
     await installCertWindows(certPath);
-  } else {
+  } else if (IS_MAC) {
     await installCertMac(sudoPassword, certPath);
+  } else {
+    await installCertLinux(sudoPassword, certPath);
   }
 }
 
@@ -103,6 +118,20 @@ async function installCertMac(sudoPassword: string, certPath: string): Promise<v
   }
 }
 
+async function installCertLinux(sudoPassword: string, certPath: string): Promise<void> {
+  try {
+    await execFileWithPassword("sudo", ["-S", "mkdir", "-p", LINUX_CA_DIR], sudoPassword);
+    await execFileWithPassword("sudo", ["-S", "cp", certPath, LINUX_CERT_DEST], sudoPassword);
+    await execFileWithPassword("sudo", ["-S", "update-ca-certificates"], sudoPassword);
+  } catch (error) {
+    const message = getErrorMessage(error);
+    const msg = message.includes("canceled")
+      ? "User canceled authorization"
+      : "Certificate install failed";
+    throw new Error(msg);
+  }
+}
+
 async function installCertWindows(certPath: string): Promise<void> {
   await runElevatedPowerShell(`
     $certPath = ${quotePowerShell(certPath)};
@@ -124,8 +153,10 @@ export async function uninstallCert(sudoPassword: string, certPath: string): Pro
 
   if (IS_WIN) {
     await uninstallCertWindows();
-  } else {
+  } else if (IS_MAC) {
     await uninstallCertMac(sudoPassword, certPath);
+  } else {
+    await uninstallCertLinux(sudoPassword, certPath);
   }
 }
 
@@ -145,6 +176,17 @@ async function uninstallCertMac(sudoPassword: string, certPath: string): Promise
       sudoPassword
     );
     console.log("✅ Uninstalled certificate from system keychain");
+  } catch (err) {
+    throw new Error("Failed to uninstall certificate");
+  }
+}
+
+async function uninstallCertLinux(sudoPassword: string, certPath: string): Promise<void> {
+  try {
+    if (fs.existsSync(LINUX_CERT_DEST)) {
+      await execFileWithPassword("sudo", ["-S", "rm", "-f", LINUX_CERT_DEST], sudoPassword);
+    }
+    await execFileWithPassword("sudo", ["-S", "update-ca-certificates", "--fresh"], sudoPassword);
   } catch (err) {
     throw new Error("Failed to uninstall certificate");
   }
