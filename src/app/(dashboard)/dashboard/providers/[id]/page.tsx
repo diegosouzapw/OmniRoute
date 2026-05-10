@@ -3080,7 +3080,9 @@ export default function ProviderDetailPage() {
                               : undefined
                           }
                           onRefreshToken={
-                            conn.authType === "oauth" ? () => handleRefreshToken(conn.id) : undefined
+                            conn.authType === "oauth"
+                              ? () => handleRefreshToken(conn.id)
+                              : undefined
                           }
                           isRefreshing={refreshingId === conn.id}
                           onApplyCodexAuthLocal={
@@ -3164,122 +3166,124 @@ export default function ProviderDetailPage() {
                     </div>
                   ) : null}
                   <div className="flex flex-col gap-0">
-                  {groupKeys.map((tag, gi) => {
-                    const groupConns = groupMap.get(tag)!;
-                    return (
-                      <div
-                        key={tag || "__untagged__"}
-                        className={
-                          gi > 0
-                            ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
-                            : ""
-                        }
-                      >
-                        {tag && (
-                          <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                            <span className="material-symbols-outlined text-[13px] text-text-muted/50">
-                              label
-                            </span>
-                            <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
-                              {tag}
-                            </span>
-                            <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                            <span className="text-[10px] text-text-muted/40">
-                              {groupConns.length}
-                            </span>
+                    {groupKeys.map((tag, gi) => {
+                      const groupConns = groupMap.get(tag)!;
+                      return (
+                        <div
+                          key={tag || "__untagged__"}
+                          className={
+                            gi > 0
+                              ? "border-t border-black/[0.06] dark:border-white/[0.06] mt-1 pt-1"
+                              : ""
+                          }
+                        >
+                          {tag && (
+                            <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                              <span className="material-symbols-outlined text-[13px] text-text-muted/50">
+                                label
+                              </span>
+                              <span className="text-[11px] font-semibold uppercase tracking-widest text-text-muted/60 select-none">
+                                {tag}
+                              </span>
+                              <div className="flex-1 h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                              <span className="text-[10px] text-text-muted/40">
+                                {groupConns.length}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                            {groupConns.map((conn, index) => (
+                              <ConnectionRow
+                                key={conn.id}
+                                connection={conn}
+                                isOAuth={conn.authType === "oauth"}
+                                isClaude={providerId === "claude"}
+                                codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                                isFirst={gi === 0 && index === 0}
+                                isLast={
+                                  gi === groupKeys.length - 1 && index === groupConns.length - 1
+                                }
+                                isSelected={selectedIds.has(conn.id)}
+                                onToggleSelect={() => handleToggleSelectOne(conn.id)}
+                                onMoveUp={() =>
+                                  handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
+                                }
+                                onMoveDown={() =>
+                                  handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
+                                }
+                                onToggleActive={(isActive) =>
+                                  handleUpdateConnectionStatus(conn.id, isActive)
+                                }
+                                onToggleRateLimit={(enabled) =>
+                                  handleToggleRateLimit(conn.id, enabled)
+                                }
+                                onToggleClaudeExtraUsage={(enabled) =>
+                                  handleToggleClaudeExtraUsage(conn.id, enabled)
+                                }
+                                isCodex={providerId === "codex"}
+                                isCcCompatible={isCcCompatible}
+                                cliproxyapiEnabled={cpaProviderEnabled}
+                                onToggleCodex5h={(enabled) =>
+                                  handleToggleCodexLimit(conn.id, "use5h", enabled)
+                                }
+                                onToggleCodexWeekly={(enabled) =>
+                                  handleToggleCodexLimit(conn.id, "useWeekly", enabled)
+                                }
+                                onRetest={() => handleRetestConnection(conn.id)}
+                                isRetesting={retestingId === conn.id}
+                                onEdit={() => {
+                                  setSelectedConnection(conn);
+                                  setShowEditModal(true);
+                                }}
+                                onDelete={() => handleDelete(conn.id)}
+                                onReauth={
+                                  conn.authType === "oauth"
+                                    ? () => setShowOAuthModal(true, conn)
+                                    : undefined
+                                }
+                                onRefreshToken={
+                                  conn.authType === "oauth"
+                                    ? () => handleRefreshToken(conn.id)
+                                    : undefined
+                                }
+                                isRefreshing={refreshingId === conn.id}
+                                onApplyCodexAuthLocal={
+                                  providerId === "codex"
+                                    ? () => handleApplyCodexAuthLocal(conn.id)
+                                    : undefined
+                                }
+                                isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
+                                onExportCodexAuthFile={
+                                  providerId === "codex"
+                                    ? () => handleExportCodexAuthFile(conn.id)
+                                    : undefined
+                                }
+                                isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
+                                onProxy={() =>
+                                  setProxyTarget({
+                                    level: "key",
+                                    id: conn.id,
+                                    label: pickDisplayValue(
+                                      [conn.name, conn.email],
+                                      emailsVisible,
+                                      conn.id
+                                    ),
+                                  })
+                                }
+                                hasProxy={!!connProxyMap[conn.id]?.proxy}
+                                proxySource={connProxyMap[conn.id]?.level || null}
+                                proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
+                              />
+                            ))}
                           </div>
-                        )}
-                        <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
-                          {groupConns.map((conn, index) => (
-                            <ConnectionRow
-                              key={conn.id}
-                              connection={conn}
-                              isOAuth={conn.authType === "oauth"}
-                              isClaude={providerId === "claude"}
-                              codexFastGlobalEnabled={codexGlobalFastServiceTier}
-                              isFirst={gi === 0 && index === 0}
-                              isLast={
-                                gi === groupKeys.length - 1 && index === groupConns.length - 1
-                              }
-                              isSelected={selectedIds.has(conn.id)}
-                              onToggleSelect={() => handleToggleSelectOne(conn.id)}
-                              onMoveUp={() =>
-                                handleSwapPriority(conn, sorted[sorted.indexOf(conn) - 1])
-                              }
-                              onMoveDown={() =>
-                                handleSwapPriority(conn, sorted[sorted.indexOf(conn) + 1])
-                              }
-                              onToggleActive={(isActive) =>
-                                handleUpdateConnectionStatus(conn.id, isActive)
-                              }
-                              onToggleRateLimit={(enabled) =>
-                                handleToggleRateLimit(conn.id, enabled)
-                              }
-                              onToggleClaudeExtraUsage={(enabled) =>
-                                handleToggleClaudeExtraUsage(conn.id, enabled)
-                              }
-                              isCodex={providerId === "codex"}
-                              isCcCompatible={isCcCompatible}
-                              cliproxyapiEnabled={cpaProviderEnabled}
-                              onToggleCodex5h={(enabled) =>
-                                handleToggleCodexLimit(conn.id, "use5h", enabled)
-                              }
-                              onToggleCodexWeekly={(enabled) =>
-                                handleToggleCodexLimit(conn.id, "useWeekly", enabled)
-                              }
-                              onRetest={() => handleRetestConnection(conn.id)}
-                              isRetesting={retestingId === conn.id}
-                              onEdit={() => {
-                                setSelectedConnection(conn);
-                                setShowEditModal(true);
-                              }}
-                              onDelete={() => handleDelete(conn.id)}
-                              onReauth={
-                                conn.authType === "oauth"
-                                  ? () => setShowOAuthModal(true, conn)
-                                  : undefined
-                              }
-                              onRefreshToken={
-                                conn.authType === "oauth"
-                                  ? () => handleRefreshToken(conn.id)
-                                  : undefined
-                              }
-                              isRefreshing={refreshingId === conn.id}
-                              onApplyCodexAuthLocal={
-                                providerId === "codex"
-                                  ? () => handleApplyCodexAuthLocal(conn.id)
-                                  : undefined
-                              }
-                              isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
-                              onExportCodexAuthFile={
-                                providerId === "codex"
-                                  ? () => handleExportCodexAuthFile(conn.id)
-                                  : undefined
-                              }
-                              isExportingCodexAuthFile={exportingCodexAuthId === conn.id}
-                              onProxy={() =>
-                                setProxyTarget({
-                                  level: "key",
-                                  id: conn.id,
-                                  label: pickDisplayValue(
-                                    [conn.name, conn.email],
-                                    emailsVisible,
-                                    conn.id
-                                  ),
-                                })
-                              }
-                              hasProxy={!!connProxyMap[conn.id]?.proxy}
-                              proxySource={connProxyMap[conn.id]?.level || null}
-                              proxyHost={connProxyMap[conn.id]?.proxy?.host || null}
-                            />
-                          ))}
                         </div>
-                      </div>
-                    </>
-                  );
-                }
-              })()}
-            </div>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()
+          )}
         </Card>
       )}
 

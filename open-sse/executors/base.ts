@@ -228,7 +228,7 @@ export class BaseExecutor {
       return `${normalized}${path}`;
     }
     const baseUrls = this.getBaseUrls();
-    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl;
+    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
   }
 
   buildHeaders(
@@ -333,7 +333,10 @@ export class BaseExecutor {
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
-  async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
+  async refreshCredentials(
+    credentials: ProviderCredentials,
+    log: ExecutorLog | null
+  ): Promise<Partial<ProviderCredentials> | null> {
     void credentials;
     void log;
     return null;
