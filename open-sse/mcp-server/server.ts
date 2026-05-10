@@ -76,6 +76,8 @@ import {
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { compressionTools } from "./tools/compressionTools.ts";
+import { compressMcpRegistryMetadata } from "./descriptionCompressor.ts";
+import { getDbInstance } from "../../src/lib/db/core.ts";
 import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
 import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 
@@ -94,6 +96,18 @@ const TOTAL_MCP_TOOL_COUNT =
   MCP_TOOLS.length + Object.keys(memoryTools).length + Object.keys(skillTools).length;
 
 type JsonRecord = Record<string, unknown>;
+
+function readMcpDescriptionCompressionEnabled(): boolean {
+  try {
+    const row = getDbInstance()
+      .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+      .get("compression", "mcpDescriptionCompressionEnabled") as { value?: string } | undefined;
+    if (!row?.value) return true;
+    return JSON.parse(row.value) !== false;
+  } catch {
+    return true;
+  }
+}
 
 type TextToolResult = {
   content: Array<{ type: "text"; text: string }>;
@@ -577,6 +591,33 @@ export function createMcpServer(): McpServer {
     name: "omniroute",
     version: process.env.npm_package_version || "1.8.1",
   });
+  const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
+  const registerTool = server.registerTool.bind(server);
+  server.registerTool = ((name: string, config: Record<string, unknown>, handler: unknown) => {
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerTool(name, metadata, handler as never);
+  }) as typeof server.registerTool;
+  const registerPrompt = server.registerPrompt.bind(server);
+  server.registerPrompt = ((name: string, config: Record<string, unknown>, handler: unknown) => {
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerPrompt(name, metadata as never, handler as never);
+  }) as typeof server.registerPrompt;
+  const registerResource = server.registerResource.bind(server);
+  server.registerResource = ((
+    name: string,
+    uriOrTemplate: unknown,
+    config: Record<string, unknown>,
+    readCallback: unknown
+  ) => {
+    const metadata = compressMcpRegistryMetadata(config, {
+      enabled: mcpDescriptionCompressionEnabled,
+    });
+    return registerResource(name, uriOrTemplate as never, metadata as never, readCallback as never);
+  }) as typeof server.registerResource;
 
   // Register essential tools
   server.registerTool(

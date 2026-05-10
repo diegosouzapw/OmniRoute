@@ -1,0 +1,41 @@
+{
+  "id": "test-pytest",
+  "label": "Pytest",
+  "description": "Keep pytest failures, tracebacks and terminal summary.",
+  "category": "test",
+  "priority": 90,
+  "match": {
+    "outputTypes": ["test-pytest"],
+    "commands": ["^(?:pytest|python\\s+-m\\s+pytest)\\b"],
+    "patterns": ["=+\\s+(?:\\d+\\s+)?(?:passed|failed|errors?)", "^E\\s+", "^FAILED "]
+  },
+  "rules": {
+    "includePatterns": [
+      "^FAILED ",
+      "^ERROR ",
+      "^E\\s+",
+      "Traceback \\(most recent call last\\):",
+      "=+ short test summary info =+",
+      "=+ .*failed",
+      "AssertionError"
+    ],
+    "dropPatterns": ["^\\.", "^\\s*$"],
+    "collapsePatterns": ["^E\\s+"],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 28,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": ["FAILED", "ERROR", "Traceback", "AssertionError"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:pytest|python -m pytest)",
+      "input": "FAILED tests/test_a.py::test_a - AssertionError\nE assert 1 == 2\n================ 1 failed, 2 passed ================\n",
+      "expected": "FAILED tests/test_a.py::test_a - AssertionError\nE assert 1 == 2\n================ 1 failed, 2 passed ================"
+    }
+  ]
+}

@@ -20,7 +20,7 @@ Automatically bump the project version, generate CHANGELOG entries from git hist
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 CURRENT_BRANCH=$(git branch --show-current)
@@ -64,7 +64,7 @@ npm version "$VERSION" --no-git-tag-version
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
 echo "=== Commits since $LAST_TAG ==="
 git log "$LAST_TAG"..HEAD --pretty=format:"%h %s" --no-merges | head -100
@@ -133,7 +133,7 @@ The date must be today's date in `YYYY-MM-DD` format.
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 VERSION=$(node -p "require('./package.json').version")
 
 # Update docs/openapi.yaml version
@@ -156,7 +156,7 @@ echo "✓ All workspace packages synced to $VERSION"
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 VERSION=$(node -p "require('./package.json').version")
 OLD_VERSION_PATTERN='[0-9]\+\.[0-9]\+\.[0-9]\+'
 
@@ -174,7 +174,7 @@ echo "✓ llm.txt → $VERSION"
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 npm install
 echo "✓ Lock file regenerated"
 ```
@@ -236,7 +236,7 @@ For each file in `docs/` (excluding `docs/i18n/`), review if CHANGELOG changes a
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 npm run lint
 ```
 
@@ -245,7 +245,7 @@ npm run lint
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 npm test
 ```
 
@@ -254,7 +254,7 @@ npm test
 // turbo
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 VERSION=$(node -p "require('./package.json').version")
 echo "Expected version: $VERSION"
 echo ""
@@ -299,7 +299,7 @@ grep "^## \[" CHANGELOG.md | head -2
 // turbo-all
 
 ```bash
-cd /home/diegosouzapw/dev/proxys/9router
+cd /home/diegosouzapw/dev/proxys/OmniRoute
 git add -A
 VERSION=$(node -p "require('./package.json').version")
 git commit -m "chore(release): bump to v$VERSION — changelog, docs, version sync"

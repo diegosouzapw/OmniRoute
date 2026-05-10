@@ -184,21 +184,26 @@ test("handleAudioTranscription normalizes Nvidia responses to text", async () =>
   };
 
   try {
-    const formData = new FormData();
-    formData.append("model", "nvidia/nvidia/parakeet-ctc-1.1b-asr");
-    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+    for (const [requestModel, upstreamModel] of [
+      ["nvidia/nvidia/parakeet-ctc-1.1b-asr", "nvidia/parakeet-ctc-1.1b-asr"],
+      ["nvidia/openai/whisper-large-v3", "openai/whisper-large-v3"],
+    ]) {
+      const formData = new FormData();
+      formData.append("model", requestModel);
+      formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
 
-    const response = await handleAudioTranscription({
-      formData,
-      credentials: { apiKey: "nvidia-key" },
-    });
+      const response = await handleAudioTranscription({
+        formData,
+        credentials: { apiKey: "nvidia-key" },
+      });
 
-    assert.equal(captured.headers.Authorization, "Bearer nvidia-key");
-    assert.deepEqual(captured.entries, [
-      ["file", { name: "clip.wav", type: "audio/wav" }],
-      ["model", "nvidia/parakeet-ctc-1.1b-asr"],
-    ]);
-    assert.deepEqual(await response.json(), { text: "nvidia text" });
+      assert.equal(captured.headers.Authorization, "Bearer nvidia-key");
+      assert.deepEqual(captured.entries, [
+        ["file", { name: "clip.wav", type: "audio/wav" }],
+        ["model", upstreamModel],
+      ]);
+      assert.deepEqual(await response.json(), { text: "nvidia text" });
+    }
   } finally {
     globalThis.fetch = originalFetch;
   }

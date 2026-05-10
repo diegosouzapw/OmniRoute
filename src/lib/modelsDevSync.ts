@@ -154,12 +154,16 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   openai: ["openai", "cx"], // cx = Codex (uses OpenAI models)
   anthropic: ["anthropic", "cc"], // cc = Claude Code
   google: ["gemini", "gemini-cli"],
+  "google-vertex": ["gemini", "vertex"],
+  "google-vertex-anthropic": ["anthropic", "cc", "vertex"],
   vertex_ai: ["gemini", "vertex"],
   deepseek: ["deepseek", "if"], // if = Qoder (routes through DeepSeek)
   groq: ["groq"],
   xai: ["xai"],
   mistral: ["mistral"],
+  togetherai: ["together", "openrouter"],
   together_ai: ["together", "openrouter"],
+  "fireworks-ai": ["fireworks"],
   fireworks: ["fireworks"],
   cerebras: ["cerebras"],
   cohere: ["cohere"],
@@ -172,11 +176,25 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   perplexity: ["pplx", "perplexity"],
   // OAuth / special providers
   bedrock: ["kiro", "kr"], // kr = Kiro (AWS Bedrock)
+  "github-copilot": ["github", "gh"],
+  "github-models": ["github", "gh"],
+  kilo: ["kilocode", "kc", "kilo-gateway"],
+  kilocode: ["kilocode", "kc", "kilo-gateway"],
+  "kimi-for-coding": ["kimi-coding", "kmc", "kimi-coding-apikey", "kmca"],
+  opencode: ["opencode-zen"],
+  "opencode-go": ["opencode-go"],
   // Additional providers that may overlap with OmniRoute
   alibaba: ["ali", "alibaba", "bcp", "alicode", "alicode-intl"],
+  "alibaba-cn": ["ali", "alibaba", "bcp"],
+  "alibaba-coding-plan": ["alicode", "alicode-intl"],
+  "alibaba-coding-plan-cn": ["alicode"],
   zai: ["zai", "glm"], // GLM models via Z.AI
+  "zai-coding-plan": ["zai", "glm"],
+  moonshotai: ["moonshot", "kimi"],
+  "moonshotai-cn": ["moonshot", "kimi"],
   moonshot: ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"],
   minimax: ["minimax", "minimax-cn"],
+  "minimax-cn": ["minimax-cn"],
   longcat: ["lc", "longcat"],
   pollinations: ["pol", "pollinations"],
   puter: ["pu", "puter"],
@@ -184,7 +202,6 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   scaleway: ["scw"],
   ollama: ["ollamacloud", "ollama-cloud"],
   blackbox: ["bb", "blackbox"],
-  kilocode: ["kc", "kilocode"],
   cline: ["cl", "cline"],
   cursor: ["cu", "cursor"],
   github: ["gh", "github"],

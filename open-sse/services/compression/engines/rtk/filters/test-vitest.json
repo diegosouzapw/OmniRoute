@@ -1,0 +1,43 @@
+{
+  "id": "test-vitest",
+  "label": "Vitest",
+  "description": "Keep failing suites, failed tests, stack headers, and final summary.",
+  "category": "test",
+  "priority": 92,
+  "match": {
+    "outputTypes": ["test-vitest"],
+    "commands": ["^(?:vitest|npm\\s+(?:run\\s+)?test:vitest)\\b"],
+    "patterns": ["\\bvitest\\b", "^ ✓ ", "^ ❯ ", "Test Files\\s+\\d+\\s+(?:passed|failed)"]
+  },
+  "rules": {
+    "includePatterns": [
+      "^\\s*FAIL\\s+",
+      "^\\s*❯\\s+",
+      "^\\s*×\\s+",
+      "Test Files\\s+",
+      "Tests\\s+",
+      "Duration\\s+",
+      "Error:",
+      "AssertionError",
+      "\\s+at\\s+"
+    ],
+    "dropPatterns": ["^\\s*✓\\s+", "^\\s*stdout \\|", "^\\s*stderr \\|"],
+    "collapsePatterns": ["^\\s*at "],
+    "deduplicate": true,
+    "maxLines": 140,
+    "headLines": 24,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["FAIL", "Error:", "AssertionError", "Test Files"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:vitest|npm (?:run )?test:vitest)",
+      "input": " ✓ src/a.test.ts (1)\n ❯ src/b.test.ts (1)\n FAIL src/b.test.ts > fails\nError: boom\nTest Files 1 failed | 1 passed\nTests 1 failed | 1 passed\n",
+      "expected": " ❯ src/b.test.ts (1)\n FAIL src/b.test.ts > fails\nError: boom\nTest Files 1 failed | 1 passed\nTests 1 failed | 1 passed"
+    }
+  ]
+}

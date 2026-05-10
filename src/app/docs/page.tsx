@@ -1,610 +1,107 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { APP_CONFIG } from "@/shared/constants/config";
-import { FREE_PROVIDERS, OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/providers";
-import {
-  DOCS_DEPLOYMENT_GUIDES,
-  DOCS_ENDPOINT_ROWS,
-  DOCS_FEATURE_ITEMS,
-  DOCS_MANAGEMENT_ENDPOINT_ROWS,
-  DOCS_MCP_TOOL_GROUPS,
-  DOCS_TOC_ITEMS,
-  DOCS_TROUBLESHOOTING_KEYS,
-  DOCS_USE_CASE_ITEMS,
-} from "./content";
+import { Metadata } from "next";
+import { docsNavigation } from "./lib/docsNavigation";
+import { WhatsNewSection } from "./components/WhatsNewSection";
 
-function ProviderTable({
-  title,
-  providers,
-  colorDot,
-  maxHeight,
-}: {
-  title: string;
-  providers: Record<string, any>;
-  colorDot: string;
-  maxHeight?: string;
-}) {
-  const t = useTranslations("docs");
-  const entries = Object.values(providers) as any[];
-  const isLargeList = entries.length > 20;
+export const metadata: Metadata = {
+  title: "OmniRoute Documentation",
+  description:
+    "Everything you need to route, compress, and scale your AI — setup guides, API reference, compression, deployment, and more.",
+  openGraph: {
+    title: "OmniRoute Documentation",
+    description:
+      "Comprehensive docs for OmniRoute AI gateway — setup, API, compression, deployment, and more.",
+    type: "website",
+    url: "https://omniroute.online/docs",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OmniRoute Documentation",
+    description: "Comprehensive docs for OmniRoute AI gateway",
+  },
+};
 
+const featuredLinks = [
+  {
+    slug: "setup-guide",
+    title: "Setup Guide",
+    icon: "rocket_launch",
+    desc: "Get OmniRoute running in 3 minutes",
+  },
+  {
+    slug: "api-reference",
+    title: "API Reference",
+    icon: "code",
+    desc: "All endpoints with examples",
+  },
+  {
+    slug: "compression-guide",
+    title: "Compression Guide",
+    icon: "compress",
+    desc: "Save 15-95% eligible tokens automatically",
+  },
+];
+
+export default function DocsHomePage() {
   return (
-    <div className="rounded-lg border border-border bg-bg p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`size-2.5 rounded-full ${colorDot}`} />
-        <h3 className="font-semibold">{title}</h3>
-        <span className="text-xs text-text-muted ml-auto">
-          {t("providersCount", { count: entries.length })}
-        </span>
+    <div className="max-w-4xl mx-auto">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-text-main mb-4">OmniRoute Documentation</h1>
+        <p className="text-lg text-text-muted mb-6">
+          Everything you need to route, compress, and scale your AI
+        </p>
+        <p className="text-sm text-text-muted">
+          Press{" "}
+          <kbd className="px-1.5 py-0.5 bg-bg-subtle border border-border rounded font-mono text-xs">
+            ⌘K
+          </kbd>{" "}
+          to search the docs
+        </p>
       </div>
-      <div
-        className={`${isLargeList ? "grid grid-cols-2 sm:grid-cols-3 gap-1.5" : "grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1"} text-sm`}
-        style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
-      >
-        {entries.map((p) => (
-          <div
-            key={p.id}
-            className={`flex items-center ${isLargeList ? "gap-1.5 py-1 px-2 rounded-md bg-bg-subtle border border-border/30" : "justify-between py-1.5 border-b border-border/40 last:border-0"}`}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        {featuredLinks.map((link) => (
+          <Link
+            key={link.slug}
+            href={`/docs/${link.slug}`}
+            className="flex flex-col items-center text-center p-6 bg-bg-subtle border border-border rounded-xl
+              hover:border-primary hover:bg-primary/5 transition-all group"
           >
-            <code className="text-xs text-text-muted shrink-0">{p.alias}/</code>
-            <span className={`${isLargeList ? "text-xs truncate" : "font-medium"}`}>{p.name}</span>
+            <span className="material-symbols-outlined text-3xl text-primary mb-3">
+              {link.icon}
+            </span>
+            <span className="font-semibold text-text-main group-hover:text-primary transition-colors">
+              {link.title}
+            </span>
+            <span className="text-sm text-text-muted mt-1">{link.desc}</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {docsNavigation.map((section, sectionIdx) => (
+          <div
+            key={sectionIdx}
+            className="border border-border rounded-xl p-6 hover:border-primary/50 transition-colors"
+          >
+            <h2 className="text-lg font-bold text-text-main mb-4">{section.title}</h2>
+            <ul className="space-y-2">
+              {section.items.map((item) => (
+                <li key={item.slug}>
+                  <Link
+                    href={`/docs/${item.slug}`}
+                    className="text-sm text-text-muted hover:text-primary hover:underline transition-colors"
+                  >
+                    {item.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>
-    </div>
-  );
-}
 
-export default function DocsPage() {
-  const t = useTranslations("docs");
-
-  const totalProviders =
-    Object.keys(FREE_PROVIDERS).length +
-    Object.keys(OAUTH_PROVIDERS).length +
-    Object.keys(APIKEY_PROVIDERS).length;
-
-  const endpointRows = DOCS_ENDPOINT_ROWS.map((row) => ({
-    ...row,
-    note: t(row.noteKey),
-  }));
-  const managementEndpointRows = DOCS_MANAGEMENT_ENDPOINT_ROWS.map((row) => ({
-    ...row,
-    note: t(row.noteKey),
-  }));
-
-  const featureItems = DOCS_FEATURE_ITEMS.map((item) => ({
-    ...item,
-    title: t(item.titleKey),
-    text: t(item.textKey),
-  }));
-
-  const useCases = DOCS_USE_CASE_ITEMS.map((item) => ({
-    ...item,
-    title: t(item.titleKey),
-    text: t(item.textKey),
-  }));
-  const deploymentGuides = DOCS_DEPLOYMENT_GUIDES.map((item) => ({
-    ...item,
-    title: t(item.titleKey),
-    text: t(item.textKey),
-  }));
-
-  const troubleshootingItems = DOCS_TROUBLESHOOTING_KEYS.map((key) => t(key));
-  const tocItems = DOCS_TOC_ITEMS.map((item) => ({ ...item, label: t(item.labelKey) }));
-  const mcpToolGroups = DOCS_MCP_TOOL_GROUPS.map((group) => ({
-    ...group,
-    title: t(group.titleKey),
-    text: t(group.textKey),
-  }));
-  const totalMcpTools = DOCS_MCP_TOOL_GROUPS.reduce((sum, group) => sum + group.tools.length, 0);
-
-  const providerPrefixRows = [
-    ...Object.values(FREE_PROVIDERS).map((p) => ({ ...p, type: "free" as const })),
-    ...Object.values(OAUTH_PROVIDERS).map((p) => ({ ...p, type: "oauth" as const })),
-    ...Object.values(APIKEY_PROVIDERS).map((p) => ({ ...p, type: "apiKey" as const })),
-  ];
-
-  const getProviderTypeLabel = (type: "free" | "oauth" | "apiKey") => {
-    if (type === "free") return t("providerTypeFree");
-    if (type === "oauth") return t("providerTypeOAuth");
-    return t("providerTypeApiKey");
-  };
-
-  return (
-    <div className="min-h-screen bg-bg text-text-main">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 md:py-14 flex flex-col gap-8">
-        <header className="rounded-2xl border border-border bg-bg-subtle p-6 md:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-text-muted">
-                {t("documentationVersion", { version: APP_CONFIG.version })}
-              </p>
-              <h1 className="text-3xl md:text-4xl font-bold mt-1">
-                {APP_CONFIG.name} {t("docsLabel")}
-              </h1>
-              <p className="text-sm md:text-base text-text-muted mt-2 max-w-3xl">
-                {t("docsHeroDescription")}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/dashboard"
-                className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-bg transition-colors"
-              >
-                {t("openDashboard")}
-              </Link>
-              <Link
-                href="/dashboard/endpoint"
-                className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-bg transition-colors"
-              >
-                {t("endpointPage")}
-              </Link>
-              <a
-                href="https://github.com/diegosouzapw/OmniRoute"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-bg transition-colors flex items-center gap-1"
-              >
-                {t("github")}{" "}
-                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-              </a>
-              <a
-                href="https://github.com/diegosouzapw/OmniRoute/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-bg transition-colors"
-              >
-                {t("reportIssue")}
-              </a>
-            </div>
-          </div>
-        </header>
-
-        <nav className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-3">
-            {t("onThisPage")}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-            {tocItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border hover:bg-bg transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px] text-text-muted">tag</span>
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </nav>
-
-        <section id="quick-start" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("quickStart")}</h2>
-          <ol className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <li className="rounded-lg border border-border p-3 bg-bg">
-              <span className="font-semibold">{t("quickStartStep1Title")}</span>
-              <p className="text-text-muted mt-1">
-                {t("quickStartStep1Prefix")}{" "}
-                <code className="px-1 rounded bg-bg-subtle">npx omniroute</code>{" "}
-                {t("quickStartStep1Middle")}{" "}
-                <code className="px-1 rounded bg-bg-subtle">npm start</code>.
-              </p>
-            </li>
-            <li className="rounded-lg border border-border p-3 bg-bg">
-              <span className="font-semibold">{t("quickStartStep2Title")}</span>
-              <p className="text-text-muted mt-1">{t("quickStartStep2Text")}</p>
-            </li>
-            <li className="rounded-lg border border-border p-3 bg-bg">
-              <span className="font-semibold">{t("quickStartStep3Title")}</span>
-              <p className="text-text-muted mt-1">{t("quickStartStep3Text")}</p>
-            </li>
-            <li className="rounded-lg border border-border p-3 bg-bg">
-              <span className="font-semibold">{t("quickStartStep4Title")}</span>
-              <p className="text-text-muted mt-1">
-                {t("quickStartStep4Prefix")}{" "}
-                <code className="px-1 rounded bg-bg-subtle">https://&lt;host&gt;/v1</code>.{" "}
-                {t("quickStartStep4Suffix")}{" "}
-                <code className="px-1 rounded bg-bg-subtle">gh/gpt-5.1-codex</code>.
-              </p>
-            </li>
-          </ol>
-        </section>
-
-        <section id="deployment" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("deploymentGuides")}</h2>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {deploymentGuides.map((item) => (
-              <a
-                key={item.titleKey}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-lg border border-border p-4 bg-bg flex gap-3 transition-colors hover:border-primary/40 hover:bg-bg-subtle"
-              >
-                <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">
-                  {item.icon}
-                </span>
-                <div>
-                  <h3 className="font-semibold text-sm">{item.title}</h3>
-                  <p className="text-sm text-text-muted mt-1">{item.text}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section id="features" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("features")}</h2>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {featureItems.map((item) => (
-              <article
-                key={item.titleKey}
-                className="rounded-lg border border-border p-4 bg-bg flex gap-3"
-              >
-                <span className="material-symbols-outlined text-[20px] text-primary shrink-0 mt-0.5">
-                  {item.icon}
-                </span>
-                <div>
-                  <h3 className="font-semibold text-sm">{item.title}</h3>
-                  <p className="text-sm text-text-muted mt-1">{item.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          id="supported-providers"
-          className="rounded-2xl border border-border bg-bg-subtle p-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-semibold">{t("supportedProviders")}</h2>
-              <p className="text-sm text-text-muted mt-1">
-                {t("providersAcrossConnectionTypes", { count: totalProviders })}
-              </p>
-            </div>
-            <Link
-              href="/dashboard/providers"
-              className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-bg transition-colors"
-            >
-              {t("manageProviders")}
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <ProviderTable
-              title={t("providerTypeFree")}
-              providers={FREE_PROVIDERS}
-              colorDot="bg-green-500"
-            />
-            <ProviderTable
-              title={t("providerTypeOAuth")}
-              providers={OAUTH_PROVIDERS}
-              colorDot="bg-blue-500"
-            />
-          </div>
-          <div className="mt-3">
-            <ProviderTable
-              title={t("providerTypeApiKey")}
-              providers={APIKEY_PROVIDERS}
-              colorDot="bg-amber-500"
-              maxHeight="400px"
-            />
-          </div>
-        </section>
-
-        <section id="use-cases" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("commonUseCases")}</h2>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {useCases.map((item) => (
-              <article key={item.titleKey} className="rounded-lg border border-border p-4 bg-bg">
-                <h3 className="font-semibold">{item.title}</h3>
-                <p className="text-sm text-text-muted mt-2">{item.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          id="client-compatibility"
-          className="rounded-2xl border border-border bg-bg-subtle p-6"
-        >
-          <h2 className="text-xl font-semibold">{t("clientCompatibility")}</h2>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientCherryStudioTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>
-                  {t("baseUrlLabel")}:{" "}
-                  <code className="px-1 rounded bg-bg-subtle">https://&lt;host&gt;/v1</code>
-                </li>
-                <li>
-                  {t("chatEndpointLabel")}:{" "}
-                  <code className="px-1 rounded bg-bg-subtle">/chat/completions</code>
-                </li>
-                <li>
-                  {t("modelRecommendationLabel")} (
-                  <code className="px-1 rounded bg-bg-subtle">gh/...</code>,{" "}
-                  <code className="px-1 rounded bg-bg-subtle">cc/...</code>)
-                </li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientCodexTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>
-                  {t("clientCodexBullet1")} <code className="px-1 rounded bg-bg-subtle">gh/</code>.
-                </li>
-                <li>
-                  {t("clientCodexBullet2")}{" "}
-                  <code className="px-1 rounded bg-bg-subtle">/responses</code>.
-                </li>
-                <li>
-                  {t("clientCodexBullet3")}{" "}
-                  <code className="px-1 rounded bg-bg-subtle">/chat/completions</code>.
-                </li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientCursorTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>
-                  {t("clientCursorBullet1")} <code className="px-1 rounded bg-bg-subtle">cu/</code>{" "}
-                  {t("clientCursorBullet1Suffix")}
-                </li>
-                <li>{t("clientCursorBullet2")}</li>
-                <li>{t("supportsChat")}</li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientClaudeTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>
-                  {t("clientClaudeBullet1Prefix")}{" "}
-                  <code className="px-1 rounded bg-bg-subtle">cc/</code>{" "}
-                  {t("clientClaudeBullet1Middle")}{" "}
-                  <code className="px-1 rounded bg-bg-subtle">antigravity/</code>{" "}
-                  {t("clientClaudeBullet1Suffix")}
-                </li>
-                <li>{t("oauthAutoRefresh")}</li>
-                <li>{t("fullStreaming")}</li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientWindsurfTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>{t("clientWindsurfBullet1")}</li>
-                <li>{t("clientWindsurfBullet2")}</li>
-                <li>{t("clientWindsurfBullet3")}</li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientClineTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>{t("clientClineBullet1")}</li>
-                <li>{t("clientClineBullet2")}</li>
-                <li>{t("clientClineBullet3")}</li>
-              </ul>
-            </article>
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("clientKimiTitle")}</h3>
-              <ul className="mt-2 text-text-muted space-y-1">
-                <li>{t("clientKimiBullet1")}</li>
-                <li>{t("clientKimiBullet2")}</li>
-                <li>{t("clientKimiBullet3")}</li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        <section id="protocols" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("protocolsTitle")}</h2>
-          <p className="text-sm text-text-muted mt-2">{t("protocolsDescription")}</p>
-
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("protocolMcpTitle")}</h3>
-              <p className="text-text-muted mt-1">{t("protocolMcpDesc")}</p>
-              <ol className="mt-3 list-decimal list-inside space-y-1 text-text-muted">
-                <li>{t("protocolMcpStep1")}</li>
-                <li>{t("protocolMcpStep2")}</li>
-                <li>{t("protocolMcpStep3")}</li>
-              </ol>
-              <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
-                <code>{`omniroute --mcp`}</code>
-              </pre>
-            </article>
-
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("protocolA2aTitle")}</h3>
-              <p className="text-text-muted mt-1">{t("protocolA2aDesc")}</p>
-              <ol className="mt-3 list-decimal list-inside space-y-1 text-text-muted">
-                <li>{t("protocolA2aStep1")}</li>
-                <li>{t("protocolA2aStep2")}</li>
-                <li>{t("protocolA2aStep3")}</li>
-              </ol>
-              <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
-                <code>{`GET /.well-known/agent.json
-POST /a2a  (JSON-RPC: message/send | message/stream)`}</code>
-              </pre>
-            </article>
-
-            <article className="rounded-lg border border-border p-4 bg-bg">
-              <h3 className="font-semibold">{t("protocolAcpTitle")}</h3>
-              <p className="text-text-muted mt-1">{t("protocolAcpDesc")}</p>
-              <ol className="mt-3 list-decimal list-inside space-y-1 text-text-muted">
-                <li>{t("protocolAcpStep1")}</li>
-                <li>{t("protocolAcpStep2")}</li>
-                <li>{t("protocolAcpStep3")}</li>
-              </ol>
-              <pre className="mt-3 p-3 rounded-lg border border-border bg-bg overflow-x-auto text-xs">
-                <code>{`Dashboard -> Agents
-Dashboard -> CLI Tools`}</code>
-              </pre>
-            </article>
-          </div>
-
-          <div className="mt-4 rounded-lg border border-border p-4 bg-bg">
-            <h3 className="font-semibold">{t("protocolTroubleshootingTitle")}</h3>
-            <ul className="mt-2 list-disc list-inside text-sm text-text-muted space-y-1">
-              <li>{t("protocolTroubleshooting1")}</li>
-              <li>{t("protocolTroubleshooting2")}</li>
-              <li>{t("protocolTroubleshooting3")}</li>
-            </ul>
-          </div>
-        </section>
-
-        <section id="mcp-tools" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-xl font-semibold">{t("mcpToolsTitle")}</h2>
-              <p className="mt-2 text-sm text-text-muted">
-                {t("mcpToolsDescription", { count: totalMcpTools })}
-              </p>
-            </div>
-            <div className="rounded-full border border-border bg-bg px-3 py-1 text-xs text-text-muted">
-              {t("mcpToolsCount", { count: totalMcpTools })}
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {mcpToolGroups.map((group) => (
-              <article key={group.titleKey} className="rounded-lg border border-border bg-bg p-4">
-                <h3 className="font-semibold">{group.title}</h3>
-                <p className="mt-1 text-sm text-text-muted">{group.text}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {group.tools.map((tool) => (
-                    <code
-                      key={tool}
-                      className="rounded-md border border-border/70 bg-bg-subtle px-2 py-1 text-xs text-text-muted"
-                    >
-                      {tool}
-                    </code>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="api-reference" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("apiReference")}</h2>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 pr-4">{t("method")}</th>
-                  <th className="text-left py-2 pr-4">{t("path")}</th>
-                  <th className="text-left py-2">{t("notes")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {endpointRows.map((row) => (
-                  <tr key={row.path} className="border-b border-border/60">
-                    <td className="py-2 pr-4">
-                      <code className="px-1.5 py-0.5 rounded bg-bg text-xs font-semibold">
-                        {row.method}
-                      </code>
-                    </td>
-                    <td className="py-2 pr-4 font-mono">{row.path}</td>
-                    <td className="py-2 text-text-muted">{row.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section id="model-prefixes" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("modelPrefixes")}</h2>
-          <p className="text-sm text-text-muted mt-2 mb-4">
-            {t("modelPrefixesDescriptionStart")}{" "}
-            <code className="px-1 rounded bg-bg">gh/gpt-5.1-codex</code>{" "}
-            {t("modelPrefixesDescriptionEnd")}
-          </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 pr-4">{t("prefix")}</th>
-                  <th className="text-left py-2 pr-4">{t("provider")}</th>
-                  <th className="text-left py-2">{t("type")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {providerPrefixRows.map((p) => (
-                  <tr key={p.id} className="border-b border-border/60">
-                    <td className="py-2 pr-4 font-mono">
-                      <code className="px-1.5 py-0.5 rounded bg-bg">{p.alias}/</code>
-                    </td>
-                    <td className="py-2 pr-4">{p.name}</td>
-                    <td className="py-2">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs ${
-                          p.type === "free"
-                            ? "text-green-500"
-                            : p.type === "oauth"
-                              ? "text-blue-500"
-                              : "text-amber-500"
-                        }`}
-                      >
-                        <span
-                          className={`size-1.5 rounded-full ${
-                            p.type === "free"
-                              ? "bg-green-500"
-                              : p.type === "oauth"
-                                ? "bg-blue-500"
-                                : "bg-amber-500"
-                          }`}
-                        />
-                        {getProviderTypeLabel(p.type)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section id="management-api" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("managementApiReference")}</h2>
-          <p className="text-sm text-text-muted mt-2">{t("managementApiDescription")}</p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 pr-4">{t("method")}</th>
-                  <th className="text-left py-2 pr-4">{t("path")}</th>
-                  <th className="text-left py-2">{t("notes")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {managementEndpointRows.map((row) => (
-                  <tr key={`${row.method}:${row.path}`} className="border-b border-border/60">
-                    <td className="py-2 pr-4">
-                      <code className="px-1.5 py-0.5 rounded bg-bg text-xs font-semibold">
-                        {row.method}
-                      </code>
-                    </td>
-                    <td className="py-2 pr-4 font-mono">{row.path}</td>
-                    <td className="py-2 text-text-muted">{row.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section id="troubleshooting" className="rounded-2xl border border-border bg-bg-subtle p-6">
-          <h2 className="text-xl font-semibold">{t("troubleshooting")}</h2>
-          <ul className="mt-4 list-disc list-inside text-sm text-text-muted space-y-2">
-            {troubleshootingItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      </div>
+      <WhatsNewSection />
     </div>
   );
 }

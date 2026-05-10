@@ -1,0 +1,8 @@
+Terraform will perform the following actions:
+
+  # aws_instance.app will be updated in-place
+  ~ resource "aws_instance" "app" {
+      instance_type = "t3.small" -> "t3.medium"
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.

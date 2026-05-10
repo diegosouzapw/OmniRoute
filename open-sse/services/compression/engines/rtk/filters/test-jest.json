@@ -1,0 +1,43 @@
+{
+  "id": "test-jest",
+  "label": "Jest",
+  "description": "Keep Jest failures and summary while removing passing noise.",
+  "category": "test",
+  "priority": 90,
+  "match": {
+    "outputTypes": ["test-jest"],
+    "commands": ["^(?:jest|npm\\s+(?:run\\s+)?test)\\b"],
+    "patterns": ["Test Suites:\\s+\\d+", "Tests:\\s+\\d+", "^PASS\\s+", "^FAIL\\s+"]
+  },
+  "rules": {
+    "includePatterns": [
+      "^FAIL\\s+",
+      "^\\s*●\\s+",
+      "Expected:",
+      "Received:",
+      "Test Suites:",
+      "Tests:",
+      "Snapshots:",
+      "Time:",
+      "\\s+at\\s+"
+    ],
+    "dropPatterns": ["^PASS\\s+", "^\\s*✓\\s+"],
+    "collapsePatterns": ["^\\s*at "],
+    "deduplicate": true,
+    "maxLines": 140,
+    "headLines": 24,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["FAIL", "Expected:", "Received:", "Test Suites:"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:jest|npm (?:run )?test)",
+      "input": "PASS src/a.test.ts\nFAIL src/b.test.ts\nError: boom\nTest Suites: 1 failed, 1 passed\nTests: 1 failed, 1 passed\n",
+      "expected": "FAIL src/b.test.ts\nTest Suites: 1 failed, 1 passed\nTests: 1 failed, 1 passed"
+    }
+  ]
+}

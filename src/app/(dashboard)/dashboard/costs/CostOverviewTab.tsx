@@ -111,6 +111,27 @@ function createCurrencyFormatter(locale: string) {
   });
 }
 
+function formatCurrencyCost(locale: string, value: number): string {
+  const numericValue = Number(value || 0);
+  if (!Number.isFinite(numericValue) || numericValue === 0) {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0);
+  }
+
+  const absValue = Math.abs(numericValue);
+  const fractionDigits = absValue < 0.01 ? 6 : absValue < 1 ? 4 : 2;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(numericValue);
+}
+
 function csvCell(value: string | number): string {
   const text = String(value);
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -283,18 +304,20 @@ export default function CostOverviewTab() {
     requestedModelCoveragePct: 0,
     streak: 0,
   };
+  const hasCostData = summary.totalCost > 0;
+
   const providersByCost = [...(analytics?.byProvider || [])]
-    .filter((provider) => provider.cost > 0)
-    .sort((left, right) => right.cost - left.cost);
+    .filter((provider) => (hasCostData ? provider.cost > 0 : provider.requests > 0))
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
   const modelsByCost = [...(analytics?.byModel || [])]
-    .filter((model) => model.cost > 0)
-    .sort((left, right) => right.cost - left.cost);
+    .filter((model) => (hasCostData ? model.cost > 0 : model.requests > 0))
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
   const apiKeysByCost = [...(analytics?.byApiKey || [])]
-    .filter((apiKey) => apiKey.cost > 0)
-    .sort((left, right) => right.cost - left.cost);
+    .filter((apiKey) => (hasCostData ? apiKey.cost > 0 : apiKey.requests > 0))
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
   const accountsByCost = [...(analytics?.byAccount || [])]
-    .filter((account) => account.cost > 0)
-    .sort((left, right) => right.cost - left.cost);
+    .filter((account) => (hasCostData ? account.cost > 0 : account.requests > 0))
+    .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
   const avgCostPerRequest =
     summary.totalRequests > 0 ? summary.totalCost / summary.totalRequests : 0;
   const dailyTrend = analytics?.dailyTrend || [];
@@ -398,25 +421,25 @@ export default function CostOverviewTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
           label={t("spendToday")}
-          value={currencyFormatter.format(presetCosts["1d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["1d"] || 0)}
           loading={summaryLoading}
           color="text-emerald-400"
         />
         <MetricCard
           label={t("spend7d")}
-          value={currencyFormatter.format(presetCosts["7d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["7d"] || 0)}
           loading={summaryLoading}
           color="text-sky-400"
         />
         <MetricCard
           label={t("spend30d")}
-          value={currencyFormatter.format(presetCosts["30d"] || 0)}
+          value={formatCurrencyCost(locale, presetCosts["30d"] || 0)}
           loading={summaryLoading}
           color="text-violet-400"
         />
         <MetricCard
           label={t("selectedWindow")}
-          value={currencyFormatter.format(summary.totalCost || 0)}
+          value={formatCurrencyCost(locale, summary.totalCost || 0)}
           subValue={selectedRangeLabel}
           color="text-amber-400"
         />
@@ -438,7 +461,7 @@ export default function CostOverviewTab() {
           />
           <CompactMetric
             label={t("avgCostPerRequest")}
-            value={currencyFormatter.format(avgCostPerRequest)}
+            value={formatCurrencyCost(locale, avgCostPerRequest)}
           />
         </div>
       </Card>
@@ -621,7 +644,7 @@ export default function CostOverviewTab() {
         </div>
       )}
 
-      {summary.totalCost <= 0 ? (
+      {summary.totalCost <= 0 && summary.totalRequests <= 0 ? (
         <Card className="p-6">
           <EmptyState
             icon="payments"
@@ -631,14 +654,20 @@ export default function CostOverviewTab() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
-            <CostTrendCard
-              title={t("costTrend")}
-              rows={analytics?.dailyTrend || []}
-              locale={locale}
-            />
-            <ProviderSpendCard title={t("providerShare")} rows={providersByCost} locale={locale} />
-          </div>
+          {hasCostData && (
+            <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-4">
+              <CostTrendCard
+                title={t("costTrend")}
+                rows={analytics?.dailyTrend || []}
+                locale={locale}
+              />
+              <ProviderSpendCard
+                title={t("providerShare")}
+                rows={providersByCost}
+                locale={locale}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <TopListCard
@@ -649,6 +678,7 @@ export default function CostOverviewTab() {
               secondaryLabel={t("tokens")}
               rows={providersByCost}
               locale={locale}
+              hasCostData={hasCostData}
             />
             <TopListCard
               title={t("topModels")}
@@ -658,6 +688,7 @@ export default function CostOverviewTab() {
               secondaryLabel={t("tokens")}
               rows={modelsByCost}
               locale={locale}
+              hasCostData={hasCostData}
             />
           </div>
 
@@ -1026,14 +1057,16 @@ function TopListCard({
   secondaryKey,
   secondaryLabel,
   locale,
+  hasCostData,
 }: {
   title: string;
-  rows: Array<Record<string, string | number>>;
+  rows: Array<Record<string, any>>;
   nameKey: string;
   valueKey: string;
   secondaryKey?: string;
   secondaryLabel?: string;
   locale: string;
+  hasCostData?: boolean;
 }) {
   const currencyFormatter = createCurrencyFormatter(locale);
 
@@ -1059,7 +1092,11 @@ function TopListCard({
                 </span>
               ) : null}
               <span className="text-sm font-mono text-text-muted">
-                {currencyFormatter.format(Number(row[valueKey] || 0))}
+                {hasCostData || Number(row[valueKey] || 0) > 0 ? (
+                  currencyFormatter.format(Number(row[valueKey] || 0))
+                ) : (
+                  <span className="text-xs italic opacity-70">Legacy / Free</span>
+                )}
               </span>
             </div>
           </div>
@@ -1083,7 +1120,7 @@ function CostBreakdownTable({
   locale,
 }: {
   title: string;
-  rows: Array<Record<string, string | number | null>>;
+  rows: Array<Record<string, any>>;
   columns: ColumnDef[];
   locale: string;
 }) {
@@ -1093,7 +1130,7 @@ function CostBreakdownTable({
     const num = Number(value || 0);
     switch (format) {
       case "currency":
-        return currencyFormatter.format(num);
+        return num > 0 ? currencyFormatter.format(num) : "Legacy / Free";
       case "compact":
         return new Intl.NumberFormat(locale, { notation: "compact" }).format(num);
       case "number":

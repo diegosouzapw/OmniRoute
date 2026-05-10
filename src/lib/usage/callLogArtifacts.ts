@@ -19,7 +19,7 @@ const STREAM_CHUNKS_OMITTED_FOR_SIZE_LIMIT =
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
 export type CallLogArtifact = {
-  schemaVersion: 4;
+  schemaVersion: 5;
   summary: {
     id: string;
     timestamp: string;
@@ -38,6 +38,7 @@ export type CallLogArtifact = {
       cacheRead: number | null;
       cacheWrite: number | null;
       reasoning: number | null;
+      compressed: number | null;
     };
     requestType: string | null;
     sourceFormat: string | null;

@@ -5,6 +5,21 @@ import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 type JsonRecord = Record<string, unknown>;
 const TOOL_CHOICE_ANY = ["a", "n", "y"].join("");
 
+/**
+ * Normalize tool input schema for OpenAI compatibility.
+ * OpenAI strict mode requires `properties: {}` on object-type schemas,
+ * even for zero-argument tools. Anthropic/MCP tools may omit it (#1898).
+ */
+function normalizeToolSchema(schema: unknown): Record<string, unknown> {
+  const fallback = { type: "object", properties: {} };
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) return fallback;
+  const s = schema as Record<string, unknown>;
+  if (s.type === "object" && !s.properties) {
+    return { ...s, properties: {} };
+  }
+  return s;
+}
+
 function normalizeOpenAIReasoningEffort(effort: unknown): string | undefined {
   if (typeof effort !== "string") return undefined;
   const normalized = effort.toLowerCase();
@@ -86,7 +101,7 @@ export function claudeToOpenAIRequest(model, body, stream) {
           function: {
             name,
             description: typeof tool.description === "string" ? tool.description : "", // fix: never null (#276)
-            parameters: tool.input_schema || { type: "object", properties: {} },
+            parameters: normalizeToolSchema(tool.input_schema),
           },
         };
       })

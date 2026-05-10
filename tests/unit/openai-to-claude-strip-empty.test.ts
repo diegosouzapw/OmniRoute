@@ -102,6 +102,5 @@ test("T15: openaiToClaudeRequest converts system array content into a Claude sys
 
   const translated = openaiToClaudeRequest("claude-sonnet-4", request, false);
   assert.ok(Array.isArray(translated.system));
-  // system[0] is the injected Claude prompt; user-provided system content is system[1].
-  assert.equal(translated.system[1].text, "System rules A\nSystem rules B");
+  assert.equal(translated.system[0].text, "System rules A\nSystem rules B");
 });

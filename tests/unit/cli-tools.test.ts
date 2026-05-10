@@ -84,12 +84,12 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
     "codex",
     {
       Authorization: "Bearer token",
-      "User-Agent": "codex-cli/0.125.0 (Windows 10.0.26100; x64)",
+      "User-Agent": "codex-cli/0.130.0 (Windows 10.0.26200; x64)",
     },
     { model: "gpt-5.5", messages: [], stream: true }
   );
 
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.125.0 (Windows 10.0.26100; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.130.0 (Windows 10.0.26200; x64)");
   assert.deepEqual(Object.keys(JSON.parse(codex.bodyString)), ["model", "stream", "messages"]);
 
   const copilot = applyFingerprint(
@@ -106,7 +106,7 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
       Authorization: "Bearer token",
       "Content-Type": "application/json",
       "User-Agent":
-        "GeminiCLI/0.40.1/gemini-2.5-flash (linux; arm64; terminal) google-api-nodejs-client/9.15.1",
+        "GeminiCLI/0.41.2/gemini-2.5-flash (linux; arm64; terminal) google-api-nodejs-client/9.15.1",
       "X-Goog-Api-Client": "gl-node/22.22.2",
       Accept: "*/*",
     },

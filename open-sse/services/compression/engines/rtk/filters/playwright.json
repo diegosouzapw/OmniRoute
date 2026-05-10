@@ -1,0 +1,42 @@
+{
+  "id": "playwright",
+  "label": "Playwright",
+  "description": "Keep failed specs, error context, and summary.",
+  "category": "test",
+  "priority": 86,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^playwright\\s+test\\b", "^npx\\s+playwright\\s+test\\b"],
+    "patterns": ["Running \\d+ tests?", "Error Context:", "failed"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$", "^Running \\d+ tests? using"],
+    "includePatterns": [
+      "✘",
+      "Error:",
+      "Error Context:",
+      "failed",
+      "passed",
+      "Slow test file",
+      "^\\s*\\d+\\)"
+    ],
+    "collapsePatterns": ["^\\s+at "],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 35,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": ["Error:", "✘", "failed"],
+    "summaryPatterns": ["passed", "failed"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "playwright test",
+      "input": "Running 2 tests using 1 worker\n  ✘  1 login.spec.ts:3:1 › login\nError: expected visible\n  1 failed\n",
+      "expected": "  ✘  1 login.spec.ts:3:1 › login\nError: expected visible\n  1 failed"
+    }
+  ]
+}

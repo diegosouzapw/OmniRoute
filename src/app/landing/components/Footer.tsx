@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import OmniRouteLogo from "@/shared/components/OmniRouteLogo";
 
@@ -61,12 +62,12 @@ export default function Footer() {
           {/* Resources */}
           <div className="flex flex-col gap-4">
             <h4 className="font-bold text-white">{t("resources")}</h4>
-            <a
+            <Link
               className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
               href="/docs"
             >
               {t("documentation")}
-            </a>
+            </Link>
             <a
               className="text-gray-400 hover:text-[#E54D5E] text-sm transition-colors"
               href="https://github.com/diegosouzapw/OmniRoute"

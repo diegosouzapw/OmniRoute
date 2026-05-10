@@ -295,6 +295,20 @@ test("sanitizeStreamingChunk converts reasoning_details arrays in deltas", () =>
   assert.equal((sanitized as any).choices[0].delta.reasoning_content, "alphabeta");
 });
 
+test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
+  const sanitized = sanitizeStreamingChunk({
+    choices: [
+      {
+        delta: {
+          reasoning_text: "copilot reasoning",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].delta.reasoning_text, "copilot reasoning");
+});
+
 test("sanitize functions return non-object inputs unchanged", () => {
   assert.equal(sanitizeOpenAIResponse(null), null);
   assert.equal(sanitizeStreamingChunk("raw text"), "raw text");

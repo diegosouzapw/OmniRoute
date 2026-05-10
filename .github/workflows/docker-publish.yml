@@ -6,6 +6,8 @@ on:
       - main
     tags:
       - "v*"
+    paths-ignore:
+      - ".github/workflows/**"
   release:
     types: [published]
   workflow_dispatch:

@@ -107,10 +107,17 @@ function parseEnvFile(filePath) {
     const eqIdx = trimmed.indexOf("=");
     if (eqIdx < 1) continue;
     const key = trimmed.slice(0, eqIdx).trim();
-    const val = trimmed.slice(eqIdx + 1).trim();
+    const val = unquoteEnvValue(trimmed.slice(eqIdx + 1).trim());
     env[key] = val;
   }
   return env;
+}
+
+function unquoteEnvValue(value) {
+  if (value.length < 2) return value;
+  const quote = value[0];
+  if ((quote !== '"' && quote !== "'") || value[value.length - 1] !== quote) return value;
+  return value.slice(1, -1);
 }
 
 // ── Write a simple KEY=VALUE env file ───────────────────────────────────────

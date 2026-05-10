@@ -4,6 +4,8 @@ import {
   type CompressionConfig,
   DEFAULT_COMPRESSION_CONFIG,
   DEFAULT_CAVEMAN_CONFIG,
+  DEFAULT_RTK_CONFIG,
+  DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
 } from "./types.ts";
 
 const CHARS_PER_TOKEN = 4;
@@ -54,5 +56,7 @@ export function getDefaultCompressionConfig(): CompressionConfig {
   return {
     ...DEFAULT_COMPRESSION_CONFIG,
     cavemanConfig: { ...DEFAULT_CAVEMAN_CONFIG },
+    rtkConfig: { ...DEFAULT_RTK_CONFIG },
+    languageConfig: { ...DEFAULT_COMPRESSION_LANGUAGE_CONFIG },
   };
 }

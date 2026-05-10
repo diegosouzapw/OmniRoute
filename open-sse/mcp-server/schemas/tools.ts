@@ -10,6 +10,10 @@
  */
 
 import { z } from "zod";
+import {
+  AUTO_ROUTING_STRATEGY_VALUES,
+  ROUTING_STRATEGY_VALUES,
+} from "../../../src/shared/constants/routingStrategies.ts";
 
 // ============ Shared Types ============
 
@@ -109,17 +113,7 @@ export const listCombosOutput = z.object({
           priority: z.number(),
         })
       ),
-      strategy: z.enum([
-        "priority",
-        "weighted",
-        "round-robin",
-        "context-relay",
-        "strict-random",
-        "random",
-        "least-used",
-        "cost-optimized",
-        "auto",
-      ]),
+      strategy: z.enum(ROUTING_STRATEGY_VALUES),
       enabled: z.boolean(),
       metrics: z
         .object({
@@ -544,21 +538,9 @@ export const setBudgetGuardTool: McpToolDefinition<
 // --- Tool 11: omniroute_set_routing_strategy ---
 export const setRoutingStrategyInput = z.object({
   comboId: z.string().describe("Combo ID or name to update"),
-  strategy: z
-    .enum([
-      "priority",
-      "weighted",
-      "round-robin",
-      "context-relay",
-      "strict-random",
-      "random",
-      "least-used",
-      "cost-optimized",
-      "auto",
-    ])
-    .describe("Routing strategy to apply"),
+  strategy: z.enum(ROUTING_STRATEGY_VALUES).describe("Routing strategy to apply"),
   autoRoutingStrategy: z
-    .enum(["rules", "cost", "eco", "latency", "fast"])
+    .enum(AUTO_ROUTING_STRATEGY_VALUES)
     .optional()
     .describe("Optional strategy used by auto mode (only used when strategy='auto')"),
 });
@@ -1000,14 +982,41 @@ export const compressionStatusOutput = z.object({
   strategy: z.string(),
   settings: z.object({
     maxTokens: z.number(),
+    autoTriggerMode: z.string(),
     targetRatio: z.number(),
-    aggressiveness: z.string(),
+    preserveSystemPrompt: z.boolean(),
+    mcpDescriptionCompressionEnabled: z.boolean(),
   }),
   analytics: z.object({
     totalRequests: z.number(),
     compressedRequests: z.number(),
     tokensSaved: z.number(),
     avgCompressionRatio: z.number(),
+    byMode: z.record(
+      z.string(),
+      z.object({
+        count: z.number(),
+        tokensSaved: z.number(),
+        avgSavingsPct: z.number(),
+      })
+    ),
+    validationFallbacks: z.number(),
+    requestsWithReceipts: z.number(),
+    realUsage: z.object({
+      requestsWithReceipts: z.number(),
+      promptTokens: z.number(),
+      completionTokens: z.number(),
+      totalTokens: z.number(),
+      cacheReadTokens: z.number(),
+      cacheWriteTokens: z.number(),
+      estimatedUsdSaved: z.number(),
+      bySource: z.record(z.string(), z.number()),
+    }),
+    mcpDescriptionCompression: z.object({
+      descriptionsCompressed: z.number(),
+      charsSaved: z.number(),
+      estimatedTokensSaved: z.number(),
+    }),
   }),
   cacheStats: z
     .object({
@@ -1037,12 +1046,21 @@ export const compressionStatusTool: McpToolDefinition<
 export const compressionConfigureInput = z.object({
   enabled: z.boolean().optional(),
   strategy: z
-    .string()
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
     .optional()
-    .describe("Compression strategy: 'none' | 'standard' | 'aggressive' | 'ultra'"),
-  maxTokens: z.number().optional().describe("Maximum tokens before compression triggers"),
+    .describe("Compression mode"),
+  autoTriggerMode: z
+    .enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"])
+    .optional(),
+  maxTokens: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Maximum tokens before compression triggers"),
   targetRatio: z.number().optional().describe("Target compression ratio (0.0–1.0)"),
-  aggressiveness: z.string().optional().describe("Aggressiveness level: 'low' | 'medium' | 'high'"),
+  preserveSystemPrompt: z.boolean().optional(),
+  mcpDescriptionCompressionEnabled: z.boolean().optional(),
 });
 
 export const compressionConfigureOutput = z.object({
@@ -1051,9 +1069,11 @@ export const compressionConfigureOutput = z.object({
   settings: z.object({
     enabled: z.boolean(),
     strategy: z.string(),
+    autoTriggerMode: z.string(),
     maxTokens: z.number(),
     targetRatio: z.number(),
-    aggressiveness: z.string(),
+    preserveSystemPrompt: z.boolean(),
+    mcpDescriptionCompressionEnabled: z.boolean(),
   }),
 });
 
@@ -1063,13 +1083,79 @@ export const compressionConfigureTool: McpToolDefinition<
 > = {
   name: "omniroute_compression_configure",
   description:
-    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (none/standard/aggressive/ultra), adjusting maxTokens threshold, targetRatio, and aggressiveness level.",
+    "Configure compression settings at runtime. Supports enabling/disabling compression, changing strategy (off/lite/standard/aggressive/ultra/rtk/stacked), adjusting maxTokens threshold, targetRatio, auto-trigger mode, system prompt preservation, and MCP description compression.",
   inputSchema: compressionConfigureInput,
   outputSchema: compressionConfigureOutput,
   scopes: ["write:compression"],
   auditLevel: "full",
   phase: 2,
   sourceEndpoints: ["/api/compression/configure"],
+};
+
+export const setCompressionEngineInput = z.object({
+  engine: z.enum(["off", "caveman", "rtk", "stacked"]).optional(),
+  cavemanIntensity: z.enum(["lite", "full", "ultra"]).optional(),
+  rtkIntensity: z.enum(["minimal", "standard", "aggressive"]).optional(),
+  outputMode: z.boolean().optional(),
+});
+
+export const setCompressionEngineOutput = z.object({
+  success: z.boolean(),
+  settings: z.record(z.string(), z.unknown()),
+});
+
+export const setCompressionEngineTool: McpToolDefinition<
+  typeof setCompressionEngineInput,
+  typeof setCompressionEngineOutput
+> = {
+  name: "omniroute_set_compression_engine",
+  description: "Set the active compression engine and Caveman/RTK runtime options.",
+  inputSchema: setCompressionEngineInput,
+  outputSchema: setCompressionEngineOutput,
+  scopes: ["write:compression"],
+  auditLevel: "full",
+  phase: 2,
+  sourceEndpoints: ["/api/settings/compression", "/api/context/rtk/config"],
+};
+
+export const listCompressionCombosInput = z.object({});
+export const listCompressionCombosOutput = z.object({
+  combos: z.array(z.record(z.string(), z.unknown())),
+});
+
+export const listCompressionCombosTool: McpToolDefinition<
+  typeof listCompressionCombosInput,
+  typeof listCompressionCombosOutput
+> = {
+  name: "omniroute_list_compression_combos",
+  description: "List compression combos and their engine pipelines.",
+  inputSchema: listCompressionCombosInput,
+  outputSchema: listCompressionCombosOutput,
+  scopes: ["read:compression"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/context/combos"],
+};
+
+export const compressionComboStatsInput = z.object({
+  comboId: z.string().optional(),
+  since: z.enum(["24h", "7d", "30d", "all"]).optional(),
+});
+
+export const compressionComboStatsOutput = z.record(z.string(), z.unknown());
+
+export const compressionComboStatsTool: McpToolDefinition<
+  typeof compressionComboStatsInput,
+  typeof compressionComboStatsOutput
+> = {
+  name: "omniroute_compression_combo_stats",
+  description: "Get compression analytics grouped by engine and compression combo.",
+  inputSchema: compressionComboStatsInput,
+  outputSchema: compressionComboStatsOutput,
+  scopes: ["read:compression"],
+  auditLevel: "basic",
+  phase: 2,
+  sourceEndpoints: ["/api/context/analytics"],
 };
 
 // ============ 1proxy Tools ============
@@ -1209,6 +1295,9 @@ export const MCP_TOOLS = [
   cacheFlushTool,
   compressionStatusTool,
   compressionConfigureTool,
+  setCompressionEngineTool,
+  listCompressionCombosTool,
+  compressionComboStatsTool,
   oneproxyFetchTool,
   oneproxyRotateTool,
   oneproxyStatsTool,

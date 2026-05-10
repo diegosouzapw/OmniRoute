@@ -18,6 +18,7 @@ import {
   ProviderCostDonut,
   ModelOverTimeChart,
   ProviderTable,
+  ServiceTierBreakdown,
   ApiKeyFilterDropdown,
   CustomRangePicker,
 } from "./analytics";
@@ -61,16 +62,15 @@ export default function UsageAnalytics() {
       setError(null);
 
       // Update available keys from unfiltered data (only when no filter is active).
-      // Use apiKeyName as the stable identifier — it is always populated
-      // for every OmniRoute API key regardless of the downstream provider.
       if (selectedApiKeys.length === 0 && data.byApiKey?.length > 0) {
         const seen = new Set<string>();
         const keys: { id: string; name: string }[] = [];
         for (const k of data.byApiKey) {
+          const id = k.apiKeyId || k.apiKeyName || "unknown";
           const name = k.apiKeyName || k.apiKeyId || "unknown";
-          if (seen.has(name)) continue;
-          seen.add(name);
-          keys.push({ id: name, name });
+          if (seen.has(id)) continue;
+          seen.add(id);
+          keys.push({ id, name });
         }
         setAvailableApiKeys(keys);
       }
@@ -311,10 +311,10 @@ export default function UsageAnalytics() {
                 color: "text-violet-500",
               },
               {
-                icon: "swap_horiz",
-                label: "Fallback Rate",
-                value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
-                color: "text-amber-500",
+                icon: "bolt",
+                label: "Fast Requests",
+                value: fmt(s.fastRequests || 0),
+                color: "text-sky-500",
               },
             ],
           },
@@ -330,6 +330,12 @@ export default function UsageAnalytics() {
                 label: "Diversity",
                 value: `${providerDiversity.toFixed(1)}%`,
                 color: "text-sky-500",
+              },
+              {
+                icon: "swap_horiz",
+                label: "Fallback Rate",
+                value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
+                color: "text-amber-500",
               },
             ],
           },
@@ -350,6 +356,9 @@ export default function UsageAnalytics() {
         <DailyTrendChart dailyTrend={analytics?.dailyTrend} />
         <ProviderCostDonut byProvider={analytics?.byProvider} />
       </div>
+
+      {/* Fast / Standard service tier split */}
+      <ServiceTierBreakdown byServiceTier={analytics?.byServiceTier} summary={s} />
 
       {/* Model Usage Over Time (stacked area) */}
       <ModelOverTimeChart

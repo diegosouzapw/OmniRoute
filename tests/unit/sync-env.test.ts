@@ -25,6 +25,7 @@ function writeEnvExample(rootDir: string) {
       "MACHINE_ID_SALT=",
       "CLAUDE_OAUTH_CLIENT_ID=claude-default",
       "CODEX_OAUTH_CLIENT_ID=codex-default",
+      'CLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"',
       "# COMMENTED_KEY=skip-me",
       "",
     ].join("\n"),
@@ -64,13 +65,14 @@ test("syncEnv creates .env from .env.example and generates blank secrets", () =>
     const result = syncEnv({ rootDir, quiet: true });
     const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
 
-    assert.deepEqual(result, { created: true, added: 6 });
+    assert.deepEqual(result, { created: true, added: 7 });
     assert.match(envContent, /^JWT_SECRET=.{32,}$/m);
     assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
     assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=.{32,}$/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
+    assert.match(envContent, /^CLAUDE_USER_AGENT="claude-cli\/2\.1\.137 \(external, cli\)"$/m);
     assert.doesNotMatch(envContent, /^COMMENTED_KEY=/m);
   } finally {
     process.env.DATA_DIR = origDataDir;
@@ -98,14 +100,46 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
     const result = syncEnv({ rootDir, quiet: true });
     const envContent = fs.readFileSync(path.join(rootDir, ".env"), "utf8");
 
-    assert.deepEqual(result, { created: false, added: 4 });
+    assert.deepEqual(result, { created: false, added: 5 });
     assert.match(envContent, /^JWT_SECRET=my-custom-secret-that-should-stay$/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=custom-claude$/m);
     assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
     assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=.{32,}$/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
+    assert.match(envContent, /^CLAUDE_USER_AGENT=claude-cli\/2\.1\.137 \(external, cli\)$/m);
     assert.match(envContent, /Auto-added by sync-env/);
+  } finally {
+    process.env.DATA_DIR = origDataDir;
+    fs.rmSync(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("syncEnv treats quoted and unquoted values as equivalent", () => {
+  const rootDir = createTempRoot();
+
+  const origDataDir = process.env.DATA_DIR;
+  try {
+    writeEnvExample(rootDir);
+    fs.writeFileSync(
+      path.join(rootDir, ".env"),
+      [
+        "JWT_SECRET=jwt-secret",
+        "API_KEY_SECRET=api-secret",
+        "STORAGE_ENCRYPTION_KEY=storage-secret",
+        "MACHINE_ID_SALT=machine-salt",
+        "CLAUDE_OAUTH_CLIENT_ID=claude-default",
+        "CODEX_OAUTH_CLIENT_ID=codex-default",
+        'CLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"',
+        "",
+      ].join("\n"),
+      "utf8"
+    );
+
+    process.env.DATA_DIR = rootDir;
+    const result = syncEnv({ rootDir, quiet: true });
+
+    assert.deepEqual(result, { created: false, added: 0 });
   } finally {
     process.env.DATA_DIR = origDataDir;
     fs.rmSync(rootDir, { recursive: true, force: true });

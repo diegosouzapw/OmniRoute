@@ -1,0 +1,70 @@
+{
+  "language": "fr",
+  "category": "filler",
+  "rules": [
+    {
+      "name": "fr_polite_framing",
+      "pattern": "\\b(?:s'il vous plait|s'il te plait|peux tu|pourrais tu|je voudrais que|j'ai besoin que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_pleasantries",
+      "pattern": "\\b(?:bonjour|salut|bonsoir|merci|merci beaucoup)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_hedging",
+      "pattern": "\\b(?:je pense que|je crois que|il semble que|peut etre|peut-être|probablement|possiblement)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_filler_adverbs",
+      "pattern": "\\b(?:fondamentalement|essentiellement|en fait|litteralement|littéralement|simplement)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_self_reference",
+      "pattern": "^(?:j'essaie de|je veux|je voudrais|j'ai besoin de)\\b\\s*",
+      "replacement": "",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_verbose_request",
+      "pattern": "\\b(?:peux tu expliquer|pourrais tu expliquer|peux tu detailler|peux tu détailler)\\b\\s*",
+      "replacement": "Explique ",
+      "context": "user",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_qualifiers",
+      "pattern": "\\b(?:un peu|en quelque sorte|plus ou moins|d'une certaine maniere|d'une certaine manière)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "fr_softeners",
+      "pattern": "\\b(?:si possible|quand tu peux|sans urgence|je voulais juste)\\b[,.!?\\s]*",
+      "replacement": "",
+      "context": "all",
+      "category": "filler",
+      "minIntensity": "lite"
+    }
+  ]
+}

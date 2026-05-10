@@ -67,7 +67,9 @@ export async function POST(request: Request) {
 
     console.log(
       `[JSON Import] Imported ${counts.connections} connections, ${counts.nodes} nodes, ` +
-        `${counts.combos} combos, ${counts.apiKeys} API keys`
+        `${counts.combos} combos, ${counts.apiKeys} API keys, ` +
+        `${counts.usageHistory} usage rows, ${counts.domainCostHistory} cost rows, ` +
+        `${counts.domainBudgets} budgets`
     );
 
     return NextResponse.json({

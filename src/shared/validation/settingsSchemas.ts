@@ -7,23 +7,9 @@
  */
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
+import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-
-const fallbackStrategyValues = [
-  "priority",
-  "weighted",
-  "round-robin",
-  "context-relay",
-  "fill-first",
-  "p2c",
-  "random",
-  "least-used",
-  "cost-optimized",
-  "strict-random",
-  "auto",
-  "context-optimized",
-  "lkgp",
-] as const;
+import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
@@ -51,12 +37,19 @@ export const updateSettingsSchema = z.object({
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+  codexServiceTier: z.object({ enabled: z.boolean() }).optional(),
   // Routing settings (#134)
-  fallbackStrategy: z.enum(fallbackStrategyValues).optional(),
+  fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
   stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
   requestRetry: z.number().int().min(0).max(10).optional(),
   maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
+  maxBodySizeMb: z
+    .number()
+    .int()
+    .min(MIN_REQUEST_BODY_LIMIT_MB)
+    .max(MAX_REQUEST_BODY_LIMIT_MB)
+    .optional(),
   // Auto intent classifier settings (multilingual routing)
   intentDetectionEnabled: z.boolean().optional(),
   intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
@@ -112,3 +105,74 @@ export const updateSettingsSchema = z.object({
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
 });
+
+export const databaseSettingsSchema = z.object(
+  {
+    // Logs settings
+    logs: z.object({
+      detailedLogsEnabled: z.boolean(),
+      callLogPipelineEnabled: z.boolean(),
+      maxDetailSizeKb: z.number().int().nonnegative(),
+      ringBufferSize: z.number().int().min(100).max(10000),
+    }),
+
+    // Backup settings
+    backup: z.object({
+      autoBackupEnabled: z.boolean(),
+      autoBackupFrequency: z
+        .literal("never")
+        .or(z.literal("daily"))
+        .or(z.literal("weekly"))
+        .or(z.literal("monthly")),
+      keepLastNBackups: z.number().int().min(1).max(100),
+    }),
+
+    // Cache settings
+    cache: z.object({
+      semanticCacheEnabled: z.boolean(),
+      semanticCacheMaxSize: z.number().int().min(10).max(1000),
+      semanticCacheTTL: z.number().int().min(60000),
+      promptCacheEnabled: z.boolean(),
+      promptCacheStrategy: z.literal("auto").or(z.literal("system-only")).or(z.literal("manual")),
+      alwaysPreserveClientCache: z.literal("auto").or(z.literal("always")).or(z.literal("never")),
+    }),
+
+    // Retention settings
+    retention: z.object({
+      quotaSnapshots: z.number().int().min(1).max(3650), // Max 10 years
+      compressionAnalytics: z.number().int().min(1).max(365),
+      mcpAudit: z.number().int().min(1).max(365),
+      a2aEvents: z.number().int().min(1).max(365),
+      callLogs: z.number().int().min(1).max(3650),
+      usageHistory: z.number().int().min(1).max(3650),
+      memoryEntries: z.number().int().min(1).max(3650),
+      autoCleanupEnabled: z.boolean(),
+    }),
+
+    // Aggregation settings
+    aggregation: z.object({
+      enabled: z.boolean(),
+      rawDataRetentionDays: z.number().int().min(1).max(90),
+      granularity: z.literal("hourly").or(z.literal("daily")).or(z.literal("weekly")),
+    }),
+
+    // Optimization settings
+    optimization: z.object({
+      autoVacuumMode: z.literal("NONE").or(z.literal("FULL")).or(z.literal("INCREMENTAL")),
+      scheduledVacuum: z
+        .literal("never")
+        .or(z.literal("daily"))
+        .or(z.literal("weekly"))
+        .or(z.literal("monthly")),
+      vacuumHour: z.number().int().min(0).max(23),
+      pageSize: z.number().multipleOf(512).min(512).max(65536),
+      cacheSize: z.number().int().min(-1000000).max(1000000),
+      optimizeOnStartup: z.boolean(),
+    }),
+
+    // Skip location and stats as they're read-only
+  },
+  { strict: true }
+);
+
+export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;

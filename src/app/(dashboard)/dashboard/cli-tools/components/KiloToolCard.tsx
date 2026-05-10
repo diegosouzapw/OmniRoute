@@ -5,6 +5,7 @@ import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/comp
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
+import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
@@ -133,7 +134,7 @@ export default function KiloToolCard({
 
   const getEffectiveBaseUrl = () => {
     if (customBaseUrl) return customBaseUrl;
-    return baseUrl || "http://localhost:20128";
+    return baseUrl || DEFAULT_DISPLAY_BASE_URL;
   };
 
   const handleApply = async () => {

@@ -22,7 +22,7 @@ test("T29: Vertex executor builds regional Gemini URL from Service Account proje
 
 test("T29: Vertex executor routes partner models to global openapi endpoint", () => {
   const executor = new VertexExecutor();
-  const url = executor.buildUrl("deepseek-v3.2", false, 0, {
+  const url = executor.buildUrl("DeepSeek-V4-Pro", false, 0, {
     apiKey: MIN_SA_JSON,
     providerSpecificData: { region: "us-central1" },
   });

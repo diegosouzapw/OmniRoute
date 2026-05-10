@@ -28,6 +28,9 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-sec
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const costRules = await import("../../src/domain/costRules.ts");
+const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
+
+rateLimiter.setRateLimiterTestMode(true);
 
 async function resetStorage() {
   apiKeysDb.resetApiKeyState();
@@ -477,5 +480,5 @@ test("enforceApiKeyPolicy enforces request-per-minute limits and returns success
     "openai/gpt-4.1"
   );
   assert.equal(second.rejection.status, 429);
-  assert.match(await readErrorMessage(second.rejection), /Per-minute request limit exceeded/);
+  assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
 });

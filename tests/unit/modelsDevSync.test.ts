@@ -412,6 +412,19 @@ describe("modelsDevSync — mapProviderId", () => {
   it("maps moonshot to the canonical provider plus Kimi aliases", () => {
     assert.deepEqual(mapProviderId("moonshot"), ["moonshot", "kimi", "kimi-coding", "kmc", "kmca"]);
   });
+
+  it("maps current models.dev provider IDs used by OmniRoute-compatible providers", () => {
+    assert.deepEqual(mapProviderId("github-copilot"), ["github", "gh"]);
+    assert.deepEqual(mapProviderId("kilo"), ["kilocode", "kc", "kilo-gateway"]);
+    assert.deepEqual(mapProviderId("kimi-for-coding"), [
+      "kimi-coding",
+      "kmc",
+      "kimi-coding-apikey",
+      "kmca",
+    ]);
+    assert.deepEqual(mapProviderId("fireworks-ai"), ["fireworks"]);
+    assert.deepEqual(mapProviderId("togetherai"), ["together", "openrouter"]);
+  });
 });
 
 describe("modelsDevSync — fetchModelsDev (live API)", () => {

@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
+import { getCachedSettings } from "../../lib/db/readCache";
 import { isDraining } from "../../lib/gracefulShutdown";
 import { checkBodySize, getBodySizeLimit } from "../../shared/middleware/bodySizeGuard";
 import { generateRequestId } from "../../shared/utils/requestId";
@@ -168,6 +169,18 @@ function stampRouteResponse(
   return response;
 }
 
+async function getBodySizeSettings(): Promise<Record<string, unknown> | undefined> {
+  try {
+    return await getCachedSettings();
+  } catch (error) {
+    console.warn(
+      "[Authz] Failed to load request body limit settings:",
+      error instanceof Error ? error.message : error
+    );
+    return undefined;
+  }
+}
+
 export async function runAuthzPipeline(
   request: NextRequest,
   options: AuthzPipelineOptions = {}
@@ -194,7 +207,11 @@ export async function runAuthzPipeline(
   }
 
   if (guardedPathname.startsWith("/api/") && method !== "GET" && method !== "OPTIONS") {
-    const bodySizeRejection = checkBodySize(request, getBodySizeLimit(guardedPathname));
+    const bodySizeSettings = await getBodySizeSettings();
+    const bodySizeRejection = checkBodySize(
+      request,
+      getBodySizeLimit(guardedPathname, bodySizeSettings)
+    );
     if (bodySizeRejection) {
       stampRouteResponse(bodySizeRejection, requestId, classification.routeClass);
       applyCorsHeaders(bodySizeRejection, request);

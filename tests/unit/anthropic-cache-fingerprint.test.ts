@@ -24,7 +24,7 @@ function computeOldFingerprint(firstUserMessageText: string, version: string): s
 }
 
 describe("Anthropic billing header fingerprint (#1638)", () => {
-  const ccVersion = "2.1.121";
+  const ccVersion = "2.1.137";
 
   it("should produce the same fingerprint for different messages (stable)", () => {
     const fp1 = computeStableFingerprint(ccVersion);

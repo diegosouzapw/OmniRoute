@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "defaults": { "freeThreshold": 0, "cheapThreshold": 1.0 },
+  "providerOverrides": [
+    { "provider": "deepseek", "tier": "cheap" },
+    { "provider": "groq", "tier": "free" },
+    { "provider": "glm", "tier": "cheap" },
+    { "provider": "minimax", "tier": "cheap" },
+    { "provider": "meta-llama", "tier": "cheap" }
+  ],
+  "modelOverrides": [
+    { "provider": "openai", "modelPattern": "gpt-4o-mini*", "tier": "cheap" },
+    { "provider": "anthropic", "modelPattern": "claude-haiku*", "tier": "cheap" }
+  ],
+  "freeProviders": [
+    "kiro",
+    "qoder",
+    "pollinations",
+    "longcat",
+    "cloudflare-ai",
+    "qwen",
+    "gemini-cli",
+    "nvidia-nim",
+    "cerebras",
+    "groq"
+  ]
+}

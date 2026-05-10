@@ -205,6 +205,9 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
     .prepare("SELECT artifact_relpath FROM call_logs WHERE id = ?")
     .get("fresh-log");
   const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", (freshRow as any).artifact_relpath);
+
+  callLogs.rotateCallLogs();
+
   assert.equal(
     (
       core
@@ -216,8 +219,6 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
   );
   assert.equal(fs.existsSync(oldAbsPath), false);
   assert.equal(fs.existsSync(freshAbsPath), true);
-
-  callLogs.rotateCallLogs();
 
   const db = core.getDbInstance();
   assert.equal(
@@ -630,7 +631,7 @@ test("saveCallLog falls back to a compact sentinel when the configured cap is ve
   const artifactPath = path.join(TEST_DATA_DIR, "call_logs", (row as any).artifact_relpath);
   const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
   assert.deepEqual(artifact, {
-    schemaVersion: 4,
+    schemaVersion: 5,
     _omniroute_truncated: true,
     reason: "call_log_artifact_size_limit_exceeded",
   });

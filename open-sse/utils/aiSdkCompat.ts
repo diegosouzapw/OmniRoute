@@ -22,7 +22,9 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
   // Explicit body value always wins
   if (bodyStream === true) return true;
   if (bodyStream === false) return false;
-  // No explicit stream param — fall back to Accept header heuristic
+
+  // No explicit stream param — preserve OmniRoute's streaming default unless
+  // the client explicitly asks for JSON and does not also accept SSE.
   return !clientWantsJsonResponse(acceptHeader);
 }
 

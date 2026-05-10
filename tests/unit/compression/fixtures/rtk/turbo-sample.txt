@@ -1,0 +1,5 @@
+• Packages in scope: web, api
+• Running build in 2 packages
+web:build: cache miss, executing abc123
+api:build: cache hit, replaying logs
+Tasks: 1 successful, 2 total

@@ -1,0 +1,34 @@
+{
+  "id": "mypy",
+  "label": "mypy",
+  "description": "Keep mypy errors grouped by file and final summary.",
+  "category": "build",
+  "priority": 82,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^mypy\\b", "^python\\s+-m\\s+mypy\\b"],
+    "patterns": [": error:", "Found \\d+ errors? in"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [": error:", ": note:", "Found \\d+ errors?", "Success: no issues found"],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 40,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": [": error:", "Found \\d+ errors?"],
+    "summaryPatterns": ["Success:", "Found \\d+"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "mypy",
+      "input": "app.py:1: error: Incompatible types\nFound 1 error in 1 file\n",
+      "expected": "app.py:1: error: Incompatible types\nFound 1 error in 1 file"
+    }
+  ]
+}

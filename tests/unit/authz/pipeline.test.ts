@@ -84,6 +84,40 @@ test("runAuthzPipeline redirects unauthenticated dashboard pages to login", asyn
   assert.ok(response.headers.get("x-request-id"));
 });
 
+test("runAuthzPipeline allows onboarding when login is required but no password exists", async () => {
+  delete process.env.INITIAL_PASSWORD;
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    setupComplete: true,
+    password: "",
+  });
+
+  const response = await pipeline.runAuthzPipeline(
+    request("https://example.com/dashboard/onboarding"),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+});
+
+test("runAuthzPipeline allows first password writes when login is required but no password exists", async () => {
+  delete process.env.INITIAL_PASSWORD;
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    setupComplete: true,
+    password: "",
+  });
+
+  const response = await pipeline.runAuthzPipeline(
+    request("https://example.com/api/settings/require-login", { method: "POST" }),
+    { enforce: true }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("x-omniroute-route-class"), "PUBLIC");
+});
+
 test("runAuthzPipeline keeps management API rejections as JSON", async () => {
   await forceAuthRequired();
 

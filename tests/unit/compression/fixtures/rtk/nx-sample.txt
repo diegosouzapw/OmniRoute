@@ -1,0 +1,6 @@
+> nx run web:build
+
+> nx run api:test
+
+NX   Running target build for 2 projects
+NX   Successfully ran target build for 2 projects

@@ -355,8 +355,23 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
   assert.equal(jinaBody.source, "local_catalog");
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v3"));
-  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-v2-base-multilingual"));
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-embeddings-v5-text-small" &&
+        model.apiFormat === "embeddings" &&
+        model.supportedEndpoints?.includes("embeddings")
+    )
+  );
+  assert.ok(
+    jinaBody.models.some(
+      (model) =>
+        model.id === "jina-reranker-v3" &&
+        model.apiFormat === "rerank" &&
+        model.supportedEndpoints?.includes("rerank")
+    )
+  );
+  assert.ok(jinaBody.models.some((model) => model.id === "jina-reranker-m0"));
 });
 
 test("provider models route returns the local catalog for Runway video models", async () => {
@@ -432,7 +447,7 @@ test("provider models route returns the local catalog for new built-in chat-open
   assert.match(body.warning, /local catalog/i);
   assert.ok(Array.isArray(body.models));
   assert.ok(body.models.length > 0);
-  assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
+  assert.ok(body.models.some((model) => model.id === "openai/gpt-oss-120b"));
 });
 
 test("provider models route merges Upstage chat and embedding catalogs", async () => {
@@ -636,7 +651,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^antigravity\//);
+    assert.match(init.headers["User-Agent"], /^Antigravity\//);
     return Response.json({
       models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
     });
@@ -649,7 +664,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
@@ -676,9 +691,9 @@ test("provider models route falls back through all Antigravity discovery endpoin
   assert.equal(body.source, "local_catalog");
   assert.match(body.warning, /local catalog/i);
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
-    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
+    "https://cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
 });
@@ -1243,7 +1258,7 @@ test("provider models route discovers Modal models from the configured OpenAI-co
   ]);
 });
 
-test("provider models route discovers Reka models from the named OpenAI-compatible /v1 endpoint", async () => {
+test("provider models route always returns the Reka preset catalog", async () => {
   const connection = await seedConnection("reka", {
     apiKey: "reka-key",
     providerSpecificData: {
@@ -1251,13 +1266,8 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
     },
   });
 
-  globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://api.reka.ai/v1/models");
-    assert.equal(init.method, "GET");
-    assert.equal(init.headers.Authorization, "Bearer reka-key");
-    assert.equal(init.headers["X-Api-Key"], "reka-key");
-
-    return Response.json([{ id: "reka-core", name: "Reka Core" }, { id: "reka-flash" }]);
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed");
   };
 
   const response = await callRoute(connection.id);
@@ -1265,19 +1275,34 @@ test("provider models route discovers Reka models from the named OpenAI-compatib
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "reka");
-  assert.equal(body.source, "api");
-  assert.deepEqual(body.models, [
-    {
-      id: "reka-core",
-      name: "Reka Core",
-      owned_by: "reka",
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
+});
+
+test("provider models route returns Reka local catalog without an API key", async () => {
+  const connection = await seedConnection("reka", {
+    providerSpecificData: {
+      baseUrl: "https://api.reka.ai/v1",
     },
-    {
-      id: "reka-flash",
-      name: "reka-flash",
-      owned_by: "reka",
-    },
-  ]);
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("Reka models endpoint should not be probed without a token");
+  };
+
+  const response = await callRoute(connection.id);
+  const body = (await response.json()) as any;
+
+  assert.equal(response.status, 200);
+  assert.equal(body.provider, "reka");
+  assert.equal(body.source, "local_catalog");
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    ["reka-flash-3", "reka-edge-2603"]
+  );
 });
 
 test("provider models route discovers SAP models from AI_API_URL derived from deploymentUrl", async () => {

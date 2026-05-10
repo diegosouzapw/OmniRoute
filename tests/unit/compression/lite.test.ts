@@ -8,6 +8,7 @@ import {
   removeRedundantContent,
   replaceImageUrls,
 } from "../../../open-sse/services/compression/lite.ts";
+import { applyCompression } from "../../../open-sse/services/compression/strategySelector.ts";
 
 describe("collapseWhitespace", () => {
   it("collapses 3+ newlines to 2", () => {
@@ -190,6 +191,28 @@ describe("applyLiteCompression", () => {
     assert.ok(result.stats);
     assert.ok(result.stats.techniquesUsed.length >= 2);
     assert.ok(result.stats.savingsPercent > 0);
+  });
+
+  it("preserves system prompt text when preserveSystemPrompt is enabled", () => {
+    const body = {
+      messages: [
+        { role: "system", content: "Policy.   Keep exact.\n\n\nDo not change." },
+        { role: "user", content: "Please   normalize this.\n\n\nThanks." },
+      ],
+    };
+    const result = applyCompression(body, "lite", {
+      config: {
+        enabled: true,
+        defaultMode: "lite",
+        autoTriggerTokens: 0,
+        cacheMinutes: 5,
+        preserveSystemPrompt: true,
+        comboOverrides: {},
+      },
+    });
+    const messages = result.body.messages as typeof body.messages;
+    assert.equal(messages[0].content, body.messages[0].content);
+    assert.notEqual(messages[1].content, body.messages[1].content);
   });
 
   it("returns no compression for clean input", () => {

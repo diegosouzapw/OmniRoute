@@ -1,0 +1,5 @@
+sending incremental file list
+app.js
+dist/app.js
+sent 120 bytes received 20 bytes 280.00 bytes/sec
+rsync error: some files could not be transferred (code 23)

@@ -43,7 +43,7 @@ test("Claude -> OpenAI maps system blocks, parameters, tool declarations and too
     function: {
       name: "weather",
       description: "",
-      parameters: { type: "object" },
+      parameters: { type: "object", properties: {} },
     },
   });
   assert.deepEqual(result.tool_choice, {

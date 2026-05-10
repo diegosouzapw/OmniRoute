@@ -461,6 +461,21 @@ if (existsSync(openapiSpecSrc)) {
   cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
 }
 
+const docsMarkdownSrc = join(ROOT, "docs");
+if (existsSync(docsMarkdownSrc)) {
+  const docsDest = join(APP_DIR, "docs");
+  mkdirSync(docsDest, { recursive: true });
+  const mdFiles = readdirSync(docsMarkdownSrc).filter(
+    (f) => f.endsWith(".md") || f.endsWith(".mdx")
+  );
+  for (const mdFile of mdFiles) {
+    cpSync(join(docsMarkdownSrc, mdFile), join(docsDest, mdFile));
+  }
+  if (mdFiles.length > 0) {
+    console.log(`[prepublish] Copied ${mdFiles.length} docs markdown files to app/docs/`);
+  }
+}
+
 const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
 if (existsSync(syncEnvSrc)) {
   const scriptsDest = join(APP_DIR, "scripts");
@@ -473,6 +488,23 @@ if (existsSync(migrationsSrc)) {
   const migrationsDest = join(APP_DIR, "src", "lib", "db", "migrations");
   mkdirSync(join(APP_DIR, "src", "lib", "db"), { recursive: true });
   cpSync(migrationsSrc, migrationsDest, { recursive: true, force: true });
+}
+
+const runtimeAssetDirs = [
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "engines", "rtk", "filters"),
+  },
+  {
+    source: join(ROOT, "open-sse", "services", "compression", "rules"),
+    destination: join(APP_DIR, "open-sse", "services", "compression", "rules"),
+  },
+];
+for (const assetDir of runtimeAssetDirs) {
+  if (existsSync(assetDir.source)) {
+    mkdirSync(dirname(assetDir.destination), { recursive: true });
+    cpSync(assetDir.source, assetDir.destination, { recursive: true, force: true });
+  }
 }
 
 // ── Step 10: Ensure data/ directory exists ──────────────────

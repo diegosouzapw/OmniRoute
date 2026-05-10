@@ -184,15 +184,21 @@ export async function main() {
 
     await resetStandaloneOutput(projectRoot);
 
+    console.log("[build-next-isolated] Generating docs index...");
+    try {
+      const { execSync } = await import("node:child_process");
+      execSync("node scripts/generate-docs-index.mjs", { cwd: projectRoot, stdio: "inherit" });
+    } catch (docGenErr) {
+      console.warn(
+        "[build-next-isolated] Docs index generation failed (non-fatal):",
+        docGenErr?.message
+      );
+    }
+
     const result = await runNextBuild();
     if (result.code === 0 && (await exists(path.join(projectRoot, ".next", "standalone")))) {
       console.log("[build-next-isolated] Copying static assets for standalone server...");
       try {
-        await fs.cp(
-          path.join(projectRoot, "public"),
-          path.join(projectRoot, ".next", "standalone", "public"),
-          { recursive: true }
-        );
         await fs.cp(
           path.join(projectRoot, ".next", "static"),
           path.join(projectRoot, ".next", "standalone", ".next", "static"),
@@ -200,6 +206,17 @@ export async function main() {
         );
       } catch (copyErr) {
         console.warn("[build-next-isolated] Non-fatal error copying static assets:", copyErr);
+      }
+
+      try {
+        await fs.cp(
+          path.join(projectRoot, "docs"),
+          path.join(projectRoot, ".next", "standalone", "docs"),
+          { recursive: true }
+        );
+        console.log("[build-next-isolated] Copied docs/ to standalone output");
+      } catch (docsCopyErr) {
+        console.warn("[build-next-isolated] Non-fatal error copying docs/:", docsCopyErr?.message);
       }
 
       try {

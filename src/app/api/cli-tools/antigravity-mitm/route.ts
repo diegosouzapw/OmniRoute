@@ -7,6 +7,7 @@ import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
+import { isRoot } from "@/mitm/systemCommands";
 
 // GET - Check MITM status
 export async function GET(request) {
@@ -14,7 +15,7 @@ export async function GET(request) {
   if (authError) return authError;
 
   try {
-    const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager");
+    const { getMitmStatus, getCachedPassword } = await import("@/mitm/manager.runtime");
     const status = await getMitmStatus();
     return NextResponse.json({
       running: status.running,
@@ -58,11 +59,13 @@ export async function POST(request) {
     // (#523) Extract keyId BEFORE validation — Zod strips unknown fields!
     const apiKeyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
     const apiKey = await resolveApiKey(apiKeyId, rawApiKey);
-    const { startMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
+    const { startMitm, getCachedPassword, setCachedPassword } =
+      await import("@/mitm/manager.runtime");
     const isWin = process.platform === "win32";
+    const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";
 
-    if (!apiKey || (!isWin && !pwd)) {
+    if (!apiKey || (!isWin && !pwd && !isRootUser)) {
       return NextResponse.json(
         { error: isWin ? "Missing apiKey" : "Missing apiKey or sudoPassword" },
         { status: 400 }
@@ -112,11 +115,13 @@ export async function DELETE(request) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     const { sudoPassword } = validation.data;
-    const { stopMitm, getCachedPassword, setCachedPassword } = await import("@/mitm/manager");
+    const { stopMitm, getCachedPassword, setCachedPassword } =
+      await import("@/mitm/manager.runtime");
     const isWin = process.platform === "win32";
+    const isRootUser = !isWin && isRoot();
     const pwd = sudoPassword || getCachedPassword() || "";
 
-    if (!isWin && !pwd) {
+    if (!isWin && !pwd && !isRootUser) {
       return NextResponse.json({ error: "Missing sudoPassword" }, { status: 400 });
     }
 

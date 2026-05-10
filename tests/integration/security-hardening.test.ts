@@ -283,3 +283,21 @@ test("T06 route payload validation uses validateBody in critical endpoints", () 
     );
   }
 });
+
+test("OAuth routes that can create provider connections require auth guard", () => {
+  const targets = [
+    "src/app/api/oauth/[provider]/[action]/route.ts",
+    "src/app/api/oauth/cursor/import/route.ts",
+    "src/app/api/oauth/kiro/import/route.ts",
+    "src/app/api/oauth/kiro/social-authorize/route.ts",
+    "src/app/api/oauth/kiro/social-exchange/route.ts",
+  ];
+
+  for (const relPath of targets) {
+    const content = readIfExists(relPath);
+    assert.ok(content, `${relPath} should exist`);
+    assert.ok(content.includes("isAuthRequired"), `${relPath} should check whether auth is active`);
+    assert.ok(content.includes("isAuthenticated"), `${relPath} should require authenticated users`);
+    assert.ok(content.includes("Unauthorized"), `${relPath} should reject anonymous requests`);
+  }
+});

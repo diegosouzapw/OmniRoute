@@ -10,7 +10,6 @@ import {
 import {
   getAntigravityHeaders,
   antigravityUserAgent,
-  getAntigravityCreditProbeApiClientHeader,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
@@ -21,6 +20,13 @@ import {
   updateAntigravityRemainingCredits,
 } from "@omniroute/open-sse/executors/antigravity.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "@omniroute/open-sse/services/antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 
 /**
  * Get usage data for a provider connection
@@ -189,12 +195,13 @@ async function probeAntigravityCreditBalance(
       model: "gemini-2-flash",
       userAgent: "antigravity",
       requestType: "agent",
-      requestId: `credits-probe-${Date.now()}`,
+      requestId: generateAntigravityRequestId(),
       enabledCreditTypes: ["GOOGLE_ONE_AI"],
       request: {
         model: "gemini-2-flash",
         contents: [{ role: "user", parts: [{ text: "hi" }] }],
         generationConfig: { maxOutputTokens: 1 },
+        sessionId: getAntigravitySessionId({ connectionId: accountId, projectId }),
       },
     };
 
@@ -202,7 +209,11 @@ async function probeAntigravityCreditBalance(
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
       "User-Agent": antigravityUserAgent(),
-      "X-Goog-Api-Client": getAntigravityCreditProbeApiClientHeader(),
+      "x-client-name": "antigravity",
+      "x-client-version": getCachedAntigravityVersion(),
+      "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
+      "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+      "x-goog-user-project": projectId,
       Accept: "text/event-stream",
     };
 

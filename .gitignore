@@ -61,6 +61,7 @@ next-env.d.ts
 data/
 .data/
 logs/*
+test_output.log
 
 # analysis directories (generated, not tracked)
 .analysis/

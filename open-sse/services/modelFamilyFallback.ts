@@ -139,12 +139,18 @@ export function getNextFamilyFallback(
   currentModel: string,
   triedModels: Set<string>
 ): string | null {
-  const family = MODEL_FAMILIES[currentModel];
+  const parsed = parseModel(currentModel);
+  const bareModel = parsed.model || currentModel;
+  const prefix =
+    parsed.provider || parsed.providerAlias ? `${parsed.provider || parsed.providerAlias}/` : "";
+
+  const family = MODEL_FAMILIES[bareModel];
   if (!family) return null;
 
   for (const candidate of family) {
-    if (!triedModels.has(candidate)) {
-      return candidate;
+    const fullCandidate = `${prefix}${candidate}`;
+    if (!triedModels.has(fullCandidate)) {
+      return fullCandidate;
     }
   }
 
@@ -155,16 +161,23 @@ export function getNextFamilyFallback(
  * Check if a model belongs to any registered family.
  */
 export function isInModelFamily(model: string): boolean {
-  return model in MODEL_FAMILIES;
+  const parsed = parseModel(model);
+  const bareModel = parsed.model || model;
+  return bareModel in MODEL_FAMILIES;
 }
 
 /**
  * Get all members of a model's family (including itself).
  */
 export function getModelFamily(model: string): string[] {
-  const family = MODEL_FAMILIES[model];
+  const parsed = parseModel(model);
+  const bareModel = parsed.model || model;
+  const prefix =
+    parsed.provider || parsed.providerAlias ? `${parsed.provider || parsed.providerAlias}/` : "";
+
+  const family = MODEL_FAMILIES[bareModel];
   if (!family) return [model];
-  return [model, ...family];
+  return [model, ...family.map((c) => `${prefix}${c}`)];
 }
 
 /**

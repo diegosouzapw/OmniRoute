@@ -1,0 +1,35 @@
+{
+  "id": "biome",
+  "label": "Biome",
+  "description": "Compact Biome lint/format output.",
+  "category": "build",
+  "priority": 80,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^biome\\b", "^npx\\s+biome\\b"],
+    "patterns": ["Checked \\d+ files?", "biome"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$", "^Checked \\d+ files? in"],
+    "includePatterns": ["error", "warning", "✖", "Checked", "Fixed", "^\\s*>"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 40,
+    "onEmpty": "biome: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["error", "✖"],
+    "summaryPatterns": ["Checked", "Fixed"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "biome",
+      "input": "Checked 10 files in 20ms\nerror lint/a.ts:1:1 boom\nFixed 1 file\n",
+      "expected": "error lint/a.ts:1:1 boom\nFixed 1 file"
+    }
+  ]
+}

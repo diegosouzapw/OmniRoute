@@ -1,0 +1,38 @@
+{
+  "language": "ja",
+  "category": "context",
+  "rules": [
+    {
+      "name": "ja_context_setup",
+      "pattern": "(?:以下のコード|こちらのコード|このコード)",
+      "replacement": "コード:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_intent",
+      "pattern": "(?:目的は|ゴールは|必要なのは)",
+      "replacement": "目的:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_question_directive",
+      "pattern": "(?:なぜ.*説明|どうやって.*示し)",
+      "replacement": "説明:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "ja_background",
+      "pattern": "(?:ご存じの通り|前述の通り|先ほど述べたように)",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

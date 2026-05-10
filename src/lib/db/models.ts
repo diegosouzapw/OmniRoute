@@ -351,6 +351,7 @@ export async function addCustomModel(
     | "chat-completions"
     | "responses"
     | "embeddings"
+    | "rerank"
     | "audio-transcriptions"
     | "audio-speech"
     | "images-generations" = "chat-completions",
@@ -525,6 +526,7 @@ export interface SyncedAvailableModel {
   id: string;
   name: string;
   source: "imported";
+  apiFormat?: string;
   supportedEndpoints?: string[];
   inputTokenLimit?: number;
   outputTokenLimit?: number;
@@ -561,6 +563,9 @@ function normalizeSyncedAvailableModel(model: unknown): SyncedAvailableModel | n
     id,
     name,
     source: "imported",
+    ...(toNonEmptyString(record.apiFormat)
+      ? { apiFormat: toNonEmptyString(record.apiFormat)! }
+      : {}),
     ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
     ...(typeof record.inputTokenLimit === "number"
       ? { inputTokenLimit: record.inputTokenLimit }

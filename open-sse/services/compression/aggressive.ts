@@ -5,39 +5,19 @@ import { applyAging } from "./progressiveAging.ts";
 import { RuleBasedSummarizer } from "./summarizer.ts";
 import { cavemanCompress } from "./caveman.ts";
 import { applyLiteCompression } from "./lite.ts";
+import { extractTextContent, replaceTextContent, type ChatMessageLike } from "./messageContent.ts";
 
 const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
 
-interface ChatMessage {
-  role: string;
-  content?: string | Array<{ type: string; text?: string }>;
-  [key: string]: unknown;
-}
+type ChatMessage = ChatMessageLike;
 
 interface AggressiveCompressionResult {
   messages: ChatMessage[];
   stats: CompressionStats;
 }
 
-function extractText(content?: string | Array<{ type: string; text?: string }>): string {
-  if (typeof content === "string") return content;
-  if (Array.isArray(content)) {
-    return content
-      .filter(
-        (p): p is { type: string; text?: string } =>
-          typeof p === "object" && p !== null && "text" in p
-      )
-      .map((p) => p.text ?? "")
-      .join("\n");
-  }
-  return "";
-}
-
 function setContent(msg: ChatMessage, newContent: string): ChatMessage {
-  if (typeof msg.content === "string") {
-    return { ...msg, content: newContent };
-  }
-  return { ...msg, content: [{ type: "text", text: newContent }] };
+  return replaceTextContent(msg, newContent) as ChatMessage;
 }
 
 function estimateTokens(text: string): number {
@@ -71,7 +51,7 @@ export function compressAggressive(
   };
 
   const originalTokens = messages.reduce(
-    (sum, m) => sum + estimateTokens(extractText(m.content)),
+    (sum, m) => sum + estimateTokens(extractTextContent(m.content)),
     0
   );
   resultStats.originalTokens = originalTokens;
@@ -84,8 +64,9 @@ export function compressAggressive(
   // Step 1: Tool-result compression
   try {
     const afterToolResult = currentMessages.map((msg) => {
+      if (cfg.preserveSystemPrompt !== false && msg.role === "system") return msg;
       if (msg.role !== "tool" && msg.role !== "function") return msg;
-      const text = extractText(msg.content);
+      const text = extractTextContent(msg.content);
       if (!text || COMPRESSED_MARKER_RE.test(text)) return msg;
 
       const result = compressToolResult(text, cfg.toolStrategies);
@@ -101,7 +82,12 @@ export function compressAggressive(
 
   // Step 2: Progressive aging
   try {
-    const agingResult = applyAging(currentMessages, cfg.thresholds, summarizer);
+    const agingResult = applyAging(
+      currentMessages,
+      cfg.thresholds,
+      summarizer,
+      cfg.preserveSystemPrompt !== false
+    );
     agingSavings = agingResult.saved;
     currentMessages = agingResult.messages as ChatMessage[];
   } catch (err) {
@@ -112,7 +98,8 @@ export function compressAggressive(
   if (cfg.summarizerEnabled) {
     try {
       currentMessages = currentMessages.map((msg) => {
-        const text = extractText(msg.content);
+        if (cfg.preserveSystemPrompt !== false && msg.role === "system") return msg;
+        const text = extractTextContent(msg.content);
         if (!text || COMPRESSED_MARKER_RE.test(text)) return msg;
         if (text.length <= cfg.maxTokensPerMessage * 4) return msg;
 
@@ -133,7 +120,7 @@ export function compressAggressive(
 
   // Downgrade chain: if total savings < threshold, try caveman then lite
   const compressedTokens = currentMessages.reduce(
-    (sum, m) => sum + estimateTokens(extractText(m.content)),
+    (sum, m) => sum + estimateTokens(extractTextContent(m.content)),
     0
   );
   resultStats.compressedTokens = compressedTokens;
@@ -157,7 +144,10 @@ export function compressAggressive(
     }
 
     try {
-      const liteResult = applyLiteCompression({ messages: currentMessages });
+      const liteResult = applyLiteCompression(
+        { messages: currentMessages },
+        { preserveSystemPrompt: cfg.preserveSystemPrompt !== false }
+      );
       if (liteResult?.compressed && liteResult.stats) {
         const liteSavings = liteResult.stats.savingsPercent ?? 0;
         if (liteSavings > resultStats.savingsPercent) {

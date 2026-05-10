@@ -1,0 +1,37 @@
+{
+  "id": "shell-grep",
+  "label": "grep/rg",
+  "description": "Deduplicate grep output while preserving matches.",
+  "category": "shell",
+  "priority": 82,
+  "match": {
+    "outputTypes": ["shell-grep"],
+    "commands": ["^(?:grep|rg|ag)\\b"],
+    "patterns": [
+      "^[\\w./-]+\\.(?:ts|tsx|js|jsx|py|go|rs|java|rb|md|json|ya?ml|txt):\\d*:",
+      "^[\\w./-]+/[\\w./-]+:\\d*:"
+    ]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$"],
+    "includePatterns": ["^[\\w./-]+(?::\\d+)?:"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 160,
+    "headLines": 40,
+    "tailLines": 60
+  },
+  "preserve": {
+    "errorPatterns": ["No such file", "Permission denied"],
+    "summaryPatterns": ["^[^:\\n]+(?::\\d+)?:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:grep|rg|ag)",
+      "input": "src/a.ts:1:match\nsrc/a.ts:1:match\nsrc/b.ts:2:other\n",
+      "expected": "src/a.ts:1:match\nsrc/a.ts:1:match\nsrc/b.ts:2:other"
+    }
+  ]
+}

@@ -162,7 +162,7 @@ test.describe("Combo Unification", () => {
     await page.waitForLoadState("networkidle");
 
     const sidebar = page.locator("aside, nav").first();
-    await expect(sidebar.getByText("Combos")).toBeVisible();
+    await expect(sidebar.getByText("Combos", { exact: true })).toBeVisible();
     await expect(sidebar.getByText("Auto Combo")).toHaveCount(0);
   });
 

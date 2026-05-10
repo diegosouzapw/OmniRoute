@@ -1,0 +1,34 @@
+{
+  "id": "curl",
+  "label": "curl",
+  "description": "Remove curl progress noise and keep HTTP status/errors.",
+  "category": "cloud",
+  "priority": 70,
+  "match": {
+    "outputTypes": ["curl"],
+    "commands": ["^curl\\b"],
+    "patterns": ["curl: \\(\\d+\\)", "^HTTP/\\d(?:\\.\\d)? \\d{3}"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*% Total\\s+% Received", "^\\s*\\d+\\s+\\d+", "^\\s*$"],
+    "includePatterns": ["^HTTP/\\d(?:\\.\\d)? \\d{3}", "^curl: \\(\\d+\\)", "^[<{]"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 30,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["curl: \\(\\d+\\)", "^HTTP/\\d(?:\\.\\d)? [45]\\d\\d"],
+    "summaryPatterns": ["^HTTP/\\d(?:\\.\\d)? \\d{3}"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "curl -i",
+      "input": "% Total    % Received\n  0     0    0     0\nHTTP/1.1 500 Internal Server Error\ncurl: (22) The requested URL returned error: 500\n",
+      "expected": "HTTP/1.1 500 Internal Server Error\ncurl: (22) The requested URL returned error: 500"
+    }
+  ]
+}

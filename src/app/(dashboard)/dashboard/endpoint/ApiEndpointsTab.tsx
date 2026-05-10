@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/shared/components";
+import { useDisplayBaseUrl } from "@/shared/hooks";
 
 /* ─── Types ──────────────────────────────────────────── */
 interface Endpoint {
@@ -65,6 +66,7 @@ const WEBHOOK_EVENTS = [
 
 /* ─── Main Component ─────────────────────────────────── */
 export default function ApiEndpointsTab() {
+  const baseUrl = useDisplayBaseUrl();
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -536,7 +538,7 @@ export default function ApiEndpointsTab() {
                               Example
                             </p>
                             <code className="text-[11px] font-mono text-text-main break-all">
-                              curl -X {ep.method} http://localhost:20128
+                              curl -X {ep.method} {baseUrl}
                               {ep.path.replace("/api/", "/")}
                               {ep.security ? ' -H "Authorization: Bearer YOUR_KEY"' : ""}
                               {ep.requestBody

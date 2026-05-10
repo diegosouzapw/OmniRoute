@@ -1,0 +1,34 @@
+{
+  "id": "golangci-lint",
+  "label": "golangci-lint",
+  "description": "Keep golangci-lint findings and summary.",
+  "category": "build",
+  "priority": 82,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^golangci-lint\\b"],
+    "patterns": ["issues:", "level=error", ":\\d+:\\d+:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [":\\d+:\\d+:", "level=error", "issues:", "Error:"],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 140,
+    "headLines": 35,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["level=error", "Error:"],
+    "summaryPatterns": ["issues:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "golangci-lint",
+      "input": "main.go:1:1: issue text\nlevel=error msg=\"runner failed\"\nissues: 1\n",
+      "expected": "main.go:1:1: issue text\nlevel=error msg=\"runner failed\"\nissues: 1"
+    }
+  ]
+}

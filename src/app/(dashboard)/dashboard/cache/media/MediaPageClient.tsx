@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
+import { VIDEO_PROVIDERS } from "@omniroute/open-sse/config/videoRegistry.ts";
+import { MUSIC_PROVIDERS } from "@omniroute/open-sse/config/musicRegistry.ts";
+import {
+  AUDIO_SPEECH_PROVIDERS,
+  AUDIO_TRANSCRIPTION_PROVIDERS,
+} from "@omniroute/open-sse/config/audioRegistry.ts";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
@@ -13,19 +19,51 @@ type GenerationResult = {
   timestamp: number;
   audioUrl?: string;
 };
+type MediaModelConfig = { id: string; name: string };
+type MediaProviderConfig = {
+  id: string;
+  authType: string;
+  models: MediaModelConfig[];
+};
+type ProviderModelGroup = {
+  id: string;
+  name: string;
+  models: { id: string; name: string }[];
+};
 
 const PROVIDER_METADATA = AI_PROVIDERS as Record<string, { name?: string }>;
-const IMAGE_PROVIDER_MODELS = Object.entries(IMAGE_PROVIDERS).map(([providerId, config]) => ({
-  id: providerId,
-  name: PROVIDER_METADATA[providerId]?.name || providerId,
-  models: config.models.map((model) => ({
-    id: `${providerId}/${model.id}`,
-    name: model.name,
-  })),
-}));
-const IMAGE_PROVIDERS_REQUIRING_CREDENTIALS = Object.entries(IMAGE_PROVIDERS)
-  .filter(([, config]) => config.authType !== "none")
-  .map(([providerId]) => providerId);
+
+function toProviderModels(registry: Record<string, MediaProviderConfig>): ProviderModelGroup[] {
+  return Object.entries(registry).map(([providerId, config]) => ({
+    id: providerId,
+    name: PROVIDER_METADATA[providerId]?.name || config.id || providerId,
+    models: config.models.map((model) => ({
+      id: model.id.startsWith(`${providerId}/`) ? model.id : `${providerId}/${model.id}`,
+      name: model.name,
+    })),
+  }));
+}
+
+function providersRequiringCredentials(registry: Record<string, MediaProviderConfig>): string[] {
+  return Object.entries(registry)
+    .filter(([, config]) => config.authType !== "none")
+    .map(([providerId]) => providerId);
+}
+
+const IMAGE_PROVIDER_MODELS = toProviderModels(IMAGE_PROVIDERS);
+const VIDEO_PROVIDER_MODELS = toProviderModels(VIDEO_PROVIDERS);
+const MUSIC_PROVIDER_MODELS = toProviderModels(MUSIC_PROVIDERS);
+const SPEECH_PROVIDER_MODELS = toProviderModels(AUDIO_SPEECH_PROVIDERS);
+const TRANSCRIPTION_PROVIDER_MODELS = toProviderModels(AUDIO_TRANSCRIPTION_PROVIDERS);
+
+const IMAGE_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(IMAGE_PROVIDERS);
+const VIDEO_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(VIDEO_PROVIDERS);
+const MUSIC_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(MUSIC_PROVIDERS);
+const SPEECH_PROVIDERS_REQUIRING_CREDENTIALS =
+  providersRequiringCredentials(AUDIO_SPEECH_PROVIDERS);
+const TRANSCRIPTION_PROVIDERS_REQUIRING_CREDENTIALS = providersRequiringCredentials(
+  AUDIO_TRANSCRIPTION_PROVIDERS
+);
 
 const MODALITY_CONFIG: Record<
   Modality,
@@ -53,7 +91,7 @@ const MODALITY_CONFIG: Record<
     label: "Video Generation",
     placeholder: "A timelapse of a flower blooming...",
     color: "from-blue-500 to-cyan-500",
-    needsCredentials: [],
+    needsCredentials: VIDEO_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   music: {
     icon: "music_note",
@@ -61,7 +99,7 @@ const MODALITY_CONFIG: Record<
     label: "Music Generation",
     placeholder: "Upbeat electronic music with synth pads...",
     color: "from-orange-500 to-yellow-500",
-    needsCredentials: [],
+    needsCredentials: MUSIC_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   speech: {
     icon: "record_voice_over",
@@ -70,7 +108,7 @@ const MODALITY_CONFIG: Record<
     placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
     textLabel: "Text",
-    needsCredentials: ["openai", "elevenlabs", "deepgram", "xiaomi-mimo"],
+    needsCredentials: SPEECH_PROVIDERS_REQUIRING_CREDENTIALS,
   },
   transcription: {
     icon: "mic",
@@ -78,170 +116,20 @@ const MODALITY_CONFIG: Record<
     label: "Transcription",
     placeholder: "Upload an audio file to transcribe...",
     color: "from-indigo-500 to-blue-500",
-    needsCredentials: ["deepgram", "groq", "openai"],
+    needsCredentials: TRANSCRIPTION_PROVIDERS_REQUIRING_CREDENTIALS,
   },
 };
 
-// Provider+model registry (image is derived from the runtime image registry to avoid drift)
-const PROVIDER_MODELS: Record<
-  Modality,
-  { id: string; name: string; models: { id: string; name: string }[] }[]
-> = {
+// Provider+model registry derived from runtime registries to avoid dashboard drift
+const PROVIDER_MODELS: Record<Modality, ProviderModelGroup[]> = {
   image: IMAGE_PROVIDER_MODELS,
-  video: [
-    {
-      id: "comfyui",
-      name: "ComfyUI",
-      models: [
-        { id: "comfyui/animatediff", name: "AnimateDiff" },
-        { id: "comfyui/svd", name: "Stable Video Diffusion" },
-      ],
-    },
-    {
-      id: "sdwebui",
-      name: "SD WebUI",
-      models: [{ id: "sdwebui/animatediff", name: "AnimateDiff (Local)" }],
-    },
-  ],
-  music: [
-    {
-      id: "comfyui",
-      name: "ComfyUI",
-      models: [
-        { id: "comfyui/stable-audio", name: "Stable Audio Open" },
-        { id: "comfyui/musicgen", name: "MusicGen" },
-      ],
-    },
-  ],
-  speech: [
-    {
-      id: "openai",
-      name: "OpenAI",
-      models: [
-        { id: "openai/tts-1", name: "TTS-1" },
-        { id: "openai/tts-1-hd", name: "TTS-1 HD" },
-        { id: "openai/gpt-4o-mini-tts", name: "GPT-4o Mini TTS" },
-      ],
-    },
-    {
-      id: "elevenlabs",
-      name: "ElevenLabs",
-      models: [
-        { id: "elevenlabs/eleven_multilingual_v2", name: "Eleven Multilingual v2" },
-        { id: "elevenlabs/eleven_turbo_v2_5", name: "Eleven Turbo v2.5" },
-      ],
-    },
-    {
-      id: "deepgram",
-      name: "Deepgram",
-      models: [
-        { id: "deepgram/aura-asteria-en", name: "Aura Asteria (EN)" },
-        { id: "deepgram/aura-luna-en", name: "Aura Luna (EN)" },
-        { id: "deepgram/aura-stella-en", name: "Aura Stella (EN)" },
-      ],
-    },
-    {
-      id: "hyperbolic",
-      name: "Hyperbolic",
-      models: [{ id: "hyperbolic/melo-tts", name: "Melo TTS" }],
-    },
-    {
-      id: "nvidia",
-      name: "NVIDIA NIM",
-      models: [
-        { id: "nvidia/fastpitch", name: "FastPitch" },
-        { id: "nvidia/tacotron2", name: "Tacotron2" },
-      ],
-    },
-    {
-      id: "inworld",
-      name: "Inworld",
-      models: [
-        { id: "inworld/inworld-tts-1.5-max", name: "Inworld TTS Max" },
-        { id: "inworld/inworld-tts-1.5-mini", name: "Inworld TTS Mini" },
-      ],
-    },
-    {
-      id: "cartesia",
-      name: "Cartesia",
-      models: [
-        { id: "cartesia/sonic-2", name: "Sonic 2" },
-        { id: "cartesia/sonic-3", name: "Sonic 3" },
-      ],
-    },
-    {
-      id: "playht",
-      name: "PlayHT",
-      models: [
-        { id: "playht/PlayDialog", name: "PlayDialog" },
-        { id: "playht/Play3.0-mini", name: "Play3.0 Mini" },
-      ],
-    },
-    {
-      id: "huggingface",
-      name: "HuggingFace",
-      models: [{ id: "huggingface/espnet/kan-bayashi_ljspeech_vits", name: "VITS LJSpeech" }],
-    },
-    { id: "qwen", name: "Qwen", models: [{ id: "qwen/qwen3-tts", name: "Qwen3 TTS" }] },
-    {
-      id: "xiaomi-mimo",
-      name: "Xiaomi MiMo",
-      models: [
-        { id: "xiaomi-mimo/mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
-        { id: "xiaomi-mimo/mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
-        { id: "xiaomi-mimo/mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
-      ],
-    },
-  ],
-  transcription: [
-    {
-      id: "deepgram",
-      name: "Deepgram ($200 free)",
-      models: [
-        { id: "deepgram/nova-3", name: "Nova 3 (Best)" },
-        { id: "deepgram/nova-2", name: "Nova 2" },
-        { id: "deepgram/enhanced", name: "Enhanced" },
-        { id: "deepgram/base", name: "Base" },
-      ],
-    },
-    {
-      id: "assemblyai",
-      name: "AssemblyAI ($50 free)",
-      models: [
-        { id: "assemblyai/universal-3-pro", name: "Universal 3 Pro (Best)" },
-        { id: "assemblyai/universal-2", name: "Universal 2" },
-        { id: "assemblyai/nano", name: "Nano (Fast)" },
-      ],
-    },
-    {
-      id: "groq",
-      name: "Groq (Free — Whisper)",
-      models: [
-        { id: "groq/whisper-large-v3", name: "Whisper Large v3 (Free)" },
-        { id: "groq/whisper-large-v3-turbo", name: "Whisper Turbo (Free)" },
-      ],
-    },
-    {
-      id: "openai",
-      name: "OpenAI",
-      models: [
-        { id: "openai/whisper-1", name: "Whisper 1" },
-        { id: "openai/gpt-4o-transcription", name: "GPT-4o Transcription" },
-      ],
-    },
-    {
-      id: "nvidia",
-      name: "NVIDIA NIM",
-      models: [{ id: "nvidia/nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" }],
-    },
-    {
-      id: "huggingface",
-      name: "HuggingFace",
-      models: [{ id: "huggingface/openai/whisper-large-v3", name: "Whisper Large v3 (HF)" }],
-    },
-    { id: "qwen", name: "Qwen", models: [{ id: "qwen/qwen3-asr", name: "Qwen3 ASR" }] },
-  ],
+  video: VIDEO_PROVIDER_MODELS,
+  music: MUSIC_PROVIDER_MODELS,
+  speech: SPEECH_PROVIDER_MODELS,
+  transcription: TRANSCRIPTION_PROVIDER_MODELS,
 };
+const INITIAL_IMAGE_PROVIDER = PROVIDER_MODELS.image[0];
+const INITIAL_IMAGE_MODEL = INITIAL_IMAGE_PROVIDER?.models[0];
 
 // Voice presets per TTS provider
 const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
@@ -263,6 +151,13 @@ const VOICE_PRESETS: Record<string, { id: string; label: string }[]> = {
     { id: "VR6AewLTigWG4xSOukaG", label: "Arnold (EN)" },
     { id: "pNInz6obpgDQGcFmaJgB", label: "Adam (EN)" },
     { id: "yoZ06aMxZJJ28mfd3POQ", label: "Sam (EN)" },
+  ],
+  kie: [
+    { id: "Rachel", label: "Rachel (EN)" },
+    { id: "Adam", label: "Adam (EN)" },
+    { id: "Brian", label: "Brian (EN)" },
+    { id: "Roger", label: "Roger (EN)" },
+    { id: "Bella", label: "Bella (EN)" },
   ],
   cartesia: [
     { id: "a0e99841-438c-4a64-b679-ae501e7d6091", label: "Barbershop Man" },
@@ -433,8 +328,10 @@ export default function MediaPageClient() {
   const [prompt, setPrompt] = useState("");
 
   // Selected provider and model per modality
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [selectedProvider, setSelectedProvider] = useState<string>(
+    INITIAL_IMAGE_PROVIDER?.id ?? ""
+  );
+  const [selectedModel, setSelectedModel] = useState<string>(INITIAL_IMAGE_MODEL?.id ?? "");
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GenerationResult | null>(null);
@@ -535,16 +432,6 @@ export default function MediaPageClient() {
       setSpeechFormat((current) => (formats.includes(current) ? current : (formats[0] ?? "mp3")));
     }
   };
-
-  // Initialize on mount — pick first provider/model for image tab
-  const initialized = useRef(false);
-  if (!initialized.current) {
-    initialized.current = true;
-    const providers = PROVIDER_MODELS["image"] ?? [];
-    const firstProvider = providers[0];
-    setSelectedProvider(firstProvider?.id ?? "");
-    setSelectedModel(firstProvider?.models[0]?.id ?? "");
-  }
 
   const handleGenerate = async () => {
     setLoading(true);

@@ -19,9 +19,13 @@ export function extractUsageFromResponse(responseBody, provider) {
     return {
       prompt_tokens: responseBody.usage.prompt_tokens || 0,
       completion_tokens: responseBody.usage.completion_tokens || 0,
+      // DeepSeek native API uses flat prompt_cache_hit_tokens (NOT
+      // prompt_tokens_details.cached_tokens). Fall back to it so V4 cache
+      // gets surfaced into kanban call_logs alongside the OpenAI/Claude paths.
       cached_tokens:
         responseBody.usage.prompt_tokens_details?.cached_tokens ??
-        responseBody.usage.input_tokens_details?.cached_tokens,
+        responseBody.usage.input_tokens_details?.cached_tokens ??
+        responseBody.usage.prompt_cache_hit_tokens,
       reasoning_tokens:
         responseBody.usage.completion_tokens_details?.reasoning_tokens ??
         responseBody.usage.output_tokens_details?.reasoning_tokens,
