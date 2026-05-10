@@ -805,9 +805,11 @@ export class CursorExecutor extends BaseExecutor {
       ? openAIToolsToMcpDefs(body.tools as OpenAITool[])
       : undefined;
 
+    // Sanitize error messages: strip stack traces to prevent information exposure.
+    const sanitize = (m: string) => (typeof m === "string" ? m.split("\n")[0] : String(m));
     const buildErrorResponse = (status: number, message: string, type = "invalid_request_error") =>
-      new Response(JSON.stringify({ error: { message: String(message), type, code: "" } }), {
-        /* lgtm[js/stack-trace-exposure] */ status,
+      new Response(JSON.stringify({ error: { message: sanitize(message), type, code: "" } }), {
+        status,
         headers: { "Content-Type": "application/json" },
       });
 

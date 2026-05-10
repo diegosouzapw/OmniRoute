@@ -22,6 +22,7 @@ export default function ProxyTab() {
     } catch {}
   };
 
+
   useEffect(() => {
     mountedRef.current = true;
     async function init() {

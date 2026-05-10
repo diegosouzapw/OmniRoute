@@ -228,10 +228,14 @@ export function resolveAccountUUID(
 
   if (accessToken) void backgroundFetchAccountUUID(accessToken, seed);
 
+  // CodeQL: This is intentionally SHA-256 for deterministic UUID generation from
+  // a seed string — NOT password hashing. The output is a format-correct UUIDv4
+  // used as a fallback account identifier; no secrets are being protected.
+  // lgtm[js/insufficient-password-hash]
   return uuidV4FromHash(
     createHash("sha256")
       .update("account:" + seed)
-      .digest("hex") /* lgtm[js/insufficient-password-hash] */
+      .digest("hex") // nosemgrep: insufficient-password-hash
   );
 }
 

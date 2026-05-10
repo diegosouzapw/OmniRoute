@@ -11,6 +11,10 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(pricing):** make `getPricingForModel` fully case-insensitive to ensure custom prices correctly reflect in new incoming requests cost calculations
+- **fix(gemini):** prevent `functionDeclarations` from being dropped by the sanitizer when `googleSearch` tool is present (#2077)
+- **fix(pollinations):** add `jsonMode: true` flag in the request transformation to enforce correct JSON structure from Pollinations API (#2109)
+- **fix(docker):** update Dockerfile to copy `/docs` directory during build ensuring API catalog availability at runtime (#2083)
 - **fix(providers):** strip OpenAI-specific fields in Kiro translator to prevent 400 errors (#2037)
 - **fix(ui):** resolve text contrast issues for zero-config warning banner in light mode (#2050)
 - **fix(core):** inject global system prompt correctly into downstream chat completions pipeline (#2080)
@@ -25,8 +29,13 @@
 
 ### 🔒 Security
 
+- **fix(security):** remediate CodeQL vulnerabilities (ReDoS, cryptographic bias, stack trace exposure, and weak password hashing) (#216, #215, #211, #208, #206, #210)
 - **fix(security):** remediate regex validation backtracking path in core compression cleanup (#1990)
 - **fix(core):** harden input handling and stabilization for prompt compression edge cases
+
+### 📝 Documentation
+
+- **docs:** add competitive marketing tables and SEO/AEO optimizations to README (#2091)
 
 ### 🧹 Chores & Maintenance
 

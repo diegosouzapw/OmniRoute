@@ -122,7 +122,16 @@ async function installCertLinux(sudoPassword: string, certPath: string): Promise
   try {
     await execFileWithPassword("sudo", ["-S", "mkdir", "-p", LINUX_CA_DIR], sudoPassword);
     await execFileWithPassword("sudo", ["-S", "cp", certPath, LINUX_CERT_DEST], sudoPassword);
-    await execFileWithPassword("sudo", ["-S", "update-ca-certificates"], sudoPassword);
+    await execFileWithPassword(
+      "sudo",
+      [
+        "-S",
+        "sh",
+        "-c",
+        "update-ca-certificates 2>/dev/null || update-ca-trust 2>/dev/null || true",
+      ],
+      sudoPassword
+    );
   } catch (error) {
     const message = getErrorMessage(error);
     const msg = message.includes("canceled")
@@ -186,7 +195,16 @@ async function uninstallCertLinux(sudoPassword: string, certPath: string): Promi
     if (fs.existsSync(LINUX_CERT_DEST)) {
       await execFileWithPassword("sudo", ["-S", "rm", "-f", LINUX_CERT_DEST], sudoPassword);
     }
-    await execFileWithPassword("sudo", ["-S", "update-ca-certificates", "--fresh"], sudoPassword);
+    await execFileWithPassword(
+      "sudo",
+      [
+        "-S",
+        "sh",
+        "-c",
+        "update-ca-certificates --fresh 2>/dev/null || update-ca-trust 2>/dev/null || true",
+      ],
+      sudoPassword
+    );
   } catch (err) {
     throw new Error("Failed to uninstall certificate");
   }

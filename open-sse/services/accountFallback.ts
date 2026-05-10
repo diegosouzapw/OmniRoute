@@ -755,6 +755,8 @@ export function classifyErrorText(errorText) {
     lower.includes("quota depleted") ||
     lower.includes("quota will reset") ||
     lower.includes("your quota will reset") ||
+    lower.includes("quota has been exceeded") ||
+    lower.includes("hour quota") ||
     lower.includes("billing")
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
@@ -1038,7 +1040,9 @@ export function checkFallbackError(
       status === HTTP_STATUS.FORBIDDEN &&
       provider &&
       getProviderCategory(provider) === "apikey" &&
-      !errorStr.toLowerCase().includes("has not been used in project")
+      !errorStr.toLowerCase().includes("has not been used in project") &&
+      !errorStr.toLowerCase().includes("hour quota") &&
+      !errorStr.toLowerCase().includes("quota has been exceeded")
     ) {
       return buildRetryableFallback(RateLimitReason.AUTH_ERROR);
     }

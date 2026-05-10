@@ -1880,6 +1880,38 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
+// Cloud Agent Providers
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jl",
+    name: "Jules (Google)",
+    icon: "smart_toy",
+    color: "#4285F4",
+    website: "https://jules.google",
+    authHint: "Get your API key from Jules Settings → API. Free during alpha.",
+  },
+  devin: {
+    id: "devin",
+    alias: "dv",
+    name: "Devin (Cognition)",
+    icon: "precision_manufacturing",
+    color: "#8B5CF6",
+    website: "https://devin.ai",
+    authHint: "Get your API token from Devin Settings → API.",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "cx-cloud",
+    name: "Codex Cloud (OpenAI)",
+    icon: "cloud",
+    color: "#10A37F",
+    website: "https://platform.openai.com/docs/codex",
+    authHint:
+      "Use your OpenAI API key or ChatGPT subscription. Codex Cloud included with Plus/Pro/Business.",
+  },
+};
+
 // All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
@@ -1890,6 +1922,7 @@ export const AI_PROVIDERS = {
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
+  ...CLOUD_AGENT_PROVIDERS,
 };
 
 export type AiProviderId = keyof typeof AI_PROVIDERS;
@@ -1949,6 +1982,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "kimi-coding",
   "glm",
   "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",
@@ -1968,3 +2002,4 @@ validateProviders(LOCAL_PROVIDERS, "LOCAL_PROVIDERS");
 validateProviders(SEARCH_PROVIDERS, "SEARCH_PROVIDERS");
 validateProviders(AUDIO_ONLY_PROVIDERS, "AUDIO_ONLY_PROVIDERS");
 validateProviders(UPSTREAM_PROXY_PROVIDERS, "UPSTREAM_PROXY_PROVIDERS");
+validateProviders(CLOUD_AGENT_PROVIDERS, "CLOUD_AGENT_PROVIDERS");

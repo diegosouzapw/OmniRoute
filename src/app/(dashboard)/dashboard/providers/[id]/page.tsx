@@ -509,6 +509,7 @@ interface ConnectionRowConnection {
   expiresAt?: string;
   tokenExpiresAt?: string;
   maxConcurrent?: number | null;
+  authType?: string;
 }
 
 interface ConnectionRowProps {
@@ -3024,7 +3025,7 @@ export default function ProviderDetailPage() {
 
                       {selectedIds.size > 0 && (
                         <Button
-                          variant="destructive"
+                          variant="danger"
                           size="sm"
                           icon="delete"
                           loading={batchDeleting}
@@ -3154,7 +3155,7 @@ export default function ProviderDetailPage() {
 
                       {selectedIds.size > 0 && (
                         <Button
-                          variant="destructive"
+                          variant="danger"
                           size="sm"
                           icon="delete"
                           loading={batchDeleting}
