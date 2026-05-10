@@ -453,7 +453,7 @@ export class AntigravityExecutor extends BaseExecutor {
         return { ...c, role, parts };
       }) || [];
 
-    const contents = [];
+    const contents: any[] = [];
     for (const c of normalizedContents) {
       if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
       if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
@@ -535,9 +535,9 @@ export class AntigravityExecutor extends BaseExecutor {
         },
         body: new URLSearchParams({
           grant_type: "refresh_token",
-          refresh_token: credentials.refreshToken,
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
+          refresh_token: credentials.refreshToken || "",
+          client_id: this.config.clientId || "",
+          client_secret: this.config.clientSecret || "",
         }),
       });
 
@@ -802,7 +802,7 @@ export class AntigravityExecutor extends BaseExecutor {
         let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
-          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
+          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
           ...(stream ? { duplex: "half" } : {}),
           signal,
         });
@@ -814,7 +814,7 @@ export class AntigravityExecutor extends BaseExecutor {
           response = await fetch(url, {
             method: "POST",
             headers: retryHeaders,
-            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
+            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
             ...(stream ? { duplex: "half" } : {}),
             signal,
           });
@@ -829,7 +829,7 @@ export class AntigravityExecutor extends BaseExecutor {
         }
 
         // Parse retry time for 429/503 responses
-        let retryMs = null;
+        let retryMs: number | null = null;
 
         if (
           response.status === HTTP_STATUS.RATE_LIMITED ||
@@ -884,7 +884,7 @@ export class AntigravityExecutor extends BaseExecutor {
                   const creditsResp = await fetch(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
-                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream) as any,
                     ...(stream ? { duplex: "half" } : {}),
                     signal,
                   });

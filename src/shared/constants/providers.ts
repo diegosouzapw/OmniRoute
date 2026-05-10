@@ -182,7 +182,6 @@ export const APIKEY_PROVIDERS = {
     color: "#2468F2",
     textIcon: "BD",
     website: "https://cloud.baidu.com/product/wenxinworkshop",
-    passthroughModels: true,
     apiHint:
       "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
   },
@@ -1955,6 +1954,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "minimax-cn",
   "crof",
   "nanogpt",
+  "deepseek",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──

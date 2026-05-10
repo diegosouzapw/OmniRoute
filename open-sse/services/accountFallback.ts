@@ -217,7 +217,7 @@ export async function getRuntimeProviderProfile(provider: string | null | undefi
   try {
     const { getCachedSettings } = await import("@/lib/db/readCache");
     const settings = await getCachedSettings();
-    const category = getProviderCategory(provider);
+    const category = getProviderCategory(provider || "");
     return buildProviderProfile(category, settings);
   } catch {
     return getProviderProfile(provider);
@@ -493,7 +493,7 @@ export function getModelLockoutInfo(provider, connectionId, model) {
  */
 export function getAllModelLockouts() {
   const now = Date.now();
-  const active = [];
+  const active: any[] = [];
   for (const key of modelLockouts.keys()) {
     cleanupModelLockKey(key, now);
   }
@@ -616,7 +616,7 @@ export function getProvidersInCooldown(): Array<{
   provider: string;
   failureCount: number;
   cooldownRemainingMs: number | null;
-  lastFailureAt: number;
+  lastFailureAt: number | null;
 }> {
   return getAllCircuitBreakerStatuses()
     .filter((status) => {
@@ -880,14 +880,24 @@ export function getQuotaCooldown(backoffLevel = 0) {
  * @returns {{ shouldFallback: boolean, cooldownMs: number, newBackoffLevel?: number, reason?: string }}
  */
 export function checkFallbackError(
-  status,
-  errorText,
-  backoffLevel = 0,
-  _model = null,
-  provider = null,
-  headers = null,
+  status: number,
+  errorText: string | null,
+  backoffLevel: number = 0,
+  _model: string | null = null,
+  provider: string | null = null,
+  headers: any = null,
   profileOverride: ProviderProfile | null = null
-) {
+): {
+  shouldFallback: boolean;
+  cooldownMs: number;
+  baseCooldownMs?: number;
+  newBackoffLevel?: number;
+  usedUpstreamRetryHint?: boolean;
+  reason?: string;
+  permanent?: boolean;
+  creditsExhausted?: boolean;
+  dailyQuotaExhausted?: boolean;
+} {
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1103,7 +1113,7 @@ export function getUnavailableUntil(cooldownMs) {
  * Get the earliest rateLimitedUntil from a list of accounts
  */
 export function getEarliestRateLimitedUntil(accounts) {
-  let earliest = null;
+  let earliest: number | null = null;
   const now = Date.now();
   for (const acc of accounts) {
     if (!acc.rateLimitedUntil) continue;
@@ -1126,7 +1136,7 @@ export function formatRetryAfter(rateLimitedUntil) {
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
-  const parts = [];
+  const parts: string[] = [];
   if (h > 0) parts.push(`${h}h`);
   if (m > 0) parts.push(`${m}m`);
   if (s > 0 || parts.length === 0) parts.push(`${s}s`);

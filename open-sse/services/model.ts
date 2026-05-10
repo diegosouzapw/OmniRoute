@@ -359,16 +359,9 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
 
   const activeProviders = await getActiveProviderSet();
 
-  const activeCandidates = activeProviders ? providers.filter((p) => activeProviders.has(p)) : [];
-
-  if (activeCandidates.length === 1) {
-    const provider = activeCandidates[0];
-    const canonicalModel = resolveInferredProviderModel(provider, modelId);
-    return { provider, model: canonicalModel, extendedContext };
-  }
-
   if (
     activeProviders?.has("codex") &&
+    !activeProviders.has("openai") &&
     providers.includes("codex") &&
     CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
   ) {
@@ -388,11 +381,7 @@ async function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  const eligibleProviders = activeProviders
-    ? nonOpenAIProviders.filter((p) => activeProviders.has(p))
-    : nonOpenAIProviders;
-
-  const candidatesToUse = eligibleProviders.length > 0 ? eligibleProviders : nonOpenAIProviders;
+  const candidatesToUse = nonOpenAIProviders;
 
   if (candidatesToUse.length === 1) {
     const provider = candidatesToUse[0];

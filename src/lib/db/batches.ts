@@ -183,10 +183,12 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
 export function countBatches(apiKeyId?: string): number {
   const db = getDbInstance();
   if (apiKeyId) {
-    const row = db.prepare("SELECT COUNT(*) as c FROM batches WHERE api_key_id = ?").get(apiKeyId);
+    const row = db
+      .prepare("SELECT COUNT(*) as c FROM batches WHERE api_key_id = ?")
+      .get(apiKeyId) as { c: number } | undefined;
     return row ? Number(row.c) : 0;
   } else {
-    const row = db.prepare("SELECT COUNT(*) as c FROM batches").get();
+    const row = db.prepare("SELECT COUNT(*) as c FROM batches").get() as { c: number } | undefined;
     return row ? Number(row.c) : 0;
   }
 }

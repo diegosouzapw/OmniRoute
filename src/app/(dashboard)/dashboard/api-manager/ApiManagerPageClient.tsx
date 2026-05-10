@@ -187,14 +187,17 @@ export default function ApiManagerPageClient() {
       for (const key of apiKeys) {
         // Match analytics entry by unique API Key ID (isolates usage to this specific key instance)
         const matches = byApiKey.filter((entry: any) => entry.apiKeyId === key.id);
-        const totalRequests = matches.reduce((sum: number, entry: any) => sum + (Number(entry.requests) || 0), 0);
+        const totalRequests = matches.reduce(
+          (sum: number, entry: any) => sum + (Number(entry.requests) || 0),
+          0
+        );
 
         // Match call logs by unique ID as well for the lastUsed timestamp
         const lastUsed =
           (logs || []).find((log: any) => log.apiKeyId === key.id)?.timestamp || null;
-          (logs || []).find(
-            (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
-          )?.timestamp || null;
+        (logs || []).find(
+          (log: any) => log.apiKeyId === key.id || (!log.apiKeyId && log.apiKeyName === key.name)
+        )?.timestamp || null;
 
         stats[key.id] = {
           totalRequests,
@@ -358,7 +361,7 @@ export default function ApiManagerPageClient() {
     expiresAt: string | null,
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
-    rateLimits: Array<{ limit: number; window: number }> | null
+    rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[]
   ) => {
     if (!editingKey || !editingKey.id) return;
@@ -971,7 +974,7 @@ const PermissionsModal = memo(function PermissionsModal({
     expiresAt: string | null,
     maxSessions: number,
     accessSchedule: AccessSchedule | null,
-    rateLimits: Array<{ limit: number; window: number }> | null
+    rateLimits: Array<{ limit: number; window: number }> | null,
     scopes: string[]
   ) => void;
 }) {
@@ -1141,7 +1144,7 @@ const PermissionsModal = memo(function PermissionsModal({
       expiresAt || null,
       maxSessions,
       schedule,
-      rateLimits.length > 0 ? rateLimits : null
+      rateLimits.length > 0 ? rateLimits : null,
       manageEnabled ? ["manage"] : []
     );
   }, [
@@ -1329,7 +1332,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     value={String(rl.limit)}
                     onChange={(e) => {
                       const val = parseInt(e.target.value) || 0;
-                      setRateLimits(prev => {
+                      setRateLimits((prev) => {
                         const next = [...prev];
                         next[index].limit = val;
                         return next;
@@ -1344,7 +1347,7 @@ const PermissionsModal = memo(function PermissionsModal({
                     value={String(rl.window)}
                     onChange={(e) => {
                       const val = parseInt(e.target.value) || 0;
-                      setRateLimits(prev => {
+                      setRateLimits((prev) => {
                         const next = [...prev];
                         next[index].window = val;
                         return next;
@@ -1355,7 +1358,7 @@ const PermissionsModal = memo(function PermissionsModal({
                   <span className="text-sm text-text-muted shrink-0">sec</span>
                   <button
                     type="button"
-                    onClick={() => setRateLimits(prev => prev.filter((_, i) => i !== index))}
+                    onClick={() => setRateLimits((prev) => prev.filter((_, i) => i !== index))}
                     className="p-2 text-red-500 hover:bg-red-500/10 rounded transition-colors shrink-0"
                     title="Remove limit"
                   >
@@ -1522,6 +1525,24 @@ const PermissionsModal = memo(function PermissionsModal({
             <p className="text-sm font-bold text-red-700 dark:text-red-400">Banned Status</p>
             <p className="text-xs text-red-600 dark:text-red-300">
               Immediately revoke all access. Used for suspected abuse or compromised keys.
+            </p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={keyIsBanned}
+            onClick={() => setKeyIsBanned((prev) => !prev)}
+            className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
+              keyIsBanned
+                ? "bg-red-500 text-white shadow-sm"
+                : "bg-black/5 dark:bg-white/5 text-text-muted hover:bg-black/10 dark:hover:bg-white/10"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {keyIsBanned ? "block" : "check_circle"}
+            </span>
+            {keyIsBanned ? "Banned" : "Active"}
+          </button>
+        </div>
         {/* Management API Access Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
@@ -1551,7 +1572,9 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">Expiration Date</p>
-            <p className="text-xs text-text-muted">Key will automatically stop working after this date.</p>
+            <p className="text-xs text-text-muted">
+              Key will automatically stop working after this date.
+            </p>
           </div>
           <input
             type="datetime-local"
@@ -1563,7 +1586,16 @@ const PermissionsModal = memo(function PermissionsModal({
             className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main"
           />
         </div>
-
+        {/* Management Access */}
+        <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-medium text-text-main">Management Access</p>
+            <p className="text-xs text-text-muted">
+              Allow this API key to manage OmniRoute configuration.
+            </p>
+          </div>
+          <button
+            role="switch"
             aria-checked={manageEnabled}
             onClick={() => setManageEnabled((prev) => !prev)}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors ${

@@ -323,6 +323,37 @@ export function parseQuotaData(provider, data) {
         }
         break;
 
+      case "deepseek":
+        // DeepSeek balance: credits-style display with currency
+        // Match any "credits" key with optional 3-letter currency suffix
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([quotaKey, quota]: [string, any]) => {
+            // Match credits, credits_usd, credits_cny, credits_eur, etc.
+            const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
+            if (match) {
+              const remaining = Number(quota?.remaining ?? 0);
+              // Extract currency from key suffix or use quota.currency, fallback to USD
+              const currency = quota?.currency ?? (match[1] ? match[1].toUpperCase() : "USD");
+              normalizedQuotas.push({
+                name: currency,
+                used: 0,
+                total: 0,
+                remaining,
+                resetAt: null,
+                unlimited: false,
+                isCredits: true,
+                currency,
+                creditCount: remaining,
+                // Color coding based on balance amount: green >20, yellow 5-20, red <5
+                remainingPercentage: remaining > 20 ? 100 : remaining > 5 ? 60 : 20,
+              });
+            } else {
+              normalizedQuotas.push(normalizeQuotaEntry(quotaKey, quota));
+            }
+          });
+        }
+        break;
+
       default:
         // Generic fallback for unknown providers
         if (data.quotas) {

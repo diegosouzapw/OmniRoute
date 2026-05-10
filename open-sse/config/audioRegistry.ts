@@ -77,7 +77,10 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "nvidia-asr",
-    models: [{ id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" }],
+    models: [
+      { id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" },
+      { id: "openai/whisper-large-v3", name: "Whisper Large v3 (NVIDIA)" },
+    ],
   },
 
   huggingface: {

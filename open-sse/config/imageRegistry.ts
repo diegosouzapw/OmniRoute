@@ -122,7 +122,7 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
   },
 
   // Codex exposes image generation only as a Responses-API hosted tool under
-  // ChatGPT OAuth. Incoming DALL-E-style `/v1/images/generations` requests are
+  // ChatGPT OAuth. Incoming GPT-Image-style `/v1/images/generations` requests are
   // translated to /responses calls with `tools: [{ type: "image_generation" }]`
   // by handleCodexImageGeneration.
   codex: {

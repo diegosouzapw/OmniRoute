@@ -73,6 +73,7 @@ import {
 } from "@omniroute/open-sse/services/codexQuotaFetcher.ts";
 import { registerBailianCodingPlanQuotaFetcher } from "@omniroute/open-sse/services/bailianQuotaFetcher.ts";
 import { registerCrofUsageFetcher } from "@omniroute/open-sse/services/crofUsageFetcher.ts";
+import { registerDeepseekQuotaFetcher } from "@omniroute/open-sse/services/deepseekQuotaFetcher.ts";
 import {
   getCooldownAwareRetryDecision,
   resolveCooldownAwareRetrySettings,
@@ -91,6 +92,9 @@ registerBailianCodingPlanQuotaFetcher();
 // opt-in) when the active bucket reaches zero.
 registerCrofUsageFetcher();
 
+// Register DeepSeek balance quota fetcher.
+// Hooks into quotaPreflight + quotaMonitor so combos can switch accounts before balance is exhausted.
+registerDeepseekQuotaFetcher();
 let combosCachePromise: Promise<unknown[]> | null = null;
 let combosCacheTs = 0;
 const COMBOS_CACHE_TTL_MS = 10_000;

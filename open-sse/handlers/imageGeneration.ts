@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
  *
  * Request format (OpenAI-compatible):
  * {
- *   "model": "openai/dall-e-3",
+ *   "model": "openai/gpt-image-2",
  *   "prompt": "a beautiful sunset over mountains",
  *   "n": 1,
  *   "size": "1024x1024",
@@ -878,7 +878,7 @@ async function handleChatGptWebImageGeneration({
   }
 
   // Each image is one chatgpt.com chat turn (~30s). Cap at 4 (matches OpenAI's
-  // own limit for image-1 / dall-e-3) so a stray n=1000 doesn't pin the
+  // own limit for GPT Image models) so a stray n=1000 doesn't pin the
   // executor for hours before the upstream HTTP timeout fires.
   const CHATGPT_WEB_IMAGE_N_MAX = 4;
   const rawCount = Number.isInteger(body.n) && (body.n as number) > 0 ? (body.n as number) : 1;
@@ -2028,7 +2028,7 @@ function isHttpUrl(value) {
 }
 
 /**
- * Codex image generation — translate DALL-E-style /v1/images/generations
+ * Codex image generation — translate GPT-Image-style /v1/images/generations
  * request into a /v1/responses call with the `image_generation` hosted tool,
  * parse the SSE stream, and return the base64 PNG in OpenAI image response shape.
  *
@@ -2064,9 +2064,9 @@ export function extractImageGenerationCalls(
 }
 
 // The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
-// for `quality`. DALL-E clients often send "standard" / "hd". Map legacy values
+// for `quality`. Legacy image clients often send "standard" / "hd". Map those values
 // so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
-function mapDalleQualityToImageTool(value: string): string {
+function mapLegacyImageQualityToImageTool(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === "standard") return "medium";
   if (normalized === "hd") return "high";
@@ -2120,7 +2120,7 @@ async function handleCodexImageGeneration({
       ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
       : undefined;
 
-  // Forward size/quality from the DALL-E-style body into the hosted tool so
+  // Forward size/quality from the GPT-Image-style body into the hosted tool so
   // OpenWebUI's size/quality selectors actually take effect. Everything else
   // (model, n, background, moderation, output_compression) is left to the
   // Codex backend's defaults — today that's `gpt-image-2`.
@@ -2129,7 +2129,7 @@ async function handleCodexImageGeneration({
     toolConfig.size = body.size.trim();
   }
   if (typeof body.quality === "string" && body.quality.trim()) {
-    toolConfig.quality = mapDalleQualityToImageTool(body.quality.trim());
+    toolConfig.quality = mapLegacyImageQualityToImageTool(body.quality.trim());
   }
 
   const upstreamBody: Record<string, unknown> = {

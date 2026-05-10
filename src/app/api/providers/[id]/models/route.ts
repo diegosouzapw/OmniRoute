@@ -66,6 +66,7 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
+import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
 type JsonRecord = Record<string, unknown>;
 type LocalCatalogModel = {
@@ -1526,6 +1527,31 @@ export async function GET(
         connectionId,
         models: STATIC_MODEL_PROVIDERS.claude(),
       });
+    }
+
+    if (provider === "cursor") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      try {
+        const models = await fetchCursorAgentModels();
+        return buildApiDiscoveryResponse(models);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log("[models] cursor-agent fetch failed:", message);
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `cursor-agent unavailable (${message}) — using cached catalog`,
+          localWarning: `cursor-agent unavailable (${message}) — using local catalog`,
+        });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Cursor models: ${message}` },
+          { status: 502 }
+        );
+      }
     }
 
     if (provider === "glm" || provider === "glm-cn" || provider === "glmt") {

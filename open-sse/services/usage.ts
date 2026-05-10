@@ -16,6 +16,7 @@ import {
 } from "../config/providerHeaderProfiles.ts";
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
+import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
   antigravityUserAgent,
   getAntigravityHeaders,
@@ -110,6 +111,9 @@ type UsageQuota = {
     name: string;
     used: number;
   }>;
+  currency?: string;
+  grantedBalance?: number;
+  toppedUpBalance?: number;
 };
 
 function toRecord(value: unknown): JsonRecord {
@@ -714,6 +718,55 @@ async function getBailianCodingPlanUsage(
 }
 
 /**
+ * DeepSeek Usage
+ * Fetches balance from the DeepSeek balance API.
+ * Returns all balances (USD and CNY) as "credits" for credits-style UI display.
+ */
+async function getDeepseekUsage(connectionId: string, apiKey: string) {
+  try {
+    const connection = { apiKey };
+    const quota = await fetchDeepseekQuota(connectionId, connection);
+
+    if (!quota) {
+      return { message: "DeepSeek API key not available. Add a key to view usage." };
+    }
+
+    const deepseekQuota = quota as DeepseekQuota;
+    const { balances, isAvailable, limitReached } = deepseekQuota;
+
+    const quotas: Record<string, UsageQuota> = {};
+
+    // Show all balances as credits-style entries (e.g., credits_usd, credits_cny)
+    // The UI will display them as "🪙 Balance (USD) $50.00"
+    for (const balanceInfo of balances) {
+      const key = `credits_${balanceInfo.currency.toLowerCase()}`;
+      quotas[key] = {
+        used: 0,
+        total: 0,
+        remaining: balanceInfo.balance,
+        remainingPercentage: 100,
+        resetAt: null,
+        unlimited: true,
+        currency: balanceInfo.currency,
+        grantedBalance: balanceInfo.grantedBalance,
+        toppedUpBalance: balanceInfo.toppedUpBalance,
+      };
+    }
+
+    const plan = isAvailable ? "DeepSeek" : "DeepSeek (Insufficient Balance)";
+
+    return {
+      plan,
+      quotas,
+      isAvailable,
+      limitReached,
+    };
+  } catch (error) {
+    return { message: `DeepSeek error: ${(error as Error).message}` };
+  }
+}
+
+/**
  * NanoGPT Usage
  * Fetches subscription-level quota from the NanoGPT API.
  * Returns daily/weekly token limits and daily image limits for PRO accounts.
@@ -839,6 +892,8 @@ export async function getUsageForProvider(connection, options: { forceRefresh?: 
       return await getBailianCodingPlanUsage(id, apiKey, providerSpecificData);
     case "nanogpt":
       return await getNanoGptUsage(apiKey);
+    case "deepseek":
+      return await getDeepseekUsage(id, apiKey);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }
