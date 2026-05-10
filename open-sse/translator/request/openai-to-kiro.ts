@@ -293,6 +293,13 @@ function convertMessages(messages, tools, model) {
   // contain adjacent user turns, which Kiro can reject. Merge consecutive
   // `userInputMessage` entries by concatenating their content and preserving
   // any attached `userInputMessageContext` (e.g. accumulated toolResults).
+  //
+  // Why this is not redundant with the `flushPending` grouping in the main
+  // loop: the assistant branch resets `currentRole = null` after emitting
+  // `toolUses`. Any following `tool` role (normalized to user) and a
+  // subsequent `user` role therefore each open their own flush, producing
+  // two adjacent `userInputMessage` entries in history. This pass collapses
+  // those.
   const mergedHistory: typeof history = [];
   for (const item of history) {
     const previous = mergedHistory[mergedHistory.length - 1];
@@ -312,8 +319,6 @@ function convertMessages(messages, tools, model) {
           const existing = (previousContext as Record<string, unknown>)[key];
           if (Array.isArray(existing) && Array.isArray(value)) {
             mergedContext[key] = [...existing, ...value];
-          } else if (existing === undefined) {
-            mergedContext[key] = value;
           } else {
             mergedContext[key] = value;
           }
