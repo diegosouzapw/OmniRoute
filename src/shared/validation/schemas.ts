@@ -292,6 +292,7 @@ export const createProviderSchema = z
 export const createKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   noLog: z.boolean().optional(),
+  scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
 });
 
 export const createSyncTokenSchema = z.object({
@@ -375,6 +376,7 @@ const comboRuntimeConfigSchema = z
     strategy: comboStrategySchema.optional(),
     maxRetries: z.coerce.number().int().min(0).max(10).optional(),
     retryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
+    fallbackDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     timeoutMs: z.coerce.number().int().min(1000).optional(),
     concurrencyPerModel: z.coerce.number().int().min(1).max(20).optional(),
     queueTimeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
@@ -395,6 +397,10 @@ const comboRuntimeConfigSchema = z
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
     compositeTiers: compositeTiersSchema.optional(),
+    resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),
+    resetAwareTieBandPercent: z.coerce.number().min(0).max(100).optional(),
+    resetAwareExhaustionGuardPercent: z.coerce.number().min(0).max(100).optional(),
   })
   .strict();
 
@@ -439,6 +445,7 @@ export const updateSettingsSchema = z.object({
   bruteForceProtection: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+  codexServiceTier: z.object({ enabled: z.boolean() }).optional(),
   // Routing settings (#134)
   fallbackStrategy: settingsFallbackStrategySchema.optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -1325,7 +1332,7 @@ export const updateComboSchema = z
     system_message: z.string().max(50000).optional(),
     tool_filter_regex: z.string().max(1000).optional(),
     context_cache_protection: z.boolean().optional(),
-    context_length: z.number().int().min(1000).max(2000000).optional(),
+    context_length: z.number().int().min(1000).max(2000000).optional().nullable(),
     compressionOverride: comboCompressionOverrideSchema.optional(),
   })
   .superRefine((value, ctx) => {
@@ -1458,8 +1465,21 @@ export const updateKeyPermissionsSchema = z
     noLog: z.boolean().optional(),
     autoResolve: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    isBanned: z.boolean().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
     maxSessions: z.number().int().min(0).max(10000).optional(),
     accessSchedule: z.union([accessScheduleSchema, z.null()]).optional(),
+    rateLimits: z
+      .union([
+        z
+          .array(
+            z.object({ limit: z.number().int().positive(), window: z.number().int().positive() })
+          )
+          .max(50),
+        z.null(),
+      ])
+      .optional(),
+    scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1469,8 +1489,12 @@ export const updateKeyPermissionsSchema = z
       value.noLog === undefined &&
       value.autoResolve === undefined &&
       value.isActive === undefined &&
+      value.isBanned === undefined &&
+      value.expiresAt === undefined &&
       value.maxSessions === undefined &&
-      value.accessSchedule === undefined
+      value.accessSchedule === undefined &&
+      value.rateLimits === undefined &&
+      value.scopes === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1557,6 +1581,7 @@ export const updateProviderConnectionSchema = z
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
+    projectId: z.union([z.string(), z.null()]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
       .record(z.string(), z.unknown())

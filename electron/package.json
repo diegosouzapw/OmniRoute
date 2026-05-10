@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.7.9",
+  "version": "3.8.0",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -22,12 +22,12 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0",
-    "electron-updater": "^6.8.3"
+    "better-sqlite3": "^12.9.0",
+    "electron-updater": "^6.8.5"
   },
   "devDependencies": {
-    "electron": "^41.2.0",
-    "electron-builder": "^26.8.1"
+    "electron": "^41.5.1",
+    "electron-builder": "^26.9.1"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.9.10",

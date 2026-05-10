@@ -1,0 +1,2095 @@
+- generic [active] [ref=e1]:
+    - link "Skip to content" [ref=e2] [cursor=pointer]:
+        - /url: "#main-content"
+    - alert [ref=e9]
+    - generic [ref=e26]:
+        - complementary [ref=e28]:
+            - link "Skip to content" [ref=e29] [cursor=pointer]:
+                - /url: "#main-content"
+            - link "OmniRoute v3.7.9" [ref=e35] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e37]
+                - generic [ref=e49]:
+                    - heading "OmniRoute" [level=1] [ref=e50]
+                    - generic [ref=e51]: v3.7.9
+            - navigation "Main navigation" [ref=e52]:
+                - generic [ref=e53]:
+                    - link "home Home" [ref=e54] [cursor=pointer]:
+                        - /url: /dashboard
+                        - generic [ref=e55]: home
+                        - generic [ref=e56]: Home
+                    - link "api Endpoints" [ref=e57] [cursor=pointer]:
+                        - /url: /dashboard/endpoint
+                        - generic [ref=e58]: api
+                        - generic [ref=e59]: Endpoints
+                    - link "vpn_key API Manager" [ref=e60] [cursor=pointer]:
+                        - /url: /dashboard/api-manager
+                        - generic [ref=e61]: vpn_key
+                        - generic [ref=e62]: API Manager
+                    - link "dns Providers" [ref=e63] [cursor=pointer]:
+                        - /url: /dashboard/providers
+                        - generic [ref=e64]: dns
+                        - generic [ref=e65]: Providers
+                    - link "layers Combos" [ref=e66] [cursor=pointer]:
+                        - /url: /dashboard/combos
+                        - generic [ref=e67]: layers
+                        - generic [ref=e68]: Combos
+                    - link "view_list Batch Testing" [ref=e69] [cursor=pointer]:
+                        - /url: /dashboard/batch
+                        - generic [ref=e70]: view_list
+                        - generic [ref=e71]: Batch Testing
+                    - link "account_balance_wallet Costs" [ref=e72] [cursor=pointer]:
+                        - /url: /dashboard/costs
+                        - generic [ref=e73]: account_balance_wallet
+                        - generic [ref=e74]: Costs
+                    - link "analytics Analytics" [ref=e75] [cursor=pointer]:
+                        - /url: /dashboard/analytics
+                        - generic [ref=e76]: analytics
+                        - generic [ref=e77]: Analytics
+                    - link "cached Cache" [ref=e78] [cursor=pointer]:
+                        - /url: /dashboard/cache
+                        - generic [ref=e79]: cached
+                        - generic [ref=e80]: Cache
+                    - link "tune Limits & Quotas" [ref=e81] [cursor=pointer]:
+                        - /url: /dashboard/limits
+                        - generic [ref=e82]: tune
+                        - generic [ref=e83]: Limits & Quotas
+                    - link "perm_media Media" [ref=e84] [cursor=pointer]:
+                        - /url: /dashboard/cache/media
+                        - generic [ref=e85]: perm_media
+                        - generic [ref=e86]: Media
+                - generic [ref=e87]:
+                    - paragraph [ref=e88]: Context & Cache
+                    - link "compress Caveman" [ref=e89] [cursor=pointer]:
+                        - /url: /dashboard/context/caveman
+                        - generic [ref=e90]: compress
+                        - generic [ref=e91]: Caveman
+                    - link "filter_alt RTK" [ref=e92] [cursor=pointer]:
+                        - /url: /dashboard/context/rtk
+                        - generic [ref=e93]: filter_alt
+                        - generic [ref=e94]: RTK
+                    - link "hub Compression Combos" [ref=e95] [cursor=pointer]:
+                        - /url: /dashboard/context/combos
+                        - generic [ref=e96]: hub
+                        - generic [ref=e97]: Compression Combos
+                - generic [ref=e98]:
+                    - paragraph [ref=e99]: CLI
+                    - link "terminal Tools" [ref=e100] [cursor=pointer]:
+                        - /url: /dashboard/cli-tools
+                        - generic [ref=e101]: terminal
+                        - generic [ref=e102]: Tools
+                    - link "smart_toy Agents" [ref=e103] [cursor=pointer]:
+                        - /url: /dashboard/agents
+                        - generic [ref=e104]: smart_toy
+                        - generic [ref=e105]: Agents
+                    - link "psychology Memory" [ref=e106] [cursor=pointer]:
+                        - /url: /dashboard/memory
+                        - generic [ref=e107]: psychology
+                        - generic [ref=e108]: Memory
+                    - link "auto_fix_high Skills" [ref=e109] [cursor=pointer]:
+                        - /url: /dashboard/skills
+                        - generic [ref=e110]: auto_fix_high
+                        - generic [ref=e111]: Skills
+                - generic [ref=e112]:
+                    - paragraph [ref=e113]: Debug
+                    - link "science Playground" [ref=e114] [cursor=pointer]:
+                        - /url: /dashboard/playground
+                        - generic [ref=e115]: science
+                        - generic [ref=e116]: Playground
+                    - link "manage_search Search Tools" [ref=e117] [cursor=pointer]:
+                        - /url: /dashboard/search-tools
+                        - generic [ref=e118]: manage_search
+                        - generic [ref=e119]: Search Tools
+                - generic [ref=e120]:
+                    - paragraph [ref=e121]: System
+                    - link "description Logs" [ref=e122] [cursor=pointer]:
+                        - /url: /dashboard/logs
+                        - generic [ref=e123]: description
+                        - generic [ref=e124]: Logs
+                    - link "policy Audit Log" [ref=e125] [cursor=pointer]:
+                        - /url: /dashboard/audit
+                        - generic [ref=e126]: policy
+                        - generic [ref=e127]: Audit Log
+                    - link "webhook Webhooks" [ref=e128] [cursor=pointer]:
+                        - /url: /dashboard/webhooks
+                        - generic [ref=e129]: webhook
+                        - generic [ref=e130]: Webhooks
+                    - link "health_and_safety Health" [ref=e131] [cursor=pointer]:
+                        - /url: /dashboard/health
+                        - generic [ref=e132]: health_and_safety
+                        - generic [ref=e133]: Health
+                    - link "dns Proxy" [ref=e134] [cursor=pointer]:
+                        - /url: /dashboard/system/proxy
+                        - generic [ref=e135]: dns
+                        - generic [ref=e136]: Proxy
+                    - link "settings Settings" [ref=e137] [cursor=pointer]:
+                        - /url: /dashboard/settings
+                        - generic [ref=e138]: settings
+                        - generic [ref=e139]: Settings
+                - generic [ref=e140]:
+                    - paragraph [ref=e141]: Help
+                    - link "menu_book Docs" [ref=e142] [cursor=pointer]:
+                        - /url: /docs
+                        - generic [ref=e143]: menu_book
+                        - generic [ref=e144]: Docs
+                    - link "bug_report Issues" [ref=e145] [cursor=pointer]:
+                        - /url: https://github.com/diegosouzapw/OmniRoute/issues
+                        - generic [ref=e146]: bug_report
+                        - generic [ref=e147]: Issues
+                    - link "campaign Changelog" [ref=e148] [cursor=pointer]:
+                        - /url: /dashboard/changelog
+                        - generic [ref=e149]: campaign
+                        - generic [ref=e150]: Changelog
+            - generic [ref=e151]:
+                - button "restart_alt Restart" [ref=e152]:
+                    - generic: restart_alt
+                    - text: Restart
+                - button "power_settings_new Shutdown" [ref=e153]:
+                    - generic: power_settings_new
+                    - text: Shutdown
+        - main [ref=e154]:
+            - generic [ref=e155]:
+                - button "menu" [ref=e157]:
+                    - generic: menu
+                - generic [ref=e158]:
+                    - button "🇺🇸 EN expand_more" [ref=e160]:
+                        - generic [ref=e161]: 🇺🇸
+                        - generic [ref=e162]: EN
+                        - generic: expand_more
+                    - button "Switch to light mode" [ref=e163]:
+                        - generic: light_mode
+                    - button "error 34" [ref=e165]:
+                        - generic: error
+                        - generic [ref=e166]: "34"
+                    - button "logout" [ref=e167]:
+                        - generic: logout
+            - generic [ref=e170]:
+                - generic [ref=e172]:
+                    - generic [ref=e173]:
+                        - generic [ref=e174]:
+                            - heading "Quick Start" [level=2] [ref=e175]
+                            - paragraph [ref=e176]: Get up and running in 4 steps. Connect providers, route models, monitor everything.
+                        - link "menu_book Full Docs" [ref=e177] [cursor=pointer]:
+                            - /url: /docs
+                            - generic [ref=e178]: menu_book
+                            - text: Full Docs
+                    - list [ref=e179]:
+                        - listitem [ref=e180]:
+                            - generic [ref=e182]: key
+                            - generic [ref=e183]:
+                                - text: 1. Create API key
+                                - paragraph [ref=e184]:
+                                    - text: Go to
+                                    - link "Endpoint" [ref=e185] [cursor=pointer]:
+                                        - /url: /dashboard/endpoint
+                                    - text: "-> Registered Keys. Generate one key per environment."
+                        - listitem [ref=e186]:
+                            - generic [ref=e188]: dns
+                            - generic [ref=e189]:
+                                - text: 2. Connect providers
+                                - paragraph [ref=e190]:
+                                    - text: Add accounts in
+                                    - link "Providers" [ref=e191] [cursor=pointer]:
+                                        - /url: /dashboard/providers
+                                    - text: . Supports OAuth, API Key, and free tiers.
+                        - listitem [ref=e192]:
+                            - generic [ref=e194]: link
+                            - generic [ref=e195]:
+                                - text: 3. Point your client
+                                - paragraph [ref=e196]: Set base URL to https://ai.aitradepulse.com/v1 in your IDE or API client.
+                        - listitem [ref=e197]:
+                            - generic [ref=e199]: analytics
+                            - generic [ref=e200]:
+                                - text: 4. Monitor & optimize
+                                - paragraph [ref=e201]:
+                                    - text: Track tokens, cost and errors in
+                                    - link "Request Logs" [ref=e202] [cursor=pointer]:
+                                        - /url: /dashboard/logs
+                                    - text: and
+                                    - link "Analytics" [ref=e203] [cursor=pointer]:
+                                        - /url: /dashboard/analytics
+                                    - text: .
+                    - generic [ref=e204]:
+                        - link "menu_book Documentation" [ref=e205] [cursor=pointer]:
+                            - /url: /docs
+                            - generic [ref=e206]: menu_book
+                            - text: Documentation
+                        - link "dns Providers" [ref=e207] [cursor=pointer]:
+                            - /url: /dashboard/providers
+                            - generic [ref=e208]: dns
+                            - text: Providers
+                        - link "layers Combos" [ref=e209] [cursor=pointer]:
+                            - /url: /dashboard/combos
+                            - generic [ref=e210]: layers
+                            - text: Combos
+                        - link "analytics Analytics" [ref=e211] [cursor=pointer]:
+                            - /url: /dashboard/analytics
+                            - generic [ref=e212]: analytics
+                            - text: Analytics
+                        - link "health_and_safety Health Monitor" [ref=e213] [cursor=pointer]:
+                            - /url: /dashboard/health
+                            - generic [ref=e214]: health_and_safety
+                            - text: Health Monitor
+                        - link "terminal CLI Tools" [ref=e215] [cursor=pointer]:
+                            - /url: /dashboard/cli-tools
+                            - generic [ref=e216]: terminal
+                            - text: CLI Tools
+                        - link "bug_report Report issue" [ref=e217] [cursor=pointer]:
+                            - /url: https://github.com/diegosouzapw/OmniRoute/issues
+                            - generic [ref=e218]: bug_report
+                            - text: Report issue
+                - generic [ref=e219]:
+                    - generic [ref=e220]:
+                        - generic [ref=e221]:
+                            - heading "Providers Overview" [level=2] [ref=e222]
+                            - paragraph [ref=e223]: 32 configured of 160 available providers
+                        - generic [ref=e224]:
+                            - generic [ref=e225]:
+                                - generic [ref=e226]: Free
+                                - generic [ref=e228]: OAuth
+                                - generic [ref=e230]: API Key
+                            - link "settings Manage" [ref=e232] [cursor=pointer]:
+                                - /url: /dashboard/providers
+                                - generic [ref=e233]: settings
+                                - text: Manage
+                    - generic [ref=e234]:
+                        - button "qoder Qoder AI Free Not configured 0 models" [ref=e235] [cursor=pointer]:
+                            - generic [ref=e236]:
+                                - img "qoder" [ref=e239]
+                                - generic [ref=e242]:
+                                    - generic [ref=e243]:
+                                        - paragraph [ref=e244]: Qoder AI
+                                        - generic "Free" [ref=e245]
+                                    - paragraph [ref=e246]: Not configured
+                                - generic [ref=e247]:
+                                    - paragraph [ref=e248]: "0"
+                                    - paragraph [ref=e249]: models
+                        - button "qwen Qwen Code Free 0 active · 0 error 0/1 reqs 0% ~887ms 0 models" [ref=e250] [cursor=pointer]:
+                            - generic [ref=e251]:
+                                - img "qwen" [ref=e254]
+                                - generic [ref=e256]:
+                                    - generic [ref=e257]:
+                                        - paragraph [ref=e258]: Qwen Code
+                                        - generic "Free" [ref=e259]
+                                    - paragraph [ref=e260]: 0 active · 0 error
+                                    - generic [ref=e261]:
+                                        - generic [ref=e262]: 0/1 reqs
+                                        - generic [ref=e263]: 0%
+                                        - generic [ref=e264]: ~887ms
+                                - generic [ref=e265]:
+                                    - paragraph [ref=e266]: "0"
+                                    - paragraph [ref=e267]: models
+                        - button "gemini-cli Gemini CLI Free 5 active · 0 error 4 models" [ref=e268] [cursor=pointer]:
+                            - generic [ref=e269]:
+                                - img "gemini-cli" [ref=e272]
+                                - generic [ref=e275]:
+                                    - generic [ref=e276]:
+                                        - paragraph [ref=e277]: Gemini CLI
+                                        - generic "Free" [ref=e278]
+                                    - paragraph [ref=e279]: 5 active · 0 error
+                                - generic [ref=e280]:
+                                    - paragraph [ref=e281]: "4"
+                                    - paragraph [ref=e282]: models
+                        - button "kiro Kiro AI Free 25 active · 0 error 2684/24570 reqs 11% ~1878ms 5 models" [ref=e283] [cursor=pointer]:
+                            - generic [ref=e284]:
+                                - img "kiro" [ref=e287]
+                                - generic [ref=e288]:
+                                    - generic [ref=e289]:
+                                        - paragraph [ref=e290]: Kiro AI
+                                        - generic "Free" [ref=e291]
+                                    - paragraph [ref=e292]: 25 active · 0 error
+                                    - generic [ref=e293]:
+                                        - generic [ref=e294]: 2684/24570 reqs
+                                        - generic [ref=e295]: 11%
+                                        - generic [ref=e296]: ~1878ms
+                                - generic [ref=e297]:
+                                    - paragraph [ref=e298]: "5"
+                                    - paragraph [ref=e299]: models
+                        - button "amazon-q Amazon Q Free Not configured 0 models" [ref=e300] [cursor=pointer]:
+                            - generic [ref=e301]:
+                                - img "amazon-q" [ref=e304]
+                                - generic [ref=e307]:
+                                    - generic [ref=e308]:
+                                        - paragraph [ref=e309]: Amazon Q
+                                        - generic "Free" [ref=e310]
+                                    - paragraph [ref=e311]: Not configured
+                                - generic [ref=e312]:
+                                    - paragraph [ref=e313]: "0"
+                                    - paragraph [ref=e314]: models
+                        - button "claude Claude Code OAuth 0 active · 1 error 0/1 reqs 0% ~3396ms 5 models" [ref=e315] [cursor=pointer]:
+                            - generic [ref=e316]:
+                                - img "claude" [ref=e319]
+                                - generic [ref=e321]:
+                                    - generic [ref=e322]:
+                                        - paragraph [ref=e323]: Claude Code
+                                        - generic "OAuth" [ref=e324]
+                                    - paragraph [ref=e325]: 0 active · 1 error
+                                    - generic [ref=e326]:
+                                        - generic [ref=e327]: 0/1 reqs
+                                        - generic [ref=e328]: 0%
+                                        - generic [ref=e329]: ~3396ms
+                                - generic [ref=e330]:
+                                    - paragraph [ref=e331]: "5"
+                                    - paragraph [ref=e332]: models
+                        - button "antigravity Antigravity OAuth 28 active · 0 error 28/5852 reqs 0% ~1508ms 9 models" [ref=e333] [cursor=pointer]:
+                            - generic [ref=e334]:
+                                - img "antigravity" [ref=e337]
+                                - generic [ref=e361]:
+                                    - generic [ref=e362]:
+                                        - paragraph [ref=e363]: Antigravity
+                                        - generic "OAuth" [ref=e364]
+                                    - paragraph [ref=e365]: 28 active · 0 error
+                                    - generic [ref=e366]:
+                                        - generic [ref=e367]: 28/5852 reqs
+                                        - generic [ref=e368]: 0%
+                                        - generic [ref=e369]: ~1508ms
+                                - generic [ref=e370]:
+                                    - paragraph [ref=e371]: "9"
+                                    - paragraph [ref=e372]: models
+                        - button "codex OpenAI Codex OAuth 0 active · 0 error 0 models" [ref=e373] [cursor=pointer]:
+                            - generic [ref=e374]:
+                                - img "codex" [ref=e377]
+                                - generic [ref=e380]:
+                                    - generic [ref=e381]:
+                                        - paragraph [ref=e382]: OpenAI Codex
+                                        - generic "OAuth" [ref=e383]
+                                    - paragraph [ref=e384]: 0 active · 0 error
+                                - generic [ref=e385]:
+                                    - paragraph [ref=e386]: "0"
+                                    - paragraph [ref=e387]: models
+                        - button "github GitHub Copilot OAuth 3 active · 0 error 2453/15467 reqs 16% ~4615ms 16 models" [ref=e388] [cursor=pointer]:
+                            - generic [ref=e389]:
+                                - img "github" [ref=e392]
+                                - generic [ref=e394]:
+                                    - generic [ref=e395]:
+                                        - paragraph [ref=e396]: GitHub Copilot
+                                        - generic "OAuth" [ref=e397]
+                                    - paragraph [ref=e398]: 3 active · 0 error
+                                    - generic [ref=e399]:
+                                        - generic [ref=e400]: 2453/15467 reqs
+                                        - generic [ref=e401]: 16%
+                                        - generic [ref=e402]: ~4615ms
+                                - generic [ref=e403]:
+                                    - paragraph [ref=e404]: "16"
+                                    - paragraph [ref=e405]: models
+                        - button "gitlab-duo GitLab Duo OAuth Not configured 0 models" [ref=e406] [cursor=pointer]:
+                            - generic [ref=e407]:
+                                - img "gitlab-duo" [ref=e410]
+                                - generic [ref=e411]:
+                                    - generic [ref=e412]:
+                                        - paragraph [ref=e413]: GitLab Duo
+                                        - generic "OAuth" [ref=e414]
+                                    - paragraph [ref=e415]: Not configured
+                                - generic [ref=e416]:
+                                    - paragraph [ref=e417]: "0"
+                                    - paragraph [ref=e418]: models
+                        - button "cursor Cursor IDE OAuth Not configured 0 models" [ref=e419] [cursor=pointer]:
+                            - generic [ref=e420]:
+                                - img "cursor" [ref=e423]
+                                - generic [ref=e425]:
+                                    - generic [ref=e426]:
+                                        - paragraph [ref=e427]: Cursor IDE
+                                        - generic "OAuth" [ref=e428]
+                                    - paragraph [ref=e429]: Not configured
+                                - generic [ref=e430]:
+                                    - paragraph [ref=e431]: "0"
+                                    - paragraph [ref=e432]: models
+                        - button "kimi-coding Kimi Coding OAuth 0 active · 33 error 0/33 reqs 0% ~1298ms 2 models" [ref=e433] [cursor=pointer]:
+                            - generic [ref=e434]:
+                                - img "kimi-coding" [ref=e437]
+                                - generic [ref=e440]:
+                                    - generic [ref=e441]:
+                                        - paragraph [ref=e442]: Kimi Coding
+                                        - generic "OAuth" [ref=e443]
+                                    - paragraph [ref=e444]: 0 active · 33 error
+                                    - generic [ref=e445]:
+                                        - generic [ref=e446]: 0/33 reqs
+                                        - generic [ref=e447]: 0%
+                                        - generic [ref=e448]: ~1298ms
+                                - generic [ref=e449]:
+                                    - paragraph [ref=e450]: "2"
+                                    - paragraph [ref=e451]: models
+                        - button "kilocode Kilo Code OAuth 32 active · 0 error 40/40 reqs 100% ~2265ms 15 models" [ref=e452] [cursor=pointer]:
+                            - generic [ref=e453]:
+                                - img "kilocode" [ref=e456]
+                                - generic [ref=e458]:
+                                    - generic [ref=e459]:
+                                        - paragraph [ref=e460]: Kilo Code
+                                        - generic "OAuth" [ref=e461]
+                                    - paragraph [ref=e462]: 32 active · 0 error
+                                    - generic [ref=e463]:
+                                        - generic [ref=e464]: 40/40 reqs
+                                        - generic [ref=e465]: 100%
+                                        - generic [ref=e466]: ~2265ms
+                                - generic [ref=e467]:
+                                    - paragraph [ref=e468]: "15"
+                                    - paragraph [ref=e469]: models
+                        - button "cline Cline OAuth 0 active · 0 error 0 models" [ref=e470] [cursor=pointer]:
+                            - generic [ref=e471]:
+                                - img "cline" [ref=e474]
+                                - generic [ref=e477]:
+                                    - generic [ref=e478]:
+                                        - paragraph [ref=e479]: Cline
+                                        - generic "OAuth" [ref=e480]
+                                    - paragraph [ref=e481]: 0 active · 0 error
+                                - generic [ref=e482]:
+                                    - paragraph [ref=e483]: "0"
+                                    - paragraph [ref=e484]: models
+                        - button "AgentRouter API Key 0 active · 0 error 8 models" [ref=e485] [cursor=pointer]:
+                            - generic [ref=e486]:
+                                - img [ref=e489]
+                                - generic [ref=e492]:
+                                    - generic [ref=e493]:
+                                        - paragraph [ref=e494]: AgentRouter
+                                        - generic "API Key" [ref=e495]
+                                    - paragraph [ref=e496]: 0 active · 0 error
+                                - generic [ref=e497]:
+                                    - paragraph [ref=e498]: "8"
+                                    - paragraph [ref=e499]: models
+                        - button "openrouter OpenRouter API Key 0 active · 0 error 0/2 reqs 0% ~928ms 1 models" [ref=e500] [cursor=pointer]:
+                            - generic [ref=e501]:
+                                - img "openrouter" [ref=e504]
+                                - generic [ref=e506]:
+                                    - generic [ref=e507]:
+                                        - paragraph [ref=e508]: OpenRouter
+                                        - generic "API Key" [ref=e509]
+                                    - paragraph [ref=e510]: 0 active · 0 error
+                                    - generic [ref=e511]:
+                                        - generic [ref=e512]: 0/2 reqs
+                                        - generic [ref=e513]: 0%
+                                        - generic [ref=e514]: ~928ms
+                                - generic [ref=e515]:
+                                    - paragraph [ref=e516]: "1"
+                                    - paragraph [ref=e517]: models
+                        - button "qianfan Baidu Qianfan API Key Not configured 0 models" [ref=e518] [cursor=pointer]:
+                            - generic [ref=e519]:
+                                - img "qianfan" [ref=e522]
+                                - generic [ref=e523]:
+                                    - generic [ref=e524]:
+                                        - paragraph [ref=e525]: Baidu Qianfan
+                                        - generic "API Key" [ref=e526]
+                                    - paragraph [ref=e527]: Not configured
+                                - generic [ref=e528]:
+                                    - paragraph [ref=e529]: "0"
+                                    - paragraph [ref=e530]: models
+                        - button "glm GLM Coding API Key 0 active · 0 error 10 models" [ref=e531] [cursor=pointer]:
+                            - generic [ref=e532]:
+                                - img "glm" [ref=e535]
+                                - generic [ref=e537]:
+                                    - generic [ref=e538]:
+                                        - paragraph [ref=e539]: GLM Coding
+                                        - generic "API Key" [ref=e540]
+                                    - paragraph [ref=e541]: 0 active · 0 error
+                                - generic [ref=e542]:
+                                    - paragraph [ref=e543]: "10"
+                                    - paragraph [ref=e544]: models
+                        - button "glm-cn GLM Coding (China) API Key Not configured 0 models" [ref=e545] [cursor=pointer]:
+                            - generic [ref=e546]:
+                                - img "glm-cn" [ref=e549]
+                                - generic [ref=e551]:
+                                    - generic [ref=e552]:
+                                        - paragraph [ref=e553]: GLM Coding (China)
+                                        - generic "API Key" [ref=e554]
+                                    - paragraph [ref=e555]: Not configured
+                                - generic [ref=e556]:
+                                    - paragraph [ref=e557]: "0"
+                                    - paragraph [ref=e558]: models
+                        - button "glmt GLM Thinking API Key Not configured 0 models" [ref=e559] [cursor=pointer]:
+                            - generic [ref=e560]:
+                                - img "glmt" [ref=e563]
+                                - generic [ref=e565]:
+                                    - generic [ref=e566]:
+                                        - paragraph [ref=e567]: GLM Thinking
+                                        - generic "API Key" [ref=e568]
+                                    - paragraph [ref=e569]: Not configured
+                                - generic [ref=e570]:
+                                    - paragraph [ref=e571]: "0"
+                                    - paragraph [ref=e572]: models
+                        - button "bailian-coding-plan Alibaba Coding Plan API Key Not configured 0 models" [ref=e573] [cursor=pointer]:
+                            - generic [ref=e574]:
+                                - img "bailian-coding-plan" [ref=e577]
+                                - generic [ref=e585]:
+                                    - generic [ref=e586]:
+                                        - paragraph [ref=e587]: Alibaba Coding Plan
+                                        - generic "API Key" [ref=e588]
+                                    - paragraph [ref=e589]: Not configured
+                                - generic [ref=e590]:
+                                    - paragraph [ref=e591]: "0"
+                                    - paragraph [ref=e592]: models
+                        - button "kimi Kimi API Key Not configured 0 models" [ref=e593] [cursor=pointer]:
+                            - generic [ref=e594]:
+                                - img "kimi" [ref=e597]
+                                - generic [ref=e600]:
+                                    - generic [ref=e601]:
+                                        - paragraph [ref=e602]: Kimi
+                                        - generic "API Key" [ref=e603]
+                                    - paragraph [ref=e604]: Not configured
+                                - generic [ref=e605]:
+                                    - paragraph [ref=e606]: "0"
+                                    - paragraph [ref=e607]: models
+                        - button "kimi-coding-apikey Kimi Coding (API Key) API Key Not configured 0 models" [ref=e608] [cursor=pointer]:
+                            - generic [ref=e609]:
+                                - img "kimi-coding-apikey" [ref=e612]
+                                - generic [ref=e615]:
+                                    - generic [ref=e616]:
+                                        - paragraph [ref=e617]: Kimi Coding (API Key)
+                                        - generic "API Key" [ref=e618]
+                                    - paragraph [ref=e619]: Not configured
+                                - generic [ref=e620]:
+                                    - paragraph [ref=e621]: "0"
+                                    - paragraph [ref=e622]: models
+                        - button "minimax Minimax Coding API Key Not configured 0 models" [ref=e623] [cursor=pointer]:
+                            - generic [ref=e624]:
+                                - img "minimax" [ref=e627]
+                                - generic [ref=e629]:
+                                    - generic [ref=e630]:
+                                        - paragraph [ref=e631]: Minimax Coding
+                                        - generic "API Key" [ref=e632]
+                                    - paragraph [ref=e633]: Not configured
+                                - generic [ref=e634]:
+                                    - paragraph [ref=e635]: "0"
+                                    - paragraph [ref=e636]: models
+                        - button "minimax-cn Minimax (China) API Key Not configured 0 models" [ref=e637] [cursor=pointer]:
+                            - generic [ref=e638]:
+                                - img "minimax-cn" [ref=e641]
+                                - generic [ref=e643]:
+                                    - generic [ref=e644]:
+                                        - paragraph [ref=e645]: Minimax (China)
+                                        - generic "API Key" [ref=e646]
+                                    - paragraph [ref=e647]: Not configured
+                                - generic [ref=e648]:
+                                    - paragraph [ref=e649]: "0"
+                                    - paragraph [ref=e650]: models
+                        - button "CrofAI API Key Not configured 0 models" [ref=e651] [cursor=pointer]:
+                            - generic [ref=e652]:
+                                - img [ref=e655]
+                                - generic [ref=e658]:
+                                    - generic [ref=e659]:
+                                        - paragraph [ref=e660]: CrofAI
+                                        - generic "API Key" [ref=e661]
+                                    - paragraph [ref=e662]: Not configured
+                                - generic [ref=e663]:
+                                    - paragraph [ref=e664]: "0"
+                                    - paragraph [ref=e665]: models
+                        - button "alicode Alibaba API Key Not configured 0 models" [ref=e666] [cursor=pointer]:
+                            - generic [ref=e667]:
+                                - img "alicode" [ref=e670]
+                                - generic [ref=e672]:
+                                    - generic [ref=e673]:
+                                        - paragraph [ref=e674]: Alibaba
+                                        - generic "API Key" [ref=e675]
+                                    - paragraph [ref=e676]: Not configured
+                                - generic [ref=e677]:
+                                    - paragraph [ref=e678]: "0"
+                                    - paragraph [ref=e679]: models
+                        - button "alicode-intl Alibaba Intl API Key Not configured 0 models" [ref=e680] [cursor=pointer]:
+                            - generic [ref=e681]:
+                                - img "alicode-intl" [ref=e684]
+                                - generic [ref=e686]:
+                                    - generic [ref=e687]:
+                                        - paragraph [ref=e688]: Alibaba Intl
+                                        - generic "API Key" [ref=e689]
+                                    - paragraph [ref=e690]: Not configured
+                                - generic [ref=e691]:
+                                    - paragraph [ref=e692]: "0"
+                                    - paragraph [ref=e693]: models
+                        - button "openai OpenAI API Key 0 active · 2 error 0/2 reqs 0% ~3711ms 8 models" [ref=e694] [cursor=pointer]:
+                            - generic [ref=e695]:
+                                - img "openai" [ref=e698]
+                                - generic [ref=e700]:
+                                    - generic [ref=e701]:
+                                        - paragraph [ref=e702]: OpenAI
+                                        - generic "API Key" [ref=e703]
+                                    - paragraph [ref=e704]: 0 active · 2 error
+                                    - generic [ref=e705]:
+                                        - generic [ref=e706]: 0/2 reqs
+                                        - generic [ref=e707]: 0%
+                                        - generic [ref=e708]: ~3711ms
+                                - generic [ref=e709]:
+                                    - paragraph [ref=e710]: "8"
+                                    - paragraph [ref=e711]: models
+                        - button "azure-openai Azure OpenAI API Key Not configured 0 models" [ref=e712] [cursor=pointer]:
+                            - generic [ref=e713]:
+                                - img "azure-openai" [ref=e716]
+                                - generic [ref=e720]:
+                                    - generic [ref=e721]:
+                                        - paragraph [ref=e722]: Azure OpenAI
+                                        - generic "API Key" [ref=e723]
+                                    - paragraph [ref=e724]: Not configured
+                                - generic [ref=e725]:
+                                    - paragraph [ref=e726]: "0"
+                                    - paragraph [ref=e727]: models
+                        - button "azure-ai Azure AI Foundry API Key Not configured 0 models" [ref=e728] [cursor=pointer]:
+                            - generic [ref=e729]:
+                                - img "azure-ai" [ref=e732]
+                                - generic [ref=e736]:
+                                    - generic [ref=e737]:
+                                        - paragraph [ref=e738]: Azure AI Foundry
+                                        - generic "API Key" [ref=e739]
+                                    - paragraph [ref=e740]: Not configured
+                                - generic [ref=e741]:
+                                    - paragraph [ref=e742]: "0"
+                                    - paragraph [ref=e743]: models
+                        - button "bedrock Amazon Bedrock API Key Not configured 0 models" [ref=e744] [cursor=pointer]:
+                            - generic [ref=e745]:
+                                - img "bedrock" [ref=e748]
+                                - generic [ref=e750]:
+                                    - generic [ref=e751]:
+                                        - paragraph [ref=e752]: Amazon Bedrock
+                                        - generic "API Key" [ref=e753]
+                                    - paragraph [ref=e754]: Not configured
+                                - generic [ref=e755]:
+                                    - paragraph [ref=e756]: "0"
+                                    - paragraph [ref=e757]: models
+                        - button "watsonx IBM watsonx.ai Gateway API Key Not configured 0 models" [ref=e758] [cursor=pointer]:
+                            - generic [ref=e759]:
+                                - img "watsonx" [ref=e762]
+                                - generic [ref=e764]:
+                                    - generic [ref=e765]:
+                                        - paragraph [ref=e766]: IBM watsonx.ai Gateway
+                                        - generic "API Key" [ref=e767]
+                                    - paragraph [ref=e768]: Not configured
+                                - generic [ref=e769]:
+                                    - paragraph [ref=e770]: "0"
+                                    - paragraph [ref=e771]: models
+                        - button "oci OCI Generative AI API Key Not configured 0 models" [ref=e772] [cursor=pointer]:
+                            - generic [ref=e773]:
+                                - img "oci" [ref=e776]
+                                - generic [ref=e777]:
+                                    - generic [ref=e778]:
+                                        - paragraph [ref=e779]: OCI Generative AI
+                                        - generic "API Key" [ref=e780]
+                                    - paragraph [ref=e781]: Not configured
+                                - generic [ref=e782]:
+                                    - paragraph [ref=e783]: "0"
+                                    - paragraph [ref=e784]: models
+                        - button "SAP Generative AI Hub API Key Not configured 0 models" [ref=e785] [cursor=pointer]:
+                            - generic [ref=e786]:
+                                - img [ref=e789]
+                                - generic [ref=e792]:
+                                    - generic [ref=e793]:
+                                        - paragraph [ref=e794]: SAP Generative AI Hub
+                                        - generic "API Key" [ref=e795]
+                                    - paragraph [ref=e796]: Not configured
+                                - generic [ref=e797]:
+                                    - paragraph [ref=e798]: "0"
+                                    - paragraph [ref=e799]: models
+                        - button "modal Modal API Key Not configured 0 models" [ref=e800] [cursor=pointer]:
+                            - generic [ref=e801]:
+                                - img "modal" [ref=e804]
+                                - generic [ref=e805]:
+                                    - generic [ref=e806]:
+                                        - paragraph [ref=e807]: Modal
+                                        - generic "API Key" [ref=e808]
+                                    - paragraph [ref=e809]: Not configured
+                                - generic [ref=e810]:
+                                    - paragraph [ref=e811]: "0"
+                                    - paragraph [ref=e812]: models
+                        - button "reka Reka API Key 2 active · 0 error 2 models" [ref=e813] [cursor=pointer]:
+                            - generic [ref=e814]:
+                                - img "reka" [ref=e817]
+                                - generic [ref=e818]:
+                                    - generic [ref=e819]:
+                                        - paragraph [ref=e820]: Reka
+                                        - generic "API Key" [ref=e821]
+                                    - paragraph [ref=e822]: 2 active · 0 error
+                                - generic [ref=e823]:
+                                    - paragraph [ref=e824]: "2"
+                                    - paragraph [ref=e825]: models
+                        - button "NLP Cloud API Key Not configured 0 models" [ref=e826] [cursor=pointer]:
+                            - generic [ref=e827]:
+                                - img [ref=e830]
+                                - generic [ref=e833]:
+                                    - generic [ref=e834]:
+                                        - paragraph [ref=e835]: NLP Cloud
+                                        - generic "API Key" [ref=e836]
+                                    - paragraph [ref=e837]: Not configured
+                                - generic [ref=e838]:
+                                    - paragraph [ref=e839]: "0"
+                                    - paragraph [ref=e840]: models
+                        - button "runwayml Runway API Key Not configured 0 models" [ref=e841] [cursor=pointer]:
+                            - generic [ref=e842]:
+                                - img "runwayml" [ref=e845]
+                                - generic [ref=e847]:
+                                    - generic [ref=e848]:
+                                        - paragraph [ref=e849]: Runway
+                                        - generic "API Key" [ref=e850]
+                                    - paragraph [ref=e851]: Not configured
+                                - generic [ref=e852]:
+                                    - paragraph [ref=e853]: "0"
+                                    - paragraph [ref=e854]: models
+                        - button "anthropic Anthropic API Key Not configured 0 models" [ref=e855] [cursor=pointer]:
+                            - generic [ref=e856]:
+                                - img "anthropic" [ref=e859]
+                                - generic [ref=e861]:
+                                    - generic [ref=e862]:
+                                        - paragraph [ref=e863]: Anthropic
+                                        - generic "API Key" [ref=e864]
+                                    - paragraph [ref=e865]: Not configured
+                                - generic [ref=e866]:
+                                    - paragraph [ref=e867]: "0"
+                                    - paragraph [ref=e868]: models
+                        - button "gemini Gemini (Google AI Studio) API Key 22 active · 3 error 844/13894 reqs 6% ~20068ms 0 models" [ref=e869] [cursor=pointer]:
+                            - generic [ref=e870]:
+                                - img "gemini" [ref=e873]
+                                - generic [ref=e878]:
+                                    - generic [ref=e879]:
+                                        - paragraph [ref=e880]: Gemini (Google AI Studio)
+                                        - generic "API Key" [ref=e881]
+                                    - paragraph [ref=e882]: 22 active · 3 error
+                                    - generic [ref=e883]:
+                                        - generic [ref=e884]: 844/13894 reqs
+                                        - generic [ref=e885]: 6%
+                                        - generic [ref=e886]: ~20068ms
+                                - generic [ref=e887]:
+                                    - paragraph [ref=e888]: "0"
+                                    - paragraph [ref=e889]: models
+                        - button "deepseek DeepSeek API Key Not configured 0 models" [ref=e890] [cursor=pointer]:
+                            - generic [ref=e891]:
+                                - img "deepseek" [ref=e894]
+                                - generic [ref=e896]:
+                                    - generic [ref=e897]:
+                                        - paragraph [ref=e898]: DeepSeek
+                                        - generic "API Key" [ref=e899]
+                                    - paragraph [ref=e900]: Not configured
+                                - generic [ref=e901]:
+                                    - paragraph [ref=e902]: "0"
+                                    - paragraph [ref=e903]: models
+                        - button "groq Groq API Key 2 active · 1 error 63/590 reqs 11% ~828ms 4 models" [ref=e904] [cursor=pointer]:
+                            - generic [ref=e905]:
+                                - img "groq" [ref=e908]
+                                - generic [ref=e910]:
+                                    - generic [ref=e911]:
+                                        - paragraph [ref=e912]: Groq
+                                        - generic "API Key" [ref=e913]
+                                    - paragraph [ref=e914]: 2 active · 1 error
+                                    - generic [ref=e915]:
+                                        - generic [ref=e916]: 63/590 reqs
+                                        - generic [ref=e917]: 11%
+                                        - generic [ref=e918]: ~828ms
+                                - generic [ref=e919]:
+                                    - paragraph [ref=e920]: "4"
+                                    - paragraph [ref=e921]: models
+                        - button "blackbox Blackbox AI API Key Not configured 0 models" [ref=e922] [cursor=pointer]:
+                            - generic [ref=e923]:
+                                - img "blackbox" [ref=e926]
+                                - generic [ref=e927]:
+                                    - generic [ref=e928]:
+                                        - paragraph [ref=e929]: Blackbox AI
+                                        - generic "API Key" [ref=e930]
+                                    - paragraph [ref=e931]: Not configured
+                                - generic [ref=e932]:
+                                    - paragraph [ref=e933]: "0"
+                                    - paragraph [ref=e934]: models
+                        - button "xai xAI (Grok) API Key 1 active · 1 error 0/24 reqs 0% ~720ms 6 models" [ref=e935] [cursor=pointer]:
+                            - generic [ref=e936]:
+                                - img "xai" [ref=e939]
+                                - generic [ref=e941]:
+                                    - generic [ref=e942]:
+                                        - paragraph [ref=e943]: xAI (Grok)
+                                        - generic "API Key" [ref=e944]
+                                    - paragraph [ref=e945]: 1 active · 1 error
+                                    - generic [ref=e946]:
+                                        - generic [ref=e947]: 0/24 reqs
+                                        - generic [ref=e948]: 0%
+                                        - generic [ref=e949]: ~720ms
+                                - generic [ref=e950]:
+                                    - paragraph [ref=e951]: "6"
+                                    - paragraph [ref=e952]: models
+                        - button "mistral Mistral API Key Not configured 0 models" [ref=e953] [cursor=pointer]:
+                            - generic [ref=e954]:
+                                - img "mistral" [ref=e957]
+                                - generic [ref=e963]:
+                                    - generic [ref=e964]:
+                                        - paragraph [ref=e965]: Mistral
+                                        - generic "API Key" [ref=e966]
+                                    - paragraph [ref=e967]: Not configured
+                                - generic [ref=e968]:
+                                    - paragraph [ref=e969]: "0"
+                                    - paragraph [ref=e970]: models
+                        - button "perplexity Perplexity API Key Not configured 0 models" [ref=e971] [cursor=pointer]:
+                            - generic [ref=e972]:
+                                - img "perplexity" [ref=e975]
+                                - generic [ref=e977]:
+                                    - generic [ref=e978]:
+                                        - paragraph [ref=e979]: Perplexity
+                                        - generic "API Key" [ref=e980]
+                                    - paragraph [ref=e981]: Not configured
+                                - generic [ref=e982]:
+                                    - paragraph [ref=e983]: "0"
+                                    - paragraph [ref=e984]: models
+                        - button "together Together AI API Key Not configured 0 models" [ref=e985] [cursor=pointer]:
+                            - generic [ref=e986]:
+                                - img "together" [ref=e989]
+                                - generic [ref=e993]:
+                                    - generic [ref=e994]:
+                                        - paragraph [ref=e995]: Together AI
+                                        - generic "API Key" [ref=e996]
+                                    - paragraph [ref=e997]: Not configured
+                                - generic [ref=e998]:
+                                    - paragraph [ref=e999]: "0"
+                                    - paragraph [ref=e1000]: models
+                        - button "fireworks Fireworks AI API Key Not configured 0 models" [ref=e1001] [cursor=pointer]:
+                            - generic [ref=e1002]:
+                                - img "fireworks" [ref=e1005]
+                                - generic [ref=e1007]:
+                                    - generic [ref=e1008]:
+                                        - paragraph [ref=e1009]: Fireworks AI
+                                        - generic "API Key" [ref=e1010]
+                                    - paragraph [ref=e1011]: Not configured
+                                - generic [ref=e1012]:
+                                    - paragraph [ref=e1013]: "0"
+                                    - paragraph [ref=e1014]: models
+                        - button "cerebras Cerebras API Key Not configured 0 models" [ref=e1015] [cursor=pointer]:
+                            - generic [ref=e1016]:
+                                - img "cerebras" [ref=e1019]
+                                - generic [ref=e1022]:
+                                    - generic [ref=e1023]:
+                                        - paragraph [ref=e1024]: Cerebras
+                                        - generic "API Key" [ref=e1025]
+                                    - paragraph [ref=e1026]: Not configured
+                                - generic [ref=e1027]:
+                                    - paragraph [ref=e1028]: "0"
+                                    - paragraph [ref=e1029]: models
+                        - button "cohere Cohere API Key Not configured 0 models" [ref=e1030] [cursor=pointer]:
+                            - generic [ref=e1031]:
+                                - img "cohere" [ref=e1034]
+                                - generic [ref=e1038]:
+                                    - generic [ref=e1039]:
+                                        - paragraph [ref=e1040]: Cohere
+                                        - generic "API Key" [ref=e1041]
+                                    - paragraph [ref=e1042]: Not configured
+                                - generic [ref=e1043]:
+                                    - paragraph [ref=e1044]: "0"
+                                    - paragraph [ref=e1045]: models
+                        - button "nvidia NVIDIA NIM API Key 0 active · 0 error 13 models" [ref=e1046] [cursor=pointer]:
+                            - generic [ref=e1047]:
+                                - img "nvidia" [ref=e1050]
+                                - generic [ref=e1052]:
+                                    - generic [ref=e1053]:
+                                        - paragraph [ref=e1054]: NVIDIA NIM
+                                        - generic "API Key" [ref=e1055]
+                                    - paragraph [ref=e1056]: 0 active · 0 error
+                                - generic [ref=e1057]:
+                                    - paragraph [ref=e1058]: "13"
+                                    - paragraph [ref=e1059]: models
+                        - button "nebius Nebius AI API Key Not configured 0 models" [ref=e1060] [cursor=pointer]:
+                            - generic [ref=e1061]:
+                                - img "nebius" [ref=e1064]
+                                - generic [ref=e1067]:
+                                    - generic [ref=e1068]:
+                                        - paragraph [ref=e1069]: Nebius AI
+                                        - generic "API Key" [ref=e1070]
+                                    - paragraph [ref=e1071]: Not configured
+                                - generic [ref=e1072]:
+                                    - paragraph [ref=e1073]: "0"
+                                    - paragraph [ref=e1074]: models
+                        - button "siliconflow SiliconFlow API Key 0 active · 0 error 10 models" [ref=e1075] [cursor=pointer]:
+                            - generic [ref=e1076]:
+                                - img "siliconflow" [ref=e1079]
+                                - generic [ref=e1081]:
+                                    - generic [ref=e1082]:
+                                        - paragraph [ref=e1083]: SiliconFlow
+                                        - generic "API Key" [ref=e1084]
+                                    - paragraph [ref=e1085]: 0 active · 0 error
+                                - generic [ref=e1086]:
+                                    - paragraph [ref=e1087]: "10"
+                                    - paragraph [ref=e1088]: models
+                        - button "hyperbolic Hyperbolic API Key Not configured 0 models" [ref=e1089] [cursor=pointer]:
+                            - generic [ref=e1090]:
+                                - img "hyperbolic" [ref=e1093]
+                                - generic [ref=e1095]:
+                                    - generic [ref=e1096]:
+                                        - paragraph [ref=e1097]: Hyperbolic
+                                        - generic "API Key" [ref=e1098]
+                                    - paragraph [ref=e1099]: Not configured
+                                - generic [ref=e1100]:
+                                    - paragraph [ref=e1101]: "0"
+                                    - paragraph [ref=e1102]: models
+                        - button "nanobanana NanoBanana API Key 0 active · 36 error 52/88 reqs 59% ~471ms 0 models" [ref=e1103] [cursor=pointer]:
+                            - generic [ref=e1104]:
+                                - img "nanobanana" [ref=e1107]
+                                - generic [ref=e1114]:
+                                    - generic [ref=e1115]:
+                                        - paragraph [ref=e1116]: NanoBanana
+                                        - generic "API Key" [ref=e1117]
+                                    - paragraph [ref=e1118]: 0 active · 36 error
+                                    - generic [ref=e1119]:
+                                        - generic [ref=e1120]: 52/88 reqs
+                                        - generic [ref=e1121]: 59%
+                                        - generic [ref=e1122]: ~471ms
+                                - generic [ref=e1123]:
+                                    - paragraph [ref=e1124]: "0"
+                                    - paragraph [ref=e1125]: models
+                        - button "ollama-cloud Ollama Cloud API Key 0 active · 55 error 3534/8493 reqs 42% ~11029ms 7 models" [ref=e1126] [cursor=pointer]:
+                            - generic [ref=e1127]:
+                                - img "ollama-cloud" [ref=e1130]
+                                - generic [ref=e1132]:
+                                    - generic [ref=e1133]:
+                                        - paragraph [ref=e1134]: Ollama Cloud
+                                        - generic "API Key" [ref=e1135]
+                                    - paragraph [ref=e1136]: 0 active · 55 error
+                                    - generic [ref=e1137]:
+                                        - generic [ref=e1138]: 3534/8493 reqs
+                                        - generic [ref=e1139]: 42%
+                                        - generic [ref=e1140]: ~11029ms
+                                - generic [ref=e1141]:
+                                    - paragraph [ref=e1142]: "7"
+                                    - paragraph [ref=e1143]: models
+                        - button "huggingface HuggingFace API Key Not configured 0 models" [ref=e1144] [cursor=pointer]:
+                            - generic [ref=e1145]:
+                                - img "huggingface" [ref=e1148]
+                                - generic [ref=e1155]:
+                                    - generic [ref=e1156]:
+                                        - paragraph [ref=e1157]: HuggingFace
+                                        - generic "API Key" [ref=e1158]
+                                    - paragraph [ref=e1159]: Not configured
+                                - generic [ref=e1160]:
+                                    - paragraph [ref=e1161]: "0"
+                                    - paragraph [ref=e1162]: models
+                        - button "synthetic Synthetic API Key Not configured 0 models" [ref=e1163] [cursor=pointer]:
+                            - generic [ref=e1164]:
+                                - img "synthetic" [ref=e1167]
+                                - generic [ref=e1168]:
+                                    - generic [ref=e1169]:
+                                        - paragraph [ref=e1170]: Synthetic
+                                        - generic "API Key" [ref=e1171]
+                                    - paragraph [ref=e1172]: Not configured
+                                - generic [ref=e1173]:
+                                    - paragraph [ref=e1174]: "0"
+                                    - paragraph [ref=e1175]: models
+                        - button "kilo-gateway Kilo Gateway API Key 2 active · 0 error 0/3 reqs 0% ~432ms 6 models" [ref=e1176] [cursor=pointer]:
+                            - generic [ref=e1177]:
+                                - img "kilo-gateway" [ref=e1180]
+                                - generic [ref=e1181]:
+                                    - generic [ref=e1182]:
+                                        - paragraph [ref=e1183]: Kilo Gateway
+                                        - generic "API Key" [ref=e1184]
+                                    - paragraph [ref=e1185]: 2 active · 0 error
+                                    - generic [ref=e1186]:
+                                        - generic [ref=e1187]: 0/3 reqs
+                                        - generic [ref=e1188]: 0%
+                                        - generic [ref=e1189]: ~432ms
+                                - generic [ref=e1190]:
+                                    - paragraph [ref=e1191]: "6"
+                                    - paragraph [ref=e1192]: models
+                        - button "vertex Vertex AI API Key Not configured 0 models" [ref=e1193] [cursor=pointer]:
+                            - generic [ref=e1194]:
+                                - img "vertex" [ref=e1197]
+                                - generic [ref=e1206]:
+                                    - generic [ref=e1207]:
+                                        - paragraph [ref=e1208]: Vertex AI
+                                        - generic "API Key" [ref=e1209]
+                                    - paragraph [ref=e1210]: Not configured
+                                - generic [ref=e1211]:
+                                    - paragraph [ref=e1212]: "0"
+                                    - paragraph [ref=e1213]: models
+                        - button "vertex-partner Vertex AI Partners API Key Not configured 0 models" [ref=e1214] [cursor=pointer]:
+                            - generic [ref=e1215]:
+                                - img "vertex-partner" [ref=e1218]
+                                - generic [ref=e1227]:
+                                    - generic [ref=e1228]:
+                                        - paragraph [ref=e1229]: Vertex AI Partners
+                                        - generic "API Key" [ref=e1230]
+                                    - paragraph [ref=e1231]: Not configured
+                                - generic [ref=e1232]:
+                                    - paragraph [ref=e1233]: "0"
+                                    - paragraph [ref=e1234]: models
+                        - button "zai Z.AI API Key 2 active · 0 error 4/7727 reqs 0% ~866ms 3 models" [ref=e1235] [cursor=pointer]:
+                            - generic [ref=e1236]:
+                                - img "zai" [ref=e1239]
+                                - generic [ref=e1241]:
+                                    - generic [ref=e1242]:
+                                        - paragraph [ref=e1243]: Z.AI
+                                        - generic "API Key" [ref=e1244]
+                                    - paragraph [ref=e1245]: 2 active · 0 error
+                                    - generic [ref=e1246]:
+                                        - generic [ref=e1247]: 4/7727 reqs
+                                        - generic [ref=e1248]: 0%
+                                        - generic [ref=e1249]: ~866ms
+                                - generic [ref=e1250]:
+                                    - paragraph [ref=e1251]: "3"
+                                    - paragraph [ref=e1252]: models
+                        - button "opencode-zen OpenCode Zen API Key 0 active · 1 error 0/1 reqs 0% ~3825ms 7 models" [ref=e1253] [cursor=pointer]:
+                            - generic [ref=e1254]:
+                                - img "opencode-zen" [ref=e1257]
+                                - generic [ref=e1259]:
+                                    - generic [ref=e1260]:
+                                        - paragraph [ref=e1261]: OpenCode Zen
+                                        - generic "API Key" [ref=e1262]
+                                    - paragraph [ref=e1263]: 0 active · 1 error
+                                    - generic [ref=e1264]:
+                                        - generic [ref=e1265]: 0/1 reqs
+                                        - generic [ref=e1266]: 0%
+                                        - generic [ref=e1267]: ~3825ms
+                                - generic [ref=e1268]:
+                                    - paragraph [ref=e1269]: "7"
+                                    - paragraph [ref=e1270]: models
+                        - button "opencode-go OpenCode Go API Key 1 active · 1 error 2/8 reqs 25% ~2268ms 12 models" [ref=e1271] [cursor=pointer]:
+                            - generic [ref=e1272]:
+                                - img "opencode-go" [ref=e1275]
+                                - generic [ref=e1277]:
+                                    - generic [ref=e1278]:
+                                        - paragraph [ref=e1279]: OpenCode Go
+                                        - generic "API Key" [ref=e1280]
+                                    - paragraph [ref=e1281]: 1 active · 1 error
+                                    - generic [ref=e1282]:
+                                        - generic [ref=e1283]: 2/8 reqs
+                                        - generic [ref=e1284]: 25%
+                                        - generic [ref=e1285]: ~2268ms
+                                - generic [ref=e1286]:
+                                    - paragraph [ref=e1287]: "12"
+                                    - paragraph [ref=e1288]: models
+                        - button "alibaba Alibaba Cloud (DashScope) API Key Not configured 0 models" [ref=e1289] [cursor=pointer]:
+                            - generic [ref=e1290]:
+                                - img "alibaba" [ref=e1293]
+                                - generic [ref=e1295]:
+                                    - generic [ref=e1296]:
+                                        - paragraph [ref=e1297]: Alibaba Cloud (DashScope)
+                                        - generic "API Key" [ref=e1298]
+                                    - paragraph [ref=e1299]: Not configured
+                                - generic [ref=e1300]:
+                                    - paragraph [ref=e1301]: "0"
+                                    - paragraph [ref=e1302]: models
+                        - button "longcat LongCat AI API Key Not configured 0 models" [ref=e1303] [cursor=pointer]:
+                            - generic [ref=e1304]:
+                                - img "longcat" [ref=e1307]
+                                - generic [ref=e1308]:
+                                    - generic [ref=e1309]:
+                                        - paragraph [ref=e1310]: LongCat AI
+                                        - generic "API Key" [ref=e1311]
+                                    - paragraph [ref=e1312]: Not configured
+                                - generic [ref=e1313]:
+                                    - paragraph [ref=e1314]: "0"
+                                    - paragraph [ref=e1315]: models
+                        - button "pollinations Pollinations AI API Key Not configured 0 models" [ref=e1316] [cursor=pointer]:
+                            - generic [ref=e1317]:
+                                - img "pollinations" [ref=e1320]
+                                - generic [ref=e1321]:
+                                    - generic [ref=e1322]:
+                                        - paragraph [ref=e1323]: Pollinations AI
+                                        - generic "API Key" [ref=e1324]
+                                    - paragraph [ref=e1325]: Not configured
+                                - generic [ref=e1326]:
+                                    - paragraph [ref=e1327]: "0"
+                                    - paragraph [ref=e1328]: models
+                        - button "puter Puter AI API Key Not configured 0 models" [ref=e1329] [cursor=pointer]:
+                            - generic [ref=e1330]:
+                                - img "puter" [ref=e1333]
+                                - generic [ref=e1334]:
+                                    - generic [ref=e1335]:
+                                        - paragraph [ref=e1336]: Puter AI
+                                        - generic "API Key" [ref=e1337]
+                                    - paragraph [ref=e1338]: Not configured
+                                - generic [ref=e1339]:
+                                    - paragraph [ref=e1340]: "0"
+                                    - paragraph [ref=e1341]: models
+                        - button "cloudflare-ai Cloudflare Workers AI API Key 0 active · 1 error 0/150 reqs 0% ~1330ms 6 models" [ref=e1342] [cursor=pointer]:
+                            - generic [ref=e1343]:
+                                - img "cloudflare-ai" [ref=e1346]
+                                - generic [ref=e1348]:
+                                    - generic [ref=e1349]:
+                                        - paragraph [ref=e1350]: Cloudflare Workers AI
+                                        - generic "API Key" [ref=e1351]
+                                    - paragraph [ref=e1352]: 0 active · 1 error
+                                    - generic [ref=e1353]:
+                                        - generic [ref=e1354]: 0/150 reqs
+                                        - generic [ref=e1355]: 0%
+                                        - generic [ref=e1356]: ~1330ms
+                                - generic [ref=e1357]:
+                                    - paragraph [ref=e1358]: "6"
+                                    - paragraph [ref=e1359]: models
+                        - button "scaleway Scaleway AI API Key Not configured 0 models" [ref=e1360] [cursor=pointer]:
+                            - generic [ref=e1361]:
+                                - img "scaleway" [ref=e1364]
+                                - generic [ref=e1365]:
+                                    - generic [ref=e1366]:
+                                        - paragraph [ref=e1367]: Scaleway AI
+                                        - generic "API Key" [ref=e1368]
+                                    - paragraph [ref=e1369]: Not configured
+                                - generic [ref=e1370]:
+                                    - paragraph [ref=e1371]: "0"
+                                    - paragraph [ref=e1372]: models
+                        - button "deepinfra DeepInfra API Key Not configured 0 models" [ref=e1373] [cursor=pointer]:
+                            - generic [ref=e1374]:
+                                - img "deepinfra" [ref=e1377]
+                                - generic [ref=e1380]:
+                                    - generic [ref=e1381]:
+                                        - paragraph [ref=e1382]: DeepInfra
+                                        - generic "API Key" [ref=e1383]
+                                    - paragraph [ref=e1384]: Not configured
+                                - generic [ref=e1385]:
+                                    - paragraph [ref=e1386]: "0"
+                                    - paragraph [ref=e1387]: models
+                        - button "vercel-ai-gateway Vercel AI Gateway API Key Not configured 0 models" [ref=e1388] [cursor=pointer]:
+                            - generic [ref=e1389]:
+                                - img "vercel-ai-gateway" [ref=e1392]
+                                - generic [ref=e1394]:
+                                    - generic [ref=e1395]:
+                                        - paragraph [ref=e1396]: Vercel AI Gateway
+                                        - generic "API Key" [ref=e1397]
+                                    - paragraph [ref=e1398]: Not configured
+                                - generic [ref=e1399]:
+                                    - paragraph [ref=e1400]: "0"
+                                    - paragraph [ref=e1401]: models
+                        - button "lambda-ai Lambda AI API Key Not configured 0 models" [ref=e1402] [cursor=pointer]:
+                            - generic [ref=e1403]:
+                                - img "lambda-ai" [ref=e1406]
+                                - generic [ref=e1408]:
+                                    - generic [ref=e1409]:
+                                        - paragraph [ref=e1410]: Lambda AI
+                                        - generic "API Key" [ref=e1411]
+                                    - paragraph [ref=e1412]: Not configured
+                                - generic [ref=e1413]:
+                                    - paragraph [ref=e1414]: "0"
+                                    - paragraph [ref=e1415]: models
+                        - button "sambanova SambaNova API Key Not configured 0 models" [ref=e1416] [cursor=pointer]:
+                            - generic [ref=e1417]:
+                                - img "sambanova" [ref=e1420]
+                                - generic [ref=e1424]:
+                                    - generic [ref=e1425]:
+                                        - paragraph [ref=e1426]: SambaNova
+                                        - generic "API Key" [ref=e1427]
+                                    - paragraph [ref=e1428]: Not configured
+                                - generic [ref=e1429]:
+                                    - paragraph [ref=e1430]: "0"
+                                    - paragraph [ref=e1431]: models
+                        - button "nscale nScale API Key Not configured 0 models" [ref=e1432] [cursor=pointer]:
+                            - generic [ref=e1433]:
+                                - img "nscale" [ref=e1436]
+                                - generic [ref=e1437]:
+                                    - generic [ref=e1438]:
+                                        - paragraph [ref=e1439]: nScale
+                                        - generic "API Key" [ref=e1440]
+                                    - paragraph [ref=e1441]: Not configured
+                                - generic [ref=e1442]:
+                                    - paragraph [ref=e1443]: "0"
+                                    - paragraph [ref=e1444]: models
+                        - button "ovhcloud OVHcloud AI API Key Not configured 0 models" [ref=e1445] [cursor=pointer]:
+                            - generic [ref=e1446]:
+                                - img "ovhcloud" [ref=e1449]
+                                - generic [ref=e1450]:
+                                    - generic [ref=e1451]:
+                                        - paragraph [ref=e1452]: OVHcloud AI
+                                        - generic "API Key" [ref=e1453]
+                                    - paragraph [ref=e1454]: Not configured
+                                - generic [ref=e1455]:
+                                    - paragraph [ref=e1456]: "0"
+                                    - paragraph [ref=e1457]: models
+                        - button "baseten Baseten API Key Not configured 0 models" [ref=e1458] [cursor=pointer]:
+                            - generic [ref=e1459]:
+                                - img "baseten" [ref=e1462]
+                                - generic [ref=e1464]:
+                                    - generic [ref=e1465]:
+                                        - paragraph [ref=e1466]: Baseten
+                                        - generic "API Key" [ref=e1467]
+                                    - paragraph [ref=e1468]: Not configured
+                                - generic [ref=e1469]:
+                                    - paragraph [ref=e1470]: "0"
+                                    - paragraph [ref=e1471]: models
+                        - button "PublicAI API Key Not configured 0 models" [ref=e1472] [cursor=pointer]:
+                            - generic [ref=e1473]:
+                                - img [ref=e1476]
+                                - generic [ref=e1479]:
+                                    - generic [ref=e1480]:
+                                        - paragraph [ref=e1481]: PublicAI
+                                        - generic "API Key" [ref=e1482]
+                                    - paragraph [ref=e1483]: Not configured
+                                - generic [ref=e1484]:
+                                    - paragraph [ref=e1485]: "0"
+                                    - paragraph [ref=e1486]: models
+                        - button "moonshot Moonshot AI API Key Not configured 0 models" [ref=e1487] [cursor=pointer]:
+                            - generic [ref=e1488]:
+                                - img "moonshot" [ref=e1491]
+                                - generic [ref=e1493]:
+                                    - generic [ref=e1494]:
+                                        - paragraph [ref=e1495]: Moonshot AI
+                                        - generic "API Key" [ref=e1496]
+                                    - paragraph [ref=e1497]: Not configured
+                                - generic [ref=e1498]:
+                                    - paragraph [ref=e1499]: "0"
+                                    - paragraph [ref=e1500]: models
+                        - button "meta-llama Meta Llama API API Key Not configured 0 models" [ref=e1501] [cursor=pointer]:
+                            - generic [ref=e1502]:
+                                - img "meta-llama" [ref=e1505]
+                                - generic [ref=e1521]:
+                                    - generic [ref=e1522]:
+                                        - paragraph [ref=e1523]: Meta Llama API
+                                        - generic "API Key" [ref=e1524]
+                                    - paragraph [ref=e1525]: Not configured
+                                - generic [ref=e1526]:
+                                    - paragraph [ref=e1527]: "0"
+                                    - paragraph [ref=e1528]: models
+                        - button "v0-vercel v0 (Vercel) API Key Not configured 0 models" [ref=e1529] [cursor=pointer]:
+                            - generic [ref=e1530]:
+                                - img "v0-vercel" [ref=e1533]
+                                - generic [ref=e1535]:
+                                    - generic [ref=e1536]:
+                                        - paragraph [ref=e1537]: v0 (Vercel)
+                                        - generic "API Key" [ref=e1538]
+                                    - paragraph [ref=e1539]: Not configured
+                                - generic [ref=e1540]:
+                                    - paragraph [ref=e1541]: "0"
+                                    - paragraph [ref=e1542]: models
+                        - button "morph Morph API Key Not configured 0 models" [ref=e1543] [cursor=pointer]:
+                            - generic [ref=e1544]:
+                                - img "morph" [ref=e1547]
+                                - generic [ref=e1549]:
+                                    - generic [ref=e1550]:
+                                        - paragraph [ref=e1551]: Morph
+                                        - generic "API Key" [ref=e1552]
+                                    - paragraph [ref=e1553]: Not configured
+                                - generic [ref=e1554]:
+                                    - paragraph [ref=e1555]: "0"
+                                    - paragraph [ref=e1556]: models
+                        - button "featherless-ai Featherless AI API Key Not configured 0 models" [ref=e1557] [cursor=pointer]:
+                            - generic [ref=e1558]:
+                                - img "featherless-ai" [ref=e1561]
+                                - generic [ref=e1563]:
+                                    - generic [ref=e1564]:
+                                        - paragraph [ref=e1565]: Featherless AI
+                                        - generic "API Key" [ref=e1566]
+                                    - paragraph [ref=e1567]: Not configured
+                                - generic [ref=e1568]:
+                                    - paragraph [ref=e1569]: "0"
+                                    - paragraph [ref=e1570]: models
+                        - button "friendliai FriendliAI API Key Not configured 0 models" [ref=e1571] [cursor=pointer]:
+                            - generic [ref=e1572]:
+                                - img "friendliai" [ref=e1575]
+                                - generic [ref=e1579]:
+                                    - generic [ref=e1580]:
+                                        - paragraph [ref=e1581]: FriendliAI
+                                        - generic "API Key" [ref=e1582]
+                                    - paragraph [ref=e1583]: Not configured
+                                - generic [ref=e1584]:
+                                    - paragraph [ref=e1585]: "0"
+                                    - paragraph [ref=e1586]: models
+                        - button "llamagate LlamaGate API Key Not configured 0 models" [ref=e1587] [cursor=pointer]:
+                            - generic [ref=e1588]:
+                                - img "llamagate" [ref=e1591]
+                                - generic [ref=e1592]:
+                                    - generic [ref=e1593]:
+                                        - paragraph [ref=e1594]: LlamaGate
+                                        - generic "API Key" [ref=e1595]
+                                    - paragraph [ref=e1596]: Not configured
+                                - generic [ref=e1597]:
+                                    - paragraph [ref=e1598]: "0"
+                                    - paragraph [ref=e1599]: models
+                        - button "heroku Heroku AI API Key Not configured 0 models" [ref=e1600] [cursor=pointer]:
+                            - generic [ref=e1601]:
+                                - img "heroku" [ref=e1604]
+                                - generic [ref=e1605]:
+                                    - generic [ref=e1606]:
+                                        - paragraph [ref=e1607]: Heroku AI
+                                        - generic "API Key" [ref=e1608]
+                                    - paragraph [ref=e1609]: Not configured
+                                - generic [ref=e1610]:
+                                    - paragraph [ref=e1611]: "0"
+                                    - paragraph [ref=e1612]: models
+                        - button "Galadriel API Key Not configured 0 models" [ref=e1613] [cursor=pointer]:
+                            - generic [ref=e1614]:
+                                - img [ref=e1617]
+                                - generic [ref=e1620]:
+                                    - generic [ref=e1621]:
+                                        - paragraph [ref=e1622]: Galadriel
+                                        - generic "API Key" [ref=e1623]
+                                    - paragraph [ref=e1624]: Not configured
+                                - generic [ref=e1625]:
+                                    - paragraph [ref=e1626]: "0"
+                                    - paragraph [ref=e1627]: models
+                        - button "databricks Databricks API Key Not configured 0 models" [ref=e1628] [cursor=pointer]:
+                            - generic [ref=e1629]:
+                                - img "databricks" [ref=e1632]
+                                - generic [ref=e1634]:
+                                    - generic [ref=e1635]:
+                                        - paragraph [ref=e1636]: Databricks
+                                        - generic "API Key" [ref=e1637]
+                                    - paragraph [ref=e1638]: Not configured
+                                - generic [ref=e1639]:
+                                    - paragraph [ref=e1640]: "0"
+                                    - paragraph [ref=e1641]: models
+                        - button "DataRobot API Key Not configured 0 models" [ref=e1642] [cursor=pointer]:
+                            - generic [ref=e1643]:
+                                - img [ref=e1646]
+                                - generic [ref=e1649]:
+                                    - generic [ref=e1650]:
+                                        - paragraph [ref=e1651]: DataRobot
+                                        - generic "API Key" [ref=e1652]
+                                    - paragraph [ref=e1653]: Not configured
+                                - generic [ref=e1654]:
+                                    - paragraph [ref=e1655]: "0"
+                                    - paragraph [ref=e1656]: models
+                        - button "Clarifai API Key Not configured 0 models" [ref=e1657] [cursor=pointer]:
+                            - generic [ref=e1658]:
+                                - img [ref=e1661]
+                                - generic [ref=e1664]:
+                                    - generic [ref=e1665]:
+                                        - paragraph [ref=e1666]: Clarifai
+                                        - generic "API Key" [ref=e1667]
+                                    - paragraph [ref=e1668]: Not configured
+                                - generic [ref=e1669]:
+                                    - paragraph [ref=e1670]: "0"
+                                    - paragraph [ref=e1671]: models
+                        - button "snowflake Snowflake Cortex API Key Not configured 0 models" [ref=e1672] [cursor=pointer]:
+                            - generic [ref=e1673]:
+                                - img "snowflake" [ref=e1676]
+                                - generic [ref=e1678]:
+                                    - generic [ref=e1679]:
+                                        - paragraph [ref=e1680]: Snowflake Cortex
+                                        - generic "API Key" [ref=e1681]
+                                    - paragraph [ref=e1682]: Not configured
+                                - generic [ref=e1683]:
+                                    - paragraph [ref=e1684]: "0"
+                                    - paragraph [ref=e1685]: models
+                        - button "wandb Weights & Biases Inference API Key Not configured 0 models" [ref=e1686] [cursor=pointer]:
+                            - generic [ref=e1687]:
+                                - img "wandb" [ref=e1690]
+                                - generic [ref=e1691]:
+                                    - generic [ref=e1692]:
+                                        - paragraph [ref=e1693]: Weights & Biases Inference
+                                        - generic "API Key" [ref=e1694]
+                                    - paragraph [ref=e1695]: Not configured
+                                - generic [ref=e1696]:
+                                    - paragraph [ref=e1697]: "0"
+                                    - paragraph [ref=e1698]: models
+                        - button "volcengine Volcengine API Key Not configured 0 models" [ref=e1699] [cursor=pointer]:
+                            - generic [ref=e1700]:
+                                - img "volcengine" [ref=e1703]
+                                - generic [ref=e1708]:
+                                    - generic [ref=e1709]:
+                                        - paragraph [ref=e1710]: Volcengine
+                                        - generic "API Key" [ref=e1711]
+                                    - paragraph [ref=e1712]: Not configured
+                                - generic [ref=e1713]:
+                                    - paragraph [ref=e1714]: "0"
+                                    - paragraph [ref=e1715]: models
+                        - button "ai21 AI21 Labs API Key Not configured 0 models" [ref=e1716] [cursor=pointer]:
+                            - generic [ref=e1717]:
+                                - img "ai21" [ref=e1720]
+                                - generic [ref=e1722]:
+                                    - generic [ref=e1723]:
+                                        - paragraph [ref=e1724]: AI21 Labs
+                                        - generic "API Key" [ref=e1725]
+                                    - paragraph [ref=e1726]: Not configured
+                                - generic [ref=e1727]:
+                                    - paragraph [ref=e1728]: "0"
+                                    - paragraph [ref=e1729]: models
+                        - button "gigachat GigaChat (Sber) API Key Not configured 0 models" [ref=e1730] [cursor=pointer]:
+                            - generic [ref=e1731]:
+                                - img "gigachat" [ref=e1734]
+                                - generic [ref=e1735]:
+                                    - generic [ref=e1736]:
+                                        - paragraph [ref=e1737]: GigaChat (Sber)
+                                        - generic "API Key" [ref=e1738]
+                                    - paragraph [ref=e1739]: Not configured
+                                - generic [ref=e1740]:
+                                    - paragraph [ref=e1741]: "0"
+                                    - paragraph [ref=e1742]: models
+                        - button "venice Venice.ai API Key Not configured 0 models" [ref=e1743] [cursor=pointer]:
+                            - generic [ref=e1744]:
+                                - img "venice" [ref=e1747]
+                                - generic [ref=e1750]:
+                                    - generic [ref=e1751]:
+                                        - paragraph [ref=e1752]: Venice.ai
+                                        - generic "API Key" [ref=e1753]
+                                    - paragraph [ref=e1754]: Not configured
+                                - generic [ref=e1755]:
+                                    - paragraph [ref=e1756]: "0"
+                                    - paragraph [ref=e1757]: models
+                        - button "codestral Codestral API Key Not configured 0 models" [ref=e1758] [cursor=pointer]:
+                            - generic [ref=e1759]:
+                                - img "codestral" [ref=e1762]
+                                - generic [ref=e1768]:
+                                    - generic [ref=e1769]:
+                                        - paragraph [ref=e1770]: Codestral
+                                        - generic "API Key" [ref=e1771]
+                                    - paragraph [ref=e1772]: Not configured
+                                - generic [ref=e1773]:
+                                    - paragraph [ref=e1774]: "0"
+                                    - paragraph [ref=e1775]: models
+                        - button "upstage Upstage API Key Not configured 0 models" [ref=e1776] [cursor=pointer]:
+                            - generic [ref=e1777]:
+                                - img "upstage" [ref=e1780]
+                                - generic [ref=e1782]:
+                                    - generic [ref=e1783]:
+                                        - paragraph [ref=e1784]: Upstage
+                                        - generic "API Key" [ref=e1785]
+                                    - paragraph [ref=e1786]: Not configured
+                                - generic [ref=e1787]:
+                                    - paragraph [ref=e1788]: "0"
+                                    - paragraph [ref=e1789]: models
+                        - button "maritalk Maritalk API Key Not configured 0 models" [ref=e1790] [cursor=pointer]:
+                            - generic [ref=e1791]:
+                                - img "maritalk" [ref=e1794]
+                                - generic [ref=e1795]:
+                                    - generic [ref=e1796]:
+                                        - paragraph [ref=e1797]: Maritalk
+                                        - generic "API Key" [ref=e1798]
+                                    - paragraph [ref=e1799]: Not configured
+                                - generic [ref=e1800]:
+                                    - paragraph [ref=e1801]: "0"
+                                    - paragraph [ref=e1802]: models
+                        - button "xiaomi-mimo Xiaomi MiMo API Key Not configured 0 models" [ref=e1803] [cursor=pointer]:
+                            - generic [ref=e1804]:
+                                - img "xiaomi-mimo" [ref=e1807]
+                                - generic [ref=e1809]:
+                                    - generic [ref=e1810]:
+                                        - paragraph [ref=e1811]: Xiaomi MiMo
+                                        - generic "API Key" [ref=e1812]
+                                    - paragraph [ref=e1813]: Not configured
+                                - generic [ref=e1814]:
+                                    - paragraph [ref=e1815]: "0"
+                                    - paragraph [ref=e1816]: models
+                        - button "inference-net Inference.net API Key Not configured 0 models" [ref=e1817] [cursor=pointer]:
+                            - generic [ref=e1818]:
+                                - img "inference-net" [ref=e1821]
+                                - generic [ref=e1823]:
+                                    - generic [ref=e1824]:
+                                        - paragraph [ref=e1825]: Inference.net
+                                        - generic "API Key" [ref=e1826]
+                                    - paragraph [ref=e1827]: Not configured
+                                - generic [ref=e1828]:
+                                    - paragraph [ref=e1829]: "0"
+                                    - paragraph [ref=e1830]: models
+                        - button "nanogpt NanoGPT API Key Not configured 0 models" [ref=e1831] [cursor=pointer]:
+                            - generic [ref=e1832]:
+                                - img "nanogpt" [ref=e1835]
+                                - generic [ref=e1836]:
+                                    - generic [ref=e1837]:
+                                        - paragraph [ref=e1838]: NanoGPT
+                                        - generic "API Key" [ref=e1839]
+                                    - paragraph [ref=e1840]: Not configured
+                                - generic [ref=e1841]:
+                                    - paragraph [ref=e1842]: "0"
+                                    - paragraph [ref=e1843]: models
+                        - button "predibase Predibase API Key Not configured 0 models" [ref=e1844] [cursor=pointer]:
+                            - generic [ref=e1845]:
+                                - img "predibase" [ref=e1848]
+                                - generic [ref=e1849]:
+                                    - generic [ref=e1850]:
+                                        - paragraph [ref=e1851]: Predibase
+                                        - generic "API Key" [ref=e1852]
+                                    - paragraph [ref=e1853]: Not configured
+                                - generic [ref=e1854]:
+                                    - paragraph [ref=e1855]: "0"
+                                    - paragraph [ref=e1856]: models
+                        - button "Bytez API Key Not configured 0 models" [ref=e1857] [cursor=pointer]:
+                            - generic [ref=e1858]:
+                                - img [ref=e1861]
+                                - generic [ref=e1864]:
+                                    - generic [ref=e1865]:
+                                        - paragraph [ref=e1866]: Bytez
+                                        - generic "API Key" [ref=e1867]
+                                    - paragraph [ref=e1868]: Not configured
+                                - generic [ref=e1869]:
+                                    - paragraph [ref=e1870]: "0"
+                                    - paragraph [ref=e1871]: models
+                        - button "aimlapi AI/ML API API Key Not configured 0 models" [ref=e1872] [cursor=pointer]:
+                            - generic [ref=e1873]:
+                                - img "aimlapi" [ref=e1876]
+                                - generic [ref=e1877]:
+                                    - generic [ref=e1878]:
+                                        - paragraph [ref=e1879]: AI/ML API
+                                        - generic "API Key" [ref=e1880]
+                                    - paragraph [ref=e1881]: Not configured
+                                - generic [ref=e1882]:
+                                    - paragraph [ref=e1883]: "0"
+                                    - paragraph [ref=e1884]: models
+                        - button "novita Novita AI API Key Not configured 0 models" [ref=e1885] [cursor=pointer]:
+                            - generic [ref=e1886]:
+                                - img "novita" [ref=e1889]
+                                - generic [ref=e1891]:
+                                    - generic [ref=e1892]:
+                                        - paragraph [ref=e1893]: Novita AI
+                                        - generic "API Key" [ref=e1894]
+                                    - paragraph [ref=e1895]: Not configured
+                                - generic [ref=e1896]:
+                                    - paragraph [ref=e1897]: "0"
+                                    - paragraph [ref=e1898]: models
+                        - button "piapi PiAPI API Key 0 active · 0 error 0 models" [ref=e1899] [cursor=pointer]:
+                            - generic [ref=e1900]:
+                                - img "piapi" [ref=e1903]
+                                - generic [ref=e1904]:
+                                    - generic [ref=e1905]:
+                                        - paragraph [ref=e1906]: PiAPI
+                                        - generic "API Key" [ref=e1907]
+                                    - paragraph [ref=e1908]: 0 active · 0 error
+                                - generic [ref=e1909]:
+                                    - paragraph [ref=e1910]: "0"
+                                    - paragraph [ref=e1911]: models
+                        - button "GoAPI API Key Not configured 0 models" [ref=e1912] [cursor=pointer]:
+                            - generic [ref=e1913]:
+                                - img [ref=e1916]
+                                - generic [ref=e1919]:
+                                    - generic [ref=e1920]:
+                                        - paragraph [ref=e1921]: GoAPI
+                                        - generic "API Key" [ref=e1922]
+                                    - paragraph [ref=e1923]: Not configured
+                                - generic [ref=e1924]:
+                                    - paragraph [ref=e1925]: "0"
+                                    - paragraph [ref=e1926]: models
+                        - button "LaoZhang AI API Key 0 active · 0 error 0 models" [ref=e1927] [cursor=pointer]:
+                            - generic [ref=e1928]:
+                                - img [ref=e1931]
+                                - generic [ref=e1934]:
+                                    - generic [ref=e1935]:
+                                        - paragraph [ref=e1936]: LaoZhang AI
+                                        - generic "API Key" [ref=e1937]
+                                    - paragraph [ref=e1938]: 0 active · 0 error
+                                - generic [ref=e1939]:
+                                    - paragraph [ref=e1940]: "0"
+                                    - paragraph [ref=e1941]: models
+                        - button "GLHF Chat API Key Not configured 0 models" [ref=e1942] [cursor=pointer]:
+                            - generic [ref=e1943]:
+                                - img [ref=e1946]
+                                - generic [ref=e1949]:
+                                    - generic [ref=e1950]:
+                                        - paragraph [ref=e1951]: GLHF Chat
+                                        - generic "API Key" [ref=e1952]
+                                    - paragraph [ref=e1953]: Not configured
+                                - generic [ref=e1954]:
+                                    - paragraph [ref=e1955]: "0"
+                                    - paragraph [ref=e1956]: models
+                        - button "CablyAI API Key Not configured 0 models" [ref=e1957] [cursor=pointer]:
+                            - generic [ref=e1958]:
+                                - img [ref=e1961]
+                                - generic [ref=e1964]:
+                                    - generic [ref=e1965]:
+                                        - paragraph [ref=e1966]: CablyAI
+                                        - generic "API Key" [ref=e1967]
+                                    - paragraph [ref=e1968]: Not configured
+                                - generic [ref=e1969]:
+                                    - paragraph [ref=e1970]: "0"
+                                    - paragraph [ref=e1971]: models
+                        - button "TheB.AI API Key Not configured 0 models" [ref=e1972] [cursor=pointer]:
+                            - generic [ref=e1973]:
+                                - img [ref=e1976]
+                                - generic [ref=e1979]:
+                                    - generic [ref=e1980]:
+                                        - paragraph [ref=e1981]: TheB.AI
+                                        - generic "API Key" [ref=e1982]
+                                    - paragraph [ref=e1983]: Not configured
+                                - generic [ref=e1984]:
+                                    - paragraph [ref=e1985]: "0"
+                                    - paragraph [ref=e1986]: models
+                        - button "FenayAI API Key Not configured 0 models" [ref=e1987] [cursor=pointer]:
+                            - generic [ref=e1988]:
+                                - img [ref=e1991]
+                                - generic [ref=e1994]:
+                                    - generic [ref=e1995]:
+                                        - paragraph [ref=e1996]: FenayAI
+                                        - generic "API Key" [ref=e1997]
+                                    - paragraph [ref=e1998]: Not configured
+                                - generic [ref=e1999]:
+                                    - paragraph [ref=e2000]: "0"
+                                    - paragraph [ref=e2001]: models
+                        - button "empower Empower API Key Not configured 0 models" [ref=e2002] [cursor=pointer]:
+                            - generic [ref=e2003]:
+                                - img "empower" [ref=e2006]
+                                - generic [ref=e2007]:
+                                    - generic [ref=e2008]:
+                                        - paragraph [ref=e2009]: Empower
+                                        - generic "API Key" [ref=e2010]
+                                    - paragraph [ref=e2011]: Not configured
+                                - generic [ref=e2012]:
+                                    - paragraph [ref=e2013]: "0"
+                                    - paragraph [ref=e2014]: models
+                        - button "nous-research Nous Research API Key Not configured 0 models" [ref=e2015] [cursor=pointer]:
+                            - generic [ref=e2016]:
+                                - img "nous-research" [ref=e2019]
+                                - generic [ref=e2023]:
+                                    - generic [ref=e2024]:
+                                        - paragraph [ref=e2025]: Nous Research
+                                        - generic "API Key" [ref=e2026]
+                                    - paragraph [ref=e2027]: Not configured
+                                - generic [ref=e2028]:
+                                    - paragraph [ref=e2029]: "0"
+                                    - paragraph [ref=e2030]: models
+                        - button "Petals API Key Not configured 0 models" [ref=e2031] [cursor=pointer]:
+                            - generic [ref=e2032]:
+                                - img [ref=e2035]
+                                - generic [ref=e2038]:
+                                    - generic [ref=e2039]:
+                                        - paragraph [ref=e2040]: Petals
+                                        - generic "API Key" [ref=e2041]
+                                    - paragraph [ref=e2042]: Not configured
+                                - generic [ref=e2043]:
+                                    - paragraph [ref=e2044]: "0"
+                                    - paragraph [ref=e2045]: models
+                        - button "poe Poe API Key Not configured 0 models" [ref=e2046] [cursor=pointer]:
+                            - generic [ref=e2047]:
+                                - img "poe" [ref=e2050]
+                                - generic [ref=e2055]:
+                                    - generic [ref=e2056]:
+                                        - paragraph [ref=e2057]: Poe
+                                        - generic "API Key" [ref=e2058]
+                                    - paragraph [ref=e2059]: Not configured
+                                - generic [ref=e2060]:
+                                    - paragraph [ref=e2061]: "0"
+                                    - paragraph [ref=e2062]: models
+                        - button "gitlab GitLab Duo PAT API Key Not configured 0 models" [ref=e2063] [cursor=pointer]:
+                            - generic [ref=e2064]:
+                                - img "gitlab" [ref=e2067]
+                                - generic [ref=e2068]:
+                                    - generic [ref=e2069]:
+                                        - paragraph [ref=e2070]: GitLab Duo PAT
+                                        - generic "API Key" [ref=e2071]
+                                    - paragraph [ref=e2072]: Not configured
+                                - generic [ref=e2073]:
+                                    - paragraph [ref=e2074]: "0"
+                                    - paragraph [ref=e2075]: models
+                        - button "Chutes.ai API Key Not configured 0 models" [ref=e2076] [cursor=pointer]:
+                            - generic [ref=e2077]:
+                                - img [ref=e2080]
+                                - generic [ref=e2083]:
+                                    - generic [ref=e2084]:
+                                        - paragraph [ref=e2085]: Chutes.ai
+                                        - generic "API Key" [ref=e2086]
+                                    - paragraph [ref=e2087]: Not configured
+                                - generic [ref=e2088]:
+                                    - paragraph [ref=e2089]: "0"
+                                    - paragraph [ref=e2090]: models
+                        - button "voyage-ai Voyage AI API Key Not configured 0 models" [ref=e2091] [cursor=pointer]:
+                            - generic [ref=e2092]:
+                                - img "voyage-ai" [ref=e2095]
+                                - generic [ref=e2097]:
+                                    - generic [ref=e2098]:
+                                        - paragraph [ref=e2099]: Voyage AI
+                                        - generic "API Key" [ref=e2100]
+                                    - paragraph [ref=e2101]: Not configured
+                                - generic [ref=e2102]:
+                                    - paragraph [ref=e2103]: "0"
+                                    - paragraph [ref=e2104]: models
+                        - button "jina-ai Jina AI API Key Not configured 0 models" [ref=e2105] [cursor=pointer]:
+                            - generic [ref=e2106]:
+                                - img "jina-ai" [ref=e2109]
+                                - generic [ref=e2111]:
+                                    - generic [ref=e2112]:
+                                        - paragraph [ref=e2113]: Jina AI
+                                        - generic "API Key" [ref=e2114]
+                                    - paragraph [ref=e2115]: Not configured
+                                - generic [ref=e2116]:
+                                    - paragraph [ref=e2117]: "0"
+                                    - paragraph [ref=e2118]: models
+                        - button "fal-ai Fal.ai API Key Not configured 0 models" [ref=e2119] [cursor=pointer]:
+                            - generic [ref=e2120]:
+                                - img "fal-ai" [ref=e2123]
+                                - generic [ref=e2125]:
+                                    - generic [ref=e2126]:
+                                        - paragraph [ref=e2127]: Fal.ai
+                                        - generic "API Key" [ref=e2128]
+                                    - paragraph [ref=e2129]: Not configured
+                                - generic [ref=e2130]:
+                                    - paragraph [ref=e2131]: "0"
+                                    - paragraph [ref=e2132]: models
+                        - button "stability-ai Stability AI API Key Not configured 0 models" [ref=e2133] [cursor=pointer]:
+                            - generic [ref=e2134]:
+                                - img "stability-ai" [ref=e2137]
+                                - generic [ref=e2140]:
+                                    - generic [ref=e2141]:
+                                        - paragraph [ref=e2142]: Stability AI
+                                        - generic "API Key" [ref=e2143]
+                                    - paragraph [ref=e2144]: Not configured
+                                - generic [ref=e2145]:
+                                    - paragraph [ref=e2146]: "0"
+                                    - paragraph [ref=e2147]: models
+                        - button "black-forest-labs Black Forest Labs API Key Not configured 0 models" [ref=e2148] [cursor=pointer]:
+                            - generic [ref=e2149]:
+                                - img "black-forest-labs" [ref=e2152]
+                                - generic [ref=e2154]:
+                                    - generic [ref=e2155]:
+                                        - paragraph [ref=e2156]: Black Forest Labs
+                                        - generic "API Key" [ref=e2157]
+                                    - paragraph [ref=e2158]: Not configured
+                                - generic [ref=e2159]:
+                                    - paragraph [ref=e2160]: "0"
+                                    - paragraph [ref=e2161]: models
+                        - button "recraft Recraft API Key Not configured 0 models" [ref=e2162] [cursor=pointer]:
+                            - generic [ref=e2163]:
+                                - img "recraft" [ref=e2166]
+                                - generic [ref=e2169]:
+                                    - generic [ref=e2170]:
+                                        - paragraph [ref=e2171]: Recraft
+                                        - generic "API Key" [ref=e2172]
+                                    - paragraph [ref=e2173]: Not configured
+                                - generic [ref=e2174]:
+                                    - paragraph [ref=e2175]: "0"
+                                    - paragraph [ref=e2176]: models
+                        - button "topaz Topaz API Key Not configured 0 models" [ref=e2177] [cursor=pointer]:
+                            - generic [ref=e2178]:
+                                - img "topaz" [ref=e2181]
+                                - generic [ref=e2183]:
+                                    - generic [ref=e2184]:
+                                        - paragraph [ref=e2185]: Topaz
+                                        - generic "API Key" [ref=e2186]
+                                    - paragraph [ref=e2187]: Not configured
+                                - generic [ref=e2188]:
+                                    - paragraph [ref=e2189]: "0"
+                                    - paragraph [ref=e2190]: models
+                        - button "ChatGPT Web (Plus/Pro) API Key Not configured 32/94 reqs 34% ~2ms 0 models" [ref=e2191] [cursor=pointer]:
+                            - generic [ref=e2192]:
+                                - img [ref=e2195]
+                                - generic [ref=e2198]:
+                                    - generic [ref=e2199]:
+                                        - paragraph [ref=e2200]: ChatGPT Web (Plus/Pro)
+                                        - generic "API Key" [ref=e2201]
+                                    - paragraph [ref=e2202]: Not configured
+                                    - generic [ref=e2203]:
+                                        - generic [ref=e2204]: 32/94 reqs
+                                        - generic [ref=e2205]: 34%
+                                        - generic [ref=e2206]: ~2ms
+                                - generic [ref=e2207]:
+                                    - paragraph [ref=e2208]: "0"
+                                    - paragraph [ref=e2209]: models
+                        - button "grok-web Grok Web (Subscription) API Key Not configured 0 models" [ref=e2210] [cursor=pointer]:
+                            - generic [ref=e2211]:
+                                - img "grok-web" [ref=e2214]
+                                - generic [ref=e2216]:
+                                    - generic [ref=e2217]:
+                                        - paragraph [ref=e2218]: Grok Web (Subscription)
+                                        - generic "API Key" [ref=e2219]
+                                    - paragraph [ref=e2220]: Not configured
+                                - generic [ref=e2221]:
+                                    - paragraph [ref=e2222]: "0"
+                                    - paragraph [ref=e2223]: models
+                        - button "perplexity-web Perplexity Web (Pro/Max) API Key Not configured 0 models" [ref=e2224] [cursor=pointer]:
+                            - generic [ref=e2225]:
+                                - img "perplexity-web" [ref=e2228]
+                                - generic [ref=e2230]:
+                                    - generic [ref=e2231]:
+                                        - paragraph [ref=e2232]: Perplexity Web (Pro/Max)
+                                        - generic "API Key" [ref=e2233]
+                                    - paragraph [ref=e2234]: Not configured
+                                - generic [ref=e2235]:
+                                    - paragraph [ref=e2236]: "0"
+                                    - paragraph [ref=e2237]: models
+                        - button "blackbox-web Blackbox Web (Subscription) API Key Not configured 0 models" [ref=e2238] [cursor=pointer]:
+                            - generic [ref=e2239]:
+                                - img "blackbox-web" [ref=e2242]
+                                - generic [ref=e2243]:
+                                    - generic [ref=e2244]:
+                                        - paragraph [ref=e2245]: Blackbox Web (Subscription)
+                                        - generic "API Key" [ref=e2246]
+                                    - paragraph [ref=e2247]: Not configured
+                                - generic [ref=e2248]:
+                                    - paragraph [ref=e2249]: "0"
+                                    - paragraph [ref=e2250]: models
+                        - button "muse-spark-web Muse Spark Web (Meta AI) API Key Not configured 0 models" [ref=e2251] [cursor=pointer]:
+                            - generic [ref=e2252]:
+                                - img "muse-spark-web" [ref=e2255]
+                                - generic [ref=e2258]:
+                                    - generic [ref=e2259]:
+                                        - paragraph [ref=e2260]: Muse Spark Web (Meta AI)
+                                        - generic "API Key" [ref=e2261]
+                                    - paragraph [ref=e2262]: Not configured
+                                - generic [ref=e2263]:
+                                    - paragraph [ref=e2264]: "0"
+                                    - paragraph [ref=e2265]: models
+                        - button "lm-studio LM Studio API Key Not configured 0 models" [ref=e2266] [cursor=pointer]:
+                            - generic [ref=e2267]:
+                                - img "lm-studio" [ref=e2270]
+                                - generic [ref=e2273]:
+                                    - generic [ref=e2274]:
+                                        - paragraph [ref=e2275]: LM Studio
+                                        - generic "API Key" [ref=e2276]
+                                    - paragraph [ref=e2277]: Not configured
+                                - generic [ref=e2278]:
+                                    - paragraph [ref=e2279]: "0"
+                                    - paragraph [ref=e2280]: models
+                        - button "vllm vLLM API Key Not configured 0 models" [ref=e2281] [cursor=pointer]:
+                            - generic [ref=e2282]:
+                                - img "vllm" [ref=e2285]
+                                - generic [ref=e2288]:
+                                    - generic [ref=e2289]:
+                                        - paragraph [ref=e2290]: vLLM
+                                        - generic "API Key" [ref=e2291]
+                                    - paragraph [ref=e2292]: Not configured
+                                - generic [ref=e2293]:
+                                    - paragraph [ref=e2294]: "0"
+                                    - paragraph [ref=e2295]: models
+                        - button "Lemonade Server API Key Not configured 0 models" [ref=e2296] [cursor=pointer]:
+                            - generic [ref=e2297]:
+                                - img [ref=e2300]
+                                - generic [ref=e2303]:
+                                    - generic [ref=e2304]:
+                                        - paragraph [ref=e2305]: Lemonade Server
+                                        - generic "API Key" [ref=e2306]
+                                    - paragraph [ref=e2307]: Not configured
+                                - generic [ref=e2308]:
+                                    - paragraph [ref=e2309]: "0"
+                                    - paragraph [ref=e2310]: models
+                        - button "Llamafile API Key Not configured 0 models" [ref=e2311] [cursor=pointer]:
+                            - generic [ref=e2312]:
+                                - img [ref=e2315]
+                                - generic [ref=e2318]:
+                                    - generic [ref=e2319]:
+                                        - paragraph [ref=e2320]: Llamafile
+                                        - generic "API Key" [ref=e2321]
+                                    - paragraph [ref=e2322]: Not configured
+                                - generic [ref=e2323]:
+                                    - paragraph [ref=e2324]: "0"
+                                    - paragraph [ref=e2325]: models
+                        - button "triton NVIDIA Triton API Key Not configured 0 models" [ref=e2326] [cursor=pointer]:
+                            - generic [ref=e2327]:
+                                - img "triton" [ref=e2330]
+                                - generic [ref=e2331]:
+                                    - generic [ref=e2332]:
+                                        - paragraph [ref=e2333]: NVIDIA Triton
+                                        - generic "API Key" [ref=e2334]
+                                    - paragraph [ref=e2335]: Not configured
+                                - generic [ref=e2336]:
+                                    - paragraph [ref=e2337]: "0"
+                                    - paragraph [ref=e2338]: models
+                        - button "Docker Model Runner API Key Not configured 0 models" [ref=e2339] [cursor=pointer]:
+                            - generic [ref=e2340]:
+                                - img [ref=e2343]
+                                - generic [ref=e2346]:
+                                    - generic [ref=e2347]:
+                                        - paragraph [ref=e2348]: Docker Model Runner
+                                        - generic "API Key" [ref=e2349]
+                                    - paragraph [ref=e2350]: Not configured
+                                - generic [ref=e2351]:
+                                    - paragraph [ref=e2352]: "0"
+                                    - paragraph [ref=e2353]: models
+                        - button "xinference XInference API Key Not configured 0 models" [ref=e2354] [cursor=pointer]:
+                            - generic [ref=e2355]:
+                                - img "xinference" [ref=e2358]
+                                - generic [ref=e2362]:
+                                    - generic [ref=e2363]:
+                                        - paragraph [ref=e2364]: XInference
+                                        - generic "API Key" [ref=e2365]
+                                    - paragraph [ref=e2366]: Not configured
+                                - generic [ref=e2367]:
+                                    - paragraph [ref=e2368]: "0"
+                                    - paragraph [ref=e2369]: models
+                        - button "oobabooga API Key Not configured 0 models" [ref=e2370] [cursor=pointer]:
+                            - generic [ref=e2371]:
+                                - img [ref=e2374]
+                                - generic [ref=e2377]:
+                                    - generic [ref=e2378]:
+                                        - paragraph [ref=e2379]: oobabooga
+                                        - generic "API Key" [ref=e2380]
+                                    - paragraph [ref=e2381]: Not configured
+                                - generic [ref=e2382]:
+                                    - paragraph [ref=e2383]: "0"
+                                    - paragraph [ref=e2384]: models
+                        - button "sdwebui SD WebUI API Key Not configured 0 models" [ref=e2385] [cursor=pointer]:
+                            - generic [ref=e2386]:
+                                - img "sdwebui" [ref=e2389]
+                                - generic [ref=e2395]:
+                                    - generic [ref=e2396]:
+                                        - paragraph [ref=e2397]: SD WebUI
+                                        - generic "API Key" [ref=e2398]
+                                    - paragraph [ref=e2399]: Not configured
+                                - generic [ref=e2400]:
+                                    - paragraph [ref=e2401]: "0"
+                                    - paragraph [ref=e2402]: models
+                        - button "comfyui ComfyUI API Key Not configured 0 models" [ref=e2403] [cursor=pointer]:
+                            - generic [ref=e2404]:
+                                - img "comfyui" [ref=e2407]
+                                - generic [ref=e2409]:
+                                    - generic [ref=e2410]:
+                                        - paragraph [ref=e2411]: ComfyUI
+                                        - generic "API Key" [ref=e2412]
+                                    - paragraph [ref=e2413]: Not configured
+                                - generic [ref=e2414]:
+                                    - paragraph [ref=e2415]: "0"
+                                    - paragraph [ref=e2416]: models
+                        - button "perplexity-search Perplexity Search API Key Not configured 0 models" [ref=e2417] [cursor=pointer]:
+                            - generic [ref=e2418]:
+                                - img "perplexity-search" [ref=e2421]
+                                - generic [ref=e2423]:
+                                    - generic [ref=e2424]:
+                                        - paragraph [ref=e2425]: Perplexity Search
+                                        - generic "API Key" [ref=e2426]
+                                    - paragraph [ref=e2427]: Not configured
+                                - generic [ref=e2428]:
+                                    - paragraph [ref=e2429]: "0"
+                                    - paragraph [ref=e2430]: models
+                        - button "serper-search Serper Search API Key Not configured 0 models" [ref=e2431] [cursor=pointer]:
+                            - generic [ref=e2432]:
+                                - img "serper-search" [ref=e2435]
+                                - generic [ref=e2436]:
+                                    - generic [ref=e2437]:
+                                        - paragraph [ref=e2438]: Serper Search
+                                        - generic "API Key" [ref=e2439]
+                                    - paragraph [ref=e2440]: Not configured
+                                - generic [ref=e2441]:
+                                    - paragraph [ref=e2442]: "0"
+                                    - paragraph [ref=e2443]: models
+                        - button "brave-search Brave Search API Key 1 active · 0 error 0 models" [ref=e2444] [cursor=pointer]:
+                            - generic [ref=e2445]:
+                                - img "brave-search" [ref=e2448]
+                                - generic [ref=e2449]:
+                                    - generic [ref=e2450]:
+                                        - paragraph [ref=e2451]: Brave Search
+                                        - generic "API Key" [ref=e2452]
+                                    - paragraph [ref=e2453]: 1 active · 0 error
+                                - generic [ref=e2454]:
+                                    - paragraph [ref=e2455]: "0"
+                                    - paragraph [ref=e2456]: models
+                        - button "exa-search Exa Search API Key 1 active · 0 error 0 models" [ref=e2457] [cursor=pointer]:
+                            - generic [ref=e2458]:
+                                - img "exa-search" [ref=e2461]
+                                - generic [ref=e2463]:
+                                    - generic [ref=e2464]:
+                                        - paragraph [ref=e2465]: Exa Search
+                                        - generic "API Key" [ref=e2466]
+                                    - paragraph [ref=e2467]: 1 active · 0 error
+                                - generic [ref=e2468]:
+                                    - paragraph [ref=e2469]: "0"
+                                    - paragraph [ref=e2470]: models
+                        - button "tavily-search Tavily Search API Key 1 active · 0 error 0 models" [ref=e2471] [cursor=pointer]:
+                            - generic [ref=e2472]:
+                                - img "tavily-search" [ref=e2475]
+                                - generic [ref=e2482]:
+                                    - generic [ref=e2483]:
+                                        - paragraph [ref=e2484]: Tavily Search
+                                        - generic "API Key" [ref=e2485]
+                                    - paragraph [ref=e2486]: 1 active · 0 error
+                                - generic [ref=e2487]:
+                                    - paragraph [ref=e2488]: "0"
+                                    - paragraph [ref=e2489]: models
+                        - button "google-pse-search Google Programmable Search API Key Not configured 0 models" [ref=e2490] [cursor=pointer]:
+                            - generic [ref=e2491]:
+                                - img "google-pse-search" [ref=e2494]
+                                - generic [ref=e2499]:
+                                    - generic [ref=e2500]:
+                                        - paragraph [ref=e2501]: Google Programmable Search
+                                        - generic "API Key" [ref=e2502]
+                                    - paragraph [ref=e2503]: Not configured
+                                - generic [ref=e2504]:
+                                    - paragraph [ref=e2505]: "0"
+                                    - paragraph [ref=e2506]: models
+                        - button "linkup-search Linkup Search API Key Not configured 0 models" [ref=e2507] [cursor=pointer]:
+                            - generic [ref=e2508]:
+                                - img "linkup-search" [ref=e2511]
+                                - generic [ref=e2512]:
+                                    - generic [ref=e2513]:
+                                        - paragraph [ref=e2514]: Linkup Search
+                                        - generic "API Key" [ref=e2515]
+                                    - paragraph [ref=e2516]: Not configured
+                                - generic [ref=e2517]:
+                                    - paragraph [ref=e2518]: "0"
+                                    - paragraph [ref=e2519]: models
+                        - button "searchapi-search SearchAPI API Key Not configured 0 models" [ref=e2520] [cursor=pointer]:
+                            - generic [ref=e2521]:
+                                - img "searchapi-search" [ref=e2524]
+                                - generic [ref=e2526]:
+                                    - generic [ref=e2527]:
+                                        - paragraph [ref=e2528]: SearchAPI
+                                        - generic "API Key" [ref=e2529]
+                                    - paragraph [ref=e2530]: Not configured
+                                - generic [ref=e2531]:
+                                    - paragraph [ref=e2532]: "0"
+                                    - paragraph [ref=e2533]: models
+                        - button "youcom-search You.com Search API Key Not configured 0 models" [ref=e2534] [cursor=pointer]:
+                            - generic [ref=e2535]:
+                                - img "youcom-search" [ref=e2538]
+                                - generic [ref=e2539]:
+                                    - generic [ref=e2540]:
+                                        - paragraph [ref=e2541]: You.com Search
+                                        - generic "API Key" [ref=e2542]
+                                    - paragraph [ref=e2543]: Not configured
+                                - generic [ref=e2544]:
+                                    - paragraph [ref=e2545]: "0"
+                                    - paragraph [ref=e2546]: models
+                        - button "SearXNG Search API Key Not configured 0 models" [ref=e2547] [cursor=pointer]:
+                            - generic [ref=e2548]:
+                                - img [ref=e2551]
+                                - generic [ref=e2554]:
+                                    - generic [ref=e2555]:
+                                        - paragraph [ref=e2556]: SearXNG Search
+                                        - generic "API Key" [ref=e2557]
+                                    - paragraph [ref=e2558]: Not configured
+                                - generic [ref=e2559]:
+                                    - paragraph [ref=e2560]: "0"
+                                    - paragraph [ref=e2561]: models
+                        - button "deepgram Deepgram API Key Not configured 0 models" [ref=e2562] [cursor=pointer]:
+                            - generic [ref=e2563]:
+                                - img "deepgram" [ref=e2566]
+                                - generic [ref=e2567]:
+                                    - generic [ref=e2568]:
+                                        - paragraph [ref=e2569]: Deepgram
+                                        - generic "API Key" [ref=e2570]
+                                    - paragraph [ref=e2571]: Not configured
+                                - generic [ref=e2572]:
+                                    - paragraph [ref=e2573]: "0"
+                                    - paragraph [ref=e2574]: models
+                        - button "assemblyai AssemblyAI API Key Not configured 0 models" [ref=e2575] [cursor=pointer]:
+                            - generic [ref=e2576]:
+                                - img "assemblyai" [ref=e2579]
+                                - generic [ref=e2582]:
+                                    - generic [ref=e2583]:
+                                        - paragraph [ref=e2584]: AssemblyAI
+                                        - generic "API Key" [ref=e2585]
+                                    - paragraph [ref=e2586]: Not configured
+                                - generic [ref=e2587]:
+                                    - paragraph [ref=e2588]: "0"
+                                    - paragraph [ref=e2589]: models
+                        - button "elevenlabs ElevenLabs API Key Not configured 0 models" [ref=e2590] [cursor=pointer]:
+                            - generic [ref=e2591]:
+                                - img "elevenlabs" [ref=e2594]
+                                - generic [ref=e2596]:
+                                    - generic [ref=e2597]:
+                                        - paragraph [ref=e2598]: ElevenLabs
+                                        - generic "API Key" [ref=e2599]
+                                    - paragraph [ref=e2600]: Not configured
+                                - generic [ref=e2601]:
+                                    - paragraph [ref=e2602]: "0"
+                                    - paragraph [ref=e2603]: models
+                        - button "cartesia Cartesia API Key Not configured 0 models" [ref=e2604] [cursor=pointer]:
+                            - generic [ref=e2605]:
+                                - img "cartesia" [ref=e2608]
+                                - generic [ref=e2609]:
+                                    - generic [ref=e2610]:
+                                        - paragraph [ref=e2611]: Cartesia
+                                        - generic "API Key" [ref=e2612]
+                                    - paragraph [ref=e2613]: Not configured
+                                - generic [ref=e2614]:
+                                    - paragraph [ref=e2615]: "0"
+                                    - paragraph [ref=e2616]: models
+                        - button "playht PlayHT API Key Not configured 0 models" [ref=e2617] [cursor=pointer]:
+                            - generic [ref=e2618]:
+                                - img "playht" [ref=e2621]
+                                - generic [ref=e2622]:
+                                    - generic [ref=e2623]:
+                                        - paragraph [ref=e2624]: PlayHT
+                                        - generic "API Key" [ref=e2625]
+                                    - paragraph [ref=e2626]: Not configured
+                                - generic [ref=e2627]:
+                                    - paragraph [ref=e2628]: "0"
+                                    - paragraph [ref=e2629]: models
+                        - button "inworld Inworld API Key Not configured 0 models" [ref=e2630] [cursor=pointer]:
+                            - generic [ref=e2631]:
+                                - img "inworld" [ref=e2634]
+                                - generic [ref=e2635]:
+                                    - generic [ref=e2636]:
+                                        - paragraph [ref=e2637]: Inworld
+                                        - generic "API Key" [ref=e2638]
+                                    - paragraph [ref=e2639]: Not configured
+                                - generic [ref=e2640]:
+                                    - paragraph [ref=e2641]: "0"
+                                    - paragraph [ref=e2642]: models
+                        - button "aws-polly AWS Polly API Key Not configured 0 models" [ref=e2643] [cursor=pointer]:
+                            - generic [ref=e2644]:
+                                - img "aws-polly" [ref=e2647]
+                                - generic [ref=e2650]:
+                                    - generic [ref=e2651]:
+                                        - paragraph [ref=e2652]: AWS Polly
+                                        - generic "API Key" [ref=e2653]
+                                    - paragraph [ref=e2654]: Not configured
+                                - generic [ref=e2655]:
+                                    - paragraph [ref=e2656]: "0"
+                                    - paragraph [ref=e2657]: models
+                        - button "cliproxyapi CLIProxyAPI API Key Not configured 0 models" [ref=e2658] [cursor=pointer]:
+                            - generic [ref=e2659]:
+                                - img "cliproxyapi" [ref=e2662]
+                                - generic [ref=e2663]:
+                                    - generic [ref=e2664]:
+                                        - paragraph [ref=e2665]: CLIProxyAPI
+                                        - generic "API Key" [ref=e2666]
+                                    - paragraph [ref=e2667]: Not configured
+                                - generic [ref=e2668]:
+                                    - paragraph [ref=e2669]: "0"
+                                    - paragraph [ref=e2670]: models

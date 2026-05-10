@@ -51,6 +51,29 @@ batch
 %}
 
 ###
+# @name Upload a JSONL file for batch processing - batch test with long input for embedding endpoint
+POST {{omniroute-address}}/v1/files
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="batch_input.jsonl"
+Content-Type: application/jsonl
+
+{"custom_id":"0","method":"POST","url":"/v1/embeddings","body":{"model":"mistral/mistral-embed","input":"# Lorem Ipsum\n\n## Index (use lorem to find dolor)\n- **Sit**: amet.md\n- **Consectetur**: adipiscing.md\n- **Elit**: elit.md\n- **Sed**: sed.md\n- **Do**: eiusmod-insights.md (evergreen behavioral profile)\n- **Tempor**: tempor-plan.md\n- **Technical notes**: See daily logs in `logs/YYYY-MM-DD.md` (search with `search_tool`)\n\n## Project Goal: The Lorem Ipsum Dolor\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n## Durable preferences / facts\n- Running directly on `dev-server-01` (no SSH required for local scripts).\n- Date-stamped log files decay (half-life ~30 days). Undated files never decay.\n- **Always write it down**: Use `logs/YYYY-MM-DD.md` for daily logs; rely on `README.md` only for evergreen facts.\n- Use `search_tool` to locate information across README.md and dated logs before answering questions about prior work, decisions, or todos.\n- When searching it may also be that you should search online using the web skill.\n- **Embeddings**: Use Mistral embedding endpoint (`https://api.mistral.ai/v1/embeddings`, model: `mistral-embed`) with `MISTRAL_API_KEY`. Verified working on 2026-04-18.\n\n## Code Examples\n```typescript\nconst lorem = \"ipsum dolor\";\nconsole.log(lorem);\n```\n\n## Special Characters Test: \"quotes\", 'apostrophes', `backticks`, \\backslashes\\, \\n newlines, \\t tabs, & ampersands, <tags>, ${interpolation}, .\n\n## Unicode: café, naïve, 🚀 rocket, 中文, 日本語, 한국어."}}
+
+--boundary
+Content-Disposition: form-data; name="purpose"
+
+batch
+--boundary--
+
+> {%
+    client.global.set("file_id", response.body.id);
+%}
+
+###
+
 # @name List all uploaded files
 GET {{omniroute-address}}/v1/files
 Authorization: Bearer {{OMNIROUTE_API_KEY}}
@@ -79,6 +102,36 @@ Content-Type: application/json
 > {%
     client.global.set("batch_id", response.body.id);
 %}
+
+###
+# @name Create a new batch job for embeddings
+POST {{omniroute-address}}/v1/batches
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+Content-Type: application/json
+
+{
+  "input_file_id": "{{file_id}}",
+  "endpoint": "/v1/embeddings",
+  "completion_window": "24h"
+}
+
+> {%
+    client.global.set("batch_id", response.body.id);
+%}
+
+###
+# @name List all uploaded files
+GET {{omniroute-address}}/v1/files
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
+
+> {%
+    client.global.set("file_id", response.body.data[0].id);
+%}
+
+###
+# @name Get file metadata of the uploaded file
+GET {{omniroute-address}}/v1/files/{{file_id}}
+Authorization: Bearer {{OMNIROUTE_API_KEY}}
 
 ###
 # @name List all batch jobs

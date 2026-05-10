@@ -87,13 +87,13 @@ Authorization: Bearer your-api-key
 Content-Type: application/json
 
 {
-  "model": "openai/dall-e-3",
+  "model": "openai/gpt-image-2",
   "prompt": "A beautiful sunset over mountains",
   "size": "1024x1024"
 }
 ```
 
-Available providers: OpenAI (DALL-E, GPT Image 1), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
+Available providers: OpenAI (GPT Image 2), xAI (Grok Image), Together AI (FLUX), Fireworks AI, Nebius (FLUX), Hyperbolic, NanoBanana, **OpenRouter**, SD WebUI (local), ComfyUI (local).
 
 ```bash
 # List all image models

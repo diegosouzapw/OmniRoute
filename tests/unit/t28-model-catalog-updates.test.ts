@@ -54,9 +54,10 @@ test("T28: qwen registry uses native chat.qwen.ai base URL", () => {
 test("T28: vertex catalog includes partner models when vertex executor is available", () => {
   const vertexIds = REGISTRY.vertex.models.map((m) => m.id);
 
-  assert.ok(vertexIds.includes("deepseek-v3.2"));
-  assert.ok(vertexIds.includes("qwen3-next-80b"));
-  assert.ok(vertexIds.includes("glm-5"));
+  assert.ok(vertexIds.includes("DeepSeek-V4-Flash"));
+  assert.ok(vertexIds.includes("DeepSeek-V4-Pro"));
+  assert.ok(vertexIds.includes("Qwen3.6-35B-A3B"));
+  assert.ok(vertexIds.includes("GLM-5.1-FP8"));
 });
 
 test("T28: new catalog models resolve through getModelInfoCore", async () => {
@@ -72,7 +73,7 @@ test("T28: new catalog models resolve through getModelInfoCore", async () => {
   assert.equal(flashPreview.provider, "gemini");
   assert.equal(flashPreview.model, "gemini-3-flash-preview");
 
-  const vertexPartner = await getModelInfoCore("vertex/qwen3-next-80b", {});
+  const vertexPartner = await getModelInfoCore("vertex/Qwen3.6-35B-A3B", {});
   assert.equal(vertexPartner.provider, "vertex");
-  assert.equal(vertexPartner.model, "qwen3-next-80b");
+  assert.equal(vertexPartner.model, "Qwen3.6-35B-A3B");
 });

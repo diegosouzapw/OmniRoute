@@ -5,6 +5,7 @@ export {
   createProviderConnection,
   updateProviderConnection,
   deleteProviderConnection,
+  deleteProviderConnections,
   getProviderNodes,
   getProviderNodeById,
   createProviderNode,

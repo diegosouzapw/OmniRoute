@@ -42,7 +42,9 @@ export class PollinationsExecutor extends BaseExecutor {
   }
 
   transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
-    // Pollinations uses provider aliases directly: "openai", "claude", "gemini", etc.
+    if (typeof body === "object" && body !== null) {
+      body.jsonMode = true;
+    }
     return body;
   }
 }

@@ -5,13 +5,24 @@ import BatchDetailModal from "./BatchDetailModal";
 
 function relativeTime(ts: number): string {
   const diffMs = Date.now() - ts * 1000;
-  const diffSec = Math.round(diffMs / 1000);
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  return `${Math.round(diffHr / 24)}d ago`;
+  const isFuture = diffMs < 0;
+  const absDiffMs = Math.abs(diffMs);
+  const diffSec = Math.round(absDiffMs / 1000);
+
+  let res = "";
+  if (diffSec < 60) res = `${diffSec}s`;
+  else {
+    const diffMin = Math.round(diffSec / 60);
+    if (diffMin < 60) res = `${diffMin}m`;
+    else {
+      const diffHr = Math.round(diffMin / 60);
+      if (diffHr < 24) res = `${diffHr}h`;
+      else res = `${Math.round(diffHr / 24)}d`;
+    }
+  }
+
+  if (isFuture) return `in ${res}`;
+  return `${res} ago`;
 }
 
 interface BatchRecord {
@@ -90,10 +101,10 @@ function effectiveStatus(batch: BatchRecord): string {
   return map[batch.status] ?? batch.status;
 }
 
-function StatusBadge({ batch }: { batch: BatchRecord }) {
+function StatusBadge({ batch }: Readonly<{ batch: BatchRecord }>) {
   const key = effectiveStatus(batch);
   const cls = STATUS_STYLES[key] ?? "bg-gray-500/15 text-gray-400 border-gray-500/25";
-  const label = STATUS_LABELS[key] ?? key.replace(/_/g, " ");
+  const label = STATUS_LABELS[key] ?? key.replaceAll("_", " ");
   return (
     <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium border ${cls}`}>
       {label}
@@ -113,7 +124,7 @@ const ALL_STATUSES = [
   "expired",
 ];
 
-export default function BatchListTab({ batches, files, loading }: BatchListTabProps) {
+export default function BatchListTab({ batches, files, loading }: Readonly<BatchListTabProps>) {
   const [selectedBatch, setSelectedBatch] = useState<BatchRecord | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -156,7 +167,7 @@ export default function BatchListTab({ batches, files, loading }: BatchListTabPr
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
+      <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
         <table className="w-full text-sm" role="table" aria-label="Batches">
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
@@ -178,12 +189,15 @@ export default function BatchListTab({ batches, files, loading }: BatchListTabPr
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 Created
               </th>
+              <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
+                Expires
+              </th>
             </tr>
           </thead>
           <tbody>
             {loading && filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
                     Loading…
@@ -192,7 +206,7 @@ export default function BatchListTab({ batches, files, loading }: BatchListTabPr
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   No batches found
                 </td>
               </tr>
@@ -251,6 +265,9 @@ export default function BatchListTab({ batches, files, loading }: BatchListTabPr
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {relativeTime(batch.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
+                      {batch.expiresAt ? relativeTime(batch.expiresAt) : "—"}
                     </td>
                   </tr>
                 );

@@ -1,4 +1,4 @@
-import { getModelInfo } from "../services/model";
+import { getModelInfo, getComboForModel } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
@@ -43,8 +43,59 @@ const PREFERRED_BY_FAMILY: Record<string, string> = {
   mimo: "moonshot",
 };
 
-export async function resolveModelOrError(modelStr: string, body: any, endpointPath: string = "") {
+const CODEX_NATIVE_RESPONSES_MODELS = new Set(["gpt-5.5"]);
+
+function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
+  if (!headers || typeof headers !== "object") return "";
+  const lowerName = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() !== lowerName) continue;
+    return Array.isArray(value) ? value.join(",") : String(value ?? "");
+  }
+  return "";
+}
+
+function isCodexNativeResponsesRequest(
+  body: any,
+  endpointPath: string,
+  headers: Record<string, unknown> | null | undefined
+) {
+  const normalizedEndpoint = String(endpointPath || "").replace(/\/+$/, "");
+  if (!/(^|\/)responses(?=\/|$)/i.test(normalizedEndpoint)) return false;
+  if (/\/responses\/compact$/i.test(normalizedEndpoint)) return true;
+
+  const userAgent = getHeaderValue(headers, "user-agent").toLowerCase();
+  if (userAgent.includes("codex")) return true;
+  if (getHeaderValue(headers, "x-codex-session-id")) return true;
+  if (getHeaderValue(headers, "x-codex-window-id")) return true;
+  if (getHeaderValue(headers, "x-codex-turn-metadata")) return true;
+
+  const metadataSource =
+    body && typeof body === "object" && body.metadata && typeof body.metadata === "object"
+      ? String(body.metadata.source || "")
+      : "";
+  return metadataSource.toLowerCase().includes("codex");
+}
+
+export async function resolveModelOrError(
+  modelStr: string,
+  body: any,
+  endpointPath: string = "",
+  requestHeaders: Record<string, unknown> | null | undefined = null
+) {
   const modelInfo = await getModelInfo(modelStr);
+  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
+
+  if (
+    modelInfo.provider === "openai" &&
+    typeof modelInfo.model === "string" &&
+    CODEX_NATIVE_RESPONSES_MODELS.has(modelInfo.model) &&
+    sourceFormat === "openai-responses" &&
+    isCodexNativeResponsesRequest(body, endpointPath, requestHeaders)
+  ) {
+    log.info("ROUTING", `${modelStr} → codex/${modelInfo.model} (Codex native responses)`);
+    modelInfo.provider = "codex";
+  }
 
   // Forced-rewrite: codex provider doesn't serve DeepSeek/Qwen/Kimi/etc. Reroute
   // these to their canonical native provider so the request lands on the right
@@ -77,6 +128,46 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
         modelInfo.model = (rerouted as any).model;
       }
     }
+  }
+
+  // "auto" is a combo prefix, not a provider. parseModel("auto/fast") splits it into
+  // provider="auto" model="fast" — redirect to matching combo before credential lookup fails.
+  if (modelInfo.provider === "auto") {
+    const exactCombo = await getComboForModel(modelStr);
+    if (exactCombo) {
+      log.info("ROUTING", `"auto" provider → combo "${modelStr}"`);
+      return { combo: exactCombo, provider: "auto", model: modelInfo.model };
+    }
+
+    // Fuzzy: "fast" → "auto/best-fast", "chat" → "auto/best-chat"
+    const suffix = modelInfo.model || "";
+    for (const candidate of [`auto/best-${suffix}`, `auto/${suffix}`]) {
+      const fuzzyCombo = await getComboForModel(candidate);
+      if (fuzzyCombo) {
+        log.info("ROUTING", `"auto/${suffix}" → combo "${candidate}" (fuzzy)`);
+        return { combo: fuzzyCombo, provider: "auto", model: suffix };
+      }
+    }
+
+    // List available auto/* combos in error
+    const available: string[] = [];
+    try {
+      const { getCombos } = await import("@/lib/localDb");
+      const all = await getCombos();
+      for (const c of all) {
+        if (c.name?.startsWith("auto/")) available.push(c.name);
+      }
+    } catch {
+      /* DB unavailable */
+    }
+
+    const hint =
+      available.length > 0
+        ? ` Available auto combos: ${available.join(", ")}`
+        : " No auto combos configured — create one in the Dashboard.";
+    const message = `Model '${modelStr}' is not a valid combo or provider.${hint}`;
+    log.warn("CHAT", message, { model: modelStr });
+    return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
   }
 
   if (!modelInfo.provider) {
@@ -113,7 +204,6 @@ export async function resolveModelOrError(modelStr: string, body: any, endpointP
   }
 
   const { provider, model, extendedContext } = modelInfo;
-  const sourceFormat = detectFormatFromEndpoint(body, endpointPath);
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
   if ((modelInfo as any).apiFormat === "responses") {
@@ -186,6 +276,7 @@ export async function executeChatWithBreaker({
   comboExecutionKey,
   extendedContext,
   providerProfile,
+  cachedSettings,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
 
@@ -206,6 +297,7 @@ export async function executeChatWithBreaker({
           isCombo,
           comboStepId,
           comboExecutionKey,
+          cachedSettings,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

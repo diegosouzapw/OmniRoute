@@ -89,8 +89,8 @@ export const DEFAULT_SAFETY_SETTINGS = [
 ];
 
 // Convert OpenAI content to Gemini parts
-export function convertOpenAIContentToParts(content) {
-  const parts = [];
+export function convertOpenAIContentToParts(content: any) {
+  const parts: any[] = [];
 
   if (typeof content === "string") {
     parts.push({ text: content });

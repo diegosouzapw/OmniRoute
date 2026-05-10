@@ -11,7 +11,7 @@ export const GITHUB_COPILOT_OPENAI_INTENT = "conversation-panel";
 export const GITHUB_COPILOT_DEFAULT_INITIATOR = "user";
 export const GITHUB_COPILOT_USER_AGENT_LIBRARY = "electron-fetch";
 
-export const QWEN_CLI_VERSION = "0.15.4";
+export const QWEN_CLI_VERSION = "0.15.9";
 export const QWEN_STAINLESS_LANG = "js";
 export const QWEN_STAINLESS_PACKAGE_VERSION = "5.11.0";
 export const QWEN_STAINLESS_RETRY_COUNT = "1";
@@ -26,7 +26,7 @@ export const KIRO_AMZ_USER_AGENT = "aws-sdk-js/3.0.0 kiro-ide/1.0.0";
 export const KIRO_STREAMING_TARGET =
   "AmazonCodeWhispererStreamingService.GenerateAssistantResponse";
 
-export const CURSOR_REGISTRY_VERSION = "3.2.14";
+export const CURSOR_REGISTRY_VERSION = "3.3";
 
 export function getGitHubCopilotChatHeaders(
   accept = "application/json",

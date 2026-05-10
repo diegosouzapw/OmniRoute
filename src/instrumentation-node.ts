@@ -136,11 +136,15 @@ export async function registerNodejs(): Promise<void> {
   }
 
   try {
-    const [{ migrateCodexConnectionDefaultsFromLegacySettings }, { seedDefaultModelAliases }] =
-      await Promise.all([
-        import("@/lib/providers/codexConnectionDefaults"),
-        import("@/lib/modelAliasSeed"),
-      ]);
+    const [
+      { migrateCodexConnectionDefaultsFromLegacySettings },
+      { startSessionAccountAffinityCleanup },
+      { seedDefaultModelAliases },
+    ] = await Promise.all([
+      import("@/lib/providers/codexConnectionDefaults"),
+      import("@/lib/db/sessionAccountAffinity"),
+      import("@/lib/modelAliasSeed"),
+    ]);
     let settings = await getSettings();
     const passwordState = await ensurePersistentManagementPasswordHash({
       logger: console,
@@ -161,6 +165,7 @@ export async function registerNodejs(): Promise<void> {
     console.log(
       `[STARTUP] Model alias seed: applied=${seededModelAliases.applied.length}, skipped=${seededModelAliases.skipped.length}, failed=${seededModelAliases.failed.length}`
     );
+    startSessionAccountAffinityCleanup();
 
     const migration = await migrateCodexConnectionDefaultsFromLegacySettings();
     if (migration.migrated) {

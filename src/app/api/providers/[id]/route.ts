@@ -23,6 +23,7 @@ import {
   isClaudeExtraUsageBlockEnabled,
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -61,9 +62,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Hide sensitive fields
+    const revealKeys = isApiKeyRevealEnabled();
+
+    // Hide or mask sensitive fields
     const result: Record<string, any> = { ...connection };
-    delete result.apiKey;
+    if (!revealKeys) {
+      result.apiKey = result.apiKey ? maskStoredApiKey(result.apiKey) : undefined;
+    }
     delete result.accessToken;
     delete result.refreshToken;
     delete result.idToken;
@@ -126,6 +131,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       healthCheckInterval,
       group,
       maxConcurrent,
+      projectId,
       providerSpecificData: incomingPsd,
     } = body;
 
@@ -152,6 +158,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
+    if (projectId !== undefined) updateData.projectId = projectId;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)
     if (incomingPsd !== undefined && incomingPsd !== null && typeof incomingPsd === "object") {

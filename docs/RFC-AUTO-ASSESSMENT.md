@@ -29,11 +29,11 @@ While configuring omniroute for production use, we discovered:
 
 ```
 User adds providers → Manually creates combos → Manually assigns models → ???
-                                                                   ↓
-                                                          Some models work,
-                                                          some return errors,
-                                                          some timeout...
-                                                          BUT routing doesn't know!
+                                                           ↓
+                                                    Some models work,
+                                                    some return errors,
+                                                    some timeout...
+                                                    BUT routing doesn't know!
 ```
 
 ### Proposed flow (self-healing)
@@ -55,43 +55,43 @@ User adds providers → Auto-Assessment runs → Working models discovered
 ### New Components
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Auto-Assessment Engine                │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
+┌────────────────────────────────────────────────────────┐
+│                    Auto-Assessment Engine              │
+├────────────────────────────────────────────────────────┤
+│                                                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │  Assessor    │  │ Categorizer  │  │  Self-Healer │  │
 │  │              │  │              │  │              │  │
-│  │ • Probe all  │  │ • Classify   │  │ • Remove    │  │
+│  │ • Probe all  │  │ • Classify   │  │ • Remove     │  │
 │  │   models     │  │   models by  │  │   dead       │  │
-│  │ • Measure    │  │   capability  │  │   models     │  │
-│  │   latency    │  │ • Assign     │  │ • Promote   │  │
+│  │ • Measure    │  │   capability │  │   models     │  │
+│  │   latency    │  │ • Assign     │  │ • Promote    │  │
 │  │ • Track      │  │   tier tags  │  │   working    │  │
-│  │   success    │  │ • Build       │  │   models    │  │
+│  │   success    │  │ • Build      │  │   models     │  │
 │  │   rates      │  │   fitness    │  │ • Re-weight  │  │
-│  │              │  │   scores      │  │   combos     │  │
+│  │              │  │   scores     │  │   combos     │  │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  │
-│         │                 │                  │          │
-│         ▼                 ▼                  ▼          │
+│         │                 │                 │          │
+│         ▼                 ▼                 ▼          │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │              Assessment Database                  │  │
-│  │                                                   │  │
-│  │  model_assessments:                               │  │
-│  │    model_id | provider | status | latency_p50     │  │
+│  │              Assessment Database                 │  │
+│  │                                                  │  │
+│  │  model_assessments:                              │  │
+│  │    model_id | provider | status | latency_p50    │  │
 │  │    latency_p95 | success_rate | last_tested      │  │
-│  │    error_type | tier | categories[] | fitness     │  │
-│  │    context_window | output_tokens | vision | tbc  │  │
-│  │                                                   │  │
-│  │  assessment_runs:                                 │  │
-│  │    run_id | started_at | completed_at             │  │
-│  │    models_tested | models_passed | models_failed  │  │
-│  │                                                   │  │
-│  │  combo_health:                                    │  │
-│  │    combo_id | healthy_models | dead_models        │  │
-│  │    last_auto_fix | auto_fix_count                 │  │
+│  │    error_type | tier | categories[] | fitness    │  │
+│  │    context_window | output_tokens | vision | tbc │  │
+│  │                                                  │  │
+│  │  assessment_runs:                                │  │
+│  │    run_id | started_at | completed_at            │  │
+│  │    models_tested | models_passed | models_failed │  │
+│  │                                                  │  │
+│  │  combo_health:                                   │  │
+│  │    combo_id | healthy_models | dead_models       │  │
+│  │    last_auto_fix | auto_fix_count                │  │
 │  └──────────────────────────────────────────────────┘  │
-│                                                         │
-└──────────────────────────────┬──────────────────────────┘
+│                                                        │
+└──────────────────────────────┬─────────────────────────┘
                                │
                                ▼
               Existing combo system (weighted-fallback, priority, etc.)

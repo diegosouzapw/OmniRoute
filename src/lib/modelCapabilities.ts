@@ -259,7 +259,10 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     contextWindow,
     maxInputTokens: synced?.limit_input ?? contextWindow,
     maxOutputTokens:
-      synced?.limit_output ?? spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens,
+      synced?.limit_output ??
+      (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??
+      spec?.maxOutputTokens ??
+      MODEL_SPECS.__default__.maxOutputTokens,
     defaultThinkingBudget: spec?.defaultThinkingBudget ?? 0,
     thinkingBudgetCap: spec?.thinkingBudgetCap ?? null,
     thinkingOverhead: spec?.thinkingOverhead ?? null,

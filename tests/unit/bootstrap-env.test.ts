@@ -64,6 +64,23 @@ test("bootstrapEnv prefers ~/.omniroute/.env over server.env", () => {
   });
 });
 
+test("bootstrapEnv strips matching quotes from env values", () => {
+  withTempEnv(({ dataDir }) => {
+    process.env.DATA_DIR = dataDir;
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dataDir, "server.env"),
+      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"\n',
+      "utf8"
+    );
+
+    const env = bootstrapEnv({ quiet: true });
+
+    assert.equal(env.JWT_SECRET, "jwt-from-server-env");
+    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.137 (external, cli)");
+  });
+});
+
 test("bootstrapEnv refuses to generate a new key over encrypted data", () => {
   withTempEnv(({ dataDir }) => {
     process.env.DATA_DIR = dataDir;

@@ -74,6 +74,14 @@ for (const [aliasOrId, models] of Object.entries(PROVIDER_MODELS)) {
 }
 const KNOWN_MODEL_IDS = new Set(MODEL_TO_PROVIDERS.keys());
 const CODEX_PREFERRED_UNPREFIXED_MODELS = new Set(["gpt-5.5"]);
+const CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES = new Map([["gpt-5.5", "gpt-5.5-medium"]]);
+export const CODEX_NATIVE_UNPREFIXED_MODELS = new Set(["codex-auto-review"]);
+
+interface ProviderConnectionLike {
+  provider?: unknown;
+  isActive?: unknown;
+  is_active?: unknown;
+}
 
 /**
  * Resolve provider alias to provider ID
@@ -124,6 +132,68 @@ function hasKnownProviderModel(providerOrAlias, modelId) {
 
   const canonicalModel = resolveProviderModelAlias(providerId, modelId);
   return canonicalModel !== modelId && models.some((entry) => entry?.id === canonicalModel);
+}
+
+function hasCodexPreferredUnprefixedModel(modelId) {
+  const canonicalModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
+  if (!canonicalModel) return false;
+
+  const providerAlias = PROVIDER_ID_TO_ALIAS.codex || "codex";
+  const models = PROVIDER_MODELS[providerAlias] || PROVIDER_MODELS.codex || [];
+  return models.some((entry) => entry?.id === canonicalModel);
+}
+
+function resolveInferredProviderModel(provider, modelId) {
+  const codexPreferredModel = CODEX_PREFERRED_UNPREFIXED_MODEL_ALIASES.get(modelId);
+  if (provider === "codex" && codexPreferredModel) {
+    return codexPreferredModel;
+  }
+  return resolveProviderModelAlias(provider, modelId);
+}
+
+function getInferredProvidersForModel(modelId) {
+  const providers = [...(MODEL_TO_PROVIDERS.get(modelId) || [])];
+
+  if (
+    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId) &&
+    hasCodexPreferredUnprefixedModel(modelId) &&
+    !providers.includes("codex")
+  ) {
+    providers.push("codex");
+  }
+
+  return providers;
+}
+
+function isProviderConnectionActive(connection: ProviderConnectionLike) {
+  if (connection.isActive !== undefined) {
+    return connection.isActive !== false && connection.isActive !== 0;
+  }
+  if (connection.is_active !== undefined) {
+    return connection.is_active !== false && connection.is_active !== 0;
+  }
+  return false;
+}
+
+function getProviderIdFromConnection(connection: unknown) {
+  if (!connection || typeof connection !== "object") return null;
+  const record = connection as ProviderConnectionLike;
+  if (typeof record.provider !== "string" || !record.provider) return null;
+  if (!isProviderConnectionActive(record)) return null;
+  return resolveProviderAlias(record.provider);
+}
+
+async function getActiveProviderSet() {
+  try {
+    const { getProviderConnections } = await import("@/lib/localDb");
+    const conns = (await getProviderConnections()) as unknown[];
+    const providers = conns
+      .map(getProviderIdFromConnection)
+      .filter((provider): provider is string => Boolean(provider));
+    return new Set(providers);
+  } catch {
+    return null;
+  }
 }
 
 function shouldTreatAsExactModelId(modelStr) {
@@ -274,15 +344,30 @@ function parseAliasTarget(target) {
   return { model: normalizedTarget };
 }
 
-function resolveModelByProviderInference(modelId, extendedContext) {
-  const providers = MODEL_TO_PROVIDERS.get(modelId) || [];
+async function resolveModelByProviderInference(modelId, extendedContext) {
+  const providers = getInferredProvidersForModel(modelId);
 
   const nonOpenAIProviders = providers.filter((p) => p !== "openai");
 
-  if (providers.includes("codex") && CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)) {
+  if (CODEX_NATIVE_UNPREFIXED_MODELS.has(modelId)) {
     return {
       provider: "codex",
       model: modelId,
+      extendedContext,
+    };
+  }
+
+  const activeProviders = await getActiveProviderSet();
+
+  if (
+    activeProviders?.has("codex") &&
+    !activeProviders.has("openai") &&
+    providers.includes("codex") &&
+    CODEX_PREFERRED_UNPREFIXED_MODELS.has(modelId)
+  ) {
+    return {
+      provider: "codex",
+      model: resolveInferredProviderModel("codex", modelId),
       extendedContext,
     };
   }
@@ -296,14 +381,16 @@ function resolveModelByProviderInference(modelId, extendedContext) {
     };
   }
 
-  if (nonOpenAIProviders.length === 1) {
-    const provider = nonOpenAIProviders[0];
-    const canonicalModel = resolveProviderModelAlias(provider, modelId);
+  const candidatesToUse = nonOpenAIProviders;
+
+  if (candidatesToUse.length === 1) {
+    const provider = candidatesToUse[0];
+    const canonicalModel = resolveInferredProviderModel(provider, modelId);
     return { provider, model: canonicalModel, extendedContext };
   }
 
-  if (nonOpenAIProviders.length > 1) {
-    const aliasesForHint = nonOpenAIProviders.map((p) => PROVIDER_ID_TO_ALIAS[p] || p);
+  if (candidatesToUse.length > 1) {
+    const aliasesForHint = candidatesToUse.map((p) => PROVIDER_ID_TO_ALIAS[p] || p);
     const hints = aliasesForHint.slice(0, 2).map((alias) => `${alias}/${modelId}`);
     const message = `Ambiguous model '${modelId}'. Use provider/model prefix (ex: ${hints.join(" or ")}).`;
     console.warn(`[MODEL] ${message} Candidates: ${aliasesForHint.join(", ")}`);
@@ -312,7 +399,7 @@ function resolveModelByProviderInference(modelId, extendedContext) {
       model: modelId,
       errorType: "ambiguous_model",
       errorMessage: message,
-      candidateProviders: nonOpenAIProviders,
+      candidateProviders: candidatesToUse,
       candidateAliases: aliasesForHint,
     };
   }
@@ -370,7 +457,7 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
     };
   }
   if (resolved?.model) {
-    return resolveModelByProviderInference(resolved.model, extendedContext);
+    return await resolveModelByProviderInference(resolved.model, extendedContext);
   }
 
   // T13: Try wildcard alias (glob patterns like "claude-sonnet-*" → "anthropic/claude-sonnet-4-...")
@@ -399,5 +486,5 @@ export async function getModelInfoCore(modelStr, aliasesOrGetter) {
   }
 
   const normalizedModelId = normalizeCrossProxyModelId(parsed.model).modelId;
-  return resolveModelByProviderInference(normalizedModelId, extendedContext);
+  return await resolveModelByProviderInference(normalizedModelId, extendedContext);
 }

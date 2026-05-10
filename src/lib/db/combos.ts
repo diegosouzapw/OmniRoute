@@ -161,6 +161,12 @@ export async function updateCombo(id: string, data: JsonRecord) {
     sortOrder,
     updatedAt: new Date().toISOString(),
   };
+  // Remove fields explicitly set to null (for deletion support)
+  for (const key of Object.keys(data)) {
+    if (data[key] === null) {
+      delete merged[key];
+    }
+  }
   const currentName = typeof current.name === "string" ? current.name : "";
   const nextName =
     typeof merged["name"] === "string" && merged["name"].trim().length > 0
