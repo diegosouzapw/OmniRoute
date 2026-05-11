@@ -1913,37 +1913,6 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
-// ── Cloud Agent Providers ───────────────────────────────────────────────────
-export const CLOUD_AGENT_PROVIDERS = {
-  jules: {
-    id: "jules",
-    alias: "jules",
-    name: "Jules",
-    icon: "engineering",
-    color: "#EAB308",
-    textIcon: "JU",
-    website: "https://jules.google.com",
-  },
-  devin: {
-    id: "devin",
-    alias: "devin",
-    name: "Devin",
-    icon: "smart_toy",
-    color: "#2563EB",
-    textIcon: "DV",
-    website: "https://devin.ai",
-  },
-  "codex-cloud": {
-    id: "codex-cloud",
-    alias: "codex-cloud",
-    name: "Codex Cloud",
-    icon: "code",
-    color: "#10B981",
-    textIcon: "CX",
-    website: "https://chatgpt.com/codex",
-  },
-};
-
 // ── System Providers (virtual, not user-connectable) ──────────────────────────
 export const SYSTEM_PROVIDERS = {
   auto: {
@@ -1955,19 +1924,6 @@ export const SYSTEM_PROVIDERS = {
     textIcon: "Auto",
     systemOnly: true,
     description: "Zero-config auto-routing with LKGP across all connected providers",
-  },
-};
-
-// Cloud Agent Providers
-export const CLOUD_AGENT_PROVIDERS = {
-  jules: { id: "jules", alias: "jules", name: "Jules AI", icon: "smart_toy", color: "#6366F1" },
-  devin: { id: "devin", alias: "devin", name: "Devin AI", icon: "auto_fix_high", color: "#10B981" },
-  "codex-cloud": {
-    id: "codex-cloud",
-    alias: "codex-cloud",
-    name: "Codex Cloud",
-    icon: "cloud",
-    color: "#3B82F6",
   },
 };
 

@@ -2984,6 +2984,7 @@
     "apikey": "Apikey",
     "audio": "Audio",
     "audioProvidersHeading": "Audio Providers Heading",
+    "cloudAgentProviders": "Cloud Agent Providers",
     "audioShortLabel": "Audio Short Label",
     "azureOpenAiBaseUrlHint": "Azure Open Ai Base Url Hint",
     "bailianBaseUrlHint": "Bailian Base Url Hint",
