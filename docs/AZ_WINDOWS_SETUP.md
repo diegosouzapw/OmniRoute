@@ -2,7 +2,7 @@
 
 Bu təlimat Windows istifadəçiləri üçündür. Məqsəd: istifadəçi çox texniki bilik olmadan OmniRoute-u qura bilsin.
 
-## Ən rahat yol
+## Ən rahat yol: Docker ilə
 
 PowerShell açın və bu 3 sətri yazın:
 
@@ -31,6 +31,43 @@ API base URL:
 
 ```text
 http://localhost:20128/v1
+```
+
+## Docker istəməyənlər üçün
+
+Bəzi istifadəçilər Docker Desktop quraşdırmaq istəmir. Bu halda OmniRoute-u Node.js ilə işlətmək olar.
+
+PowerShell açın və bunu yazın:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows-node.ps1 -OutFile setup-windows-node.ps1
+.\setup-windows-node.ps1 -InstallNode
+```
+
+Bu script bunları edir:
+
+- Docker quraşdırmır
+- Node.js yoxdursa `winget` ilə quraşdırmağa çalışır
+- Git yoxdursa `winget` ilə quraşdırmağa çalışır
+- OmniRoute source code-u `C:\Users\<user>\OmniRoute-node` qovluğuna clone edir
+- `npm install` edir
+- OmniRoute-u background-da başladır
+- onboarding-i avtomatik keçir
+- password istəmir
+
+Node.js və ya Git yeni quraşdırılıbsa, PowerShell onları hələ görməyə bilər. Belə olsa PowerShell-i bağlayın, yenidən açın və eyni komandanı təkrar işlədin.
+
+Loglara baxmaq:
+
+```powershell
+.\setup-windows-node.ps1 -Logs
+```
+
+Stop etmək:
+
+```powershell
+.\setup-windows-node.ps1 -Stop
 ```
 
 ## Əgər Docker yeni quraşdırıldısa

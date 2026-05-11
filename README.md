@@ -57,6 +57,8 @@ _The most complete open-source AI proxy — **one endpoint**, **160+ providers**
 
 ## 🇦🇿 Windows-da 1 dəqiqəlik setup
 
+### Docker ilə tövsiyə olunan yol
+
 PowerShell-i açın və bunu yazın:
 
 ```powershell
@@ -66,6 +68,18 @@ irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/
 ```
 
 Bu komanda Docker Desktop yoxdursa quraşdırmağa çalışır, OmniRoute-u Docker ilə başladır, onboarding-i keçir və password istəmir.
+
+### Docker istəməyənlər üçün
+
+Docker quraşdırmaq istəmirsinizsə, Node.js ilə işlədə bilərsiniz:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows-node.ps1 -OutFile setup-windows-node.ps1
+.\setup-windows-node.ps1 -InstallNode
+```
+
+Bu yol Docker qurmur. Node.js və Git yoxdursa `winget` ilə quraşdırmağa çalışır, source code-u yükləyir, `npm install` edir və OmniRoute-u başladır.
 
 Sonra brauzerdə açın:
 
