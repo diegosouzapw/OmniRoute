@@ -568,6 +568,14 @@ export function openaiToOpenAIResponsesRequest(
       result.reasoning = { effort };
     }
   }
+
+  // Propagate Responses-API-only fields when a chat client sent them.
+  // Without this, e.g. `include: ["reasoning.encrypted_content"]` is lost on
+  // the way upstream and Codex returns an empty reasoning summary, so clients
+  // (OpenCode, Cursor, etc.) see no thinking stream.
+  if (Array.isArray(root.include) && root.include.length > 0) {
+    result.include = root.include;
+  }
   if (storeEnabled) {
     if (root[RESPONSES_STORE_MARKER] !== undefined) {
       result.store = root[RESPONSES_STORE_MARKER];

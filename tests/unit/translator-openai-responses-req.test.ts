@@ -297,6 +297,35 @@ test("Chat -> Responses preserves explicit reasoning objects", () => {
   assert.equal((result as any).store, false);
 });
 
+test("Chat -> Responses propagates include so upstream streams the reasoning summary", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning: { effort: "high", summary: "auto" },
+      include: ["reasoning.encrypted_content"],
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual((result as any).include, ["reasoning.encrypted_content"]);
+});
+
+test("Chat -> Responses does not inject include when caller did not set one", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning: { effort: "high" },
+    },
+    false,
+    null
+  );
+
+  assert.equal((result as any).include, undefined);
+});
+
 test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {
   const result = openaiToOpenAIResponsesRequest(
     "gpt-5.3-codex-spark",
