@@ -1,0 +1,143 @@
+# OmniRoute Windows Setup
+
+Bu təlimat Windows istifadəçiləri üçündür. Məqsəd: istifadəçi çox texniki bilik olmadan OmniRoute-u qura bilsin.
+
+## Ən rahat yol
+
+PowerShell açın və bu 3 sətri yazın:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
+.\setup-windows.ps1 -InstallDocker
+```
+
+Bu script bunları edir:
+
+- Docker Desktop yoxdursa `winget` ilə quraşdırmağa çalışır
+- Docker Desktop-u başladır
+- OmniRoute Docker image-i yükləyir
+- OmniRoute container-i başladır
+- onboarding səhifəsini avtomatik keçir
+- password istəmir
+
+Setup bitəndən sonra bunu açın:
+
+```text
+http://localhost:20128
+```
+
+API base URL:
+
+```text
+http://localhost:20128/v1
+```
+
+## Əgər Docker yeni quraşdırıldısa
+
+Docker Desktop ilk dəfə açılanda Windows restart və ya WSL setup istəyə bilər. Əgər istəsə:
+
+1. Docker Desktop-un dediyini edin.
+2. Kompüteri restart etmək lazımdırsa restart edin.
+3. PowerShell-i yenidən açın.
+4. Eyni komandanı yenidən işlədin:
+
+```powershell
+.\setup-windows.ps1 -InstallDocker
+```
+
+## GitHub-dan clone ilə setup
+
+Əgər source code-u da yükləmək istəyirsinizsə:
+
+```powershell
+cd $env:USERPROFILE
+git clone https://github.com/VusalAbdurahmanovX/OmniRoute.git
+cd OmniRoute
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\setup-windows.ps1 -InstallDocker
+```
+
+Diqqət: bunu yazmaq düzgün deyil:
+
+```powershell
+git clone https://github.com/VusalAbdurahmanovX
+```
+
+Düzgün clone linki budur:
+
+```powershell
+git clone https://github.com/VusalAbdurahmanovX/OmniRoute.git
+```
+
+## Password haqqında
+
+Default setup password istəmir. Onboarding də avtomatik keçilir.
+
+Əgər dashboard üçün password istəyirsinizsə:
+
+```powershell
+.\setup-windows.ps1 -RequirePassword
+```
+
+Source clone içindən:
+
+```powershell
+.\scripts\setup-windows.ps1 -RequirePassword
+```
+
+Public link paylaşmazdan əvvəl dashboard-da güclü password qoymaq məsləhətdir:
+
+```text
+Dashboard -> Settings -> Security
+```
+
+## Faydalı komandalar
+
+Container işləyirsə status:
+
+```powershell
+docker ps
+```
+
+Loglara baxmaq:
+
+```powershell
+.\setup-windows.ps1 -Logs
+```
+
+Source clone içindən:
+
+```powershell
+.\scripts\setup-windows.ps1 -Logs
+```
+
+Stop etmək:
+
+```powershell
+.\setup-windows.ps1 -Stop
+```
+
+Başqa portda işlətmək:
+
+```powershell
+.\setup-windows.ps1 -Port 3000
+```
+
+Sonra açın:
+
+```text
+http://localhost:3000
+```
+
+## Video üçün qısa ssenari
+
+1. PowerShell açın.
+2. Setup komandasını yazın.
+3. Docker Desktop quraşdırılması istənilsə təsdiqləyin.
+4. Docker ilk dəfə restart istəsə restart edin.
+5. Eyni setup komandasını yenidən işlədin.
+6. Brauzerdə `http://localhost:20128` açın.
+7. Providers səhifəsindən provider əlavə edin.
+8. Endpoints səhifəsindən API key yaradın.
+9. AI tool-larda base URL olaraq `http://localhost:20128/v1` istifadə edin.
