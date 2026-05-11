@@ -206,12 +206,12 @@ test("updateProviderConnectionSchema accepts http protocol", () => {
 const { getStaticModelsForProvider } =
   await import("../../src/app/api/providers/[id]/models/route.ts");
 
-test("getStaticModelsForProvider returns 8 models for bailian-coding-plan", () => {
+test("getStaticModelsForProvider returns 6 models for bailian-coding-plan", () => {
   const models = getStaticModelsForProvider("bailian-coding-plan");
 
   assert.ok(models, "Should return models for bailian-coding-plan");
   assert.ok(Array.isArray(models), "Should return an array");
-  assert.equal(models.length, 8, "Should return exactly 8 models");
+  assert.equal(models.length, 6, "Should return exactly 6 models");
 });
 
 test("getStaticModelsForProvider returns correct model IDs for bailian-coding-plan", () => {
@@ -223,14 +223,12 @@ test("getStaticModelsForProvider returns correct model IDs for bailian-coding-pl
   }
 
   const expectedIds = [
+    "qwen3.6-plus",
     "qwen3.5-plus",
     "qwen3-max-2026-01-23",
-    "qwen3-coder-next",
-    "qwen3-coder-plus",
-    "MiniMax-M2.5",
-    "glm-5",
-    "glm-4.7",
     "kimi-k2.5",
+    "glm-5",
+    "MiniMax-M2.5",
   ];
 
   const actualIds = models.map((m) => m.id);

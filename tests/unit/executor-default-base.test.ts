@@ -178,7 +178,7 @@ test("DefaultExecutor.buildUrl normalizes configurable chat-openai-compat base U
         baseUrl: "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
       },
     }),
-    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages?beta=true"
+    "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1/messages"
   );
   assert.equal(
     heroku.buildUrl("claude-4-sonnet", true, 0, {
