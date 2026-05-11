@@ -72,6 +72,7 @@ const KNOWN_PNGS = new Set([
 ]);
 const KNOWN_SVGS = new Set([
   "apikey",
+  "bazaarlink",
   "brave",
   "brave-search",
   "cartesia",

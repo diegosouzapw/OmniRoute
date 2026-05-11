@@ -96,6 +96,20 @@ test("DefaultExecutor.buildUrl handles Gemini, Claude and Qwen variants", () => 
   );
 });
 
+test("DefaultExecutor.buildUrl uses full chat endpoints for hosted OpenAI-compatible providers", () => {
+  const bazaarlink = new DefaultExecutor("bazaarlink");
+  const completions = new DefaultExecutor("completions");
+
+  assert.equal(
+    bazaarlink.buildUrl("auto:free", true),
+    "https://bazaarlink.ai/api/v1/chat/completions"
+  );
+  assert.equal(
+    completions.buildUrl("gpt-4.1", true),
+    "https://completions.me/api/v1/chat/completions"
+  );
+});
+
 test("DefaultExecutor.buildUrl handles openai-compatible and anthropic-compatible providers", () => {
   const openAICompat = new DefaultExecutor("openai-compatible-test");
   const openAIResponsesCompat = new DefaultExecutor("openai-compatible-responses-test");
