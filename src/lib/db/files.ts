@@ -18,7 +18,54 @@ export interface FileRecord {
 const FILE_METADATA_COLUMNS =
   "id, bytes, created_at, filename, purpose, mime_type, api_key_id, status, expires_at, deleted_at";
 
+let filesSchemaEnsured = false;
+
+function ensureFilesSchema() {
+  if (filesSchemaEnsured) return;
+  const db = getDbInstance();
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS files (
+      id TEXT PRIMARY KEY,
+      bytes INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      filename TEXT NOT NULL DEFAULT '',
+      purpose TEXT NOT NULL DEFAULT 'assistants',
+      content BLOB,
+      mime_type TEXT,
+      api_key_id TEXT,
+      status TEXT DEFAULT 'validating',
+      expires_at INTEGER,
+      deleted_at INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_files_api_key_id ON files(api_key_id);
+    CREATE INDEX IF NOT EXISTS idx_files_created_at ON files(created_at);
+    CREATE INDEX IF NOT EXISTS idx_files_deleted_at ON files(deleted_at);
+  `);
+
+  const tableInfo = db.prepare("PRAGMA table_info(files)").all() as Array<{ name: string }>;
+  const existing = new Set(tableInfo.map((c) => c.name));
+  const addColumn = (name: string, sqlTypeAndDefault: string) => {
+    if (!existing.has(name)) {
+      db.exec(`ALTER TABLE files ADD COLUMN ${name} ${sqlTypeAndDefault}`);
+    }
+  };
+
+  addColumn("bytes", "INTEGER NOT NULL DEFAULT 0");
+  addColumn("created_at", "INTEGER NOT NULL DEFAULT (strftime('%s','now'))");
+  addColumn("filename", "TEXT NOT NULL DEFAULT ''");
+  addColumn("purpose", "TEXT NOT NULL DEFAULT 'assistants'");
+  addColumn("content", "BLOB");
+  addColumn("mime_type", "TEXT");
+  addColumn("api_key_id", "TEXT");
+  addColumn("status", "TEXT DEFAULT 'validating'");
+  addColumn("expires_at", "INTEGER");
+  addColumn("deleted_at", "INTEGER");
+
+  filesSchemaEnsured = true;
+}
+
 export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileRecord {
+  ensureFilesSchema();
   const db = getDbInstance();
   const id = "file-" + uuidv4().replaceAll("-", "").substring(0, 24);
   const createdAt = Math.floor(Date.now() / 1000);
@@ -35,6 +82,7 @@ export function createFile(file: Omit<FileRecord, "id" | "createdAt">): FileReco
 }
 
 export function getFile(id: string): FileRecord | null {
+  ensureFilesSchema();
   const db = getDbInstance();
   const row = db
     .prepare(`SELECT ${FILE_METADATA_COLUMNS} FROM files WHERE id = ? AND deleted_at IS NULL`)
@@ -43,6 +91,7 @@ export function getFile(id: string): FileRecord | null {
 }
 
 export function getFileContent(id: string): Buffer | null {
+  ensureFilesSchema();
   const db = getDbInstance();
   const row = db
     .prepare("SELECT content FROM files WHERE id = ? AND deleted_at IS NULL")
@@ -59,6 +108,7 @@ export function listFiles(
     order?: "asc" | "desc";
   } = {}
 ): FileRecord[] {
+  ensureFilesSchema();
   const db = getDbInstance();
   const { apiKeyId, purpose, limit = 20, after, order = "desc" } = options;
 
@@ -97,6 +147,7 @@ export function listFiles(
 }
 
 export function updateFileStatus(id: string, status: string): boolean {
+  ensureFilesSchema();
   const db = getDbInstance();
   const result = db.prepare("UPDATE files SET status = ? WHERE id = ?").run(status, id);
   return result.changes > 0;
@@ -116,6 +167,7 @@ export function formatFileResponse(file: FileRecord) {
 }
 
 export function deleteFile(id: string): boolean {
+  ensureFilesSchema();
   const db = getDbInstance();
   const result = db
     .prepare("UPDATE files SET deleted_at = ?, content = NULL WHERE id = ?")
