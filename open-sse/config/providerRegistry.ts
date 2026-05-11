@@ -593,20 +593,10 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "auto-kiro", name: "Auto (Kiro picks best model)" },
       { id: "claude-opus-4.7", name: "Claude Opus 4.7" },
       { id: "claude-opus-4.6", name: "Claude Opus 4.6" },
-      { id: "claude-opus-4.5", name: "Claude Opus 4.5" },
       { id: "claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
+      // models for kiro free tier
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5" },
-      { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5" },
-      { id: "claude-3.7-sonnet", name: "Claude 3.7 Sonnet" },
-      // Dash aliases — Claude Code sends dashes, Kiro API uses dots
-      { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
-      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
-      { id: "claude-opus-4-5", name: "Claude Opus 4.5" },
-      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
-      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
-      // Non-Claude models on Kiro subscription
       { id: "deepseek-3.2", name: "DeepSeek V3.2" },
       { id: "minimax-m2.5", name: "MiniMax M2.5" },
       { id: "minimax-m2.1", name: "MiniMax M2.1" },

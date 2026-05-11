@@ -84,4 +84,7 @@ test("Kiro registry exposes the current CLI model lineup with context windows", 
   assert.equal(byId.get("claude-opus-4.7")?.contextLength, undefined); // Uses default
   assert.ok(byId.has("claude-sonnet-4.6"));
   assert.ok(byId.has("claude-haiku-4.5"));
+  assert.equal(byId.has("claude-opus-4-7"), false);
+  assert.equal(byId.has("claude-sonnet-4-6"), false);
+  assert.equal(byId.has("claude-haiku-4-5"), false);
 });

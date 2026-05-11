@@ -50,3 +50,17 @@ test("explicit provider routes can still normalize cross-proxy model dialects", 
     extendedContext: false,
   });
 });
+
+test("Kiro Claude Code-style model aliases resolve without polluting the visible catalog", async () => {
+  assert.deepEqual(await getModelInfoCore("kr/claude-opus-4-7", {}), {
+    provider: "kiro",
+    model: "claude-opus-4.7",
+    extendedContext: false,
+  });
+
+  assert.deepEqual(await getModelInfoCore("kiro/claude-sonnet-4-6", {}), {
+    provider: "kiro",
+    model: "claude-sonnet-4.6",
+    extendedContext: false,
+  });
+});

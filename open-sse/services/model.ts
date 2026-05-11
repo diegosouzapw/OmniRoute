@@ -55,6 +55,13 @@ const PROVIDER_MODEL_ALIASES: ProviderModelAliasMap = {
     "nvidia/gpt-oss-20b": "openai/gpt-oss-20b",
   },
   antigravity: { ...ANTIGRAVITY_MODEL_ALIASES },
+  kiro: {
+    "claude-opus-4-7": "claude-opus-4.7",
+    "claude-opus-4-6": "claude-opus-4.6",
+    "claude-sonnet-4-6": "claude-sonnet-4.6",
+    "claude-sonnet-4-5": "claude-sonnet-4.5",
+    "claude-haiku-4-5": "claude-haiku-4.5",
+  },
 };
 
 const CROSS_PROXY_MODEL_ALIASES: Record<string, string> = {
