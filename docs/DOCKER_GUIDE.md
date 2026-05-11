@@ -5,6 +5,7 @@
 ## Table of Contents
 
 - [Quick Run](#quick-run)
+- [Windows PowerShell Wizard](#windows-powershell-wizard)
 - [With Environment File](#with-environment-file)
 - [Docker Compose](#docker-compose)
 - [Docker Compose with Caddy (HTTPS)](#docker-compose-with-caddy-https-auto-tls)
@@ -16,6 +17,8 @@
 
 ## Quick Run
 
+Linux/macOS shells:
+
 ```bash
 docker run -d \
   --name omniroute \
@@ -25,6 +28,52 @@ docker run -d \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
+
+## Windows PowerShell Wizard
+
+From the repository root, the easiest Windows command is:
+
+```powershell
+.\scripts\setup-windows.ps1 -InstallDocker
+```
+
+The wizard installs Docker Desktop with `winget` when Docker is missing, starts Docker Desktop if it can, waits for Docker, pulls the image, creates the persistent `omniroute-data` volume, starts the container, skips onboarding, disables dashboard login for local setup, and prints the dashboard URL.
+
+No default password is used by this setup flow. To require a dashboard password, run `./scripts/setup-windows.ps1 -RequirePassword`.
+
+If Docker Desktop was just installed and Windows asks you to restart or accept Docker Desktop's first-run setup, do that once and rerun the same command.
+
+If Docker Desktop is already installed, this also works:
+
+```powershell
+.\scripts\setup-windows.ps1
+```
+
+One-command GitHub download, useful for video tutorials:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
+.\setup-windows.ps1 -InstallDocker
+```
+
+Raw PowerShell command:
+
+```powershell
+docker run -d `
+  --name omniroute `
+  --restart unless-stopped `
+  --stop-timeout 40 `
+  -p 20128:20128 `
+  -v omniroute-data:/app/data `
+  diegosouzapw/omniroute:latest
+```
+
+The raw Docker command may show onboarding on first open. Use `setup-windows.ps1` for the no-onboarding flow.
+
+PowerShell uses a backtick (`` ` ``) for multiline commands. A Linux-style backslash (`\`) makes PowerShell run each following line as a separate command.
+
+More details: [Windows Quick Start](WINDOWS_QUICK_START.md).
 
 ## With Environment File
 
@@ -44,6 +93,8 @@ docker run -d \
 
 ## Docker Compose
 
+All services in `docker-compose.yml` use Compose profiles. Choose one profile; plain `docker compose up -d` has no default service and prints `no service selected`.
+
 ```bash
 # Base profile (no CLI tools)
 docker compose --profile base up -d
@@ -51,6 +102,16 @@ docker compose --profile base up -d
 # CLI profile (Claude Code, Codex, OpenClaw built-in)
 docker compose --profile cli up -d
 ```
+
+Common command fixes:
+
+| Problem                                      | Fix                                                |
+| -------------------------------------------- | -------------------------------------------------- |
+| `docker compse ps`                           | `docker compose ps`                                |
+| `docker compose up -d`                       | `docker compose --profile base up -d`              |
+| `unknown shorthand flag: 's' in -s`          | Use `docker compose ps`, not `docker compose up -s` |
+| `failed to connect to the docker API`        | Start Docker Desktop first                         |
+| `--name` / `-p` errors after a `docker run`  | Use PowerShell backticks or put the command on one line |
 
 ## Docker Compose with Caddy (HTTPS Auto-TLS)
 

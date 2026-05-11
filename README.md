@@ -622,10 +622,13 @@ Compression combos can also assign a named compression pipeline to routing combo
 
 ```bash
 npm install -g omniroute
+omniroute setup --non-interactive
 omniroute
 ```
 
 Dashboard opens at `http://localhost:20128` · API at `http://localhost:20128/v1`.
+
+`omniroute setup --non-interactive` marks setup complete and leaves dashboard login disabled. Use `omniroute setup` if you want the interactive password/provider wizard.
 
 ### 2) Connect providers
 
@@ -650,6 +653,40 @@ Works with Claude Code, Codex CLI, Gemini CLI, Cursor, Cline, OpenClaw, OpenCode
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped -p 20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
+```
+
+**Windows PowerShell wizard:**
+
+```powershell
+.\scripts\setup-windows.ps1 -InstallDocker
+```
+
+The wizard installs Docker Desktop with `winget` when Docker is missing, starts Docker Desktop if needed, pulls the image, skips onboarding, disables dashboard login for local setup, and prints the local URL.
+
+No default password is used. The quick Docker setup does not require a password. To require one, run `./scripts/setup-windows.ps1 -RequirePassword`.
+
+If Docker Desktop was just installed and Windows asks you to restart or accept Docker Desktop's first-run setup, do that once and rerun the same command.
+
+If Docker Desktop is already installed, this also works:
+
+```powershell
+.\scripts\setup-windows.ps1
+```
+
+**NPM install:**
+
+```powershell
+npm install -g omniroute
+omniroute setup --non-interactive
+omniroute
+```
+
+This path does not need Docker. Use it if you already have Node.js installed.
+
+From a source checkout you can also run the Docker wizard through npm:
+
+```powershell
+npm run setup:windows
 ```
 
 **From source:**
@@ -683,6 +720,38 @@ OmniRoute is available as a public Docker image on [Docker Hub](https://hub.dock
 
 **Quick run:**
 
+Windows PowerShell users can run the setup wizard from this repo:
+
+```powershell
+.\scripts\setup-windows.ps1 -InstallDocker
+```
+
+The wizard skips onboarding and disables dashboard login for local setup. To require a dashboard password, run `./scripts/setup-windows.ps1 -RequirePassword`.
+
+One-command GitHub download, useful for video tutorials:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
+.\setup-windows.ps1 -InstallDocker
+```
+
+Raw PowerShell command:
+
+```powershell
+docker run -d `
+  --name omniroute `
+  --restart unless-stopped `
+  --stop-timeout 40 `
+  -p 20128:20128 `
+  -v omniroute-data:/app/data `
+  diegosouzapw/omniroute:latest
+```
+
+The raw Docker command may show onboarding on first open. Use `setup-windows.ps1` for the no-onboarding flow.
+
+Linux/macOS shells use backslashes:
+
 ```bash
 docker run -d \
   --name omniroute \
@@ -711,6 +780,8 @@ docker run -d \
 
 **Using Docker Compose:**
 
+All services in `docker-compose.yml` are behind Compose profiles, so plain `docker compose up -d` prints `no service selected`. Choose one profile:
+
 ```bash
 # Base profile (no CLI tools)
 docker compose --profile base up -d
@@ -718,6 +789,15 @@ docker compose --profile base up -d
 # CLI profile (Claude Code, Codex, OpenClaw built-in)
 docker compose --profile cli up -d
 ```
+
+Quick fixes:
+
+- `docker compse` -> `docker compose`
+- `docker compose up -d` -> `docker compose --profile base up -d`
+- PowerShell multiline commands use a backtick (`` ` ``), not a backslash (`\`)
+- `failed to connect to the docker API` means Docker Desktop is not running yet
+
+Full Windows tutorial: [`docs/WINDOWS_QUICK_START.md`](docs/WINDOWS_QUICK_START.md)
 
 Dashboard support for Docker deployments now includes a one-click **Cloudflare Quick Tunnel** on `Dashboard → Endpoints`. The first enable downloads `cloudflared` only when needed, starts a temporary tunnel to your current `/v1` endpoint, and shows the generated `https://*.trycloudflare.com/v1` URL directly below your normal public URL. Endpoint tunnel panels, including Cloudflare, Tailscale, and ngrok, can be shown or hidden from `Settings → Appearance` without changing active tunnel state.
 
