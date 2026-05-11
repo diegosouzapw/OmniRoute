@@ -44,7 +44,13 @@ import {
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
-import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
+import {
+  getCallLogPipelineCaptureStreamChunks,
+  getChatLogTextLimit,
+  getChatLogArrayTailItems,
+  getChatLogMaxDepth,
+  getChatLogMaxObjectKeys,
+} from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
@@ -180,10 +186,6 @@ import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
-const CHAT_LOG_TEXT_LIMIT = 64 * 1024;
-const CHAT_LOG_ARRAY_TAIL_ITEMS = 24;
-const CHAT_LOG_MAX_DEPTH = 6;
-const CHAT_LOG_MAX_OBJECT_KEYS = 80;
 
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
@@ -191,28 +193,30 @@ function capMemoryExtractionText(value: string): string {
 }
 
 function truncateChatLogText(value: string): string {
-  if (value.length <= CHAT_LOG_TEXT_LIMIT) return value;
-  const head = value.slice(0, Math.floor(CHAT_LOG_TEXT_LIMIT / 2));
-  const tail = value.slice(-Math.ceil(CHAT_LOG_TEXT_LIMIT / 2));
-  return `${head}\n[...truncated ${value.length - CHAT_LOG_TEXT_LIMIT} chars...]\n${tail}`;
+  const limit = getChatLogTextLimit();
+  if (value.length <= limit) return value;
+  const head = value.slice(0, Math.floor(limit / 2));
+  const tail = value.slice(-Math.ceil(limit / 2));
+  return `${head}\n[...truncated ${value.length - limit} chars...]\n${tail}`;
 }
 
 function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateChatLogText(value);
   if (typeof value !== "object") return value;
-  if (depth >= CHAT_LOG_MAX_DEPTH) return "[MaxDepth]";
+  if (depth >= getChatLogMaxDepth()) return "[MaxDepth]";
+
+  const maxTailItems = getChatLogArrayTailItems();
 
   if (Array.isArray(value)) {
-    const retained =
-      value.length > CHAT_LOG_ARRAY_TAIL_ITEMS ? value.slice(-CHAT_LOG_ARRAY_TAIL_ITEMS) : value;
+    const retained = value.length > maxTailItems ? value.slice(-maxTailItems) : value;
     const cloned = retained.map((item) => cloneBoundedChatLogPayload(item, depth + 1));
-    if (value.length > CHAT_LOG_ARRAY_TAIL_ITEMS) {
+    if (value.length > maxTailItems) {
       return [
         {
           _omniroute_truncated_array: true,
           originalLength: value.length,
-          retainedTailItems: CHAT_LOG_ARRAY_TAIL_ITEMS,
+          retainedTailItems: maxTailItems,
         },
         ...cloned,
       ];
@@ -222,11 +226,12 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 
   const result: Record<string, unknown> = {};
   const entries = Object.entries(value as Record<string, unknown>);
-  for (const [key, item] of entries.slice(0, CHAT_LOG_MAX_OBJECT_KEYS)) {
+  const maxKeys = getChatLogMaxObjectKeys();
+  for (const [key, item] of maxKeys > 0 ? entries.slice(0, maxKeys) : entries) {
     result[key] = cloneBoundedChatLogPayload(item, depth + 1);
   }
-  if (entries.length > CHAT_LOG_MAX_OBJECT_KEYS) {
-    result._omniroute_truncated_keys = entries.length - CHAT_LOG_MAX_OBJECT_KEYS;
+  if (maxKeys > 0 && entries.length > maxKeys) {
+    result._omniroute_truncated_keys = entries.length - maxKeys;
   }
   return result;
 }
