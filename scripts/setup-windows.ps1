@@ -237,6 +237,8 @@ function Write-AccessInfo {
   } else {
     Write-Host "Next: open Dashboard -> Providers. Login and onboarding are disabled for quick local setup."
   }
+  Write-Host "Logs: powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Logs"
+  Write-Host "Stop: powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Stop"
   Write-Host "Public demo: set a strong password in Settings -> Security before enabling Cloudflare Quick Tunnel."
 }
 

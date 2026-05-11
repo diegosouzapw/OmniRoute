@@ -4,12 +4,11 @@ Bu təlimat Windows istifadəçiləri üçündür. Məqsəd: istifadəçi çox t
 
 ## Ən rahat yol: Docker ilə
 
-PowerShell açın və bu 3 sətri yazın:
+PowerShell açın və bu 2 sətri yazın:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
-.\setup-windows.ps1 -InstallDocker
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -InstallDocker
 ```
 
 Bu script bunları edir:
@@ -40,15 +39,14 @@ Bəzi istifadəçilər Docker Desktop quraşdırmaq istəmir. Bu halda OmniRoute
 PowerShell açın və bunu yazın:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows-node.ps1 -OutFile setup-windows-node.ps1
-.\setup-windows-node.ps1 -InstallNode
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -InstallNode
 ```
 
 Bu script bunları edir:
 
 - Docker quraşdırmır
-- Node.js yoxdursa `winget` ilə quraşdırmağa çalışır
+- Node.js və npm yoxdursa `winget` ilə quraşdırmağa çalışır
 - Git yoxdursa `winget` ilə quraşdırmağa çalışır
 - OmniRoute source code-u `C:\Users\<user>\OmniRoute-node` qovluğuna clone edir
 - `npm install` edir
@@ -61,13 +59,13 @@ Node.js və ya Git yeni quraşdırılıbsa, PowerShell onları hələ görməyə
 Loglara baxmaq:
 
 ```powershell
-.\setup-windows-node.ps1 -Logs
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -Logs
 ```
 
 Stop etmək:
 
 ```powershell
-.\setup-windows-node.ps1 -Stop
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -Stop
 ```
 
 ## Əgər Docker yeni quraşdırıldısa
@@ -80,7 +78,7 @@ Docker Desktop ilk dəfə açılanda Windows restart və ya WSL setup istəyə b
 4. Eyni komandanı yenidən işlədin:
 
 ```powershell
-.\setup-windows.ps1 -InstallDocker
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -InstallDocker
 ```
 
 ## GitHub-dan clone ilə setup
@@ -91,8 +89,7 @@ Docker Desktop ilk dəfə açılanda Windows restart və ya WSL setup istəyə b
 cd $env:USERPROFILE
 git clone https://github.com/VusalAbdurahmanovX/OmniRoute.git
 cd OmniRoute
-Set-ExecutionPolicy -Scope Process Bypass
-.\scripts\setup-windows.ps1 -InstallDocker
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1 -InstallDocker
 ```
 
 Diqqət: bunu yazmaq düzgün deyil:
@@ -114,13 +111,13 @@ Default setup password istəmir. Onboarding də avtomatik keçilir.
 Əgər dashboard üçün password istəyirsinizsə:
 
 ```powershell
-.\setup-windows.ps1 -RequirePassword
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -RequirePassword
 ```
 
 Source clone içindən:
 
 ```powershell
-.\scripts\setup-windows.ps1 -RequirePassword
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1 -RequirePassword
 ```
 
 Public link paylaşmazdan əvvəl dashboard-da güclü password qoymaq məsləhətdir:
@@ -140,25 +137,25 @@ docker ps
 Loglara baxmaq:
 
 ```powershell
-.\setup-windows.ps1 -Logs
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Logs
 ```
 
 Source clone içindən:
 
 ```powershell
-.\scripts\setup-windows.ps1 -Logs
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1 -Logs
 ```
 
 Stop etmək:
 
 ```powershell
-.\setup-windows.ps1 -Stop
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Stop
 ```
 
 Başqa portda işlətmək:
 
 ```powershell
-.\setup-windows.ps1 -Port 3000
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -Port 3000
 ```
 
 Sonra açın:

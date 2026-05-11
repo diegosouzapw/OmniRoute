@@ -104,6 +104,31 @@ function Ensure-Node {
   }
 }
 
+function Ensure-Npm {
+  Add-CommonToolsToPath
+  if (Get-Command npm -ErrorAction SilentlyContinue) {
+    return
+  }
+
+  if (-not (Test-IsWindows)) {
+    throw "npm is required. Reinstall Node.js from https://nodejs.org/ and rerun this script."
+  }
+
+  if (-not $InstallNode) {
+    $answer = Read-Host "npm is missing. Reinstall Node.js LTS with winget? [y/N]"
+    if ($answer -notmatch "^(y|yes)$") {
+      throw "npm is required. Install Node.js LTS from https://nodejs.org/ and rerun this script."
+    }
+  }
+
+  Install-WithWinget -PackageId "OpenJS.NodeJS.LTS" -DisplayName "Node.js LTS"
+  Add-CommonToolsToPath
+
+  if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+    throw "Node.js is installed, but npm is not visible in this PowerShell session. Close PowerShell, open it again, and rerun this script."
+  }
+}
+
 function Ensure-Git {
   Add-CommonToolsToPath
   if (Get-Command git -ErrorAction SilentlyContinue) {
@@ -159,22 +184,55 @@ function Get-Paths {
   [PSCustomObject]@{ LogDir = $logDir; LogFile = $logFile; PidFile = $pidFile }
 }
 
-function Stop-ExistingServer {
+function Get-ServerProcessFromPidFile {
   param([string]$RepoDir)
   $paths = Get-Paths -RepoDir $RepoDir
   if (-not (Test-Path -LiteralPath $paths.PidFile)) {
+    return $null
+  }
+
+  $rawPid = (Get-Content -LiteralPath $paths.PidFile -Raw -ErrorAction SilentlyContinue).Trim()
+  $serverPid = 0
+  if (-not [int]::TryParse($rawPid, [ref]$serverPid)) {
+    Remove-Item -LiteralPath $paths.PidFile -Force -ErrorAction SilentlyContinue
+    return $null
+  }
+
+  $process = Get-Process -Id $serverPid -ErrorAction SilentlyContinue
+  if (-not $process) {
+    Remove-Item -LiteralPath $paths.PidFile -Force -ErrorAction SilentlyContinue
+    return $null
+  }
+
+  $process
+}
+
+function Stop-ProcessTree {
+  param([int]$ProcessId)
+
+  $children = @(Get-CimInstance Win32_Process -Filter "ParentProcessId=$ProcessId" -ErrorAction SilentlyContinue)
+  foreach ($child in $children) {
+    Stop-ProcessTree -ProcessId ([int]$child.ProcessId)
+  }
+
+  $process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
+  if ($process) {
+    Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Stop-ExistingServer {
+  param([string]$RepoDir)
+  $paths = Get-Paths -RepoDir $RepoDir
+  $process = Get-ServerProcessFromPidFile -RepoDir $RepoDir
+  if (-not $process) {
     Write-Host "No OmniRoute Node server PID file found."
+    Remove-Item -LiteralPath $paths.PidFile -Force -ErrorAction SilentlyContinue
     return
   }
 
-  $serverPid = Get-Content -LiteralPath $paths.PidFile -ErrorAction SilentlyContinue
-  if ($serverPid) {
-    $process = Get-Process -Id ([int]$serverPid) -ErrorAction SilentlyContinue
-    if ($process) {
-      Write-Step "Stopping OmniRoute Node server"
-      Stop-Process -Id $process.Id -Force
-    }
-  }
+  Write-Step "Stopping OmniRoute Node server"
+  Stop-ProcessTree -ProcessId $process.Id
 
   Remove-Item -LiteralPath $paths.PidFile -Force -ErrorAction SilentlyContinue
 }
@@ -260,6 +318,12 @@ function Start-NodeServer {
   $paths = Get-Paths -RepoDir $RepoDir
   New-Item -ItemType Directory -Force -Path $paths.LogDir | Out-Null
 
+  $existingProcess = Get-ServerProcessFromPidFile -RepoDir $RepoDir
+  if ($existingProcess) {
+    Write-Step "OmniRoute Node server is already running (PID $($existingProcess.Id))"
+    return
+  }
+
   $escapedRepo = $RepoDir.Replace("'", "''")
   $escapedLog = $paths.LogFile.Replace("'", "''")
   $command = @"
@@ -296,6 +360,7 @@ if ($Logs) {
 }
 
 Ensure-Node
+Ensure-Npm
 Install-Dependencies -RepoDir $repoForCommand
 
 if (-not $NoStart) {
@@ -309,5 +374,5 @@ Write-Host "  Dashboard: http://localhost:$Port"
 Write-Host "  API:       http://localhost:$Port/v1"
 Write-Host "  Source:    $repoForCommand"
 Write-Host ""
-Write-Host "Logs: .\setup-windows-node.ps1 -Logs"
-Write-Host "Stop: .\setup-windows-node.ps1 -Stop"
+Write-Host "Logs: powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -Logs"
+Write-Host "Stop: powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -Stop"

@@ -62,9 +62,8 @@ _The most complete open-source AI proxy — **one endpoint**, **160+ providers**
 PowerShell-i açın və bunu yazın:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
-.\setup-windows.ps1 -InstallDocker
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -InstallDocker
 ```
 
 Bu komanda Docker Desktop yoxdursa quraşdırmağa çalışır, OmniRoute-u Docker ilə başladır, onboarding-i keçir və password istəmir.
@@ -74,12 +73,11 @@ Bu komanda Docker Desktop yoxdursa quraşdırmağa çalışır, OmniRoute-u Dock
 Docker quraşdırmaq istəmirsinizsə, Node.js ilə işlədə bilərsiniz:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows-node.ps1 -OutFile setup-windows-node.ps1
-.\setup-windows-node.ps1 -InstallNode
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows-node.ps1 -InstallNode
 ```
 
-Bu yol Docker qurmur. Node.js və Git yoxdursa `winget` ilə quraşdırmağa çalışır, source code-u yükləyir, `npm install` edir və OmniRoute-u başladır.
+Bu yol Docker qurmur. Node.js, npm və Git yoxdursa `winget` ilə quraşdırmağa çalışır, source code-u yükləyir, `npm install` edir və OmniRoute-u başladır.
 
 Sonra brauzerdə açın:
 
@@ -767,9 +765,8 @@ The wizard skips onboarding and disables dashboard login for local setup. To req
 One-command GitHub download, useful for video tutorials:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
 irm https://raw.githubusercontent.com/VusalAbdurahmanovX/OmniRoute/main/scripts/setup-windows.ps1 -OutFile setup-windows.ps1
-.\setup-windows.ps1 -InstallDocker
+powershell -NoProfile -ExecutionPolicy Bypass -File .\setup-windows.ps1 -InstallDocker
 ```
 
 Raw PowerShell command:
