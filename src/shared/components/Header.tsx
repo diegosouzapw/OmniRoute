@@ -153,7 +153,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
       style={{
         paddingTop: isMacElectron ? "calc(1.25rem + var(--desktop-safe-top))" : undefined,
         backgroundImage:
-          "linear-gradient(180deg, rgba(8,18,38,.62), rgba(8,18,38,.86)), url('/images/top-ai-banner.png')",
+          "linear-gradient(180deg, rgba(8,18,38,.62), rgba(8,18,38,.86)), url('/image.png')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         boxShadow: "inset 0 -20px 45px rgba(0,0,0,.35)",
