@@ -47,6 +47,7 @@ export default function Sidebar({
   const [customAppName, setCustomAppName] = useState<string | null>(null);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [sidebarStyle, setSidebarStyle] = useState<"default" | "floating" | "compact">("default");
 
   useEffect(() => {
     const applySettings = (data) => {
@@ -54,6 +55,11 @@ export default function Sidebar({
       setHiddenSidebarItems(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]));
       setCustomAppName(data?.instanceName || null);
       setCustomLogo(data?.customLogoBase64 || data?.customLogoUrl || null);
+      setSidebarStyle(
+        data?.sidebarStyle === "floating" || data?.sidebarStyle === "compact"
+          ? data.sidebarStyle
+          : "default"
+      );
     };
 
     fetch("/api/settings")
@@ -82,6 +88,11 @@ export default function Sidebar({
         setCustomLogo((detail.customLogoBase64 as string) || null);
       } else if ("customLogoUrl" in detail) {
         setCustomLogo((detail.customLogoUrl as string) || null);
+      }
+
+      if ("sidebarStyle" in detail) {
+        const next = detail.sidebarStyle;
+        setSidebarStyle(next === "floating" || next === "compact" ? next : "default");
       }
     };
 
@@ -124,6 +135,7 @@ export default function Sidebar({
 
   const getSidebarLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+  const getItemLabel = (key: string) => (typeof t.has === "function" && t.has(key) ? t(key) : key);
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
   const visibleSections = SIDEBAR_SECTIONS.filter(
@@ -133,7 +145,7 @@ export default function Sidebar({
       ...section,
       title: getSidebarLabel(section.titleKey, section.titleFallback),
       items: section.items
-        .map((item) => ({ ...item, label: t(item.i18nKey) }))
+        .map((item) => ({ ...item, label: getItemLabel(item.i18nKey) }))
         .filter((item) => !hiddenSidebarSet.has(item.id)),
     }))
     .filter((section) => section.items.length > 0);
@@ -215,7 +227,7 @@ export default function Sidebar({
                     {child.icon && (
                       <span className="material-symbols-outlined text-[15px]">{child.icon}</span>
                     )}
-                    <span>{t(child.i18nKey)}</span>
+                    <span>{getItemLabel(child.i18nKey)}</span>
                   </Link>
                 );
               })}
@@ -257,6 +269,7 @@ export default function Sidebar({
   return (
     <>
       <aside
+        data-sidebar-style={sidebarStyle}
         className={cn(
           "sidebar-root",
           "flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",

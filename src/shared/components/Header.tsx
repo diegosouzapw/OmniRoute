@@ -152,6 +152,11 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
       className="header-root sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-bg px-8 py-5 dark:border-white/5"
       style={{
         paddingTop: isMacElectron ? "calc(1.25rem + var(--desktop-safe-top))" : undefined,
+        backgroundImage:
+          "linear-gradient(180deg, rgba(8,18,38,.62), rgba(8,18,38,.86)), url('/images/top-ai-banner.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        boxShadow: "inset 0 -20px 45px rgba(0,0,0,.35)",
       }}
     >
       {/* Mobile menu button */}
