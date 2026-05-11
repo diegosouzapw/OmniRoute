@@ -6,6 +6,55 @@ import { LANGUAGES, LOCALE_COOKIE } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 import { useLocale } from "next-intl";
 
+const LOCALE_FLAG_COUNTRY: Record<Locale, string> = {
+  ar: "sa",
+  bg: "bg",
+  bn: "bd",
+  cs: "cz",
+  da: "dk",
+  de: "de",
+  en: "us",
+  es: "es",
+  fa: "ir",
+  fi: "fi",
+  fr: "fr",
+  gu: "in",
+  he: "il",
+  hi: "in",
+  hu: "hu",
+  id: "id",
+  in: "id",
+  it: "it",
+  ja: "jp",
+  ko: "kr",
+  mr: "in",
+  ms: "my",
+  nl: "nl",
+  no: "no",
+  phi: "ph",
+  pl: "pl",
+  pt: "pt",
+  "pt-BR": "br",
+  ro: "ro",
+  ru: "ru",
+  sk: "sk",
+  sv: "se",
+  sw: "ke",
+  ta: "in",
+  te: "in",
+  th: "th",
+  tr: "tr",
+  "uk-UA": "ua",
+  ur: "pk",
+  vi: "vn",
+  "zh-CN": "cn",
+};
+
+function getFlagUrl(localeCode: Locale): string {
+  const cc = LOCALE_FLAG_COUNTRY[localeCode] || "us";
+  return `https://flagcdn.com/24x18/${cc}.png`;
+}
+
 /** Persist locale preference in cookie + localStorage (outside component scope for ESLint) */
 function persistLocale(code: Locale) {
   document.cookie = `${LOCALE_COOKIE}=${code};path=/;max-age=${365 * 24 * 60 * 60};samesite=lax`;
@@ -54,7 +103,11 @@ export default function LanguageSelector() {
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-text-main hover:bg-surface-hover transition-all border border-transparent hover:border-border"
         title={currentLang.name}
       >
-        <span className="text-base leading-none">{currentLang.flag}</span>
+        <span
+          aria-hidden="true"
+          className="h-[14px] w-[18px] rounded-[2px] bg-cover bg-center bg-no-repeat shrink-0"
+          style={{ backgroundImage: `url(${getFlagUrl(currentLang.code)})` }}
+        />
         <span className="text-xs font-semibold tracking-wide">{currentLang.label}</span>
         <span
           className={`material-symbols-outlined text-[14px] text-text-muted transition-transform ${open ? "rotate-180" : ""}`}
@@ -76,7 +129,11 @@ export default function LanguageSelector() {
                   : "text-text-main hover:bg-surface-hover"
               }`}
             >
-              <span className="text-base leading-none">{lang.flag}</span>
+              <span
+                aria-hidden="true"
+                className="h-[14px] w-[18px] rounded-[2px] bg-cover bg-center bg-no-repeat shrink-0"
+                style={{ backgroundImage: `url(${getFlagUrl(lang.code)})` }}
+              />
               <span className="flex-1 text-left">{lang.name}</span>
               {lang.code === locale && (
                 <span className="material-symbols-outlined text-[16px] text-primary">check</span>

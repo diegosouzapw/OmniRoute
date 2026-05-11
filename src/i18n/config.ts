@@ -42,7 +42,7 @@ export const LOCALES = [
   "zh-CN",
 ] as const;
 export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "en";
+export const DEFAULT_LOCALE: Locale = "pt-BR";
 
 export const LANGUAGES: readonly {
   code: Locale;

@@ -434,7 +434,16 @@ export default function ProviderLimits() {
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div
+        className="relative flex items-center justify-between flex-wrap gap-3 rounded-xl border border-border px-4 py-3 overflow-hidden"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(7,16,36,.55), rgba(7,16,36,.82)), url('/images/top-ai-banner.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          boxShadow: "inset 0 -28px 60px rgba(0,0,0,.45), 0 8px 28px rgba(0,0,0,.28)",
+        }}
+      >
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-text-main m-0">{t("providerLimits")}</h2>
           <span className="text-[13px] text-text-muted">
