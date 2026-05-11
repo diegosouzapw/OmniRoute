@@ -1,0 +1,37 @@
+{
+  "id": "build-eslint",
+  "label": "ESLint",
+  "description": "Keep lint diagnostics and problem summary.",
+  "category": "build",
+  "priority": 88,
+  "match": {
+    "outputTypes": ["build-eslint"],
+    "commands": ["^(?:eslint|npm\\s+run\\s+lint)\\b"],
+    "patterns": ["\\s+\\d+:\\d+\\s+(?:error|warning)\\s+", "✖\\s+\\d+\\s+problems?"]
+  },
+  "rules": {
+    "includePatterns": [
+      "\\s+\\d+:\\d+\\s+(error|warning)\\s+",
+      "✖\\s+\\d+\\s+problems?",
+      "^/.*\\.(ts|tsx|js|jsx)$"
+    ],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 20,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["error", "warning", "problems?"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:eslint|npm run lint)",
+      "input": "/repo/a.ts\n  1:1  error  boom  no-boom\n✖ 1 problem (1 error, 0 warnings)\n",
+      "expected": "/repo/a.ts\n  1:1  error  boom  no-boom\n✖ 1 problem (1 error, 0 warnings)"
+    }
+  ]
+}

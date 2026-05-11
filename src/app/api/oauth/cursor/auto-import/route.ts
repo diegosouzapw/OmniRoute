@@ -99,7 +99,7 @@ function tryIdeAuth(): {
  * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-4).
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired()) {
+  if (await isAuthRequired(request)) {
     if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

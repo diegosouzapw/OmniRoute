@@ -8,6 +8,9 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "costs",
   "analytics",
   "cache",
+  "context-caveman",
+  "context-rtk",
+  "context-combos",
   "limits",
   "cli-tools",
   "agents",
@@ -21,6 +24,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "audit",
   "webhooks",
   "health",
+  "proxy",
   "settings",
   "docs",
   "issues",
@@ -28,7 +32,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
-export type SidebarSectionId = "primary" | "cli" | "debug" | "system" | "help";
+export type SidebarSectionId = "primary" | "context" | "cli" | "debug" | "system" | "help";
 
 export interface SidebarItemDefinition {
   id: HideableSidebarItemId;
@@ -69,6 +73,27 @@ const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_fix_high" },
 ];
 
+const CONTEXT_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+  {
+    id: "context-caveman",
+    href: "/dashboard/context/caveman",
+    i18nKey: "contextCaveman",
+    icon: "compress",
+  },
+  {
+    id: "context-rtk",
+    href: "/dashboard/context/rtk",
+    i18nKey: "contextRtk",
+    icon: "filter_alt",
+  },
+  {
+    id: "context-combos",
+    href: "/dashboard/context/combos",
+    i18nKey: "contextCombos",
+    icon: "hub",
+  },
+];
+
 const DEBUG_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "translator", href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
   { id: "playground", href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
@@ -85,6 +110,7 @@ const SYSTEM_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
   { id: "webhooks", href: "/dashboard/webhooks", i18nKey: "webhooks", icon: "webhook" },
   { id: "health", href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
+  { id: "proxy", href: "/dashboard/system/proxy", i18nKey: "proxy", icon: "dns" },
   { id: "settings", href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
 ];
 
@@ -107,6 +133,12 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     titleFallback: "Main",
     items: PRIMARY_SIDEBAR_ITEMS,
     showTitleInSidebar: false,
+  },
+  {
+    id: "context",
+    titleKey: "contextSection",
+    titleFallback: "Context & Cache",
+    items: CONTEXT_SIDEBAR_ITEMS,
   },
   {
     id: "cli",

@@ -12,8 +12,25 @@
 # ──────────────────────────────────────────────────────────────────────
 
 services:
+  # ── Redis (Rate Limiter Backend) ──────────────────────────────────
+  redis:
+    image: redis:8.6.2
+    container_name: omniroute-redis-prod
+    restart: unless-stopped
+    volumes:
+      - redis-prod-data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   omniroute-prod:
     container_name: omniroute-prod
+    depends_on:
+      redis:
+        condition: service_healthy
     build:
       context: .
       target: runner-cli
@@ -44,3 +61,5 @@ services:
 volumes:
   omniroute-prod-data:
     name: omniroute-prod-data
+  redis-prod-data:
+    name: redis-prod-data

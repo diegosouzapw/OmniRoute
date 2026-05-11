@@ -8,6 +8,7 @@ export default defineConfig({
     include: [
       "open-sse/mcp-server/__tests__/**/*.test.ts",
       "open-sse/services/autoCombo/__tests__/**/*.test.ts",
+      "tests/unit/encryption.spec.ts",
     ],
     exclude: ["**/node_modules/**", "**/.git/**"],
     coverage: {

@@ -381,4 +381,263 @@ test.describe("API keys flow", () => {
     await expect(permissionsDialog).not.toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
     await expect(page.getByText("Renamed Key")).toBeVisible();
   });
+
+  test("validation error appears inside the create key modal, not behind the backdrop", async ({
+    page,
+  }) => {
+    const state = {
+      keys: [] as ApiKeyRecord[],
+      nextId: 1,
+    };
+
+    // Stub all API routes
+    await page.route("**/v1/models", async (route) => {
+      await fulfillJson(route, { data: [] });
+    });
+    await page.route("**/api/connections", async (route) => {
+      await fulfillJson(route, {
+        connections: [
+          { id: "conn-openai", name: "OpenAI Main", provider: "openai", isActive: true },
+        ],
+      });
+    });
+    await page.route(/\/api\/usage\/call-logs(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, []);
+    });
+    await page.route("**/api/sessions", async (route) => {
+      await fulfillJson(route, { byApiKey: {} });
+    });
+    await page.route("**/api/keys", async (route) => {
+      const method = route.request().method();
+      if (method === "GET") {
+        await fulfillJson(route, {
+          keys: state.keys.map(({ fullKey, ...record }) => record),
+          allowKeyReveal: true,
+        });
+        return;
+      }
+      if (method === "POST") {
+        const payload = (route.request().postDataJSON() as { name?: string }) || {};
+        const id = `key-${state.nextId++}`;
+        const suffix = String(1000 + state.nextId);
+        const fullKey = `sk-live-${suffix}-demo-secret`;
+        const maskedKey = `sk-live-****${suffix}`;
+        state.keys.push({
+          id,
+          name: payload.name || "New Key",
+          key: maskedKey,
+          fullKey,
+          allowedModels: null,
+          allowedConnections: null,
+          createdAt: new Date().toISOString(),
+        });
+        await fulfillJson(route, { key: fullKey, id });
+        return;
+      }
+      await fulfillJson(route, { error: "Method not allowed" }, 405);
+    });
+    await page.route(/\/api\/keys\/[^/]+$/, async (route) => {
+      await fulfillJson(route, { error: "Not found" }, 404);
+    });
+    await page.route(/\/api\/keys\/[^/]+\/reveal$/, async (route) => {
+      await fulfillJson(route, { key: "" });
+    });
+
+    await gotoDashboardRoute(page, "/dashboard/api-manager", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
+    await waitForPageToSettle(page);
+    await waitForNextDevCompileToFinish(page);
+
+    // Open the create key modal
+    const createFirstKeyButton = page.getByRole("button", {
+      name: /create (your )?first key/i,
+    });
+    await expect(createFirstKeyButton).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await createFirstKeyButton.click();
+
+    const createDialog = page.getByRole("dialog", { name: /create api key/i });
+    await expect(createDialog).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+
+    // Fill an invalid name (special characters) and submit
+    const nameInput = createDialog.locator("input").first();
+    await nameInput.fill("bad@name!");
+    const createKeyButton = createDialog.getByRole("button", { name: /create api key/i });
+    await createKeyButton.click({ force: true });
+
+    // The validation error must appear as an inline <p role="alert"> INSIDE the modal
+    const inlineError = createDialog.locator("p[role='alert']");
+    await expect(inlineError).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+
+    // The error must be visible — i.e. not obscured by the backdrop.
+    // A covered element has box visibility but fails the check below because
+    // pointer events and paint are blocked by the overlay div.
+    await expect(inlineError).toBeInViewport();
+
+    // No page-level error banner should appear behind the modal
+    const pageErrorBanner = page.locator('.flex.flex-col.gap-8 > [class~="bg-red-500/10"]');
+    await expect(pageErrorBanner).not.toBeVisible();
+
+    // Typing should clear the error
+    await nameInput.fill("valid-name");
+    await expect(inlineError).not.toBeVisible();
+
+    // A valid name should succeed without errors
+    await createKeyButton.click({ force: true });
+    await expect.poll(() => state.keys.length).toBe(1);
+  });
+
+  test("validation error appears inside the permissions modal when renaming, not behind the backdrop", async ({
+    page,
+  }) => {
+    const state: {
+      keys: ApiKeyRecord[];
+      nextId: number;
+    } = {
+      keys: [],
+      nextId: 1,
+    };
+
+    // Stub all API routes
+    await page.route("**/v1/models", async (route) => {
+      await fulfillJson(route, { data: [] });
+    });
+
+    await page.route("**/api/settings", async (route) => {
+      await fulfillJson(route, {});
+    });
+
+    await page.route("**/api/providers", async (route) => {
+      await fulfillJson(route, {
+        connections: [
+          { id: "conn-openai", name: "OpenAI Main", provider: "openai", isActive: true },
+        ],
+      });
+    });
+
+    await page.route(/\/api\/usage\/call-logs(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, []);
+    });
+
+    await page.route("**/api/sessions", async (route) => {
+      await fulfillJson(route, { byApiKey: {} });
+    });
+
+    await page.route(/\/api\/keys\/[^/]+$/, async (route) => {
+      if (route.request().method() === "PATCH") {
+        const keyId = route.request().url().split("/").pop() || "";
+        const payload = (await route.request().postDataJSON()) as { name?: string };
+        const record = state.keys.find((key) => key.id === keyId);
+        if (!record) {
+          await fulfillJson(route, { error: "Key not found" }, 404);
+          return;
+        }
+        if (payload.name) {
+          record.name = payload.name;
+        }
+        await fulfillJson(route, { message: "API key settings updated successfully", ...payload });
+        return;
+      }
+
+      await fulfillJson(route, { error: "Method not allowed" }, 405);
+    });
+
+    await page.route("**/api/keys", async (route) => {
+      const method = route.request().method();
+
+      if (method === "GET") {
+        await fulfillJson(route, {
+          keys: state.keys.map(({ fullKey, ...record }) => record),
+          allowKeyReveal: true,
+        });
+        return;
+      }
+
+      if (method === "POST") {
+        const payload = (route.request().postDataJSON() as { name?: string }) || {};
+        const id = `key-${state.nextId++}`;
+        const suffix = String(1000 + state.nextId);
+        const fullKey = `sk-live-${suffix}-demo-secret`;
+        const maskedKey = `sk-live-****${suffix}`;
+        state.keys.push({
+          id,
+          name: payload.name || "New Key",
+          key: maskedKey,
+          fullKey,
+          allowedModels: null,
+          allowedConnections: null,
+          createdAt: new Date("2026-04-05T20:00:00.000Z").toISOString(),
+        });
+
+        await fulfillJson(route, { key: fullKey, id });
+        return;
+      }
+
+      await fulfillJson(route, { error: "Method not allowed" }, 405);
+    });
+
+    await gotoDashboardRoute(page, "/dashboard/api-manager", {
+      timeoutMs: NAVIGATION_TIMEOUT_MS,
+    });
+    await waitForPageToSettle(page);
+    await waitForNextDevCompileToFinish(page);
+
+    // Create a key first
+    const createFirstKeyButton = page.getByRole("button", {
+      name: /create (your )?first key/i,
+    });
+    await expect(createFirstKeyButton).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await createFirstKeyButton.click();
+
+    const createDialog = page.getByRole("dialog", { name: /create api key/i });
+    await expect(createDialog).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await createDialog.locator("input").first().fill("Original Name");
+    await createDialog.getByRole("button", { name: /create api key/i }).click({ force: true });
+
+    // Dismiss the created dialog
+    const createdDialog = page.getByRole("dialog", { name: /api key created/i });
+    await createdDialog.getByRole("button", { name: /done/i }).click();
+    await waitForPageToSettle(page);
+    await waitForNextDevCompileToFinish(page);
+    await expect(page.getByText("Original Name")).toBeVisible({
+      timeout: UI_STABILITY_TIMEOUT_MS,
+    });
+
+    // Open the permissions modal
+    const keyRow = page
+      .locator("div")
+      .filter({ has: page.getByText("Original Name", { exact: true }) })
+      .first();
+    await keyRow.locator('button[title="Edit permissions"]').click({ force: true });
+
+    const permissionsDialog = page.getByRole("dialog", {
+      name: /permissions: original name/i,
+    });
+    await expect(permissionsDialog).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+
+    // --- Try to save with an invalid name (empty) ---
+    const nameInput = permissionsDialog.locator("input").first();
+    await nameInput.clear();
+    await nameInput.fill("   ");
+    const saveButton = permissionsDialog.getByRole("button", { name: /save permissions/i });
+    await saveButton.click({ force: true });
+
+    // Inline error should appear inside the permissions modal
+    const inlineError = permissionsDialog.locator('[id$="-error"]');
+    await expect(inlineError).toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+
+    // No page-level error banner should appear behind the modal
+    const pageErrorBanner = page.locator('.flex.flex-col.gap-8 > [class~="bg-red-500/10"]');
+    await expect(pageErrorBanner).not.toBeVisible();
+
+    // Typing a valid name should clear the error
+    await nameInput.fill("Renamed Key");
+    await expect(inlineError).not.toBeVisible();
+
+    // Save should succeed now
+    await saveButton.click({ force: true });
+    await expect.poll(() => state.keys[0]?.name).toBe("Renamed Key");
+    await expect(permissionsDialog).not.toBeVisible({ timeout: UI_STABILITY_TIMEOUT_MS });
+    await expect(page.getByText("Renamed Key")).toBeVisible();
+  });
 });

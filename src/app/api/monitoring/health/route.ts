@@ -3,6 +3,7 @@ import { getProviderConnections, getSettings } from "@/lib/localDb";
 import { buildHealthPayload } from "@/lib/monitoring/observability";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/monitoring/health — System health overview
@@ -63,7 +64,11 @@ export async function GET() {
  * Resets all provider circuit breakers to CLOSED state,
  * clearing failure counts and persisted state.
  */
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { resetAllCircuitBreakers, getAllCircuitBreakerStatuses } =
       await import("@/shared/utils/circuitBreaker");

@@ -5,6 +5,7 @@ const accountFallback = await import("../../open-sse/services/accountFallback.ts
 const accountSelector = await import("../../open-sse/services/accountSelector.ts");
 const { RateLimitReason, COOLDOWN_MS, PROVIDER_PROFILES } =
   await import("../../open-sse/config/constants.ts");
+const { getCircuitBreaker } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 const {
   isOAuthInvalidToken,
@@ -290,7 +291,8 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
     shouldMarkAccountExhaustedFrom429("openai-compatible-custom-node", "any-model"),
     false
   );
-  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), true);
+  assert.equal(shouldMarkAccountExhaustedFrom429("openai", "gpt-4o-mini"), false);
+  assert.equal(shouldMarkAccountExhaustedFrom429("claude", "claude-sonnet-4-6"), true);
 });
 
 test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {
@@ -405,7 +407,7 @@ test("recordModelLockoutFailure uses provider profile cooldowns, backoff, and re
 
 // Provider-level failure circuit breaker tests
 test("isProviderFailureCode correctly identifies provider-wide transient error codes", () => {
-  assert.equal(isProviderFailureCode(429), true);
+  assert.equal(isProviderFailureCode(429), false);
   assert.equal(isProviderFailureCode(408), true);
   assert.equal(isProviderFailureCode(500), true);
   assert.equal(isProviderFailureCode(502), true);
@@ -431,14 +433,16 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
     assert.equal(isProviderInCooldown(provider), false);
     assert.equal(getProviderCooldownRemainingMs(provider), null);
 
-    // Record 4 failures - should not trigger cooldown yet
-    for (let i = 0; i < 4; i++) {
+    const threshold = PROVIDER_PROFILES.apikey.circuitBreakerThreshold;
+
+    // Record failures up to threshold - 1
+    for (let i = 0; i < threshold - 1; i++) {
       recordProviderFailure(provider);
       now += 1000; // 1 second between failures
     }
     assert.equal(isProviderInCooldown(provider), false);
 
-    // 5th failure - should trigger cooldown
+    // Final failure to trigger threshold
     recordProviderFailure(provider);
     assert.equal(isProviderInCooldown(provider), true);
 
@@ -450,7 +454,7 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
     // Check getProvidersInCooldown returns the provider
     const inCooldown = getProvidersInCooldown();
     assert.ok(inCooldown.some((p) => p.provider === provider));
-    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, 5);
+    assert.equal(inCooldown.find((p) => p.provider === provider)?.failureCount, threshold);
 
     // Simulate cooldown expiration
     now += 11 * 60 * 1000; // 11 minutes later
@@ -463,6 +467,31 @@ test("recordProviderFailure tracks failures and triggers cooldown after threshol
   } finally {
     Date.now = originalNow;
     clearProviderFailure("test-provider");
+  }
+});
+
+test("recordProviderFailure honors runtime provider breaker profile", () => {
+  const provider = "test-provider-runtime-profile";
+  clearProviderFailure(provider);
+
+  try {
+    const runtimeProfile = {
+      failureThreshold: PROVIDER_PROFILES.apikey.circuitBreakerThreshold + 7,
+      resetTimeoutMs: PROVIDER_PROFILES.apikey.circuitBreakerReset + 45_000,
+    };
+
+    recordProviderFailure(provider, undefined, "conn-runtime-profile", runtimeProfile);
+
+    const breaker = getCircuitBreaker(provider);
+    assert.equal(breaker.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breaker.resetTimeout, runtimeProfile.resetTimeoutMs);
+    assert.equal(isProviderInCooldown(provider), false);
+
+    const breakerAfterStatusCheck = getCircuitBreaker(provider);
+    assert.equal(breakerAfterStatusCheck.failureThreshold, runtimeProfile.failureThreshold);
+    assert.equal(breakerAfterStatusCheck.resetTimeout, runtimeProfile.resetTimeoutMs);
+  } finally {
+    clearProviderFailure(provider);
   }
 });
 
@@ -511,7 +540,8 @@ test("clearProviderFailure removes provider from cooldown", () => {
     clearProviderFailure(provider);
 
     // Trigger cooldown
-    for (let i = 0; i < 5; i++) {
+    const threshold = PROVIDER_PROFILES.apikey.circuitBreakerThreshold;
+    for (let i = 0; i < threshold; i++) {
       recordProviderFailure(provider);
       now += 1000;
     }

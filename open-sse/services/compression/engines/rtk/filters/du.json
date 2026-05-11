@@ -1,0 +1,33 @@
+{
+  "id": "du",
+  "label": "du",
+  "description": "Summarize disk-usage listings while preserving largest entries.",
+  "category": "shell",
+  "priority": 66,
+  "match": {
+    "outputTypes": ["shell-du"],
+    "commands": ["^du\\b"],
+    "patterns": ["^\\d+(?:\\.\\d+)?[KMGTP]?\\s+\\S+"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 80,
+    "headLines": 20,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["Permission denied", "No such file"],
+    "summaryPatterns": ["\\s+\\.$", "\\s+total$"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "du -sh *",
+      "input": "4.0K package.json\n120M node_modules\n120M node_modules\n",
+      "expected": "4.0K package.json\n120M node_modules\n120M node_modules"
+    }
+  ]
+}

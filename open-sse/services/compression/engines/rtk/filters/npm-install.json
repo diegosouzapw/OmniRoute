@@ -1,0 +1,41 @@
+{
+  "id": "npm-install",
+  "label": "Package Install",
+  "description": "Keep install summaries, warnings and audit results.",
+  "category": "package",
+  "priority": 65,
+  "match": {
+    "outputTypes": ["npm-install"],
+    "commands": ["^(?:npm|pnpm|yarn)\\s+(?:install|add|update)\\b"],
+    "patterns": ["added \\d+ packages", "packages are looking for funding", "audited \\d+ packages"]
+  },
+  "rules": {
+    "includePatterns": [
+      "added \\d+ packages",
+      "removed \\d+ packages",
+      "changed \\d+ packages",
+      "audited \\d+ packages",
+      "vulnerabilities",
+      "WARN",
+      "ERR!"
+    ],
+    "dropPatterns": ["^\\s*$", "^\\s*\\|", "^Progress:"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 80,
+    "headLines": 20,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["WARN", "ERR", "vulnerabilities"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:npm|pnpm|yarn) (?:install|add|update)",
+      "input": "added 3 packages\npackages are looking for funding\naudited 3 packages\n",
+      "expected": "added 3 packages\naudited 3 packages"
+    }
+  ]
+}

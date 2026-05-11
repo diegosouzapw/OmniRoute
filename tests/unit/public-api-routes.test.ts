@@ -9,11 +9,16 @@ test("isPublicApiRoute allows public management prefixes", () => {
   assert.equal(isPublicApiRoute("/api/oauth/cursor/callback"), true);
 });
 
-test("isPublicApiRoute allows readonly bootstrap route only for safe methods", () => {
+test("isPublicApiRoute allows readonly health and require-login bootstrap routes", () => {
+  assert.equal(isPublicApiRoute("/api/monitoring/health", "GET"), true);
+  assert.equal(isPublicApiRoute("/api/monitoring/health", "HEAD"), true);
+  assert.equal(isPublicApiRoute("/api/monitoring/health", "OPTIONS"), true);
+  assert.equal(isPublicApiRoute("/api/monitoring/health", "DELETE"), false);
+
   assert.equal(isPublicApiRoute("/api/settings/require-login", "GET"), true);
   assert.equal(isPublicApiRoute("/api/settings/require-login", "HEAD"), true);
   assert.equal(isPublicApiRoute("/api/settings/require-login", "OPTIONS"), true);
-  assert.equal(isPublicApiRoute("/api/settings/require-login", "POST"), false);
+  assert.equal(isPublicApiRoute("/api/settings/require-login", "POST"), true);
 });
 
 test("isPublicApiRoute rejects non-public management routes", () => {

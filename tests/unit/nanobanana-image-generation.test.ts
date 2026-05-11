@@ -111,7 +111,7 @@ test("nanobanana b64 mode can convert result URL bytes to b64_json", async () =>
   const originalFetch = globalThis.fetch;
 
   globalThis.fetch = async (url) => {
-    if (String(url).includes("https://cdn.example.com/final.jpg")) {
+    if (new URL(String(url)).href === "https://cdn.example.com/final.jpg") {
       return new Response(new Uint8Array([0x89, 0x50, 0x4e, 0x47]), { status: 200 });
     }
     throw new Error(`Unexpected URL ${url}`);

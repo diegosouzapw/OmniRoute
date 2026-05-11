@@ -49,6 +49,9 @@ export function normalizeDiscoveredModels(models: unknown): SyncedAvailableModel
       id,
       name,
       source: "imported",
+      ...(toNonEmptyString(record.apiFormat)
+        ? { apiFormat: toNonEmptyString(record.apiFormat)! }
+        : {}),
       ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
       ...(typeof record.inputTokenLimit === "number"
         ? { inputTokenLimit: record.inputTokenLimit }

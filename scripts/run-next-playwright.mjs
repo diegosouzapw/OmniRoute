@@ -159,6 +159,7 @@ const playwrightPassword =
 const testServerEnv = {
   ...sanitizeColorEnv(bootstrapEnvVars),
   ...sanitizeColorEnv(process.env),
+  NODE_ENV: mode === "start" ? "production" : "development",
   DATA_DIR: playwrightDataDir,
   NEXT_PUBLIC_OMNIROUTE_E2E_MODE: process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE || "1",
   OMNIROUTE_DISABLE_BACKGROUND_SERVICES:
@@ -167,7 +168,11 @@ const testServerEnv = {
   OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: process.env.OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK || "true",
   OMNIROUTE_HIDE_HEALTHCHECK_LOGS: process.env.OMNIROUTE_HIDE_HEALTHCHECK_LOGS || "true",
   ...(bootstrapMode === "open"
-    ? {}
+    ? {
+        INITIAL_PASSWORD: "",
+        OMNIROUTE_E2E_PASSWORD: "",
+        OMNIROUTE_API_KEY: "",
+      }
     : {
         INITIAL_PASSWORD: playwrightPassword,
         OMNIROUTE_E2E_PASSWORD: playwrightPassword,

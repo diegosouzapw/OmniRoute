@@ -267,6 +267,74 @@ test("handleAudioSpeech signs AWS Polly synthesize requests with SigV4", async (
   }
 });
 
+test("handleAudioSpeech maps Xiaomi MiMo TTS to chat completions audio payload", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { audio: { data: "AQID" } } }],
+      }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }
+    );
+  };
+
+  try {
+    const response = await handleAudioSpeech({
+      body: {
+        model: "xiaomi-mimo/mimo-v2.5-tts",
+        input: "mimo text",
+        voice: "default_zh",
+        response_format: "wav",
+      },
+      credentials: {
+        apiKey: "xm-key",
+        providerSpecificData: {
+          baseUrl: "https://token-plan-sgp.xiaomimimo.com/v1",
+        },
+      },
+    });
+
+    assert.equal(captured.url, "https://token-plan-sgp.xiaomimimo.com/v1/chat/completions");
+    assert.equal(captured.headers.Authorization, "Bearer xm-key");
+    assert.deepEqual(captured.body, {
+      model: "mimo-v2.5-tts",
+      messages: [{ role: "assistant", content: "mimo text" }],
+      audio: { format: "audio/wav", voice: "default_zh" },
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "audio/wav");
+    assert.deepEqual(Array.from(new Uint8Array(await response.arrayBuffer())), [1, 2, 3]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleAudioSpeech rejects unsupported Xiaomi MiMo TTS audio formats", async () => {
+  const response = await handleAudioSpeech({
+    body: {
+      model: "xiaomi-mimo/mimo-v2.5-tts",
+      input: "mimo text",
+      response_format: "opus",
+    },
+    credentials: { apiKey: "xm-key" },
+  });
+  const payload = (await response.json()) as any;
+
+  assert.equal(response.status, 400);
+  assert.equal(payload.error.message, "Xiaomi MiMo TTS supports response_format mp3 or wav only");
+});
+
 test("handleAudioSpeech requires credentials for authenticated providers", async () => {
   const response = await handleAudioSpeech({
     body: {

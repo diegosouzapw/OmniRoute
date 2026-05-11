@@ -197,11 +197,23 @@ export class KiroExecutor extends BaseExecutor {
   transformRequest(model: string, body: unknown, stream: boolean, credentials: unknown): unknown {
     void stream;
     void credentials;
-    // Kiro uses conversationState.currentMessage.userInputMessage.modelId,
-    // not a top-level "model" field. chatCore injects translatedBody.model
-    // which Kiro API rejects as unknown top-level field.
-    const { model: _model, ...rest } = body as Record<string, unknown>;
-    return rest;
+    const b = body as Record<string, unknown>;
+
+    // Kiro API is strict and rejects any unknown top-level fields (like 'tools', 'stream', 'model', etc.)
+    // We only preserve the fields specifically built by the openai-to-kiro translator.
+    const kiroPayload: Record<string, unknown> = {};
+    if (b.conversationState !== undefined) kiroPayload.conversationState = b.conversationState;
+    if (b.profileArn !== undefined) kiroPayload.profileArn = b.profileArn;
+    if (b.inferenceConfig !== undefined) kiroPayload.inferenceConfig = b.inferenceConfig;
+
+    // Fallback: if somehow conversationState isn't there, return the rest without model
+    // (for backward compatibility if something else bypasses the translator)
+    if (!kiroPayload.conversationState) {
+      const { model: _model, ...rest } = b;
+      return rest;
+    }
+
+    return kiroPayload;
   }
 
   /**

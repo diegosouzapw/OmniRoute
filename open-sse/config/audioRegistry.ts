@@ -77,7 +77,10 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "nvidia-asr",
-    models: [{ id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" }],
+    models: [
+      { id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" },
+      { id: "openai/whisper-large-v3", name: "Whisper Large v3 (NVIDIA)" },
+    ],
   },
 
   huggingface: {
@@ -99,6 +102,18 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "none",
     format: "openai",
     models: [{ id: "qwen3-asr", name: "Qwen3 ASR" }],
+  },
+
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/speech-to-text", name: "ElevenLabs STT" },
+      { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
+    ],
   },
 };
 
@@ -247,6 +262,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/text-to-speech-multilingual-v2", name: "ElevenLabs TTS v2" },
+      { id: "elevenlabs/text-to-speech-turbo-2-5", name: "ElevenLabs TTS Turbo 2.5" },
+      { id: "elevenlabs/text-to-dialogue-v3", name: "ElevenLabs Text to Dialogue v3" },
+      { id: "elevenlabs/sound-effect-v2", name: "ElevenLabs Sound Effect v2" },
+    ],
+  },
+
   "aws-polly": {
     id: "aws-polly",
     // POST https://polly.{region}.amazonaws.com/v1/speech
@@ -260,6 +289,18 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "neural", name: "Polly Neural" },
       { id: "long-form", name: "Polly Long-Form" },
       { id: "generative", name: "Polly Generative" },
+    ],
+  },
+  "xiaomi-mimo": {
+    id: "xiaomi-mimo",
+    baseUrl: "https://api.xiaomimimo.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "xiaomi-mimo-tts",
+    models: [
+      { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
+      { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },
+      { id: "mimo-v2.5-tts-voiceclone", name: "MiMo V2.5 Voice Clone" },
     ],
   },
 };

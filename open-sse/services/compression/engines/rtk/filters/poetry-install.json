@@ -1,0 +1,35 @@
+{
+  "id": "poetry-install",
+  "label": "Poetry Install",
+  "description": "Strip Poetry package operation noise.",
+  "category": "package",
+  "priority": 72,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^poetry\\s+(?:install|update)\\b"],
+    "patterns": ["Package operations:", "Installing dependencies"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^  - Installing ", "^  - Updating ", "^Installing dependencies", "^\\s*$"],
+    "includePatterns": ["Package operations:", "Writing lock file", "Error", "failed"],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 100,
+    "headLines": 25,
+    "tailLines": 35,
+    "onEmpty": "poetry: ok"
+  },
+  "preserve": {
+    "errorPatterns": ["Error", "failed"],
+    "summaryPatterns": ["Package operations:", "Writing lock file"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "poetry (?:install|update)",
+      "input": "Installing dependencies\nPackage operations: 2 installs, 0 updates\n  - Installing foo (1.0)\nWriting lock file\n",
+      "expected": "Package operations: 2 installs, 0 updates\nWriting lock file"
+    }
+  ]
+}

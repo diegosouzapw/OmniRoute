@@ -7,7 +7,7 @@ type StreamReadinessLogger = {
 
 export type StreamReadinessResult =
   | { ok: true; response: Response }
-  | { ok: false; response: Response; reason: string };
+  | { ok: false; response: Response; reason: string; code: string; type: string };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -88,13 +88,18 @@ export function hasUsefulStreamContent(text: string): boolean {
   return false;
 }
 
-function createErrorResponse(status: number, message: string): Response {
+function createErrorResponse(
+  status: number,
+  message: string,
+  code: string,
+  type: string
+): Response {
   return new Response(
     JSON.stringify({
       error: {
         message,
-        type: "stream_timeout",
-        code: "STREAM_READINESS_TIMEOUT",
+        type,
+        code,
       },
     }),
     { status, headers: { "Content-Type": "application/json" } }
@@ -183,7 +188,14 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
-          response: createErrorResponse(HTTP_STATUS.GATEWAY_TIMEOUT, reason),
+          code: "STREAM_READINESS_TIMEOUT",
+          type: "stream_timeout",
+          response: createErrorResponse(
+            HTTP_STATUS.GATEWAY_TIMEOUT,
+            reason,
+            "STREAM_READINESS_TIMEOUT",
+            "stream_timeout"
+          ),
         };
       }
 
@@ -200,7 +212,14 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
-          response: createErrorResponse(HTTP_STATUS.GATEWAY_TIMEOUT, reason),
+          code: "STREAM_READINESS_TIMEOUT",
+          type: "stream_timeout",
+          response: createErrorResponse(
+            HTTP_STATUS.GATEWAY_TIMEOUT,
+            reason,
+            "STREAM_READINESS_TIMEOUT",
+            "stream_timeout"
+          ),
         };
       }
 
@@ -213,7 +232,14 @@ export async function ensureStreamReadiness(
         return {
           ok: false,
           reason,
-          response: createErrorResponse(HTTP_STATUS.BAD_GATEWAY, reason),
+          code: "STREAM_EARLY_EOF",
+          type: "stream_early_eof",
+          response: createErrorResponse(
+            HTTP_STATUS.BAD_GATEWAY,
+            reason,
+            "STREAM_EARLY_EOF",
+            "stream_early_eof"
+          ),
         };
       }
 

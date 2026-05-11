@@ -1,6 +1,6 @@
 # OmniRoute MCP Server Documentation
 
-> Model Context Protocol server with 16 intelligent tools
+> Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations
 
 ## Installation
 
@@ -19,7 +19,8 @@ omniroute --dev  # MCP auto-starts on /mcp endpoint
 
 ## IDE Configuration
 
-See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot, and Claude Desktop setup.
+See [MCP Client Configuration](SETUP_GUIDE.md#mcp-client-configuration) for Claude Desktop,
+Cursor, Cline, and compatible MCP client setup.
 
 ---
 
@@ -49,20 +50,55 @@ See [IDE Configs](integrations/ide-configs.md) for Antigravity, Cursor, Copilot,
 | `omniroute_explain_route`          | Explain a past routing decision                             |
 | `omniroute_get_session_snapshot`   | Full session state: costs, tokens, errors                   |
 
+## Cache Tools (2)
+
+| Tool                    | Description                                         |
+| :---------------------- | :-------------------------------------------------- |
+| `omniroute_cache_stats` | Semantic cache, prompt-cache, and idempotency stats |
+| `omniroute_cache_flush` | Flush cache globally or by signature/model          |
+
+## Compression Tools (5)
+
+| Tool                                | Description                                                    |
+| :---------------------------------- | :------------------------------------------------------------- |
+| `omniroute_compression_status`      | Compression settings, analytics summary, and cache-aware stats |
+| `omniroute_compression_configure`   | Configure compression mode, threshold, and runtime options     |
+| `omniroute_set_compression_engine`  | Set Caveman, RTK, or stacked compression mode and pipeline     |
+| `omniroute_list_compression_combos` | List named compression combos and routing assignments          |
+| `omniroute_compression_combo_stats` | Analytics grouped by compression combo and engine              |
+
+`omniroute_compression_status` reports MCP description compression separately under
+`analytics.mcpDescriptionCompression`. Those values are metadata-size estimates for MCP listable
+descriptions (`tools`, `prompts`, `resources`, and `resourceTemplates`); they are not provider usage
+receipts and are marked with `source: "mcp_metadata_estimate"`.
+
+See [Compression Engines](COMPRESSION_ENGINES.md) and [RTK Compression](RTK_COMPRESSION.md) for
+the runtime compression model behind these tools.
+
+## Other Tool Groups
+
+The remaining MCP surface includes 1proxy tools, memory tools, and skill tools. The live source of
+truth is `open-sse/mcp-server/tools/` and `open-sse/mcp-server/schemas/tools.ts`.
+
 ## Authentication
 
 MCP tools are authenticated via API key scopes. Each tool requires specific scopes:
 
-| Scope          | Tools                                            |
-| :------------- | :----------------------------------------------- |
-| `read:health`  | get_health, get_provider_metrics                 |
-| `read:combos`  | list_combos, get_combo_metrics                   |
-| `write:combos` | switch_combo                                     |
-| `read:quota`   | check_quota                                      |
-| `write:route`  | route_request, simulate_route, test_combo        |
-| `read:usage`   | cost_report, get_session_snapshot, explain_route |
-| `write:config` | set_budget_guard, set_resilience_profile         |
-| `read:models`  | list_models_catalog, best_combo_for_task         |
+| Scope                 | Tools                                                                |
+| :-------------------- | :------------------------------------------------------------------- |
+| `read:health`         | get_health, get_provider_metrics                                     |
+| `read:combos`         | list_combos, get_combo_metrics                                       |
+| `write:combos`        | switch_combo                                                         |
+| `read:quota`          | check_quota                                                          |
+| `write:route`         | route_request, simulate_route, test_combo                            |
+| `read:usage`          | cost_report, get_session_snapshot, explain_route                     |
+| `write:config`        | set_budget_guard, set_resilience_profile                             |
+| `read:models`         | list_models_catalog, best_combo_for_task                             |
+| `read:cache`          | cache_stats                                                          |
+| `write:cache`         | cache_flush                                                          |
+| `read:compression`    | compression_status, list_compression_combos, compression_combo_stats |
+| `write:compression`   | compression_configure, set_compression_engine                        |
+| `execute:completions` | route_request, test_combo                                            |
 
 ## Audit Logging
 
@@ -74,10 +110,10 @@ Every tool call is logged to `mcp_tool_audit` with:
 
 ## Files
 
-| File                                         | Purpose                                     |
-| :------------------------------------------- | :------------------------------------------ |
-| `open-sse/mcp-server/server.ts`              | MCP server creation + 16 tool registrations |
-| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                      |
-| `open-sse/mcp-server/auth.ts`                | API key + scope validation                  |
-| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                     |
-| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                    |
+| File                                         | Purpose                                           |
+| :------------------------------------------- | :------------------------------------------------ |
+| `open-sse/mcp-server/server.ts`              | MCP server creation and scoped tool registrations |
+| `open-sse/mcp-server/transport.ts`           | Stdio + HTTP transport                            |
+| `open-sse/mcp-server/auth.ts`                | API key + scope validation                        |
+| `open-sse/mcp-server/audit.ts`               | Tool call audit logging                           |
+| `open-sse/mcp-server/tools/advancedTools.ts` | 8 advanced tool handlers                          |

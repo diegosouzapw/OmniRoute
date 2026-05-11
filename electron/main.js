@@ -281,21 +281,25 @@ function installUpdate() {
 function setupContentSecurityPolicy() {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const scriptSrc = isDev
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-      : "script-src 'self' 'unsafe-inline'";
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
+      : "script-src 'self' 'unsafe-inline' blob:";
     const csp = [
       "default-src 'self'",
-      `connect-src 'self' http://localhost:* ws://localhost:* https://*.omniroute.online https://*.omniroute.dev`,
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "frame-src 'none'",
+      "child-src 'none'",
+      "form-action 'self'",
       scriptSrc,
+      "script-src-attr 'none'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
-      "media-src 'self'",
+      "media-src 'self' data: blob:",
+      `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.omniroute.online https://*.omniroute.dev`,
       "worker-src 'self' blob:",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
+      "manifest-src 'self'",
     ].join("; ");
 
     callback({
@@ -327,6 +331,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
+      webviewTag: false,
     },
     show: false,
     backgroundColor: "#0a0a0a",

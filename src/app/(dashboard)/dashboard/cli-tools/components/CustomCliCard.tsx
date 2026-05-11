@@ -9,6 +9,7 @@ import {
   buildCustomCliJsonConfig,
   normalizeOpenAiBaseUrl,
 } from "./customCliConfig";
+import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
 
 interface ModelOption {
   value: string;
@@ -59,7 +60,7 @@ export default function CustomCliCard({
     (!cloudEnabled
       ? "sk_omniroute"
       : translateOrFallback("yourApiKeyPlaceholder", "sk-your-omniroute-key"));
-  const baseUrlWithV1 = normalizeOpenAiBaseUrl(baseUrl || "http://localhost:20128");
+  const baseUrlWithV1 = normalizeOpenAiBaseUrl(baseUrl || DEFAULT_DISPLAY_BASE_URL);
   const chatCompletionsEndpoint = `${baseUrlWithV1}/chat/completions`;
 
   const envScript = useMemo(

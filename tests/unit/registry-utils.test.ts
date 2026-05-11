@@ -168,6 +168,12 @@ test("buildAuthHeaders: returns Token header for token authHeader", () => {
   assert.deepEqual(headers, { Authorization: "Token hf-token" });
 });
 
+test("buildAuthHeaders: returns Key header for key authHeader", () => {
+  const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "key", authType: "apikey" };
+  const headers = buildAuthHeaders(provider, "maritalk-key");
+  assert.deepEqual(headers, { Authorization: "Key maritalk-key" });
+});
+
 test("buildAuthHeaders: returns x-api-key header", () => {
   const provider = { ...MOCK_REGISTRY.nvidia, authHeader: "x-api-key", authType: "apikey" };
   const headers = buildAuthHeaders(provider, "custom-key");
@@ -200,6 +206,8 @@ test("getAllVideoModels: returns video models with provider prefix", async () =>
   const { getAllVideoModels } = await import("../../open-sse/config/videoRegistry.ts");
   const models = getAllVideoModels();
   assert.ok(models.length >= 3, `Expected at least 3 video models, got ${models.length}`);
+  assert.ok(models.some((m) => m.id === "kie/kling-3.0/video"));
+  assert.ok(models.some((m) => m.id === "kie/sora-2-pro-image-to-video"));
   assert.ok(models.some((m) => m.id === "comfyui/animatediff"));
   assert.ok(models.some((m) => m.id === "runwayml/gen4.5"));
 });
@@ -208,5 +216,16 @@ test("getAllMusicModels: returns music models with provider prefix", async () =>
   const { getAllMusicModels } = await import("../../open-sse/config/musicRegistry.ts");
   const models = getAllMusicModels();
   assert.ok(models.length >= 2, `Expected at least 2 music models, got ${models.length}`);
+  assert.equal(models.find((m) => m.id === "kie/suno-v4.0")?.name, "Suno V4.0");
   assert.ok(models.some((m) => m.id === "comfyui/stable-audio-open"));
+});
+
+test("getAllAudioModels: returns nested transcription models with provider prefix", async () => {
+  const { getAllAudioModels } = await import("../../open-sse/config/audioRegistry.ts");
+  const models = getAllAudioModels();
+  const nvidiaWhisper = models.find((m) => m.id === "nvidia/openai/whisper-large-v3");
+
+  assert.equal(nvidiaWhisper?.name, "Whisper Large v3 (NVIDIA)");
+  assert.equal(nvidiaWhisper?.provider, "nvidia");
+  assert.equal(nvidiaWhisper?.subtype, "transcription");
 });

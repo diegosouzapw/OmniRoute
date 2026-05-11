@@ -1,4 +1,5 @@
 import { spawn, execFile } from "child_process";
+import { createHash } from "crypto";
 import { promisify } from "util";
 import fs from "fs/promises";
 import fsSync from "fs";
@@ -9,8 +10,8 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 
 const execFileAsync = promisify(execFile);
 
-const CLOUDFLARED_RELEASE_BASE =
-  "https://github.com/cloudflare/cloudflared/releases/latest/download";
+const CLOUDFLARED_RELEASE_API_URL =
+  "https://api.github.com/repos/cloudflare/cloudflared/releases/latest";
 const START_TIMEOUT_MS = 30000;
 const STOP_TIMEOUT_MS = 5000;
 const GENERIC_EXIT_ERROR_PREFIX = "cloudflared exited";
@@ -33,7 +34,11 @@ type AssetSpec = {
   assetName: string;
   binaryName: string;
   archive: "none" | "tgz";
+};
+
+type ResolvedAssetSpec = AssetSpec & {
   downloadUrl: string;
+  expectedSha256: string;
 };
 
 type CloudflaredRuntimeDirs = {
@@ -401,7 +406,7 @@ export function getCloudflaredAssetSpec(
   platform = process.platform,
   arch = process.arch
 ): AssetSpec | null {
-  const matrix: Record<string, Record<string, Omit<AssetSpec, "downloadUrl">>> = {
+  const matrix: Record<string, Record<string, AssetSpec>> = {
     linux: {
       x64: {
         assetName: "cloudflared-linux-amd64",
@@ -443,9 +448,75 @@ export function getCloudflaredAssetSpec(
   const spec = matrix[platform]?.[arch];
   if (!spec) return null;
 
+  return spec;
+}
+
+export function getSha256FromGitHubDigest(digest: string): string | null {
+  const prefix = "sha256:";
+  if (!digest.toLowerCase().startsWith(prefix)) return null;
+
+  const value = digest.slice(prefix.length);
+  if (value.length !== 64) return null;
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    const digit = code >= 48 && code <= 57;
+    const lowerHex = code >= 97 && code <= 102;
+    const upperHex = code >= 65 && code <= 70;
+    if (!digit && !lowerHex && !upperHex) return null;
+  }
+
+  return value.toLowerCase();
+}
+
+export function verifyCloudflaredDownloadDigest(
+  buffer: Buffer,
+  expectedSha256: string,
+  assetName = "cloudflared"
+): void {
+  const actualSha256 = createHash("sha256").update(buffer).digest("hex");
+  if (actualSha256 !== expectedSha256.toLowerCase()) {
+    throw new Error(
+      `cloudflared download checksum mismatch for ${assetName}: expected ${expectedSha256}, got ${actualSha256}`
+    );
+  }
+}
+
+async function resolveCloudflaredDownloadSpec(spec: AssetSpec): Promise<ResolvedAssetSpec> {
+  const response = await proxyFetch(CLOUDFLARED_RELEASE_API_URL, {
+    headers: { Accept: "application/vnd.github+json" },
+    redirect: "follow",
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to resolve cloudflared release metadata with status ${response.status}`
+    );
+  }
+
+  const release = (await response.json()) as { assets?: unknown };
+  const assets = Array.isArray(release.assets) ? release.assets : [];
+  const asset = assets
+    .map((entry) =>
+      entry && typeof entry === "object" ? (entry as Record<string, unknown>) : null
+    )
+    .find((entry) => entry?.name === spec.assetName);
+
+  if (!asset) {
+    throw new Error(`cloudflared release asset not found: ${spec.assetName}`);
+  }
+
+  const downloadUrl =
+    typeof asset.browser_download_url === "string" ? asset.browser_download_url : "";
+  const digest = typeof asset.digest === "string" ? asset.digest : "";
+  const expectedSha256 = getSha256FromGitHubDigest(digest);
+
+  if (!downloadUrl || !expectedSha256) {
+    throw new Error(`cloudflared release asset ${spec.assetName} is missing a sha256 digest`);
+  }
+
   return {
     ...spec,
-    downloadUrl: `${CLOUDFLARED_RELEASE_BASE}/${spec.assetName}`,
+    downloadUrl,
+    expectedSha256,
   };
 }
 
@@ -488,13 +559,19 @@ async function extractArchive(archivePath: string, destinationDir: string) {
   await execFileAsync("tar", ["-xzf", archivePath, "-C", destinationDir], { timeout: 15000 });
 }
 
-async function downloadToFile(url: string, destinationPath: string) {
+async function downloadToFile(
+  url: string,
+  destinationPath: string,
+  expectedSha256: string,
+  assetName: string
+) {
   const response = await proxyFetch(url, { redirect: "follow" });
   if (!response.ok) {
     throw new Error(`Download failed with status ${response.status}`);
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
+  verifyCloudflaredDownloadDigest(buffer, expectedSha256, assetName);
   await fs.writeFile(destinationPath, buffer);
 }
 
@@ -525,7 +602,13 @@ async function installManagedBinary() {
     });
 
     try {
-      await downloadToFile(spec.downloadUrl, tempDownloadPath);
+      const downloadSpec = await resolveCloudflaredDownloadSpec(spec);
+      await downloadToFile(
+        downloadSpec.downloadUrl,
+        tempDownloadPath,
+        downloadSpec.expectedSha256,
+        downloadSpec.assetName
+      );
 
       if (spec.archive === "tgz") {
         await extractArchive(tempDownloadPath, path.dirname(managedBinaryPath));

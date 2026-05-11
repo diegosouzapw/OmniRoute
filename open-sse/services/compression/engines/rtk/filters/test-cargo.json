@@ -1,0 +1,42 @@
+{
+  "id": "test-cargo",
+  "label": "Cargo Test",
+  "description": "Keep Cargo test failures and final summary.",
+  "category": "test",
+  "priority": 90,
+  "match": {
+    "outputTypes": ["test-cargo"],
+    "commands": ["^cargo\\s+(?:test|nextest)\\b"],
+    "patterns": ["^running \\d+ tests?", "test result:"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "includePatterns": [
+      "^running \\d+ tests?",
+      "^test .* \\.\\.\\. FAILED",
+      "^failures:",
+      "^---- ",
+      "^thread ",
+      "^test result:",
+      "^error:"
+    ],
+    "dropPatterns": ["^test .* \\.\\.\\. ok$", "^\\s*$"],
+    "collapsePatterns": ["^\\s+at "],
+    "deduplicate": true,
+    "maxLines": 180,
+    "headLines": 40,
+    "tailLines": 70
+  },
+  "preserve": {
+    "errorPatterns": ["FAILED", "^error:", "^thread "],
+    "summaryPatterns": ["test result:"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "cargo (?:test|nextest)",
+      "input": "running 2 tests\ntest a ... ok\ntest b ... FAILED\nfailures:\n---- b stdout ----\nthread b panicked at boom\ntest result: FAILED. 1 passed; 1 failed\n",
+      "expected": "running 2 tests\ntest b ... FAILED\nfailures:\n---- b stdout ----\nthread b panicked at boom\ntest result: FAILED. 1 passed; 1 failed"
+    }
+  ]
+}

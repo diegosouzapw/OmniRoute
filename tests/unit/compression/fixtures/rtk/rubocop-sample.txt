@@ -1,0 +1,4 @@
+Inspecting 2 files
+.C
+app/models/user.rb:12:3: C: Style/IfUnlessModifier: Favor modifier if usage.
+2 files inspected, 1 offense detected

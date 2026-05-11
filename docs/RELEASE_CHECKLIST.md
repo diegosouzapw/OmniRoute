@@ -21,7 +21,7 @@ Use this checklist before tagging or publishing a new OmniRoute release.
 1. Review `docs/ARCHITECTURE.md` for storage/runtime drift.
 2. Review `docs/TROUBLESHOOTING.md` for env var and operational drift.
 3. Verify the release/runtime Node.js version still satisfies the supported secure floor:
-   - `>=20.20.2 <21` or `>=22.22.2 <23`
+   - `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`
    - `npm run check:node-runtime`
 4. Validate the npm publish artifact after building the standalone package:
    - `npm run build:cli`

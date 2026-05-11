@@ -49,7 +49,7 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("canonical model capability resolver merges models.dev data and keeps static overrides authoritative", () => {
+test("canonical model capability resolver lets exact synced metadata override global specs", () => {
   modelsDevSync.saveModelsDevCapabilities({
     openai: {
       "gpt-4o": buildCapability({
@@ -92,11 +92,11 @@ test("canonical model capability resolver merges models.dev data and keeps stati
   const geminiHigh = modelCapabilities.getResolvedModelCapabilities(
     "antigravity/gemini-3.1-pro-high"
   );
-  assert.equal(geminiHigh.toolCalling, true);
-  assert.equal(geminiHigh.reasoning, true);
-  assert.equal(geminiHigh.supportsThinking, true);
-  assert.equal(geminiHigh.contextWindow, 1048576);
-  assert.equal(geminiHigh.maxOutputTokens, 65535);
+  assert.equal(geminiHigh.toolCalling, false);
+  assert.equal(geminiHigh.reasoning, false);
+  assert.equal(geminiHigh.supportsThinking, false);
+  assert.equal(geminiHigh.contextWindow, 1024);
+  assert.equal(geminiHigh.maxOutputTokens, 9999);
   assert.equal(geminiHigh.defaultThinkingBudget, 24576);
   assert.equal(
     modelCapabilities.capThinkingBudget("antigravity/gemini-3.1-pro-high", 40000),

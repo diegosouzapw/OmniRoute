@@ -5,7 +5,7 @@
  * Run with: npm run test:ecosystem
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
 const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
 const API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -128,6 +128,12 @@ describe("E2E: Quota Contract (/api/usage/quota)", () => {
 
 // ─── Scenario 2: A2A Server Complete ─────────────────────────────
 describe("E2E: A2A Server (lifecycle)", () => {
+  beforeAll(async () => {
+    await apiFetch("/api/settings", {
+      method: "PATCH",
+      body: JSON.stringify({ a2aEnabled: true }),
+    });
+  });
   itCase("should serve Agent Card", async () => {
     const res = await apiFetch("/.well-known/agent.json");
     expect(res.ok).toBe(true);
@@ -266,7 +272,10 @@ describe("E2E: Security", () => {
       return;
     }
 
-    expect([200, 400]).toContain(res.status);
+    if (res.status !== 200) {
+      console.log("SEC-1 FAILED STATUS:", res.status, "BODY:", await res.text());
+    }
+    expect(res.status).toBe(200);
   });
 
   itCase("should handle invalid API keys according to server configuration", async () => {
@@ -288,7 +297,10 @@ describe("E2E: Security", () => {
       return;
     }
 
-    expect([200, 400]).toContain(res.status);
+    if (res.status !== 200) {
+      console.log("SEC-2 FAILED STATUS:", res.status, "BODY:", await res.text());
+    }
+    expect(res.status).toBe(200);
   });
 
   itCase("should not expose internal errors in API responses", async () => {

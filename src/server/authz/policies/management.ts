@@ -18,7 +18,7 @@ function isInternalModelSyncRequest(ctx: PolicyContext): boolean {
 export const managementPolicy: RoutePolicy = {
   routeClass: "MANAGEMENT",
   async evaluate(ctx: PolicyContext): Promise<AuthOutcome> {
-    if (!(await isAuthRequired())) {
+    if (!(await isAuthRequired(ctx.request))) {
       return allow({ kind: "anonymous", id: "anonymous", label: "auth-disabled" });
     }
 

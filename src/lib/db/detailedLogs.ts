@@ -33,6 +33,25 @@ export interface RequestDetailLog {
   no_log?: boolean;
 }
 
+let requestDetailLogsTableExistsCache: boolean | undefined;
+
+function requestDetailLogsTableExists(): boolean {
+  if (requestDetailLogsTableExistsCache !== undefined) {
+    return requestDetailLogsTableExistsCache;
+  }
+
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'request_detail_logs'")
+    .get() as { name?: string } | undefined;
+  requestDetailLogsTableExistsCache = Boolean(row?.name);
+  return requestDetailLogsTableExistsCache;
+}
+
+export function resetRequestDetailLogsTableExistsCache(): void {
+  requestDetailLogsTableExistsCache = undefined;
+}
+
 /** Returns true if detailed logging is enabled in settings */
 export async function isDetailedLoggingEnabled(): Promise<boolean> {
   try {
@@ -48,7 +67,7 @@ export async function isDetailedLoggingEnabled(): Promise<boolean> {
 export function saveRequestDetailLog(entry: RequestDetailLog): void {
   const noLogEnabled =
     Boolean(entry.no_log) || (entry.api_key_id ? isNoLog(entry.api_key_id) : false);
-  if (noLogEnabled) return;
+  if (noLogEnabled || !requestDetailLogsTableExists()) return;
 
   const db = getDbInstance();
   const id = entry.id ?? uuidv4();
@@ -81,6 +100,7 @@ export function saveRequestDetailLog(entry: RequestDetailLog): void {
 
 /** Fetch detailed logs (latest first) */
 export function getRequestDetailLogs(limit = 50, offset = 0): RequestDetailLog[] {
+  if (!requestDetailLogsTableExists()) return [];
   const db = getDbInstance();
   const rows = db
     .prepare(
@@ -97,6 +117,7 @@ export function getRequestDetailLogs(limit = 50, offset = 0): RequestDetailLog[]
 
 /** Get a single detailed log by ID */
 export function getRequestDetailLogById(id: string): RequestDetailLog | null {
+  if (!requestDetailLogsTableExists()) return null;
   const db = getDbInstance();
   const row = db.prepare("SELECT * FROM request_detail_logs WHERE id = ?").get(id) as
     | Record<string, unknown>
@@ -106,6 +127,7 @@ export function getRequestDetailLogById(id: string): RequestDetailLog | null {
 
 /** Get the most recent detailed log for a call log ID */
 export function getRequestDetailLogByCallLogId(callLogId: string): RequestDetailLog | null {
+  if (!requestDetailLogsTableExists()) return null;
   const db = getDbInstance();
   const row = db
     .prepare(
@@ -122,6 +144,7 @@ export function getRequestDetailLogByCallLogId(callLogId: string): RequestDetail
 
 /** Get total count of detailed logs */
 export function getRequestDetailLogCount(): number {
+  if (!requestDetailLogsTableExists()) return 0;
   const db = getDbInstance();
   const row = db.prepare("SELECT COUNT(*) as cnt FROM request_detail_logs").get() as {
     cnt: number;

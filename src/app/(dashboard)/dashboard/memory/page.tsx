@@ -99,7 +99,13 @@ export default function MemoryPage() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `memory-export-${new Date().toISOString()}.json`;
-    link.click();
+    try {
+      document.body.appendChild(link);
+      link.click();
+    } finally {
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
   };
 
   const handleImportClick = () => {

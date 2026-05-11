@@ -11,6 +11,7 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "image-route-test-api
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const imageRoute = await import("../../src/app/api/v1/images/generations/route.ts");
 const imageEditRoute = await import("../../src/app/api/v1/images/edits/route.ts");
 
@@ -137,4 +138,98 @@ test("v1 image edit POST enforces disabled API key policy", async () => {
 
   assert.equal(response.status, 403);
   assert.match(body.error.message, /disabled/);
+});
+
+test("v1 image generation POST resolves proxy and executes with proxy context when credentials.connectionId exists", async () => {
+  // Create a connection — it gets an auto-generated id used as credentials.connectionId
+  const connection = await seedConnection("openai", { apiKey: "image-proxy-key" });
+
+  // Set a key-level proxy for this specific connection (id = connectionId)
+  await settingsDb.setProxyForLevel("key", (connection as any).id, {
+    type: "http",
+    host: "127.0.0.1",
+    port: 1, // intentionally unreachable — proves proxy path was taken
+  });
+
+  globalThis.fetch = async () => {
+    throw new Error("fetch should not be called — proxy fast-fail should trigger first");
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-image-2",
+        prompt: "proxy test image",
+      }),
+    })
+  );
+
+  assert.equal(response.status, 503);
+  const body = (await response.json()) as any;
+  assert.match(body.error.message, /unreachable/i);
+});
+
+test("v1 image generation POST executes directly when proxy resolution fails gracefully", async () => {
+  const connection = await seedConnection("openai", { apiKey: "image-proxy-fail-key" });
+
+  const db = core.getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', 'keys', 'corrupt-json')"
+  ).run();
+
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+    if (stringUrl === "https://api.openai.com/v1/images/generations") {
+      return new Response(
+        JSON.stringify({ created: 123, data: [{ url: "https://cdn.example.com/proxy-fail.png" }] }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai/gpt-image-2",
+        prompt: "proxy failover image",
+      }),
+    })
+  );
+
+  const body = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.equal(body.data[0].url, "https://cdn.example.com/proxy-fail.png");
+});
+
+test("v1 image generation POST executes directly when credentials.connectionId is absent (authType: none)", async () => {
+  globalThis.fetch = async (url) => {
+    const stringUrl = String(url);
+    if (stringUrl === "http://localhost:7860/sdapi/v1/txt2img") {
+      return new Response(JSON.stringify({ images: ["YmFzZTY0LWltYWdl"] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  const response = await imageRoute.POST(
+    new Request("http://localhost/api/v1/images/generations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "sdwebui/stable-diffusion-v1-5",
+        prompt: "no credentials test",
+      }),
+    })
+  );
+
+  const body = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.ok(body.data, "should have image data");
 });

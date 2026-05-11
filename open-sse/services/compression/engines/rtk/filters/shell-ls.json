@@ -1,0 +1,33 @@
+{
+  "id": "shell-ls",
+  "label": "Shell Listing",
+  "description": "Keep directory listing boundaries without flooding the prompt.",
+  "category": "shell",
+  "priority": 50,
+  "match": {
+    "outputTypes": ["shell-ls"],
+    "commands": ["^(?:ls(?:\\s+-[A-Za-z]+)?|find)\\b"],
+    "patterns": ["^total \\d+", "^\\S+\\s+\\S+\\s+\\d+\\s+\\w+\\s+\\d{1,2}\\s+"]
+  },
+  "rules": {
+    "includePatterns": [],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 100,
+    "headLines": 40,
+    "tailLines": 30
+  },
+  "preserve": {
+    "errorPatterns": ["^total \\d+"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:ls(?: -[A-Za-z]+)?|find)",
+      "input": "total 8\ndrwxr-xr-x 2 user user 4096 May 1 src\n-rw-r--r-- 1 user user 10 May 1 package.json\n",
+      "expected": "total 8\ndrwxr-xr-x 2 user user 4096 May 1 src\n-rw-r--r-- 1 user user 10 May 1 package.json"
+    }
+  ]
+}

@@ -6,18 +6,64 @@ export interface CompressionResult {
   saved: number;
 }
 
-const CODE_INDICATORS =
-  /(?:^|\n)\s*(?:import\s|export\s|function\s|class\s|const\s|let\s|var\s|return\s|if\s*\(|for\s*\(|while\s*\()/;
-const GREP_LINE_RE = /^[\w./-]+:\d+:/m;
 const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]/g;
 const SHELL_PROMPT_RE = /\$\s/;
 const JSON_PREFIX_RE = /^\s*[{[]/;
-const ERROR_RE = /(?:Error|Exception|Traceback)[:\s]/i;
+
+function isCodeLikeLine(rawLine: string): boolean {
+  const line = rawLine.trimStart();
+  return (
+    line.startsWith("import ") ||
+    line.startsWith("export ") ||
+    line.startsWith("function ") ||
+    line.startsWith("class ") ||
+    line.startsWith("const ") ||
+    line.startsWith("let ") ||
+    line.startsWith("var ") ||
+    line.startsWith("return ") ||
+    line.startsWith("if(") ||
+    line.startsWith("if (") ||
+    line.startsWith("for(") ||
+    line.startsWith("for (") ||
+    line.startsWith("while(") ||
+    line.startsWith("while (")
+  );
+}
+
+function parseGrepLinePath(line: string): string | null {
+  const firstColon = line.indexOf(":");
+  if (firstColon <= 0) return null;
+
+  const secondColon = line.indexOf(":", firstColon + 1);
+  if (secondColon === -1) return null;
+
+  const lineNumber = line.slice(firstColon + 1, secondColon);
+  if (!lineNumber || ![...lineNumber].every((char) => char >= "0" && char <= "9")) {
+    return null;
+  }
+
+  const filePath = line.slice(0, firstColon);
+  if (!filePath || /\s/.test(filePath)) return null;
+  return filePath;
+}
+
+function hasErrorLikeOutput(content: string): boolean {
+  const lower = content.toLowerCase();
+  return (
+    lower.includes("error:") ||
+    lower.includes("error ") ||
+    lower.includes("[error]") ||
+    lower.includes("exception:") ||
+    lower.includes("exception ") ||
+    lower.includes("[exception]") ||
+    lower.includes("traceback")
+  );
+}
 
 function compressFileContent(content: string): string | null {
   const lines = content.split("\n");
   if (lines.length < 3) return null;
-  if (!CODE_INDICATORS.test(content)) return null;
+  if (!lines.some(isCodeLikeLine)) return null;
   const keep = 20;
   const tail = 5;
   if (lines.length <= keep + tail) return content;
@@ -29,12 +75,12 @@ function compressFileContent(content: string): string | null {
 
 function compressGrepSearch(content: string): string | null {
   const lines = content.split("\n");
-  const grepLines = lines.filter((l) => GREP_LINE_RE.test(l));
+  const grepLines = lines.filter((line) => parseGrepLinePath(line) !== null);
   if (grepLines.length === 0) return null;
   const paths = new Set<string>();
   for (const line of grepLines) {
-    const match = line.match(/^([\w./-]+):\d+:/);
-    if (match) paths.add(match[1]);
+    const filePath = parseGrepLinePath(line);
+    if (filePath) paths.add(filePath);
   }
   const top30 = grepLines.slice(0, 30);
   const remaining = grepLines.length - top30.length;
@@ -99,7 +145,7 @@ function compressJson(content: string): string | null {
 }
 
 function compressErrorMessage(content: string): string | null {
-  if (!ERROR_RE.test(content)) return null;
+  if (!hasErrorLikeOutput(content)) return null;
   const lines = content.split("\n");
   const errorLine = lines[0] || "";
   const stackLines = lines.slice(1);

@@ -11,6 +11,7 @@ import {
   stripClaudeCodeCompatibleEndpointSuffix,
   stripAnthropicMessagesSuffix,
 } from "@omniroute/open-sse/services/claudeCodeCompatible.ts";
+import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import {
   isClaudeCodeCompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -67,6 +68,10 @@ import {
   normalizeRunwayBaseUrl,
 } from "@omniroute/open-sse/config/runway.ts";
 import { PETALS_DEFAULT_MODEL, normalizePetalsBaseUrl } from "@omniroute/open-sse/config/petals.ts";
+import {
+  buildMaritalkChatUrl,
+  buildMaritalkModelsUrl,
+} from "@omniroute/open-sse/config/maritalk.ts";
 import { signAwsRequest } from "@omniroute/open-sse/utils/awsSigV4.ts";
 import { validateImageProviderApiKey } from "@/lib/providers/imageValidation";
 
@@ -229,6 +234,18 @@ function buildClarifaiHeaders(apiKey: string, providerSpecificData: any = {}) {
   return applyCustomUserAgent(headers, providerSpecificData);
 }
 
+function buildKeyHeaders(apiKey: string, providerSpecificData: any = {}) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers.Authorization = `Key ${apiKey}`;
+  }
+
+  return applyCustomUserAgent(headers, providerSpecificData);
+}
+
 function buildTokenHeaders(apiKey: string, providerSpecificData: any = {}) {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -264,12 +281,12 @@ function toValidationErrorResult(error: unknown) {
   return {
     valid: false,
     error: message || "Validation failed",
-    unsupported: false,
+    unsupported: false as const,
     ...(statusCode ? { statusCode } : {}),
     ...(error instanceof SafeOutboundFetchError && error.code === "TIMEOUT"
       ? { timeout: true }
       : {}),
-    ...(statusCode === 400 ? { securityBlocked: true } : {}),
+    ...(statusCode === 503 ? { securityBlocked: true } : {}),
   };
 }
 
@@ -280,6 +297,13 @@ async function validateOpenAILikeProvider({
   providerSpecificData = {},
   modelId = "gpt-4o-mini",
   modelsUrl: customModelsUrl,
+}: {
+  provider: string;
+  apiKey: string;
+  baseUrl: string;
+  providerSpecificData?: any;
+  modelId?: string;
+  modelsUrl?: string;
 }) {
   if (!baseUrl) {
     return { valid: false, error: "Missing base URL" };
@@ -521,6 +545,13 @@ async function validateAnthropicLikeProvider({
     return { valid: false, error: "Missing base URL" };
   }
 
+  // OAuth tokens need the same Claude Code cloak as production traffic in
+  // base.ts; a bare validation request gets flagged on the user:sessions:
+  // claude_code scope.
+  if (typeof apiKey === "string" && apiKey.startsWith("sk-ant-oat")) {
+    return validateClaudeOAuthInline({ apiKey, modelId, providerSpecificData });
+  }
+
   const requestHeaders = applyCustomUserAgent(
     {
       "Content-Type": "application/json",
@@ -555,6 +586,45 @@ async function validateAnthropicLikeProvider({
   }
 
   return { valid: true, error: null };
+}
+
+// Probe a Claude OAuth credential through the same executor that handles
+// production traffic so the cloak/signing/identity logic isn't duplicated.
+async function validateClaudeOAuthInline({
+  apiKey,
+  modelId,
+  providerSpecificData = {},
+}: {
+  apiKey: string;
+  modelId: string | null | undefined;
+  providerSpecificData?: Record<string, unknown>;
+}) {
+  const testModelId =
+    providerSpecificData?.validationModelId || modelId || "claude-haiku-4-5-20251001";
+
+  try {
+    const { response } = await getExecutor("claude").execute({
+      model: testModelId,
+      body: {
+        model: testModelId,
+        max_tokens: 1,
+        messages: [{ role: "user", content: "test" }],
+      },
+      stream: false,
+      credentials: { accessToken: apiKey, providerSpecificData },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid OAuth token" };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${response.status})` };
+    }
+    // 2xx and non-auth 4xx (429 quota, 400 model) both mean the token is valid.
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateGeminiLikeProvider({
@@ -728,6 +798,55 @@ async function validateInworldProvider({ apiKey, providerSpecificData = {} }: an
     // Any other response indicates auth is accepted (payload/model may still be wrong)
     return { valid: true, error: null };
   } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateKieProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    // Use credit check endpoint as requested by user based on Kie.ai docs.
+    const response = await validationRead("https://api.kie.ai/api/v1/chat/credit", {
+      method: "GET",
+      headers: applyCustomUserAgent(
+        {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid Kie.ai API key" };
+    }
+
+    // Fallback: if credits endpoint is 404/not supported, try minimal chat probe.
+    const chatRes = await validationWrite("https://api.kie.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: buildBearerHeaders(apiKey, providerSpecificData),
+      body: JSON.stringify({
+        model: providerSpecificData.validationModelId || "gpt-4o-mini",
+        messages: [{ role: "user", content: "test" }],
+        max_tokens: 1,
+      }),
+    });
+
+    if (
+      chatRes.ok ||
+      (chatRes.status >= 400 &&
+        chatRes.status < 500 &&
+        chatRes.status !== 401 &&
+        chatRes.status !== 403)
+    ) {
+      return { valid: true, error: null };
+    }
+
+    return { valid: false, error: `Validation failed: ${chatRes.status}` };
+  } catch (error: unknown) {
     return toValidationErrorResult(error);
   }
 }
@@ -1508,7 +1627,7 @@ async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) 
       method: "POST",
       headers,
       body: JSON.stringify({
-        model: providerSpecificData.validationModelId || "reka-flash",
+        model: providerSpecificData.validationModelId || "reka-flash-3",
         messages: [{ role: "user", content: "test" }],
         max_tokens: 1,
       }),
@@ -1535,6 +1654,59 @@ async function validateRekaProvider({ apiKey, providerSpecificData = {} }: any) 
   }
 
   return { valid: false, error: "Connection failed while testing Reka" };
+}
+
+async function validateMaritalkProvider({ apiKey, providerSpecificData = {} }: any) {
+  const entry = getRegistryEntry("maritalk");
+  const baseUrl = normalizeBaseUrl(providerSpecificData.baseUrl || entry?.baseUrl);
+  const headers = buildKeyHeaders(apiKey, providerSpecificData);
+
+  try {
+    const modelsRes = await validationRead(buildMaritalkModelsUrl(baseUrl), {
+      method: "GET",
+      headers,
+    });
+
+    if (modelsRes.ok) {
+      return { valid: true, error: null, method: "maritalk_models" };
+    }
+
+    if (modelsRes.status === 401 || modelsRes.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (modelsRes.status === 429) {
+      return {
+        valid: true,
+        error: null,
+        method: "maritalk_models",
+        warning: "Rate limited, but credentials are valid",
+      };
+    }
+
+    if (modelsRes.status >= 500) {
+      return { valid: false, error: `Provider unavailable (${modelsRes.status})` };
+    }
+  } catch {
+    // Fall through to the chat probe when /models cannot be reached.
+  }
+
+  const modelId =
+    typeof providerSpecificData?.validationModelId === "string" &&
+    providerSpecificData.validationModelId.trim()
+      ? providerSpecificData.validationModelId.trim()
+      : entry?.models?.[0]?.id || "sabia-4";
+
+  return validateDirectChatProvider({
+    url: buildMaritalkChatUrl(baseUrl),
+    headers,
+    body: {
+      model: modelId,
+      messages: [{ role: "user", content: "test" }],
+      max_tokens: 1,
+    },
+    providerSpecificData,
+  });
 }
 
 async function validateNlpCloudProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2009,7 +2181,7 @@ export async function validateClaudeCodeCompatibleProvider({
   const payload = buildClaudeCodeCompatibleValidationPayload(
     providerSpecificData?.validationModelId || "claude-sonnet-4-6"
   );
-  const sessionId = JSON.parse(payload.metadata.user_id).session_id;
+  const sessionId = JSON.parse(payload.metadata.user_id as string).session_id;
 
   try {
     const messagesRes = await validationWrite(joinClaudeCodeCompatibleUrl(baseUrl, chatPath), {
@@ -2467,7 +2639,7 @@ async function validateChatGptWebProvider({ apiKey, providerSpecificData = {} }:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "User-Agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:150.0) Gecko/20100101 Firefox/150.0",
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
           },
           providerSpecificData
         ),
@@ -2796,7 +2968,12 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey =
-    provider !== "searxng-search" && provider !== "petals" && !isSelfHostedChatProvider(provider);
+    provider !== "searxng-search" &&
+    provider !== "petals" &&
+    !isSelfHostedChatProvider(provider) &&
+    !isOpenAICompatibleProvider(provider) &&
+    !isAnthropicCompatibleProvider(provider);
+
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
   }
@@ -2839,6 +3016,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
       validateImageProviderApiKey({ provider: "topaz", apiKey, providerSpecificData }),
     elevenlabs: validateElevenLabsProvider,
     inworld: validateInworldProvider,
+    kie: validateKieProvider,
     "aws-polly": validateAwsPollyProvider,
     "bailian-coding-plan": validateBailianCodingPlanProvider,
     heroku: validateHerokuProvider,
@@ -2873,6 +3051,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     poe: validatePoeProvider,
     clarifai: validateClarifaiProvider,
     reka: validateRekaProvider,
+    maritalk: validateMaritalkProvider,
     nlpcloud: validateNlpCloudProvider,
     runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,

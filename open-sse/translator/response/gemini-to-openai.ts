@@ -2,6 +2,12 @@ import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
 
+function buildToolCallId(functionCall, toolName, toolCallIndex) {
+  return typeof functionCall?.id === "string" && functionCall.id.length > 0
+    ? functionCall.id
+    : `${toolName}-${Date.now()}-${toolCallIndex}`;
+}
+
 // Convert Gemini response chunk to OpenAI format
 export function geminiToOpenAIResponse(chunk, state) {
   if (!chunk) return null;
@@ -111,7 +117,7 @@ export function geminiToOpenAIResponse(chunk, state) {
           const toolCallIndex = state.functionIndex++;
 
           const toolCall = {
-            id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+            id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
             index: toolCallIndex,
             type: "function",
             function: {
@@ -169,7 +175,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         const toolCallIndex = state.functionIndex++;
 
         const toolCall = {
-          id: `${fcName}-${Date.now()}-${toolCallIndex}`,
+          id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
           index: toolCallIndex,
           type: "function",
           function: {

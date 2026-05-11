@@ -1,3 +1,5 @@
+import { sanitizeResponsesInputItems } from "./responsesInputSanitizer.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 type RememberedFunctionCall = {
@@ -26,6 +28,10 @@ const rememberedFunctionCallsById = new Map<string, RememberedFunctionCallByIdSt
 
 function toRecord(value: unknown): JsonRecord | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : null;
+}
+
+function sanitizeRememberedConversationItems(items: readonly unknown[]): unknown[] {
+  return sanitizeResponsesInputItems(items);
 }
 
 function cleanupRememberedResponseToolCalls(now: number = Date.now()) {
@@ -122,7 +128,7 @@ export function rememberResponseFunctionCalls(
 
   rememberedResponseToolCalls.set(normalizedResponseId, {
     functionCalls,
-    conversationItems: existingEntry?.conversationItems?.map((item) => structuredClone(item)) || [],
+    conversationItems: sanitizeRememberedConversationItems(existingEntry?.conversationItems || []),
     updatedAt: now,
     expiresAt: now + RESPONSE_TOOL_CALL_TTL_MS,
   });
@@ -140,7 +146,10 @@ export function rememberResponseConversationState(
 
   const normalizedRequestInput = Array.isArray(requestInput) ? requestInput : [];
   const normalizedOutputItems = Array.isArray(outputItems) ? outputItems : [];
-  const conversationItems = [...normalizedRequestInput, ...normalizedOutputItems];
+  const conversationItems = sanitizeRememberedConversationItems([
+    ...normalizedRequestInput,
+    ...normalizedOutputItems,
+  ]);
   if (conversationItems.length === 0) {
     return;
   }
@@ -150,7 +159,7 @@ export function rememberResponseConversationState(
   const existingEntry = rememberedResponseToolCalls.get(normalizedResponseId);
   rememberedResponseToolCalls.set(normalizedResponseId, {
     functionCalls: existingEntry?.functionCalls?.map((functionCall) => ({ ...functionCall })) || [],
-    conversationItems: conversationItems.map((item) => structuredClone(item)),
+    conversationItems,
     updatedAt: Date.now(),
     expiresAt: Date.now() + RESPONSE_TOOL_CALL_TTL_MS,
   });
@@ -185,7 +194,7 @@ export function getRememberedResponseConversationItems(responseId: unknown): unk
     return [];
   }
 
-  return entry.conversationItems.map((item) => structuredClone(item));
+  return sanitizeRememberedConversationItems(entry.conversationItems);
 }
 
 export function getRememberedFunctionCallsByIds(

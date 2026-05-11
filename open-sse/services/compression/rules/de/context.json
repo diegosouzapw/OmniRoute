@@ -1,0 +1,38 @@
+{
+  "language": "de",
+  "category": "context",
+  "rules": [
+    {
+      "name": "de_context_setup",
+      "pattern": "\\b(?:hier ist der code|unten ist der code|dies ist der code)\\b\\s*[:.]?\\s*",
+      "replacement": "Code:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_intent",
+      "pattern": "\\b(?:mein ziel ist|was ich brauche ist|ich versuche|die idee ist)\\b\\s*",
+      "replacement": "Ziel:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_question_directive",
+      "pattern": "\\b(?:kannst du erklaeren warum|kannst du erklären warum|kannst du zeigen wie)\\b\\s*",
+      "replacement": "Erklaere ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "de_background",
+      "pattern": "\\b(?:wie du weisst|wie du weißt|wie bereits erwaehnt|wie bereits erwähnt)\\b[,.]?\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

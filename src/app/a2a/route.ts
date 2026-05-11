@@ -106,6 +106,7 @@ async function rejectIfA2ADisabled(id: string | number | null) {
 // ============ Route Handler ============
 
 export async function POST(req: NextRequest) {
+  console.log("==> HIT A2A ROUTER:", req.url);
   // Auth check
   if (!authenticate(req)) {
     return jsonRpcError(null, -32600, "Unauthorized: missing or invalid API key");
@@ -180,6 +181,7 @@ export async function POST(req: NextRequest) {
           metadata: result.metadata,
         });
       } catch (err) {
+        console.error("A2A ERROR TRACE:", err);
         const msg = err instanceof Error ? err.message : String(err);
         tm.updateTask(task.id, "failed", [{ type: "error", content: msg }], msg);
         return jsonRpcError(id, -32603, `Skill execution failed: ${msg}`);

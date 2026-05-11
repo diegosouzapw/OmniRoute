@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { useDisplayBaseUrl } from "@/shared/hooks";
 
 export default function GetStarted() {
   const t = useTranslations("landing");
   const [copied, setCopied] = useState(false);
 
-  const endpoint = "http://localhost:20128";
+  const endpoint = useDisplayBaseUrl();
   const dashboardUrl = `${endpoint}/dashboard`;
   const command = "npx omniroute";
 

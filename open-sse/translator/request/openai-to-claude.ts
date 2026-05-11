@@ -280,8 +280,8 @@ export function openaiToClaudeRequest(model, body, stream) {
     // Filter out tools with empty names (would cause Claude 400 error)
     result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
 
-    // Add cache_control to last tool that doesn't have defer_loading
-    // Tools with defer_loading=true cannot have cache_control (API rejects it)
+    // Cache breakpoint on the last non-defer-loading tool — Anthropic
+    // rejects cache_control on defer_loading tools.
     for (let i = result.tools.length - 1; i >= 0; i--) {
       if (!result.tools[i].defer_loading) {
         result.tools[i].cache_control = { type: "ephemeral", ttl: "1h" };
@@ -312,17 +312,12 @@ export function openaiToClaudeRequest(model, body, stream) {
     }
   }
 
-  // System with Claude Code prompt and cache_control
-  const claudeCodePrompt = { type: "text", text: CLAUDE_SYSTEM_PROMPT };
-
+  // System messages and cache_control
   if (systemParts.length > 0) {
     const systemText = systemParts.join("\n");
     result.system = [
-      claudeCodePrompt,
       { type: "text", text: systemText, cache_control: { type: "ephemeral", ttl: "1h" } },
     ];
-  } else {
-    result.system = [claudeCodePrompt];
   }
 
   // Thinking configuration
@@ -548,19 +543,27 @@ function tryParseJSON(str) {
   }
 }
 
+function stripCacheControl(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripCacheControl(item));
+  }
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (key === "cache_control") continue;
+    cleaned[key] = stripCacheControl(child);
+  }
+  return cleaned;
+}
+
 // OpenAI -> Claude format for Antigravity (without system prompt modifications)
 function openaiToClaudeRequestForAntigravity(model, body, stream) {
-  const result = openaiToClaudeRequest(model, body, stream);
-
-  // Remove Claude Code system prompt, keep only user's system messages
-  if (result.system && Array.isArray(result.system)) {
-    result.system = result.system.filter(
-      (block) => !block.text || !block.text.includes("You are Claude Code")
-    );
-    if (result.system.length === 0) {
-      delete result.system;
-    }
-  }
+  const result = stripCacheControl(openaiToClaudeRequest(model, body, stream)) as ReturnType<
+    typeof openaiToClaudeRequest
+  >;
 
   // Strip prefix from tool names for Antigravity (doesn't use Claude OAuth)
   if (result.tools && Array.isArray(result.tools)) {

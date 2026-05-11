@@ -6,8 +6,9 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
-import { resolveProxyForConnectionFromRegistry } from "./proxies";
+import { getProxyRegistryGeneration, resolveProxyForConnectionFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
+import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 
 type JsonRecord = Record<string, unknown>;
 type PricingModels = Record<string, JsonRecord>;
@@ -15,6 +16,42 @@ type PricingByProvider = Record<string, PricingModels>;
 export type PricingSource = "default" | "litellm" | "modelsDev" | "user";
 export type PricingSourceMap = Record<string, Record<string, PricingSource>>;
 type ProxyValue = JsonRecord | string | null;
+type ProxyResolutionResult = {
+  proxy: ProxyValue;
+  level: string;
+  levelId: string | null;
+  source?: string;
+};
+type ProxyResolutionCacheEntry = {
+  generation: number;
+  registryGeneration: number;
+  result: ProxyResolutionResult;
+};
+
+const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
+
+let proxyConfigGeneration = 0;
+const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
+
+function bumpProxyConfigGeneration() {
+  proxyConfigGeneration++;
+  proxyResolutionCache.clear();
+}
+
+function cacheProxyResolution(
+  connectionId: string,
+  generation: number,
+  registryGeneration: number,
+  result: ProxyResolutionResult
+) {
+  if (generation !== proxyConfigGeneration) return;
+  if (registryGeneration !== getProxyRegistryGeneration()) return;
+  if (proxyResolutionCache.size >= PROXY_RESOLUTION_CACHE_MAX_ENTRIES) {
+    const oldestKey = proxyResolutionCache.keys().next().value;
+    if (oldestKey) proxyResolutionCache.delete(oldestKey);
+  }
+  proxyResolutionCache.set(connectionId, { generation, registryGeneration, result });
+}
 type ProxyMap = Record<string, ProxyValue>;
 
 interface ProxyConfig {
@@ -60,9 +97,11 @@ export async function getSettings() {
     hideEndpointTailscaleFunnel: false,
     hideEndpointNgrokTunnel: false,
     comboConfigMode: "guided",
+    codexServiceTier: { enabled: false },
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
     wsAuth: false,
+    maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -235,8 +274,16 @@ export async function getPricingForModel(provider: string, model: string) {
   if (pricing[provider]?.[model]) return pricing[provider][model];
 
   const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
+  // Check if provider is an ID -> map to ALIAS
   const alias = PROVIDER_ID_TO_ALIAS[provider];
   if (alias && pricing[alias]) return pricing[alias][model] || null;
+
+  // Check if provider is an ALIAS -> map to ID (search values)
+  for (const [id, mappedAlias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
+    if (mappedAlias === provider && pricing[id]?.[model]) {
+      return pricing[id][model];
+    }
+  }
 
   const np = provider?.replace(/-cn$/, "");
   if (np && np !== provider && pricing[np]) return pricing[np][model] || null;
@@ -477,6 +524,7 @@ export async function setProxyForLevel(level: string, id: string | null, proxy: 
   }
 
   backupDbFile("pre-write");
+  bumpProxyConfigGeneration();
   return config;
 }
 
@@ -485,15 +533,36 @@ export async function deleteProxyForLevel(level: string, id: string | null) {
 }
 
 export async function resolveProxyForConnection(connectionId: string) {
+  const startGeneration = proxyConfigGeneration;
+  const startRegistryGeneration = getProxyRegistryGeneration();
+  const cached = proxyResolutionCache.get(connectionId);
+  if (
+    cached &&
+    cached.generation === startGeneration &&
+    cached.registryGeneration === startRegistryGeneration
+  ) {
+    return cached.result;
+  }
+
   const registryResolved = await resolveProxyForConnectionFromRegistry(connectionId);
   if (registryResolved?.proxy) {
+    if (registryResolved.level === "account") {
+      cacheProxyResolution(
+        connectionId,
+        startGeneration,
+        startRegistryGeneration,
+        registryResolved
+      );
+    }
     return registryResolved;
   }
 
   const config = await getProxyConfig();
 
   if (connectionId && config.keys?.[connectionId]) {
-    return { proxy: config.keys[connectionId], level: "key", levelId: connectionId };
+    const result = { proxy: config.keys[connectionId], level: "key", levelId: connectionId };
+    cacheProxyResolution(connectionId, startGeneration, startRegistryGeneration, result);
+    return result;
   }
 
   const db = getDbInstance();
@@ -541,7 +610,6 @@ export async function resolveProxyForConnection(connectionId: string) {
   if (config.global) {
     return { proxy: config.global, level: "global", levelId: null };
   }
-
   return { proxy: null, level: "direct", levelId: null };
 }
 
@@ -578,6 +646,7 @@ export async function setProxyConfig(config: Record<string, unknown>) {
   tx();
 
   backupDbFile("pre-write");
+  bumpProxyConfigGeneration();
   return current;
 }
 

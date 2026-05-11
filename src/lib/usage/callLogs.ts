@@ -36,6 +36,11 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
+const CALL_LOG_ROTATE_THROTTLE_MS = 60_000;
+let lastCallLogRotationScheduledAt = 0;
+let callLogRotateInFlight = false;
+let callLogRotateScheduled = false;
+
 type CallLogSummaryRow = {
   id: string;
   timestamp: string | null;
@@ -53,6 +58,7 @@ type CallLogSummaryRow = {
   tokens_cache_read: number | null;
   tokens_cache_creation: number | null;
   tokens_reasoning: number | null;
+  tokens_compressed: number | null;
   cache_source: string | null;
   request_type: string | null;
   source_format: string | null;
@@ -286,6 +292,7 @@ function buildArtifact(
     tokensCacheRead: number | null;
     tokensCacheCreation: number | null;
     tokensReasoning: number | null;
+    tokensCompressed: number | null;
     requestType: string | null;
     sourceFormat: string | null;
     targetFormat: string | null;
@@ -301,7 +308,7 @@ function buildArtifact(
   pipelinePayloads: RequestPipelinePayloads | null
 ): CallLogArtifact {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     summary: {
       id: logEntry.id,
       timestamp: logEntry.timestamp,
@@ -320,6 +327,7 @@ function buildArtifact(
         cacheRead: logEntry.tokensCacheRead,
         cacheWrite: logEntry.tokensCacheCreation,
         reasoning: logEntry.tokensReasoning,
+        compressed: logEntry.tokensCompressed,
       },
       requestType: logEntry.requestType,
       sourceFormat: logEntry.sourceFormat,
@@ -546,6 +554,7 @@ function mapSummaryRow(row: CallLogSummaryRow) {
       cacheRead: row.tokens_cache_read != null ? toNumber(row.tokens_cache_read) : null,
       cacheWrite: row.tokens_cache_creation != null ? toNumber(row.tokens_cache_creation) : null,
       reasoning: row.tokens_reasoning != null ? toNumber(row.tokens_reasoning) : null,
+      compressed: row.tokens_compressed != null ? toNumber(row.tokens_compressed) : null,
     },
     cacheSource: row.cache_source || "upstream",
     requestType: row.request_type,
@@ -635,6 +644,7 @@ export async function saveCallLog(entry: any) {
       tokensCacheRead: getPromptCacheReadTokensOrNull(entry.tokens),
       tokensCacheCreation: getPromptCacheCreationTokensOrNull(entry.tokens),
       tokensReasoning: getReasoningTokensOrNull(entry.tokens),
+      tokensCompressed: entry.tokensCompressed != null ? toNumber(entry.tokensCompressed) : null,
       cacheSource: entry.cacheSource === "semantic" ? "semantic" : "upstream",
       requestType: entry.requestType || null,
       sourceFormat: entry.sourceFormat || null,
@@ -687,7 +697,7 @@ export async function saveCallLog(entry: any) {
       INSERT INTO call_logs (
         id, timestamp, method, path, status, model, requested_model, provider,
         account, connection_id, duration, tokens_in, tokens_out,
-        tokens_cache_read, tokens_cache_creation, tokens_reasoning,
+        tokens_cache_read, tokens_cache_creation, tokens_reasoning, tokens_compressed,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
         artifact_relpath, artifact_size_bytes, artifact_sha256,
@@ -696,7 +706,7 @@ export async function saveCallLog(entry: any) {
       VALUES (
         @id, @timestamp, @method, @path, @status, @model, @requestedModel, @provider,
         @account, @connectionId, @duration, @tokensIn, @tokensOut,
-        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning,
+        @tokensCacheRead, @tokensCacheCreation, @tokensReasoning, @tokensCompressed,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
         @artifactRelPath, @artifactSizeBytes, @artifactSha256,
@@ -716,16 +726,16 @@ export async function saveCallLog(entry: any) {
       requestSummary,
     });
 
-    rotateCallLogs();
+    scheduleCallLogRotation();
   } catch (error) {
     console.error("[callLogs] Failed to save call log:", (error as Error).message);
   }
 }
 
 export function rotateCallLogs() {
-  if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
-
   try {
+    if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+
     const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
     const cutoff = new Date(Date.now() - retentionMs).toISOString();
 
@@ -738,12 +748,40 @@ export function rotateCallLogs() {
   }
 }
 
-if (shouldPersistToDisk) {
-  try {
-    rotateCallLogs();
-  } catch {
-    // Best-effort startup cleanup.
+function runScheduledCallLogRotation() {
+  if (callLogRotateInFlight) return;
+  callLogRotateInFlight = true;
+  setImmediate(() => {
+    try {
+      rotateCallLogs();
+    } catch (error) {
+      console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
+    } finally {
+      callLogRotateInFlight = false;
+    }
+  });
+}
+
+export function scheduleCallLogRotation() {
+  if (!CALL_LOGS_DIR) return;
+  const elapsed = Date.now() - lastCallLogRotationScheduledAt;
+  if (elapsed >= CALL_LOG_ROTATE_THROTTLE_MS) {
+    lastCallLogRotationScheduledAt = Date.now();
+    runScheduledCallLogRotation();
+    return;
   }
+  if (callLogRotateScheduled) return;
+  callLogRotateScheduled = true;
+  lastCallLogRotationScheduledAt = Date.now();
+  const timer = setTimeout(() => {
+    callLogRotateScheduled = false;
+    runScheduledCallLogRotation();
+  }, CALL_LOG_ROTATE_THROTTLE_MS - elapsed);
+  timer.unref?.();
+}
+
+if (shouldPersistToDisk && process.env.NODE_ENV !== "test") {
+  scheduleCallLogRotation();
 }
 
 export async function getCallLogs(filter: any = {}) {
@@ -823,9 +861,7 @@ export async function getCallLogById(id: string) {
        LEFT JOIN provider_nodes pn ON pn.id = cl.provider
        WHERE cl.id = ?`
     )
-    .get(id) as
-    | CallLogSummaryRow
-    | undefined;
+    .get(id) as CallLogSummaryRow | undefined;
   if (!row) return null;
 
   const entry = mapSummaryRow(row);

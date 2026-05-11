@@ -1,0 +1,33 @@
+{
+  "id": "build-typescript",
+  "label": "TypeScript",
+  "description": "Keep TypeScript diagnostics and file locations.",
+  "category": "build",
+  "priority": 93,
+  "match": {
+    "outputTypes": ["build-typescript"],
+    "commands": ["^(?:tsc|npm\\s+run\\s+typecheck)\\b"],
+    "patterns": ["TS\\d{4}:", "error TS\\d{4}"]
+  },
+  "rules": {
+    "includePatterns": ["TS\\d{4}:", "error TS\\d{4}", "^Found \\d+ errors?"],
+    "dropPatterns": ["^\\s*$"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 120,
+    "headLines": 20,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["TS\\d{4}", "Found \\d+"],
+    "summaryPatterns": []
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "(?:tsc|npm run typecheck)",
+      "input": "src/a.ts:1:1 - error TS2322: Type string is not assignable\nFound 1 error.\n",
+      "expected": "src/a.ts:1:1 - error TS2322: Type string is not assignable\nFound 1 error."
+    }
+  ]
+}

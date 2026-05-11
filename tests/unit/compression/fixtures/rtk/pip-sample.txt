@@ -1,0 +1,4 @@
+Collecting requests
+  Downloading requests-2.31.0-py3-none-any.whl
+Installing collected packages: requests
+Successfully installed requests-2.31.0

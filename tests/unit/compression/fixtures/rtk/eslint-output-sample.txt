@@ -1,0 +1,5 @@
+/repo/src/app.ts
+  12:7  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:3  warning  Missing return type on function          @typescript-eslint/explicit-function-return-type
+
+✖ 2 problems (1 error, 1 warning)

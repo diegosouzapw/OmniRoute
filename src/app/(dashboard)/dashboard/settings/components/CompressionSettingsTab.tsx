@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, Button } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
-type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra";
+type CompressionMode = "off" | "lite" | "standard" | "aggressive" | "ultra" | "rtk" | "stacked";
+type CavemanIntensity = "lite" | "full" | "ultra";
 
 interface CavemanConfig {
   enabled: boolean;
@@ -12,6 +13,13 @@ interface CavemanConfig {
   skipRules: string[];
   minMessageLength: number;
   preservePatterns: string[];
+  intensity: CavemanIntensity;
+}
+
+interface CavemanOutputModeConfig {
+  enabled: boolean;
+  intensity: CavemanIntensity;
+  autoClarity: boolean;
 }
 
 interface AggressiveConfig {
@@ -45,13 +53,25 @@ interface UltraConfig {
 interface CompressionConfig {
   enabled: boolean;
   defaultMode: CompressionMode;
+  autoTriggerMode?: CompressionMode;
   autoTriggerTokens: number;
   cacheMinutes: number;
   preserveSystemPrompt: boolean;
+  mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
+  cavemanOutputMode?: CavemanOutputModeConfig;
   aggressive?: AggressiveConfig;
   ultra?: UltraConfig;
+}
+
+interface RuleMetadata {
+  name: string;
+  category: string;
+  context: string;
+  minIntensity: CavemanIntensity;
+  intensities?: CavemanIntensity[];
+  description: string;
 }
 
 const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: string }[] = [
@@ -85,44 +105,24 @@ const MODES: { value: CompressionMode; labelKey: string; descKey: string; icon: 
     descKey: "compressionModeUltraDesc",
     icon: "filter_alt",
   },
+  {
+    value: "rtk",
+    labelKey: "compressionModeRtk",
+    descKey: "compressionModeRtkDesc",
+    icon: "filter_list",
+  },
+  {
+    value: "stacked",
+    labelKey: "compressionModeStacked",
+    descKey: "compressionModeStackedDesc",
+    icon: "hub",
+  },
 ];
 
 const ROLE_OPTIONS: { value: "user" | "assistant" | "system"; labelKey: string }[] = [
   { value: "user", labelKey: "compressionRoleUser" },
   { value: "assistant", labelKey: "compressionRoleAssistant" },
   { value: "system", labelKey: "compressionRoleSystem" },
-];
-
-const ALL_CAVEMAN_RULES = [
-  "polite_framing",
-  "hedging",
-  "verbose_instructions",
-  "filler_adverbs",
-  "filler_phrases",
-  "redundant_openers",
-  "verbose_requests",
-  "self_reference",
-  "excessive_gratitude",
-  "qualifier_removal",
-  "compound_collapse",
-  "explanatory_prefix",
-  "question_to_directive",
-  "context_setup",
-  "intent_clarification",
-  "background_removal",
-  "meta_commentary",
-  "purpose_statement",
-  "list_conjunction",
-  "purpose_phrases",
-  "redundant_quantifiers",
-  "verbose_connectors",
-  "transition_removal",
-  "emphasis_removal",
-  "passive_voice",
-  "repeated_context",
-  "repeated_question",
-  "reestablished_context",
-  "summary_replacement",
 ];
 
 export default function CompressionSettingsTab() {
@@ -140,6 +140,12 @@ export default function CompressionSettingsTab() {
       skipRules: [],
       minMessageLength: 50,
       preservePatterns: [],
+      intensity: "full",
+    },
+    cavemanOutputMode: {
+      enabled: false,
+      intensity: "full",
+      autoClarity: true,
     },
     aggressive: {
       thresholds: { fullSummary: 5, moderate: 3, light: 2, verbatim: 2 },
@@ -165,6 +171,7 @@ export default function CompressionSettingsTab() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
+  const [ruleMetadata, setRuleMetadata] = useState<RuleMetadata[]>([]);
 
   useEffect(() => {
     fetch("/api/settings/compression")
@@ -174,6 +181,12 @@ export default function CompressionSettingsTab() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    fetch("/api/compression/rules")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (Array.isArray(data?.rules)) setRuleMetadata(data.rules);
+      })
+      .catch(() => {});
   }, []);
 
   const save = async (updates: Partial<CompressionConfig>) => {
@@ -272,7 +285,7 @@ export default function CompressionSettingsTab() {
         {config.enabled && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-text-main">{t("compressionMode")}</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-7 gap-2">
               {MODES.map((m) => (
                 <button
                   key={m.value}
@@ -327,6 +340,21 @@ export default function CompressionSettingsTab() {
             </label>
 
             <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">Auto trigger mode</span>
+              <select
+                value={config.autoTriggerMode ?? "lite"}
+                onChange={(e) => save({ autoTriggerMode: e.target.value as CompressionMode })}
+                className="w-36 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+              >
+                {MODES.filter((mode) => mode.value !== "off").map((mode) => (
+                  <option key={mode.value} value={mode.value}>
+                    {mode.value}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex items-center justify-between">
               <span className="text-sm text-text-muted">{t("compressionCacheTTL")}</span>
               <div className="flex items-center gap-2">
                 <input
@@ -352,6 +380,27 @@ export default function CompressionSettingsTab() {
                 <span
                   className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
                     config.preserveSystemPrompt ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">MCP description compression</span>
+              <button
+                onClick={() =>
+                  save({
+                    mcpDescriptionCompressionEnabled:
+                      config.mcpDescriptionCompressionEnabled === false,
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.mcpDescriptionCompressionEnabled !== false ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.mcpDescriptionCompressionEnabled !== false ? "left-5" : "left-0.5"
                   }`}
                 />
               </button>
@@ -434,21 +483,42 @@ export default function CompressionSettingsTab() {
                     />
                   </label>
 
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-text-muted">Caveman intensity</span>
+                    <select
+                      value={config.cavemanConfig.intensity}
+                      onChange={(e) =>
+                        save({
+                          cavemanConfig: {
+                            ...config.cavemanConfig!,
+                            intensity: e.target.value as CavemanIntensity,
+                          },
+                        })
+                      }
+                      className="w-28 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+                    >
+                      <option value="lite">lite</option>
+                      <option value="full">full</option>
+                      <option value="ultra">ultra</option>
+                    </select>
+                  </label>
+
                   <div className="space-y-2">
                     <p className="text-sm text-text-muted">{t("compressionSkipRules")}</p>
                     <p className="text-xs text-text-muted">{t("compressionSkipRulesDesc")}</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                      {ALL_CAVEMAN_RULES.map((rule) => (
+                      {ruleMetadata.map((rule) => (
                         <button
-                          key={rule}
-                          onClick={() => toggleCavemanRule(rule)}
+                          key={rule.name}
+                          onClick={() => toggleCavemanRule(rule.name)}
+                          title={`${rule.category} · ${rule.context} · ${(rule.intensities ?? [rule.minIntensity]).join("/")}`}
                           className={`px-2 py-1 rounded text-xs border transition-all ${
-                            config.cavemanConfig!.skipRules.includes(rule)
+                            config.cavemanConfig!.skipRules.includes(rule.name)
                               ? "border-red-500/50 bg-red-500/10 text-red-400 line-through"
                               : "border-border/50 text-text-muted hover:border-border"
                           }`}
                         >
-                          {rule.replace(/_/g, " ")}
+                          {rule.name.replace(/_/g, " ")}
                         </button>
                       ))}
                     </div>
@@ -481,6 +551,81 @@ export default function CompressionSettingsTab() {
               )}
             </div>
           )}
+
+        {config.enabled && config.cavemanOutputMode && (
+          <div className="space-y-3 pt-4 border-t border-border/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-text-main">Caveman output mode</h4>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Injects terse response instructions without rewriting provider output.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  save({
+                    cavemanOutputMode: {
+                      ...config.cavemanOutputMode!,
+                      enabled: !config.cavemanOutputMode!.enabled,
+                    },
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.cavemanOutputMode.enabled ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.cavemanOutputMode.enabled ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">Output intensity</span>
+              <select
+                value={config.cavemanOutputMode.intensity}
+                onChange={(e) =>
+                  save({
+                    cavemanOutputMode: {
+                      ...config.cavemanOutputMode!,
+                      intensity: e.target.value as CavemanIntensity,
+                    },
+                  })
+                }
+                className="w-28 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
+              >
+                <option value="lite">lite</option>
+                <option value="full">full</option>
+                <option value="ultra">ultra</option>
+              </select>
+            </label>
+
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-text-muted">Auto clarity bypass</span>
+              <button
+                onClick={() =>
+                  save({
+                    cavemanOutputMode: {
+                      ...config.cavemanOutputMode!,
+                      autoClarity: !config.cavemanOutputMode!.autoClarity,
+                    },
+                  })
+                }
+                className={`relative w-10 h-5 rounded-full transition-colors ${
+                  config.cavemanOutputMode.autoClarity ? "bg-green-500" : "bg-border"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                    config.cavemanOutputMode.autoClarity ? "left-5" : "left-0.5"
+                  }`}
+                />
+              </button>
+            </label>
+          </div>
+        )}
 
         {config.enabled && config.defaultMode === "aggressive" && config.aggressive && (
           <div className="space-y-3 pt-4 border-t border-border/30">

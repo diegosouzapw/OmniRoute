@@ -1,0 +1,38 @@
+{
+  "language": "pt-BR",
+  "category": "context",
+  "rules": [
+    {
+      "name": "pt_context_setup",
+      "pattern": "\\b(?:segue o codigo|segue o código|abaixo esta o codigo|abaixo está o código|este e o codigo|este é o código)\\b\\s*[:.]?\\s*",
+      "replacement": "Código:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_intent",
+      "pattern": "\\b(?:o que eu quero fazer e|o que eu quero fazer é|meu objetivo e|meu objetivo é|a ideia e|a ideia é)\\b\\s*",
+      "replacement": "Objetivo:",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_question_directive",
+      "pattern": "\\b(?:voce pode explicar por que|você pode explicar por que|pode mostrar como|poderia mostrar como)\\b\\s*",
+      "replacement": "Explique ",
+      "context": "user",
+      "category": "context",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "pt_background",
+      "pattern": "\\b(?:como voce sabe|como você sabe|como falamos antes|como mencionei antes)\\b[,.]?\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "context",
+      "minIntensity": "lite"
+    }
+  ]
+}

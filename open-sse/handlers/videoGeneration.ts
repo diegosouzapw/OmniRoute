@@ -16,6 +16,8 @@
  */
 
 import { getVideoProvider, parseVideoModel } from "../config/videoRegistry.ts";
+import { kieExecutor } from "../executors/kie.ts";
+import { isJsonObject, parseKieResultJson } from "../utils/kieTask.ts";
 import {
   buildRunwayApiUrl,
   buildRunwayHeaders,
@@ -58,6 +60,10 @@ export async function handleVideoGeneration({ body, credentials, log }) {
 
   if (providerConfig.format === "sdwebui-video") {
     return handleSDWebUIVideoGeneration({ model, provider, providerConfig, body, log });
+  }
+
+  if (providerConfig.format === "kie-video") {
+    return handleKieVideoGeneration({ model, provider, providerConfig, body, credentials, log });
   }
 
   if (providerConfig.format === "runwayml") {
@@ -269,6 +275,138 @@ async function handleSDWebUIVideoGeneration({ model, provider, providerConfig, b
       error: err.message,
     }).catch(() => {});
     return { success: false, status: 502, error: `Video provider error: ${err.message}` };
+  }
+}
+
+function normalizeKieVideoResult(recordData: unknown): string[] {
+  const record = isJsonObject(recordData) ? recordData : {};
+  const data = isJsonObject(record.data) ? record.data : {};
+  const response = isJsonObject(data.response) ? data.response : {};
+  const resultJson = parseKieResultJson(recordData);
+
+  const urls = Array.isArray(resultJson?.resultUrls)
+    ? (resultJson.resultUrls as string[])
+    : Array.isArray(resultJson?.videoUrls)
+      ? (resultJson.videoUrls as string[])
+      : Array.isArray(response.resultUrls)
+        ? (response.resultUrls as string[])
+        : [];
+
+  return urls.filter((url: unknown) => typeof url === "string" && url.length > 0);
+}
+
+async function handleKieVideoGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}: {
+  model: string;
+  provider: string;
+  providerConfig: {
+    baseUrl: string;
+    statusUrl?: string;
+  };
+  body: Record<string, unknown> & {
+    prompt?: unknown;
+    duration?: unknown;
+    aspect_ratio?: unknown;
+    sound?: unknown;
+    timeout_ms?: unknown;
+    poll_interval_ms?: unknown;
+  };
+  credentials?: {
+    apiKey?: string;
+    accessToken?: string;
+  } | null;
+  log?: {
+    info: (scope: string, message: string) => void;
+    error: (scope: string, message: string) => void;
+  } | null;
+}) {
+  const startTime = Date.now();
+  const timeoutMs = Number(body.timeout_ms) > 0 ? Number(body.timeout_ms) : 300000;
+  const pollIntervalMs = Number(body.poll_interval_ms) > 0 ? Number(body.poll_interval_ms) : 2500;
+  const token = credentials?.apiKey || credentials?.accessToken;
+  const baseUrl = providerConfig.baseUrl.replace(/\/$/, "");
+  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+
+  if (!token) {
+    return { success: false, status: 401, error: "KIE API key is required" };
+  }
+
+  const payload = {
+    model,
+    input: {
+      prompt,
+      duration: body.duration ? String(body.duration) : "5",
+      aspect_ratio: typeof body.aspect_ratio === "string" ? body.aspect_ratio : "16:9",
+      sound: body.sound === true,
+    },
+  };
+
+  if (log) {
+    const promptPreview = String(body.prompt ?? "").slice(0, 60);
+    log.info("VIDEO", `${provider}/${model} (kie-video) | prompt: "${promptPreview}..."`);
+  }
+
+  try {
+    const createData = await kieExecutor.createTask({ baseUrl, token, payload });
+    const taskId = createData?.data?.taskId || createData?.taskId;
+    if (!taskId) {
+      const errorMessage =
+        createData?.msg ||
+        createData?.message ||
+        createData?.error ||
+        "KIE video generation did not return taskId";
+      if (log) {
+        log.error("VIDEO", `KIE createTask failed: ${JSON.stringify(createData)}`);
+      }
+      return { success: false, status: 502, error: errorMessage };
+    }
+
+    const statusUrl = providerConfig.statusUrl || `${baseUrl}/api/v1/jobs/recordInfo`;
+
+    const { data: recordData, state } = await kieExecutor.pollTask({
+      statusUrl,
+      taskId: String(taskId),
+      token,
+      timeoutMs,
+      pollIntervalMs,
+    });
+
+    if (state === "success") {
+      const videoUrls = normalizeKieVideoResult(recordData);
+      const videos = videoUrls.map((url) => ({ url, format: "mp4" }));
+
+      saveCallLog({
+        method: "POST",
+        path: "/v1/videos/generations",
+        status: 200,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        responseBody: { videos_count: videos.length },
+      }).catch(() => {});
+
+      return {
+        success: true,
+        data: { created: Math.floor(Date.now() / 1000), data: videos },
+      };
+    }
+
+    const record = isJsonObject(recordData) ? recordData : {};
+    const data = isJsonObject(record.data) ? record.data : {};
+    const errorMessage = data.failMsg || data.errorMessage || record.msg || "KIE video task failed";
+    return { success: false, status: 502, error: String(errorMessage) };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      status: isJsonObject(err) && Number.isFinite(Number(err.status)) ? Number(err.status) : 502,
+      error: `Video provider error: ${err instanceof Error ? err.message : String(err)}`,
+    };
   }
 }
 

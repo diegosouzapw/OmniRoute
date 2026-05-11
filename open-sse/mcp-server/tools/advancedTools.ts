@@ -26,6 +26,11 @@ import {
   getComboModelString,
   getComboStepTarget,
 } from "../../../src/lib/combos/steps.ts";
+import type {
+  AutoRoutingStrategyValue,
+  RoutingStrategyValue,
+} from "../../../src/shared/constants/routingStrategies.ts";
+import { normalizeRoutingStrategy } from "../../../src/shared/constants/routingStrategies.ts";
 
 const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY || "";
@@ -372,17 +377,8 @@ export async function handleSetBudgetGuard(args: {
 
 export async function handleSetRoutingStrategy(args: {
   comboId: string;
-  strategy:
-    | "priority"
-    | "weighted"
-    | "round-robin"
-    | "context-relay"
-    | "strict-random"
-    | "random"
-    | "least-used"
-    | "cost-optimized"
-    | "auto";
-  autoRoutingStrategy?: "rules" | "cost" | "eco" | "latency" | "fast";
+  strategy: RoutingStrategyValue;
+  autoRoutingStrategy?: AutoRoutingStrategyValue;
 }) {
   const start = Date.now();
   try {
@@ -424,8 +420,9 @@ export async function handleSetRoutingStrategy(args: {
       Object.keys(toRecord(combo.config)).length > 0 ? combo.config : comboData.config
     );
 
+    const normalizedStrategy = normalizeRoutingStrategy(args.strategy);
     let nextConfig: JsonRecord | undefined = undefined;
-    if (args.strategy === "auto" && args.autoRoutingStrategy) {
+    if (normalizedStrategy === "auto" && args.autoRoutingStrategy) {
       const currentAutoConfig = toRecord(currentConfig.auto);
       nextConfig = {
         ...currentConfig,
@@ -436,7 +433,7 @@ export async function handleSetRoutingStrategy(args: {
       };
     }
 
-    const payload: JsonRecord = { strategy: args.strategy };
+    const payload: JsonRecord = { strategy: normalizedStrategy };
     if (nextConfig && Object.keys(nextConfig).length > 0) {
       payload.config = nextConfig;
     }
@@ -451,16 +448,18 @@ export async function handleSetRoutingStrategy(args: {
     const updatedConfig = toRecord(updatedCombo.config);
     const resolvedAutoStrategy =
       toString(toRecord(updatedConfig.auto).routingStrategy) ||
-      (args.strategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
+      (normalizedStrategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
 
     const result = {
       success: true,
       combo: {
         id: toString(updatedCombo.id, comboId),
         name: toString(updatedCombo.name, toString(combo.name, comboId)),
-        strategy: toString(updatedCombo.strategy, args.strategy),
+        strategy: toString(updatedCombo.strategy, normalizedStrategy),
         autoRoutingStrategy:
-          toString(updatedCombo.strategy, args.strategy) === "auto" ? resolvedAutoStrategy : null,
+          toString(updatedCombo.strategy, normalizedStrategy) === "auto"
+            ? resolvedAutoStrategy
+            : null,
       },
     };
 
@@ -997,6 +996,122 @@ export async function handleCacheFlush(args: { signature?: string; model?: strin
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await logToolCall("omniroute_cache_flush", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+// ============ 1proxy Tools ============
+
+export async function handleOneproxyFetch(
+  args: { protocol?: string; countryCode?: string; minQuality?: number; limit?: number } = {}
+) {
+  const start = Date.now();
+  try {
+    const params = new URLSearchParams();
+    if (args.protocol) params.set("protocol", args.protocol);
+    if (args.countryCode) params.set("countryCode", args.countryCode);
+    if (args.minQuality) params.set("minQuality", String(args.minQuality));
+    if (args.limit) params.set("limit", String(args.limit));
+
+    const query = params.toString();
+    const path = query ? `/api/settings/oneproxy?${query}` : "/api/settings/oneproxy";
+    const raw = toRecord(await apiFetch(path));
+
+    const items = toArrayOfRecords(raw.items).map((r) => ({
+      id: toString(r.id, ""),
+      host: toString(r.host, ""),
+      port: toNumber(r.port, 0),
+      type: toString(r.type, "http"),
+      countryCode: typeof r.country_code === "string" ? r.country_code : null,
+      qualityScore: r.quality_score != null ? toNumber(r.quality_score) : null,
+      latencyMs: r.latency_ms != null ? toNumber(r.latency_ms) : null,
+      anonymity: typeof r.anonymity === "string" ? r.anonymity : null,
+      googleAccess: r.google_access === 1 || r.google_access === true,
+      status: toString(r.status, "active"),
+    }));
+
+    const result = { items, total: toNumber(raw.total, items.length) };
+    await logToolCall("omniroute_oneproxy_fetch", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_fetch", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleOneproxyRotate(
+  args: { strategy?: "random" | "quality" | "sequential" } = {}
+) {
+  const start = Date.now();
+  try {
+    const body: Record<string, unknown> = {};
+    if (args.strategy) body.strategy = args.strategy;
+
+    const raw = toRecord(
+      await apiFetch("/api/settings/oneproxy/rotate", {
+        method: "POST",
+        body: JSON.stringify(body),
+      })
+    );
+
+    const result = {
+      id: toString(raw.id, ""),
+      host: toString(raw.host, ""),
+      port: toNumber(raw.port, 0),
+      type: toString(raw.type, "http"),
+      countryCode: typeof raw.country_code === "string" ? raw.country_code : null,
+      qualityScore: raw.quality_score != null ? toNumber(raw.quality_score) : null,
+      latencyMs: raw.latency_ms != null ? toNumber(raw.latency_ms) : null,
+    };
+
+    await logToolCall("omniroute_oneproxy_rotate", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_rotate", args, null, Date.now() - start, false, msg);
+    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+  }
+}
+
+export async function handleOneproxyStats(args: Record<string, never> = {}) {
+  const start = Date.now();
+  try {
+    const raw = toRecord(await apiFetch("/api/settings/oneproxy?action=stats"));
+
+    const statsRaw = toRecord(raw.stats);
+    const statusRaw = toRecord(raw.status);
+
+    const stats = {
+      total: toNumber(statsRaw.total, 0),
+      active: toNumber(statsRaw.active, 0),
+      avgQuality: statsRaw.avg_quality != null ? toNumber(statsRaw.avg_quality) : null,
+      lastValidated: typeof statsRaw.last_validated === "string" ? statsRaw.last_validated : null,
+      byProtocol: toArrayOfRecords(statsRaw.by_protocol || statsRaw.byProtocol).map((r) => ({
+        protocol: toString(r.protocol, ""),
+        count: toNumber(r.count, 0),
+      })),
+      byCountry: toArrayOfRecords(statsRaw.by_country || statsRaw.byCountry).map((r) => ({
+        countryCode: toString(r.countryCode || r.country_code, ""),
+        count: toNumber(r.count, 0),
+      })),
+    };
+
+    const status = {
+      lastSyncSuccess: toBoolean(statusRaw.last_sync_success, false),
+      lastSyncError:
+        typeof statusRaw.last_sync_error === "string" ? statusRaw.last_sync_error : null,
+      lastSyncAt: typeof statusRaw.last_sync_at === "string" ? statusRaw.last_sync_at : null,
+      lastSyncCount: toNumber(statusRaw.last_sync_count, 0),
+      consecutiveFailures: toNumber(statusRaw.consecutive_failures, 0),
+    };
+
+    const result = { stats, status };
+    await logToolCall("omniroute_oneproxy_stats", args, result, Date.now() - start, true);
+    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    await logToolCall("omniroute_oneproxy_stats", args, null, Date.now() - start, false, msg);
     return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
   }
 }

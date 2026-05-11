@@ -12,6 +12,8 @@ import {
   getDefaultCloudflaredCertEnv,
   getCloudflaredStartArgs,
   getCloudflaredAssetSpec,
+  getSha256FromGitHubDigest,
+  verifyCloudflaredDownloadDigest,
 } from "../../src/lib/cloudflaredTunnel.ts";
 
 test("extractTryCloudflareUrl parses trycloudflare URL from log output", () => {
@@ -61,8 +63,6 @@ test("getCloudflaredAssetSpec resolves linux amd64 binary", () => {
     assetName: "cloudflared-linux-amd64",
     binaryName: "cloudflared",
     archive: "none",
-    downloadUrl:
-      "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64",
   });
 });
 
@@ -73,13 +73,30 @@ test("getCloudflaredAssetSpec resolves darwin arm64 archive", () => {
     assetName: "cloudflared-darwin-arm64.tgz",
     binaryName: "cloudflared",
     archive: "tgz",
-    downloadUrl:
-      "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz",
   });
 });
 
 test("getCloudflaredAssetSpec returns null for unsupported platforms", () => {
   assert.equal(getCloudflaredAssetSpec("freebsd", "x64"), null);
+});
+
+test("getSha256FromGitHubDigest accepts only GitHub sha256 digests", () => {
+  const digest = "sha256:" + "a".repeat(64);
+
+  assert.equal(getSha256FromGitHubDigest(digest), "a".repeat(64));
+  assert.equal(getSha256FromGitHubDigest("sha512:" + "a".repeat(64)), null);
+  assert.equal(getSha256FromGitHubDigest("sha256:not-a-sha"), null);
+});
+
+test("verifyCloudflaredDownloadDigest rejects checksum mismatches", () => {
+  const buffer = Buffer.from("cloudflared-test-binary");
+  const expected = "d23f921ab91d965bb151ad66dcfc7abe20acf79cd0325cf6b7f9919ed0251c9e";
+
+  verifyCloudflaredDownloadDigest(buffer, expected, "cloudflared-test");
+  assert.throws(
+    () => verifyCloudflaredDownloadDigest(buffer, "a".repeat(64), "cloudflared-test"),
+    /checksum mismatch/
+  );
 });
 
 test("buildCloudflaredChildEnv keeps runtime essentials, isolates runtime dirs, and drops secrets", () => {

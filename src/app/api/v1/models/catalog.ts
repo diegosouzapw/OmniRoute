@@ -16,6 +16,7 @@ import { getAllModerationModels } from "@omniroute/open-sse/config/moderationReg
 import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model.ts";
 import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
@@ -25,6 +26,8 @@ import {
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
+import { parseModel } from "@omniroute/open-sse/services/model.ts";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager.ts";
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -97,7 +100,7 @@ async function getModelCatalogAuthRejection(
   settings: Record<string, any>,
   headers: Record<string, string>
 ): Promise<Response | null> {
-  if (settings.requireAuthForModels !== true || !(await isAuthRequired())) return null;
+  if (settings.requireAuthForModels !== true || !(await isAuthRequired(request))) return null;
 
   const bearer = extractBearer(request.headers);
   if (bearer) {
@@ -210,6 +213,12 @@ export async function getUnifiedModelsResponse(
     if (authRejection) return authRejection;
 
     const { aliasToProviderId, providerIdToAlias } = buildAliasMaps();
+    const resolveCanonicalProviderId = (aliasOrProviderId: string, fallbackProviderId?: string) =>
+      aliasToProviderId[aliasOrProviderId] ||
+      (fallbackProviderId ? aliasToProviderId[fallbackProviderId] : undefined) ||
+      FALLBACK_ALIAS_TO_PROVIDER[aliasOrProviderId] ||
+      fallbackProviderId ||
+      aliasOrProviderId;
 
     // Issue #96: Allow blocking specific providers from the models list
     const blockedProviders: Set<string> = new Set(
@@ -307,6 +316,30 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
+
+      // Calculate combo context length from its model targets.
+      // OpenCode and other clients read context_length from the catalog; without it
+      // they fall back to a conservative ~4000 token limit, causing truncation.
+      const comboContextLength = Array.isArray(combo.models)
+        ? combo.models
+            .filter((step) => step && step.kind === "model" && step.model)
+            .map((step) => {
+              const parsed = parseModel(step.model);
+              const provider = parsed.provider || (step as any).providerId || "unknown";
+              const model = parsed.model || step.model;
+              return getTokenLimit(provider, model);
+            })
+            .filter((limit): limit is number => typeof limit === "number" && limit > 0)
+            .reduce((min, limit) => Math.min(min, limit), Infinity)
+        : undefined;
+
+      const effectiveContextLength =
+        typeof combo.context_length === "number" && combo.context_length > 0
+          ? combo.context_length
+          : comboContextLength !== undefined && comboContextLength !== Infinity
+            ? comboContextLength
+            : undefined;
+
       models.push({
         id: combo.name,
         object: "model",
@@ -315,14 +348,14 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
-        ...(combo.context_length ? { context_length: combo.context_length } : {}),
+        ...(effectiveContextLength !== undefined ? { context_length: effectiveContextLength } : {}),
       });
     }
 
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
       // Skip blocked providers (Issue #96)
       if (blockedProviders.has(alias) || blockedProviders.has(canonicalProviderId)) continue;
@@ -332,10 +365,6 @@ export async function getUnifiedModelsResponse(
         continue;
       }
 
-      // Get default context length from registry (provider-level default)
-      const registryEntry = REGISTRY[alias] || REGISTRY[canonicalProviderId];
-      const defaultContextLength = registryEntry?.defaultContextLength;
-
       for (const model of providerModels) {
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
         const aliasId = `${alias}/${model.id}`;
@@ -343,8 +372,6 @@ export async function getUnifiedModelsResponse(
 
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(model.id);
-        // Model-level context length overrides provider default
-        const contextLength = model.contextLength || defaultContextLength;
 
         models.push({
           id: aliasId,
@@ -354,7 +381,6 @@ export async function getUnifiedModelsResponse(
           permission: [],
           root: model.id,
           parent: null,
-          ...(contextLength ? { context_length: contextLength } : {}),
           ...(visionFields || {}),
         });
 
@@ -372,10 +398,36 @@ export async function getUnifiedModelsResponse(
             permission: [],
             root: model.id,
             parent: aliasId,
-            ...(contextLength ? { context_length: contextLength } : {}),
             ...(providerVisionFields || {}),
           });
         }
+      }
+    }
+
+    for (const modelId of CODEX_NATIVE_UNPREFIXED_MODELS) {
+      if (!providerSupportsModel("codex", modelId)) continue;
+      if (getModelIsHidden("codex", modelId)) continue;
+
+      const alias = providerIdToAlias.codex || "cx";
+      const aliasId = `${alias}/${modelId}`;
+      const providerIdModel = `codex/${modelId}`;
+      const entries = [
+        { id: aliasId, parent: null },
+        { id: providerIdModel, parent: aliasId },
+        { id: modelId, parent: providerIdModel },
+      ];
+
+      for (const entry of entries) {
+        if (models.some((existingModel) => existingModel.id === entry.id)) continue;
+        models.push({
+          id: entry.id,
+          object: "model",
+          created: timestamp,
+          owned_by: "codex",
+          permission: [],
+          root: modelId,
+          parent: entry.parent,
+        });
       }
     }
 
@@ -384,10 +436,11 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
+        if (providerId === "reka") continue;
 
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
         const parentProviderType = nodeIdToProviderType[providerId];
 
         if (
@@ -405,12 +458,15 @@ export async function getUnifiedModelsResponse(
 
           const aliasId = `${alias}/${sm.id}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
+          const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
           const syncedFields = {
             ...(modelType ? { type: modelType } : {}),
+            ...(apiFormat !== "chat-completions" ? { api_format: apiFormat } : {}),
             ...(modelType === "audio" ? { subtype: "transcription" } : {}),
             ...(sm.inputTokenLimit ? { context_length: sm.inputTokenLimit } : {}),
             ...(endpoints.length > 1 || !endpoints.includes("chat")
@@ -478,7 +534,7 @@ export async function getUnifiedModelsResponse(
     const isProviderActive = (provider: string) => {
       if (activeAliases.size === 0) return false; // No active connections = show nothing
       const alias = providerIdToAlias[provider] || provider;
-      const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || provider;
+      const canonicalProviderId = resolveCanonicalProviderId(alias, provider);
 
       // FIX #1752: Ensure blocked providers are not returned for non-chat models
       if (
@@ -492,16 +548,38 @@ export async function getUnifiedModelsResponse(
       return activeAliases.has(alias) || activeAliases.has(provider);
     };
 
+    const hasEquivalentSpecialtyModel = (
+      providerId: string,
+      rawModelId: string,
+      type: string,
+      scopedModelId: string
+    ) =>
+      models.some((model: any) => {
+        if (model?.id === scopedModelId) return true;
+        if (model?.owned_by !== providerId || model?.type !== type) return false;
+        const existingRoot =
+          typeof model?.root === "string"
+            ? model.root
+            : typeof model?.id === "string"
+              ? model.id.split("/").pop()
+              : null;
+        return existingRoot === rawModelId;
+      });
+
     // Add embedding models (filtered by active providers)
     for (const embModel of getAllEmbeddingModels()) {
       if (!isProviderActive(embModel.provider)) continue;
       const rawModelId = embModel.id.split("/").pop() || embModel.id;
       if (!providerSupportsModel(embModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(embModel.provider, rawModelId, "embedding", embModel.id)) {
+        continue;
+      }
       models.push({
         id: embModel.id,
         object: "model",
         created: timestamp,
         owned_by: embModel.provider,
+        root: rawModelId,
         type: "embedding",
         dimensions: embModel.dimensions,
       });
@@ -530,11 +608,15 @@ export async function getUnifiedModelsResponse(
       if (!isProviderActive(rerankModel.provider)) continue;
       const rawModelId = rerankModel.id.split("/").pop() || rerankModel.id;
       if (!providerSupportsModel(rerankModel.provider, rawModelId)) continue;
+      if (hasEquivalentSpecialtyModel(rerankModel.provider, rawModelId, "rerank", rerankModel.id)) {
+        continue;
+      }
       models.push({
         id: rerankModel.id,
         object: "model",
         created: timestamp,
         owned_by: rerankModel.provider,
+        root: rawModelId,
         type: "rerank",
       });
     }
@@ -602,6 +684,7 @@ export async function getUnifiedModelsResponse(
       for (const [providerId, rawProviderCustomModels] of Object.entries(customModelsMap)) {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
+        if (providerId === "reka") continue;
         const providerCustomModels = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
               (model): model is Record<string, unknown> =>
@@ -611,7 +694,7 @@ export async function getUnifiedModelsResponse(
         // For compatible providers, use the prefix from provider nodes
         const prefix = providerIdToPrefix[providerId];
         const alias = prefix || providerIdToAlias[providerId] || providerId;
-        const canonicalProviderId = FALLBACK_ALIAS_TO_PROVIDER[alias] || providerId;
+        const canonicalProviderId = resolveCanonicalProviderId(alias, providerId);
 
         // Only include if provider is active — check alias, canonical ID, raw providerId,
         // or the parent provider type (for compatible providers whose node ID is a UUID)
@@ -649,8 +732,15 @@ export async function getUnifiedModelsResponse(
             typeof model.apiFormat === "string" ? model.apiFormat : "chat-completions";
           let modelType: string | undefined;
           if (endpoints.includes("embeddings")) modelType = "embedding";
+          else if (endpoints.includes("rerank")) modelType = "rerank";
           else if (endpoints.includes("images")) modelType = "image";
           else if (endpoints.includes("audio")) modelType = "audio";
+          if (
+            modelType &&
+            hasEquivalentSpecialtyModel(canonicalProviderId, modelId, modelType, aliasId)
+          ) {
+            continue;
+          }
           const visionFields =
             modelType === "chat"
               ? getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId)
@@ -769,7 +859,24 @@ export async function getUnifiedModelsResponse(
       finalModels = filtered;
     }
 
-    const enrichedModels = finalModels.map((model) => enrichCatalogModelEntry(model));
+    const getDefaultContextFallback = (model: any): number | undefined => {
+      if (typeof model.context_length === "number") return undefined;
+      if (model.owned_by === "combo") return undefined;
+      if (model.type && model.type !== "chat") return undefined;
+
+      const provider = typeof model.owned_by === "string" ? model.owned_by : null;
+      if (!provider) return undefined;
+      const canonicalId = aliasToProviderId[provider] || provider;
+      return REGISTRY[canonicalId]?.defaultContextLength;
+    };
+
+    const enrichedModels = finalModels.map((model) => {
+      const enriched = enrichCatalogModelEntry(model);
+      const fallbackContextLength = getDefaultContextFallback(enriched);
+      return fallbackContextLength
+        ? { ...enriched, context_length: fallbackContextLength }
+        : enriched;
+    });
 
     return Response.json(
       {

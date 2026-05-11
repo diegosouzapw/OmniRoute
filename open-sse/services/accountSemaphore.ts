@@ -29,6 +29,7 @@ export interface AcquireAccountSemaphoreOptions {
   maxConcurrency?: number | null;
   timeoutMs?: number;
   signal?: AbortSignal | null;
+  maxQueueSize?: number;
 }
 
 export interface AccountSemaphoreStatsEntry {
@@ -39,6 +40,7 @@ export interface AccountSemaphoreStatsEntry {
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_MAX_QUEUE_SIZE = 20;
 
 const gates = new Map<string, AccountGate>();
 
@@ -187,6 +189,7 @@ export function acquire(
     maxConcurrency = null,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal = null,
+    maxQueueSize = DEFAULT_MAX_QUEUE_SIZE,
   }: AcquireAccountSemaphoreOptions = {}
 ): Promise<() => void> {
   if (isBypassed(maxConcurrency)) {
@@ -203,6 +206,14 @@ export function acquire(
   if (gate.running < gate.maxConcurrency && !isBlocked(gate)) {
     gate.running++;
     return Promise.resolve(createReleaseFn(semaphoreKey));
+  }
+
+  if (gate.queue.length >= maxQueueSize) {
+    const err = new Error(`Semaphore queue full (${maxQueueSize}) for ${semaphoreKey}`) as Error & {
+      code: string;
+    };
+    err.code = "SEMAPHORE_QUEUE_FULL";
+    return Promise.reject(err);
   }
 
   return new Promise((resolve, reject) => {

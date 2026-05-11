@@ -95,7 +95,7 @@ describe("pruneByScore", () => {
   it("should always keep force-preserved tokens (URLs)", () => {
     const text = "check https://example.com for details";
     const result = pruneByScore(text, 0.3);
-    assert(result.includes("https://example.com"));
+    assert.notEqual(result.split(/\s+/).indexOf("https://example.com"), -1);
   });
 
   it("should always keep force-preserved tokens (numbers)", () => {

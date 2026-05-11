@@ -17,6 +17,11 @@ export const FETCH_TIMEOUT_MS = upstreamTimeouts.fetchTimeoutMs;
 // idle for this duration. Override with STREAM_IDLE_TIMEOUT_MS env var.
 export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 
+// Timeout for the first useful SSE event. Keep this much shorter than the
+// post-start idle timeout so slow-thinking models can keep streaming after the
+// first token, while dead 200 OK streams fail fast enough for combo fallback.
+export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
+
 // Timeout for reading the full response body after headers arrive (ms).
 // Prevents indefinite hangs when the upstream sends headers but stalls on the body.
 // Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
@@ -35,7 +40,10 @@ export const CLAUDE_SYSTEM_PROMPT = "You are Claude Code, Anthropic's official C
 
 // Antigravity default system prompt (required for API to work)
 export const ANTIGRAVITY_DEFAULT_SYSTEM =
-  "Please ignore the following [ignore]You are Antigravity, a powerful agentic AI coding assistant designed by the Google Deepmind team working on Advanced Agentic Coding.You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase, or simply answering a question.**Absolute paths only****Proactiveness**[/ignore]";
+  "You are Antigravity, a powerful agentic AI coding assistant designed by the Google Deepmind team working on Advanced Agentic Coding.\n" +
+  "You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase, or simply answering a question.\n" +
+  "**Absolute paths only**\n" +
+  "**Proactiveness**";
 
 // OAuth endpoints
 export const OAUTH_ENDPOINTS = {
@@ -139,22 +147,22 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 5000, // 5s (session tokens — short recovery)
     rateLimitCooldown: 60000, // 60s default when no retry-after header
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
-    circuitBreakerThreshold: 3, // Opens fast (low limit providers)
+    circuitBreakerThreshold: 8, // Scaled for 500+ connections (was 3)
     circuitBreakerReset: 60000, // 1min reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 3, // 3 transient failures trigger provider cooldown
-    providerFailureWindowMs: 600000, // 10min window for counting failures
+    providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
+    providerFailureWindowMs: 900000, // 15min window (was 10min)
     providerCooldownMs: 300000, // 5min cooldown when threshold reached
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
     rateLimitCooldown: 0, // 0 = respect retry-after header from provider
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
-    circuitBreakerThreshold: 5, // More tolerant (occasional 502 is normal)
+    circuitBreakerThreshold: 12, // Scaled for 500+ connections (was 5)
     circuitBreakerReset: 30000, // 30s reset
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
-    providerFailureThreshold: 5, // 5 transient failures trigger provider cooldown
-    providerFailureWindowMs: 1200000, // 20min window for counting failures
+    providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
+    providerFailureWindowMs: 1800000, // 30min window (was 20min)
     providerCooldownMs: 600000, // 10min cooldown when threshold reached
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
@@ -184,3 +192,6 @@ export const DEFAULT_API_LIMITS = {
 
 // Skip patterns - requests containing these texts will bypass provider
 export const SKIP_PATTERNS = ["Please write a 5-10 word title for the following conversation:"];
+
+// Default maximum number of tools allowed in a request (OpenAI default)
+export const MAX_TOOLS_LIMIT = 128;

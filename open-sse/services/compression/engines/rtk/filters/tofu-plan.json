@@ -1,0 +1,34 @@
+{
+  "id": "tofu-plan",
+  "label": "OpenTofu Plan",
+  "description": "Keep OpenTofu plan actions and summary while stripping refresh noise.",
+  "category": "infra",
+  "priority": 87,
+  "match": {
+    "outputTypes": [],
+    "commands": ["^tofu\\s+plan\\b"],
+    "patterns": ["OpenTofu will perform the following actions", "Plan: \\d+ to add"]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["Refreshing state", "Acquiring state lock", "Releasing state lock", "^\\s*$"],
+    "includePatterns": ["OpenTofu will perform", "^[ ]*[#~+\\-/]", "Plan: \\d+", "Error:"],
+    "collapsePatterns": [],
+    "deduplicate": false,
+    "maxLines": 160,
+    "headLines": 35,
+    "tailLines": 50
+  },
+  "preserve": {
+    "errorPatterns": ["Error:", "failed"],
+    "summaryPatterns": ["Plan: \\d+"]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "tofu plan",
+      "input": "Refreshing state... [id=a]\nOpenTofu will perform the following actions:\n  # tofu_resource.web will be created\nPlan: 1 to add, 0 to change, 0 to destroy.\n",
+      "expected": "OpenTofu will perform the following actions:\n  # tofu_resource.web will be created\nPlan: 1 to add, 0 to change, 0 to destroy."
+    }
+  ]
+}

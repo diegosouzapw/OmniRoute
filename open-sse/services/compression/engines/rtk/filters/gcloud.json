@@ -1,0 +1,34 @@
+{
+  "id": "gcloud",
+  "label": "gcloud",
+  "description": "Compress Google Cloud CLI output and preserve actionable errors.",
+  "category": "cloud",
+  "priority": 75,
+  "match": {
+    "outputTypes": ["gcloud"],
+    "commands": ["^gcloud\\b"],
+    "patterns": ["^ERROR: \\(gcloud\\.", "^Updated property \\["]
+  },
+  "rules": {
+    "stripAnsi": true,
+    "dropPatterns": ["^Waiting for operation", "^\\s*$"],
+    "includePatterns": ["^ERROR: \\(gcloud\\.", "^Updated property \\[", "^Created \\["],
+    "collapsePatterns": [],
+    "deduplicate": true,
+    "maxLines": 120,
+    "headLines": 30,
+    "tailLines": 40
+  },
+  "preserve": {
+    "errorPatterns": ["^ERROR: \\(gcloud\\.", "PERMISSION_DENIED", "NOT_FOUND"],
+    "summaryPatterns": ["^Updated property \\[", "^Created \\["]
+  },
+  "tests": [
+    {
+      "name": "inline sample",
+      "command": "gcloud run deploy",
+      "input": "Waiting for operation [deploy]\nUpdated property [core/project].\nERROR: (gcloud.run.deploy) PERMISSION_DENIED: denied\n",
+      "expected": "Updated property [core/project].\nERROR: (gcloud.run.deploy) PERMISSION_DENIED: denied"
+    }
+  ]
+}

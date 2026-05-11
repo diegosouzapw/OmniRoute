@@ -17,6 +17,17 @@ interface CompressionAnalyticsSummary {
   byMode: Record<string, { count: number; tokensSaved: number; avgSavingsPct: number }>;
   byProvider: Record<string, { count: number; tokensSaved: number }>;
   last24h: Array<{ hour: string; count: number; tokensSaved: number }>;
+  validationFallbacks: number;
+  realUsage: {
+    requestsWithReceipts: number;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    cacheReadTokens: number;
+    cacheWriteTokens: number;
+    estimatedUsdSaved: number;
+    bySource: Record<string, number>;
+  };
 }
 
 function StatCard({
@@ -178,7 +189,7 @@ export default function CompressionAnalyticsTab() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <StatCard
           icon="compress"
           label="Total Requests"
@@ -191,7 +202,64 @@ export default function CompressionAnalyticsTab() {
         />
         <StatCard icon="percent" label="Avg Savings" value={`${stats.avgSavingsPct}%`} />
         <StatCard icon="timer" label="Avg Duration" value={`${stats.avgDurationMs}ms`} />
+        <StatCard
+          icon="receipt_long"
+          label="Receipts"
+          value={stats.realUsage.requestsWithReceipts.toLocaleString()}
+          sub={`${stats.realUsage.totalTokens.toLocaleString()} real tokens`}
+        />
+        <StatCard
+          icon="verified"
+          label="Fallbacks"
+          value={stats.validationFallbacks.toLocaleString()}
+          sub="validation restores"
+        />
       </div>
+
+      {stats.realUsage.requestsWithReceipts > 0 && (
+        <div className="card p-5">
+          <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+            Real Usage Receipts
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+            <div>
+              <div className="text-text-muted">Prompt tokens</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.promptTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Completion tokens</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.completionTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Total tokens</div>
+              <div className="text-lg font-semibold text-text">
+                {stats.realUsage.totalTokens.toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Cache tokens</div>
+              <div className="text-lg font-semibold text-text">
+                {(
+                  (stats.realUsage.cacheReadTokens ?? 0) + (stats.realUsage.cacheWriteTokens ?? 0)
+                ).toLocaleString()}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Sources</div>
+              <div className="text-lg font-semibold text-text">
+                {Object.entries(stats.realUsage.bySource)
+                  .map(([source, count]) => `${source}: ${count}`)
+                  .join(", ")}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mode Breakdown */}
       {modes.length > 0 && (
@@ -240,7 +308,7 @@ export default function CompressionAnalyticsTab() {
         <div className="card p-5">
           <h3 className="font-semibold text-text mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-[20px]">show_chart</span>
-            Last 24 Hours
+            Last 24 Hours (Activity)
           </h3>
           <div className="flex items-end gap-2 h-48">
             {stats.last24h.map((entry, idx) => {
@@ -258,7 +326,7 @@ export default function CompressionAnalyticsTab() {
                     </div>
                   </div>
                   <div className="text-xs text-text-muted rotate-45 origin-left">
-                    {entry.hour.substring(0, 2)}
+                    {entry.hour.substring(11, 13)}
                   </div>
                 </div>
               );
@@ -290,8 +358,8 @@ export default function CompressionAnalyticsTab() {
         <span className="material-symbols-outlined text-[16px] text-blue-500 mt-0.5">info</span>
         <span>
           <strong>Compression analytics:</strong> Token savings tracked per mode (off, lite,
-          standard, aggressive, ultra) and provider. Hover over charts for details. Use the time
-          selector to view different time periods.
+          standard, aggressive, ultra, RTK, stacked), engine, compression combo, and provider. Hover
+          over charts for details. Use the time selector to view different time periods.
         </span>
       </div>
     </div>

@@ -15,28 +15,82 @@ interface ChatBody {
 interface LiteCompressionOptions {
   model?: string;
   supportsVision?: boolean | null;
+  preserveSystemPrompt?: boolean;
 }
 
-export function collapseWhitespace(body: ChatBody): {
+function trimTrailingHorizontalWhitespace(line: string): string {
+  let end = line.length;
+  while (end > 0) {
+    const code = line.charCodeAt(end - 1);
+    if (code !== 32 && code !== 9) break;
+    end--;
+  }
+  return end === line.length ? line : line.slice(0, end);
+}
+
+function collapseNewlineRuns(content: string): string {
+  let normalized = "";
+  let newlineRun = 0;
+
+  for (const char of content) {
+    if (char === "\n") {
+      newlineRun++;
+      if (newlineRun <= 2) {
+        normalized += char;
+      }
+      continue;
+    }
+
+    newlineRun = 0;
+    normalized += char;
+  }
+
+  return normalized;
+}
+
+function normalizeMessageWhitespace(content: string): string {
+  return collapseNewlineRuns(content).split("\n").map(trimTrailingHorizontalWhitespace).join("\n");
+}
+
+function modelSupportsVision(model: string): boolean {
+  const normalized = model.toLowerCase();
+  return (
+    normalized.includes("vision") ||
+    normalized.includes("gpt-4") ||
+    normalized.includes("4o") ||
+    normalized.includes("claude-3") ||
+    normalized.includes("gemini")
+  );
+}
+
+export function collapseWhitespace(
+  body: ChatBody,
+  options: LiteCompressionOptions = {}
+): {
   body: ChatBody;
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
   let applied = false;
   const messages = body.messages.map((msg) => {
+    if (options.preserveSystemPrompt === true && msg.role === "system") return msg;
     if (typeof msg.content !== "string") return msg;
-    const normalized = msg.content.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+$/gm, "");
+    const normalized = normalizeMessageWhitespace(msg.content);
     if (normalized !== msg.content) applied = true;
     return { ...msg, content: normalized };
   });
   return { body: { ...body, messages }, applied };
 }
 
-export function dedupSystemPrompt(body: ChatBody): {
+export function dedupSystemPrompt(
+  body: ChatBody,
+  options: LiteCompressionOptions = {}
+): {
   body: ChatBody;
   applied: boolean;
 } {
   if (!body.messages) return { body, applied: false };
+  if (options.preserveSystemPrompt === true) return { body, applied: false };
   const seen = new Set<string>();
   let applied = false;
   const messages = body.messages.filter((msg) => {
@@ -71,7 +125,10 @@ export function compressToolResults(body: ChatBody): {
   return { body: { ...body, messages }, applied };
 }
 
-export function removeRedundantContent(body: ChatBody): {
+export function removeRedundantContent(
+  body: ChatBody,
+  options: LiteCompressionOptions = {}
+): {
   body: ChatBody;
   applied: boolean;
 } {
@@ -80,6 +137,10 @@ export function removeRedundantContent(body: ChatBody): {
   const messages: Message[] = [];
   for (let i = 0; i < body.messages.length; i++) {
     const msg = body.messages[i];
+    if (options.preserveSystemPrompt === true && msg.role === "system") {
+      messages.push(msg);
+      continue;
+    }
     const contentStr = typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content);
     if (
       i > 0 &&
@@ -101,7 +162,11 @@ export function replaceImageUrls(
 ): { body: ChatBody; applied: boolean } {
   if (!body.messages) return { body, applied: false };
   const supportsVision =
-    typeof options === "object" && options !== null ? options.supportsVision : undefined;
+    typeof options === "object" && options !== null
+      ? options.supportsVision
+      : typeof options === "string"
+        ? modelSupportsVision(options)
+        : undefined;
   if (supportsVision !== false) return { body, applied: false };
 
   let applied = false;
@@ -139,11 +204,11 @@ export function applyLiteCompression(
   let current = body as ChatBody;
   const techniquesApplied: string[] = [];
 
-  const r1 = collapseWhitespace(current);
+  const r1 = collapseWhitespace(current, options);
   current = r1.body;
   if (r1.applied) techniquesApplied.push("whitespace");
 
-  const r2 = dedupSystemPrompt(current);
+  const r2 = dedupSystemPrompt(current, options);
   current = r2.body;
   if (r2.applied) techniquesApplied.push("system-dedup");
 
@@ -151,7 +216,7 @@ export function applyLiteCompression(
   current = r3.body;
   if (r3.applied) techniquesApplied.push("tool-compress");
 
-  const r4 = removeRedundantContent(current);
+  const r4 = removeRedundantContent(current, options);
   current = r4.body;
   if (r4.applied) techniquesApplied.push("redundant-remove");
 

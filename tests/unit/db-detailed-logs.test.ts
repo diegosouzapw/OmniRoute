@@ -23,6 +23,7 @@ const { createStructuredSSECollector } =
 async function resetStorage() {
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
+  detailedLogsDb.resetRequestDetailLogsTableExistsCache();
 
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
@@ -70,6 +71,24 @@ test("isDetailedLoggingEnabled follows the stored setting", async () => {
   await settingsDb.updateSettings({ call_log_pipeline_enabled: "true" });
 
   assert.equal(await detailedLogsDb.isDetailedLoggingEnabled(), true);
+});
+
+test("legacy detailed log helpers tolerate databases without request_detail_logs", () => {
+  const db = core.getDbInstance();
+  db.exec("DROP TABLE request_detail_logs");
+
+  assert.doesNotThrow(() =>
+    detailedLogsDb.saveRequestDetailLog({
+      id: "missing-table-write",
+      call_log_id: "call-missing-table",
+      provider: "openai",
+      model: "gpt-4.1",
+    })
+  );
+  assert.deepEqual(detailedLogsDb.getRequestDetailLogs(), []);
+  assert.equal(detailedLogsDb.getRequestDetailLogCount(), 0);
+  assert.equal(detailedLogsDb.getRequestDetailLogById("missing-table-write"), null);
+  assert.equal(detailedLogsDb.getRequestDetailLogByCallLogId("call-missing-table"), null);
 });
 
 test("saveRequestDetailLog persists protected payloads and compacted stream summaries", () => {

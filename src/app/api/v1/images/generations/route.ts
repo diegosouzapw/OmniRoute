@@ -19,7 +19,8 @@ import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
-import { getAllCustomModels } from "@/lib/localDb";
+import { getAllCustomModels, resolveProxyForConnection } from "@/lib/localDb";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * Handle CORS preflight
@@ -226,14 +227,34 @@ export async function POST(request) {
     }
   }
 
-  const result = await handleImageGeneration({
-    body,
-    credentials,
-    log,
-    ...(isCustomModel && { resolvedProvider: provider }),
-    signal: request.signal,
-    clientHeaders: publicBaseUrlHeaders(request.headers),
-  });
+  // Resolve proxy for the connection if credentials exist (#1904)
+  let proxyInfo = null;
+  if (credentials?.connectionId) {
+    try {
+      proxyInfo = await resolveProxyForConnection(credentials.connectionId);
+    } catch {
+      log.debug("PROXY", `Failed to resolve proxy for image provider: ${provider}`);
+    }
+  }
+
+  const generateImage = () =>
+    handleImageGeneration({
+      body,
+      credentials,
+      log,
+      ...(isCustomModel && { resolvedProvider: provider }),
+      signal: request.signal,
+      clientHeaders: publicBaseUrlHeaders(request.headers),
+    });
+
+  // Execute with proxy context when available, direct otherwise (#1904)
+  const result = await (credentials?.connectionId
+    ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
+        success: false,
+        status: err.statusCode || 500,
+        error: err.message,
+      }))
+    : generateImage());
 
   if (result.success) {
     await clearRecoveredProviderState(credentials);

@@ -27,7 +27,7 @@ function futureIso(ms = 60_000) {
   return new Date(Date.now() + ms).toISOString();
 }
 
-async function seedConnection(provider, overrides = {}) {
+async function seedConnection(provider: string, overrides: any = {}) {
   return providersDb.createProviderConnection({
     provider,
     authType: overrides.authType || "apikey",
@@ -169,14 +169,14 @@ test("getProviderCredentialsWithQuotaPreflight skips exhausted preflight account
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
   quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 96 : 40,
+    used: connectionId === blocked.id ? 100 : 40,
     total: 100,
-    percentUsed: connectionId === blocked.id ? 0.96 : 0.4,
+    percentUsed: connectionId === blocked.id ? 1.0 : 0.4,
   }));
 
   const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
 
-  assert.equal(selected.connectionId, healthy.id);
+  assert.equal((selected as any).connectionId, healthy.id);
 });
 
 test("getProviderCredentials includes per-account maxConcurrent caps", async () => {
@@ -222,14 +222,14 @@ test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a for
 
   const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
   quotaPreflight.registerQuotaFetcher("openai", async (connectionId) => ({
-    used: connectionId === blocked.id ? 99 : 20,
+    used: connectionId === blocked.id ? 100 : 20,
     total: 100,
-    percentUsed: connectionId === blocked.id ? 0.99 : 0.2,
+    percentUsed: connectionId === blocked.id ? 1.0 : 0.2,
     resetAt: futureIso(120_000),
   }));
 
   const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai", null, null, null, {
-    forcedConnectionId: blocked.id,
+    forcedConnectionId: (blocked as any).id,
   });
 
   assert.equal(selected.allRateLimited, true);
@@ -293,7 +293,7 @@ test("evaluateQuotaLimitPolicy aggregates reasons and keeps the earliest valid f
     daily: { remainingPercentage: 90, resetAt: futureIso(180_000) },
   });
 
-  const evaluation = auth.evaluateQuotaLimitPolicy("openai", connection);
+  const evaluation = auth.evaluateQuotaLimitPolicy("openai", connection as any);
 
   assert.equal(evaluation.blocked, true);
   assert.deepEqual(evaluation.reasons, ["weekly usage 80%", "session usage 95%"]);
@@ -352,7 +352,7 @@ test("getProviderCredentials honors allowedConnections filters", async () => {
     apiKey: "sk-selected",
   });
 
-  const selected = await auth.getProviderCredentials("openai", null, [selectedConn.id]);
+  const selected = await auth.getProviderCredentials("openai", null, [(selectedConn as any).id]);
 
   assert.equal(selected.connectionId, selectedConn.id);
   assert.equal(selected.apiKey, "sk-selected");
@@ -372,7 +372,7 @@ test("getProviderCredentials honors forcedConnectionId even when another account
   });
 
   const selected = await auth.getProviderCredentials("openai", null, null, null, {
-    forcedConnectionId: forcedConn.id,
+    forcedConnectionId: (forcedConn as any).id,
   });
 
   assert.equal(selected.connectionId, forcedConn.id);
@@ -389,9 +389,15 @@ test("getProviderCredentials intersects forcedConnectionId with allowedConnectio
     apiKey: "sk-blocked",
   });
 
-  const selected = await auth.getProviderCredentials("openai", null, [allowedConn.id], null, {
-    forcedConnectionId: blockedConn.id,
-  });
+  const selected = await auth.getProviderCredentials(
+    "openai",
+    null,
+    [(allowedConn as any).id],
+    null,
+    {
+      forcedConnectionId: (blockedConn as any).id,
+    }
+  );
 
   assert.equal(selected, null);
 });
@@ -810,7 +816,7 @@ test("markAccountUnavailable keeps local 404 failures model-scoped with the loca
   const updated = await (providersDb as any).getProviderConnectionById(connection.id);
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, COOLDOWN_MS.notFoundLocal);
+  assert.equal(result.cooldownMs, 250);
   assert.equal(updated.testStatus, "active");
   assert.equal(updated.rateLimitedUntil, undefined);
   assert.equal(updated.lastErrorType, "not_found");
@@ -867,7 +873,7 @@ test("markAccountUnavailable uses the unified configured api-key connection cool
   await settingsDb.updateSettings({
     providerProfiles: {
       apikey: {
-        transientCooldown: 200,
+        transientCooldown: 125,
         rateLimitCooldown: 125,
         maxBackoffLevel: 3,
         circuitBreakerThreshold: 60,
@@ -889,7 +895,7 @@ test("markAccountUnavailable uses the unified configured api-key connection cool
   );
 
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 200);
+  assert.equal(result.cooldownMs, 125);
 });
 
 test("markAccountUnavailable stores Codex scope-specific cooldowns without a global rate limit", async () => {

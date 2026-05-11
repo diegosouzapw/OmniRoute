@@ -497,6 +497,12 @@ The logging system writes to both stdout and rotated log files. All configuratio
 | `CONTEXT_LENGTH_DEFAULT`   | `128000`                        | Global fallback max context length for models without explicit config. |
 | `USAGE_TOKEN_BUFFER`       | `100`                           | Extra token headroom reserved when tracking usage quotas.              |
 
+### Compression
+
+| Variable                              | Default | Description                                                                                                   |
+| ------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS` | unset   | Trust project `.rtk/filters.json` without a `.rtk/trust.json` hash. Use only in controlled local development. |
+
 ### Low-RAM Docker Example
 
 ```bash

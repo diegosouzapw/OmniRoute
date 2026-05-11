@@ -26,13 +26,17 @@ export type QuotaFetcher = (
   connection?: Record<string, unknown>
 ) => Promise<QuotaInfo | null>;
 
-const EXHAUSTION_THRESHOLD = 0.95;
+const EXHAUSTION_THRESHOLD = 0.98;
 const WARN_THRESHOLD = 0.8;
 
 const quotaFetcherRegistry = new Map<string, QuotaFetcher>();
 
 export function registerQuotaFetcher(provider: string, fetcher: QuotaFetcher): void {
   quotaFetcherRegistry.set(provider, fetcher);
+}
+
+export function getQuotaFetcher(provider: string): QuotaFetcher | undefined {
+  return quotaFetcherRegistry.get(provider) || quotaFetcherRegistry.get(provider.toLowerCase());
 }
 
 export function isQuotaPreflightEnabled(connection: Record<string, unknown>): boolean {
@@ -49,7 +53,7 @@ export async function preflightQuota(
     return { proceed: true };
   }
 
-  const fetcher = quotaFetcherRegistry.get(provider);
+  const fetcher = getQuotaFetcher(provider);
   if (!fetcher) {
     return { proceed: true };
   }

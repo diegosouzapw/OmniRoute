@@ -22,7 +22,7 @@ describe("preservation", () => {
     const text = `Check ${url} please`;
     const { text: extracted, blocks } = extractPreservedBlocks(text);
     const restored = restorePreservedBlocks(extracted, blocks);
-    assert.ok(restored.includes(url), "URL should be preserved");
+    assert.equal(restored, text, "URL should be preserved");
   });
 
   it("should preserve file paths", () => {
@@ -51,8 +51,7 @@ describe("preservation", () => {
     const text = "See https://docs.example.com for:\n```\nfetch('https://api.example.com')\n```";
     const { text: extracted, blocks } = extractPreservedBlocks(text);
     const restored = restorePreservedBlocks(extracted, blocks);
-    assert.ok(restored.includes("https://docs.example.com"));
-    assert.ok(restored.includes("fetch('https://api.example.com')"));
+    assert.equal(restored, text);
   });
 
   it("should handle empty text", () => {

@@ -36,6 +36,13 @@ interface CacheMetrics {
 const REFRESH_INTERVAL_MS = 10_000;
 const REFRESH_INTERVAL_SECONDS = REFRESH_INTERVAL_MS / 1000;
 
+function formatNumberCompact(num: number): string {
+  return Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(num);
+}
+
 export default function CacheStatsCard() {
   const [metrics, setMetrics] = useState<CacheMetrics | null>(null);
   const [resetting, setResetting] = useState(false);
@@ -117,19 +124,19 @@ export default function CacheStatsCard() {
               <div>
                 <p className="text-text-muted">{t("inputTokens")}</p>
                 <p className="font-mono text-lg text-text-main">
-                  {metrics.totalInputTokens.toLocaleString()}
+                  {formatNumberCompact(metrics.totalInputTokens)}
                 </p>
               </div>
               <div>
                 <p className="text-text-muted">{t("cachedTokensRead")}</p>
                 <p className="font-mono text-lg text-green-400">
-                  {metrics.totalCachedTokens.toLocaleString()}
+                  {formatNumberCompact(metrics.totalCachedTokens)}
                 </p>
               </div>
               <div>
                 <p className="text-text-muted">{t("cacheCreationWrite")}</p>
                 <p className="font-mono text-lg text-blue-400">
-                  {metrics.totalCacheCreationTokens.toLocaleString()}
+                  {formatNumberCompact(metrics.totalCacheCreationTokens)}
                 </p>
               </div>
             </div>
@@ -157,7 +164,7 @@ export default function CacheStatsCard() {
               <div>
                 <p className="text-text-muted">{t("tokensSaved")}</p>
                 <p className="font-mono text-lg text-green-400">
-                  {metrics.tokensSaved.toLocaleString()}
+                  {formatNumberCompact(metrics.tokensSaved)}
                 </p>
               </div>
               <div>
@@ -189,13 +196,13 @@ export default function CacheStatsCard() {
                         </div>
                         <div className="flex items-center gap-4 font-mono">
                           <span className="text-text-muted" title={t("inputTokens")}>
-                            {t("inputShort")}: {stats.inputTokens.toLocaleString()}
+                            {t("inputShort")}: {formatNumberCompact(stats.inputTokens)}
                           </span>
                           <span className="text-green-400" title={t("cachedTokensRead")}>
-                            {t("cachedShort")}: {stats.cachedTokens.toLocaleString()}
+                            {t("cachedShort")}: {formatNumberCompact(stats.cachedTokens)}
                           </span>
                           <span className="text-blue-400" title={t("cacheCreationWrite")}>
-                            {t("writeShort")}: {stats.cacheCreationTokens.toLocaleString()}
+                            {t("writeShort")}: {formatNumberCompact(stats.cacheCreationTokens)}
                           </span>
                           <span className="text-green-400 w-12 text-right">
                             {providerCacheRate.toFixed(0)}%

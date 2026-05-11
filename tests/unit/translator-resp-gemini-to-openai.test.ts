@@ -64,7 +64,7 @@ test("Gemini non-stream: multiple candidates keep multimodal content, reasoning 
               { thought: true, text: "Plan first." },
               { text: "Answer:" },
               { inlineData: { mimeType: "image/png", data: "abc123" } },
-              { functionCall: { name: "read_file", args: { path: "/tmp/a" } } },
+              { functionCall: { id: "native-read-1", name: "read_file", args: { path: "/tmp/a" } } },
             ],
           },
           finishReason: "STOP",
@@ -101,6 +101,7 @@ test("Gemini non-stream: multiple candidates keep multimodal content, reasoning 
     ((result as any).choices[0].message as any).tool_calls[0].function.arguments,
     JSON.stringify({ path: "/tmp/a" })
   );
+  assert.equal((result as any).choices[0].message.tool_calls[0].id, "native-read-1");
   assert.equal(((result as any).choices[1].message as any).content, "Second option");
   (assert as any).equal((result as any).choices[1].finish_reason, "length");
   assert.equal((result as any).usage.prompt_tokens, 4);
@@ -259,6 +260,7 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
               { thought: true, thoughtSignature: "sig-1", text: "Need a plan." },
               {
                 functionCall: {
+                  id: "native-call-1",
                   name: "weather_lookup_bundle_ab12cd34",
                   args: { city: "Sao Paulo" },
                 },
@@ -282,6 +284,10 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
 
   assert.equal(result[1].choices[0].delta.reasoning_content, "Need a plan.");
   assert.equal(
+    result[2].choices[0].delta.tool_calls[0].id,
+    "native-call-1"
+  );
+  assert.equal(
     result[2].choices[0].delta.tool_calls[0].function.name,
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2"
   );
@@ -295,6 +301,37 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   assert.equal(result[4].usage.completion_tokens, 5);
   assert.equal(result[4].usage.prompt_tokens_details.cached_tokens, 1);
   assert.equal(result[4].usage.completion_tokens_details.reasoning_tokens, 2);
+});
+
+test("Gemini stream: tool calls without native IDs keep deterministic fallback shape", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-tool-no-id",
+      modelVersion: "gemini-3-flash-preview",
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                thoughtSignature: "sig-2",
+                functionCall: {
+                  name: "read_file",
+                  args: { file_path: "fixture.txt" },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  const toolCall = result[1].choices[0].delta.tool_calls[0];
+  assert.match(toolCall.id, /^read_file-\d+-0$/);
+  assert.equal(toolCall.function.name, "read_file");
+  assert.equal(toolCall.function.arguments, JSON.stringify({ file_path: "fixture.txt" }));
 });
 
 test("Gemini stream: safety block without candidates emits role chunk then content_filter finish", () => {

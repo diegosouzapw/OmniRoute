@@ -332,6 +332,11 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
       if (token) {
         headers["x-api-key"] = token;
       }
+    } else if (authHeader === "key") {
+      const token = credentials.apiKey || credentials.accessToken;
+      if (token) {
+        headers["Authorization"] = `Key ${token}`;
+      }
     } else if (authHeader === "x-goog-api-key") {
       if (credentials.apiKey) {
         headers["x-goog-api-key"] = credentials.apiKey;

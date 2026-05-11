@@ -3,9 +3,86 @@ import type { Summarizer, SummarizerOpts } from "./types.ts";
 const COMPRESSED_MARKER_RE = /^\[COMPRESSED:/;
 const INTENT_TRIGGERS =
   /^(?:request|fix|implement|add|remove|update|refactor|create|delete|change|build)\s*:/i;
-const FILE_PATH_RE =
-  /[\w./-]+\.(?:ts|tsx|js|jsx|py|md|json|sql|css|html|yaml|yml|sh|rb|go|rs|java|c|cpp|h|hpp)/g;
-const ERROR_RE = /(?:Error|error|ERROR):\s*\S+|error\s+TS\d+|Exception:\s*\S+/g;
+const FILE_EXTENSIONS = new Set([
+  "ts",
+  "tsx",
+  "js",
+  "jsx",
+  "py",
+  "md",
+  "json",
+  "sql",
+  "css",
+  "html",
+  "yaml",
+  "yml",
+  "sh",
+  "rb",
+  "go",
+  "rs",
+  "java",
+  "c",
+  "cpp",
+  "h",
+  "hpp",
+]);
+
+function stripTokenPunctuation(token: string): string {
+  let start = 0;
+  let end = token.length;
+  const leading = new Set(["'", '"', "`", "(", "[", "{"]);
+  const trailing = new Set(["'", '"', "`", ")", "]", "}", ",", ";", ":"]);
+
+  while (start < end && leading.has(token[start])) start++;
+  while (end > start && trailing.has(token[end - 1])) end--;
+
+  return token.slice(start, end);
+}
+
+function getKnownFilePathToken(token: string): string | null {
+  const clean = stripTokenPunctuation(token);
+  const lastDot = clean.lastIndexOf(".");
+  if (lastDot <= 0 || lastDot === clean.length - 1) return null;
+
+  const extension = clean.slice(lastDot + 1).toLowerCase();
+  if (!FILE_EXTENSIONS.has(extension)) return null;
+  if (!clean.includes("/") && !clean.includes(".")) return null;
+
+  return clean;
+}
+
+function extractFilePathTokens(text: string): string[] {
+  const paths: string[] = [];
+  for (const token of text.split(/\s+/)) {
+    const filePath = getKnownFilePathToken(token);
+    if (filePath) paths.push(filePath);
+  }
+  return paths;
+}
+
+function extractErrorSnippets(text: string): string[] {
+  const snippets: string[] = [];
+  for (const segment of text.split(/[.\n]/)) {
+    const trimmed = segment.trim();
+    if (!trimmed) continue;
+
+    const lower = trimmed.toLowerCase();
+    if (
+      trimmed.includes("TypeError:") ||
+      trimmed.includes("ReferenceError:") ||
+      trimmed.includes("SyntaxError:") ||
+      trimmed.includes("RangeError:") ||
+      trimmed.includes("URIError:") ||
+      trimmed.includes("EvalError:") ||
+      trimmed.includes("Error:") ||
+      trimmed.includes("Exception:") ||
+      lower.includes("error ts")
+    ) {
+      snippets.push(trimmed);
+    }
+  }
+  return snippets;
+}
 
 function extractIntents(messages: Array<{ role: string; content?: string | unknown[] }>): string[] {
   const intents: string[] = [];
@@ -30,9 +107,9 @@ function extractFilePaths(
   for (const msg of messages) {
     const text = extractText(msg.content);
     if (!text) continue;
-    const matches = text.match(FILE_PATH_RE);
-    if (matches) {
-      for (const m of matches) paths.add(m);
+    const matches = extractFilePathTokens(text);
+    for (const m of matches) {
+      paths.add(m);
     }
   }
   return [...paths].slice(0, 20);
@@ -43,10 +120,7 @@ function extractErrors(messages: Array<{ role: string; content?: string | unknow
   for (const msg of messages) {
     const text = extractText(msg.content);
     if (!text) continue;
-    const matches = text.match(ERROR_RE);
-    if (matches) {
-      for (const m of matches) errors.push(m.slice(0, 150));
-    }
+    for (const match of extractErrorSnippets(text)) errors.push(match.slice(0, 150));
   }
   return errors.slice(0, 10);
 }
@@ -64,14 +138,46 @@ function extractLastDecision(
 }
 
 function trimCodeFences(text: string): string {
-  const fenceRe = /```[a-z]*\n([\s\S]*?)\n```/g;
-  return text.replace(fenceRe, (_match, code: string) => {
+  let output = "";
+  let cursor = 0;
+
+  while (cursor < text.length) {
+    const start = text.indexOf("```", cursor);
+    if (start === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const openingLineEnd = text.indexOf("\n", start + 3);
+    if (openingLineEnd === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const closeStart = text.indexOf("\n```", openingLineEnd + 1);
+    if (closeStart === -1) {
+      output += text.slice(cursor);
+      break;
+    }
+
+    const closeEnd = closeStart + 4;
+    const opening = text.slice(start, openingLineEnd);
+    const code = text.slice(openingLineEnd + 1, closeStart);
     const lines = code.split("\n");
-    if (lines.length <= 4) return _match;
-    const head = lines.slice(0, 3).join("\n");
-    const tail = lines[lines.length - 1];
-    return "```" + head + "\n…\n" + tail + "\n```";
-  });
+
+    output += text.slice(cursor, start);
+    if (lines.length <= 4) {
+      output += text.slice(start, closeEnd);
+    } else {
+      const head = lines.slice(0, 3).join("\n");
+      const tail = lines[lines.length - 1];
+      output += `${opening}\n${head}\n…\n${tail}\n\`\`\``;
+    }
+
+    cursor = closeEnd;
+  }
+
+  return output;
 }
 
 function extractText(content?: string | unknown[]): string {

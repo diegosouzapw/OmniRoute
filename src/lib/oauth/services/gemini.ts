@@ -1,9 +1,6 @@
 import crypto from "crypto";
 import open from "open";
-import {
-  ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-  ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { getGeminiCliLoadCodeAssistMetadata } from "@omniroute/open-sse/services/geminiCliHeaders.ts";
 import { GEMINI_CONFIG } from "../constants/oauth";
 import { getServerCredentials } from "../config/index";
 import { startLocalServer } from "../utils/server";
@@ -73,20 +70,9 @@ export class GeminiCLIService {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
-        "User-Agent": ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
-        "X-Goog-Api-Client": ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
-        "Client-Metadata": JSON.stringify({
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        }),
       },
       body: JSON.stringify({
-        metadata: {
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        },
+        metadata: getGeminiCliLoadCodeAssistMetadata(),
       }),
     });
 

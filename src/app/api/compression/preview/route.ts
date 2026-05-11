@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { compressionPreviewConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 import { applyCompression } from "@omniroute/open-sse/services/compression/strategySelector";
-import type { CompressionMode } from "@omniroute/open-sse/services/compression/types";
+import type {
+  CompressionConfig,
+  CompressionMode,
+} from "@omniroute/open-sse/services/compression/types";
+import { buildCompressionPreviewDiff } from "@omniroute/open-sse/services/compression/diffHelper";
 
-const PreviewRequestSchema = z.object({
+export const PreviewCompressionConfigSchema = compressionPreviewConfigSchema;
+
+export const PreviewRequestSchema = z.object({
   messages: z
     .array(
       z.object({
@@ -13,7 +20,8 @@ const PreviewRequestSchema = z.object({
       })
     )
     .min(1),
-  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra"]),
+  mode: z.enum(["off", "lite", "standard", "aggressive", "ultra", "rtk", "stacked"]),
+  config: PreviewCompressionConfigSchema.optional(),
 });
 
 function countTokens(text: string): number {
@@ -30,8 +38,8 @@ function messagesToText(messages: Array<{ role: string; content: unknown }>): st
 }
 
 export async function POST(req: Request) {
-  const policy = await enforceApiKeyPolicy(req, "settings");
-  if (policy.rejection) return policy.rejection;
+  const authError = await requireManagementAuth(req);
+  if (authError) return authError;
 
   let body: unknown;
   try {
@@ -48,14 +56,16 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages, mode } = parsed.data;
+  const { messages, mode, config } = parsed.data;
   const originalText = messagesToText(messages);
   const originalTokens = countTokens(originalText);
 
   try {
     const start = Date.now();
     const requestBody = { messages };
-    const result = await applyCompression(requestBody as Record<string, unknown>, mode);
+    const result = await applyCompression(requestBody as Record<string, unknown>, mode, {
+      config: config as CompressionConfig | undefined,
+    });
     const durationMs = Date.now() - start;
 
     const compressedMessages = (result.body.messages ?? messages) as Array<{
@@ -67,6 +77,7 @@ export async function POST(req: Request) {
     const tokensSaved = Math.max(0, originalTokens - compressedTokens);
     const savingsPct = originalTokens > 0 ? Math.round((tokensSaved / originalTokens) * 100) : 0;
     const techniquesUsed: string[] = result.stats?.techniquesUsed ?? [];
+    const diff = buildCompressionPreviewDiff(originalText, compressedText, result.stats);
 
     return NextResponse.json({
       original: originalText,
@@ -77,6 +88,23 @@ export async function POST(req: Request) {
       savingsPct,
       techniquesUsed,
       durationMs,
+      mode,
+      intensity: null,
+      outputMode: null,
+      skippedReasons: [],
+      diff: diff.segments,
+      preservedBlocks: diff.preservedBlocks,
+      ruleRemovals: diff.ruleRemovals,
+      rulesApplied: diff.ruleRemovals,
+      validation: {
+        valid: diff.validationErrors.length === 0,
+        errors: diff.validationErrors,
+        warnings: diff.validationWarnings,
+        fallbackApplied: diff.fallbackApplied,
+      },
+      validationWarnings: diff.validationWarnings,
+      validationErrors: diff.validationErrors,
+      fallbackApplied: diff.fallbackApplied,
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

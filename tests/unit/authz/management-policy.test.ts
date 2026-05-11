@@ -56,6 +56,25 @@ function ctx(headers: Headers, method = "GET", path = "/api/keys") {
   };
 }
 
+function remoteCtx(headers: Headers, method = "GET", path = "/api/keys") {
+  return {
+    request: {
+      method,
+      headers,
+      url: `https://dashboard.example${path}`,
+      nextUrl: { hostname: "dashboard.example", pathname: path },
+    },
+    classification: {
+      routeClass: "MANAGEMENT" as const,
+      reason: path.startsWith("/dashboard")
+        ? ("dashboard_prefix" as const)
+        : ("management_api" as const),
+      normalizedPath: path,
+    },
+    requestId: "req_remote_test",
+  };
+}
+
 test("managementPolicy: allows when auth not required (no password set)", async () => {
   await settingsDb.updateSettings({ requireLogin: true, password: null });
   const policy = await loadPolicy();
@@ -64,6 +83,19 @@ test("managementPolicy: allows when auth not required (no password set)", async 
   if (out.allow) {
     assert.equal(out.subject.kind, "anonymous");
     assert.equal(out.subject.label, "auth-disabled");
+  }
+});
+
+test("managementPolicy: rejects remote fresh bootstrap without a password", async () => {
+  await settingsDb.updateSettings({ requireLogin: true, password: null });
+  const policy = await loadPolicy();
+
+  const out = await policy.evaluate(remoteCtx(new Headers()));
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 401);
+    assert.equal(out.code, "AUTH_001");
   }
 });
 
