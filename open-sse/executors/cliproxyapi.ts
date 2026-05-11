@@ -330,11 +330,18 @@ export class CliproxyapiExecutor extends BaseExecutor {
 
   /**
    * Health check — verifies CLIProxyAPI is reachable.
+   *
+   * CPA 6.x doesn't expose a /health endpoint; previously we hit /health
+   * and got 404, which made the dashboard report "CLIProxyAPI not
+   * detected" even when the service was up and successfully serving
+   * /v1/messages. Probe /v1/models instead (returns 200 with the
+   * advertised model list), which is the closest thing CPA has to a
+   * liveness probe and works on every CPA version we've tested.
    */
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
     const start = Date.now();
     try {
-      const res = await fetch(`${this.upstreamBaseUrl}/health`, {
+      const res = await fetch(`${this.upstreamBaseUrl}/v1/models`, {
         signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
       });
       return {
