@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-05-11
+
+### New Features
+
+- feat(ui): enable sidebar style variants (floating and compact) in production.
+- feat(ci): add Claude GitHub Actions workflows from upstream.
+
+### Bug Fixes
+
+- fix(db): self-heal files table schema at runtime to avoid batch cleanup errors from missing columns (bytes, filename, purpose, api_key_id, etc.).
+- fix(ui): ensure top header banner uses a versioned public asset and is included in production builds.
+
+### Security
+
+- fix(security): sanitize downstream error messages in shared/cursor paths to avoid stack trace leakage in API responses.
+
 ## [3.7.9] — 2026-05-03
 
 ### ✨ New Features
