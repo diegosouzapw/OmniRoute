@@ -221,6 +221,34 @@
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-primary) 80%, #ffffff 20%);
 }
 
+/* Sidebar style variants from Settings > Appearance */
+.sidebar-root[data-sidebar-style="floating"] {
+  margin: 10px;
+  height: calc(100% - 20px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 65%, var(--color-primary) 35%);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.sidebar-root[data-sidebar-style="floating"] .sidebar-brand {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+.sidebar-root[data-sidebar-style="compact"].w-80 {
+  width: 17rem;
+}
+
+.sidebar-root[data-sidebar-style="compact"] .sidebar-link {
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+.sidebar-root[data-sidebar-style="compact"] .sidebar-section-title {
+  letter-spacing: 0.05em;
+  font-size: 0.64rem;
+}
+
 .sidebar-link.is-active::after {
   content: "";
   position: absolute;
