@@ -289,3 +289,90 @@ test("OpenAI -> Kiro merges adjacent user history turns after role normalization
   assert.equal(firstUser.content, "System rules\n\nFirst question");
   assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
 });
+
+test("OpenAI -> Kiro synthesizes tools schema when body.tools is omitted but history has tool_calls", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.7",
+    {
+      messages: [
+        { role: "user", content: "Start" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tooluse_1",
+              type: "function",
+              function: { name: "edit", arguments: '{"path":"x"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "tooluse_1", content: "ok" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tooluse_2",
+              type: "function",
+              function: { name: "bash", arguments: '{"cmd":"ls"}' },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "tooluse_2", content: "listing" },
+        { role: "user", content: "Continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    tools?: Array<{ toolSpecification: { name: string } }>;
+  };
+  const tools = ctx?.tools;
+  assert.ok(tools, "synthesized tools schema should be attached to currentMessage");
+  const names = tools.map((t) => t.toolSpecification.name).sort();
+  assert.deepEqual(names, ["bash", "edit"]);
+});
+
+test("OpenAI -> Kiro does not override body.tools when caller already provides a schema", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.7",
+    {
+      messages: [
+        { role: "user", content: "Start" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "tooluse_1",
+              type: "function",
+              function: { name: "read_file", arguments: "{}" },
+            },
+          ],
+        },
+        { role: "tool", tool_call_id: "tooluse_1", content: "ok" },
+        { role: "user", content: "Continue" },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "read_file",
+            description: "Real description",
+            parameters: { type: "object", properties: { path: { type: "string" } } },
+          },
+        },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    tools?: Array<{ toolSpecification: { name: string; description: string } }>;
+  };
+  const tools = ctx.tools;
+  assert.ok(tools);
+  assert.equal(tools.length, 1);
+  assert.equal(tools[0].toolSpecification.description, "Real description");
+});
