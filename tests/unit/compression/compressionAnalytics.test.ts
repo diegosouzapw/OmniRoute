@@ -89,6 +89,37 @@ describe("compressionAnalytics", () => {
     assert.equal(summary.totalRequests, 1);
   });
 
+  it("stores all RTK raw output pointers when provided", () => {
+    insertCompressionAnalyticsRow({
+      timestamp: new Date().toISOString(),
+      mode: "rtk",
+      original_tokens: 1000,
+      compressed_tokens: 500,
+      tokens_saved: 500,
+      rtk_raw_output_pointer: "raw_1",
+      rtk_raw_output_bytes: 100,
+      rtk_raw_output_pointers: JSON.stringify(["raw_1", "raw_2"]),
+      rtk_raw_output_total_bytes: 250,
+    });
+
+    const db = getDbInstance();
+    const row = db
+      .prepare(
+        "SELECT rtk_raw_output_pointer, rtk_raw_output_bytes, rtk_raw_output_pointers, rtk_raw_output_total_bytes FROM compression_analytics LIMIT 1"
+      )
+      .get() as {
+      rtk_raw_output_pointer: string;
+      rtk_raw_output_bytes: number;
+      rtk_raw_output_pointers: string;
+      rtk_raw_output_total_bytes: number;
+    };
+
+    assert.equal(row.rtk_raw_output_pointer, "raw_1");
+    assert.equal(row.rtk_raw_output_bytes, 100);
+    assert.equal(row.rtk_raw_output_pointers, JSON.stringify(["raw_1", "raw_2"]));
+    assert.equal(row.rtk_raw_output_total_bytes, 250);
+  });
+
   it("summary counts correctly after multiple inserts", () => {
     insertCompressionAnalyticsRow({
       timestamp: new Date().toISOString(),

@@ -3,7 +3,10 @@ import { BaseExecutor, mergeUpstreamExtraHeaders, type ExecuteInput } from "./ba
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import {
+  antigravityNativeOAuthUserAgent,
+  antigravityUserAgent,
+} from "../services/antigravityHeaders.ts";
 import { classify429, decide429, type Decision } from "../services/antigravity429Engine.ts";
 import {
   injectCreditsField,
@@ -14,19 +17,39 @@ import {
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
-import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
+import {
+  getCachedAntigravityVersion,
+  resolveAntigravityVersion,
+} from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
+import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
+import {
+  deriveAntigravityMachineId,
+  generateAntigravityRequestId,
+  getAntigravityEnvelopeUserAgent,
+  getAntigravitySessionId,
+  getAntigravityVscodeSessionId,
+} from "../services/antigravityIdentity.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
+
+function getChunkedOrFixedBody(bodyStr: string, stream: boolean) {
+  if (stream) {
+    return (async function* () {
+      yield new TextEncoder().encode(bodyStr);
+    })();
+  }
+  return bodyStr;
+}
 
 function cloneAntigravityRequestBody(body: unknown): unknown {
   if (!body || typeof body !== "object") {
@@ -63,10 +86,11 @@ type AntigravityCollectedStream = {
 type AntigravityRequestEnvelope = Record<string, unknown> & {
   project: string;
   model: string;
-  userAgent: "antigravity";
-  requestType: "agent";
+  userAgent: "antigravity" | "jetski";
+  requestType: "agent" | "image_gen";
   requestId: string;
   request: Record<string, unknown>;
+  enabledCreditTypes?: string[];
 };
 
 /**
@@ -235,6 +259,108 @@ function getRequestTargetModel(body: Record<string, unknown>): string {
   return typeof target === "string" && target.length > 0 ? target : "unknown";
 }
 
+function getProjectHeaderValue(body: unknown): string | null {
+  const project =
+    body && typeof body === "object" ? (body as Record<string, unknown>).project : null;
+  if (typeof project !== "string" || project.trim().length === 0) return null;
+  if (project === "test-project" || project === "project-id") return null;
+  return project;
+}
+
+function applyAntigravityRuntimeHeaders(
+  headers: Record<string, string>,
+  credentials: Record<string, unknown> | null | undefined,
+  body: unknown
+): void {
+  headers["User-Agent"] = antigravityUserAgent();
+  headers["x-client-name"] = "antigravity";
+  headers["x-client-version"] = getCachedAntigravityVersion();
+  headers["x-machine-id"] = deriveAntigravityMachineId(credentials);
+  headers["x-vscode-sessionid"] = getAntigravityVscodeSessionId();
+
+  const project = getProjectHeaderValue(body);
+  if (project) {
+    headers["x-goog-user-project"] = project;
+  }
+}
+
+function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
+  const lowerName = name.toLowerCase();
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === lowerName) {
+      delete headers[key];
+    }
+  }
+}
+
+function applyAntigravityGenerationDefaults(request: Record<string, unknown>): void {
+  const generationConfig =
+    request.generationConfig && typeof request.generationConfig === "object"
+      ? (request.generationConfig as Record<string, unknown>)
+      : {};
+
+  if (generationConfig.topK === undefined) {
+    generationConfig.topK = 40;
+  }
+  if (generationConfig.topP === undefined) {
+    generationConfig.topP = 1.0;
+  }
+
+  const thinkingConfig =
+    generationConfig.thinkingConfig && typeof generationConfig.thinkingConfig === "object"
+      ? (generationConfig.thinkingConfig as Record<string, unknown>)
+      : null;
+  const thinkingBudget = Number(thinkingConfig?.thinkingBudget);
+  const maxOutputTokens = Number(generationConfig.maxOutputTokens);
+  if (
+    Number.isFinite(thinkingBudget) &&
+    thinkingBudget > 0 &&
+    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
+  ) {
+    generationConfig.maxOutputTokens = Math.floor(thinkingBudget) + 1;
+  }
+
+  request.generationConfig = generationConfig;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function sanitizeAntigravityGeminiRequest(
+  request: Record<string, unknown>
+): Record<string, unknown> {
+  const clean: Record<string, unknown> = {};
+
+  if (Array.isArray(request.contents)) {
+    clean.contents = request.contents;
+  }
+
+  if (asRecord(request.systemInstruction)) {
+    clean.systemInstruction = request.systemInstruction;
+  }
+
+  clean.generationConfig = asRecord(request.generationConfig)
+    ? { ...(request.generationConfig as Record<string, unknown>) }
+    : {};
+
+  const geminiTools = buildGeminiTools(request.tools);
+  if (geminiTools) {
+    clean.tools = geminiTools;
+    clean.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
+  } else if (asRecord(request.toolConfig)) {
+    clean.toolConfig = request.toolConfig;
+  }
+
+  if (typeof request.sessionId === "string") {
+    clean.sessionId = request.sessionId;
+  }
+
+  return clean;
+}
+
 export class AntigravityExecutor extends BaseExecutor {
   constructor() {
     super("antigravity", PROVIDERS.antigravity);
@@ -306,71 +432,67 @@ export class AntigravityExecutor extends BaseExecutor {
       ? stripCloudCodeThinkingConfig(baseBody)
       : baseBody;
 
-    let transformedRequest;
-
-    if (isClaude) {
-      // Claude models on Vertex AI Cloud Code expect the native Anthropic payload
-      // exactly as generated by openaiToClaudeRequestForAntigravity, without Gemini mappings.
-      transformedRequest = {
-        ...normalizedBody.request,
-        sessionId: normalizedBody.request?.sessionId || this.generateSessionId(),
-      };
-    } else {
-      // Fix contents for Gemini models via Antigravity
-      const normalizedContents =
-        normalizedBody.request?.contents?.map((c) => {
-          let role = c.role;
-          if (c.parts?.some((p) => p.functionResponse)) {
-            role = "user";
-          }
-
-          const hasFunctionCall = c.parts?.some((p) => p.functionCall) || false;
-
-          const parts =
-            c.parts?.filter((p) => {
-              if (typeof p.text === "string" && p.text === "") return false;
-              if (p.functionCall && !p.functionCall.name) return false;
-
-              return !p.thought && (hasFunctionCall || !p.thoughtSignature);
-            }) || [];
-          return { ...c, role, parts };
-        }) || [];
-
-      const contents = [];
-      for (const c of normalizedContents) {
-        if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
-        if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
-          contents[contents.length - 1].parts.push(...c.parts);
-        } else {
-          contents.push(c);
+    // Fix contents for Gemini-compatible Cloud Code requests via Antigravity.
+    // Claude-branded Antigravity models use the same streamGenerateContent schema.
+    const normalizedContents =
+      normalizedBody.request?.contents?.map((c) => {
+        let role = c.role;
+        if (c.parts?.some((p) => p.functionResponse)) {
+          role = "user";
         }
+
+        const hasFunctionCall = c.parts?.some((p) => p.functionCall) || false;
+
+        const parts =
+          c.parts?.filter((p) => {
+            if (typeof p.text === "string" && p.text === "") return false;
+            if (p.functionCall && !p.functionCall.name) return false;
+
+            return !p.thought && (hasFunctionCall || !p.thoughtSignature);
+          }) || [];
+        return { ...c, role, parts };
+      }) || [];
+
+    const contents: any[] = [];
+    for (const c of normalizedContents) {
+      if (!Array.isArray(c.parts) || c.parts.length === 0) continue;
+      if (contents.length > 0 && contents[contents.length - 1].role === c.role) {
+        contents[contents.length - 1].parts.push(...c.parts);
+      } else {
+        contents.push(c);
       }
+    }
 
-      transformedRequest = {
-        ...normalizedBody.request,
-        ...(contents.length > 0 && { contents }),
-        sessionId: normalizedBody.request?.sessionId || this.generateSessionId(),
-        safetySettings: undefined,
-        toolConfig:
-          normalizedBody.request?.tools?.length > 0
-            ? { functionCallingConfig: { mode: "VALIDATED" } }
-            : normalizedBody.request?.toolConfig,
-      };
+    const rawTransformedRequest = {
+      ...normalizedBody.request,
+      ...(contents.length > 0 && { contents }),
+      sessionId: getAntigravitySessionId(credentials, normalizedBody.request?.sessionId),
+      safetySettings: undefined,
+      toolConfig:
+        normalizedBody.request?.tools?.length > 0
+          ? { functionCallingConfig: { mode: "VALIDATED" } }
+          : normalizedBody.request?.toolConfig,
+    };
 
-      // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
-      const requestContents = transformedRequest.contents;
-      if (Array.isArray(requestContents)) {
-        for (const msg of requestContents) {
-          if (Array.isArray(msg.parts)) {
-            for (const part of msg.parts) {
-              if (typeof part.text === "string") {
-                part.text = obfuscateSensitiveWords(part.text);
-              }
+    const transformedRequest = isClaude
+      ? sanitizeAntigravityGeminiRequest(rawTransformedRequest)
+      : rawTransformedRequest;
+
+    // Obfuscate sensitive client names in user content (e.g. "OpenCode", "Cursor")
+    const requestContents = transformedRequest.contents;
+    if (Array.isArray(requestContents)) {
+      for (const msg of requestContents) {
+        if (Array.isArray(msg.parts)) {
+          for (const part of msg.parts) {
+            if (typeof part.text === "string") {
+              part.text = obfuscateSensitiveWords(part.text);
             }
           }
         }
       }
     }
+
+    applyAntigravityGenerationDefaults(transformedRequest);
 
     const {
       project: _project,
@@ -382,15 +504,22 @@ export class AntigravityExecutor extends BaseExecutor {
       ...passthroughFields
     } = normalizedBody;
 
-    return {
+    const requestType = _requestType === "image_gen" ? "image_gen" : "agent";
+    const envelope: AntigravityRequestEnvelope = {
       project: projectId,
-      model: upstreamModel,
-      userAgent: "antigravity",
-      requestType: "agent",
-      requestId: `agent-${crypto.randomUUID()}`,
+      requestId: generateAntigravityRequestId(),
       request: transformedRequest,
+      model: upstreamModel,
+      userAgent: getAntigravityEnvelopeUserAgent(credentials),
+      requestType,
       ...passthroughFields,
     };
+
+    if (requestType === "agent" && envelope.enabledCreditTypes === undefined) {
+      envelope.enabledCreditTypes = ["GOOGLE_ONE_AI"];
+    }
+
+    return envelope;
   }
 
   async refreshCredentials(credentials, log) {
@@ -402,12 +531,13 @@ export class AntigravityExecutor extends BaseExecutor {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
+          "User-Agent": antigravityNativeOAuthUserAgent(),
         },
         body: new URLSearchParams({
           grant_type: "refresh_token",
-          refresh_token: credentials.refreshToken,
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
+          refresh_token: credentials.refreshToken || "",
+          client_id: this.config.clientId || "",
+          client_secret: this.config.clientSecret || "",
         }),
       });
 
@@ -617,6 +747,8 @@ export class AntigravityExecutor extends BaseExecutor {
         requestToolNameMap = cloaked.toolNameMap;
       }
 
+      applyAntigravityRuntimeHeaders(headers, credentials, transformedBody);
+
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
       // returns false and we fall back to the legacy retry-on-429 flow.
@@ -636,19 +768,58 @@ export class AntigravityExecutor extends BaseExecutor {
           headers,
           transformedBody
         );
-        const finalHeaders = serializedRequest.headers;
+        let finalHeaders = serializedRequest.headers;
 
         log?.debug?.(
           "TELEMETRY",
           `[Antigravity] Execute - URL: ${url}, Model: ${model}, Target: ${getRequestTargetModel(transformedBody)}, RetryAttempt: ${retryAttemptsByUrl[urlIndex]}`
         );
 
-        const response = await fetch(url, {
+        // Dump outgoing headers (mask Authorization) and envelope shape for debugging
+        if (log?.debug) {
+          const safeHeaders = { ...finalHeaders };
+          if (safeHeaders["Authorization"]) safeHeaders["Authorization"] = "Bearer ***";
+          log.debug("AG_REQUEST_HEADERS", JSON.stringify(safeHeaders));
+
+          const envelope = transformedBody as Record<string, unknown>;
+          const requestInner = envelope.request as Record<string, unknown> | undefined;
+          log.debug(
+            "AG_REQUEST_ENVELOPE",
+            JSON.stringify({
+              fieldOrder: Object.keys(envelope),
+              project: envelope.project,
+              requestId: envelope.requestId,
+              model: envelope.model,
+              userAgent: envelope.userAgent,
+              requestType: envelope.requestType,
+              enabledCreditTypes: envelope.enabledCreditTypes,
+              sessionId: requestInner?.sessionId,
+              generationConfig: requestInner?.generationConfig,
+            })
+          );
+        }
+
+        let response = await fetch(url, {
           method: "POST",
           headers: finalHeaders,
-          body: serializedRequest.bodyString,
+          body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
+          ...(stream ? { duplex: "half" } : {}),
           signal,
         });
+
+        if (response.status === HTTP_STATUS.FORBIDDEN && finalHeaders["x-goog-user-project"]) {
+          const retryHeaders = { ...finalHeaders };
+          removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
+          log?.debug?.("RETRY", "403 with x-goog-user-project, retrying once without it");
+          response = await fetch(url, {
+            method: "POST",
+            headers: retryHeaders,
+            body: getChunkedOrFixedBody(serializedRequest.bodyString, stream) as any,
+            ...(stream ? { duplex: "half" } : {}),
+            signal,
+          });
+          finalHeaders = retryHeaders;
+        }
 
         if (!response.ok) {
           log?.warn?.(
@@ -658,7 +829,7 @@ export class AntigravityExecutor extends BaseExecutor {
         }
 
         // Parse retry time for 429/503 responses
-        let retryMs = null;
+        let retryMs: number | null = null;
 
         if (
           response.status === HTTP_STATUS.RATE_LIMITED ||
@@ -713,7 +884,8 @@ export class AntigravityExecutor extends BaseExecutor {
                   const creditsResp = await fetch(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
-                    body: serializedCreditsRequest.bodyString,
+                    body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream) as any,
+                    ...(stream ? { duplex: "half" } : {}),
                     signal,
                   });
                   if (creditsResp.ok || creditsResp.status !== HTTP_STATUS.RATE_LIMITED) {

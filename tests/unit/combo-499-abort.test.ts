@@ -133,7 +133,7 @@ test("signal abort during fallback wait interrupts immediately", async () => {
     combo: makeCombo("priority", ["a/m1", "b/m2"]),
     handleSingleModel,
     log,
-    settings: { retryDelayMs: 5000 }, // 5s delay would normally be slow
+    settings: { fallbackDelayMs: 5000 }, // 5s delay would normally be slow
     allCombos: [],
     signal: ac.signal,
   });

@@ -28,6 +28,7 @@ async function seedUsageEntries(
     success?: boolean;
     latencyMs?: number;
     minutesAgo?: number;
+    serviceTier?: string;
   }>
 ) {
   for (const [i, e] of entries.entries()) {
@@ -41,6 +42,7 @@ async function seedUsageEntries(
       success: e.success !== false,
       latencyMs: e.latencyMs || 100,
       timestamp: new Date(Date.now() - (e.minutesAgo || i) * 60 * 1000).toISOString(),
+      serviceTier: e.serviceTier,
     });
   }
 }
@@ -87,6 +89,32 @@ test("getUsageDb filters by sinceIso date", async () => {
 
   assert.equal(result.data.history.length, 1);
   assert.equal(result.data.history[0].provider, "new");
+});
+
+test("usage history persists service tier and defaults to standard", async () => {
+  await usageHistory.saveRequestUsage({
+    provider: "codex",
+    model: "gpt-5.5",
+    tokens: { input: 100, output: 50 },
+    success: true,
+    serviceTier: "priority",
+    timestamp: new Date().toISOString(),
+  });
+  await usageHistory.saveRequestUsage({
+    provider: "openai",
+    model: "gpt-4o",
+    tokens: { input: 10, output: 5 },
+    success: true,
+    timestamp: new Date(Date.now() + 1).toISOString(),
+  });
+
+  const history = await usageHistory.getUsageHistory({ provider: "codex" });
+  const usageDb = await usageHistory.getUsageDb();
+
+  assert.equal(history.length, 1);
+  assert.equal(history[0].serviceTier, "priority");
+  assert.equal(usageDb.data.history[0].serviceTier, "priority");
+  assert.equal(usageDb.data.history[1].serviceTier, "standard");
 });
 
 test("getUsageDb provides nextCursor when rows exceed MAX_ROWS", async () => {

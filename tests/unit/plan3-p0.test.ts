@@ -28,9 +28,9 @@ test("getModelInfoCore keeps openai fallback for gpt-4o", async () => {
   assert.equal(info.model, "gpt-4o");
 });
 
-test("getModelInfoCore routes removed codex-auto-review through the default fallback", async () => {
+test("getModelInfoCore routes native codex-auto-review to codex", async () => {
   const info = await getModelInfoCore("codex-auto-review", {});
-  assert.equal(info.provider, "openai");
+  assert.equal(info.provider, "codex");
   assert.equal(info.model, "codex-auto-review");
 });
 

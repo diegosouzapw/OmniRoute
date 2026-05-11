@@ -68,6 +68,17 @@ describe("Caveman output mode", () => {
     assert.equal(result.body.messages?.at(-1)?.content, body.messages[0].content);
   });
 
+  it("uses Responses instructions when input has no messages", () => {
+    const result = applyCavemanOutputMode(
+      { input: [{ type: "message", role: "user", content: "Summarize logs." }] },
+      { enabled: true, intensity: "full", autoClarity: true }
+    );
+
+    assert.equal(result.applied, true);
+    assert.match(String(result.body.instructions), /Caveman Output Mode/);
+    assert.ok(!("messages" in result.body));
+  });
+
   it("bypasses security, destructive, clarification, and order-sensitive prompts", () => {
     const cases = [
       "Explain this security vulnerability in detail.",

@@ -91,8 +91,8 @@ test("payload rules route requires a dashboard session when management auth is e
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
-  assert.equal(invalidToken.status, 403);
-  assert.equal(invalidTokenBody.error.message, "Invalid management token");
+  assert.equal(invalidToken.status, 401);
+  assert.equal(invalidTokenBody.error.message, "Invalid API key");
   assert.equal(authenticated.status, 200);
   assert.deepEqual(authenticatedBody, {
     default: [],

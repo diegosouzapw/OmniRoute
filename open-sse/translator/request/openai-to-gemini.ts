@@ -3,7 +3,11 @@ import { FORMATS } from "../formats.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { ANTIGRAVITY_DEFAULT_SYSTEM } from "../../config/constants.ts";
 import { resolveGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
-import { openaiToClaudeRequestForAntigravity } from "./openai-to-claude.ts";
+import {
+  generateAntigravityRequestId,
+  getAntigravityEnvelopeUserAgent,
+  getAntigravitySessionId,
+} from "../../services/antigravityIdentity.ts";
 import {
   capMaxOutputTokens,
   capThinkingBudget,
@@ -74,9 +78,10 @@ type CloudCodeEnvelope = {
   project: string;
   model: string;
   user_prompt_id?: string;
-  userAgent?: string;
+  userAgent?: "antigravity" | "jetski" | string;
   requestId?: string;
   requestType?: string;
+  enabledCreditTypes?: string[];
   request: {
     session_id?: string;
     sessionId?: string;
@@ -128,6 +133,49 @@ function extractClientThoughtSignature(toolCall: unknown): string | null {
     candidate.function?.thought_signature ||
     null;
   return typeof signature === "string" && signature.length > 0 ? signature : null;
+}
+
+function deepCleanUndefined(value: unknown, depth = 0): void {
+  if (depth > 10 || !value || typeof value !== "object") {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      deepCleanUndefined(item, depth + 1);
+    }
+  } else {
+    const obj = value as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      const val = obj[key];
+      if (typeof val === "string" && val === "[undefined]") {
+        delete obj[key];
+      } else {
+        deepCleanUndefined(val, depth + 1);
+      }
+    }
+  }
+}
+
+function applyAntigravityGenerationDefaults(generationConfig: GeminiGenerationConfig) {
+  const config = { ...generationConfig };
+  if (config.topK === undefined) {
+    config.topK = 40;
+  }
+  if (config.topP === undefined) {
+    config.topP = 1.0;
+  }
+
+  const thinkingBudget = Number(config.thinkingConfig?.thinkingBudget);
+  const maxOutputTokens = Number(config.maxOutputTokens);
+  if (
+    Number.isFinite(thinkingBudget) &&
+    thinkingBudget > 0 &&
+    (!Number.isFinite(maxOutputTokens) || maxOutputTokens <= thinkingBudget)
+  ) {
+    config.maxOutputTokens = Math.floor(thinkingBudget) + 1;
+  }
+
+  return config;
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
@@ -331,8 +379,9 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
     ...toolNameOptions,
     toolNameMap,
   });
-  if (geminiTools) {
+  if (geminiTools && geminiTools.length > 0) {
     result.tools = geminiTools;
+    result.toolConfig = { functionCallingConfig: { mode: "VALIDATED" } };
   }
 
   // Convert response_format to Gemini's responseMimeType/responseSchema
@@ -355,6 +404,8 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
   if (changedToolNameMap) {
     result._toolNameMap = changedToolNameMap;
   }
+
+  deepCleanUndefined(result);
 
   return result;
 }
@@ -421,17 +472,18 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
   const envelope: CloudCodeEnvelope = isAntigravity
     ? {
         project: projectId,
-        model: cleanModel,
-        userAgent: "antigravity",
-        requestType: "agent",
-        requestId: `agent-${generateUUID()}`,
+        requestId: generateAntigravityRequestId(),
         request: {
-          sessionId: generateSessionId(),
+          sessionId: getAntigravitySessionId(credentials),
           contents: geminiCLI.contents,
           systemInstruction: geminiCLI.systemInstruction,
-          generationConfig: geminiCLI.generationConfig,
+          generationConfig: applyAntigravityGenerationDefaults(geminiCLI.generationConfig),
           tools: geminiCLI.tools,
         },
+        model: cleanModel,
+        userAgent: getAntigravityEnvelopeUserAgent(credentials),
+        requestType: "agent",
+        enabledCreditTypes: ["GOOGLE_ONE_AI"],
       }
     : {
         model: cleanModel,
@@ -481,63 +533,31 @@ function getAntigravityClaudeOutputTokens(body: Record<string, unknown>): number
   return ANTIGRAVITY_CLAUDE_MAX_OUTPUT_TOKENS;
 }
 
-function wrapInCloudCodeEnvelopeForClaude(
-  model,
-  claudeRequest,
-  credentials = null,
-  sourceBody = {}
-) {
-  let projectId = credentials?.projectId;
-
-  if (!projectId) {
-    console.warn(
-      `[OmniRoute] Antigravity/Claude account is missing projectId. ` +
-        `Attempting request with empty project — reconnect OAuth to resolve.`
-    );
-    projectId = "";
-  }
-
-  const cleanModel = model.includes("/") ? model.split("/").pop()! : model;
-
-  // Keep Antigravity's default and caller-provided system rules
-  let systemText = ANTIGRAVITY_DEFAULT_SYSTEM;
-  if (claudeRequest.system) {
-    if (Array.isArray(claudeRequest.system)) {
-      const texts = claudeRequest.system.map((b) => b.text).filter(Boolean);
-      if (texts.length > 0) systemText += "\n" + texts.join("\n");
-    } else if (typeof claudeRequest.system === "string") {
-      systemText += "\n" + claudeRequest.system;
-    }
-  }
-
-  const envelope: CloudCodeEnvelope = {
-    project: projectId,
-    model: cleanModel,
-    userAgent: "antigravity",
-    requestId: `agent-${generateUUID()}`,
-    requestType: "agent",
-    request: {
-      ...claudeRequest,
-      system: systemText,
-      max_tokens: getAntigravityClaudeOutputTokens(sourceBody),
-      sessionId: generateSessionId(),
-    },
-  };
-
-  return envelope;
-}
-
 // OpenAI -> Antigravity (Sandbox Cloud Code with wrapper)
 export function openaiToAntigravityRequest(model, body, stream, credentials = null) {
   const isClaude = model.toLowerCase().includes("claude");
+  const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
 
   if (isClaude) {
-    const claudeRequest = openaiToClaudeRequestForAntigravity(model, body, stream);
-    return wrapInCloudCodeEnvelopeForClaude(model, claudeRequest, credentials, body);
+    geminiCLI.generationConfig.maxOutputTokens = getAntigravityClaudeOutputTokens(body);
   }
 
-  const geminiCLI = openaiToGeminiCLIRequest(model, body, stream);
-  return wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
+  const envelope = wrapInCloudCodeEnvelope(model, geminiCLI, credentials, true);
+
+  // Match real Antigravity client: don't send maxOutputTokens when the user
+  // hasn't explicitly specified max_tokens / max_completion_tokens.
+  // The Cloud Code server decides the output limit on its own.
+  const clientRequestedMaxTokens = body.max_tokens ?? body.max_completion_tokens;
+  const hasThinking = !!envelope.request?.generationConfig?.thinkingConfig?.thinkingBudget;
+  if (
+    clientRequestedMaxTokens === undefined &&
+    !hasThinking &&
+    envelope.request?.generationConfig
+  ) {
+    delete envelope.request.generationConfig.maxOutputTokens;
+  }
+
+  return envelope;
 }
 
 // Register

@@ -1088,7 +1088,7 @@ export class CodexExecutor extends BaseExecutor {
     };
   }
 
-  buildUrl(model, stream, urlIndex = 0, credentials = null) {
+  buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: any = null) {
     void model;
     void stream;
     void urlIndex;

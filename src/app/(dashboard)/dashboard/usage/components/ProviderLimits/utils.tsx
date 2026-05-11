@@ -22,6 +22,16 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   agentic_request_freetrial: "Agentic (Trial)",
   credits: "AI Credits",
   models: "Models",
+  mcp_monthly: "Monthly",
+  "search-prime": "Web Search",
+  "web-reader": "Web Reader",
+  zread: "Zread",
+};
+
+const GLM_QUOTA_ORDER: Record<string, number> = {
+  session: 0,
+  weekly: 1,
+  mcp_monthly: 2,
 };
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -197,9 +207,10 @@ export function parseQuotaData(provider, data) {
   if (!data || typeof data !== "object") return [];
 
   const normalizedQuotas = [];
+  const providerId = String(provider || "").toLowerCase();
 
   try {
-    switch (provider.toLowerCase()) {
+    switch (providerId) {
       case "github":
         if (data.quotas) {
           Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
@@ -207,6 +218,21 @@ export function parseQuotaData(provider, data) {
               return;
             }
             normalizedQuotas.push(normalizeQuotaEntry(name, quota));
+          });
+        }
+        break;
+
+      case "glm":
+      case "glm-cn":
+      case "glmt":
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([name, quota]: [string, any]) => {
+            normalizedQuotas.push(
+              normalizeQuotaEntry(name, quota, {
+                displayName: quota?.displayName,
+                details: Array.isArray(quota?.details) ? quota.details : undefined,
+              })
+            );
           });
         }
         break;
@@ -297,6 +323,37 @@ export function parseQuotaData(provider, data) {
         }
         break;
 
+      case "deepseek":
+        // DeepSeek balance: credits-style display with currency
+        // Match any "credits" key with optional 3-letter currency suffix
+        if (data.quotas) {
+          Object.entries(data.quotas).forEach(([quotaKey, quota]: [string, any]) => {
+            // Match credits, credits_usd, credits_cny, credits_eur, etc.
+            const match = quotaKey.match(/^credits(?:_([a-z]{3}))?$/);
+            if (match) {
+              const remaining = Number(quota?.remaining ?? 0);
+              // Extract currency from key suffix or use quota.currency, fallback to USD
+              const currency = quota?.currency ?? (match[1] ? match[1].toUpperCase() : "USD");
+              normalizedQuotas.push({
+                name: currency,
+                used: 0,
+                total: 0,
+                remaining,
+                resetAt: null,
+                unlimited: false,
+                isCredits: true,
+                currency,
+                creditCount: remaining,
+                // Color coding based on balance amount: green >20, yellow 5-20, red <5
+                remainingPercentage: remaining > 20 ? 100 : remaining > 5 ? 60 : 20,
+              });
+            } else {
+              normalizedQuotas.push(normalizeQuotaEntry(quotaKey, quota));
+            }
+          });
+        }
+        break;
+
       default:
         // Generic fallback for unknown providers
         if (data.quotas) {
@@ -325,6 +382,14 @@ export function parseQuotaData(provider, data) {
     });
   }
 
+  if (providerId === "glm" || providerId === "glm-cn" || providerId === "glmt") {
+    normalizedQuotas.sort((a, b) => {
+      const orderA = GLM_QUOTA_ORDER[a.name] ?? 99;
+      const orderB = GLM_QUOTA_ORDER[b.name] ?? 99;
+      return orderA - orderB;
+    });
+  }
+
   return normalizedQuotas;
 }
 
@@ -341,6 +406,9 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.subscription,
     psd.tier,
     psd.accountTier,
+    // Claude OAuth bootstrap: rate_limit_tier has the Max 5x/20x multiplier.
+    psd.organizationRateLimitTier,
+    psd.organizationType,
   ];
 
   for (const candidate of candidates) {
@@ -353,7 +421,7 @@ export function resolvePlanValue(plan, providerSpecificData) {
 
 /**
  * Normalize provider-specific plan labels into a shared tier taxonomy.
- * Supported tiers: enterprise, business, team, ultra, pro, plus, free, unknown.
+ * Supported tiers: enterprise, business, team, ultra, pro, plus, lite, free, unknown.
  */
 export function normalizePlanTier(plan) {
   const raw = typeof plan === "string" ? plan.trim() : "";
@@ -366,6 +434,29 @@ export function normalizePlanTier(plan) {
   // Provider names that are not real plan tiers — treat as unknown
   if (PROVIDER_PLAN_FALLBACKS.has(raw.toLowerCase())) {
     return { key: "unknown", label: "Unknown", variant: "default", rank: 0, raw };
+  }
+
+  // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
+  // before the generic PRO/TEAM checks so underscored values don't fall through.
+  const claudeMatch = upper.match(/CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  if (claudeMatch) {
+    const family = claudeMatch[1];
+    const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
+    if (family === "MAX") {
+      return { key: "ultra", label: `Max${multiplier}`, variant: "success", rank: 4, raw };
+    }
+    if (family === "PRO") {
+      return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+    }
+    if (family === "TEAM") {
+      return { key: "team", label: "Team", variant: "info", rank: 6, raw };
+    }
+    if (family === "ENTERPRISE") {
+      return { key: "enterprise", label: "Enterprise", variant: "info", rank: 7, raw };
+    }
+    if (family === "FREE") {
+      return { key: "free", label: "Free", variant: "default", rank: 1, raw };
+    }
   }
 
   if (upper.includes("PRO+") || upper.includes("PRO PLUS") || upper.includes("PROPLUS")) {
@@ -393,8 +484,16 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
   }
 
+  if (upper.includes("MAX")) {
+    return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
+  }
+
   if (upper.includes("PRO") || upper.includes("PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+  }
+
+  if (upper.includes("LITE") || upper.includes("LIGHT")) {
+    return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
   }
 
   if (upper.includes("PLUS") || upper.includes("PAID")) {

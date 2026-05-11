@@ -99,15 +99,20 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.equal((context.toolResults as any).length, 2);
   assert.deepEqual(context.toolResults[0], {
     toolUseId: "call_1",
-    status: "SUCCESS",
+    status: "success",
     content: [{ text: "file contents" }],
   });
   assert.deepEqual(context.toolResults[1], {
     toolUseId: "call_1",
-    status: "SUCCESS",
+    status: "success",
     content: [{ text: "done" }],
   });
   assert.equal(context.tools[0].toolSpecification.name, "read_file");
+  assert.deepEqual(context.tools[0].toolSpecification.inputSchema.json, {
+    type: "object",
+    properties: { path: { type: "string" } },
+    required: [],
+  });
 });
 
 test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empty input", () => {
@@ -194,6 +199,29 @@ test("OpenAI -> Kiro maps invalid or empty assistant tool call arguments to empt
   );
 });
 
+test("OpenAI -> Kiro uses Continue currentMessage when the request ends with assistant history", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "First user" },
+        { role: "assistant", content: "Assistant answer" },
+      ],
+    },
+    false,
+    null
+  );
+
+  assert.match(
+    result.conversationState.currentMessage.userInputMessage.content,
+    /^\[Context: Current time is .*Z\]\n\nContinue$/
+  );
+  assert.deepEqual(result.conversationState.history, [
+    { userInputMessage: { content: "First user", modelId: "claude-sonnet-4" } },
+    { assistantResponseMessage: { content: "Assistant answer" } },
+  ]);
+});
+
 test("OpenAI -> Kiro derives a stable conversationId for the same first history turn", () => {
   const first = buildSamplePayload();
   const second = buildSamplePayload();
@@ -225,4 +253,39 @@ test("OpenAI -> Kiro still returns a valid payload for minimal requests", () => 
     /^\[Context: Current time is .*Z\]\n\nHi$/
   );
   assert.equal(result.conversationState.currentMessage.userInputMessage.modelId, "claude-sonnet-4");
+});
+
+test("OpenAI -> Kiro merges adjacent user history turns after role normalization", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "system", content: "System rules" },
+        { role: "user", content: "First question" },
+        { role: "assistant", content: "Answer 1" },
+        { role: "tool", tool_call_id: "call_orphan", content: "tool log" },
+        { role: "user", content: "Follow-up" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const history = result.conversationState.history as Array<{
+    userInputMessage?: { content: string };
+    assistantResponseMessage?: { content: string };
+  }>;
+
+  for (let i = 1; i < history.length; i++) {
+    assert.equal(
+      Boolean(history[i - 1].userInputMessage) && Boolean(history[i].userInputMessage),
+      false,
+      "history should not contain adjacent userInputMessage turns"
+    );
+  }
+
+  const firstUser = history[0].userInputMessage;
+  assert.ok(firstUser, "first history turn should be a user turn");
+  assert.equal(firstUser.content, "System rules\n\nFirst question");
+  assert.equal(history[1].assistantResponseMessage?.content, "Answer 1");
 });

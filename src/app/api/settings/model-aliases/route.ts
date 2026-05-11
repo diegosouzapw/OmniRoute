@@ -65,7 +65,7 @@ export async function PUT(request: Request) {
     }
     const { aliases } = validation.data;
     setCustomAliases(aliases);
-    await updateSettings({ modelAliases: JSON.stringify(aliases) });
+    await updateSettings({ modelAliases: aliases });
     return NextResponse.json({ success: true, custom: getCustomAliases() });
   } catch (error) {
     console.error("[API ERROR] /api/settings/model-aliases PUT:", error);
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     }
     const { from, to } = validation.data;
     addCustomAlias(from, to);
-    await updateSettings({ modelAliases: JSON.stringify(getCustomAliases()) });
+    await updateSettings({ modelAliases: getCustomAliases() });
     return NextResponse.json({ success: true, custom: getCustomAliases() });
   } catch (error) {
     console.error("[API ERROR] /api/settings/model-aliases POST:", error);
@@ -144,7 +144,7 @@ export async function DELETE(request: Request) {
     if (!removed) {
       return NextResponse.json({ error: "Alias not found" }, { status: 404 });
     }
-    await updateSettings({ modelAliases: JSON.stringify(getCustomAliases()) });
+    await updateSettings({ modelAliases: getCustomAliases() });
     return NextResponse.json({ success: true, custom: getCustomAliases() });
   } catch (error) {
     console.error("[API ERROR] /api/settings/model-aliases DELETE:", error);

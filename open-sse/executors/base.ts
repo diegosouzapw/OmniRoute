@@ -10,11 +10,25 @@ import {
   modelSupportsContext1mBeta,
 } from "../services/claudeCodeCompatible.ts";
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
-import { supportsXHighEffort } from "../config/providerModels.ts";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { randomUUID } from "node:crypto";
-import { createHash } from "node:crypto";
+import {
+  CLAUDE_CODE_VERSION,
+  CLAUDE_CODE_STAINLESS_VERSION,
+  buildHashFor,
+  buildUserIdJson,
+  getSessionId,
+  parseUpstreamMetadataUserId,
+  passthroughUpstreamSessionId,
+  resolveAccountUUID,
+  resolveCliUserID,
+  selectBetaFlags,
+  stainlessArch,
+  stainlessOS,
+  stainlessRuntimeVersion,
+  stripProxyToolPrefix,
+} from "./claudeIdentity.ts";
 
 /**
  * Sanitizes a custom API path to prevent path traversal attacks.
@@ -191,6 +205,10 @@ export class BaseExecutor {
     return Math.max(1, Math.floor(configured));
   }
 
+  getCountTokensTimeoutMs() {
+    return this.getTimeoutMs();
+  }
+
   buildUrl(
     model: string,
     stream: boolean,
@@ -214,7 +232,7 @@ export class BaseExecutor {
       return `${normalized}${path}`;
     }
     const baseUrls = this.getBaseUrls();
-    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl;
+    return baseUrls[urlIndex] || baseUrls[0] || this.config.baseUrl || "";
   }
 
   buildHeaders(
@@ -319,7 +337,10 @@ export class BaseExecutor {
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
-  async refreshCredentials(credentials: ProviderCredentials, log: ExecutorLog | null) {
+  async refreshCredentials(
+    credentials: ProviderCredentials,
+    log: ExecutorLog | null
+  ): Promise<Partial<ProviderCredentials> | null> {
     void credentials;
     void log;
     return null;
@@ -365,12 +386,12 @@ export class BaseExecutor {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let activeSignal = signal || null;
     let controller: AbortController | null = null;
-    const timeoutMs = this.getTimeoutMs();
+    const timeoutMs = this.getCountTokensTimeoutMs();
 
-    if (!activeSignal) {
+    if (timeoutMs > 0) {
       controller = new AbortController();
       timeoutId = setTimeout(() => controller?.abort(), timeoutMs);
-      activeSignal = controller.signal;
+      activeSignal = signal ? mergeAbortSignals(signal, controller.signal) : controller.signal;
     }
 
     try {
@@ -494,154 +515,250 @@ export class BaseExecutor {
           (clientHeaders?.["user-agent"] &&
             clientHeaders["user-agent"].toLowerCase().includes("claude-cli"));
 
+        // Anthropic's user:sessions:claude_code OAuth scope expects CLI-shaped
+        // traffic. Apply the cloak whenever we have an OAuth token, regardless
+        // of upstream client.
+        const hasClaudeOAuthToken =
+          typeof activeCredentials?.accessToken === "string" &&
+          activeCredentials.accessToken.startsWith("sk-ant-oat") &&
+          !activeCredentials?.apiKey;
+
         if (
           this.provider === "claude" &&
-          isClaudeCodeClient &&
+          (isClaudeCodeClient || hasClaudeOAuthToken) &&
           typeof transformedBody === "object" &&
           transformedBody !== null
         ) {
           const tb = transformedBody as Record<string, unknown>;
+
+          stripProxyToolPrefix(tb);
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
 
-          const ccVersion = "2.1.121";
-          // Fix #1638: Use a stable fingerprint instead of message-derived one.
-          // The original computeFingerprint() hashed first-user-message chars, which
-          // changes every conversation turn. This mutated the system[] prefix on each
-          // request, invalidating Anthropic's prompt-cache prefix and forcing ~100%
-          // cache_create (vs 96% cache_read with a stable prefix). Using a per-day
-          // hash keeps the billing header format while preserving cache affinity.
-          const dayStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-          const fp = createHash("sha256")
-            .update(`${dayStamp}${ccVersion}`)
-            .digest("hex")
-            .slice(0, 3);
-          const billingLine = `x-anthropic-billing-header: cc_version=${ccVersion}.${fp}; cc_entrypoint=cli; cch=00000;`;
-
-          if (Array.isArray(tb.system)) {
-            const sysBlocks = tb.system as Array<Record<string, unknown>>;
-            // Fix #1712: Remove any existing billing headers from the client
-            // to prevent stacking that breaks Anthropic prompt cache prefix matching.
-            for (let i = sysBlocks.length - 1; i >= 0; i--) {
-              const block = sysBlocks[i];
-              if (
-                block &&
-                typeof block.text === "string" &&
-                block.text.startsWith("x-anthropic-billing-header:")
-              ) {
-                sysBlocks.splice(i, 1);
-              }
+          // Real CLI never sets cache_control on tools.
+          if (Array.isArray(tb.tools)) {
+            for (const t of tb.tools as Array<Record<string, unknown>>) {
+              delete t.cache_control;
             }
-            const firstSystemCacheControl =
-              sysBlocks[0] &&
-              typeof sysBlocks[0] === "object" &&
-              !Array.isArray(sysBlocks[0]) &&
-              sysBlocks[0].cache_control
-                ? sysBlocks[0].cache_control
-                : undefined;
-            const billingBlock: Record<string, unknown> = { type: "text", text: billingLine };
-            if (firstSystemCacheControl) {
-              billingBlock.cache_control = firstSystemCacheControl;
+          }
+
+          // Per-request behavior overrides via custom client headers.
+          //   x-omniroute-effort:   low | medium | high | xhigh | off
+          //   x-omniroute-thinking: adaptive | off
+          // A header value applies only when the corresponding body field is
+          // not already set; "off" force-strips the field.
+          const headerEffort = (
+            clientHeaders?.["x-omniroute-effort"] ?? clientHeaders?.["X-OmniRoute-Effort"]
+          )
+            ?.trim()
+            .toLowerCase();
+          const headerThinking = (
+            clientHeaders?.["x-omniroute-thinking"] ?? clientHeaders?.["X-OmniRoute-Thinking"]
+          )
+            ?.trim()
+            .toLowerCase();
+          let appliedEffort: string | null = null;
+          let appliedThinking: string | null = null;
+
+          if (headerEffort === "off") {
+            if (tb.output_config && typeof tb.output_config === "object") {
+              delete (tb.output_config as Record<string, unknown>).effort;
             }
-            sysBlocks.unshift(billingBlock);
-          } else if (typeof tb.system === "string") {
-            tb.system = [
-              { type: "text", text: billingLine },
-              { type: "text", text: tb.system },
-            ];
-          } else {
-            tb.system = [{ type: "text", text: billingLine }];
+            appliedEffort = "off";
+          } else if (headerEffort && ["low", "medium", "high", "xhigh"].includes(headerEffort)) {
+            const oc =
+              tb.output_config && typeof tb.output_config === "object"
+                ? (tb.output_config as Record<string, unknown>)
+                : {};
+            if (oc.effort === undefined) {
+              oc.effort = headerEffort;
+              tb.output_config = oc;
+              appliedEffort = headerEffort;
+            }
           }
 
-          if (!tb.metadata || typeof tb.metadata !== "object") {
-            tb.metadata = {
-              user_id: JSON.stringify({
-                device_id: createHash("sha256").update("omniroute").digest("hex").slice(0, 24),
-                account_uuid: "",
-                session_id: randomUUID(),
-              }),
-            };
+          if (headerThinking === "adaptive") {
+            if (tb.thinking === undefined) {
+              tb.thinking = { type: "adaptive" };
+              appliedThinking = "adaptive";
+            }
+            if (tb.context_management === undefined) {
+              tb.context_management = {
+                edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+              };
+            }
+          } else if (headerThinking === "off") {
+            delete tb.thinking;
+            delete tb.context_management;
+            appliedThinking = "off";
+          } else if (!headerThinking && !headerEffort) {
+            // Default CC logic when no override headers are present
+            const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
+            if (isHaiku) {
+              delete tb.thinking;
+              delete tb.output_config;
+              delete tb.context_management;
+            } else if (tb.thinking === undefined && tb.output_config === undefined) {
+              tb.thinking = { type: "adaptive" };
+              tb.context_management = {
+                edits: [{ type: "clear_thinking_20251015", keep: "all" }],
+              };
+              tb.output_config = { effort: "high" };
+            }
           }
 
-          const supportsAdaptiveThinking = supportsXHighEffort("claude", model);
-
-          // Fix #1761: Only inject adaptive thinking/high effort if the client didn't
-          // explicitly set these fields. This allows users to opt-out by sending
-          // `thinking: null` or `output_config: { effort: "low" }` to prevent forced
-          // quota drain on Claude Max accounts.
-          const originalBody = body as Record<string, unknown>;
-          const clientExplicitThinking = originalBody?.thinking !== undefined;
-          const clientExplicitEffort = originalBody?.output_config !== undefined;
-
-          if (supportsAdaptiveThinking && !tb.thinking && !clientExplicitThinking) {
-            tb.thinking = { type: "adaptive" };
-          }
-
-          if (supportsAdaptiveThinking && !tb.context_management && !clientExplicitThinking) {
+          // Real CLI always pairs context_management with thinking. Mirror
+          // that invariant so long sessions don't accumulate thinking blocks
+          // toward the context cap.
+          if (tb.thinking && !tb.context_management) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };
           }
 
-          if (supportsAdaptiveThinking && !tb.output_config && !clientExplicitEffort) {
-            tb.output_config = { effort: "high" };
+          const seed = activeCredentials?.accessToken || activeCredentials?.apiKey || "anon";
+          const psd = activeCredentials?.providerSpecificData as
+            | Record<string, unknown>
+            | undefined;
+
+          let identitySource:
+            | "upstream-metadata"
+            | "upstream-header"
+            | "synthesized"
+            | "synthesized-cloaked" = "synthesized";
+          let sessionId: string;
+          let deviceId: string;
+          let accountUUID: string;
+
+          // For any Claude OAuth request, ignore client-supplied metadata.user_id /
+          // X-Claude-Code-Session-Id and synthesize per-account: the CC device_id from
+          // ~/.claude.json is shared across every account on one machine, which lets
+          // Anthropic correlate accounts behind one OmniRoute.
+          const cloakIdentity = isClaudeCodeClient || hasClaudeOAuthToken;
+          const upstreamUserId = cloakIdentity ? null : parseUpstreamMetadataUserId(tb);
+          if (upstreamUserId) {
+            sessionId = upstreamUserId.session_id;
+            deviceId = upstreamUserId.device_id;
+            accountUUID = upstreamUserId.account_uuid;
+            identitySource = "upstream-metadata";
+          } else {
+            const headerSid = cloakIdentity
+              ? null
+              : passthroughUpstreamSessionId(
+                  clientHeaders as Record<string, string | undefined> | undefined
+                );
+            sessionId = headerSid ?? getSessionId(seed);
+            deviceId = resolveCliUserID(psd, seed);
+            accountUUID = resolveAccountUUID(psd, seed, activeCredentials?.accessToken);
+            identitySource = headerSid
+              ? "upstream-header"
+              : cloakIdentity
+                ? "synthesized-cloaked"
+                : "synthesized";
           }
 
+          // system[0] (billing) and system[1] (sentinel) must not carry
+          // cache_control — that belongs on upstream prompt blocks at [2..].
+          const dayStamp = new Date().toISOString().slice(0, 10);
+          const buildHash = buildHashFor(CLAUDE_CODE_VERSION, dayStamp);
+          const billingLine = `x-anthropic-billing-header: cc_version=${CLAUDE_CODE_VERSION}.${buildHash}; cc_entrypoint=cli; cch=00000;`;
+          const SENTINEL = "You are Claude Code, Anthropic's official CLI for Claude.";
+
+          const sysBlocks: Array<Record<string, unknown>> = Array.isArray(tb.system)
+            ? (tb.system as Array<Record<string, unknown>>)
+            : typeof tb.system === "string"
+              ? [{ type: "text", text: tb.system }]
+              : [];
+
+          // Strip any pre-existing billing/sentinel before re-prepending — keeps
+          // retries idempotent and avoids stacking that breaks prompt-cache prefix
+          // matching (see issue #1712).
+          for (let i = sysBlocks.length - 1; i >= 0; i--) {
+            const t = sysBlocks[i]?.text;
+            if (typeof t === "string" && t.startsWith("x-anthropic-billing-header:")) {
+              sysBlocks.splice(i, 1);
+            }
+          }
+          for (let i = sysBlocks.length - 1; i >= 0; i--) {
+            const t = sysBlocks[i]?.text;
+            if (typeof t === "string" && t.startsWith(SENTINEL)) {
+              sysBlocks.splice(i, 1);
+            }
+          }
+          sysBlocks.unshift({ type: "text", text: billingLine }, { type: "text", text: SENTINEL });
+          tb.system = sysBlocks;
+
+          if (!tb.metadata || typeof tb.metadata !== "object") tb.metadata = {};
+          (tb.metadata as Record<string, unknown>).user_id = buildUserIdJson({
+            deviceId,
+            accountUUID,
+            sessionId,
+          });
+
+          // Headers. Accept stays application/json even on streams (Stainless
+          // convention; SSE decoding is gated on body.stream). anthropic-beta
+          // is selected per request shape; the full set on a quota probe is
+          // itself a fingerprint.
           const ccHeaders: Record<string, string> = {
+            Accept: "application/json",
             "anthropic-version": "2023-06-01",
-            "anthropic-beta":
-              "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,redact-thinking-2026-02-12,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advisor-tool-2026-03-01,advanced-tool-use-2025-11-20,effort-2025-11-24",
+            "anthropic-beta": selectBetaFlags(tb),
             "anthropic-dangerous-direct-browser-access": "true",
             "x-app": "cli",
-            "User-Agent": `claude-cli/${ccVersion} (external, cli)`,
-            "X-Stainless-Package-Version": "0.81.0",
+            "User-Agent": `claude-cli/${CLAUDE_CODE_VERSION} (external, cli)`,
+            "X-Stainless-Package-Version": CLAUDE_CODE_STAINLESS_VERSION,
             "X-Stainless-Timeout": "600",
-            "accept-language": "*",
             "accept-encoding": "gzip, deflate, br, zstd",
             connection: "keep-alive",
             "x-client-request-id": randomUUID(),
-            "X-Claude-Code-Session-Id": randomUUID(),
+            "X-Claude-Code-Session-Id": sessionId,
           };
-          // Remove any existing case variants of ccHeaders keys before merging.
-          // The claude provider config sets "Anthropic-Version" (Title-Case) while
-          // ccHeaders uses all-lowercase keys.  Both JS keys normalise to the same
-          // HTTP header name, so undici would combine them into "2023-06-01, 2023-06-01"
-          // causing a 400 from Anthropic (see issue #1454).
+
+          // Drop case variants of the same header name before merging — undici
+          // would otherwise concatenate them (issue #1454).
           const ccKeysLower = new Set(Object.keys(ccHeaders).map((k) => k.toLowerCase()));
           for (const key of Object.keys(headers)) {
-            if (ccKeysLower.has(key.toLowerCase())) {
-              delete headers[key];
-            }
+            if (ccKeysLower.has(key.toLowerCase())) delete headers[key];
           }
           Object.assign(headers, ccHeaders);
           delete headers["X-Stainless-Helper-Method"];
 
-          // Add X-Stainless headers to match real Claude Code
-          headers["X-Stainless-Arch"] = "x64";
+          // Stainless OS/Arch/Runtime are host-derived (Stainless SDK does the
+          // same at runtime). Hardcoding them was a unique-per-deployment tell.
+          headers["X-Stainless-Arch"] = stainlessArch();
           headers["X-Stainless-Lang"] = "js";
-          headers["X-Stainless-OS"] = "Windows";
+          headers["X-Stainless-OS"] = stainlessOS();
           headers["X-Stainless-Runtime"] = "node";
-          headers["X-Stainless-Runtime-Version"] = "v24.3.0";
+          headers["X-Stainless-Runtime-Version"] = stainlessRuntimeVersion();
           headers["X-Stainless-Retry-Count"] = "0";
           delete headers["X-Stainless-Os"];
 
-          console.log(
-            `[CLAUDE-PATCH] provider=${this.provider} tools remapped, billing header injected, body fields added, headers patched`
+          const overrideTag =
+            appliedEffort || appliedThinking
+              ? ` overrides=effort:${appliedEffort ?? "-"},thinking:${appliedThinking ?? "-"}`
+              : "";
+          log?.debug?.(
+            "CLAUDE",
+            `identity=${identitySource} sid=${sessionId.slice(0, 8)} dev=${deviceId.slice(0, 8)} acct=${accountUUID.slice(0, 8)}${overrideTag}`
           );
         }
 
-        // Apply CLI fingerprint ordering if enabled for this provider
+        // CLI fingerprint ordering — always-on for native Claude OAuth, opt-in
+        // for other providers. Header + body field order is itself a fingerprint.
         let finalHeaders = headers;
         let bodyString = JSON.stringify(transformedBody);
 
-        if (isCliCompatEnabled(this.provider)) {
+        const shouldFingerprint =
+          isCliCompatEnabled(this.provider) ||
+          (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken));
+        if (shouldFingerprint) {
           const fingerprinted = applyFingerprint(this.provider, headers, transformedBody);
           finalHeaders = fingerprinted.headers;
           bodyString = fingerprinted.bodyString;
         }
 
-        // CCH signing: Claude Code-compatible providers AND native claude provider
-        // require an xxHash64 integrity token over the serialized body.
+        // CCH signing — replaces the cch=00000 placeholder in the billing
+        // header with an xxHash64 integrity token over the serialized body.
         if (isClaudeCodeCompatible(this.provider) || this.provider === "claude") {
           bodyString = await signRequestBody(bodyString);
         }

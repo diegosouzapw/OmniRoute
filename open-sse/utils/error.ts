@@ -4,6 +4,19 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
 /**
+ * Sanitize an error message to prevent stack trace exposure in API responses.
+ * Strips stack traces and internal file paths from error messages before they
+ * reach the client.
+ */
+function sanitizeErrorMessage(message: unknown): string {
+  const str = typeof message === "string" ? message : String(message ?? "");
+  // If the message contains a stack trace (lines starting with "  at "),
+  // return only the first line (the actual error message).
+  const firstLine = str.split("\n")[0] || str;
+  return firstLine;
+}
+
+/**
  * Build OpenAI-compatible error response body
  * @param {number} statusCode - HTTP status code
  * @param {string} message - Error message
@@ -28,7 +41,7 @@ export function buildErrorBody(statusCode, message) {
  * @returns {Response} HTTP Response object
  */
 export function errorResponse(statusCode, message) {
-  return new Response(JSON.stringify(buildErrorBody(statusCode, message)), {
+  return new Response(JSON.stringify(buildErrorBody(statusCode, sanitizeErrorMessage(message))), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",

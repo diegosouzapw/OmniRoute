@@ -22,7 +22,10 @@ import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
-import { getGlmModelsUrl } from "@omniroute/open-sse/config/glmProvider.ts";
+import {
+  buildGlmCodingHeaders,
+  buildGlmModelsUrl,
+} from "@omniroute/open-sse/config/glmProvider.ts";
 import { getImageProvider } from "@omniroute/open-sse/config/imageRegistry.ts";
 import { getVideoProvider } from "@omniroute/open-sse/config/videoRegistry.ts";
 import { resolveAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
@@ -63,6 +66,7 @@ import {
   isAutoFetchModelsEnabled,
   persistDiscoveredModels,
 } from "@/lib/providerModels/modelDiscovery";
+import { fetchCursorAgentModels } from "@/lib/providerModels/cursorAgent";
 
 type JsonRecord = Record<string, unknown>;
 type LocalCatalogModel = {
@@ -1525,40 +1529,98 @@ export async function GET(
       });
     }
 
-    if (provider === "glm" || provider === "glmt") {
+    if (provider === "cursor") {
       const cachedResponse = maybeReturnCachedDiscovery();
       if (cachedResponse) return cachedResponse;
 
       const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
       if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
 
-      const url = getGlmModelsUrl(connection.providerSpecificData);
-      const token = apiKey || accessToken;
-
-      let response: Response;
       try {
-        response = await safeOutboundFetch(url, {
-          ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-          guard: getProviderOutboundGuard(),
-          proxyConfig: proxy,
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+        const models = await fetchCursorAgentModels();
+        return buildApiDiscoveryResponse(models);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.log("[models] cursor-agent fetch failed:", message);
+        const fallback = buildDiscoveryFallbackResponse({
+          cacheWarning: `cursor-agent unavailable (${message}) — using cached catalog`,
+          localWarning: `cursor-agent unavailable (${message}) — using local catalog`,
         });
+        if (fallback) return fallback;
+        return NextResponse.json(
+          { error: `Failed to fetch Cursor models: ${message}` },
+          { status: 502 }
+        );
+      }
+    }
+
+    if (provider === "glm" || provider === "glm-cn" || provider === "glmt") {
+      const cachedResponse = maybeReturnCachedDiscovery();
+      if (cachedResponse) return cachedResponse;
+
+      const autoFetchDisabledResponse = maybeReturnAutoFetchDisabled();
+      if (autoFetchDisabledResponse) return autoFetchDisabledResponse;
+
+      const token = apiKey || accessToken;
+      const glmProviderSpecificData = {
+        ...asRecord(connection.providerSpecificData),
+        ...(provider === "glm-cn" ? { apiRegion: "china" } : {}),
+      };
+      const discoveredTargets = [
+        {
+          transport: "openai" as const,
+          url: buildGlmModelsUrl(glmProviderSpecificData, "openai"),
+        },
+        {
+          transport: "anthropic" as const,
+          url: buildGlmModelsUrl(glmProviderSpecificData, "anthropic"),
+        },
+      ];
+      const discoveryTargets = discoveredTargets.filter(
+        (target, index, all) => all.findIndex((other) => other.url === target.url) === index
+      );
+
+      let response: Response | null = null;
+      try {
+        for (const target of discoveryTargets) {
+          response = await safeOutboundFetch(target.url, {
+            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
+            guard: getProviderOutboundGuard(),
+            proxyConfig: proxy,
+            method: "GET",
+            headers:
+              target.transport === "openai"
+                ? token
+                  ? buildGlmCodingHeaders(token, false)
+                  : { "Content-Type": "application/json", Accept: "application/json" }
+                : {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    ...(token ? { "x-api-key": token } : {}),
+                    "anthropic-version": "2023-06-01",
+                  },
+          });
+          if (response.ok) break;
+          if (response.status === 401 || response.status === 403) break;
+        }
       } catch (error) {
         const fallback = buildDiscoveryErrorFallbackResponse(error);
         if (fallback) return fallback;
         throw error;
       }
 
-      if (!response.ok) {
+      if (!response?.ok) {
+        if (response?.status === 401 || response?.status === 403) {
+          return NextResponse.json(
+            { error: `Failed to fetch models: ${response.status}` },
+            { status: response.status }
+          );
+        }
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
-          { error: `Failed to fetch models: ${response.status}` },
-          { status: response.status }
+          { error: `Failed to fetch models: ${response?.status || 502}` },
+          { status: response?.status || 502 }
         );
       }
 

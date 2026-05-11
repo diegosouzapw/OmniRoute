@@ -83,6 +83,7 @@ const nextConfig = {
     // runtime and are NOT always auto-traced by webpack/turbopack.
     "/*": [
       "./src/lib/db/migrations/**/*",
+      "./src/mitm/server.cjs",
       "./open-sse/services/compression/engines/rtk/filters/**/*.json",
       "./open-sse/services/compression/rules/**/*.json",
     ],
@@ -187,6 +188,14 @@ const nextConfig = {
       {
         source: "/v1",
         destination: "/api/v1",
+      },
+      {
+        source: "/v1beta/:path*",
+        destination: "/api/v1beta/:path*",
+      },
+      {
+        source: "/v1beta",
+        destination: "/api/v1beta",
       },
     ];
   },

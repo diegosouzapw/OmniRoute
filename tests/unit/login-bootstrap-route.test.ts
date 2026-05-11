@@ -184,6 +184,30 @@ test("login bootstrap route POST rejects unauthenticated writes after setup is c
   assert.equal(settings.requireLogin, true);
 });
 
+test("login bootstrap route POST allows first password creation after setup completed without a password", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    password: "",
+    setupComplete: true,
+  });
+
+  const request = new Request("http://localhost/api/settings/require-login", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ requireLogin: true, password: "first-secret" }),
+  });
+
+  const response = await route.POST(request);
+  const body = (await response.json()) as any;
+  const settings = await settingsDb.getSettings();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body, { success: true });
+  assert.equal(settings.requireLogin, true);
+  assert.ok(settings.password);
+  assert.equal(await bcrypt.compare("first-secret", settings.password), true);
+});
+
 test("public login bootstrap route POST returns 500 when hashing fails", async () => {
   bcrypt.hash = async () => {
     throw new Error("hash failed");
