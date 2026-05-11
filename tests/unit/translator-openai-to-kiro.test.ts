@@ -376,3 +376,66 @@ test("OpenAI -> Kiro does not override body.tools when caller already provides a
   assert.equal(tools.length, 1);
   assert.equal(tools[0].toolSpecification.description, "Real description");
 });
+
+test("OpenAI -> Kiro synthesizes tools from Anthropic-style tool_use content blocks", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.7",
+    {
+      messages: [
+        { role: "user", content: "Start" },
+        {
+          role: "assistant",
+          content: [
+            { type: "text", text: "Calling tools" },
+            { type: "tool_use", id: "tu_1", name: "search", input: { q: "x" } },
+            { type: "tool_use", id: "tu_2", name: "open_file", input: { path: "a" } },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            { type: "tool_result", tool_use_id: "tu_1", content: [{ type: "text", text: "hit" }] },
+            { type: "tool_result", tool_use_id: "tu_2", content: [{ type: "text", text: "ok" }] },
+          ],
+        },
+        { role: "user", content: "continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const ctx = result.conversationState.currentMessage.userInputMessage.userInputMessageContext as {
+    tools?: Array<{ toolSpecification: { name: string } }>;
+  };
+  const tools = ctx?.tools;
+  assert.ok(tools, "tools should be synthesized from tool_use content blocks");
+  const names = tools.map((t) => t.toolSpecification.name).sort();
+  assert.deepEqual(names, ["open_file", "search"]);
+});
+
+test("OpenAI -> Kiro attaches tools to currentMessage when history has no user turn to carry them", () => {
+  const result = buildKiroPayload(
+    "claude-opus-4.7",
+    {
+      messages: [
+        {
+          role: "assistant",
+          tool_calls: [
+            { id: "tc_1", type: "function", function: { name: "edit", arguments: "{}" } },
+          ],
+        },
+      ],
+    },
+    false,
+    null
+  );
+
+  const cm = result.conversationState.currentMessage.userInputMessage;
+  const ctx = cm.userInputMessageContext as {
+    tools?: Array<{ toolSpecification: { name: string } }>;
+  };
+  assert.ok(ctx?.tools, "tools should be attached to currentMessage fallback");
+  assert.equal(ctx.tools!.length, 1);
+  assert.equal(ctx.tools![0].toolSpecification.name, "edit");
+});

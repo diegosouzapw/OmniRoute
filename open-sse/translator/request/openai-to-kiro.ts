@@ -319,6 +319,38 @@ function convertMessages(messages, tools, model) {
     }
   }
 
+  // Fallback: if the schema was never attached to any user turn (e.g. the
+  // input contained no user messages and currentMessage is a synthesized
+  // "Continue" turn), attach the provided tools directly to currentMessage so
+  // Kiro still sees the schema it needs to validate assistant.toolUses in
+  // history.
+  if (
+    !toolsAttached &&
+    tools &&
+    tools.length > 0 &&
+    !currentMessage?.userInputMessage?.userInputMessageContext?.tools
+  ) {
+    if (!currentMessage.userInputMessage.userInputMessageContext) {
+      currentMessage.userInputMessage.userInputMessageContext = {};
+    }
+    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
+      const name = t.function?.name || t.name;
+      const description = t.function?.description || t.description || `Tool: ${name}`;
+      return {
+        toolSpecification: {
+          name,
+          description,
+          inputSchema: {
+            json: normalizeKiroToolSchema(
+              t.function?.parameters || t.parameters || t.input_schema || {}
+            ),
+          },
+        },
+      };
+    });
+    toolsAttached = true;
+  }
+
   // Clean up history for Kiro API compatibility
   history.forEach((item) => {
     if (item.userInputMessage?.userInputMessageContext?.tools) {
@@ -380,7 +412,7 @@ function convertMessages(messages, tools, model) {
     }
   }
 
-  return { history: mergedHistory, currentMessage };
+  return { history: mergedHistory, currentMessage, toolsAttached };
 }
 
 /**
@@ -409,20 +441,31 @@ export function buildKiroPayload(model, body, stream, credentials) {
   if (tools.length === 0) {
     const seen = new Set<string>();
     const synthesized: Array<Record<string, unknown>> = [];
+    const pushName = (name: unknown) => {
+      if (typeof name === "string" && name && !seen.has(name)) {
+        seen.add(name);
+        synthesized.push({
+          type: "function",
+          function: {
+            name,
+            description: `Tool: ${name}`,
+            parameters: { type: "object", properties: {}, required: [] },
+          },
+        });
+      }
+    };
     for (const msg of messages) {
-      if (msg?.role === "assistant" && Array.isArray(msg.tool_calls)) {
+      if (msg?.role !== "assistant") continue;
+      if (Array.isArray(msg.tool_calls)) {
         for (const tc of msg.tool_calls) {
-          const name = tc?.function?.name || tc?.name;
-          if (typeof name === "string" && name && !seen.has(name)) {
-            seen.add(name);
-            synthesized.push({
-              type: "function",
-              function: {
-                name,
-                description: `Tool: ${name}`,
-                parameters: { type: "object", properties: {}, required: [] },
-              },
-            });
+          pushName(tc?.function?.name || tc?.name);
+        }
+      }
+      // Anthropic-style assistant blocks: content:[{type:"tool_use", name, ...}]
+      if (Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block?.type === "tool_use") {
+            pushName(block.name);
           }
         }
       }
@@ -432,7 +475,11 @@ export function buildKiroPayload(model, body, stream, credentials) {
     }
   }
 
-  const { history, currentMessage } = convertMessages(messages, tools, normalizedModel);
+  const { history, currentMessage, toolsAttached } = convertMessages(
+    messages,
+    tools,
+    normalizedModel
+  );
 
   const profileArn = credentials?.providerSpecificData?.profileArn || "";
 
