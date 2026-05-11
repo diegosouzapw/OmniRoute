@@ -111,6 +111,7 @@
     "system-info": "node scripts/system-info.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1045.0",
     "@lobehub/icons": "^5.5.4",
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@monaco-editor/react": "^4.7.0",

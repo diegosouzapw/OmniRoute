@@ -381,6 +381,9 @@ interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
   customModels?: CompatModelRow[];
+  description: string;
+  inputLabel: string;
+  inputPlaceholder: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias: (modelId: string, alias: string) => Promise<void>;
@@ -2532,6 +2535,21 @@ export default function ProviderDetailPage() {
     }
 
     if (providerInfo.passthroughModels) {
+      const passthroughDescription =
+        providerId === "openrouter"
+          ? t("openRouterAnyModelHint")
+          : providerId === "bedrock"
+            ? t("bedrockModelsDescription")
+            : t("passthroughModelsDescription", { provider: providerInfo?.name || providerId });
+      const passthroughInputLabel =
+        providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
+      const passthroughInputPlaceholder =
+        providerId === "openrouter"
+          ? t("openRouterModelPlaceholder")
+          : providerId === "bedrock"
+            ? t("bedrockModelPlaceholder")
+            : t("openaiCompatibleModelPlaceholder");
+
       return (
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -2554,6 +2572,9 @@ export default function ProviderDetailPage() {
             providerAlias={providerAlias}
             modelAliases={modelAliases}
             customModels={modelMeta.customModels}
+            description={passthroughDescription}
+            inputLabel={passthroughInputLabel}
+            inputPlaceholder={passthroughInputPlaceholder}
             copied={copied}
             onCopy={copy}
             onSetAlias={handleSetAlias}
@@ -3725,6 +3746,9 @@ function PassthroughModelsSection({
   providerAlias,
   modelAliases,
   customModels = [],
+  description,
+  inputLabel,
+  inputPlaceholder,
   copied,
   onCopy,
   onSetAlias,
@@ -3809,13 +3833,13 @@ function PassthroughModelsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-muted">{t("openRouterAnyModelHint")}</p>
+      <p className="text-sm text-text-muted">{description}</p>
 
       {/* Add new model */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label htmlFor="new-model-input" className="text-xs text-text-muted mb-1 block">
-            {t("modelIdFromOpenRouter")}
+            {inputLabel}
           </label>
           <input
             id="new-model-input"
@@ -3823,7 +3847,7 @@ function PassthroughModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={t("openRouterModelPlaceholder")}
+            placeholder={inputPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
@@ -5611,7 +5635,9 @@ function AddApiKeyModal({
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const defaultRegion = "us-central1";
+  const isBedrock = provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const isGlm = provider === "glm" || provider === "glmt";
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
@@ -5633,7 +5659,7 @@ function AddApiKeyModal({
     priority: 1,
     baseUrl: defaultBaseUrl,
     cx: "",
-    region: isVertex ? defaultRegion : "",
+    region: showsRegion ? defaultRegion : "",
     apiRegion: "international",
     validationModelId: "",
     routingTags: "",
@@ -5702,6 +5728,7 @@ function AddApiKeyModal({
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -5749,6 +5776,7 @@ function AddApiKeyModal({
             validationModelId: formData.validationModelId || undefined,
             customUserAgent: formData.customUserAgent.trim() || undefined,
             baseUrl: formData.baseUrl.trim() || undefined,
+            region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
             cx: formData.cx.trim() || undefined,
           }),
         });
@@ -5795,8 +5823,8 @@ function AddApiKeyModal({
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
-      } else if (isVertex) {
-        providerSpecificData.region = formData.region;
+      } else if (showsRegion) {
+        providerSpecificData.region = formData.region.trim() || defaultRegion;
       } else if (isGlm) {
         providerSpecificData.apiRegion = formData.apiRegion;
       } else if (isCloudflare && formData.accountId.trim()) {
@@ -5998,7 +6026,7 @@ function AddApiKeyModal({
             hint={getProviderBaseUrlHint(provider, t)}
           />
         )}
-        {isVertex && (
+        {showsRegion && (
           <Input
             label={t("regionLabel")}
             value={formData.region}
@@ -6113,6 +6141,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
+  const isBedrock = connection?.provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
   const isGlm = connection?.provider === "glm" || connection?.provider === "glmt";
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
@@ -6124,7 +6154,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isPetals = connection?.provider === "petals";
   const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
-  const defaultRegion = "us-central1";
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const apiCredentialHint = isLocalSelfHostedProvider
     ? t("localProviderApiKeyOptionalHint", {
         provider: localProviderMetadata?.name || connection?.provider || "",
@@ -6163,7 +6193,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
         cx: existingCx,
-        region: existingRegion || (isVertex ? defaultRegion : ""),
+        region: existingRegion || (showsRegion ? defaultRegion : ""),
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
@@ -6195,7 +6225,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [isOpen, connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -6240,6 +6270,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -6316,6 +6347,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 validationModelId: formData.validationModelId || undefined,
                 customUserAgent: formData.customUserAgent.trim() || undefined,
                 baseUrl: formData.baseUrl.trim() || undefined,
+                region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
                 cx: formData.cx.trim() || undefined,
               }),
             });
@@ -6365,8 +6397,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         }
         if (usesBaseUrl) {
           updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (isVertex) {
-          updates.providerSpecificData.region = formData.region;
+        } else if (showsRegion) {
+          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
         } else if (isGlm) {
           updates.providerSpecificData.apiRegion = formData.apiRegion;
         } else if (isCloudflare && formData.accountId.trim()) {
@@ -6673,7 +6705,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           />
         )}
 
-        {isVertex && (
+        {showsRegion && (
           <Input
             label={t("regionLabel")}
             value={formData.region}

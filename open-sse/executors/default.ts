@@ -18,7 +18,6 @@ import {
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 import { buildDataRobotChatUrl } from "../config/datarobot.ts";
 import { buildAzureAiChatUrl } from "../config/azureAi.ts";
-import { buildBedrockChatUrl } from "../config/bedrock.ts";
 import { buildWatsonxChatUrl } from "../config/watsonx.ts";
 import { buildOciChatUrl } from "../config/oci.ts";
 import { buildSapChatUrl, getSapResourceGroup } from "../config/sap.ts";
@@ -151,10 +150,6 @@ export class DefaultExecutor extends BaseExecutor {
           credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeAzureAiChatUrl(baseUrl, apiType);
-      }
-      case "bedrock": {
-        const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
-        return buildBedrockChatUrl(baseUrl);
       }
       case "watsonx": {
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;

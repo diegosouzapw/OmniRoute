@@ -51,6 +51,7 @@ export async function POST(request) {
       validationModelId,
       customUserAgent,
       baseUrl: bodyBaseUrl,
+      region,
       cx,
     } = validation.data;
 
@@ -60,6 +61,9 @@ export async function POST(request) {
     }
     if (bodyBaseUrl) {
       providerSpecificData.baseUrl = bodyBaseUrl;
+    }
+    if (region) {
+      providerSpecificData.region = region;
     }
     if (cx) {
       providerSpecificData.cx = cx;

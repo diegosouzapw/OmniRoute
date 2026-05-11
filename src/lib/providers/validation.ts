@@ -33,11 +33,10 @@ import {
   buildAzureAiModelsUrl,
 } from "@omniroute/open-sse/config/azureAi.ts";
 import {
-  BEDROCK_DEFAULT_BASE_URL,
-  buildBedrockModelsUrl,
-  getBedrockValidationModelId,
-  normalizeBedrockBaseUrl,
-} from "@omniroute/open-sse/config/bedrock.ts";
+  discoverBedrockNativeModels,
+  isBedrockNativeApiError,
+  isBedrockNativeAuthError,
+} from "@omniroute/open-sse/services/bedrock.ts";
 import {
   DATAROBOT_DEFAULT_BASE_URL,
   buildDataRobotCatalogUrl,
@@ -287,6 +286,47 @@ function toValidationErrorResult(error: unknown) {
       : {}),
     ...(statusCode === 503 ? { securityBlocked: true } : {}),
   };
+}
+
+async function validateBedrockProvider({ apiKey, providerSpecificData = {} }: any) {
+  if (!apiKey) {
+    return { valid: false, error: "Provider and API key required" };
+  }
+
+  try {
+    const discovery = await discoverBedrockNativeModels({
+      apiKey,
+      providerSpecificData,
+      fetcher: (url, init) => validationRead(url, init),
+    });
+    return {
+      valid: true,
+      error: null,
+      method: "bedrock_native_models",
+      warning: discovery.warnings[0] || null,
+    };
+  } catch (error: any) {
+    if (isBedrockNativeAuthError(error)) {
+      return { valid: false, error: "Invalid API key" };
+    }
+    if (isBedrockNativeApiError(error)) {
+      if (error.status === 429) {
+        return {
+          valid: true,
+          error: null,
+          warning: "Bedrock accepted the key but model discovery is rate limited",
+          method: "bedrock_native_models",
+        };
+      }
+      if (typeof error.status === "number" && error.status >= 500) {
+        return { valid: false, error: `Provider unavailable (${error.status})` };
+      }
+      if (typeof error.status === "number") {
+        return { valid: false, error: `Bedrock validation failed: ${error.status}` };
+      }
+    }
+    return toValidationErrorResult(error);
+  }
 }
 
 async function validateOpenAILikeProvider({
@@ -2928,19 +2968,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     watsonx: validateWatsonxProvider,
     oci: validateOciProvider,
     sap: validateSapProvider,
-    bedrock: ({ apiKey, providerSpecificData }: any) => {
-      const baseUrl = normalizeBedrockBaseUrl(
-        providerSpecificData?.baseUrl || BEDROCK_DEFAULT_BASE_URL
-      );
-      return validateOpenAILikeProvider({
-        provider: "bedrock",
-        apiKey,
-        providerSpecificData,
-        baseUrl,
-        modelId: getBedrockValidationModelId(baseUrl),
-        modelsUrl: buildBedrockModelsUrl(baseUrl),
-      });
-    },
+    bedrock: validateBedrockProvider,
     modal: ({ apiKey, providerSpecificData }: any) =>
       validateOpenAILikeProvider({
         provider: "modal",

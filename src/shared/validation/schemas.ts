@@ -59,6 +59,19 @@ function validateProviderSpecificData(
     });
   }
 
+  const region = data.region;
+  if (
+    region !== undefined &&
+    region !== null &&
+    (typeof region !== "string" || region.length > 64)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "providerSpecificData.region must be a string up to 64 chars",
+      path: ["region"],
+    });
+  }
+
   const openaiStoreEnabled = data.openaiStoreEnabled;
   if (openaiStoreEnabled !== undefined && typeof openaiStoreEnabled !== "boolean") {
     ctx.addIssue({
@@ -1621,6 +1634,7 @@ export const validateProviderApiKeySchema = z
     validationModelId: z.string().trim().optional(),
     customUserAgent: z.string().trim().max(500).optional(),
     baseUrl: z.string().trim().url().optional(),
+    region: z.string().trim().max(64).optional(),
     cx: z.string().trim().max(500).optional(),
   })
   .superRefine((data, ctx) => {

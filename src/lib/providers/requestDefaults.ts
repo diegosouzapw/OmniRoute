@@ -20,6 +20,14 @@ function normalizeString(value: unknown): string | undefined {
   return normalized || undefined;
 }
 
+const BEDROCK_REGION_PATTERN = /^[a-z]{2}(?:-gov)?-[a-z]+-\d+$/i;
+
+function normalizeAwsRegion(value: unknown): string | undefined {
+  const normalized = normalizeString(value);
+  if (!normalized || !BEDROCK_REGION_PATTERN.test(normalized)) return undefined;
+  return normalized;
+}
+
 function hasNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -114,6 +122,15 @@ export function normalizeProviderSpecificData(
 
   if ("autoFetchModels" in normalized && typeof normalized.autoFetchModels !== "boolean") {
     delete normalized.autoFetchModels;
+  }
+
+  if (provider === "bedrock" && "region" in normalized) {
+    const region = normalizeAwsRegion(normalized.region);
+    if (region) {
+      normalized.region = region;
+    } else {
+      delete normalized.region;
+    }
   }
 
   if ("tag" in normalized) {
