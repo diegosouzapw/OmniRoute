@@ -66,6 +66,13 @@ test("classify429: 429 without quota keyword returns 'rate_limit'", () => {
     }),
     "rate_limit"
   );
+  assert.equal(
+    classify429({
+      status: 429,
+      body: "I am experiencing high traffic, please try again shortly.",
+    }),
+    "rate_limit"
+  );
 });
 
 test("looksLikeQuotaExhausted: detects all known keyword variants", () => {

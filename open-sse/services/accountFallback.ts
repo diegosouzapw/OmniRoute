@@ -458,8 +458,14 @@ export function lockModelIfPerModelQuota(
 export function shouldMarkAccountExhaustedFrom429(
   provider: string | null | undefined,
   model: string | null | undefined = null,
-  connectionPassthroughModels?: boolean
+  connectionPassthroughModels?: boolean,
+  failureKind?: FailureKind
 ): boolean {
+  // A plain 429 means transient rate limiting / high traffic for many OAuth providers.
+  // Only connection-poison the quota cache when the upstream body explicitly says
+  // the long-window quota is exhausted; otherwise fallback should try another account
+  // without making this one look quota-depleted for 5 minutes.
+  if (failureKind === "rate_limit" || failureKind === "transient") return false;
   return (
     shouldPreserveQuotaSignalsFor429(provider) &&
     !hasPerModelQuota(provider, model, connectionPassthroughModels)

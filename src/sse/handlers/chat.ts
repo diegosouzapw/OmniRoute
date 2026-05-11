@@ -1064,15 +1064,18 @@ async function handleSingleModelChat(
         dailyQuotaExhausted = true;
       }
 
-      // 7. Mark account as quota-exhausted on 429 response (non-daily-quota errors)
-      // For providers that route quota/cooldown at model scope, a 429 on one model
-      // does not mean the whole connection is exhausted.
-      // Daily quota errors are handled above; only process regular rate_limit here
+      // 7. Mark account as quota-exhausted only for explicit long-window quota signals.
+      // A plain 429/high-traffic response should trigger fallback/cooldown, not poison
+      // quotaCache as exhausted for 5 minutes while usage quota may still be available.
       if (!dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
+        const failureKind =
+          result.status === 429
+            ? classify429FromError({ status: result.status, message: errorStr })
+            : undefined;
         if (
           result.status === 429 &&
-          shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels)
+          shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels, failureKind)
         ) {
           markAccountExhaustedFrom429(credentials.connectionId, provider);
         }

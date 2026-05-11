@@ -295,6 +295,21 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
   assert.equal(shouldMarkAccountExhaustedFrom429("claude", "claude-sonnet-4-6"), true);
 });
 
+test("shouldMarkAccountExhaustedFrom429 does not poison quota cache for transient 429s", () => {
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "rate_limit"),
+    false
+  );
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "transient"),
+    false
+  );
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "quota_exhausted"),
+    true
+  );
+});
+
 test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {
   assert.equal(hasPerModelQuota("github"), true);
   assert.equal(hasPerModelQuota("github", "gpt-5.1-codex-max"), true);
