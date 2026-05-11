@@ -374,6 +374,7 @@ export class CursorExecutor extends BaseExecutor {
     const transformedBody = await this.transformRequest(model, body, stream, credentials);
 
     try {
+      const sanitize = (m: unknown) => (typeof m === "string" ? m.split("\n")[0] : String(m ?? ""));
       const response: CursorHttpResponse = http2
         ? await this.makeHttp2Request(url, headers, transformedBody, signal)
         : await this.makeFetchRequest(url, headers, transformedBody, signal);
@@ -383,7 +384,7 @@ export class CursorExecutor extends BaseExecutor {
         const errorResponse = new Response(
           JSON.stringify({
             error: {
-              message: `[${response.status}]: ${errorText}`,
+              message: `[${response.status}]: ${sanitize(errorText)}`,
               type: "invalid_request_error",
               code: "",
             },
@@ -406,7 +407,7 @@ export class CursorExecutor extends BaseExecutor {
       const errorResponse = new Response(
         JSON.stringify({
           error: {
-            message: error.message,
+            message: sanitize(error?.message),
             type: "connection_error",
             code: "",
           },
