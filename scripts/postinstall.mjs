@@ -141,10 +141,20 @@ async function fixBetterSqliteBinary() {
       ? "npm install better-sqlite3 --build-from-source --force"
       : "npm rebuild better-sqlite3";
 
+    const env = { ...process.env };
+    if (isAndroid) {
+      env.GYP_DEFINES = "android_ndk_path=''";
+    }
+
+    // app/ may not exist when running from source (before `npm run build`)
+    const appDir = join(ROOT, "app");
+    const rebuildCwd = existsSync(appDir) ? appDir : ROOT;
+
     execSync(rebuildCmd, {
-      cwd: join(ROOT, "app"),
+      cwd: rebuildCwd,
       stdio: "inherit",
-      timeout: 300_000, // 5 minutes for source builds
+      timeout: isAndroid ? 600_000 : 300_000, // ARM compilation is slower
+      env,
     });
 
     process.dlopen({ exports: {} }, appBinary);
@@ -153,7 +163,8 @@ async function fixBetterSqliteBinary() {
   } catch (err) {
     const isTimeout = err.killed || err.signal === "SIGTERM";
     if (isTimeout) {
-      console.warn("  ⚠️  npm rebuild timed out after 300s.");
+      const secs = process.platform === "android" ? 600 : 300;
+      console.warn(`  ⚠️  npm rebuild timed out after ${secs}s.`);
     } else {
       console.warn(`  ⚠️  npm rebuild failed: ${err.message}`);
     }
