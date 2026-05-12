@@ -178,15 +178,22 @@ describe("CliproxyapiExecutor", () => {
       assert.equal(result.thinking, undefined);
     });
 
-    it("does not touch thinking on OpenAI-shape bodies", () => {
+    it("does not strip OpenAI-shape bodies (no thinking, no system, string content)", () => {
       const exec = new CliproxyapiExecutor();
       const body = {
         model: "gpt-5.5",
-        messages: [{ role: "user", content: "hi" }],
-        thinking: { type: "adaptive", display: "summarized" },
+        messages: [
+          { role: "system", content: "be brief" },
+          { role: "user", content: "hi" },
+        ],
+        reasoning_effort: "medium",
       };
       const result = exec.transformRequest("gpt-5.5", body, true, {});
-      assert.deepEqual(result.thinking, { type: "adaptive", display: "summarized" });
+      // No Anthropic indicators present, so strips are skipped. Body
+      // passes through with its OpenAI fields preserved.
+      assert.equal(result.reasoning_effort, "medium");
+      assert.equal(result.thinking, undefined);
+      assert.equal(result.output_config, undefined);
     });
   });
 

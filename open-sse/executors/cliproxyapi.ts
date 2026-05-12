@@ -178,6 +178,20 @@ export class CliproxyapiExecutor extends BaseExecutor {
     // entry inside messages[], not at body level. Accept both string and
     // array-of-content-blocks forms (Anthropic supports both per the docs).
     if (b.system !== undefined) return true;
+    // Strong signal: top-level `thinking` field is Anthropic-only. OpenAI
+    // uses `reasoning` / `reasoning_effort`. Even adaptive/raw Capy shapes
+    // emit thinking, so this catches minimal Capy bodies (string content,
+    // no system block) that would otherwise miss the messages[0].content
+    // array check below.
+    if (b.thinking !== undefined) return true;
+    // Strong signal: top-level `metadata.user_id` is the CC wire-image
+    // identifier; OpenAI request bodies don't carry it.
+    if (
+      b.metadata &&
+      typeof b.metadata === "object" &&
+      (b.metadata as Record<string, unknown>).user_id !== undefined
+    )
+      return true;
     // Strong signal: messages[0].content is an array of Anthropic content blocks
     const msgs = b.messages;
     if (Array.isArray(msgs) && msgs.length > 0) {

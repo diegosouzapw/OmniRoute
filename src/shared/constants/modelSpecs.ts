@@ -94,6 +94,11 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-opus-4-6": {
     maxOutputTokens: 128000,
     contextWindow: 1000000,
+    // Anthropic accepts thinking.budget_tokens in [1024, 128000]; cap
+    // a bit below to leave headroom for the visible response within
+    // max_tokens (thinking + response must both fit under max_tokens).
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -104,6 +109,13 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-opus-4-7": {
     maxOutputTokens: 128000,
     contextWindow: 1000000,
+    // Anthropic accepts thinking.budget_tokens in [1024, 128000]; cap
+    // a bit below to leave headroom for the visible response within
+    // max_tokens. Without this cap, adaptive scaling on top of an
+    // `output_config.effort=max` request can push past 128000 and
+    // trigger a 400 "budget out of range" from Anthropic.
+    defaultThinkingBudget: 32000,
+    thinkingBudgetCap: 120000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
@@ -114,6 +126,9 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "claude-sonnet-4-6": {
     maxOutputTokens: 64000,
     contextWindow: 200000,
+    // ~94% of maxOutputTokens, mirroring the Opus 4.5 ratio (32000 / 32768).
+    defaultThinkingBudget: 16000,
+    thinkingBudgetCap: 60000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
