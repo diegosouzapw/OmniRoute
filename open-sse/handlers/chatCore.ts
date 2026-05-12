@@ -121,7 +121,7 @@ import {
   buildAccountSemaphoreKey,
   markBlocked as markAccountSemaphoreBlocked,
 } from "../services/accountSemaphore.ts";
-import { lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import { lockModel, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
 import {
   generateSignature,
   getCachedResponse,
@@ -178,6 +178,11 @@ import {
 import { setGeminiThoughtSignatureMode } from "../services/geminiThoughtSignatureStore.ts";
 import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
+import {
+  classifyModelScope429,
+  getModelScopeRetryDelayMs,
+  isModelScopeProvider,
+} from "../services/modelscopePolicy.ts";
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
 const CHAT_LOG_TEXT_LIMIT = 64 * 1024;
@@ -989,6 +994,7 @@ export async function handleChatCore({
   let { provider, model, extendedContext } = modelInfo;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
+  const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
   const startTime = Date.now();
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
   // a hung request was sitting on in `[STAGE_TRACE]` log lines.
@@ -2799,7 +2805,14 @@ export async function handleChatCore({
           async () => {
             trace("inside_rate_limit");
             let attempts = 0;
-            const maxAttempts = provider === "qwen" ? 3 : provider === "codex" ? 3 : 1;
+            const isModelScopeForRequest = isModelScope();
+            const maxAttempts = isModelScopeForRequest
+              ? 3
+              : provider === "qwen"
+                ? 3
+                : provider === "codex"
+                  ? 3
+                  : 1;
 
             // ── Codex 429 account-rotation state ─────────────────────────────────
             // Track excluded connection IDs for codex failover across attempts.
@@ -2839,6 +2852,28 @@ export async function handleChatCore({
                 if (bodyPeek.toLowerCase().includes("exceeded your current quota")) {
                   const delay = 1500 * (attempts + 1);
                   log?.warn?.("QWEN_RETRY", `Quota 429 hit. Retrying in ${delay}ms...`);
+                  await new Promise((r) => setTimeout(r, delay));
+                  attempts++;
+                  continue;
+                }
+              }
+
+              if (
+                isModelScope() &&
+                res.response.status === 429 &&
+                attempts < maxAttempts - 1
+              ) {
+                const bodyPeek = await res.response
+                  .clone()
+                  .text()
+                  .catch(() => "");
+                const decision = classifyModelScope429(bodyPeek, res.response.headers);
+                if (decision.retryable) {
+                  const delay = getModelScopeRetryDelayMs(res.response.headers, attempts);
+                  log?.warn?.(
+                    "MODELSCOPE_RETRY",
+                    `429 ${decision.kind}; retrying in ${delay}ms (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"})`
+                  );
                   await new Promise((r) => setTimeout(r, delay));
                   attempts++;
                   continue;
@@ -3234,7 +3269,18 @@ export async function handleChatCore({
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
-    const errorType = classifyProviderError(statusCode, message, provider);
+    let errorType = classifyProviderError(statusCode, message, provider);
+    if (statusCode === 429 && isModelScope()) {
+      const decision = classifyModelScope429(message, providerResponse.headers);
+      errorType =
+        decision.kind === "quota_exhausted"
+          ? PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED
+          : PROVIDER_ERROR_TYPES.RATE_LIMITED;
+      log?.warn?.(
+        "MODELSCOPE_429",
+        `${decision.kind} (model remaining: ${decision.snapshot.modelRemaining ?? "unknown"}, total remaining: ${decision.snapshot.totalRemaining ?? "unknown"})`
+      );
+    }
     if (connectionId && errorType) {
       try {
         if (errorType === PROVIDER_ERROR_TYPES.FORBIDDEN) {
@@ -3271,7 +3317,12 @@ export async function handleChatCore({
           if (accountSemaphoreKey) {
             markAccountSemaphoreBlocked(accountSemaphoreKey, quotaCooldownMs);
           }
-          if (
+          if (isModelScope() && connectionId) {
+            lockModel(provider, connectionId, model, "quota_exhausted", quotaCooldownMs);
+            console.warn(
+              `[provider] Node ${connectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+            );
+          } else if (
             lockModelIfPerModelQuota(
               provider,
               connectionId,

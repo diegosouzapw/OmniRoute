@@ -41,6 +41,7 @@ blob-report
 docs
 *.md
 !README.md
+!docs/openapi.yaml
 
 # Electron (separate build)
 electron
