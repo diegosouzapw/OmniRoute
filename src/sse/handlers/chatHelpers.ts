@@ -25,6 +25,9 @@ import {
 } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveProxyForConnection } from "@/lib/localDb";
 import { CircuitBreakerOpenError, getCircuitBreaker } from "../../shared/utils/circuitBreaker";
+import { classify429FromError, type FailureKind } from "../../shared/utils/classify429";
+import { resolveUseUpstream429BreakerHints } from "../../shared/utils/providerHints";
+
 import { logProxyEvent } from "../../lib/proxyLogger";
 import { logTranslationEvent } from "../../lib/translatorEvents";
 import { getRuntimeProviderProfile } from "@omniroute/open-sse/services/accountFallback.ts";
@@ -238,11 +241,25 @@ export async function checkPipelineGates(
 ) {
   const bypassReason = options.bypassReason || "pipeline override";
   const providerProfile = options.providerProfile ?? (await getRuntimeProviderProfile(provider));
+  // Issue #2100 follow-up: opt-in upstream 429 hint trust per provider.
+  const useHints429 = resolveUseUpstream429BreakerHints(
+    provider,
+    (providerProfile as { useUpstream429BreakerHints?: boolean }).useUpstream429BreakerHints
+  );
   const breaker = getCircuitBreaker(provider, {
     failureThreshold: providerProfile.failureThreshold ?? providerProfile.circuitBreakerThreshold,
     resetTimeout: providerProfile.resetTimeoutMs ?? providerProfile.circuitBreakerReset,
     onStateChange: (name: string, from: string, to: string) =>
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
+    ...(useHints429
+      ? {
+          cooldownByKind: {
+            rate_limit: 60_000,
+            quota_exhausted: 3_600_000,
+          } satisfies Partial<Record<FailureKind, number>>,
+          classifyError: classify429FromError,
+        }
+      : {}),
   });
   if (options.ignoreCircuitBreaker && !breaker.canExecute()) {
     log.info("CIRCUIT", `Bypassing OPEN circuit breaker for ${provider} (${bypassReason})`);

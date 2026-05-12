@@ -38,8 +38,7 @@ playwright-report
 blob-report
 
 # Documentation (not needed in container)
-docs
-!docs/openapi.yaml
+!docs/
 *.md
 !README.md
 

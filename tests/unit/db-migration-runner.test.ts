@@ -858,6 +858,141 @@ test(
 );
 
 test(
+  "runMigrations ignores superseded 041 session affinity duplicate when 050 exists",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      const count = withMockedMigrationFs(
+        {
+          "038_compression_analytics.sql": `
+            CREATE TABLE compression_analytics (
+              id TEXT PRIMARY KEY,
+              request_id TEXT
+            );
+          `,
+          "041_compression_receipts.sql": "-- handled by migrationRunner",
+          "041_session_account_affinity.sql": `
+            CREATE TABLE duplicate_041_session_account_affinity (id TEXT PRIMARY KEY);
+          `,
+          "050_session_account_affinity.sql": `
+            CREATE TABLE IF NOT EXISTS session_account_affinity (
+              session_key TEXT NOT NULL,
+              provider TEXT NOT NULL,
+              connection_id TEXT NOT NULL,
+              created_at INTEGER NOT NULL,
+              last_seen_at INTEGER NOT NULL,
+              PRIMARY KEY (session_key, provider)
+            );
+          `,
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 3);
+      assert.equal(
+        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("041")?.name,
+        "compression_receipts"
+      );
+      assert.equal(
+        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("050")?.name,
+        "session_account_affinity"
+      );
+      assert.deepEqual(
+        db
+          .prepare(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN (?, ?) ORDER BY name"
+          )
+          .all("duplicate_041_session_account_affinity", "session_account_affinity"),
+        [{ name: "session_account_affinity" }]
+      );
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "reconcileRenumberedMigrations moves legacy 041 session affinity marker to 050",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE compression_analytics (
+          id TEXT PRIMARY KEY,
+          request_id TEXT
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "041",
+        "session_account_affinity"
+      );
+
+      const consoleErrors: string[] = [];
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        consoleErrors.push(args.map(String).join(" "));
+      };
+
+      try {
+        const count = withMockedMigrationFs(
+          {
+            "041_compression_receipts.sql": "-- handled by migrationRunner",
+            "041_session_account_affinity.sql": `
+              CREATE TABLE duplicate_041_session_account_affinity (id TEXT PRIMARY KEY);
+            `,
+            "050_session_account_affinity.sql": `
+              CREATE TABLE IF NOT EXISTS session_account_affinity (
+                session_key TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                connection_id TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                last_seen_at INTEGER NOT NULL,
+                PRIMARY KEY (session_key, provider)
+              );
+            `,
+          },
+          () => runner.runMigrations(db)
+        );
+
+        assert.equal(count, 1);
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("041")?.name,
+          "compression_receipts"
+        );
+        assert.equal(
+          db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("050")?.name,
+          "session_account_affinity"
+        );
+
+        const renumberingWarnings = consoleErrors.filter(
+          (e) => e.includes("CRITICAL") && e.includes("renumbered")
+        );
+        assert.equal(
+          renumberingWarnings.length,
+          0,
+          `Expected no renumbering warnings, got: ${renumberingWarnings.join("; ")}`
+        );
+      } finally {
+        console.error = originalError;
+      }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
   "full upgrade simulation: all 3 renumbered migrations reconciled without CRITICAL warnings",
   serial,
   async () => {

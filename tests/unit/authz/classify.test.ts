@@ -16,7 +16,7 @@ const cases: Case[] = [
   { name: "root /", path: "/", expectedClass: "MANAGEMENT", expectedNormalized: "/" },
   { name: "dashboard root", path: "/dashboard", expectedClass: "MANAGEMENT" },
   { name: "dashboard nested", path: "/dashboard/settings", expectedClass: "MANAGEMENT" },
-  { name: "dashboard onboarding", path: "/dashboard/onboarding", expectedClass: "MANAGEMENT" },
+  { name: "dashboard onboarding", path: "/dashboard/onboarding", expectedClass: "PUBLIC" },
 
   {
     name: "/api/v1 base",

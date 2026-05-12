@@ -134,6 +134,7 @@ let tunnelProcess: ReturnType<typeof spawn> | null = null;
 let tunnelPid: number | null = null;
 let installPromise: Promise<string> | null = null;
 let startPromise: Promise<CloudflaredTunnelStatus> | null = null;
+let stateFileQueue: Promise<void> = Promise.resolve();
 const NON_ACTIONABLE_CLOUDFLARED_WARNING_PATTERNS = [
   /failed to sufficiently increase receive buffer size/i,
 ] as const;
@@ -205,14 +206,35 @@ async function readStateFile(): Promise<PersistedTunnelState> {
   }
 }
 
-async function writeStateFile(state: PersistedTunnelState) {
+async function writeStateFileNow(state: PersistedTunnelState) {
   await ensureTunnelDir();
   await fs.writeFile(getStateFilePath(), JSON.stringify(state, null, 2) + "\n", "utf8");
 }
 
+async function withStateFileLock<T>(operation: () => Promise<T>): Promise<T> {
+  const previous = stateFileQueue;
+  let release!: () => void;
+  stateFileQueue = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+}
+
+async function writeStateFile(state: PersistedTunnelState) {
+  await withStateFileLock(() => writeStateFileNow(state));
+}
+
 async function updateStateFile(patch: PersistedTunnelState) {
-  const current = await readStateFile();
-  await writeStateFile({ ...current, ...patch });
+  await withStateFileLock(async () => {
+    const current = await readStateFile();
+    await writeStateFileNow({ ...current, ...patch });
+  });
 }
 
 async function clearPidFile() {

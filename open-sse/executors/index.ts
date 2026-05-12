@@ -22,6 +22,8 @@ import { AzureOpenAIExecutor } from "./azure-openai.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
+import { WindsurfExecutor } from "./windsurf.ts";
+import { DevinCliExecutor } from "./devin-cli.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -62,6 +64,10 @@ const executors = {
   "bb-web": new BlackboxWebExecutor(), // Alias
   "muse-spark-web": new MuseSparkWebExecutor(),
   "ms-web": new MuseSparkWebExecutor(), // Alias
+  windsurf: new WindsurfExecutor(),
+  ws: new WindsurfExecutor(), // Alias
+  "devin-cli": new DevinCliExecutor(),
+  devin: new DevinCliExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -102,3 +108,5 @@ export { AzureOpenAIExecutor } from "./azure-openai.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
+export { WindsurfExecutor } from "./windsurf.ts";
+export { DevinCliExecutor } from "./devin-cli.ts";

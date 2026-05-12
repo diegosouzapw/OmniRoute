@@ -1,6 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { CLAUDE_SYSTEM_PROMPT } from "../../config/constants.ts";
+// CLAUDE_SYSTEM_PROMPT import removed — no longer injected unconditionally (#1966/#2130)
 import { supportsXHighEffort } from "../../config/providerModels.ts";
 import { adjustMaxTokens } from "../helpers/maxTokensHelper.ts";
 import { sanitizeToolId } from "../helpers/schemaCoercion.ts";
@@ -313,11 +313,29 @@ export function openaiToClaudeRequest(model, body, stream) {
   }
 
   // System messages and cache_control
+  // Fix #2130: Preserve body.system when present (Claude Code sends system as native
+  // Anthropic array through the /chat/completions endpoint). Without this, the system
+  // prompt is silently dropped when no role="system" messages exist in body.messages.
   if (systemParts.length > 0) {
     const systemText = systemParts.join("\n");
-    result.system = [
-      { type: "text", text: systemText, cache_control: { type: "ephemeral", ttl: "1h" } },
-    ];
+    const systemBlock = {
+      type: "text",
+      text: systemText,
+      cache_control: { type: "ephemeral", ttl: "1h" },
+    };
+    // Merge with existing body.system if present
+    if (Array.isArray(body.system)) {
+      result.system = [...body.system, systemBlock];
+    } else if (typeof body.system === "string" && body.system.length > 0) {
+      result.system = [{ type: "text", text: body.system }, systemBlock];
+    } else {
+      result.system = [systemBlock];
+    }
+  } else if (body.system) {
+    // No role="system" messages, but body.system exists — pass through as-is
+    result.system = Array.isArray(body.system)
+      ? body.system
+      : [{ type: "text", text: String(body.system) }];
   }
 
   // Thinking configuration
