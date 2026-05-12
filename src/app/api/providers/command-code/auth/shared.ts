@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { randomBytes } from "crypto";
 
 import { NextResponse } from "next/server";

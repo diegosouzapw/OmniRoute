@@ -133,7 +133,7 @@ export function markCommandCodeAuthSessionReceived(input: {
     receivedAt: now,
   };
   const encryptedApiKey = encrypt(input.apiKey);
-  const result = db()
+  db()
     .prepare(
       `UPDATE command_code_auth_sessions
        SET status = 'received', encrypted_api_key = ?, metadata_json = ?, received_at = ?, updated_at = ?
@@ -141,7 +141,6 @@ export function markCommandCodeAuthSessionReceived(input: {
     )
     .run(encryptedApiKey, JSON.stringify(metadata), now, now, input.stateHash, now);
 
-  if (!result.changes) return getCommandCodeAuthSessionSafeStatus(input.stateHash);
   return getCommandCodeAuthSessionSafeStatus(input.stateHash);
 }
 
