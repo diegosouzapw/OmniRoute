@@ -245,7 +245,8 @@ if (portIdx !== -1 && args[portIdx + 1]) {
 
 const apiPort = parsePort(process.env.API_PORT || String(port), port);
 const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-const noOpen = args.includes("--no-open");
+const isAndroid = process.platform === 'android';
+let noOpen = args.includes("--no-open") || isAndroid;
 
 console.log(`
 \x1b[36m   ____                  _ ____              _
@@ -255,6 +256,16 @@ console.log(`
   | |__| | | | | | | | | | | | \\\\ \\\\ (_) | |_| | ||  __/
    \\\\____/|_| |_| |_|_| |_|_|_|  \\\\_\\\\___/ \\\\__,_|\\\\__\\\\___|
 \x1b[0m`);
+
+if (isAndroid) {
+  console.log(`\x1b[33m[OmniRoute] Running on Android/Termux — headless mode enabled automatically\x1b[0m`);
+  console.log(`\x1b[33m[OmniRoute] Platform: android/arm64 — unsupported features:\x1b[0m
+  - Codex Responses WebSocket (wreq-js unavailable)
+  - ChatGPT Web TLS impersonation (tls-client-node unavailable)
+  - Electron desktop app
+  - MITM proxy / system certificate install
+`);
+}
 
 const nodeSupport = getNodeRuntimeSupport();
 if (!nodeSupport.nodeCompatible) {
