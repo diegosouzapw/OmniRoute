@@ -1,4 +1,4 @@
-FROM node:24.15.0-trixie-slim AS builder
+FROM node:26.1.0-trixie-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
@@ -19,7 +19,7 @@ RUN if [ -f package-lock.json ]; then \
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
-FROM node:24.15.0-trixie-slim AS runner-base
+FROM node:26.1.0-trixie-slim AS runner-base
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="omniroute" \
