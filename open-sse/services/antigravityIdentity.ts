@@ -58,12 +58,15 @@ export function generateAntigravityRequestId(): string {
 export function generateAntigravitySessionId(): string {
   const max = 18446744073709551615n; // 2^64 - 1
   const target = 9_000_000_000_000_000_000n;
+  // Rejection sampling: discard values in [limit, max] that would cause modulo bias.
+  // Accepted range [0, limit) divides evenly by target, so value % target is uniform.
   const limit = max - (max % target);
   let value: bigint;
   do {
     value = crypto.randomBytes(8).readBigUInt64BE();
   } while (value >= limit);
-  return `-${(value % target).toString()}`;
+  // lgtm[js/biased-cryptographic-random] — rejection sampling above eliminates bias
+  return `-${(value % target).toString()}`; // nosemgrep: biased-cryptographic-random
 }
 
 export function deriveAntigravitySessionId(accountKey?: string | null): string | null {

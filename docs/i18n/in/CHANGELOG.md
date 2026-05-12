@@ -15,6 +15,10 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** strip OpenAI-specific fields in Kiro translator to prevent 400 errors (#2037)
+- **fix(ui):** resolve text contrast issues for zero-config warning banner in light mode (#2050)
+- **fix(core):** inject global system prompt correctly into downstream chat completions pipeline (#2080)
+- **fix(routing):** add missing v1beta rewrites to next.config to resolve 404 on Gemini models endpoint (#2102)
 - **fix(cache):** optimize cache_control preservation logic and explicitly align tool schema with upstream Claude Code expectations
 - **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)

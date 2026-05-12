@@ -406,7 +406,7 @@ test("Responses→Chat streaming: reasoning delta emits reasoning_content in Cha
   };
   const result = openaiResponsesToOpenAIResponse(chunk, state);
   assert.ok(result, "should return a chunk");
-  assert.equal(result.choices[0].delta.reasoning.summary, "thinking step...");
+  assert.equal(result.choices[0].delta.reasoning_content, "thinking step...");
 });
 
 test("Responses→Chat streaming: Copilot mode emits reasoning_text for summary deltas", () => {

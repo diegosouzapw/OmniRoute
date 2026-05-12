@@ -6,6 +6,7 @@ import { Card, Button, Input, Modal, CardSkeleton, SegmentedControl } from "@/sh
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
+import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
@@ -2482,7 +2483,7 @@ function EndpointSection({
 
   const resolveProvider = (id) => AI_PROVIDERS[id] || getProviderByAlias(id);
   const providerColor = (id) => resolveProvider(id)?.color || "#888";
-  const providerName = (id) => resolveProvider(id)?.name || id;
+  const providerName = (id) => getProviderDisplayName(id, resolveProvider(id));
   const copyId = `endpoint_${path}`;
 
   return (

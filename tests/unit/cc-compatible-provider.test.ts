@@ -571,6 +571,91 @@ test("handleChatCore forces SSE upstream for CC compatible providers while retur
   assert.equal(payload.usage.completion_tokens, 5);
 });
 
+test("handleChatCore stops buffering CC-compatible SSE once a non-stream response completes", async () => {
+  const encoder = new TextEncoder();
+  let upstreamCancelled = false;
+  const upstreamChunks = [
+    "data:\n\n",
+    [
+      "event: message_start",
+      'data: {"type":"message_start","message":{"id":"msg_3","type":"message","role":"assistant","model":"claude-sonnet-4-6","usage":{"input_tokens":4,"output_tokens":0}}}',
+      "",
+      "event: content_block_delta",
+      'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Finished but connection stayed open"}}',
+      "",
+      "event: message_delta",
+      'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":6}}',
+      "",
+      "event: message_stop",
+      'data: {"type":"message_stop"}',
+      "",
+    ].join("\n"),
+  ];
+  let chunkIndex = 0;
+
+  globalThis.fetch = async () =>
+    new Response(
+      new ReadableStream<Uint8Array>({
+        pull(controller) {
+          if (chunkIndex < upstreamChunks.length) {
+            controller.enqueue(encoder.encode(upstreamChunks[chunkIndex++]));
+          }
+        },
+        cancel() {
+          upstreamCancelled = true;
+        },
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "text/event-stream",
+        },
+      }
+    );
+
+  const result = await handleChatCore({
+    body: {
+      model: "claude-sonnet-4-6",
+      messages: [{ role: "user", content: "Ping" }],
+      stream: false,
+    },
+    modelInfo: {
+      provider: "anthropic-compatible-cc-test",
+      model: "claude-sonnet-4-6",
+      extendedContext: false,
+    },
+    credentials: {
+      apiKey: "sk-test",
+      providerSpecificData: {
+        baseUrl: "https://proxy.example.com",
+        chatPath: CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
+      },
+    },
+    clientRawRequest: {
+      endpoint: "/v1/chat/completions",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "Ping" }],
+        stream: false,
+      },
+      headers: new Headers({ accept: "application/json" }),
+    },
+    userAgent: "unit-test",
+    log: {
+      debug() {},
+      info() {},
+      warn() {},
+      error() {},
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(upstreamCancelled, true);
+  const payload = (await result.response.json()) as any;
+  assert.equal(payload.choices[0].message.content, "Finished but connection stayed open");
+  assert.equal(payload.usage.completion_tokens, 6);
+});
+
 test("handleChatCore preserves client cache markers for Claude Code requests to CC-compatible providers", async () => {
   const calls = [];
   globalThis.fetch = async (url, init = {}) => {

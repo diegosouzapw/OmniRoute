@@ -23,7 +23,7 @@ describe("RTK code stripper", () => {
     );
 
     assert.ok(js.text.includes("// comment"));
-    assert.match(js.text, /https:\/\/example\.com\/a\/\/b/);
+    assert.ok(js.text.includes("https://example.com/a//b"));
     assert.ok(js.text.includes("/* block */"));
   });
 

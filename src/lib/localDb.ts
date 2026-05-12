@@ -372,3 +372,13 @@ export {
 } from "./db/oneproxy";
 
 export type { OneproxyProxyRecord, OneproxyStats } from "./db/oneproxy";
+
+export {
+  getSessionAccountAffinity,
+  upsertSessionAccountAffinity,
+  touchSessionAccountAffinity,
+  deleteSessionAccountAffinity,
+  cleanupStaleSessionAccountAffinities,
+  startSessionAccountAffinityCleanup,
+  stopSessionAccountAffinityCleanupForTests,
+} from "./db/sessionAccountAffinity";

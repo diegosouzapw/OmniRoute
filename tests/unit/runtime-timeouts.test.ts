@@ -94,3 +94,10 @@ test("API bridge timeouts align request timeout with long proxy timeout by defau
     serverSocketTimeoutMs: 0,
   });
 });
+
+test("API bridge proxy timeout defaults to the long upstream request window", () => {
+  const config = runtimeTimeouts.getApiBridgeTimeoutConfig({});
+
+  assert.equal(config.proxyTimeoutMs, 600000);
+  assert.equal(config.serverRequestTimeoutMs, 600000);
+});

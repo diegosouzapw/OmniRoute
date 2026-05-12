@@ -209,23 +209,24 @@ export interface TlsFetchOptions {
   proxyUrl?: string;
 }
 
+import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+
 /**
  * Resolve the proxy URL for a tls-client request. Per-call value wins;
- * otherwise we fall back to env. Returns undefined when no proxy is
- * configured (caller passes `undefined` through to tls-client-node, which
- * treats it as "no proxy").
+ * otherwise we use the standard proxy fetch resolution which reads from
+ * the dashboard AsyncLocalStorage context or falls back to env vars.
  */
 function resolveProxyUrl(perCall: string | undefined): string | undefined {
   if (perCall && perCall.length > 0) return perCall;
-  const fromEnv =
-    process.env.OMNIROUTE_TLS_PROXY_URL ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy ||
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.ALL_PROXY ||
-    process.env.all_proxy;
-  return fromEnv && fromEnv.length > 0 ? fromEnv : undefined;
+  try {
+    const proxyInfo = resolveProxyForRequest("https://chatgpt.com");
+    if (proxyInfo && proxyInfo.proxyUrl) {
+      return proxyInfo.proxyUrl;
+    }
+  } catch {
+    // Ignore resolution errors
+  }
+  return undefined;
 }
 
 export interface TlsFetchResult {

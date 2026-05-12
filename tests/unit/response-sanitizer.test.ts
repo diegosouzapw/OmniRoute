@@ -37,7 +37,7 @@ test("sanitizeOpenAIResponse strips non-standard fields and preserves required t
   });
 });
 
-test("sanitizeOpenAIResponse extracts thinking, collapses newlines, strips final reasoning_content, and preserves tool calls", () => {
+test("sanitizeOpenAIResponse extracts thinking, collapses newlines, preserves reasoning_content with tool_calls, and preserves tool calls", () => {
   const sanitized = sanitizeOpenAIResponse({
     id: "chatcmpl_test",
     model: "gpt-4.1",
@@ -58,7 +58,7 @@ test("sanitizeOpenAIResponse extracts thinking, collapses newlines, strips final
   assert.equal((sanitized as any).choices[0].index, 2);
   assert.equal((sanitized as any).choices[0].finish_reason, "tool_calls");
   (assert as any).equal((sanitized as any).choices[0].message.content, "Hello\n\nworld");
-  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "internal chain");
   (assert as any).deepEqual((sanitized as any).choices[0].message.tool_calls, [{ id: "call_1" }]);
   assert.deepEqual((sanitized as any).choices[0].message.function_call, { name: "legacy" });
 });
@@ -307,6 +307,91 @@ test("sanitizeStreamingChunk preserves Copilot reasoning_text deltas", () => {
   });
 
   assert.equal((sanitized as any).choices[0].delta.reasoning_text, "copilot reasoning");
+});
+
+test("sanitizeOpenAIResponse preserves reasoning_content when tool_calls are present", () => {
+  // Bug fix: Kimi and other thinking-enabled providers require reasoning_content
+  // on assistant messages that contain tool_calls. The sanitizer was stripping
+  // reasoning_content whenever visible content existed, breaking subsequent
+  // requests with "thinking is enabled but reasoning_content is missing".
+  const sanitized = sanitizeOpenAIResponse({
+    model: "kimi-k2.6-thinking",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Let me search for that.",
+          reasoning_content: "I need to use the web search tool to find current information.",
+          tool_calls: [
+            {
+              id: "call_search_1",
+              type: "function",
+              function: {
+                name: "web_search",
+                arguments: '{"query":"latest news"}',
+              },
+            },
+          ],
+        },
+      },
+    ],
+  });
+
+  const message = (sanitized as any).choices[0].message;
+  assert.equal(message.content, "Let me search for that.");
+  assert.equal(
+    message.reasoning_content,
+    "I need to use the web search tool to find current information.",
+    "reasoning_content must be preserved when tool_calls are present"
+  );
+  assert.equal(message.tool_calls.length, 1);
+  assert.equal(message.tool_calls[0].id, "call_search_1");
+});
+
+test("sanitizeOpenAIResponse still strips reasoning_content when no tool_calls exist", () => {
+  // When there are no tool_calls, the original behavior should remain:
+  // reasoning_content is stripped to avoid client rendering issues.
+  const sanitized = sanitizeOpenAIResponse({
+    model: "gpt-4.1",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Hello world",
+          reasoning_content: "Some internal reasoning",
+        },
+      },
+    ],
+  });
+
+  const message = (sanitized as any).choices[0].message;
+  assert.equal(message.content, "Hello world");
+  assert.equal(message.reasoning_content, undefined);
+});
+
+test("sanitizeOpenAIResponse preserves reasoning_content when legacy function_call is present", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "kimi-k2.6-thinking",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Let me calculate that.",
+          reasoning_content: "I need to use the calculator function.",
+          function_call: { name: "calculate", arguments: '{"expr":"1+1"}' },
+        },
+      },
+    ],
+  });
+
+  const message = (sanitized as any).choices[0].message;
+  assert.equal(message.content, "Let me calculate that.");
+  assert.equal(
+    message.reasoning_content,
+    "I need to use the calculator function.",
+    "reasoning_content must be preserved when legacy function_call is present"
+  );
+  assert.deepEqual(message.function_call, { name: "calculate", arguments: '{"expr":"1+1"}' });
 });
 
 test("sanitize functions return non-object inputs unchanged", () => {
