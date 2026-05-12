@@ -39,6 +39,7 @@ blob-report
 
 # Documentation (not needed in container)
 docs
+!docs/openapi.yaml
 *.md
 !README.md
 
