@@ -3236,6 +3236,8 @@
     "autoDisableDescription": "Permanently mark provider connections as deactivated if they return specific terminal ban signals (e.g. HTTP 403 'verify your account'). This removes them from the combo rotation.",
     "autoDisableThreshold": "Ban Threshold",
     "autoDisableThresholdDesc": "Consecutive ban signals required before permanent deactivation.",
+    "resilienceStructureTitle": "Resilience Structure",
+    "resilienceStructureDesc": "This page only configures behavior. Live breaker state is shown on the Health page. Combo-specific retry and round-robin slot control remain on combo settings.",
     "enableThinking": "Enable Thinking",
     "maxThinkingTokens": "Max Thinking Tokens",
     "enableProxy": "Enable Proxy",
@@ -3798,7 +3800,11 @@
     "qdrantCleanupDesc": "Removes expired and old points based on",
     "searching": "Searching...",
     "cleaning": "Cleaning...",
-    "cleanNow": "Clean now"
+    "cleanNow": "Clean now",
+    "optional": "Optional",
+    "current": "Current",
+    "remove": "Remove",
+    "search": "Search"
   },
   "contextRtk": {
     "title": "RTK Engine",

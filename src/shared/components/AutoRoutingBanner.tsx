@@ -25,7 +25,7 @@ export default function AutoRoutingBanner() {
     } catch {
       // ignore localStorage errors (private mode, quotas)
     }
-     
+
     setIsDismissed(true);
   };
 

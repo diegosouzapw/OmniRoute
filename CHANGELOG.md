@@ -5,18 +5,27 @@
 ### ✨ New Features
 
 - **feat(resilience):** add model cooldowns dashboard card with real-time list, individual/bulk re-enable, and auto-refresh (#2146 — thanks @rafacpti23)
+- **feat(oauth):** complete Windsurf and Devin CLI OAuth + API-token flows — WindsurfExecutor (gRPC-web/protobuf), DevinCliExecutor (ACP JSON-RPC 2.0 over stdio), model alias map, OAuth provider config (#2168 — thanks @Zhaba1337228)
+- **feat(search):** add Ollama Search as a web search provider with registry integration and validation (#2176 — thanks @andrewmunsell)
 - **feat(debug):** configurable chat log truncation limits via environment variables (`CHAT_LOG_TEXT_LIMIT`, `CHAT_LOG_ARRAY_TAIL_ITEMS`, `CHAT_LOG_MAX_DEPTH`, `CHAT_LOG_MAX_OBJECT_KEYS`) and `CHAT_DEBUG_FILE` mode for untruncated JSON payloads (#2156 — thanks @bypanghu)
 
 ### 🐛 Bug Fixes
 
+- **fix(cliproxyapi):** detect Anthropic-shaped request bodies and route to `/v1/messages`, strip Capy extras, and round-trip `mcp_*` tool name rewrites to `Mcp_*` (#2165 — thanks @Brkic-Nikola)
 - **fix(kiro):** synthesize minimal tools schema when `body.tools` is omitted but message history contains `tool_calls`, preventing 400 errors from Claude Code and OpenCode (#2149 — thanks @Gioxaa)
 - **fix(kiro):** avoid treating high-traffic 429s as quota exhaustion — use `classify429FromError` to prevent premature account deactivation (#2153 — thanks @Gioxaa)
 - **fix(responses):** propagate `include` array (e.g. `reasoning.encrypted_content`) during Chat→Responses API translation, fixing broken thinking panel in Codex/OpenCode (#2154 — thanks @Gioxaa)
 - **fix(responses):** emit reasoning summary as `delta.reasoning_content` (flat) instead of `delta.reasoning.summary` (nested) for Chat Completions client compatibility (#2159 — thanks @Gioxaa)
+- **fix(responses):** degrade `background: true` to synchronous execution with a warning instead of throwing `unsupportedFeature` (#2164 — thanks @Yosee11)
 - **fix(cloudflare):** add state file write serialization lock to prevent race conditions in `cloudflaredTunnel.ts` (#2156 — thanks @bypanghu)
 
 ### 🔧 Improvements
 
+- **feat(api):** aggregate combo model metadata in catalog endpoint — `buildComboCatalogMetadata()` inlines contextLength, strategy, and target count for combo entries (#2166 — thanks @faisalill)
+- **feat(resilience):** `useUpstream429BreakerHints` tri-state PATCH field — `true`/`false` persists, `null` resets to undefined (omitted from JSON) (#2146 tests — thanks @rafacpti23)
+- **chore(registry):** refresh `contextLength` and `maxOutputTokens` for claude, kiro, github, kimi-coding, xiaomi-mimo, codex/gpt-5.5 models (#2163 — thanks @brucevoin)
+- **refactor(executor):** `sanitizeReasoningEffortForProvider()` hook in `BaseExecutor.execute()` — downgrades `xhigh`→`high` for unsupporting providers, strips effort for mistral/devstral and github claude models (#2162 — thanks @hachimed)
+- **refactor(translator):** remove redundant provider guard from Claude thinking placeholder injection — applies to all `targetFormat === FORMATS.CLAUDE` bodies (#2161 — thanks @JohnDoe-oss)
 - **refactor(catalog):** remove 11 `.ts` extension imports, eliminate all `as any` casts, add `CustomModelEntry` interface and `ComboModelStep` type predicate, normalize alias resolution with `resolveCanonicalProviderId()` (#2152 — thanks @herjarsa)
 - **chore(models):** tidy up Alibaba Coding Plan base URL, reorganize Cursor model list by family, fix `gpt-4o` model ID, update OpenCode Zen model (#2150 — thanks @backryun)
 - **chore(deps):** move `gray-matter` from devDependencies to dependencies (runtime requirement) (#2156 — thanks @bypanghu)
@@ -138,48 +147,47 @@
 
 Thank you to all **40 community contributors** who made v3.8.0 possible! 🎉
 
-| Contributor                                                | PRs | Contributions                                                 |
-| :--------------------------------------------------------- | :-: | :------------------------------------------------------------ |
+| Contributor                                                | PRs | Contributions                                                        |
+| :--------------------------------------------------------- | :-: | :------------------------------------------------------------------- |
 | [@oyi77](https://github.com/oyi77)                         |  8  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131 |
-| [@backryun](https://github.com/backryun)                   |  6  | #1992, #2033, #2088, #2123, #2138, #2141                      |
-| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                    |
-| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                  |
-| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                  |
-| [@payne0420](https://github.com/payne0420)                 |  1  | #2082                                                         |
-| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                         |
-| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                         |
-| [@nickwizard](https://github.com/nickwizard)               |  1  | #1991                                                         |
-| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                         |
-| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                         |
-| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                         |
-| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                         |
-| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                         |
-| [@bypanghu](https://github.com/bypanghu)                   |  1  | #2027                                                         |
-| [@herjarsa](https://github.com/herjarsa)                   |  2  | #2030, #2136                                                  |
-| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                         |
-| [@hartmark](https://github.com/hartmark)                   |  2  | #2045, #2137                                                  |
-| [@ddarkr](https://github.com/ddarkr)                       |  1  | #2047                                                         |
-| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                         |
-| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                         |
-| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                         |
-| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                         |
-| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                         |
-| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                         |
-| [@rafacpti23](https://github.com/rafacpti23)               |  1  | #2086                                                         |
-| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                         |
-| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                         |
-| [@Gioxaa](https://github.com/Gioxaa)                       |  1  | #2105                                                         |
-| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                         |
-| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                  |
-| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                         |
-| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                         |
-| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                         |
-| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                         |
-| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                         |
-| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                         |
-| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                         |
-| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                         |
-
+| [@backryun](https://github.com/backryun)                   |  6  | #1992, #2033, #2088, #2123, #2138, #2141                             |
+| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                           |
+| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                         |
+| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                         |
+| [@payne0420](https://github.com/payne0420)                 |  1  | #2082                                                                |
+| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                                |
+| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                                |
+| [@nickwizard](https://github.com/nickwizard)               |  1  | #1991                                                                |
+| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                                |
+| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                                |
+| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                                |
+| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                                |
+| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                                |
+| [@bypanghu](https://github.com/bypanghu)                   |  1  | #2027                                                                |
+| [@herjarsa](https://github.com/herjarsa)                   |  2  | #2030, #2136                                                         |
+| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                                |
+| [@hartmark](https://github.com/hartmark)                   |  2  | #2045, #2137                                                         |
+| [@ddarkr](https://github.com/ddarkr)                       |  1  | #2047                                                                |
+| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                                |
+| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                                |
+| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                                |
+| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                                |
+| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                                |
+| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                                |
+| [@rafacpti23](https://github.com/rafacpti23)               |  1  | #2086                                                                |
+| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                                |
+| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                                |
+| [@Gioxaa](https://github.com/Gioxaa)                       |  1  | #2105                                                                |
+| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                                |
+| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                         |
+| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                                |
+| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                                |
+| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                                |
+| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                                |
+| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                                |
+| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                                |
+| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                                |
+| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                                |
 
 ## [3.7.9] — 2026-05-03
 

@@ -200,7 +200,7 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
   ```
 
 - **Fallback (ONLY for external forks without maintainer edit access):**
-  Using `cherry-pick` instead of fixing the contributor's PR directly is a **LAST RESORT**. You MUST ALWAYS attempt to `git push` your fixes to their branch first. 
+  Using `cherry-pick` instead of fixing the contributor's PR directly is a **LAST RESORT**. You MUST ALWAYS attempt to `git push` your fixes to their branch first.
   **ONLY if `git push` explicitly fails with a permission/access error** (meaning the contributor unchecked "Allow edits from maintainers" or it's a locked fork), you may use `git cherry-pick` to bring their changes into the release branch and fix the issues locally.
   Even then, ensure you preserve the contributor's authorship (`git commit --author="Contributor Name <email>"` if creating new commits).
   Once you have integrated their work into the release branch, **DO NOT close their PR**. Leave it open so the contributor retains credit. Under NO CIRCUMSTANCES should you use `gh pr close`.

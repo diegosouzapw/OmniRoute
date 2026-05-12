@@ -27,7 +27,7 @@ test("getTokenLimit: detects gemini", () => {
 });
 
 test("getTokenLimit: uses GPT-5.5 Codex model context", () => {
-  assert.equal(getTokenLimit("codex", "gpt-5.5"), 1050000);
+  assert.equal(getTokenLimit("codex", "gpt-5.5"), 400000);
 });
 
 test("getTokenLimit: default fallback", () => {

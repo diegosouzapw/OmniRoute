@@ -15,6 +15,7 @@ Users managing multiple provider accounts (e.g., 20+ API keys or OAuth connectio
 5. Repeating for every account
 
 This is:
+
 - **Time-consuming**: O(n) confirm dialogs and API calls for n accounts
 - **Error-prone**: Easy to accidentally click the wrong account
 - **Tedious**: No way to quickly clean up stale or duplicate accounts
@@ -35,15 +36,15 @@ Add a checkbox-based selection UI to the provider connections list:
 
 ### Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/app/(dashboard)/dashboard/providers/[id]/page.tsx` | Add batch delete state, select-all + per-row checkboxes, batch delete handler |
-| `src/app/api/providers/route.ts` | Add `DELETE /api/providers` with `POST` body `ids: string[]` for batch delete |
-| `src/lib/db/providers.ts` | Add `deleteProviderConnections(ids: string[])` batch DB function |
-| `src/i18n/messages/en.json` | Add i18n keys: `batchDeleteSelected`, `batchDeleteConfirm`, `batchDeleteSuccess` |
-| `src/i18n/messages/*.json` | Add i18n keys to all locale files |
-| `tests/unit/db-providers-crud.test.ts` | Add unit tests for batch delete DB function |
-| `tests/integration/api-routes-critical.test.ts` | Add integration test for batch delete API endpoint |
+| File                                                    | Change                                                                           |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `src/app/(dashboard)/dashboard/providers/[id]/page.tsx` | Add batch delete state, select-all + per-row checkboxes, batch delete handler    |
+| `src/app/api/providers/route.ts`                        | Add `DELETE /api/providers` with `POST` body `ids: string[]` for batch delete    |
+| `src/lib/db/providers.ts`                               | Add `deleteProviderConnections(ids: string[])` batch DB function                 |
+| `src/i18n/messages/en.json`                             | Add i18n keys: `batchDeleteSelected`, `batchDeleteConfirm`, `batchDeleteSuccess` |
+| `src/i18n/messages/*.json`                              | Add i18n keys to all locale files                                                |
+| `tests/unit/db-providers-crud.test.ts`                  | Add unit tests for batch delete DB function                                      |
+| `tests/integration/api-routes-critical.test.ts`         | Add integration test for batch delete API endpoint                               |
 
 ### 1. DB Layer (`src/lib/db/providers.ts`)
 
@@ -60,9 +61,9 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
 
   // Batch delete connections
   const placeholders = ids.map(() => "?").join(",");
-  const result = db.prepare(
-    `DELETE FROM provider_connections WHERE id IN (${placeholders})`
-  ).run(...ids);
+  const result = db
+    .prepare(`DELETE FROM provider_connections WHERE id IN (${placeholders})`)
+    .run(...ids);
 
   backupDbFile("pre-write");
   invalidateDbCache("connections");
@@ -210,14 +211,14 @@ interface ConnectionRowProps {
     <input
       type="checkbox"
       checked={selectedIds.size === connections.length && connections.length > 0}
-      ref={(el) => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < connections.length; }}
+      ref={(el) => {
+        if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < connections.length;
+      }}
       onChange={handleToggleSelectAll}
       className="w-4 h-4 rounded border-border text-primary focus:ring-primary/30"
     />
     <span className="text-sm font-medium text-text-muted">
-      {selectedIds.size > 0
-        ? `${selectedIds.size} selected`
-        : `${connections.length} accounts`}
+      {selectedIds.size > 0 ? `${selectedIds.size} selected` : `${connections.length} accounts`}
     </span>
   </label>
 
@@ -252,8 +253,10 @@ interface ConnectionRowProps {
 ```typescript
 test("deleteProviderConnections deletes multiple connections", async () => {
   const ids = [
-    (await createProviderConnection({ provider: "openai", name: "test-1", authType: "apikey" })).id!,
-    (await createProviderConnection({ provider: "openai", name: "test-2", authType: "apikey" })).id!,
+    (await createProviderConnection({ provider: "openai", name: "test-1", authType: "apikey" }))
+      .id!,
+    (await createProviderConnection({ provider: "openai", name: "test-2", authType: "apikey" }))
+      .id!,
   ];
 
   const deleted = await deleteProviderConnections(ids);
@@ -278,7 +281,7 @@ test("DELETE /api/providers — batch delete", async () => {
   const ids = [conn1.id, conn2.id];
   const res = await fetch("http://localhost:20128/api/providers", {
     method: "DELETE",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({ ids }),
   });
 
@@ -307,16 +310,17 @@ test("DELETE /api/providers — batch delete", async () => {
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| User accidentally deletes wrong accounts | Require confirmation dialog with count |
-| Too many connections selected | Cap at 100 per batch; show error if exceeded |
-| Partial failure on batch delete | DB runs in transaction; all-or-nothing semantics |
-| Performance with large selections | Batch SQL with `IN (...)` clause is efficient up to 100 |
+| Risk                                     | Mitigation                                              |
+| ---------------------------------------- | ------------------------------------------------------- |
+| User accidentally deletes wrong accounts | Require confirmation dialog with count                  |
+| Too many connections selected            | Cap at 100 per batch; show error if exceeded            |
+| Partial failure on batch delete          | DB runs in transaction; all-or-nothing semantics        |
+| Performance with large selections        | Batch SQL with `IN (...)` clause is efficient up to 100 |
 
 ### Coverage
 
 Per repository rules, this change affects production code in `src/` → automated tests required:
+
 - Unit test for `deleteProviderConnections()` in `tests/unit/db-providers-crud.test.ts`
 - Integration test for `DELETE /api/providers` batch endpoint in `tests/integration/api-routes-critical.test.ts`
 - Run `npm run test:coverage` — all 4 metrics must meet 60% minimum
