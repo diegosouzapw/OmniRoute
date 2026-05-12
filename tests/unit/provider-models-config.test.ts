@@ -81,7 +81,7 @@ test("Kiro registry exposes the current CLI model lineup with context windows", 
   const byId = new Map(kiroModels.map((model) => [model.id, model]));
 
   assert.ok(byId.has("claude-opus-4.7"));
-  assert.equal(byId.get("claude-opus-4.7")?.contextLength, undefined); // Uses default
+  assert.equal(byId.get("claude-opus-4.7")?.contextLength, 1000000);
   assert.ok(byId.has("claude-sonnet-4.6"));
   assert.ok(byId.has("claude-haiku-4.5"));
   assert.equal(byId.has("claude-opus-4-7"), false);

@@ -61,5 +61,8 @@ export function getModelsByProviderId(providerId: string): RegistryModel[] {
 
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
   const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+  const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[aliasOrId];
+  // Unknown provider (not in registry) — pass through unchanged.
+  if (!providerModels) return true;
   return getProviderModel(alias, modelId)?.supportsXHighEffort === true;
 }
