@@ -189,6 +189,11 @@ async function fixBetterSqliteBinary() {
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
  */
 async function fixWreqJsBinary() {
+  if (process.platform === "android") {
+    console.log("  [postinstall] wreq-js: skipped on android (unsupported platform)");
+    return;
+  }
+
   const appWreqDir = join(ROOT, "app", "node_modules", "wreq-js", "rust");
   const rootWreqDir = join(ROOT, "node_modules", "wreq-js", "rust");
 
