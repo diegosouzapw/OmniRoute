@@ -76,6 +76,7 @@ const KNOWN_SVGS = new Set([
   "brave-search",
   "cartesia",
   "clarifai",
+  "command-code",
   "docker-model-runner",
   "droid",
   "gemini-cli",
