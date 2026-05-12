@@ -38,7 +38,12 @@ export function isModelScopeProvider(
   provider: string | null | undefined,
   providerSpecificData?: unknown
 ): boolean {
-  if (String(provider || "").trim().toLowerCase() === "modelscope") return true;
+  if (
+    String(provider || "")
+      .trim()
+      .toLowerCase() === "modelscope"
+  )
+    return true;
   const baseUrl = getProviderBaseUrl(providerSpecificData);
   return MODELSCOPE_HOST_MARKERS.some((marker) => baseUrl.includes(marker));
 }
@@ -54,18 +59,11 @@ export function parseModelScopeRateLimitHeaders(headers: Headers): ModelScopeRat
   };
 }
 
-export function classifyModelScope429(
-  errorText: string,
-  headers: Headers
-): ModelScope429Decision {
+export function classifyModelScope429(errorText: string, headers: Headers): ModelScope429Decision {
   const snapshot = parseModelScopeRateLimitHeaders(headers);
   const lower = String(errorText || "").toLowerCase();
 
   if (MODELSCOPE_QUOTA_EXHAUSTED_SIGNALS.some((signal) => lower.includes(signal))) {
-    return { kind: "quota_exhausted", retryable: false, snapshot };
-  }
-
-  if (snapshot.totalRemaining === 0 || snapshot.modelRemaining === 0) {
     return { kind: "quota_exhausted", retryable: false, snapshot };
   }
 
