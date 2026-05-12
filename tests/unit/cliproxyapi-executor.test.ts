@@ -296,6 +296,27 @@ describe("CliproxyapiExecutor", () => {
     });
   });
 
+  describe("healthCheck", () => {
+    it("probes /v1/models instead of /health", async () => {
+      process.env.CLIPROXYAPI_HOST = "127.0.0.1";
+      process.env.CLIPROXYAPI_PORT = "8317";
+
+      let capturedUrl;
+      globalThis.fetch = async (url) => {
+        capturedUrl = String(url);
+        return new Response(JSON.stringify({ data: [] }), { status: 200 });
+      };
+
+      const exec = new CliproxyapiExecutor();
+      const result = await exec.healthCheck();
+
+      assert.equal(capturedUrl, "http://127.0.0.1:8317/v1/models");
+      assert.equal(result.ok, true);
+      assert.equal(result.error, undefined);
+      assert.ok(result.latencyMs >= 0);
+    });
+  });
+
   describe("Anthropic-shape detection", () => {
     it("detects Anthropic-shape when top-level system field present", () => {
       const exec = new CliproxyapiExecutor();
