@@ -32,6 +32,7 @@ import {
 import {
   COOLDOWN_MS,
   HTTP_STATUS,
+  FETCH_BODY_TIMEOUT_MS,
   MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
   STREAM_IDLE_TIMEOUT_MS,
@@ -44,7 +45,13 @@ import {
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
-import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
+import {
+  getCallLogPipelineCaptureStreamChunks,
+  getChatLogTextLimit,
+  getChatLogArrayTailItems,
+  getChatLogMaxDepth,
+  getChatLogMaxObjectKeys,
+} from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
@@ -180,10 +187,6 @@ import { fetchLiveProviderLimits } from "@/lib/usage/providerLimits";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 
 const MEMORY_EXTRACTION_TEXT_LIMIT = 64 * 1024;
-const CHAT_LOG_TEXT_LIMIT = 64 * 1024;
-const CHAT_LOG_ARRAY_TAIL_ITEMS = 24;
-const CHAT_LOG_MAX_DEPTH = 6;
-const CHAT_LOG_MAX_OBJECT_KEYS = 80;
 
 function capMemoryExtractionText(value: string): string {
   if (value.length <= MEMORY_EXTRACTION_TEXT_LIMIT) return value;
@@ -191,28 +194,30 @@ function capMemoryExtractionText(value: string): string {
 }
 
 function truncateChatLogText(value: string): string {
-  if (value.length <= CHAT_LOG_TEXT_LIMIT) return value;
-  const head = value.slice(0, Math.floor(CHAT_LOG_TEXT_LIMIT / 2));
-  const tail = value.slice(-Math.ceil(CHAT_LOG_TEXT_LIMIT / 2));
-  return `${head}\n[...truncated ${value.length - CHAT_LOG_TEXT_LIMIT} chars...]\n${tail}`;
+  const limit = getChatLogTextLimit();
+  if (value.length <= limit) return value;
+  const head = value.slice(0, Math.floor(limit / 2));
+  const tail = value.slice(-Math.ceil(limit / 2));
+  return `${head}\n[...truncated ${value.length - limit} chars...]\n${tail}`;
 }
 
 function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateChatLogText(value);
   if (typeof value !== "object") return value;
-  if (depth >= CHAT_LOG_MAX_DEPTH) return "[MaxDepth]";
+  if (depth >= getChatLogMaxDepth()) return "[MaxDepth]";
+
+  const maxTailItems = getChatLogArrayTailItems();
 
   if (Array.isArray(value)) {
-    const retained =
-      value.length > CHAT_LOG_ARRAY_TAIL_ITEMS ? value.slice(-CHAT_LOG_ARRAY_TAIL_ITEMS) : value;
+    const retained = value.length > maxTailItems ? value.slice(-maxTailItems) : value;
     const cloned = retained.map((item) => cloneBoundedChatLogPayload(item, depth + 1));
-    if (value.length > CHAT_LOG_ARRAY_TAIL_ITEMS) {
+    if (value.length > maxTailItems) {
       return [
         {
           _omniroute_truncated_array: true,
           originalLength: value.length,
-          retainedTailItems: CHAT_LOG_ARRAY_TAIL_ITEMS,
+          retainedTailItems: maxTailItems,
         },
         ...cloned,
       ];
@@ -222,11 +227,12 @@ function cloneBoundedChatLogPayload(value: unknown, depth = 0): unknown {
 
   const result: Record<string, unknown> = {};
   const entries = Object.entries(value as Record<string, unknown>);
-  for (const [key, item] of entries.slice(0, CHAT_LOG_MAX_OBJECT_KEYS)) {
+  const maxKeys = getChatLogMaxObjectKeys();
+  for (const [key, item] of maxKeys > 0 ? entries.slice(0, maxKeys) : entries) {
     result[key] = cloneBoundedChatLogPayload(item, depth + 1);
   }
-  if (entries.length > CHAT_LOG_MAX_OBJECT_KEYS) {
-    result._omniroute_truncated_keys = entries.length - CHAT_LOG_MAX_OBJECT_KEYS;
+  if (maxKeys > 0 && entries.length > maxKeys) {
+    result._omniroute_truncated_keys = entries.length - maxKeys;
   }
   return result;
 }
@@ -574,6 +580,146 @@ function normalizeNonStreamingEventPayload(rawBody: string, contentType: string)
   return rawBody;
 }
 
+const NON_STREAMING_SSE_TERMINAL_TYPES = new Set([
+  "message_stop",
+  "response.completed",
+  "response.done",
+  "response.cancelled",
+  "response.canceled",
+  "response.failed",
+  "response.incomplete",
+]);
+
+type NonStreamingSseTerminalState = {
+  currentEvent: string;
+  pendingLine: string;
+};
+
+function processNonStreamingSseTerminalLine(
+  state: NonStreamingSseTerminalState,
+  rawLine: string
+): boolean {
+  const trimmed = rawLine.trim();
+  if (!trimmed || trimmed.startsWith(":")) {
+    if (!trimmed) state.currentEvent = "";
+    return false;
+  }
+
+  if (trimmed.startsWith("event:")) {
+    state.currentEvent = trimmed.slice(6).trim();
+    return false;
+  }
+
+  if (!trimmed.startsWith("data:")) return false;
+  const data = trimmed.slice(5).trim();
+  if (data === "[DONE]") return true;
+  if (!data) return false;
+
+  try {
+    const parsed = JSON.parse(data);
+    const eventType =
+      parsed && typeof parsed === "object" && typeof parsed.type === "string"
+        ? parsed.type
+        : state.currentEvent;
+    return NON_STREAMING_SSE_TERMINAL_TYPES.has(eventType);
+  } catch {
+    // Keep reading malformed data so the parser can report a useful upstream error.
+    return false;
+  }
+}
+
+function appendNonStreamingSseTerminalSignal(
+  state: NonStreamingSseTerminalState,
+  chunk: string
+): boolean {
+  const lines = `${state.pendingLine}${chunk}`.split(/\r?\n/);
+  state.pendingLine = lines.pop() ?? "";
+
+  for (const rawLine of lines) {
+    if (processNonStreamingSseTerminalLine(state, rawLine)) return true;
+  }
+
+  return false;
+}
+
+function createBodyTimeoutError(timeoutMs: number): Error {
+  const err = new Error(`Response body read timeout after ${timeoutMs}ms`);
+  err.name = "BodyTimeoutError";
+  return err;
+}
+
+function readStreamChunkWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  timeoutMs: number
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (timeoutMs <= 0) return reader.read();
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(createBodyTimeoutError(timeoutMs)), timeoutMs);
+    reader.read().then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+}
+
+async function readNonStreamingResponseBody(
+  response: Response,
+  contentType: string,
+  upstreamStream: boolean
+): Promise<string> {
+  if (
+    !upstreamStream ||
+    !response.body ||
+    (!contentType.includes("text/event-stream") && !contentType.includes("application/x-ndjson"))
+  ) {
+    return withBodyTimeout<string>(response.text());
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  const terminalState: NonStreamingSseTerminalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
+  let rawBody = "";
+  const deadline = FETCH_BODY_TIMEOUT_MS > 0 ? Date.now() + FETCH_BODY_TIMEOUT_MS : 0;
+
+  try {
+    while (true) {
+      const timeoutMs = deadline > 0 ? deadline - Date.now() : 0;
+      if (deadline > 0 && timeoutMs <= 0) {
+        throw createBodyTimeoutError(FETCH_BODY_TIMEOUT_MS);
+      }
+
+      const { done, value } = await readStreamChunkWithTimeout(reader, timeoutMs);
+      if (done) break;
+      if (!value) continue;
+
+      const decodedChunk = decoder.decode(value, { stream: true });
+      rawBody += decodedChunk;
+      if (appendNonStreamingSseTerminalSignal(terminalState, decodedChunk)) {
+        await reader.cancel("non-streaming bridge consumed terminal SSE event").catch(() => {});
+        break;
+      }
+    }
+  } catch (error) {
+    await reader.cancel(error).catch(() => {});
+    throw error;
+  } finally {
+    rawBody += decoder.decode();
+    reader.releaseLock();
+  }
+
+  return rawBody;
+}
+
 function getHeaderValueCaseInsensitive(
   headers: Record<string, unknown> | Headers | null | undefined,
   targetName: string
@@ -602,12 +748,37 @@ function toFiniteNumberOrNull(value: unknown): number | null {
   return null;
 }
 
-function isSemaphoreTimeoutError(error: unknown): error is Error & { code: string } {
+function isSemaphoreCapacityError(error: unknown): error is Error & { code: string } {
   return (
     !!error &&
     typeof error === "object" &&
-    (error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT"
+    ((error as { code?: unknown }).code === "SEMAPHORE_TIMEOUT" ||
+      (error as { code?: unknown }).code === "SEMAPHORE_QUEUE_FULL")
   );
+}
+
+function createStreamingErrorResult(statusCode: number, message: string, code?: string) {
+  const errorBody = buildErrorBody(statusCode, message);
+  if (code) {
+    errorBody.error.code = code;
+  }
+
+  const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
+
+  return {
+    success: false as const,
+    status: statusCode,
+    error: message,
+    response: new Response(body, {
+      status: statusCode,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no",
+      },
+    }),
+  };
 }
 
 function wrapReadableStreamWithFinalize<T>(
@@ -2959,7 +3130,12 @@ export async function handleChatCore({
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
-        const payload = await withBodyTimeout<string>(rawResult.response.text());
+        const contentType = (headers.get("content-type") || "").toLowerCase();
+        const payload = await readNonStreamingResponseBody(
+          rawResult.response,
+          contentType,
+          upstreamStream
+        );
         acquireAccountSemaphoreRelease();
 
         return {
@@ -2969,7 +3145,11 @@ export async function handleChatCore({
           _dedupSnapshot: {
             status,
             statusText,
-            headers: Array.from(headers.entries()),
+            headers: (() => {
+              const arr: [string, string][] = [];
+              headers.forEach((v, k) => arr.push([k, v]));
+              return arr;
+            })(),
             payload,
           },
         };
@@ -3051,16 +3231,13 @@ export async function handleChatCore({
     );
   } catch (error) {
     trackPendingRequest(model, provider, connectionId, false);
-    if (isSemaphoreTimeoutError(error)) {
+    if (isSemaphoreCapacityError(error)) {
       appendRequestLog({
         model,
         provider,
         connectionId,
         status: `FAILED ${error.code}`,
       }).catch(() => {});
-      if (isCombo) {
-        throw error;
-      }
       const failureMessage = error.message || "Semaphore timeout";
       persistAttemptLogs({
         status: HTTP_STATUS.RATE_LIMITED,
@@ -3071,7 +3248,14 @@ export async function handleChatCore({
         cacheSource: "upstream",
       });
       persistFailureUsage(HTTP_STATUS.RATE_LIMITED, error.code);
-      return createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+      const result = stream
+        ? createStreamingErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage, error.code)
+        : createErrorResult(HTTP_STATUS.RATE_LIMITED, failureMessage);
+      return {
+        ...result,
+        errorType: "account_semaphore_capacity",
+        errorCode: error.code,
+      };
     }
     const failureStatus =
       error.name === "AbortError"
@@ -3220,6 +3404,8 @@ export async function handleChatCore({
     let statusCode = providerResponse.status;
     let message = "";
     let retryAfterMs: number | null = null;
+    let upstreamErrorCode: string | undefined;
+    let upstreamErrorType: string | undefined;
 
     if (upstreamErrorParsed) {
       statusCode = parsedStatusCode;
@@ -3231,6 +3417,8 @@ export async function handleChatCore({
       message = details.message;
       retryAfterMs = details.retryAfterMs;
       upstreamErrorBody = details.responseBody;
+      upstreamErrorCode = details.errorCode;
+      upstreamErrorType = details.errorType;
     }
 
     // T06/T10/T36: classify provider errors and persist terminal account states.
@@ -3399,7 +3587,13 @@ export async function handleChatCore({
               cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "model_unavailable");
-            return createErrorResult(statusCode, errMsg, retryAfterMs);
+            return createErrorResult(
+              statusCode,
+              errMsg,
+              retryAfterMs,
+              upstreamErrorCode,
+              upstreamErrorType
+            );
           }
         } catch {
           persistAttemptLogs({
@@ -3411,7 +3605,13 @@ export async function handleChatCore({
             cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "model_unavailable");
-          return createErrorResult(statusCode, errMsg, retryAfterMs);
+          return createErrorResult(
+            statusCode,
+            errMsg,
+            retryAfterMs,
+            upstreamErrorCode,
+            upstreamErrorType
+          );
         }
       } else {
         persistAttemptLogs({
@@ -3423,7 +3623,13 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "model_unavailable");
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     } else if (isContextOverflowError(statusCode, message)) {
       const familyCandidates = getModelFamily(currentModel).filter(
@@ -3459,7 +3665,13 @@ export async function handleChatCore({
               cacheSource: "upstream",
             });
             persistFailureUsage(statusCode, "context_overflow");
-            return createErrorResult(statusCode, errMsg, retryAfterMs);
+            return createErrorResult(
+              statusCode,
+              errMsg,
+              retryAfterMs,
+              upstreamErrorCode,
+              upstreamErrorType
+            );
           }
         } catch {
           persistAttemptLogs({
@@ -3471,7 +3683,13 @@ export async function handleChatCore({
             cacheSource: "upstream",
           });
           persistFailureUsage(statusCode, "context_overflow");
-          return createErrorResult(statusCode, errMsg, retryAfterMs);
+          return createErrorResult(
+            statusCode,
+            errMsg,
+            retryAfterMs,
+            upstreamErrorCode,
+            upstreamErrorType
+          );
         }
       } else {
         persistAttemptLogs({
@@ -3483,7 +3701,13 @@ export async function handleChatCore({
           cacheSource: "upstream",
         });
         persistFailureUsage(statusCode, "context_overflow");
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     } else {
       persistAttemptLogs({
@@ -3566,7 +3790,13 @@ export async function handleChatCore({
       }
 
       if (!emergencyFallbackServed) {
-        return createErrorResult(statusCode, errMsg, retryAfterMs);
+        return createErrorResult(
+          statusCode,
+          errMsg,
+          retryAfterMs,
+          upstreamErrorCode,
+          upstreamErrorType
+        );
       }
     }
     // ── End T5 ───────────────────────────────────────────────────────────────
@@ -3578,7 +3808,11 @@ export async function handleChatCore({
     const contentType = (providerResponse.headers.get("content-type") || "").toLowerCase();
     let responseBody;
     let responsePayloadFormat = targetFormat;
-    const rawBody = await withBodyTimeout<string>(providerResponse.text());
+    const rawBody = await readNonStreamingResponseBody(
+      providerResponse,
+      contentType,
+      upstreamStream
+    );
     const normalizedProviderPayload = normalizePayloadForLog(rawBody);
     const looksLikeSSE =
       contentType.includes("text/event-stream") ||
@@ -3971,7 +4205,6 @@ export async function handleChatCore({
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
         headers: {
-          ...Object.fromEntries(providerHeaders.entries()),
           "Content-Type": "application/json",
           [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
           ...buildOmniRouteResponseMetaHeaders({
@@ -4038,9 +4271,11 @@ export async function handleChatCore({
 
   const responseHeaders: Record<string, string> = {
     ...Object.fromEntries(
-      Array.from(providerResponse.headers.entries()).filter(
-        ([k]) => k.toLowerCase() !== "content-type"
-      )
+      (() => {
+        const arr: [string, string][] = [];
+        providerResponse.headers.forEach((v, k) => arr.push([k, v]));
+        return arr;
+      })().filter(([k]) => k.toLowerCase() !== "content-type")
     ),
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",

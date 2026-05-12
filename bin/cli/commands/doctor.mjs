@@ -320,14 +320,24 @@ async function checkPorts() {
 }
 
 async function checkNodeRuntime(rootDir) {
-  const { getNodeRuntimeSupport } = await import(
-    pathToFileURL(path.join(rootDir, "bin", "nodeRuntimeSupport.mjs")).href
-  );
-  const support = getNodeRuntimeSupport();
-  if (!support.nodeCompatible) {
-    return fail("Node runtime", `${support.nodeVersion} is outside supported policy`, support);
+  try {
+    const { getNodeRuntimeSupport } = await import(
+      pathToFileURL(path.join(rootDir, "bin", "nodeRuntimeSupport.mjs")).href
+    );
+    const support = getNodeRuntimeSupport();
+    if (!support.nodeCompatible) {
+      return fail("Node runtime", `${support.nodeVersion} is outside supported policy`, support);
+    }
+    return ok("Node runtime", `${support.nodeVersion} is supported`, support);
+  } catch {
+    // nodeRuntimeSupport.mjs is only available in full source installs, not in Docker images
+    const version = process.version;
+    return warn(
+      "Node runtime",
+      `${version} (runtime support module unavailable in this environment)`,
+      { nodeVersion: version }
+    );
   }
-  return ok("Node runtime", `${support.nodeVersion} is supported`, support);
 }
 
 async function checkNativeBinary(rootDir) {
@@ -348,14 +358,21 @@ async function checkNativeBinary(rootDir) {
     return warn("Native binary", "better-sqlite3 native binary was not found", { candidates });
   }
 
-  const { isNativeBinaryCompatible } = await import(
-    pathToFileURL(path.join(rootDir, "scripts", "native-binary-compat.mjs")).href
-  );
-  const compatible = isNativeBinaryCompatible(binaryPath);
-  if (!compatible) {
-    return fail("Native binary", "better-sqlite3 native binary is incompatible", { binaryPath });
+  try {
+    const { isNativeBinaryCompatible } = await import(
+      pathToFileURL(path.join(rootDir, "scripts", "native-binary-compat.mjs")).href
+    );
+    const compatible = isNativeBinaryCompatible(binaryPath);
+    if (!compatible) {
+      return fail("Native binary", "better-sqlite3 native binary is incompatible", { binaryPath });
+    }
+    return ok("Native binary", "better-sqlite3 native binary is compatible", { binaryPath });
+  } catch {
+    // native-binary-compat.mjs is only available in full source installs, not in Docker images
+    return warn("Native binary", "Compatibility check unavailable in this environment", {
+      binaryPath,
+    });
   }
-  return ok("Native binary", "better-sqlite3 native binary is compatible", { binaryPath });
 }
 
 function checkMemory() {

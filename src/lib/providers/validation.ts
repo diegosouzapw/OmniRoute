@@ -18,6 +18,7 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
+  providerAllowsOptionalApiKey,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -2407,6 +2408,14 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  "ollama-search": (apiKey) => ({
+    url: "https://ollama.com/api/web_search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
@@ -3015,12 +3024,7 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey =
-    provider !== "searxng-search" &&
-    provider !== "petals" &&
-    !isSelfHostedChatProvider(provider) &&
-    !isOpenAICompatibleProvider(provider) &&
-    !isAnthropicCompatibleProvider(provider);
+  const requiresApiKey = !providerAllowsOptionalApiKey(provider);
 
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };

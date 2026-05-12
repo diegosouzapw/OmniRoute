@@ -26,8 +26,8 @@ async function resolvePassword(flags, prompt, nonInteractive) {
   const answer = await prompt.ask("Set an admin password now? [y/N]", "N");
   if (!/^y(es)?$/i.test(answer)) return "";
 
-  const password = await prompt.ask("Admin password");
-  const confirm = await prompt.ask("Confirm password");
+  const password = await prompt.askSecret("Admin password");
+  const confirm = await prompt.askSecret("Confirm password");
   if (password !== confirm) {
     throw new Error("Passwords do not match.");
   }

@@ -3,7 +3,9 @@ import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
+  type ExecutorLog,
   type ExecuteInput,
+  type ProviderCredentials,
 } from "./base.ts";
 import {
   CODEX_CHAT_DEFAULT_INSTRUCTIONS,
@@ -19,6 +21,7 @@ import {
   applyCodexClientIdentityHeaders,
   applyCodexClientMetadata,
   createCodexClientIdentity,
+  type CodexClientIdentity,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -1088,7 +1091,12 @@ export class CodexExecutor extends BaseExecutor {
     };
   }
 
-  buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: any = null) {
+  buildUrl(
+    model: string,
+    stream: boolean,
+    urlIndex = 0,
+    credentials: ProviderCredentials | null = null
+  ) {
     void model;
     void stream;
     void urlIndex;
@@ -1110,7 +1118,7 @@ export class CodexExecutor extends BaseExecutor {
    * Always request event-stream from upstream, even when client requested stream=false.
    * Includes chatgpt-account-id header for strict workspace binding.
    */
-  buildHeaders(credentials, stream = true) {
+  buildHeaders(credentials: ProviderCredentials, stream = true) {
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
     const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
     headers.Version = getCodexClientVersion();
@@ -1118,10 +1126,13 @@ export class CodexExecutor extends BaseExecutor {
 
     // Add workspace binding header if workspaceId is persisted
     const workspaceId = credentials?.providerSpecificData?.workspaceId;
-    if (workspaceId) {
+    if (typeof workspaceId === "string" && workspaceId) {
       headers["chatgpt-account-id"] = workspaceId;
     }
-    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity;
+    const clientIdentity = credentials?.providerSpecificData?.codexClientIdentity as
+      | CodexClientIdentity
+      | null
+      | undefined;
 
     // Originator header — identifies the client type to the Codex backend.
     // Ref: openai/codex login/src/auth/default_client.rs DEFAULT_ORIGINATOR = "codex_cli_rs"
@@ -1148,7 +1159,7 @@ export class CodexExecutor extends BaseExecutor {
    * Ref: openai/codex core/src/client.rs line 853
    */
   private getPromptCacheSessionId(
-    credentials,
+    credentials: ProviderCredentials | null | undefined,
     body: Record<string, unknown> | null
   ): string | null {
     const promptCacheKey = normalizeCodexSessionId(body?.prompt_cache_key);
@@ -1173,7 +1184,7 @@ export class CodexExecutor extends BaseExecutor {
    * have expired or become invalid. chatCore.ts calls this on 401; previously the
    * base class returned null causing the request to fail instead of refreshing.
    */
-  async refreshCredentials(credentials, log) {
+  async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
     if (!credentials?.refreshToken) {
       log?.warn?.("TOKEN_REFRESH", "Codex: no refresh token available, re-authentication required");
       return null;
@@ -1192,11 +1203,19 @@ export class CodexExecutor extends BaseExecutor {
   /**
    * Transform request before sending - inject default instructions if missing
    */
-  transformRequest(model, body, stream, credentials) {
+  transformRequest(
+    model: string,
+    bodyInput: unknown,
+    stream: boolean,
+    credentials: ProviderCredentials
+  ) {
+    void stream;
     // Do not mutate the caller's payload in place. Combo quality checks and
     // other post-execute paths still inspect the original request body.
-    body =
-      body && typeof body === "object" ? structuredClone(body) : ({} as Record<string, unknown>);
+    const body: Record<string, unknown> =
+      bodyInput && typeof bodyInput === "object"
+        ? structuredClone(bodyInput as Record<string, unknown>)
+        : {};
 
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
@@ -1259,7 +1278,7 @@ export class CodexExecutor extends BaseExecutor {
         },
       ];
     } else if (!body.input && Array.isArray(body.prompt)) {
-      body.input = body.prompt.map((p: any) => ({
+      body.input = body.prompt.map((p: unknown) => ({
         type: "message",
         role: "user",
         content: [{ type: "input_text", text: typeof p === "string" ? p : JSON.stringify(p) }],
@@ -1350,10 +1369,14 @@ export class CodexExecutor extends BaseExecutor {
     if (splitModel.effort) {
       modelEffort = splitModel.effort;
       body.model = splitModel.baseModel;
-      cleanModel = body.model;
+      cleanModel = splitModel.baseModel;
     }
 
-    const explicitReasoning = normalizeEffortValue(body?.reasoning?.effort);
+    const reasoningRecord =
+      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
+        ? (body.reasoning as Record<string, unknown>)
+        : null;
+    const explicitReasoning = normalizeEffortValue(reasoningRecord?.effort);
     const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
     const fallbackReasoningEffort = allowConnectionReasoningDefaults
       ? requestDefaults.reasoningEffort || "medium"
@@ -1363,12 +1386,12 @@ export class CodexExecutor extends BaseExecutor {
 
     if (explicitReasoning) {
       body.reasoning = {
-        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
+        ...(reasoningRecord || {}),
         effort: clampEffort(cleanModel, explicitReasoning),
       };
     } else if (rawEffort) {
       body.reasoning = {
-        ...(body.reasoning && typeof body.reasoning === "object" ? body.reasoning : {}),
+        ...(reasoningRecord || {}),
         effort: clampEffort(cleanModel, rawEffort),
       };
     }
@@ -1401,7 +1424,13 @@ export class CodexExecutor extends BaseExecutor {
       }
     }
     if (!isCompactRequest) {
-      applyCodexClientMetadata(body, credentials?.providerSpecificData?.codexClientIdentity);
+      applyCodexClientMetadata(
+        body,
+        credentials?.providerSpecificData?.codexClientIdentity as
+          | CodexClientIdentity
+          | null
+          | undefined
+      );
     }
 
     // Delete session_id and conversation_id from the body.

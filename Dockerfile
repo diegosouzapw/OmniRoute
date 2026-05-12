@@ -56,9 +56,9 @@ COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
 # MITM server.cjs is spawned at runtime via child_process — not traced by nft
 COPY --from=builder /app/src/mitm/server.cjs ./src/mitm/server.cjs
-# OpenAPI spec is read from disk by /api/openapi/spec at runtime for the
-# Endpoints dashboard. Next.js standalone tracing does not include it.
-COPY --from=builder /app/docs/openapi.yaml ./docs/openapi.yaml
+# Documentation files and OpenAPI spec are read from disk at runtime.
+# Next.js standalone tracing does not include them.
+COPY --from=builder /app/docs ./docs
 
 COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
 COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs

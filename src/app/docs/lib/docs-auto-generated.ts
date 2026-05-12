@@ -23,200 +23,201 @@ export interface AutoGenSearchItem {
 
 export const autoNavSections: AutoGenNavSection[] = [
   {
-    "title": "Getting Started",
-    "items": [
+    title: "Getting Started",
+    items: [
       {
-        "slug": "architecture",
-        "title": "OmniRoute Architecture",
-        "fileName": "ARCHITECTURE.md"
+        slug: "architecture",
+        title: "OmniRoute Architecture",
+        fileName: "ARCHITECTURE.md",
       },
       {
-        "slug": "cli-tools",
-        "title": "CLI Tools Setup Guide",
-        "fileName": "CLI-TOOLS.md"
+        slug: "cli-tools",
+        title: "CLI Tools Setup Guide",
+        fileName: "CLI-TOOLS.md",
       },
       {
-        "slug": "setup-guide",
-        "title": "Setup Guide",
-        "fileName": "SETUP_GUIDE.md"
+        slug: "setup-guide",
+        title: "Setup Guide",
+        fileName: "SETUP_GUIDE.md",
       },
       {
-        "slug": "user-guide",
-        "title": "User Guide",
-        "fileName": "USER_GUIDE.md"
-      }
-    ]
+        slug: "user-guide",
+        title: "User Guide",
+        fileName: "USER_GUIDE.md",
+      },
+    ],
   },
   {
-    "title": "Features",
-    "items": [
+    title: "Features",
+    items: [
       {
-        "slug": "auto-combo",
-        "title": "OmniRoute Auto-Combo Engine",
-        "fileName": "AUTO-COMBO.md"
+        slug: "auto-combo",
+        title: "OmniRoute Auto-Combo Engine",
+        fileName: "AUTO-COMBO.md",
       },
       {
-        "slug": "compression-engines",
-        "title": "Compression Engines",
-        "fileName": "COMPRESSION_ENGINES.md"
+        slug: "compression-engines",
+        title: "Compression Engines",
+        fileName: "COMPRESSION_ENGINES.md",
       },
       {
-        "slug": "compression-guide",
-        "title": "🗜️ Prompt Compression Guide",
-        "fileName": "COMPRESSION_GUIDE.md"
+        slug: "compression-guide",
+        title: "🗜️ Prompt Compression Guide",
+        fileName: "COMPRESSION_GUIDE.md",
       },
       {
-        "slug": "compression-language-packs",
-        "title": "Compression Language Packs",
-        "fileName": "COMPRESSION_LANGUAGE_PACKS.md"
+        slug: "compression-language-packs",
+        title: "Compression Language Packs",
+        fileName: "COMPRESSION_LANGUAGE_PACKS.md",
       },
       {
-        "slug": "compression-rules-format",
-        "title": "Compression Rules Format",
-        "fileName": "COMPRESSION_RULES_FORMAT.md"
+        slug: "compression-rules-format",
+        title: "Compression Rules Format",
+        fileName: "COMPRESSION_RULES_FORMAT.md",
       },
       {
-        "slug": "features",
-        "title": "OmniRoute — Dashboard Features Gallery",
-        "fileName": "FEATURES.md"
+        slug: "features",
+        title: "OmniRoute — Dashboard Features Gallery",
+        fileName: "FEATURES.md",
       },
       {
-        "slug": "free-tiers",
-        "title": "🆓 Free LLM API Providers — Consolidated Directory",
-        "fileName": "FREE_TIERS.md"
+        slug: "free-tiers",
+        title: "🆓 Free LLM API Providers — Consolidated Directory",
+        fileName: "FREE_TIERS.md",
       },
       {
-        "slug": "rtk-compression",
-        "title": "RTK Compression",
-        "fileName": "RTK_COMPRESSION.md"
-      }
-    ]
+        slug: "rtk-compression",
+        title: "RTK Compression",
+        fileName: "RTK_COMPRESSION.md",
+      },
+    ],
   },
   {
-    "title": "API & Protocols",
-    "items": [
+    title: "API & Protocols",
+    items: [
       {
-        "slug": "a2a-server",
-        "title": "OmniRoute A2A Server Documentation",
-        "fileName": "A2A-SERVER.md"
+        slug: "a2a-server",
+        title: "OmniRoute A2A Server Documentation",
+        fileName: "A2A-SERVER.md",
       },
       {
-        "slug": "api-reference",
-        "title": "API Reference",
-        "fileName": "API_REFERENCE.md"
+        slug: "api-reference",
+        title: "API Reference",
+        fileName: "API_REFERENCE.md",
       },
       {
-        "slug": "mcp-server",
-        "title": "OmniRoute MCP Server Documentation",
-        "fileName": "MCP-SERVER.md"
-      }
-    ]
+        slug: "mcp-server",
+        title: "OmniRoute MCP Server Documentation",
+        fileName: "MCP-SERVER.md",
+      },
+    ],
   },
   {
-    "title": "Deployment",
-    "items": [
+    title: "Deployment",
+    items: [
       {
-        "slug": "docker-guide",
-        "title": "🐳 Docker Guide",
-        "fileName": "DOCKER_GUIDE.md"
+        slug: "docker-guide",
+        title: "🐳 Docker Guide",
+        fileName: "DOCKER_GUIDE.md",
       },
       {
-        "slug": "fly-io-deployment-guide",
-        "title": "OmniRoute Fly.io 部署指南",
-        "fileName": "FLY_IO_DEPLOYMENT_GUIDE.md"
+        slug: "fly-io-deployment-guide",
+        title: "OmniRoute Fly.io 部署指南",
+        fileName: "FLY_IO_DEPLOYMENT_GUIDE.md",
       },
       {
-        "slug": "pwa-guide",
-        "title": "Progressive Web App (PWA) Guide",
-        "fileName": "PWA_GUIDE.md"
+        slug: "pwa-guide",
+        title: "Progressive Web App (PWA) Guide",
+        fileName: "PWA_GUIDE.md",
       },
       {
-        "slug": "termux-guide",
-        "title": "Termux Headless Setup",
-        "fileName": "TERMUX_GUIDE.md"
+        slug: "termux-guide",
+        title: "Termux Headless Setup",
+        fileName: "TERMUX_GUIDE.md",
       },
       {
-        "slug": "vm-deployment-guide",
-        "title": "OmniRoute — Deployment Guide on VM with Cloudflare",
-        "fileName": "VM_DEPLOYMENT_GUIDE.md"
-      }
-    ]
+        slug: "vm-deployment-guide",
+        title: "OmniRoute — Deployment Guide on VM with Cloudflare",
+        fileName: "VM_DEPLOYMENT_GUIDE.md",
+      },
+    ],
   },
   {
-    "title": "Operations",
-    "items": [
+    title: "Operations",
+    items: [
       {
-        "slug": "environment",
-        "title": "Environment Variables Reference",
-        "fileName": "ENVIRONMENT.md"
+        slug: "environment",
+        title: "Environment Variables Reference",
+        fileName: "ENVIRONMENT.md",
       },
       {
-        "slug": "proxy-guide",
-        "title": "OmniRoute Proxy Guide",
-        "fileName": "PROXY_GUIDE.md"
+        slug: "proxy-guide",
+        title: "OmniRoute Proxy Guide",
+        fileName: "PROXY_GUIDE.md",
       },
       {
-        "slug": "resilience-guide",
-        "title": "🛡️ Resilience Guide",
-        "fileName": "RESILIENCE_GUIDE.md"
+        slug: "resilience-guide",
+        title: "🛡️ Resilience Guide",
+        fileName: "RESILIENCE_GUIDE.md",
       },
       {
-        "slug": "troubleshooting",
-        "title": "Troubleshooting",
-        "fileName": "TROUBLESHOOTING.md"
-      }
-    ]
+        slug: "troubleshooting",
+        title: "Troubleshooting",
+        fileName: "TROUBLESHOOTING.md",
+      },
+    ],
   },
   {
-    "title": "Development",
-    "items": [
+    title: "Development",
+    items: [
       {
-        "slug": "codebase-documentation",
-        "title": "omniroute — Codebase Documentation",
-        "fileName": "CODEBASE_DOCUMENTATION.md"
+        slug: "codebase-documentation",
+        title: "omniroute — Codebase Documentation",
+        fileName: "CODEBASE_DOCUMENTATION.md",
       },
       {
-        "slug": "coverage-plan",
-        "title": "Test Coverage Plan",
-        "fileName": "COVERAGE_PLAN.md"
+        slug: "coverage-plan",
+        title: "Test Coverage Plan",
+        fileName: "COVERAGE_PLAN.md",
       },
       {
-        "slug": "i18n",
-        "title": "i18n — Internationalization Guide",
-        "fileName": "I18N.md"
+        slug: "i18n",
+        title: "i18n — Internationalization Guide",
+        fileName: "I18N.md",
       },
       {
-        "slug": "release-checklist",
-        "title": "Release Checklist",
-        "fileName": "RELEASE_CHECKLIST.md"
+        slug: "release-checklist",
+        title: "Release Checklist",
+        fileName: "RELEASE_CHECKLIST.md",
       },
       {
-        "slug": "uninstall",
-        "title": "OmniRoute — Uninstall Guide",
-        "fileName": "UNINSTALL.md"
-      }
-    ]
+        slug: "uninstall",
+        title: "OmniRoute — Uninstall Guide",
+        fileName: "UNINSTALL.md",
+      },
+    ],
   },
   {
-    "title": "Other",
-    "items": [
+    title: "Other",
+    items: [
       {
-        "slug": "rfc-auto-assessment",
-        "title": "RFC: Auto-Assessment & Self-Healing Combo Engine",
-        "fileName": "RFC-AUTO-ASSESSMENT.md"
-      }
-    ]
-  }
+        slug: "rfc-auto-assessment",
+        title: "RFC: Auto-Assessment & Self-Healing Combo Engine",
+        fileName: "RFC-AUTO-ASSESSMENT.md",
+      },
+    ],
+  },
 ];
 
 export const autoSearchIndex: AutoGenSearchItem[] = [
   {
-    "slug": "architecture",
-    "title": "OmniRoute Architecture",
-    "fileName": "ARCHITECTURE.md",
-    "section": "Getting Started",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "architecture",
+    title: "OmniRoute Architecture",
+    fileName: "ARCHITECTURE.md",
+    section: "Getting Started",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Executive Summary",
       "Scope and Boundaries",
       "In Scope",
@@ -226,16 +227,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Core Runtime Components",
       "1) API and Routing Layer (Next.js App Routes)",
       "2) SSE + Translation Core",
-      "3) Persistence Layer"
-    ]
+      "3) Persistence Layer",
+    ],
   },
   {
-    "slug": "cli-tools",
-    "title": "CLI Tools Setup Guide",
-    "fileName": "CLI-TOOLS.md",
-    "section": "Getting Started",
-    "content": "This guide explains how to install and configure all supported AI coding CLI tools to use OmniRoute as the unified backend, giving you centralized key management, cost tracking, model switching, and request logging across every tool. The dashboard cards in /dashboard/cli-tools are generated from src",
-    "headings": [
+    slug: "cli-tools",
+    title: "CLI Tools Setup Guide",
+    fileName: "CLI-TOOLS.md",
+    section: "Getting Started",
+    content:
+      "This guide explains how to install and configure all supported AI coding CLI tools to use OmniRoute as the unified backend, giving you centralized key management, cost tracking, model switching, and request logging across every tool. The dashboard cards in /dashboard/cli-tools are generated from src",
+    headings: [
       "How It Works",
       "Supported Tools (Dashboard Source of Truth)",
       "CLI fingerprint sync (Agents + Settings)",
@@ -245,16 +247,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Step 4 — Configure Each Tool",
       "Claude Code",
       "OpenAI Codex",
-      "OpenCode"
-    ]
+      "OpenCode",
+    ],
   },
   {
-    "slug": "setup-guide",
-    "title": "Setup Guide",
-    "fileName": "SETUP_GUIDE.md",
-    "section": "Getting Started",
-    "content": "Complete setup reference for OmniRoute. For the quick version, see the Quick Start in README. - Install Methods - CLI Tool Configuration - Protocol Setup (MCP + A2A) - Timeout Configuration - Split-Port Mode - Void Linux (xbps-src) - Uninstalling -------------------- --------------------------------",
-    "headings": [
+    slug: "setup-guide",
+    title: "Setup Guide",
+    fileName: "SETUP_GUIDE.md",
+    section: "Getting Started",
+    content:
+      "Complete setup reference for OmniRoute. For the quick version, see the Quick Start in README. - Install Methods - CLI Tool Configuration - Protocol Setup (MCP + A2A) - Timeout Configuration - Split-Port Mode - Void Linux (xbps-src) - Uninstalling -------------------- --------------------------------",
+    headings: [
       "Table of Contents",
       "Install Methods",
       "npm (recommended)",
@@ -264,51 +267,56 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Docker",
       "CLI Options",
       "CLI Tool Configuration",
-      "1) Connect Providers and Create API Key"
-    ]
+      "1) Connect Providers and Create API Key",
+    ],
   },
   {
-    "slug": "user-guide",
-    "title": "User Guide",
-    "fileName": "USER_GUIDE.md",
-    "section": "Getting Started",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "user-guide",
+    title: "User Guide",
+    fileName: "USER_GUIDE.md",
+    section: "Getting Started",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Table of Contents",
       "💰 Pricing at a Glance",
       "🎯 Use Cases",
-      "Case 1: \"I have Claude Pro subscription\"",
-      "Case 2: \"I want zero cost\"",
-      "Case 3: \"I need 24/7 coding, no interruptions\"",
-      "Case 4: \"I want FREE AI in OpenClaw\"",
+      'Case 1: "I have Claude Pro subscription"',
+      'Case 2: "I want zero cost"',
+      'Case 3: "I need 24/7 coding, no interruptions"',
+      'Case 4: "I want FREE AI in OpenClaw"',
       "📖 Provider Setup",
       "🔐 Subscription Providers",
-      "Claude Code (Pro/Max)"
-    ]
+      "Claude Code (Pro/Max)",
+    ],
   },
   {
-    "slug": "auto-combo",
-    "title": "OmniRoute Auto-Combo Engine",
-    "fileName": "AUTO-COMBO.md",
-    "section": "Features",
-    "content": "Self-managing model chains with adaptive scoring The Auto-Combo Engine dynamically selects the best provider/model for each request using a 6-factor scoring function: Factor Weight Description :--------- :----- :---------------------------------------------- Quota 0.20 Remaining capacity [0..1] Heal",
-    "headings": [
-      "How It Works",
+    slug: "auto-combo",
+    title: "OmniRoute Auto-Combo Engine",
+    fileName: "AUTO-COMBO.md",
+    section: "Features",
+    content:
+      "Self-managing model chains with adaptive scoring + zero-config auto-routing NEW: No combo creation required. Use auto/ prefix directly in any client. Model ID Variant Behavior -------------- ------- ------------------------------------------------------------------------ auto default All connected p",
+    headings: [
+      "Zero-Config Auto-Routing (auto/ prefix)",
+      "Quick Examples",
+      "How It Works (Persisted Auto-Combos)",
       "Mode Packs",
       "Self-Healing",
       "Bandit Exploration",
       "API",
       "Task Fitness",
-      "Files"
-    ]
+      "Files",
+    ],
   },
   {
-    "slug": "compression-engines",
-    "title": "Compression Engines",
-    "fileName": "COMPRESSION_ENGINES.md",
-    "section": "Features",
-    "content": "OmniRoute compression is built around engine contracts. A mode can run one engine directly (caveman or rtk) or a deterministic stacked pipeline that executes multiple engines in order. Mode Engine path Intended input ------------ ---------------------------------- -----------------------------------",
-    "headings": [
+    slug: "compression-engines",
+    title: "Compression Engines",
+    fileName: "COMPRESSION_ENGINES.md",
+    section: "Features",
+    content:
+      "OmniRoute compression is built around engine contracts. A mode can run one engine directly (caveman or rtk) or a deterministic stacked pipeline that executes multiple engines in order. Mode Engine path Intended input ------------ ---------------------------------- -----------------------------------",
+    headings: [
       "Modes",
       "Engine Registry",
       "Caveman",
@@ -317,16 +325,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Compression Combos",
       "API Surface",
       "MCP Tools",
-      "Validation"
-    ]
+      "Validation",
+    ],
   },
   {
-    "slug": "compression-guide",
-    "title": "🗜️ Prompt Compression Guide",
-    "fileName": "COMPRESSION_GUIDE.md",
-    "section": "Features",
-    "content": "Save 15-95% on eligible context automatically. For a quick overview, see the README Compression section. OmniRoute implements a modular prompt compression pipeline that runs proactively before requests hit upstream providers. This means your token savings happen transparently — no changes needed to ",
-    "headings": [
+    slug: "compression-guide",
+    title: "🗜️ Prompt Compression Guide",
+    fileName: "COMPRESSION_GUIDE.md",
+    section: "Features",
+    content:
+      "Save 15-95% on eligible context automatically. For a quick overview, see the README Compression section. OmniRoute implements a modular prompt compression pipeline that runs proactively before requests hit upstream providers. This means your token savings happen transparently — no changes needed to ",
+    headings: [
       "Overview",
       "Compression Modes",
       "Off",
@@ -336,46 +345,49 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Ultra Mode (~75% savings)",
       "RTK Mode (60-90% upstream range)",
       "Stacked Mode (78-95% eligible range)",
-      "Upstream Savings Math"
-    ]
+      "Upstream Savings Math",
+    ],
   },
   {
-    "slug": "compression-language-packs",
-    "title": "Compression Language Packs",
-    "fileName": "COMPRESSION_LANGUAGE_PACKS.md",
-    "section": "Features",
-    "content": "Caveman compression can load language-specific rule packs in addition to the built-in English rules. This keeps the core engine stable while allowing Portuguese, Spanish, German, French, Japanese, and future language packs to evolve independently. Language packs live under: Current shipped packs inc",
-    "headings": [
+    slug: "compression-language-packs",
+    title: "Compression Language Packs",
+    fileName: "COMPRESSION_LANGUAGE_PACKS.md",
+    section: "Features",
+    content:
+      "Caveman compression can load language-specific rule packs in addition to the built-in English rules. This keeps the core engine stable while allowing Portuguese, Spanish, German, French, Japanese, and future language packs to evolve independently. Language packs live under: Current shipped packs inc",
+    headings: [
       "Location",
       "Language Detection",
       "Config Shape",
       "Adding a Language Pack",
       "API",
-      "Operational Notes"
-    ]
+      "Operational Notes",
+    ],
   },
   {
-    "slug": "compression-rules-format",
-    "title": "Compression Rules Format",
-    "fileName": "COMPRESSION_RULES_FORMAT.md",
-    "section": "Features",
-    "content": "Compression rules are JSON files loaded at runtime. They are intentionally data-only so new language packs and RTK command filters can be reviewed without changing engine code. Caveman rule packs live under: Each pack contains replacements that apply to normal prose after protected regions are isola",
-    "headings": [
+    slug: "compression-rules-format",
+    title: "Compression Rules Format",
+    fileName: "COMPRESSION_RULES_FORMAT.md",
+    section: "Features",
+    content:
+      "Compression rules are JSON files loaded at runtime. They are intentionally data-only so new language packs and RTK command filters can be reviewed without changing engine code. Caveman rule packs live under: Each pack contains replacements that apply to normal prose after protected regions are isola",
+    headings: [
       "Caveman Rule Packs",
       "Caveman Fields",
       "RTK Filter Packs",
       "RTK Fields",
       "Safety Rules",
-      "Validation"
-    ]
+      "Validation",
+    ],
   },
   {
-    "slug": "features",
-    "title": "OmniRoute — Dashboard Features Gallery",
-    "fileName": "FEATURES.md",
-    "section": "Features",
-    "content": "🌐 Main README translations: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indones",
-    "headings": [
+    slug: "features",
+    title: "OmniRoute — Dashboard Features Gallery",
+    fileName: "FEATURES.md",
+    section: "Features",
+    content:
+      "🌐 Main README translations: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indones",
+    headings: [
       "🔌 Providers",
       "🎨 Combos",
       "📊 Analytics",
@@ -385,16 +397,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "🎨 Themes _(v2.0.5+)_",
       "⚙️ Settings",
       "🔧 CLI Tools",
-      "🤖 CLI Agents _(v2.0.11+)_"
-    ]
+      "🤖 CLI Agents _(v2.0.11+)_",
+    ],
   },
   {
-    "slug": "free-tiers",
-    "title": "🆓 Free LLM API Providers — Consolidated Directory",
-    "fileName": "FREE_TIERS.md",
-    "section": "Features",
-    "content": "The ultimate aggregated reference for all permanently free LLM API providers. Consolidated from 6 community repositories. Use with OmniRoute to route through 25+ free providers simultaneously. Last consolidated: May 2026 · Sources: awesome-free-llm-apis, awesome-free-llm-apis2, free-llm-api-resource",
-    "headings": [
+    slug: "free-tiers",
+    title: "🆓 Free LLM API Providers — Consolidated Directory",
+    fileName: "FREE_TIERS.md",
+    section: "Features",
+    content:
+      "The ultimate aggregated reference for all permanently free LLM API providers. Consolidated from 6 community repositories. Use with OmniRoute to route through 25+ free providers simultaneously. Last consolidated: May 2026 · Sources: awesome-free-llm-apis, awesome-free-llm-apis2, free-llm-api-resource",
+    headings: [
       "Table of Contents",
       "Quick Comparison",
       "Provider APIs (First-Party)",
@@ -404,16 +417,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Z.AI (Zhipu AI) 🇨🇳",
       "IBM watsonx 🇺🇸",
       "Inference Providers (Third-Party)",
-      "Groq 🇺🇸"
-    ]
+      "Groq 🇺🇸",
+    ],
   },
   {
-    "slug": "rtk-compression",
-    "title": "RTK Compression",
-    "fileName": "RTK_COMPRESSION.md",
-    "section": "Features",
-    "content": "RTK compression is OmniRoute's command-aware compression engine for terminal and tool output. It is designed for coding-agent sessions where most context growth comes from test logs, build output, package manager noise, shell transcripts, Docker output, git output, and stack traces. RTK can run dire",
-    "headings": [
+    slug: "rtk-compression",
+    title: "RTK Compression",
+    fileName: "RTK_COMPRESSION.md",
+    section: "Features",
+    content:
+      "RTK compression is OmniRoute's command-aware compression engine for terminal and tool output. It is designed for coding-agent sessions where most context growth comes from test logs, build output, package manager noise, shell transcripts, Docker output, git output, and stack traces. RTK can run dire",
+    headings: [
       "What It Compresses",
       "Filter Resolution",
       "Filter DSL",
@@ -421,16 +435,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "API",
       "Raw Output Recovery",
       "Verify Gate",
-      "Extending RTK"
-    ]
+      "Extending RTK",
+    ],
   },
   {
-    "slug": "a2a-server",
-    "title": "OmniRoute A2A Server Documentation",
-    "fileName": "A2A-SERVER.md",
-    "section": "API & Protocols",
-    "content": "Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements. Sends a message to a skill and waits for the complete response. Response: Same as message/send but returns Server-Sent Events ",
-    "headings": [
+    slug: "a2a-server",
+    title: "OmniRoute A2A Server Documentation",
+    fileName: "A2A-SERVER.md",
+    section: "API & Protocols",
+    content:
+      "Agent-to-Agent Protocol v0.3 — OmniRoute as an intelligent routing agent Returns the Agent Card describing OmniRoute's capabilities, skills, and authentication requirements. Sends a message to a skill and waits for the complete response. Response: Same as message/send but returns Server-Sent Events ",
+    headings: [
       "Agent Discovery",
       "Authentication",
       "Enablement",
@@ -440,16 +455,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "tasks/get — Query Task Status",
       "tasks/cancel — Cancel a Task",
       "Available Skills",
-      "Task Lifecycle"
-    ]
+      "Task Lifecycle",
+    ],
   },
   {
-    "slug": "api-reference",
-    "title": "API Reference",
-    "fileName": "API_REFERENCE.md",
-    "section": "API & Protocols",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "api-reference",
+    title: "API Reference",
+    fileName: "API_REFERENCE.md",
+    section: "API & Protocols",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Table of Contents",
       "Chat Completions",
       "Custom Headers",
@@ -459,16 +475,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Compatibility Endpoints",
       "Dedicated Provider Routes",
       "Semantic Cache",
-      "Dashboard & Management"
-    ]
+      "Dashboard & Management",
+    ],
   },
   {
-    "slug": "mcp-server",
-    "title": "OmniRoute MCP Server Documentation",
-    "fileName": "MCP-SERVER.md",
-    "section": "API & Protocols",
-    "content": "Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations OmniRoute MCP is built-in. Start it with: Or via the open-sse transport: See MCP Client Configuration for Claude Desktop, Cursor, Cline, and compatible MCP client setup. -------------",
-    "headings": [
+    slug: "mcp-server",
+    title: "OmniRoute MCP Server Documentation",
+    fileName: "MCP-SERVER.md",
+    section: "API & Protocols",
+    content:
+      "Model Context Protocol server with 37 tools across routing, cache, compression, memory, skills, and proxy operations OmniRoute MCP is built-in. Start it with: Or via the open-sse transport: See MCP Client Configuration for Claude Desktop, Cursor, Cline, and compatible MCP client setup. -------------",
+    headings: [
       "Installation",
       "IDE Configuration",
       "Essential Tools (8)",
@@ -478,16 +495,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Other Tool Groups",
       "Authentication",
       "Audit Logging",
-      "Files"
-    ]
+      "Files",
+    ],
   },
   {
-    "slug": "docker-guide",
-    "title": "🐳 Docker Guide",
-    "fileName": "DOCKER_GUIDE.md",
-    "section": "Deployment",
-    "content": "Complete Docker deployment reference. For a quick start, see the README Docker section. - Quick Run - With Environment File - Docker Compose - Docker Compose with Caddy (HTTPS) - Cloudflare Quick Tunnel - Image Tags - Important Notes --------------------- -------- ------ --------------------- diegos",
-    "headings": [
+    slug: "docker-guide",
+    title: "🐳 Docker Guide",
+    fileName: "DOCKER_GUIDE.md",
+    section: "Deployment",
+    content:
+      "Complete Docker deployment reference. For a quick start, see the README Docker section. - Quick Run - With Environment File - Docker Compose - Docker Compose with Caddy (HTTPS) - Cloudflare Quick Tunnel - Image Tags - Important Notes --------------------- -------- ------ --------------------- diegos",
+    headings: [
       "Table of Contents",
       "Quick Run",
       "With Environment File",
@@ -497,16 +515,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Tunnel Notes",
       "Image Tags",
       "Important Notes",
-      "See Also"
-    ]
+      "See Also",
+    ],
   },
   {
-    "slug": "fly-io-deployment-guide",
-    "title": "OmniRoute Fly.io 部署指南",
-    "fileName": "FLY_IO_DEPLOYMENT_GUIDE.md",
-    "section": "Deployment",
-    "content": "本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景： - 首次把当前项目部署到 Fly.io - 后续代码更新后继续发布 - 新项目参考同样流程部署 本文基于当前项目已经验证通过的配置整理，应用名为 omniroute。 当前仓库中的 fly.toml 已确认包含以下关键项： 说明： - app = 'omniroute' 决定实际部署到哪个 Fly 应用 - destination = '/data' 决定持久卷挂载目录 - 本项目必须让 DATADIR=/data，否则数据库和密钥会写到容器临时目录 --- Windows PowerShell： 如果安装脚",
-    "headings": [
+    slug: "fly-io-deployment-guide",
+    title: "OmniRoute Fly.io 部署指南",
+    fileName: "FLY_IO_DEPLOYMENT_GUIDE.md",
+    section: "Deployment",
+    content:
+      "本文档记录 OmniRoute 在 Fly.io 上的实际部署方法，适用于两类场景： - 首次把当前项目部署到 Fly.io - 后续代码更新后继续发布 - 新项目参考同样流程部署 本文基于当前项目已经验证通过的配置整理，应用名为 omniroute。 当前仓库中的 fly.toml 已确认包含以下关键项： 说明： - app = 'omniroute' 决定实际部署到哪个 Fly 应用 - destination = '/data' 决定持久卷挂载目录 - 本项目必须让 DATADIR=/data，否则数据库和密钥会写到容器临时目录 --- Windows PowerShell： 如果安装脚",
+    headings: [
       "1. 部署目标",
       "2. 当前项目关键配置",
       "3. 必备工具",
@@ -516,16 +535,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "4. 首次部署当前项目",
       "4.1 获取代码并进入目录",
       "4.2 确认应用名",
-      "4.3 创建应用"
-    ]
+      "4.3 创建应用",
+    ],
   },
   {
-    "slug": "pwa-guide",
-    "title": "Progressive Web App (PWA) Guide",
-    "fileName": "PWA_GUIDE.md",
-    "section": "Deployment",
-    "content": "OmniRoute ships as a fully installable Progressive Web App. When you access the dashboard from any mobile browser — Android (Chrome) or iOS (Safari) — you can \"Add to Home Screen\" and get a native app-like experience with no app store required. A Progressive Web App turns the OmniRoute web dashboard",
-    "headings": [
+    slug: "pwa-guide",
+    title: "Progressive Web App (PWA) Guide",
+    fileName: "PWA_GUIDE.md",
+    section: "Deployment",
+    content:
+      'OmniRoute ships as a fully installable Progressive Web App. When you access the dashboard from any mobile browser — Android (Chrome) or iOS (Safari) — you can "Add to Home Screen" and get a native app-like experience with no app store required. A Progressive Web App turns the OmniRoute web dashboard',
+    headings: [
       "What Is a PWA?",
       "Installation",
       "Android (Chrome)",
@@ -535,16 +555,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Fullscreen Experience",
       "Offline Support",
       "Offline Page",
-      "App Icons"
-    ]
+      "App Icons",
+    ],
   },
   {
-    "slug": "termux-guide",
-    "title": "Termux Headless Setup",
-    "fileName": "TERMUX_GUIDE.md",
-    "section": "Deployment",
-    "content": "OmniRoute can run as a headless server on Android through Termux. The Electron desktop app is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network. Install Termux from F-Droid or GitHub releases, then update pa",
-    "headings": [
+    slug: "termux-guide",
+    title: "Termux Headless Setup",
+    fileName: "TERMUX_GUIDE.md",
+    section: "Deployment",
+    content:
+      "OmniRoute can run as a headless server on Android through Termux. The Electron desktop app is not supported in Termux, but the web dashboard and OpenAI-compatible API work from the local browser or from other devices on the same network. Install Termux from F-Droid or GitHub releases, then update pa",
+    headings: [
       "Prerequisites",
       "Install",
       "Run",
@@ -554,16 +575,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Limitations",
       "Troubleshooting",
       "better-sqlite3 Build Errors",
-      "Port Already In Use"
-    ]
+      "Port Already In Use",
+    ],
   },
   {
-    "slug": "vm-deployment-guide",
-    "title": "OmniRoute — Deployment Guide on VM with Cloudflare",
-    "fileName": "VM_DEPLOYMENT_GUIDE.md",
-    "section": "Deployment",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "vm-deployment-guide",
+    title: "OmniRoute — Deployment Guide on VM with Cloudflare",
+    fileName: "VM_DEPLOYMENT_GUIDE.md",
+    section: "Deployment",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Prerequisites",
       "1. Configure the VM",
       "1.1 Create the instance",
@@ -573,16 +595,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "1.5 Install nginx",
       "1.6 Configure Firewall (UFW)",
       "2. Install OmniRoute",
-      "2.1 Create configuration directory"
-    ]
+      "2.1 Create configuration directory",
+    ],
   },
   {
-    "slug": "environment",
-    "title": "Environment Variables Reference",
-    "fileName": "ENVIRONMENT.md",
-    "section": "Operations",
-    "content": "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. These must be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults. Variable Required Default Source File Descript",
-    "headings": [
+    slug: "environment",
+    title: "Environment Variables Reference",
+    fileName: "ENVIRONMENT.md",
+    section: "Operations",
+    content:
+      "Complete reference for every environment variable recognized by OmniRoute. For a quick-start template, see .env.example. These must be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults. Variable Required Default Source File Descript",
+    headings: [
       "Table of Contents",
       "1. Required Secrets",
       "Generation Commands",
@@ -592,16 +615,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Port Modes",
       "4. Security & Authentication",
       "Hardening Checklist",
-      "5. Input Sanitization & PII Protection"
-    ]
+      "5. Input Sanitization & PII Protection",
+    ],
   },
   {
-    "slug": "proxy-guide",
-    "title": "OmniRoute Proxy Guide",
-    "fileName": "PROXY_GUIDE.md",
-    "section": "Operations",
-    "content": "Bypass geographic blocks, protect your identity, and route AI traffic through any proxy — with zero configuration complexity. OmniRoute includes a full-featured proxy management system that lets you route upstream AI provider traffic through HTTP, HTTPS, or SOCKS5 proxies. Whether you're in a blocke",
-    "headings": [
+    slug: "proxy-guide",
+    title: "OmniRoute Proxy Guide",
+    fileName: "PROXY_GUIDE.md",
+    section: "Operations",
+    content:
+      "Bypass geographic blocks, protect your identity, and route AI traffic through any proxy — with zero configuration complexity. OmniRoute includes a full-featured proxy management system that lets you route upstream AI provider traffic through HTTP, HTTPS, or SOCKS5 proxies. Whether you're in a blocke",
+    headings: [
       "Table of Contents",
       "Why Use Proxies?",
       "Architecture Overview",
@@ -611,16 +635,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "What Gets Proxied",
       "Proxy Registry (CRUD)",
       "Creating a Proxy",
-      "Updating a Proxy"
-    ]
+      "Updating a Proxy",
+    ],
   },
   {
-    "slug": "resilience-guide",
-    "title": "🛡️ Resilience Guide",
-    "fileName": "RESILIENCE_GUIDE.md",
-    "section": "Operations",
-    "content": "How OmniRoute keeps your AI coding workflow running when providers fail. OmniRoute implements a multi-layered resilience system that ensures zero downtime: ------------ ------- ------------------------------------ Queue Size 10 Max queued requests per connection Pacing Interval 0ms Minimum gap betwe",
-    "headings": [
+    slug: "resilience-guide",
+    title: "🛡️ Resilience Guide",
+    fileName: "RESILIENCE_GUIDE.md",
+    section: "Operations",
+    content:
+      "How OmniRoute keeps your AI coding workflow running when providers fail. OmniRoute implements a multi-layered resilience system that ensures zero downtime: ------------ ------- ------------------------------------ Queue Size 10 Max queued requests per connection Pacing Interval 0ms Minimum gap betwe",
+    headings: [
       "Overview",
       "Request Queue & Pacing",
       "Connection Cooldown",
@@ -630,35 +655,37 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Combo Fallback Chains",
       "13 Routing Strategies",
       "TLS Fingerprint Spoofing",
-      "Health Dashboard"
-    ]
+      "Health Dashboard",
+    ],
   },
   {
-    "slug": "troubleshooting",
-    "title": "Troubleshooting",
-    "fileName": "TROUBLESHOOTING.md",
-    "section": "Operations",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "troubleshooting",
+    title: "Troubleshooting",
+    fileName: "TROUBLESHOOTING.md",
+    section: "Operations",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Quick Fixes",
       "Node.js Compatibility",
-      "Login page crashes or shows \"Module self-registration\" error",
-      "macOS: dlopen / \"slice is not valid mach-o file\"",
+      'Login page crashes or shows "Module self-registration" error',
+      'macOS: dlopen / "slice is not valid mach-o file"',
       "Proxy Issues",
-      "Provider validation shows \"fetch failed\"",
-      "Token health check fails with \"fetch failed\"",
-      "SOCKS5 proxy returns \"invalid onRequestStart method\"",
+      'Provider validation shows "fetch failed"',
+      'Token health check fails with "fetch failed"',
+      'SOCKS5 proxy returns "invalid onRequestStart method"',
       "Provider Issues",
-      "\"Language model did not provide messages\""
-    ]
+      '"Language model did not provide messages"',
+    ],
   },
   {
-    "slug": "codebase-documentation",
-    "title": "omniroute — Codebase Documentation",
-    "fileName": "CODEBASE_DOCUMENTATION.md",
-    "section": "Development",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "codebase-documentation",
+    title: "omniroute — Codebase Documentation",
+    fileName: "CODEBASE_DOCUMENTATION.md",
+    section: "Development",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "1. What Is omniroute?",
       "2. Architecture Overview",
       "Core Principle: Hub-and-Spoke Translation",
@@ -668,16 +695,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Credential Loading Flow",
       "4.2 Executors (open-sse/executors/)",
       "4.3 Handlers (open-sse/handlers/)",
-      "Request Lifecycle (chatCore.ts)"
-    ]
+      "Request Lifecycle (chatCore.ts)",
+    ],
   },
   {
-    "slug": "coverage-plan",
-    "title": "Test Coverage Plan",
-    "fileName": "COVERAGE_PLAN.md",
-    "section": "Development",
-    "content": "Last updated: 2026-03-28 There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful. Metric Scope Statements / Lines Branches Functions Notes -------------------- ----------------------------------------------------- -----------------: -----",
-    "headings": [
+    slug: "coverage-plan",
+    title: "Test Coverage Plan",
+    fileName: "COVERAGE_PLAN.md",
+    section: "Development",
+    content:
+      "Last updated: 2026-03-28 There are multiple coverage numbers depending on how the report is computed. For planning, only one of them is useful. Metric Scope Statements / Lines Branches Functions Notes -------------------- ----------------------------------------------------- -----------------: -----",
+    headings: [
       "Baseline",
       "Rules",
       "Current command set",
@@ -687,16 +715,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Phase 1: 56.95% -> 60%",
       "Phase 2: 60% -> 65%",
       "Phase 3: 65% -> 70%",
-      "Phase 4: 70% -> 75%"
-    ]
+      "Phase 4: 70% -> 75%",
+    ],
   },
   {
-    "slug": "i18n",
-    "title": "i18n — Internationalization Guide",
-    "fileName": "I18N.md",
-    "section": "Development",
-    "content": "OmniRoute supports 30 languages with full dashboard UI translation, translated documentation, and RTL support for Arabic and Hebrew. 🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇩🇪 Deutsch 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇯🇵 日本語 🇰🇷 한국어 🇸🇦 العربية 🇮🇳 ",
-    "headings": [
+    slug: "i18n",
+    title: "i18n — Internationalization Guide",
+    fileName: "I18N.md",
+    section: "Development",
+    content:
+      "OmniRoute supports 30 languages with full dashboard UI translation, translated documentation, and RTL support for Arabic and Hebrew. 🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇩🇪 Deutsch 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇯🇵 日本語 🇰🇷 한국어 🇸🇦 العربية 🇮🇳 ",
+    headings: [
       "Quick Reference",
       "Architecture",
       "Source of Truth",
@@ -706,29 +735,26 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "1. Register the Locale",
       "2. Add to Generator",
       "3. Generate Initial Translation",
-      "4. Review & Fix Auto-Translations"
-    ]
+      "4. Review & Fix Auto-Translations",
+    ],
   },
   {
-    "slug": "release-checklist",
-    "title": "Release Checklist",
-    "fileName": "RELEASE_CHECKLIST.md",
-    "section": "Development",
-    "content": "Use this checklist before tagging or publishing a new OmniRoute release. 1. Bump package.json version (x.y.z) in the release branch. 2. Move release notes from [Unreleased] in CHANGELOG.md to a dated section: - [x.y.z] — YYYY-MM-DD 3. Keep [Unreleased] as the first changelog section for upcoming wor",
-    "headings": [
-      "Version and Changelog",
-      "API Docs",
-      "Runtime Docs",
-      "Automated Check"
-    ]
+    slug: "release-checklist",
+    title: "Release Checklist",
+    fileName: "RELEASE_CHECKLIST.md",
+    section: "Development",
+    content:
+      "Use this checklist before tagging or publishing a new OmniRoute release. 1. Bump package.json version (x.y.z) in the release branch. 2. Move release notes from [Unreleased] in CHANGELOG.md to a dated section: - [x.y.z] — YYYY-MM-DD 3. Keep [Unreleased] as the first changelog section for upcoming wor",
+    headings: ["Version and Changelog", "API Docs", "Runtime Docs", "Automated Check"],
   },
   {
-    "slug": "uninstall",
-    "title": "OmniRoute — Uninstall Guide",
-    "fileName": "UNINSTALL.md",
-    "section": "Development",
-    "content": "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
-    "headings": [
+    slug: "uninstall",
+    title: "OmniRoute — Uninstall Guide",
+    fileName: "UNINSTALL.md",
+    section: "Development",
+    content:
+      "🌐 Languages: 🇺🇸 English 🇧🇷 Português (Brasil) 🇪🇸 Español 🇫🇷 Français 🇮🇹 Italiano 🇷🇺 Русский 🇨🇳 中文 (简体) 🇩🇪 Deutsch 🇮🇳 हिन्दी 🇹🇭 ไทย 🇺🇦 Українська 🇸🇦 العربية 🇯🇵 日本語 🇻🇳 Tiếng Việt 🇧🇬 Български 🇩🇰 Dansk 🇫🇮 Suomi 🇮🇱 עברית 🇭🇺 Magyar 🇮🇩 Bahasa Indonesia 🇰🇷 한국어 🇲\ud83c",
+    headings: [
       "Quick Uninstall (v3.6.2+)",
       "Keep Your Data",
       "Full Removal",
@@ -738,16 +764,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Docker",
       "Docker Compose",
       "Electron Desktop App",
-      "Source Install (git clone)"
-    ]
+      "Source Install (git clone)",
+    ],
   },
   {
-    "slug": "rfc-auto-assessment",
-    "title": "RFC: Auto-Assessment & Self-Healing Combo Engine",
-    "fileName": "RFC-AUTO-ASSESSMENT.md",
-    "section": "Other",
-    "content": "Omniroute's combo system currently requires manual configuration: users must know which providers and models are actually working, then manually wire them into combo chains. When providers fail (rate limits, auth errors, model deprecation), combos silently degrade — routing to dead endpoints that ti",
-    "headings": [
+    slug: "rfc-auto-assessment",
+    title: "RFC: Auto-Assessment & Self-Healing Combo Engine",
+    fileName: "RFC-AUTO-ASSESSMENT.md",
+    section: "Other",
+    content:
+      "Omniroute's combo system currently requires manual configuration: users must know which providers and models are actually working, then manually wire them into combo chains. When providers fail (rate limits, auth errors, model deprecation), combos silently degrade — routing to dead endpoints that ti",
+    headings: [
       "Summary",
       "Problem Statement",
       "What we encountered (real production incident)",
@@ -757,20 +784,17 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "New Components",
       "Detailed Design",
       "1. Assessor — src/domain/assessor.ts",
-      "2. Categorizer — src/domain/categorizer.ts"
-    ]
+      "2. Categorizer — src/domain/categorizer.ts",
+    ],
   },
   {
-    "slug": "api-explorer",
-    "title": "API Explorer",
-    "fileName": "API_REFERENCE.md",
-    "section": "API & Protocols",
-    "content": "interactive try it live api explorer endpoint test request response curl example",
-    "headings": [
-      "Try It",
-      "Endpoints"
-    ]
-  }
+    slug: "api-explorer",
+    title: "API Explorer",
+    fileName: "API_REFERENCE.md",
+    section: "API & Protocols",
+    content: "interactive try it live api explorer endpoint test request response curl example",
+    headings: ["Try It", "Endpoints"],
+  },
 ];
 
 export const autoAllSlugs: string[] = [
@@ -803,5 +827,5 @@ export const autoAllSlugs: string[] = [
   "i18n",
   "release-checklist",
   "uninstall",
-  "rfc-auto-assessment"
+  "rfc-auto-assessment",
 ];

@@ -442,9 +442,9 @@ export async function deleteProviderConnections(ids: string[]): Promise<number> 
   const deletedCount = db.transaction(() => {
     const placeholders = ids.map(() => "?").join(",");
     db.prepare(`DELETE FROM quota_snapshots WHERE connection_id IN (${placeholders})`).run(...ids);
-    const result = db.prepare(
-      `DELETE FROM provider_connections WHERE id IN (${placeholders})`
-    ).run(...ids);
+    const result = db
+      .prepare(`DELETE FROM provider_connections WHERE id IN (${placeholders})`)
+      .run(...ids);
     return result.changes ?? 0;
   })();
 

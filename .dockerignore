@@ -38,7 +38,7 @@ playwright-report
 blob-report
 
 # Documentation (not needed in container)
-docs
+!docs/
 *.md
 !README.md
 
