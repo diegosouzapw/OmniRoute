@@ -1753,6 +1753,16 @@ export const SEARCH_PROVIDERS = {
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
+  "zai-search": {
+    id: "zai-search",
+    alias: "zai-search",
+    name: "Z.AI Coding Plan Search",
+    icon: "search",
+    color: "#2563EB",
+    textIcon: "ZS",
+    website: "https://docs.z.ai/devpack/mcp/search-mcp-server",
+    authHint: "Same API key as Z.AI Coding Plan (from open.bigmodel.cn or z.ai)",
+  },
 };
 
 // Audio Only Providers

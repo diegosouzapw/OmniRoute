@@ -2359,6 +2359,25 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  "zai-search": (apiKey, providerSpecificData = {}) => {
+    const baseUrl =
+      typeof providerSpecificData?.baseUrl === "string" && providerSpecificData.baseUrl.trim()
+        ? providerSpecificData.baseUrl.trim().replace(/\/+$/, "")
+        : "https://api.z.ai/api/mcp/web_search_prime/mcp";
+    return {
+      url: baseUrl,
+      init: {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: { name: "web_search_prime", arguments: { search_query: "test" } },
+          id: 1,
+        }),
+      },
+    };
+  },
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
