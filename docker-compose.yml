@@ -41,7 +41,7 @@ x-common: &common
 services:
   # ── Redis (Rate Limiter Backend) ──────────────────────────────────
   redis:
-    image: redis:7-alpine
+    image: redis:8.6.2
     container_name: omniroute-redis
     restart: unless-stopped
     ports:
