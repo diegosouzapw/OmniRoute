@@ -8,6 +8,7 @@ import CompressionAnalyticsTab from "./CompressionAnalyticsTab";
 import DiversityScoreCard from "./components/DiversityScoreCard";
 import ProviderUtilizationTab from "./ProviderUtilizationTab";
 import ComboHealthTab from "./ComboHealthTab";
+import AutoRoutingAnalyticsTab from "./AutoRoutingAnalyticsTab";
 import { useTranslations } from "next-intl";
 
 export default function AnalyticsPage() {
@@ -21,6 +22,8 @@ export default function AnalyticsPage() {
     utilization: t("utilizationDescription"),
     comboHealth: t("comboHealthDescription"),
     compression: t("compressionAnalyticsDescription"),
+    autoRouting:
+      "Auto-routing analytics — variant usage, provider selection, and LKGP performance.",
   };
 
   return (
@@ -42,6 +45,7 @@ export default function AnalyticsPage() {
           { value: "utilization", label: t("utilization") },
           { value: "comboHealth", label: t("comboHealth") },
           { value: "compression", label: t("compressionAnalyticsTitle") },
+          { value: "autoRouting", label: "Auto-Routing" },
         ]}
         value={activeTab}
         onChange={setActiveTab}

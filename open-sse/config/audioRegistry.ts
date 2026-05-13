@@ -17,6 +17,7 @@ export interface AudioProvider {
   authType: string;
   authHeader: string;
   format?: string;
+  supportedFormats?: string[];
   async?: boolean;
   models: AudioModel[];
 }
@@ -124,8 +125,8 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "tts-1", name: "TTS 1" },
       { id: "tts-1-hd", name: "TTS 1 HD" },
+      { id: "tts-1", name: "TTS 1" },
       { id: "gpt-4o-mini-tts", name: "GPT-4o Mini TTS" },
     ],
   },
@@ -226,8 +227,9 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "basic",
     format: "inworld",
+    supportedFormats: ["mp3", "wav", "opus", "pcm"],
     models: [
-      { id: "inworld-tts-1.5-max", name: "Inworld TTS 1.5 Max" },
+      { id: "inworld-tts-2", name: "Inworld TTS 2" },
       { id: "inworld-tts-1.5-mini", name: "Inworld TTS 1.5 Mini" },
     ],
   },
@@ -242,8 +244,8 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "x-api-key",
     format: "cartesia",
     models: [
-      { id: "sonic-2", name: "Sonic 2" },
       { id: "sonic-3", name: "Sonic 3" },
+      { id: "sonic-2", name: "Sonic 2" },
     ],
   },
 
@@ -297,6 +299,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "xiaomi-mimo-tts",
+    supportedFormats: ["mp3", "wav"],
     models: [
       { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
       { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },

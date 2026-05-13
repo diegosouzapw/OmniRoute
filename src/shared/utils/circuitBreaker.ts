@@ -19,6 +19,7 @@ import {
   deleteCircuitBreakerState,
   deleteAllCircuitBreakerStates,
 } from "../../lib/db/domainState";
+import type { FailureKind } from "./classify429";
 
 const STATE = {
   CLOSED: "CLOSED",
@@ -34,6 +35,25 @@ interface CircuitBreakerOptions {
   halfOpenRequests?: number;
   onStateChange?: ((name: string, oldState: string, newState: string) => void) | null;
   isFailure?: (error: unknown) => boolean;
+  /**
+   * Per-failure-kind cooldown override (Issue #2100).
+   *
+   * When set, `_timeUntilReset()` and `_shouldAttemptReset()` use
+   * `cooldownByKind[lastFailureKind]` instead of `resetTimeout` whenever
+   * the last failure had a known kind. Use this to give a longer cooldown
+   * to `quota_exhausted` (period-end may be hours away) than to
+   * `rate_limit` (typically 60s).
+   */
+  cooldownByKind?: Partial<Record<FailureKind, number>>;
+  /**
+   * Optional classifier called on `execute()` errors (Issue #2100).
+   * Returns the kind to record. When omitted, all failures are recorded
+   * as `lastFailureKind = null` (existing behavior preserved).
+   *
+   * Pair with `classify429()` from `./classify429.ts` for HTTP responses,
+   * or supply a custom classifier for non-HTTP errors.
+   */
+  classifyError?: (error: unknown) => FailureKind | undefined;
 }
 
 export class CircuitBreaker {
@@ -48,6 +68,9 @@ export class CircuitBreaker {
   successCount: number;
   lastFailureTime: number | null;
   halfOpenAllowed: number;
+  cooldownByKind: Partial<Record<FailureKind, number>>;
+  classifyError: ((error: unknown) => FailureKind | undefined) | null;
+  lastFailureKind: FailureKind | null;
 
   constructor(name: string, options: CircuitBreakerOptions = {}) {
     this.name = name;
@@ -62,6 +85,9 @@ export class CircuitBreaker {
     this.successCount = 0;
     this.lastFailureTime = null;
     this.halfOpenAllowed = 0;
+    this.cooldownByKind = options.cooldownByKind ?? {};
+    this.classifyError = options.classifyError ?? null;
+    this.lastFailureKind = null;
 
     // Try to restore state from DB
     this._restoreFromDb();
@@ -122,7 +148,7 @@ export class CircuitBreaker {
    * @returns {Promise<T>}
    * @throws {Error} If circuit is OPEN
    */
-  async execute(fn) {
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
     this._refreshOpenState();
 
     if (this.state === STATE.OPEN) {
@@ -151,7 +177,17 @@ export class CircuitBreaker {
       return result;
     } catch (error) {
       if (this.isFailure(error)) {
-        this._onFailure();
+        let kind: FailureKind | undefined;
+        if (this.classifyError) {
+          try {
+            kind = this.classifyError(error);
+          } catch {
+            // A user-supplied classifier must not mask the original error
+            // or change failure-counting semantics; fall back to no kind.
+            kind = undefined;
+          }
+        }
+        this._onFailure(kind);
       }
       throw error;
     }
@@ -205,6 +241,7 @@ export class CircuitBreaker {
     this.failureCount = 0;
     this.successCount = 0;
     this.lastFailureTime = null;
+    this.lastFailureKind = null;
     this._persistToDb();
   }
 
@@ -218,10 +255,12 @@ export class CircuitBreaker {
       this.failureCount = 0;
       this.successCount = 0;
       this.lastFailureTime = null;
+      this.lastFailureKind = null;
     } else if (this.state === STATE.HALF_OPEN) {
       this.successCount++;
       this._transition(STATE.CLOSED);
       this.failureCount = 0;
+      this.lastFailureKind = null;
     } else {
       // In CLOSED state, just reset failure count
       this.failureCount = 0;
@@ -229,9 +268,10 @@ export class CircuitBreaker {
     this._persistToDb();
   }
 
-  _onFailure() {
+  _onFailure(kind?: FailureKind | null) {
     this.failureCount++;
     this.lastFailureTime = Date.now();
+    this.lastFailureKind = kind ?? null;
 
     if (this.state === STATE.OPEN) {
       // Already OPEN — just update persistence (re-tripped by combo path)
@@ -245,12 +285,31 @@ export class CircuitBreaker {
 
   _shouldAttemptReset() {
     if (!this.lastFailureTime) return true;
-    return Date.now() - this.lastFailureTime >= this.resetTimeout;
+    const cooldown = this._effectiveCooldown();
+    return Date.now() - this.lastFailureTime >= cooldown;
+  }
+
+  /**
+   * Resolve the cooldown for the current `lastFailureKind`. Falls back to
+   * `resetTimeout` when no kind was recorded, no override exists for it,
+   * or the override is not a finite non-negative number (NaN / Infinity /
+   * negative all silently fall through to `resetTimeout`).
+   * @private
+   */
+  _effectiveCooldown() {
+    if (this.lastFailureKind !== null) {
+      const override = this.cooldownByKind[this.lastFailureKind];
+      if (typeof override === "number" && Number.isFinite(override) && override >= 0) {
+        return override;
+      }
+    }
+    return this.resetTimeout;
   }
 
   _timeUntilReset() {
     if (!this.lastFailureTime) return 0;
-    return Math.max(0, this.resetTimeout - (Date.now() - this.lastFailureTime));
+    const cooldown = this._effectiveCooldown();
+    return Math.max(0, cooldown - (Date.now() - this.lastFailureTime));
   }
 
   _refreshOpenState() {
@@ -260,7 +319,7 @@ export class CircuitBreaker {
     }
   }
 
-  _transition(newState) {
+  _transition(newState: CircuitState) {
     const oldState = this.state;
     this.state = newState;
     if (newState === STATE.HALF_OPEN) {
@@ -314,6 +373,18 @@ export function getCircuitBreaker(name: string, options?: CircuitBreakerOptions)
     }
     if (typeof options.isFailure === "function") {
       breaker.isFailure = options.isFailure;
+    }
+    if (options.cooldownByKind) {
+      // Merge keys, don't replace: callers that add different kinds
+      // (e.g. one sets `quota_exhausted`, another `rate_limit`) should
+      // not silently lose each other's overrides.
+      breaker.cooldownByKind = {
+        ...breaker.cooldownByKind,
+        ...options.cooldownByKind,
+      };
+    }
+    if (typeof options.classifyError === "function") {
+      breaker.classifyError = options.classifyError;
     }
     breaker._persistToDb();
   }

@@ -264,6 +264,44 @@ export const CURSOR_CONFIG = {
   },
 };
 
+// Windsurf / Devin CLI Configuration
+//
+// Authentication uses PKCE Authorization Code Flow — same pattern as Codex CLI.
+// Extracted from Devin CLI binary (model_configs_v2.bin + devin.exe strings):
+//
+//   Authorize URL:  https://app.devin.ai/editor/signin
+//   Params:         response_type=code, redirect_uri, code_challenge, code_challenge_method=S256
+//   Callback path:  /auth/callback  (local server on random port 127.0.0.1:0)
+//   Exchange:       POST https://server.codeium.com/<ExchangePKCEAuthorizationCode>
+//                   via Connect JSON protocol (Content-Type: application/json)
+//   Response field: windsurfApiKey  → stored as accessToken / WINDSURF_API_KEY
+//
+// Fallback: user can also paste a token from windsurf.com/show-auth-token
+export const WINDSURF_CONFIG = {
+  // Browser-based PKCE authorize endpoint (extracted from devin.exe binary)
+  authorizeUrl: "https://app.devin.ai/editor/signin",
+  codeChallengeMethod: "S256" as const,
+  // Local callback server — 0 = OS assigns a free port
+  callbackPort: 0,
+  callbackPath: "/auth/callback",
+  // Token exchange via Windsurf Connect JSON (gRPC-web + JSON)
+  apiServerUrl: "https://server.codeium.com",
+  exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
+  // Inference server URL (gRPC-web requests go here)
+  inferenceUrl: "https://server.self-serve.windsurf.com",
+  // Fallback: user visits this page, copies token, pastes it
+  showAuthTokenUrl: "https://windsurf.com/show-auth-token",
+  // Token refresh via Firebase Secure Token Service (for short-lived browser-flow tokens).
+  // Value comes from WINDSURF_FIREBASE_API_KEY env var (set in .env.example).
+  // Long-lived import tokens never need this — refresh is skipped when key is absent.
+  firebaseApiKey: process.env.WINDSURF_FIREBASE_API_KEY || "",
+  firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
+  // IDE identity sent with every gRPC request
+  ideName: "windsurf",
+  ideVersion: "3.14.0",
+  extensionVersion: "3.14.0",
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -284,4 +322,6 @@ export const PROVIDERS = {
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  WINDSURF: "windsurf",
+  DEVIN_CLI: "devin-cli",
 };

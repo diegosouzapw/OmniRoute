@@ -20,6 +20,7 @@ process.env.REQUIRE_API_KEY = "false";
 
 // --- Dynamic imports after env setup ---
 const core = await import("../../src/lib/db/core.ts");
+const { createApiKey } = await import("../../src/lib/db/apiKeys.ts");
 const { createMemory, listMemories, deleteMemory } = await import("../../src/lib/memory/store.ts");
 const { retrieveMemories } = await import("../../src/lib/memory/retrieval.ts");
 const { MemoryType } = await import("../../src/lib/memory/types.ts");
@@ -40,9 +41,11 @@ _db.exec("DROP TABLE IF EXISTS memory_fts");
 
 // --- Constants ---
 const TEST_API_KEY_ID = "perf-test-api-key";
+const TEST_MACHINE_ID = "perf-test-machine";
 const TEST_SESSION_ID = "perf-test-session";
 const MEMORY_COUNT = 1000;
 const SKILL_COUNT = 100;
+let managementApiKey = "";
 
 // --- Thresholds (2x buffer for CI) ---
 const THRESHOLD_LIST_MEMORIES_MS = 200;
@@ -204,6 +207,11 @@ describe("Performance: memory search (1000 records)", () => {
 // ============================================================
 describe("Performance: memory API route handler (1000 records)", () => {
   before(async () => {
+    const key = await createApiKey("performance regression management", TEST_MACHINE_ID, [
+      "manage",
+    ]);
+    managementApiKey = key.key;
+
     // Bulk insert 1000 memories
     for (let i = 0; i < MEMORY_COUNT; i++) {
       await createMemory(makeMemoryData(i));
@@ -222,7 +230,10 @@ describe("Performance: memory API route handler (1000 records)", () => {
     // Create a mock Request object for the route handler
     const request = new Request(
       `http://localhost:20128/api/memory?limit=50&apiKeyId=${TEST_API_KEY_ID}`,
-      { method: "GET" }
+      {
+        method: "GET",
+        headers: { authorization: `Bearer ${managementApiKey}` },
+      }
     );
 
     const start = performance.now();

@@ -823,13 +823,18 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
     };
   }
 
-  // Handle true reasoning summary ("Thought for 15s")
+  // Handle true reasoning summary ("Thought for 15s").
+  // Emit as `delta.reasoning_content` — matches the shape used by the
+  // `reasoning_content_text.delta` branch above and is what Chat clients
+  // (OpenCode, Claude Code, Cursor, etc.) actually render in their thinking
+  // panel. A nested `delta.reasoning.summary` object is swallowed by most
+  // stream mergers and never reaches the user.
   if (eventType === "response.reasoning_summary_text.delta") {
     const reasoningDelta = data.delta || "";
     if (!reasoningDelta) return null;
     const reasoningDeltaShape = state.copilotCompatibleReasoning
       ? { reasoning_text: reasoningDelta }
-      : { reasoning: { summary: reasoningDelta } };
+      : { reasoning_content: reasoningDelta };
     return {
       id: state.chatId,
       object: "chat.completion.chunk",

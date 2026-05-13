@@ -72,10 +72,12 @@ const KNOWN_PNGS = new Set([
 ]);
 const KNOWN_SVGS = new Set([
   "apikey",
+  "bazaarlink",
   "brave",
   "brave-search",
   "cartesia",
   "clarifai",
+  "command-code",
   "docker-model-runner",
   "droid",
   "gemini-cli",

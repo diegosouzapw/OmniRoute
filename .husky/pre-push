@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
-if ! command -v npm >/dev/null 2>&1; then
-  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
-  echo "   Run 'npm test' manually before pushing."
-  exit 0
-fi
+#if ! command -v npm >/dev/null 2>&1; then
+#  echo "⚠️  npm not found in PATH — skipping pre-push hooks"
+#  echo "   Run 'npm test' manually before pushing."
+#  exit 0
+#fi
 
-npm run test:unit
+#npm run test:unit

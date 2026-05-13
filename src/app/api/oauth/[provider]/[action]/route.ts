@@ -21,6 +21,7 @@ import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   jsonObjectSchema,
   oauthExchangeSchema,
+  oauthImportTokenSchema,
   oauthPollSchema,
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -30,6 +31,16 @@ import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 if (!globalThis.__codexCallbackState) {
   globalThis.__codexCallbackState = null;
 }
+// Windsurf / Devin CLI PKCE callback server state (separate from Codex)
+if (!globalThis.__windsurfCallbackState) {
+  globalThis.__windsurfCallbackState = null;
+}
+
+/** Providers that use the PKCE browser callback flow (like Codex). */
+const PKCE_CALLBACK_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+
+/** Providers that allow direct import of a raw API token (no OAuth exchange). */
+const IMPORT_TOKEN_PROVIDERS = new Set(["windsurf", "devin-cli"]);
 
 /**
  * Constant-time string comparison to prevent timing-oracle attacks (CWE-208).
@@ -150,40 +161,44 @@ export async function GET(
 }
 
 /**
- * Start Codex callback server on port 1455
- * Returns the auth URL and stores codeVerifier for later exchange
+ * Start PKCE callback server for Codex, Windsurf, or Devin CLI.
+ * Codex uses fixed port 1455; Windsurf/Devin CLI use a random free port (port 0).
+ * Returns the auth URL and stores codeVerifier for later exchange.
  */
 async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
-  if (provider !== "codex") {
+  if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
     return NextResponse.json(
-      { error: "Callback server only supported for codex" },
+      { error: `Callback server not supported for provider: ${provider}` },
       { status: 400 }
     );
   }
 
+  const isWindsurf = provider === "windsurf" || provider === "devin-cli";
+  const stateKey = isWindsurf ? "__windsurfCallbackState" : "__codexCallbackState";
+
   // Clean up existing server if any
-  if (globalThis.__codexCallbackState?.close) {
+  if (globalThis[stateKey]?.close) {
     try {
-      globalThis.__codexCallbackState.close();
+      globalThis[stateKey].close();
     } catch (e) {
       /* ignore */
     }
   }
-  globalThis.__codexCallbackState = null;
+  globalThis[stateKey] = null;
 
   try {
-    // Start temp server on port 1455
+    // Codex: fixed port 1455. Windsurf/Devin CLI: OS-assigned random port (0)
+    const serverPort = isWindsurf ? 0 : 1455;
     const { port, close } = await startLocalServer((params) => {
-      // Write directly to globalThis so it survives module reloads
-      if (globalThis.__codexCallbackState) {
-        globalThis.__codexCallbackState.callbackParams = params;
+      if (globalThis[stateKey]) {
+        globalThis[stateKey].callbackParams = params;
       }
-    }, 1455);
+    }, serverPort);
 
     const redirectUri = `http://localhost:${port}/auth/callback`;
     const authData = generateAuthData(provider, redirectUri);
 
-    globalThis.__codexCallbackState = {
+    globalThis[stateKey] = {
       callbackParams: null,
       close,
       port,
@@ -195,13 +210,13 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
     // Auto-cleanup after 5 minutes
     const startedAt = Date.now();
     setTimeout(() => {
-      if (globalThis.__codexCallbackState?.startedAt === startedAt) {
+      if (globalThis[stateKey]?.startedAt === startedAt) {
         try {
           close();
         } catch (e) {
           /* ignore */
         }
-        globalThis.__codexCallbackState = null;
+        globalThis[stateKey] = null;
       }
     }, 300000);
 
@@ -259,6 +274,12 @@ export async function POST(
       body = validation.data;
     } else if (action === "poll-callback") {
       const validation = validateBody(jsonObjectSchema, rawBody || {});
+      if (isValidationFailure(validation)) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
+      }
+      body = validation.data;
+    } else if (action === "import-token") {
+      const validation = validateBody(oauthImportTokenSchema, rawBody);
       if (isValidationFailure(validation)) {
         return NextResponse.json({ error: validation.error }, { status: 400 });
       }
@@ -454,15 +475,20 @@ export async function POST(
     if (action === "poll-callback") {
       const { connectionId } = body;
 
-      // Poll for Codex callback server result
-      if (provider !== "codex") {
+      // poll-callback is supported for all PKCE callback providers
+      if (!PKCE_CALLBACK_PROVIDERS.has(provider)) {
         return NextResponse.json(
-          { error: "poll-callback only supported for codex" },
+          {
+            error: `poll-callback only supported for PKCE callback providers: ${[...PKCE_CALLBACK_PROVIDERS].join(", ")}`,
+          },
           { status: 400 }
         );
       }
 
-      if (!globalThis.__codexCallbackState) {
+      // Windsurf and Devin CLI share __windsurfCallbackState; Codex uses its own slot
+      const stateKey = provider === "codex" ? "__codexCallbackState" : "__windsurfCallbackState";
+
+      if (!globalThis[stateKey]) {
         return NextResponse.json({
           success: false,
           error: "no_server",
@@ -470,13 +496,13 @@ export async function POST(
         });
       }
 
-      if (!globalThis.__codexCallbackState.callbackParams) {
+      if (!globalThis[stateKey].callbackParams) {
         return NextResponse.json({ success: false, pending: true });
       }
 
       // Callback received! Extract code and exchange for tokens
-      const params = globalThis.__codexCallbackState.callbackParams;
-      const { redirectUri, codeVerifier, close } = globalThis.__codexCallbackState;
+      const params = globalThis[stateKey].callbackParams;
+      const { redirectUri, codeVerifier, close } = globalThis[stateKey];
 
       // Clean up server
       try {
@@ -484,7 +510,7 @@ export async function POST(
       } catch (e) {
         /* ignore */
       }
-      globalThis.__codexCallbackState = null;
+      globalThis[stateKey] = null;
 
       if (params.error) {
         return NextResponse.json({
@@ -568,6 +594,76 @@ export async function POST(
         });
       } catch (exchangeErr: any) {
         return NextResponse.json({ success: false, error: exchangeErr.message }, { status: 500 });
+      }
+    }
+
+    if (action === "import-token") {
+      const { token, connectionId } = body;
+
+      if (!IMPORT_TOKEN_PROVIDERS.has(provider)) {
+        return NextResponse.json(
+          {
+            error: `import-token not supported for provider: ${provider}. Supported: ${[...IMPORT_TOKEN_PROVIDERS].join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      try {
+        // Map the raw token via the provider's mapTokens() — skips the HTTP exchange entirely.
+        const providerData = getProvider(provider);
+        const tokenData = providerData.mapTokens({ accessToken: token });
+
+        // Normalize: if name is missing, use email as fallback display label
+        if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
+          tokenData.name = tokenData.email || tokenData.displayName;
+        }
+
+        const expiresAt = tokenData.expiresIn
+          ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
+          : null;
+
+        let connection: any;
+        if (tokenData.email) {
+          const existing = await getProviderConnections({ provider });
+          const match = existing.find((c: any) => {
+            if (c.id && safeEqual(connectionId, c.id)) return true;
+            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
+            return true;
+          });
+          const matchId = typeof match?.id === "string" ? match.id : null;
+          if (matchId) {
+            connection = await updateProviderConnection(matchId, {
+              ...tokenData,
+              expiresAt,
+              testStatus: "active",
+              isActive: true,
+            });
+          }
+        }
+        if (!connection) {
+          connection = await createProviderConnection({
+            provider,
+            authType: "oauth",
+            ...tokenData,
+            expiresAt,
+            testStatus: "active",
+          });
+        }
+
+        await syncToCloudIfEnabled();
+
+        return NextResponse.json({
+          success: true,
+          connection: {
+            id: connection.id,
+            provider: connection.provider,
+            email: connection.email,
+            displayName: connection.displayName,
+          },
+        });
+      } catch (importErr: any) {
+        return NextResponse.json({ success: false, error: importErr.message }, { status: 500 });
       }
     }
 
