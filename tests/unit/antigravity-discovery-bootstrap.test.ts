@@ -76,7 +76,7 @@ describe("ensureAntigravityProjectAssigned", () => {
     const calledFor: string[] = [];
 
     const mockFetch = async (url: string, init?: RequestInit): Promise<Response> => {
-      const auth = (init?.headers as Record<string, string> | undefined)?.Authorization ?? "";
+      const auth = new Headers(init?.headers).get("Authorization") ?? "";
       calledFor.push(auth);
       return new Response(JSON.stringify({ cloudaicompanionProject: "proj-x" }), {
         status: 200,
@@ -111,7 +111,7 @@ describe("ensureAntigravityProjectAssigned", () => {
     let capturedAuth: string | null = null;
 
     const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
-      capturedAuth = (init?.headers as Record<string, string> | undefined)?.Authorization ?? null;
+      capturedAuth = new Headers(init?.headers).get("Authorization") ?? null;
       return new Response(JSON.stringify({ cloudaicompanionProject: "proj-auth-check" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },

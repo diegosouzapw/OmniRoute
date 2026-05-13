@@ -44,14 +44,12 @@ async function tryLoadCodeAssist(
 ): Promise<string | null> {
   const urls = getAntigravityLoadCodeAssistUrls();
   for (const url of urls) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), BOOTSTRAP_TIMEOUT_MS);
     try {
       const response = await fetchImpl(url, {
         method: "POST",
         headers: getAntigravityHeaders("loadCodeAssist", accessToken),
         body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
-        signal: controller.signal,
+        signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS),
       });
 
       if (!response.ok) {
@@ -84,8 +82,6 @@ async function tryLoadCodeAssist(
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.warn(`[models] antigravity loadCodeAssist threw for ${url}: ${msg} — trying next`);
-    } finally {
-      clearTimeout(timeoutId);
     }
   }
   return null;
