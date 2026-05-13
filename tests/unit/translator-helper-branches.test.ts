@@ -6,6 +6,8 @@ const openaiHelper = await import("../../open-sse/translator/helpers/openaiHelpe
 const claudeHelper = await import("../../open-sse/translator/helpers/claudeHelper.ts");
 const geminiHelper = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallHelper.ts");
+const { DEFAULT_THINKING_CLAUDE_SIGNATURE } =
+  await import("../../open-sse/config/defaultThinkingSignature.ts");
 
 const originalMathRandom = Math.random;
 
@@ -308,7 +310,8 @@ test("claudeHelper validates content, ordering and request preparation branches"
     prepared.messages[5].content.map((block) => block.type),
     ["redacted_thinking", "text"]
   );
-  assert.ok(prepared.messages[5].content[0].signature);
+  assert.equal(prepared.messages[5].content[0].data, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+  assert.equal(prepared.messages[5].content[0].signature, undefined);
   assert.equal(prepared.messages[5].content[0].thinking, undefined);
   assert.equal(prepared.tools.length, 2);
   assert.equal(prepared.tools[0].cache_control, undefined);

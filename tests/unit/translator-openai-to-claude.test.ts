@@ -348,3 +348,117 @@ test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-
     "read_file"
   );
 });
+
+test("OpenAI -> Claude preserves reasoning_content on assistant tool call messages when thinking is enabled", () => {
+  // Bug: Kimi (and other thinking-enabled providers) require reasoning_content
+  // on assistant messages that contain tool_calls. When reasoning_content is
+  // present, it must be converted to a thinking block. When it's missing but
+  // thinking is enabled, we must NOT drop the tool_calls.
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [
+        { role: "user", content: "What is the weather?" },
+        {
+          role: "assistant",
+          reasoning_content: "I need to check the weather",
+          content: "Let me check that for you.",
+          tool_calls: [
+            {
+              id: "call_weather_1",
+              type: "function",
+              function: {
+                name: "get_weather",
+                arguments: '{"location":"Tokyo"}',
+              },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_weather_1",
+          content: "Sunny, 25C",
+        },
+        { role: "user", content: "Thanks!" },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "get_weather",
+            description: "Get weather info",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+      thinking: { type: "enabled", budget_tokens: 1024 },
+    },
+    false
+  );
+
+  // Find the assistant message with tool_calls
+  const assistantMsgs = result.messages.filter((m) => m.role === "assistant");
+  assert.equal(assistantMsgs.length, 1, "expected exactly one assistant message");
+
+  const assistantMsg = assistantMsgs[0];
+  const thinkingBlock = assistantMsg.content.find((b) => b.type === "thinking");
+  const textBlock = assistantMsg.content.find((b) => b.type === "text");
+  const toolUseBlock = assistantMsg.content.find((b) => b.type === "tool_use");
+
+  assert.ok(thinkingBlock, "expected thinking block from reasoning_content");
+  assert.equal(thinkingBlock.thinking, "I need to check the weather");
+  assert.equal(thinkingBlock.signature, DEFAULT_THINKING_CLAUDE_SIGNATURE);
+
+  assert.ok(textBlock, "expected text block");
+  assert.equal(textBlock.text, "Let me check that for you.");
+
+  assert.ok(toolUseBlock, "expected tool_use block");
+  assert.equal(toolUseBlock.name, `${CLAUDE_OAUTH_TOOL_PREFIX}get_weather`);
+  assert.deepEqual(toolUseBlock.input, { location: "Tokyo" });
+});
+
+test("OpenAI -> Claude handles assistant tool call messages without reasoning_content when thinking is enabled", () => {
+  // When thinking is enabled but the assistant message has no reasoning_content,
+  // the message should still be translated correctly with tool_calls preserved.
+  const result = openaiToClaudeRequest(
+    "claude-4-sonnet",
+    {
+      messages: [
+        { role: "user", content: "Call a tool" },
+        {
+          role: "assistant",
+          content: "OK",
+          tool_calls: [
+            {
+              id: "call_1",
+              type: "function",
+              function: {
+                name: "do_thing",
+                arguments: "{}",
+              },
+            },
+          ],
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "do_thing",
+            description: "Do a thing",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+      thinking: { type: "enabled", budget_tokens: 1024 },
+    },
+    false
+  );
+
+  const assistantMsg = result.messages.find((m) => m.role === "assistant");
+  assert.ok(assistantMsg, "expected assistant message");
+
+  const toolUseBlock = assistantMsg.content.find((b) => b.type === "tool_use");
+  assert.ok(toolUseBlock, "expected tool_use block to be preserved");
+  assert.equal(toolUseBlock.name, `${CLAUDE_OAUTH_TOOL_PREFIX}do_thing`);
+});

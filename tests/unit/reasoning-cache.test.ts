@@ -346,6 +346,20 @@ describe("Reasoning Replay Cache — Provider Detection", () => {
     assert.equal(requiresReasoningReplay("glm", "glm-5-thinking"), true);
   });
 
+  it("should detect xiaomi-mimo provider", () => {
+    // MiMo enforces reasoning_content echo on subsequent turns; without
+    // replay the upstream returns 400 "Param Incorrect: The reasoning_content
+    // in the thinking mode must be passed back to the API."
+    assert.equal(requiresReasoningReplay("xiaomi-mimo", "mimo-v2.5-pro"), true);
+    assert.equal(requiresReasoningReplay("XIAOMI-MIMO", "mimo-v2.5"), true);
+  });
+
+  it("should detect mimo-v* model pattern under any provider id", () => {
+    assert.equal(requiresReasoningReplay("unknown-provider", "mimo-v2.5-pro"), true);
+    assert.equal(requiresReasoningReplay("unknown-provider", "mimo-v3"), true);
+    assert.equal(requiresReasoningReplay("unknown-provider", "MimoV2.5-pro"), true);
+  });
+
   it("should NOT detect a generic openai model", () => {
     assert.equal(requiresReasoningReplay("openai", "gpt-4o"), false);
   });

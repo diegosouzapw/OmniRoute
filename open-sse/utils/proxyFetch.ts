@@ -133,7 +133,7 @@ function resolveEnvProxyUrl(targetUrl) {
   return normalizeProxyUrl(proxyUrl, "environment proxy");
 }
 
-function resolveProxyForRequest(targetUrl) {
+export function resolveProxyForRequest(targetUrl) {
   let target;
   try {
     target = new URL(targetUrl);

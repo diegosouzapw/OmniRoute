@@ -42,6 +42,7 @@ const {
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   QWEN_CONFIG,
+  WINDSURF_CONFIG,
 } = oauthModule;
 const { REGISTRY } = registryModule;
 
@@ -62,6 +63,8 @@ const EXPECTED_PROVIDER_KEYS = [
   "cursor",
   "kilocode",
   "cline",
+  "windsurf",
+  "devin-cli",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -79,6 +82,8 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  windsurf: WINDSURF_CONFIG,
+  "devin-cli": WINDSURF_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -123,6 +128,8 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
 };
 
 function getByPath(object, path) {

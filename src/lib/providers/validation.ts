@@ -1,6 +1,7 @@
-import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { randomUUID } from "node:crypto";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
+import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   buildClaudeCodeCompatibleValidationPayload,
@@ -17,6 +18,7 @@ import {
   isAnthropicCompatibleProvider,
   isOpenAICompatibleProvider,
   isSelfHostedChatProvider,
+  providerAllowsOptionalApiKey,
 } from "@/shared/constants/providers";
 import {
   SAFE_OUTBOUND_FETCH_PRESETS,
@@ -395,6 +397,53 @@ async function validateDirectChatProvider({ url, headers, body, providerSpecific
   } catch (error: any) {
     return toValidationErrorResult(error);
   }
+}
+
+export async function validateCommandCodeProvider({ apiKey, providerSpecificData = {} }: any) {
+  const entry = getRegistryEntry("command-code");
+  const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
+  const chatPath = entry?.chatPath || "/alpha/generate";
+  const url = `${baseUrl}${chatPath.startsWith("/") ? chatPath : `/${chatPath}`}`;
+
+  return validateDirectChatProvider({
+    url,
+    providerSpecificData,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "x-command-code-version": "0.24.1",
+      "x-cli-environment": "production",
+      "x-project-slug": "pi-cc",
+      "x-taste-learning": "false",
+      "x-co-flag": "false",
+      "x-session-id": randomUUID(),
+    },
+    body: {
+      config: {
+        workingDir: "/workspace",
+        date: new Date().toISOString().slice(0, 10),
+        environment: "omniroute-validation",
+        structure: [],
+        isGitRepo: false,
+        currentBranch: "",
+        mainBranch: "",
+        gitStatus: "",
+        recentCommits: [],
+      },
+      memory: "",
+      taste: "",
+      skills: null,
+      permissionMode: "standard",
+      params: {
+        model: providerSpecificData?.validationModelId || entry?.models?.[0]?.id || "gpt-5.4-mini",
+        messages: [{ role: "user", content: "test" }],
+        tools: [],
+        system: "",
+        max_tokens: 1,
+        stream: true,
+      },
+    },
+  });
 }
 
 async function validateClarifaiProvider({ apiKey, providerSpecificData = {} }: any) {
@@ -2359,6 +2408,14 @@ const SEARCH_VALIDATOR_CONFIGS: Record<
       },
     };
   },
+  "ollama-search": (apiKey) => ({
+    url: "https://ollama.com/api/web_search",
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ query: "test", max_results: 1 }),
+    },
+  }),
 };
 
 // See open-sse/executors/muse-spark-web.ts for the rationale: Meta migrated
@@ -2967,12 +3024,7 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 }
 
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
-  const requiresApiKey =
-    provider !== "searxng-search" &&
-    provider !== "petals" &&
-    !isSelfHostedChatProvider(provider) &&
-    !isOpenAICompatibleProvider(provider) &&
-    !isAnthropicCompatibleProvider(provider);
+  const requiresApiKey = !providerAllowsOptionalApiKey(provider);
 
   if (!provider || (requiresApiKey && !apiKey)) {
     return { valid: false, error: "Provider and API key required", unsupported: false };
@@ -3001,6 +3053,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
   const SPECIALTY_VALIDATORS = {
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
+    "command-code": validateCommandCodeProvider,
     deepgram: validateDeepgramProvider,
     assemblyai: validateAssemblyAIProvider,
     nanobanana: validateNanoBananaProvider,

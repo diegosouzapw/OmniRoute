@@ -6,7 +6,9 @@ import { join } from "node:path";
 
 process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-search-"));
 
-const { handleSearch } = await import("../../open-sse/handlers/search.ts");
+const { handleSearch } = await import(
+  "../../open-sse/handlers/search.ts"
+);
 
 test("handleSearch builds Serper web requests and normalizes organic results", async () => {
   const originalFetch = globalThis.fetch;
@@ -705,6 +707,159 @@ test("handleSearch does not fail over on non-retriable upstream errors", async (
     assert.equal(result.status, 401);
     assert.equal(result.error, "Search provider serper-search returned 401");
     assert.equal(callCount, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+// ─── Ollama Search Tests ──────────────────────────────────
+
+test("handleSearch builds Ollama POST request with bearer auth", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, init = {}) => {
+    captured = {
+      url: String(url),
+      headers: init.headers,
+      body: JSON.parse(String(init.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        results: [
+          { title: "Ollama result", url: "https://ollama.example.com", content: "Test content" },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "latest AI news",
+      provider: "ollama-search",
+      maxResults: 5,
+      searchType: "web",
+      credentials: { apiKey: "ollama-token-123" },
+      log: null,
+    });
+
+    assert.equal(captured.url, "https://ollama.com/api/web_search");
+    assert.equal(captured.headers["Content-Type"], "application/json");
+    assert.equal(captured.headers.Authorization, "Bearer ollama-token-123");
+    assert.deepEqual(captured.body, { query: "latest AI news", max_results: 5 });
+    assert.equal(result.success, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch normalizes Ollama response fields and full_text content", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({
+        results: [
+          {
+            title: "Ollama Web Search",
+            url: "https://ollama.com/blog/web-search",
+            content: "Ollama now supports native web search capabilities",
+          },
+          {
+            title: "Getting Started",
+            url: "https://ollama.com/docs",
+            content: "Learn how to use Ollama for LLM inference",
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "ollama query",
+      provider: "ollama-search",
+      maxResults: 5,
+      searchType: "web",
+      credentials: { apiKey: "ollama-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.data.results.length, 2);
+    assert.equal(result.data.metrics.total_results_available, 2);
+
+    assert.equal(result.data.results[0].title, "Ollama Web Search");
+    assert.equal(result.data.results[0].url, "https://ollama.com/blog/web-search");
+    assert.equal(result.data.results[0].snippet, "Ollama now supports native web search capabilities");
+    assert.equal(result.data.results[0].content.text, "Ollama now supports native web search capabilities");
+    assert.equal(result.data.results[0].content.format, "text");
+    assert.equal(result.data.results[0].position, 1);
+    assert.equal(result.data.results[0].citation.provider, "ollama-search");
+    assert.equal(result.data.results[0].citation.rank, 1);
+
+    assert.equal(result.data.results[1].title, "Getting Started");
+    assert.equal(result.data.results[1].position, 2);
+    assert.equal(result.data.results[1].citation.rank, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch handles empty Ollama results array", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({ results: [] }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "empty query",
+      provider: "ollama-search",
+      maxResults: 5,
+      searchType: "web",
+      credentials: { apiKey: "ollama-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.data.results.length, 0);
+    assert.equal(result.data.metrics.total_results_available, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleSearch handles Ollama response with missing results field", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => {
+    return new Response(
+      JSON.stringify({ unrelated: "data" }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleSearch({
+      query: "some query",
+      provider: "ollama-search",
+      maxResults: 5,
+      searchType: "web",
+      credentials: { apiKey: "ollama-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.data.results.length, 0);
+    assert.equal(result.data.metrics.total_results_available, 0);
   } finally {
     globalThis.fetch = originalFetch;
   }

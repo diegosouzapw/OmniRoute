@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { deleteMemory, getMemory } from "@/lib/memory/store";
 
 export async function DELETE(request: Request, props: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await props.params;
     const success = await deleteMemory(id);
@@ -16,6 +20,9 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
 }
 
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { id } = await props.params;
     const memory = await getMemory(id);
