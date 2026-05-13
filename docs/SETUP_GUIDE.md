@@ -47,14 +47,41 @@ The [AUR package](https://aur.archlinux.org/packages/omniroute-bin) installs Omn
 ### From Source
 
 ```bash
-cp .env.example .env
 npm install
 PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm run dev
 ```
 
+> **Note:** `npm install` auto-generates `.env` from `.env.example` on first run. Subsequent installs will not overwrite an existing `.env`, so customizations are preserved. To re-seed, delete `.env` before re-running.
+
 ### Docker
 
 See the [Docker Guide](DOCKER_GUIDE.md) for complete Docker setup including Compose profiles and Caddy HTTPS.
+
+### Desktop App (Electron)
+
+OmniRoute ships a desktop wrapper built on Electron 41 + electron-builder 26.10. Available scripts (workspace root):
+
+```bash
+npm run electron:dev          # Run desktop with hot-reload
+npm run electron:build        # Build for current OS (auto-detected)
+npm run electron:build:win    # Windows installer (NSIS + portable)
+npm run electron:build:mac    # macOS (dmg + zip, arm64+x64)
+npm run electron:build:linux  # Linux (AppImage + deb + rpm)
+npm run electron:smoke:packaged  # Smoke-test packaged build
+```
+
+Releases of the desktop installers are attached to GitHub Releases. For the full Electron deep-dive (signing, IPC bridge, distros), see [`ELECTRON_GUIDE.md`](./ELECTRON_GUIDE.md) _(criado em fase posterior)_.
+
+### Headless server (CI/automation)
+
+For unattended setups (Docker, Kubernetes, CI), use:
+
+```bash
+omniroute setup --non-interactive
+omniroute providers test-batch
+```
+
+Combined with env vars (`INITIAL_PASSWORD`, `OMNIROUTE_WS_BRIDGE_SECRET`, etc.), this lets you spin up an OmniRoute instance fully scriptable.
 
 ### CLI Options
 
@@ -253,7 +280,7 @@ For Void Linux users, you can build a native package using `xbps-src`. Save this
 ```bash
 # Template file for 'omniroute'
 pkgname=omniroute
-version=3.4.1
+version=3.8.0
 revision=1
 hostmakedepends="nodejs python3 make"
 depends="openssl"
@@ -262,7 +289,9 @@ maintainer="zenobit <zenobit@disroot.org>"
 license="MIT"
 homepage="https://github.com/diegosouzapw/OmniRoute"
 distfiles="https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz"
-checksum=009400afee90a9f32599d8fe734145cfd84098140b7287990183dde45ae2245b
+# Regenerate the checksum for each release with:
+#   curl -L -o /tmp/omniroute.tar.gz "https://github.com/diegosouzapw/OmniRoute/archive/refs/tags/v${version}.tar.gz" && sha256sum /tmp/omniroute.tar.gz
+checksum=PLACEHOLDER_REGENERATE_PER_RELEASE
 system_accounts="_omniroute"
 omniroute_homedir="/var/lib/omniroute"
 export NODE_ENV=production

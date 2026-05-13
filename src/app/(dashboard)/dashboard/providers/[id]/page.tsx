@@ -27,6 +27,7 @@ import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isSelfHostedChatProvider,
+  providerAllowsOptionalApiKey,
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
@@ -6125,15 +6126,13 @@ function AddApiKeyModal({
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
-  const isSearxng = provider === "searxng-search";
   const isGooglePse = provider === "google-pse-search";
   const isGrokWeb = provider === "grok-web";
   const isPerplexityWeb = provider === "perplexity-web";
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const isPetals = provider === "petals";
-  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
+  const apiKeyOptional = providerAllowsOptionalApiKey(provider);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
         idle: "Ready",
@@ -6206,7 +6205,7 @@ function AddApiKeyModal({
               ? t("localProviderApiKeyOptionalHint", {
                   provider: localProviderMetadata?.name || providerName || provider || "",
                 })
-              : isSearxng || isPetals
+              : apiKeyOptional
                 ? t("apiKeyOptionalHint")
                 : undefined;
 
@@ -6737,17 +6736,15 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isGeminiCli = connection?.provider === "gemini-cli";
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
-  const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
-  const isPetals = connection?.provider === "petals";
-  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
+  const apiKeyOptional = providerAllowsOptionalApiKey(connection?.provider);
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
   const apiCredentialHint = isLocalSelfHostedProvider
     ? t("localProviderApiKeyOptionalHint", {
         provider: localProviderMetadata?.name || connection?.provider || "",
       })
-    : isSearxng || isPetals
+    : apiKeyOptional
       ? t("apiKeyOptionalHint")
       : t("leaveBlankKeepCurrentApiKey");
 

@@ -6,15 +6,24 @@ import { useTranslations } from "next-intl";
 
 interface CloudAgentTask {
   id: string;
-  provider: string;
-  status: "pending" | "running" | "waiting_approval" | "completed" | "failed" | "cancelled";
-  description: string;
+  providerId: string;
+  status: "queued" | "running" | "awaiting_approval" | "completed" | "failed" | "cancelled";
+  prompt: string;
+  source: {
+    repoName?: string;
+    repoUrl?: string;
+    branch?: string;
+  };
   createdAt: string;
   updatedAt: string;
-  result?: string;
+  result?: Record<string, unknown> | null;
   error?: string;
-  plan?: string;
-  messages: Array<{ role: string; content: string; timestamp: string }>;
+  activities: Array<{
+    id: string;
+    type: "plan" | "command" | "code_change" | "message" | "error" | "completion";
+    content: string;
+    timestamp: string;
+  }>;
 }
 
 const CLOUD_AGENTS = [
@@ -50,18 +59,32 @@ export default function CloudAgentsPage() {
   const [creating, setCreating] = useState(false);
   const [selectedTask, setSelectedTask] = useState<CloudAgentTask | null>(null);
   const [newTask, setNewTask] = useState({
-    provider: "jules",
-    description: "",
+    providerId: "jules",
+    prompt: "",
+    repoName: "",
+    repoUrl: "",
+    branch: "main",
+    autoCreatePr: true,
   });
   const [messageInput, setMessageInput] = useState("");
   const t = useTranslations("cloudAgents");
+
+  const upsertTask = useCallback((task: CloudAgentTask) => {
+    setTasks((prev) => {
+      const exists = prev.some((current) => current.id === task.id);
+      return exists
+        ? prev.map((current) => (current.id === task.id ? task : current))
+        : [task, ...prev];
+    });
+    setSelectedTask((current) => (current?.id === task.id ? task : current));
+  }, []);
 
   const fetchTasks = useCallback(async () => {
     try {
       const res = await fetch("/api/v1/agents/tasks");
       if (res.ok) {
         const data = await res.json();
-        setTasks(data.tasks || []);
+        setTasks(Array.isArray(data.data) ? data.data : []);
       }
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
@@ -78,18 +101,34 @@ export default function CloudAgentsPage() {
     e.preventDefault();
     setCreating(true);
     try {
+      const source = {
+        repoName: newTask.repoName.trim(),
+        repoUrl: newTask.repoUrl.trim(),
+        ...(newTask.branch.trim() ? { branch: newTask.branch.trim() } : {}),
+      };
       const res = await fetch("/api/v1/agents/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider: newTask.provider,
-          description: newTask.description,
+          providerId: newTask.providerId,
+          prompt: newTask.prompt,
+          source,
+          options: {
+            autoCreatePr: newTask.autoCreatePr,
+          },
         }),
       });
       if (res.ok) {
         const data = await res.json();
-        setTasks((prev) => [data.task, ...prev]);
-        setNewTask({ provider: "jules", description: "" });
+        if (data.data) upsertTask(data.data);
+        setNewTask({
+          providerId: "jules",
+          prompt: "",
+          repoName: "",
+          repoUrl: "",
+          branch: "main",
+          autoCreatePr: true,
+        });
       }
     } catch (err) {
       console.error("Failed to create task:", err);
@@ -111,8 +150,7 @@ export default function CloudAgentsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setSelectedTask(data.task);
-        setTasks((prev) => prev.map((task) => (task.id === selectedTask.id ? data.task : task)));
+        if (data.data) upsertTask(data.data);
         setMessageInput("");
       }
     } catch (err) {
@@ -130,8 +168,7 @@ export default function CloudAgentsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setSelectedTask(data.task);
-        setTasks((prev) => prev.map((t) => (t.id === selectedTask.id ? data.task : t)));
+        if (data.data) upsertTask(data.data);
       }
     } catch (err) {
       console.error("Failed to approve plan:", err);
@@ -147,10 +184,7 @@ export default function CloudAgentsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setTasks((prev) => prev.map((t) => (t.id === taskId ? data.task : t)));
-        if (selectedTask?.id === taskId) {
-          setSelectedTask(data.task);
-        }
+        if (data.data) upsertTask(data.data);
       }
     } catch (err) {
       console.error("Failed to cancel task:", err);
@@ -175,9 +209,9 @@ export default function CloudAgentsPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { color: string; label: string }> = {
-      pending: { color: "bg-zinc-500/10 text-zinc-500", label: t("statusPending") },
+      queued: { color: "bg-zinc-500/10 text-zinc-500", label: t("statusPending") },
       running: { color: "bg-blue-500/10 text-blue-500", label: t("statusRunning") },
-      waiting_approval: {
+      awaiting_approval: {
         color: "bg-amber-500/10 text-amber-600",
         label: t("statusWaitingApproval"),
       },
@@ -185,7 +219,7 @@ export default function CloudAgentsPage() {
       failed: { color: "bg-red-500/10 text-red-500", label: t("statusFailed") },
       cancelled: { color: "bg-zinc-500/10 text-zinc-400", label: t("statusCancelled") },
     };
-    const s = statusMap[status] || statusMap.pending;
+    const s = statusMap[status] || statusMap.queued;
     return (
       <span
         className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${s.color}`}
@@ -198,6 +232,16 @@ export default function CloudAgentsPage() {
 
   const getAgentInfo = (providerId: string) => {
     return CLOUD_AGENTS.find((a) => a.id === providerId) || CLOUD_AGENTS[0];
+  };
+
+  const getPlanText = (task: CloudAgentTask) => {
+    return task.activities.find((activity) => activity.type === "plan")?.content || "";
+  };
+
+  const formatResult = (result: CloudAgentTask["result"]) => {
+    if (!result) return "";
+    if (typeof result === "string") return result;
+    return JSON.stringify(result, null, 2);
   };
 
   if (loading) {
@@ -265,8 +309,8 @@ export default function CloudAgentsPage() {
                 {t("selectAgent")}
               </label>
               <select
-                value={newTask.provider}
-                onChange={(e) => setNewTask({ ...newTask, provider: e.target.value })}
+                value={newTask.providerId}
+                onChange={(e) => setNewTask({ ...newTask, providerId: e.target.value })}
                 className="w-full rounded-lg border border-border/50 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 {CLOUD_AGENTS.map((agent) => (
@@ -278,13 +322,49 @@ export default function CloudAgentsPage() {
             </div>
           </div>
           <div>
-            <Input
-              label={t("taskDescription")}
+            <label className="text-xs font-medium text-text-muted mb-1.5 block">
+              {t("taskDescription")}
+            </label>
+            <textarea
               placeholder={t("taskDescriptionPlaceholder")}
-              value={newTask.description}
-              onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+              value={newTask.prompt}
+              onChange={(e) => setNewTask({ ...newTask, prompt: e.target.value })}
+              className="min-h-24 w-full rounded-lg border border-border/50 bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               required
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Repository name"
+              placeholder="omniroute"
+              value={newTask.repoName}
+              onChange={(e) => setNewTask({ ...newTask, repoName: e.target.value })}
+              required
+            />
+            <Input
+              label="Repository URL"
+              placeholder="https://github.com/owner/repo"
+              value={newTask.repoUrl}
+              onChange={(e) => setNewTask({ ...newTask, repoUrl: e.target.value })}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Branch"
+              placeholder="main"
+              value={newTask.branch}
+              onChange={(e) => setNewTask({ ...newTask, branch: e.target.value })}
+            />
+            <label className="flex items-center gap-2 text-sm text-text-muted pt-7">
+              <input
+                type="checkbox"
+                checked={newTask.autoCreatePr}
+                onChange={(e) => setNewTask({ ...newTask, autoCreatePr: e.target.checked })}
+                className="h-4 w-4 rounded border-border/60"
+              />
+              Auto-create PR
+            </label>
           </div>
           <div className="flex justify-end">
             <Button type="submit" variant="primary" loading={creating}>
@@ -305,7 +385,7 @@ export default function CloudAgentsPage() {
             </div>
           ) : (
             tasks.map((task) => {
-              const agent = getAgentInfo(task.provider);
+              const agent = getAgentInfo(task.providerId);
               return (
                 <Card
                   key={task.id}
@@ -319,7 +399,7 @@ export default function CloudAgentsPage() {
                       <span className="text-lg">{agent.icon}</span>
                       <div>
                         <p className="text-sm font-medium text-text-main line-clamp-1">
-                          {task.description || t("untitledTask")}
+                          {task.prompt || t("untitledTask")}
                         </p>
                         <p className="text-xs text-text-muted">
                           {agent.name} • {new Date(task.createdAt).toLocaleString()}
@@ -340,9 +420,9 @@ export default function CloudAgentsPage() {
             <Card className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{getAgentInfo(selectedTask.provider).icon}</span>
+                  <span className="text-lg">{getAgentInfo(selectedTask.providerId).icon}</span>
                   <div>
-                    <p className="font-medium">{getAgentInfo(selectedTask.provider).name}</p>
+                    <p className="font-medium">{getAgentInfo(selectedTask.providerId).name}</p>
                     <p className="text-xs text-text-muted">
                       {t("created")}: {new Date(selectedTask.createdAt).toLocaleString()}
                     </p>
@@ -351,7 +431,7 @@ export default function CloudAgentsPage() {
                 {getStatusBadge(selectedTask.status)}
               </div>
 
-              {selectedTask.status === "waiting_approval" && selectedTask.plan && (
+              {selectedTask.status === "awaiting_approval" && getPlanText(selectedTask) && (
                 <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="material-symbols-outlined text-[16px] text-amber-600">
@@ -362,7 +442,7 @@ export default function CloudAgentsPage() {
                     </span>
                   </div>
                   <pre className="text-xs text-text-muted whitespace-pre-wrap bg-black/5 dark:bg-white/5 rounded p-2 max-h-32 overflow-auto">
-                    {selectedTask.plan}
+                    {getPlanText(selectedTask)}
                   </pre>
                   <div className="flex gap-2 mt-2">
                     <Button variant="primary" size="sm" onClick={handleApprovePlan}>
@@ -380,21 +460,21 @@ export default function CloudAgentsPage() {
                 </div>
               )}
 
-              {selectedTask.messages.length > 0 && (
+              {selectedTask.activities.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <p className="text-sm font-medium">{t("conversation")}</p>
                   <div className="flex flex-col gap-2 max-h-64 overflow-auto">
-                    {selectedTask.messages.map((msg, i) => (
+                    {selectedTask.activities.map((activity) => (
                       <div
-                        key={i}
+                        key={activity.id}
                         className={`p-2 rounded-lg text-xs ${
-                          msg.role === "assistant"
+                          activity.type === "message" || activity.type === "completion"
                             ? "bg-purple-500/10 text-text-main"
                             : "bg-surface/40 text-text-main"
                         }`}
                       >
-                        <span className="font-medium capitalize">{msg.role}: </span>
-                        {msg.content}
+                        <span className="font-medium capitalize">{activity.type}: </span>
+                        {activity.content}
                       </div>
                     ))}
                   </div>
@@ -412,7 +492,7 @@ export default function CloudAgentsPage() {
                     </span>
                   </div>
                   <pre className="text-xs text-text-muted whitespace-pre-wrap">
-                    {selectedTask.result}
+                    {formatResult(selectedTask.result)}
                   </pre>
                 </div>
               )}

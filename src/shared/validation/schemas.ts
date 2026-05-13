@@ -6,7 +6,7 @@ import {
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
-import { isLocalProvider } from "@/shared/constants/providers";
+import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
@@ -259,10 +259,7 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    const apiKeyOptional =
-      data.provider === "searxng-search" ||
-      data.provider === "petals" ||
-      isLocalProvider(data.provider);
+    const apiKeyOptional = providerAllowsOptionalApiKey(data.provider);
     if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -1625,6 +1622,7 @@ export const providersBatchTestSchema = z
       "audio",
       "local",
       "upstream-proxy",
+      "cloud-agent",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),

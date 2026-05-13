@@ -35,6 +35,7 @@ const cases: Case[] = [
   { name: "/api/v1/files", path: "/api/v1/files", expectedClass: "CLIENT_API" },
   { name: "/api/v1/batches", path: "/api/v1/batches", expectedClass: "CLIENT_API" },
   { name: "/api/v1/ws", path: "/api/v1/ws", expectedClass: "CLIENT_API" },
+  { name: "/api/mcp/* stays management", path: "/api/mcp/status", expectedClass: "MANAGEMENT" },
 
   {
     name: "/v1 alias",

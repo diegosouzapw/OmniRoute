@@ -69,16 +69,10 @@ export function classifyRoute(rawPath: string, method: string = "GET"): RouteCla
     };
   }
 
-  if (
-    normalizedPath === "/api/v1" ||
-    normalizedPath.startsWith("/api/v1/") ||
-    normalizedPath.startsWith("/api/mcp/")
-  ) {
+  if (normalizedPath === "/api/v1" || normalizedPath.startsWith("/api/v1/")) {
     return {
       routeClass: "CLIENT_API",
-      reason:
-        aliasReason ??
-        (normalizedPath.startsWith("/api/mcp/") ? "client_api_mcp" : "client_api_v1"),
+      reason: aliasReason ?? "client_api_v1",
       normalizedPath,
     };
   }

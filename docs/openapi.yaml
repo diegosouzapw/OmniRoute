@@ -1433,22 +1433,6 @@ paths:
         "200":
           description: Translation history entries
 
-  /api/translator/load:
-    get:
-      tags: [Translator]
-      summary: Load saved translation template
-      responses:
-        "200":
-          description: Template data
-
-  /api/translator/save:
-    post:
-      tags: [Translator]
-      summary: Save translation template
-      responses:
-        "200":
-          description: Template saved
-
   # ─── CLI Tools ─────────────────────────────────────────────────
 
   /api/cli-tools/backups:
@@ -2269,6 +2253,73 @@ paths:
         "200":
           description: Generated content
 
+  # ─── OpenAPI Spec ──────────────────────────────────────────────
+
+  /api/openapi/spec:
+    get:
+      tags: [System]
+      summary: Get OpenAPI specification catalog
+      description: >-
+        Returns a structured JSON catalog parsed from this `openapi.yaml`,
+        including info, servers, tags, schemas, and a flat list of endpoints
+        (method, path, tags, summary, security, parameters, responses).
+        Used by the in-app API explorer.
+      responses:
+        "200":
+          description: Parsed OpenAPI catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    type: object
+                  servers:
+                    type: array
+                    items:
+                      type: object
+                  tags:
+                    type: array
+                    items:
+                      type: object
+                  endpoints:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        method:
+                          type: string
+                        path:
+                          type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                        summary:
+                          type: string
+                        description:
+                          type: string
+                        security:
+                          type: boolean
+                        parameters:
+                          type: array
+                          items:
+                            type: object
+                        requestBody:
+                          type: boolean
+                        responses:
+                          type: array
+                          items:
+                            type: string
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+        "404":
+          description: openapi.yaml file not found on disk
+        "500":
+          description: Failed to parse OpenAPI spec
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2476,13 +2527,35 @@ components:
           type: array
           items:
             type: object
-            required: [role, content]
+            required: [role]
             properties:
               role:
                 type: string
-                enum: [system, user, assistant]
+                description: >-
+                  Message role. The proxy accepts any non-empty string; common values
+                  include system, user, assistant, tool, function, and developer.
+                example: user
               content:
+                description: >-
+                  Message content. May be a plain string, an array of content parts
+                  for multimodal inputs (text, image, audio, etc.), or null when the
+                  message only carries tool/function calls.
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: object
+                  - type: "null"
+              name:
                 type: string
+              tool_call_id:
+                type: string
+              tool_calls:
+                type: array
+                items:
+                  type: object
+              function_call:
+                type: object
         stream:
           type: boolean
           default: false
@@ -2492,6 +2565,65 @@ components:
           maximum: 2
         max_tokens:
           type: integer
+        top_p:
+          type: number
+          minimum: 0
+          maximum: 1
+        n:
+          type: integer
+          minimum: 1
+          default: 1
+        stop:
+          description: Up to 4 stop sequences (string or array of strings).
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+              maxItems: 4
+        frequency_penalty:
+          type: number
+          minimum: -2
+          maximum: 2
+        presence_penalty:
+          type: number
+          minimum: -2
+          maximum: 2
+        seed:
+          type: integer
+        logprobs:
+          type: boolean
+        top_logprobs:
+          type: integer
+          minimum: 0
+          maximum: 20
+        response_format:
+          type: object
+          description: Output format constraint (e.g. JSON mode or JSON Schema).
+          properties:
+            type:
+              type: string
+              example: json_object
+        tools:
+          type: array
+          description: Tool definitions available to the model.
+          items:
+            type: object
+        tool_choice:
+          description: Controls which tool (if any) is invoked by the model.
+          oneOf:
+            - type: string
+              example: auto
+            - type: object
+        parallel_tool_calls:
+          type: boolean
+          default: true
+        service_tier:
+          type: string
+          example: auto
+        user:
+          type: string
+          description: Stable end-user identifier for abuse monitoring.
 
     ChatCompletionResponse:
       type: object
@@ -2637,7 +2769,21 @@ components:
           type: string
         strategy:
           type: string
-          enum: [priority, weighted, round-robin, random, least-used, cost-optimized]
+          enum:
+            - priority
+            - weighted
+            - round-robin
+            - context-relay
+            - fill-first
+            - p2c
+            - random
+            - least-used
+            - cost-optimized
+            - reset-aware
+            - strict-random
+            - auto
+            - lkgp
+            - context-optimized
           default: priority
         nodes:
           type: array

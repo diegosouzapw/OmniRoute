@@ -15,6 +15,15 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 - [Deployment](#-deployment)
 - [Available Models](#-available-models)
 - [Advanced Features](#-advanced-features)
+- [Auto-Routing (Zero-config)](#-auto-routing-zero-config)
+- [MCP & A2A Integration](#-mcp--a2a-integration)
+- [Skills System](#-skills-system)
+- [Memory System](#-memory-system)
+- [Webhooks](#-webhooks)
+- [Cloud Agents](#-cloud-agents)
+- [Programmatic Management](#-programmatic-management)
+- [Internal CLI](#-internal-cli)
+- [Desktop Application (Electron)](#-desktop-application-electron)
 
 ---
 
@@ -58,7 +67,7 @@ Complete guide for configuring providers, creating combos, integrating CLI tools
 Combo: "maximize-claude"
   1. cc/claude-opus-4-7        (use subscription fully)
   2. glm/glm-4.7               (cheap backup when quota out)
-  3. if/kimi-k2-thinking       (free emergency fallback)
+  3. if/kimi-k2       (free emergency fallback)
 
 Monthly cost: $20 (subscription) + ~$5 (backup) = $25 total
 vs. $20 + hitting limits = frustration
@@ -70,8 +79,8 @@ vs. $20 + hitting limits = frustration
 
 ```
 Combo: "free-forever"
-  1. gc/gemini-3-flash         (180K free/month)
-  2. if/kimi-k2-thinking       (unlimited free)
+  1. gemini-cli/gemini-3-flash-preview  (180K free/month)
+  2. if/kimi-k2       (unlimited free)
   3. qw/qwen3-coder-plus       (unlimited free)
 
 Monthly cost: $0
@@ -88,7 +97,7 @@ Combo: "always-on"
   2. cx/gpt-5.5                (second subscription)
   3. glm/glm-4.7               (cheap, resets daily)
   4. minimax/MiniMax-M2.1      (cheapest, 5h reset)
-  5. if/kimi-k2-thinking       (free unlimited)
+  5. if/kimi-k2       (free unlimited)
 
 Result: 5 layers of fallback = zero downtime
 Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
@@ -100,9 +109,9 @@ Monthly cost: $20-200 (subscriptions) + $10-20 (backup)
 
 ```
 Combo: "openclaw-free"
-  1. if/glm-4.7                (unlimited free)
-  2. if/minimax-m2.1           (unlimited free)
-  3. if/kimi-k2-thinking       (unlimited free)
+  1. if/qwen3-coder-plus       (unlimited free)
+  2. if/deepseek-r1            (unlimited free)
+  3. if/kimi-k2                (unlimited free)
 
 Monthly cost: $0
 Access via: WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
@@ -137,8 +146,10 @@ Dashboard → Providers → Connect Codex
 → 5-hour + weekly reset
 
 Models:
-  cx/gpt-5-5
-  cx/gpt-5-3-codex-spark
+  cx/gpt-5.5
+  cx/gpt-5.4
+  cx/gpt-5.3-codex
+  cx/gpt-5.3-codex-spark
 ```
 
 #### Gemini CLI (FREE 180K/month!)
@@ -149,8 +160,9 @@ Dashboard → Providers → Connect Gemini CLI
 → 180K completions/month + 1K/day
 
 Models:
-  gc/gemini-3-flash
-  gc/gemini-3.1-flash-lite-preview
+  gemini-cli/gemini-3.1-pro-preview
+  gemini-cli/gemini-3-flash-preview
+  gemini-cli/gemini-3.1-flash-lite-preview
 ```
 
 **Best Value:** Huge free tier! Use this before paid tiers.
@@ -163,8 +175,10 @@ Dashboard → Providers → Connect GitHub
 → Monthly reset (1st of month)
 
 Models:
+  gh/gpt-5.5
   gh/gpt-5.4
-  gh/claude-4.6-sonnet
+  gh/claude-sonnet-4.6
+  gh/claude-opus-4.7
   gh/gemini-3.1-pro-preview
 ```
 
@@ -206,7 +220,7 @@ Models:
 ```bash
 Dashboard → Connect Qoder → OAuth login → Unlimited usage
 
-Models: if/kimi-k2-thinking, if/qwen3-coder-plus, if/glm-4.7, if/minimax-m2, if/deepseek-r1
+Models: if/kimi-k2, if/qwen3-coder-plus, if/qwen3-max, if/qwen3-235b, if/deepseek-r1, if/deepseek-v3.2
 ```
 
 #### Kiro (Claude FREE)
@@ -242,9 +256,9 @@ Use in CLI: premium-coding
 ```
 Name: free-combo
 Models:
-  1. gc/gemini-3-flash-preview (180K free/month)
-  2. if/kimi-k2-thinking (unlimited)
-  3. qw/qwen3-coder-plus (unlimited)
+  1. gemini-cli/gemini-3-flash-preview (180K free/month)
+  2. if/kimi-k2 (unlimited)
+  3. qw/coder-model (unlimited)
 
 Cost: $0 forever!
 ```
@@ -293,7 +307,7 @@ Edit `~/.openclaw/openclaw.json`:
 {
   "agents": {
     "defaults": {
-      "model": { "primary": "omniroute/if/glm-4.7" }
+      "model": { "primary": "omniroute/if/kimi-k2" }
     }
   },
   "models": {
@@ -302,7 +316,7 @@ Edit `~/.openclaw/openclaw.json`:
         "baseUrl": "http://localhost:20128/v1",
         "apiKey": "your-omniroute-api-key",
         "api": "openai-completions",
-        "models": [{ "id": "if/glm-4.7", "name": "glm-4.7" }]
+        "models": [{ "id": "if/kimi-k2", "name": "kimi-k2" }]
       }
     }
   }
@@ -432,7 +446,7 @@ Void Linux users can package and install OmniRoute natively using the `xbps-src`
 ```bash
 # Template file for 'omniroute'
 pkgname=omniroute
-version=3.2.4
+version=3.8.0
 revision=1
 hostmakedepends="nodejs python3 make"
 depends="openssl"
@@ -532,8 +546,8 @@ post_install() {
 | `PORT`                                  | framework default                    | Service port (`20128` in examples)                                                                        |
 | `HOSTNAME`                              | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                                                                  |
 | `NODE_ENV`                              | runtime default                      | Set `production` for deploy                                                                               |
-| `BASE_URL`                              | `http://localhost:20128`             | Server-side internal base URL                                                                             |
-| `CLOUD_URL`                             | `https://omniroute.dev`              | Cloud sync endpoint base URL                                                                              |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128`             | Public base URL surfaced to the dashboard and exposed to the server (replaces legacy `BASE_URL`)          |
+| `NEXT_PUBLIC_CLOUD_URL`                 | `https://omniroute.dev`              | Cloud sync endpoint base URL (replaces legacy `CLOUD_URL`)                                                |
 | `API_KEY_SECRET`                        | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                                                                        |
 | `REQUIRE_API_KEY`                       | `false`                              | Enforce Bearer API key on `/v1/*`                                                                         |
 | `ALLOW_API_KEY_REVEAL`                  | `false`                              | Allow Api Manager to copy full API keys on demand                                                         |
@@ -556,45 +570,57 @@ For the full environment variable reference, see the [README](../README.md).
 <details>
 <summary><b>View all available models</b></summary>
 
-**Claude Code (`cc/`)** — Pro/Max: `cc/claude-opus-4-7`, `cc/claude-sonnet-4-6`, `cc/claude-haiku-4-5-20251001`
+> The list below is curated from `open-sse/config/providerRegistry.ts` for v3.8.0. Cloud catalogs (Gemini, OpenRouter, etc.) are synced dynamically — for the full live catalog open **Dashboard → Providers → [provider] → Available Models** or call `GET /api/models/catalog`.
 
-**Codex (`cx/`)** — Plus/Pro: `cx/gpt-5.5`, `cx/gpt-5.4`, `cx/gpt-5.3-codex-spark`, `cx/gpt-5.3-codex`
+**Claude Code (`cc/`)** — Pro/Max OAuth: `cc/claude-opus-4-7`, `cc/claude-opus-4-6`, `cc/claude-opus-4-5-20251101`, `cc/claude-sonnet-4-6`, `cc/claude-sonnet-4-5-20250929`, `cc/claude-haiku-4-5-20251001`
 
-**Gemini CLI (`gc/`)** — FREE: `gc/gemini-3-flash-preview`, `gc/gemini-3.1-flash-lite-preview`
+**Codex (`cx/`)** — Plus/Pro OAuth: `cx/gpt-5.5` (+ effort tiers: `gpt-5.5-xhigh`, `gpt-5.5-high`, `gpt-5.5-medium`, `gpt-5.5-low`), `cx/gpt-5.4`, `cx/gpt-5.4-mini`, `cx/gpt-5.3-codex`, `cx/gpt-5.3-codex-spark`, `cx/gpt-5.2`
 
-**GitHub Copilot (`gh/`)**: `gh/gpt-5-5`, `gh/gpt-5-4`, `gh/claude-opus-4.7`, `gh/claude-sonnet-4.6`, `gh/claude-haiku-4.5`
+**Gemini CLI (`gemini-cli/`)** — FREE OAuth: `gemini-cli/gemini-3.1-pro-preview`, `gemini-cli/gemini-3.1-pro-preview-customtools`, `gemini-cli/gemini-3-flash-preview`, `gemini-cli/gemini-3.1-flash-lite-preview`
 
-**GLM (`glm/`)** — $0.6/1M: `glm/glm-5.1`
+**GitHub Copilot (`gh/`)** — OAuth: `gh/gpt-5.5`, `gh/gpt-5.4`, `gh/gpt-5.4-mini`, `gh/gpt-5-mini`, `gh/gpt-5.3-codex`, `gh/claude-opus-4.7`, `gh/claude-opus-4.6`, `gh/claude-opus-4-5-20251101`, `gh/claude-sonnet-4.6`, `gh/claude-sonnet-4.5`, `gh/claude-haiku-4.5`, `gh/gemini-3.1-pro-preview`, `gh/gemini-3-flash-preview`, `gh/oswe-vscode-prime`
 
-**MiniMax (`minimax/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.5`
+**Kiro (`kr/`)** — FREE OAuth: `kr/auto-kiro`, `kr/claude-opus-4.7`, `kr/claude-opus-4.6`, `kr/claude-sonnet-4.6`, `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`, `kr/deepseek-3.2`, `kr/minimax-m2.5`, `kr/minimax-m2.1`, `kr/glm-5`, `kr/qwen3-coder-next`
 
-**Qoder (`if/`)** — FREE: `if/kimi-k2-thinking`, `if/qwen3-coder-plus`, `if/deepseek-r1`
+**Qoder (`if/`)** — FREE OAuth: `if/kimi-k2-0905`, `if/kimi-k2`, `if/qwen3-coder-plus`, `if/qwen3-max`, `if/qwen3-max-preview`, `if/qwen3-vl-plus`, `if/qwen3-32b`, `if/qwen3-235b-a22b-thinking-2507`, `if/qwen3-235b-a22b-instruct`, `if/qwen3-235b`, `if/deepseek-v3.2`, `if/deepseek-v3`, `if/deepseek-r1`, `if/qoder-rome-30ba3b`
 
-**Qwen (`qw/`)**: `qw/qwen3-coder-plus`, `qw/qwen3-coder-flash`
+**Qwen (`qw/`)** — FREE OAuth (chat.qwen.ai): `qw/coder-model`, `qw/vision-model`
 
-**Kiro (`kr/`)** — FREE: `kr/claude-sonnet-4.5`, `kr/claude-haiku-4.5`
+**GLM (`glm/`, `glm-cn/`, `zai/`, `glmt/`)** — $0.2–0.6/1M: `glm/glm-5.1`, `glm/glm-5`, `glm/glm-5-turbo`, `glm/glm-4.7`, `glm/glm-4.7-flash`, `glm/glm-4.6`, `glm/glm-4.6v`, `glm/glm-4.5`, `glm/glm-4.5v`, `glm/glm-4.5-air`
 
-**DeepSeek (`ds/`)**: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
+**MiniMax (`minimax/`, `minimax-cn/`)** — $0.2/1M: `minimax/MiniMax-M2.7`, `minimax/MiniMax-M2.7-highspeed`, `minimax/MiniMax-M2.5`, `minimax/MiniMax-M2.5-highspeed`
 
-**Groq (`groq/`)**: `groq/llama-3.3-70b-versatile`, `groq/llama-4-maverick-17b-128e-instruct`
+**Kimi (`kimi/`, `kimi-coding/`, `kimi-coding-apikey/`)** — $9/mo flat or per-use: `kimi/kimi-k2.6`, `kimi/kimi-k2.5`
 
-**xAI (`xai/`)**: `xai/grok-4.3`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
+**DeepSeek (`ds/`)** — API key: `ds/deepseek-v4-pro`, `ds/deepseek-v4-flash`
 
-**Mistral (`mistral/`)**: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
+**Groq (`groq/`)** — Ultra-fast: `groq/llama-3.3-70b-versatile`, `groq/meta-llama/llama-4-maverick-17b-128e-instruct`, `groq/qwen/qwen3-32b`, `groq/openai/gpt-oss-120b`
 
-**Perplexity (`pplx/`)**: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
+**xAI (`xai/`)** — Grok native: `xai/grok-4.3`, `xai/grok-4.20-multi-agent-0309`, `xai/grok-4.20-0309-reasoning`, `xai/grok-4.20-0309-non-reasoning`
 
-**Together AI (`together/`)**: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo`
+**Mistral (`mistral/`)** — EU-hosted: `mistral/mistral-large-latest`, `mistral/mistral-medium-3-5`, `mistral/mistral-small-latest`, `mistral/devstral-latest`, `mistral/codestral-latest`
 
-**Fireworks AI (`fireworks/`)**: `fireworks/accounts/fireworks/models/deepseek-v3p1`
+**Perplexity (`pplx/`)** — Search-augmented: `pplx/sonar-deep-research`, `pplx/sonar-reasoning-pro`, `pplx/sonar-pro`, `pplx/sonar`
 
-**Cerebras (`cerebras/`)**: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
+**Together AI (`together/`)** — Open-source: `together/meta-llama/Llama-3.3-70B-Instruct-Turbo-Free` (free), `together/meta-llama/Llama-Vision-Free`, `together/deepseek-ai/DeepSeek-R1-Distill-Llama-70B-Free`, `together/deepseek-ai/DeepSeek-R1`, `together/Qwen/Qwen3-235B-A22B`, `together/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
 
-**Cohere (`cohere/`)**: `cohere/command-r-plus-08-2024`
+**Fireworks AI (`fireworks/`)** — Fast inference: `fireworks/accounts/fireworks/models/kimi-k2p6`, `fireworks/accounts/fireworks/models/minimax-m2p7`, `fireworks/accounts/fireworks/models/qwen3p6-plus`, `fireworks/accounts/fireworks/models/glm-5p1`, `fireworks/accounts/fireworks/models/deepseek-v4-pro`
 
-**NVIDIA NIM (`nvidia/`)**: `nvidia/nvidia/llama-3.3-70b-instruct`
+**Cerebras (`cerebras/`)** — Wafer-scale: `cerebras/zai-glm-4.7`, `cerebras/gpt-oss-120b`
 
-**Baidu Qianfan (`qianfan/`)**: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
+**Cohere (`cohere/`)** — RAG-focused: `cohere/command-a-reasoning-08-2025`, `cohere/command-a-vision-07-2025`, `cohere/command-a-03-2025`, `cohere/command-r-08-2024`
+
+**NVIDIA NIM (`nvidia/`)** — Enterprise: `nvidia/z-ai/glm-5.1`, `nvidia/minimaxai/minimax-m2.7`, `nvidia/google/gemma-4-31b-it`, `nvidia/mistralai/mistral-small-4-119b-2603`, `nvidia/mistralai/mistral-large-3-675b-instruct-2512`, `nvidia/qwen/qwen3.5-397b-a17b`, `nvidia/deepseek-ai/deepseek-v4-pro`, `nvidia/openai/gpt-oss-120b`, `nvidia/nvidia/nemotron-3-super-120b-a12b`
+
+**Baidu Qianfan (`qianfan/`)** — ERNIE: `qianfan/ernie-5.1`, `qianfan/ernie-5.0-thinking-latest`, `qianfan/ernie-x1.1`
+
+**Ollama Cloud (`ollama-cloud/`)**: `ollama-cloud/deepseek-v4-pro`, `ollama-cloud/deepseek-v4-flash`, `ollama-cloud/kimi-k2.6`, `ollama-cloud/glm-5.1`, `ollama-cloud/minimax-m2.7`, `ollama-cloud/gemma4:31b`, `ollama-cloud/qwen3.5:397b`
+
+**Gemini (Google Cloud `gemini/`)**: Synced live per API key from Google — no static list. Connect a key in **Dashboard → Providers** then use **Available Models** to import the current catalog (e.g. `gemini/gemini-3-pro`, `gemini/gemini-3-flash`).
+
+**Other compatible providers** (selected): `cohere`, `databricks`, `snowflake`, `together`, `vertex`, `alibaba`, `bedrock` (via `aws-bedrock`), `azure-ai`, `openrouter` (passthrough catalog), `siliconflow`, `hyperbolic`, `huggingface`, `featherless-ai`, `cloudflare-ai`, `scaleway`, `deepinfra`, `vercel-ai-gateway`, `bazaarlink`, `friendliai`, `nous-research`, `reka`, `volcengine`, `ai21`, `gigachat`. Each maintains its own model list in `providerRegistry.ts` and can be auto-synced when the provider exposes a `/models` endpoint.
+
+**Note on model IDs:** OmniRoute uses provider-native IDs (`claude-opus-4-7`, `gpt-5.5`, `glm-5.1`, `MiniMax-M2.7`, `kimi-k2.5`, `grok-4.20-0309-reasoning`). Some IDs include dotted versions because that is how the upstream API expects them. If a model is not listed above, run `omniroute models --search <term>` or hit `GET /api/models/catalog` to confirm availability.
 
 </details>
 
@@ -665,7 +691,7 @@ Returns models grouped by provider with types (`chat`, `embedding`, `image`).
 
 - Sync providers, combos, and settings across devices
 - Automatic background sync with timeout + fail-fast
-- Prefer server-side `BASE_URL`/`CLOUD_URL` in production
+- Prefer server-side `NEXT_PUBLIC_BASE_URL`/`NEXT_PUBLIC_CLOUD_URL` in production
 
 ### Cloudflare Quick Tunnel
 
@@ -708,7 +734,9 @@ Access via **Dashboard → Translator**. Debug and visualize how OmniRoute trans
 
 ### Routing Strategies
 
-Configure via **Dashboard → Settings → Routing**.
+Configure via **Dashboard → Settings → Routing**. The dashboard exposes the six most-used strategies; combos and the auto-router internally support a wider set.
+
+**Dashboard-visible strategies (account-level routing):**
 
 | Strategy                       | Description                                                                                      |
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
@@ -718,6 +746,19 @@ Configure via **Dashboard → Settings → Routing**.
 | **Random**                     | Randomly selects an account for each request using Fisher-Yates shuffle                          |
 | **Least Used**                 | Routes to the account with the oldest `lastUsedAt` timestamp, distributing traffic evenly        |
 | **Cost Optimized**             | Routes to the account with the lowest priority value, optimizing for lowest-cost providers       |
+
+**Advanced combo and auto strategies** (configurable per combo or via `auto/*` prefixes — see [AUTO-COMBO.md](AUTO-COMBO.md)):
+
+- `priority` — strict order, never round-robins
+- `weighted` — proportional traffic split by per-model weights
+- `fill-first` — drain the first model until limits hit
+- `round-robin` / `strict-random` / `random`
+- `p2c` (Power of Two Choices)
+- `least-used` and `cost-optimized`
+- `auto` — score-driven across all candidates
+- `lkgp` (Last Known Good Provider) — sticks to the last successful model per session
+- `context-optimized` — picks the model with the largest free context window
+- `context-relay` — chains long-context models for follow-up turns
 
 #### External Sticky Session Header
 
@@ -828,16 +869,17 @@ curl -X POST http://localhost:20128/api/db-backups/import \
 
 ### Settings Dashboard
 
-The settings page is organized into 6 tabs for easy navigation:
+The settings page is organized into **7 tabs** for easy navigation:
 
-| Tab            | Contents                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------- |
-| **General**    | System storage tools, appearance settings, theme controls, sidebar visibility, and Endpoint tunnel visibility |
-| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, and Provider Blocking                     |
-| **Routing**    | Global routing strategy (6 options), wildcard model aliases, fallback chains, combo defaults                  |
-| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                   |
-| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats                             |
-| **Advanced**   | Global proxy configuration (HTTP/SOCKS5)                                                                      |
+| Tab            | Contents                                                                                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | System storage tools, default behavior, Endpoint tunnel visibility                                                                                       |
+| **Appearance** | Theme controls (light/dark/system), sidebar visibility, panel toggles for Cloudflare/Tailscale/ngrok tunnel cards                                        |
+| **AI**         | Thinking budget configuration, global system prompt injection, prompt cache stats                                                                        |
+| **Security**   | Login/Password settings, IP Access Control, API auth for `/models`, Provider Blocking, prompt-injection guard                                            |
+| **Routing**    | Global routing strategy (Fill First / Round Robin / P2C / Random / Least Used / Cost Optimized), wildcard model aliases, fallback chains, combo defaults |
+| **Resilience** | Request queue, connection cooldown, provider breaker config, and wait-for-cooldown behavior                                                              |
+| **Advanced**   | Global proxy configuration (HTTP/SOCKS5), per-provider proxy overrides                                                                                   |
 
 ---
 
@@ -880,9 +922,34 @@ curl -X POST http://localhost:20128/v1/audio/transcriptions \
   -F "model=deepgram/nova-3"
 ```
 
-Available providers: **Deepgram** (`deepgram/`), **AssemblyAI** (`assemblyai/`).
+**Speech-to-Text (transcription)** providers:
 
-Supported audio formats: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`.
+- `openai/` (whisper-compatible)
+- `groq/` (Groq Whisper Turbo)
+- `deepgram/` (Nova family)
+- `assemblyai/`
+- `nvidia/` (Parakeet, Canary)
+- `huggingface/` (whisper variants)
+- `qwen/`
+
+**Text-to-Speech (`POST /v1/audio/speech`)** providers:
+
+- `openai/` (tts-1, tts-1-hd)
+- `hyperbolic/`
+- `deepgram/` (Aura)
+- `nvidia/` (Magpie TTS)
+- `elevenlabs/`
+- `huggingface/`
+- `inworld/`
+- `cartesia/`
+- `playht/`
+- `kie/`
+- `aws-polly/`
+- `xiaomi-mimo/`
+- `coqui/`, `tortoise/`
+- `qwen/`
+
+Supported audio formats for transcription: `mp3`, `wav`, `m4a`, `flac`, `ogg`, `webm`. TTS output formats depend on the provider (mp3, wav, opus, pcm, mulaw).
 
 ---
 
@@ -917,6 +984,186 @@ Access via **Dashboard → Health**. Real-time system health overview with 6 car
 | **Latency Telemetry** | p50/p95/p99 latency aggregation per provider                |
 
 **Pro Tip:** The Health page auto-refreshes every 10 seconds. Use the circuit breaker card to identify which providers are experiencing issues.
+
+---
+
+## 🤖 Auto-Routing (Zero-config)
+
+OmniRoute ships with a **score-driven auto-router** that picks the best model for each request across every connected provider — no combo to maintain. Just send the request with one of the `auto/*` prefixes and OmniRoute will assemble a virtual combo on the fly, scoring candidates on latency, cost, success rate, context fit, model fitness for the task, recent failures, quota, and circuit-breaker state.
+
+| Prefix         | Optimizes for                                                                 |
+| -------------- | ----------------------------------------------------------------------------- |
+| `auto`         | Balanced default (latency × cost × success rate)                              |
+| `auto/coding`  | Coding tasks: prefers Claude, GPT-5, GLM, Kimi, Qwen Coder, DeepSeek coders   |
+| `auto/cheap`   | Lowest $/token, accepts higher latency                                        |
+| `auto/fast`    | Lowest latency, ignores cost                                                  |
+| `auto/offline` | Local-only providers (Ollama, vLLM, llama.cpp) — useful for air-gapped setups |
+| `auto/smart`   | Reasoning quality first (Opus, GPT-5 xhigh, R1, GLM 5.1 reasoning)            |
+| `auto/lkgp`    | "Last Known Good Provider" — sticky to the most recently successful target    |
+
+Example:
+
+```bash
+curl -X POST http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer $OMNIROUTE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "auto/coding",
+    "messages": [{ "role": "user", "content": "Refactor this Python function" }],
+    "stream": true
+  }'
+```
+
+The auto-router is fully described in [AUTO-COMBO.md](AUTO-COMBO.md) — including how to tune scoring weights, blacklist providers, and inspect routing decisions in **Dashboard → Auto Combo**.
+
+---
+
+## 🔌 MCP & A2A Integration
+
+OmniRoute is both an **MCP server** (Model Context Protocol) and an **A2A server** (Agent-to-Agent JSON-RPC 2.0). Any MCP-compatible IDE or agent host can call OmniRoute tools directly — no extra wrapper required.
+
+### MCP transports
+
+- **SSE**: `http://localhost:20128/api/mcp/sse`
+- **Streamable HTTP**: `http://localhost:20128/api/mcp/stream`
+- **stdio**: `omniroute --mcp` (for IDE plugins that prefer stdio)
+
+### Connect Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or the equivalent on Windows/Linux:
+
+```json
+{
+  "mcpServers": {
+    "omniroute": {
+      "command": "omniroute",
+      "args": ["--mcp"]
+    }
+  }
+}
+```
+
+### Connect Cursor / Continue / VS Code MCP
+
+Use the SSE URL `http://localhost:20128/api/mcp/sse` and a Bearer API key generated in **Dashboard → API Manager**.
+
+### Scopes
+
+MCP tools are grouped into 10 scopes: `analytics`, `auth`, `billing`, `combos`, `health`, `keys`, `memory`, `models`, `providers`, `system`. Each Bearer key can be limited to specific scopes — see [MCP-SERVER.md](MCP-SERVER.md) for the full tool catalog and [A2A-SERVER.md](A2A-SERVER.md) for the JSON-RPC schema.
+
+---
+
+## 🧠 Skills System
+
+OmniRoute exposes an extensible **skill framework** (`src/lib/skills/`) so agents and the A2A endpoint can run domain-specific routines (e.g. `code-review`, `summarize`, `extract-facts`, `web-research`).
+
+- **Marketplace UI** — Browse and install skills from **Dashboard → Skills**
+- **Per-key scopes** — Restrict which API keys can invoke which skills
+- **Custom skills** — Drop a TypeScript file in `src/lib/a2a/skills/`, register it, and it becomes immediately invocable over A2A
+
+Full reference: [SKILLS.md](SKILLS.md).
+
+---
+
+## 💾 Memory System
+
+OmniRoute persists **long-term conversational memory** with hybrid retrieval:
+
+- **SQLite FTS5** for keyword search across past turns
+- **Qdrant vector store** (optional) for semantic recall
+- **Automatic fact extraction** — entities, preferences, and decisions are summarized after each session and stored in the `memory_facts` table
+- Memories are scoped per API key and per session
+
+Manage memories in **Dashboard → Memory** (search, edit, export, purge). The HTTP surface (`/api/memory/*`) lets agents push and query facts programmatically — see [MEMORY.md](MEMORY.md).
+
+---
+
+## 🔔 Webhooks
+
+Subscribe to OmniRoute events for real-time monitoring and automation.
+
+- Create a webhook in **Dashboard → Webhooks** with target URL and HMAC signing secret
+- Available events: `request.completed`, `request.failed`, `provider.unavailable`, `budget.exceeded`, `combo.switched`, `circuit_breaker.opened`, `circuit_breaker.closed`
+- Every payload includes `X-OmniRoute-Signature` (HMAC-SHA256) for verification
+- Retries: 3 attempts with exponential backoff, then dead-letter queue
+
+Full schema in [WEBHOOKS.md](WEBHOOKS.md).
+
+---
+
+## ☁️ Cloud Agents
+
+OmniRoute integrates with cloud coding agents (**OpenAI Codex Cloud**, **Devin**, **Jules**, **Antigravity**) so you can dispatch long-running tasks from the same dashboard that handles your local routing.
+
+- Create tasks in **Dashboard → Cloud Agents** or via `POST /api/v1/agents/tasks`
+- Track status, logs, and artifacts per task
+- Bring-your-own API key per provider — credentials never leave the OmniRoute instance
+
+Full reference: [CLOUD_AGENT.md](CLOUD_AGENT.md).
+
+---
+
+## 🛠️ Programmatic Management
+
+You can manage every OmniRoute resource (providers, combos, keys, settings) over HTTP using a **Bearer key with the `manage` scope**.
+
+Generate the key in **Dashboard → API Manager → New Key → Scope: manage**, then:
+
+```bash
+# List providers
+curl http://localhost:20128/api/providers \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
+
+# Add a provider connection
+curl -X POST http://localhost:20128/api/providers \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "provider": "openai", "apiKey": "sk-...", "name": "main" }'
+
+# Create a combo
+curl -X POST http://localhost:20128/api/combos \
+  -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "premium", "strategy": "priority", "models": [{ "model": "cc/claude-opus-4-7" }, { "model": "glm/glm-5.1" }] }'
+
+# List/create API keys
+curl http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY"
+curl -X POST http://localhost:20128/api/keys -H "Authorization: Bearer $OMNIROUTE_MANAGE_KEY" \
+  -d '{ "name": "ci-bot", "scopes": ["chat"] }'
+```
+
+See [API_REFERENCE.md](API_REFERENCE.md) for the full endpoint catalog and request/response schemas.
+
+---
+
+## 💻 Internal CLI
+
+OmniRoute ships an internal CLI (`omniroute …`) for setup, diagnostics, and runtime control. This is **separate from the "CLI Tools" page in the dashboard**, which configures third-party CLIs (Claude Code, Cursor, Codex, Cline, …) so they can talk to OmniRoute.
+
+```bash
+omniroute setup                    # Interactive wizard (password, providers, combos)
+omniroute setup --non-interactive  # CI-friendly
+omniroute doctor                   # Health diagnostics (data dir, DB, providers, ports)
+omniroute providers available      # List supported providers
+omniroute providers list           # List configured connections
+omniroute providers test <id>      # Live test a provider connection
+omniroute combos list              # List combos
+omniroute combos switch <name>     # Set default combo
+omniroute models                   # List available models (--json, --search)
+omniroute keys add | list | remove # Manage API keys from the terminal
+omniroute backup                   # Snapshot config + DB
+omniroute restore [<timestamp>]    # Restore from a snapshot
+omniroute health                   # Detailed health (breakers, cache, memory)
+omniroute quota                    # Provider quota usage
+omniroute mcp status               # MCP server status
+omniroute a2a status               # A2A server status
+omniroute tunnel list|create|stop  # Cloudflare/Tailscale/ngrok tunnels
+omniroute reset-password           # Reset the admin password
+omniroute --mcp                    # Start MCP server over stdio
+omniroute --port 3000              # Start the server on a custom port
+```
+
+Tip: pair `omniroute doctor --json` with your monitoring tool to alert on unhealthy provider connections.
 
 ---
 

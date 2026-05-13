@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { CLOUD_AGENT_STATUS, CloudAgentStatusSchema, CloudAgentTask } =
+const { CLOUD_AGENT_STATUS, CloudAgentStatusSchema } =
   await import("../../src/lib/cloudAgent/types.ts");
 const { CreateCloudAgentTaskSchema, UpdateCloudAgentTaskSchema } =
   await import("../../src/lib/cloudAgent/types.ts");

@@ -30,6 +30,7 @@
 - [21. Proxy Health](#21-proxy-health)
 - [22. Debugging](#22-debugging)
 - [23. GitHub Integration](#23-github-integration)
+- [24. Skills Sandbox (v3.8.0+)](#24-skills-sandbox-v380)
 - [Deployment Scenarios](#deployment-scenarios)
 - [Audit: Removed / Dead Variables](#audit-removed--dead-variables)
 
@@ -39,19 +40,21 @@
 
 These **must** be set before the first run. Without them, the application will either refuse to start or operate with insecure defaults.
 
-| Variable           | Required | Default  | Source File             | Description                                                                                                                      |
-| ------------------ | -------- | -------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `JWT_SECRET`       | **Yes**  | _(none)_ | `src/lib/auth`          | Signs/verifies all dashboard session cookies (JWT). Generate with `openssl rand -base64 48`.                                     |
-| `API_KEY_SECRET`   | **Yes**  | _(none)_ | `src/lib/db/apiKeys.ts` | AES encryption key for API key values at rest in SQLite. Generate with `openssl rand -hex 32`.                                   |
-| `INITIAL_PASSWORD` | **Yes**  | `123456` | Bootstrap script        | Sets the initial admin dashboard password. **Change before first use.** After login, change via Dashboard → Settings → Security. |
+| Variable                     | Required             | Default    | Source File                                        | Description                                                                                                                                                                                                                                                                   |
+| ---------------------------- | -------------------- | ---------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`                 | **Yes**              | _(none)_   | `src/lib/auth`                                     | Signs/verifies all dashboard session cookies (JWT). Generate with `openssl rand -base64 48`.                                                                                                                                                                                  |
+| `API_KEY_SECRET`             | **Yes**              | _(none)_   | `src/lib/db/apiKeys.ts`                            | AES encryption key for API key values at rest in SQLite. Generate with `openssl rand -hex 32`.                                                                                                                                                                                |
+| `INITIAL_PASSWORD`           | **Yes**              | `CHANGEME` | Bootstrap script                                   | Sets the initial admin dashboard password (matches `.env.example` default — kept obviously insecure to force a change). **Change before first use.** After login, change via Dashboard → Settings → Security.                                                                 |
+| `OMNIROUTE_WS_BRIDGE_SECRET` | **Yes** (production) | _(unset)_  | `src/app/api/internal/codex-responses-ws/route.ts` | Shared secret for the internal Codex Responses WebSocket bridge. Authenticates bridge requests between the Electron/browser WS relay and OmniRoute. ⚠️ **REQUIRED in production — when unset, all WS bridge requests are rejected.** Generate with `openssl rand -base64 32`. |
 
 ### Generation Commands
 
 ```bash
-# Generate all three secrets at once:
+# Generate all four secrets at once:
 echo "JWT_SECRET=$(openssl rand -base64 48)"
 echo "API_KEY_SECRET=$(openssl rand -hex 32)"
 echo "INITIAL_PASSWORD=$(openssl rand -base64 16)"
+echo "OMNIROUTE_WS_BRIDGE_SECRET=$(openssl rand -base64 32)"
 ```
 
 > [!CAUTION]
@@ -63,14 +66,19 @@ echo "INITIAL_PASSWORD=$(openssl rand -base64 16)"
 
 OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
 
-| Variable                         | Default              | Source File                                     | Description                                                                                                        |
-| -------------------------------- | -------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `DATA_DIR`                       | `~/.omniroute/`      | `src/lib/db/core.ts`                            | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                |
-| `STORAGE_ENCRYPTION_KEY`         | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                         |
-| `STORAGE_ENCRYPTION_KEY_VERSION` | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups. |
-| `DISABLE_SQLITE_AUTO_BACKUP`     | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                     |
-| `OMNIROUTE_CRYPT_KEY`            | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.         |
-| `OMNIROUTE_API_KEY_BASE64`       | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                   |
+| Variable                               | Default              | Source File                                     | Description                                                                                                                      |
+| -------------------------------------- | -------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `DATA_DIR`                             | `~/.omniroute/`      | `src/lib/db/core.ts`                            | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                              |
+| `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                      | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                       |
+| `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.               |
+| `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                          | When `true`, skips the automatic database backup that runs before migrations on every startup.                                   |
+| `OMNIROUTE_CRYPT_KEY`                  | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.                       |
+| `OMNIROUTE_API_KEY_BASE64`             | _(unset)_            | `src/lib/db/encryption.ts`                      | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                                 |
+| `OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS` | _(unset)_            | `src/lib/db/core.ts`                            | Override the periodic SQLite healthcheck interval (ms). When unset, defaults are derived from `NODE_ENV`.                        |
+| `OMNIROUTE_FORCE_DB_HEALTHCHECK`       | `0`                  | `src/lib/db/core.ts`                            | Set to `1` to force the DB healthcheck loop on, even when it would normally be skipped (e.g., short-lived tasks).                |
+| `OMNIROUTE_MIGRATIONS_DIR`             | _(auto-detect)_      | `src/lib/db/migrationRunner.ts`                 | Override the directory that the migration runner scans. Useful when shipping bundled migrations in custom builds.                |
+| `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS`    | _(default in code)_  | `src/lib/spend/batchWriter.ts`                  | Flush interval (ms) for the batched spend/cost writer. Lower values reduce write coalescing; higher values reduce DB contention. |
+| `OMNIROUTE_SPEND_MAX_BUFFER_SIZE`      | _(default in code)_  | `src/lib/spend/batchWriter.ts`                  | Max buffered spend entries before a forced flush. Raise on high-QPS deployments; lower when bounded memory matters more.         |
 
 ### Scenarios
 
@@ -85,16 +93,17 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 3. Network & Ports
 
-| Variable              | Default      | Source File                | Description                                                                            |
-| --------------------- | ------------ | -------------------------- | -------------------------------------------------------------------------------------- |
-| `PORT`                | `20128`      | `src/lib/runtime/ports.ts` | Primary port for both Dashboard UI and API endpoints (single-port mode).               |
-| `API_PORT`            | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the `/v1/*` proxy API on this separate port.                          |
-| `API_HOST`            | `0.0.0.0`    | `src/lib/runtime/ports.ts` | Bind address for the API port.                                                         |
-| `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
-| `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Host-side published port for the Dashboard in Docker production mode.                  |
-| `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Host-side published port for the API in Docker production mode.                        |
-| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
-| `NODE_ENV`            | `production` | Next.js core               | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations. |
+| Variable                  | Default                         | Source File                 | Description                                                                                                                                                 |
+| ------------------------- | ------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                    | `20128`                         | `src/lib/runtime/ports.ts`  | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                    |
+| `API_PORT`                | _(unset)_                       | `src/lib/runtime/ports.ts`  | When set, serves the `/v1/*` proxy API on this separate port.                                                                                               |
+| `API_HOST`                | `0.0.0.0`                       | `src/lib/runtime/ports.ts`  | Bind address for the API port.                                                                                                                              |
+| `DASHBOARD_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`  | When set, serves the Dashboard UI on this separate port.                                                                                                    |
+| `PROD_DASHBOARD_PORT`     | `20130`                         | `docker-compose.prod.yml`   | Host-side published port for the Dashboard in Docker production mode.                                                                                       |
+| `PROD_API_PORT`           | `20131`                         | `docker-compose.prod.yml`   | Host-side published port for the API in Docker production mode.                                                                                             |
+| `OMNIROUTE_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`  | Takes precedence over `PORT` when running inside Electron or other wrappers.                                                                                |
+| `NODE_ENV`                | `production`                    | Next.js core                | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations.                                                                      |
+| `OMNIROUTE_USE_TURBOPACK` | `1` (default in `.env.example`) | `package.json` / Next.js 16 | Toggles the Next.js 16 Turbopack bundler in `npm run dev` and `npm run build`. Set to `0` on Windows or when running into native binding incompatibilities. |
 
 ### Port Modes
 
@@ -124,16 +133,17 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 4. Security & Authentication
 
-| Variable                      | Default               | Source File                              | Description                                                                                               |
-| ----------------------------- | --------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `MACHINE_ID_SALT`             | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.  |
-| `AUTH_COOKIE_SECURE`          | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                  |
-| `REQUIRE_API_KEY`             | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                     |
-| `ALLOW_API_KEY_REVEAL`        | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.              |
-| `NO_LOG_API_KEY_IDS`          | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                |
-| `MAX_BODY_SIZE_BYTES`         | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                 |
-| `CORS_ORIGIN`                 | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                        |
-| `OUTBOUND_SSRF_GUARD_ENABLED` | `true`                | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs. |
+| Variable                                | Default               | Source File                              | Description                                                                                                                                                                                                                                                  |
+| --------------------------------------- | --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MACHINE_ID_SALT`                       | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.                                                                                                                                                     |
+| `AUTH_COOKIE_SECURE`                    | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                                                                                                                                                                     |
+| `REQUIRE_API_KEY`                       | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                                                                                                                                                                        |
+| `ALLOW_API_KEY_REVEAL`                  | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.                                                                                                                                                                 |
+| `NO_LOG_API_KEY_IDS`                    | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                                                                                                                                                                   |
+| `MAX_BODY_SIZE_BYTES`                   | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                                                                                                                                                                    |
+| `CORS_ORIGIN`                           | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                                                                                                                                                                           |
+| `OUTBOUND_SSRF_GUARD_ENABLED`           | `true`                | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs.                                                                                                                                                    |
+| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` | `false`               | `src/shared/network/outboundUrlGuard.ts` | Allow provider URLs pointing to private/local networks (localhost, 192.168.x.x, 10.x.x.x, etc.). **REQUIRED for self-hosted providers** (LM Studio, Ollama, vLLM, Llamafile, Triton, SearXNG). When `false`, the dashboard rejects validation of local URLs. |
 
 ### Hardening Checklist
 
@@ -188,14 +198,17 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 ## 7. URLs & Cloud Sync
 
-| Variable                | Default                  | Source File                                 | Description                                                                                                     |
-| ----------------------- | ------------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `BASE_URL`              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`.                                               |
-| `CLOUD_URL`             | _(empty)_                | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                     |
-| `CLOUD_SYNC_TIMEOUT_MS` | `12000`                  | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                           |
-| `NEXT_PUBLIC_BASE_URL`  | `http://localhost:20128` | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links. **Must match your public URL behind reverse proxy.** |
-| `NEXT_PUBLIC_CLOUD_URL` | _(empty)_                | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                              |
-| `NEXT_PUBLIC_APP_URL`   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                     |
+| Variable                                | Default                  | Source File                                 | Description                                                                                                                                                                                                                                                                                       |
+| --------------------------------------- | ------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BASE_URL`                              | `http://localhost:20128` | `src/lib/cloudSync.ts`                      | Server-side URL for internal sync jobs to call `/api/sync/cloud`.                                                                                                                                                                                                                                 |
+| `CLOUD_URL`                             | _(empty)_                | `src/lib/cloudSync.ts`                      | Cloud relay endpoint URL (premium feature).                                                                                                                                                                                                                                                       |
+| `CLOUD_SYNC_TIMEOUT_MS`                 | `12000`                  | `src/lib/cloudSync.ts`                      | HTTP timeout for cloud sync requests.                                                                                                                                                                                                                                                             |
+| `NEXT_PUBLIC_BASE_URL`                  | `http://localhost:20128` | OAuth, Dashboard, sync                      | Public-facing URL for OAuth redirect_uri, Dashboard links. **Must match your public URL behind reverse proxy.**                                                                                                                                                                                   |
+| `NEXT_PUBLIC_CLOUD_URL`                 | _(empty)_                | Client-side                                 | Client-side mirror of `CLOUD_URL`.                                                                                                                                                                                                                                                                |
+| `NEXT_PUBLIC_APP_URL`                   | _(unset)_                | `src/shared/services/cloudSyncScheduler.ts` | Legacy fallback for `NEXT_PUBLIC_BASE_URL`.                                                                                                                                                                                                                                                       |
+| `OMNIROUTE_PUBLIC_BASE_URL`             | _(unset)_                | `open-sse/executors/chatgpt-web.ts`         | Browser-facing OmniRoute origin used for image URLs in API responses (e.g., `/v1/chatgpt-web/image/<id>`). Set this when OpenWebUI or another relay reaches OmniRoute by an internal URL but the user's browser must fetch images from a LAN, tunnel, or public origin. Do **not** include `/v1`. |
+| `OMNIROUTE_CGPT_WEB_IMAGE_TIMEOUT_MS`   | `180000` (3 min)         | `open-sse/executors/chatgpt-web.ts`         | Max wait time for an async chatgpt-web image to land via the celsius WebSocket. Increase during upstream queue-deep windows.                                                                                                                                                                      |
+| `OMNIROUTE_CGPT_WEB_IMAGE_CACHE_MAX_MB` | `256`                    | `open-sse/services/chatgptImageCache.ts`    | Total in-memory byte budget (MB) for the chatgpt-web image cache serving `/v1/chatgpt-web/image/<id>`. Lower on memory-constrained hosts; raise if image generation is heavy and clients race the 30-minute TTL.                                                                                  |
 
 > [!IMPORTANT]
 > When deploying behind a reverse proxy (nginx, Caddy), `NEXT_PUBLIC_BASE_URL` **must** be set to your public URL (e.g., `https://omniroute.example.com`). Without this, OAuth callbacks will fail because the redirect_uri won't match.
@@ -230,20 +243,21 @@ Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress con
 
 Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, etc.).
 
-| Variable                  | Default    | Source File                         | Description                                                                |
-| ------------------------- | ---------- | ----------------------------------- | -------------------------------------------------------------------------- |
-| `CLI_MODE`                | `auto`     | `src/shared/services/cliRuntime.ts` | `auto` = search system PATH; `manual` = use explicit paths only.           |
-| `CLI_EXTRA_PATHS`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Additional PATH entries for CLI binary discovery (colon-separated).        |
-| `CLI_CONFIG_HOME`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Override home directory for reading CLI configs (`~/.claude`, `~/.codex`). |
-| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Allow OmniRoute to write CLI config files (token refresh, session data).   |
-| `CLI_CLAUDE_BIN`          | `claude`   | `src/shared/services/cliRuntime.ts` | Custom path to Claude CLI binary.                                          |
-| `CLI_CODEX_BIN`           | `codex`    | `src/shared/services/cliRuntime.ts` | Custom path to Codex CLI binary.                                           |
-| `CLI_DROID_BIN`           | `droid`    | `src/shared/services/cliRuntime.ts` | Custom path to Droid CLI binary.                                           |
-| `CLI_OPENCLAW_BIN`        | `openclaw` | `src/shared/services/cliRuntime.ts` | Custom path to OpenClaw CLI binary.                                        |
-| `CLI_CURSOR_BIN`          | `agent`    | `src/shared/services/cliRuntime.ts` | Custom path to Cursor agent binary.                                        |
-| `CLI_CLINE_BIN`           | `cline`    | `src/shared/services/cliRuntime.ts` | Custom path to Cline CLI binary.                                           |
-| `CLI_CONTINUE_BIN`        | `cn`       | `src/shared/services/cliRuntime.ts` | Custom path to Continue CLI binary.                                        |
-| `CLI_QODER_BIN`           | `qoder`    | `src/shared/services/cliRuntime.ts` | Custom path to Qoder CLI binary.                                           |
+| Variable                  | Default    | Source File                         | Description                                                                        |
+| ------------------------- | ---------- | ----------------------------------- | ---------------------------------------------------------------------------------- |
+| `CLI_MODE`                | `auto`     | `src/shared/services/cliRuntime.ts` | `auto` = search system PATH; `manual` = use explicit paths only.                   |
+| `CLI_EXTRA_PATHS`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Additional PATH entries for CLI binary discovery (colon-separated).                |
+| `CLI_CONFIG_HOME`         | _(unset)_  | `src/shared/services/cliRuntime.ts` | Override home directory for reading CLI configs (`~/.claude`, `~/.codex`).         |
+| `CLI_ALLOW_CONFIG_WRITES` | `false`    | `src/shared/services/cliRuntime.ts` | Allow OmniRoute to write CLI config files (token refresh, session data).           |
+| `CLI_CLAUDE_BIN`          | `claude`   | `src/shared/services/cliRuntime.ts` | Custom path to Claude CLI binary.                                                  |
+| `CLI_CODEX_BIN`           | `codex`    | `src/shared/services/cliRuntime.ts` | Custom path to Codex CLI binary.                                                   |
+| `CLI_DROID_BIN`           | `droid`    | `src/shared/services/cliRuntime.ts` | Custom path to Droid CLI binary.                                                   |
+| `CLI_OPENCLAW_BIN`        | `openclaw` | `src/shared/services/cliRuntime.ts` | Custom path to OpenClaw CLI binary.                                                |
+| `CLI_CURSOR_BIN`          | `agent`    | `src/shared/services/cliRuntime.ts` | Custom path to Cursor agent binary.                                                |
+| `CLI_CLINE_BIN`           | `cline`    | `src/shared/services/cliRuntime.ts` | Custom path to Cline CLI binary.                                                   |
+| `CLI_CONTINUE_BIN`        | `cn`       | `src/shared/services/cliRuntime.ts` | Custom path to Continue CLI binary.                                                |
+| `CLI_QODER_BIN`           | `qoder`    | `src/shared/services/cliRuntime.ts` | Custom path to Qoder CLI binary.                                                   |
+| `CLI_DEVIN_BIN`           | `devin`    | `open-sse/executors/devin-cli.ts`   | Custom path to the Devin CLI binary (v3.8.0). Used by the Windsurf/Devin executor. |
 
 ### Docker Example
 
@@ -290,28 +304,34 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 Built-in credentials for **localhost development**. For remote deployments, register your own at each provider's developer console.
 
-| Variable                          | Provider                | Notes                                                                             |
-| --------------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
-| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Public client — no secret needed.                                                 |
-| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Override redirect URI. Default: `https://platform.claude.com/oauth/code/callback` |
-| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                    |
-| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                      |
-| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                 |
-| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Usually same as Gemini.                                                           |
-| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                 |
-| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                    |
-| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                    |
-| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                      |
-| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                 |
-| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Public client.                                                                    |
-| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Set to enable Qoder OAuth.                                                        |
-| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                 |
-| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                 |
-| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                         |
-| `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                       |
-| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                  |
+| Variable                          | Provider                | Notes                                                                                                                                                                                                                                           |
+| --------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CLAUDE_OAUTH_CLIENT_ID`          | Claude Code (Anthropic) | Public client — no secret needed.                                                                                                                                                                                                               |
+| `CLAUDE_CODE_REDIRECT_URI`        | Claude Code             | Override redirect URI. Default: `https://platform.claude.com/oauth/code/callback`                                                                                                                                                               |
+| `CODEX_OAUTH_CLIENT_ID`           | Codex / OpenAI          | Public client.                                                                                                                                                                                                                                  |
+| `GEMINI_OAUTH_CLIENT_ID`          | Gemini (Google)         | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
+| `GEMINI_OAUTH_CLIENT_SECRET`      | Gemini (Google)         | —                                                                                                                                                                                                                                               |
+| `GEMINI_CLI_OAUTH_CLIENT_ID`      | Gemini CLI              | Usually same as Gemini.                                                                                                                                                                                                                         |
+| `GEMINI_CLI_OAUTH_CLIENT_SECRET`  | Gemini CLI              | —                                                                                                                                                                                                                                               |
+| `QWEN_OAUTH_CLIENT_ID`            | Qwen (Alibaba)          | Public client.                                                                                                                                                                                                                                  |
+| `KIMI_CODING_OAUTH_CLIENT_ID`     | Kimi Coding (Moonshot)  | Public client.                                                                                                                                                                                                                                  |
+| `ANTIGRAVITY_OAUTH_CLIENT_ID`     | Antigravity (Google)    | Requires matching `_SECRET`.                                                                                                                                                                                                                    |
+| `ANTIGRAVITY_OAUTH_CLIENT_SECRET` | Antigravity (Google)    | —                                                                                                                                                                                                                                               |
+| `GITHUB_OAUTH_CLIENT_ID`          | GitHub Copilot          | Public client.                                                                                                                                                                                                                                  |
+| `WINDSURF_FIREBASE_API_KEY`       | Windsurf / Devin (v3.8) | Public Firebase Web API key used by Windsurf's Secure Token Service to refresh short-lived browser-flow tokens. Client-side credential (not a secret). Long-lived import tokens skip this entirely. Source: extracted from Devin CLI binary.    |
+| `WINDSURF_API_KEY`                | Windsurf / Devin (v3.8) | API key fallback used by `open-sse/executors/devin-cli.ts` when no per-connection credential is available. Optional.                                                                                                                            |
+| `CLI_DEVIN_BIN`                   | Devin CLI (v3.8)        | Custom path to the Devin CLI binary (`devin`). Resolved by `open-sse/executors/devin-cli.ts`.                                                                                                                                                   |
+| `GITLAB_DUO_OAUTH_CLIENT_ID`      | GitLab Duo (v3.8)       | OAuth client ID for GitLab Duo. Register an app at `https://gitlab.com/-/profile/applications` with redirect URI `<NEXT_PUBLIC_BASE_URL>/callback` and scopes `api, read_user, openid, profile, email`. Falls back to `GITLAB_OAUTH_CLIENT_ID`. |
+| `GITLAB_DUO_OAUTH_CLIENT_SECRET`  | GitLab Duo (v3.8)       | OAuth client secret for GitLab Duo. Optional — PKCE flow does not require a secret. Falls back to `GITLAB_OAUTH_CLIENT_SECRET`.                                                                                                                 |
+| `GITLAB_DUO_BASE_URL`             | GitLab Duo (v3.8)       | Override GitLab base URL (self-hosted GitLab). Defaults to `https://gitlab.com`. Falls back to `GITLAB_BASE_URL`.                                                                                                                               |
+| `QODER_OAUTH_CLIENT_SECRET`       | Qoder                   | —                                                                                                                                                                                                                                               |
+| `QODER_OAUTH_AUTHORIZE_URL`       | Qoder                   | Set to enable Qoder OAuth.                                                                                                                                                                                                                      |
+| `QODER_OAUTH_TOKEN_URL`           | Qoder                   | —                                                                                                                                                                                                                                               |
+| `QODER_OAUTH_USERINFO_URL`        | Qoder                   | —                                                                                                                                                                                                                                               |
+| `QODER_OAUTH_CLIENT_ID`           | Qoder                   | —                                                                                                                                                                                                                                               |
+| `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                                                                                                                                                                                       |
+| `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                                                                                                                                                                                     |
+| `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                                                                                                                                                                                |
 
 > [!WARNING]
 > **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:
@@ -335,15 +355,15 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variable                 | Default Value                                 | When to Update                                                |
 | ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.121 (external, cli)`          | When Anthropic releases a new CLI version                     |
-| `CODEX_USER_AGENT`       | `codex-cli/0.125.0 (Windows 10.0.26100; x64)` | When OpenAI updates the Codex CLI                             |
-| `CODEX_CLIENT_VERSION`   | `0.125.0`                                     | Override Codex client version independently of full UA string |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.137 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.130.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
+| `CODEX_CLIENT_VERSION`   | `0.130.0`                                     | Override Codex client version independently of full UA string |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.107.0 darwin/arm64`            | When Antigravity IDE updates                                  |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.23.2 darwin/arm64`             | When Antigravity IDE updates                                  |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.3 (linux; x64)`                | When Qwen Code updates                                        |
-| `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.9 (linux; x64)`                | When Qwen Code updates                                        |
+| `CURSOR_USER_AGENT`      | `Cursor/3.3`                                  | When Cursor updates                                           |
 | `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
 
 > [!TIP]
@@ -562,13 +582,14 @@ Anthropic-compatible provider instead.
 
 ## 21. Proxy Health
 
-| Variable                     | Default          | Source File                              | Description                                                                                                         |
-| ---------------------------- | ---------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`           | `src/lib/proxyHealth.ts`                 | Fast-fail health check timeout.                                                                                     |
-| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`          | `src/lib/proxyHealth.ts`                 | Health check result cache TTL.                                                                                      |
-| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 min) | `open-sse/services/rateLimitManager.ts`  | Max time to wait on a 429 before failing the request.                                                               |
-| `REQUEST_RETRY`              | `2`              | `src/sse/services/cooldownAwareRetry.ts` | Number of automatic retries on model-scoped cooldown responses before returning error to client.                    |
-| `MAX_RETRY_INTERVAL_SEC`     | `30`             | `src/sse/services/cooldownAwareRetry.ts` | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`. |
+| Variable                     | Default          | Source File                              | Description                                                                                                                                               |
+| ---------------------------- | ---------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROXY_FAST_FAIL_TIMEOUT_MS` | `2000`           | `src/lib/proxyHealth.ts`                 | Fast-fail health check timeout.                                                                                                                           |
+| `PROXY_HEALTH_CACHE_TTL_MS`  | `30000`          | `src/lib/proxyHealth.ts`                 | Health check result cache TTL.                                                                                                                            |
+| `RATE_LIMIT_MAX_WAIT_MS`     | `120000` (2 min) | `open-sse/services/rateLimitManager.ts`  | Max time to wait on a 429 before failing the request.                                                                                                     |
+| `RATE_LIMIT_AUTO_ENABLE`     | `false`          | `open-sse/services/rateLimitManager.ts`  | When `true`/`1`, automatically engages the rate-limit manager on first observed upstream 429 (without requiring manual toggle). Accepts `true`/`1`/`yes`. |
+| `REQUEST_RETRY`              | `2`              | `src/sse/services/cooldownAwareRetry.ts` | Number of automatic retries on model-scoped cooldown responses before returning error to client.                                                          |
+| `MAX_RETRY_INTERVAL_SEC`     | `30`             | `src/sse/services/cooldownAwareRetry.ts` | Max backoff interval (seconds) between cooldown retries. Capped by this value regardless of upstream `Retry-After`.                                       |
 
 ---
 
@@ -654,6 +675,26 @@ CORS_ORIGIN=https://omniroute.example.com
 ENABLE_TLS_FINGERPRINT=true
 CLI_COMPAT_ALL=1
 ```
+
+---
+
+## 24. Skills Sandbox (v3.8.0+)
+
+Limits and safety knobs applied when the Skills framework (`src/lib/skills/`) executes user-defined automations in a sandboxed environment.
+
+| Variable                          | Default                                       | Source File                  | Description                                                                                                        |
+| --------------------------------- | --------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `SKILLS_SANDBOX_TIMEOUT_MS`       | `10000` (10 s)                                | `src/lib/skills/builtins.ts` | Per-execution wall-clock timeout for sandboxed skill code. Hard cap; anything longer is killed.                    |
+| `SKILLS_EXECUTION_TIMEOUT_MS`     | _(falls back to `SKILLS_SANDBOX_TIMEOUT_MS`)_ | `src/lib/skills/`            | High-level skill orchestration timeout. Set higher than `SKILLS_SANDBOX_TIMEOUT_MS` to allow multi-step workflows. |
+| `SKILLS_MAX_FILE_BYTES`           | `1048576` (1 MB)                              | `src/lib/skills/builtins.ts` | Max bytes a skill may read from any single sandboxed file.                                                         |
+| `SKILLS_MAX_HTTP_RESPONSE_BYTES`  | `256000` (250 KB)                             | `src/lib/skills/builtins.ts` | Max bytes captured from any single HTTP response inside a skill.                                                   |
+| `SKILLS_MAX_SANDBOX_OUTPUT_CHARS` | `100000`                                      | `src/lib/skills/builtins.ts` | Hard cap on stdout/stderr characters returned from a sandbox invocation.                                           |
+| `SKILLS_SANDBOX_NETWORK_ENABLED`  | `false`                                       | `src/lib/skills/builtins.ts` | Set `1`/`true` to allow outbound network from inside the sandbox. Defaults to **isolated** for safety.             |
+| `SKILLS_ALLOWED_SANDBOX_IMAGES`   | _(empty)_                                     | `src/lib/skills/builtins.ts` | Comma-separated allowlist of container images permitted for sandbox execution. Empty means built-in default only.  |
+| `SKILLS_SANDBOX_DOCKER_IMAGE`     | _(built-in default)_                          | `src/lib/skills/`            | Container image used when spawning a Docker-backed sandbox. Override to pin a custom hardened base image.          |
+
+> [!CAUTION]
+> Enabling `SKILLS_SANDBOX_NETWORK_ENABLED=true` opens an egress path from arbitrary skill code. Pair with `OUTBOUND_SSRF_GUARD_ENABLED=true` and a strict `CORS_ORIGIN`/proxy policy in shared deployments.
 
 ---
 

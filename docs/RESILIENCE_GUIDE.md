@@ -1,140 +1,132 @@
-# 🛡️ Resilience Guide — OmniRoute
+# Resilience Guide
 
-> How OmniRoute keeps your AI coding workflow running when providers fail.
+OmniRoute has three distinct but related resilience mechanisms. Each has a different scope and purpose. Keep them separate when debugging routing behavior.
 
-## Overview
+## 1. Provider Circuit Breaker
 
-OmniRoute implements a multi-layered resilience system that ensures zero downtime:
+**Scope:** entire provider (e.g., `glm`, `openai`, `anthropic`).
 
-```
-Client Request
-  → Rate Limit Check (per-IP, per-connection)
-  → Combo Routing (13 strategies)
-  → Connection Selection (P2C, round-robin, etc.)
-  → Request Queue & Pacing
-  → Execute (provider-specific executor)
-    → On Failure:
-      → Connection Cooldown (exponential backoff)
-      → Circuit Breaker (provider-level)
-      → Wait For Cooldown (auto-retry)
-      → Next Combo Target (fallback chain)
-  → Response
-```
+**Purpose:** stop sending traffic to a provider that is repeatedly failing at the upstream/service level.
 
----
+**Implementation:**
 
-## Request Queue & Pacing
+- Core class: `src/shared/utils/circuitBreaker.ts`
+- Wiring: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- Status API: `GET /api/monitoring/health`
+- Reset API: `POST /api/resilience/reset`
+- Wrappers: `open-sse/services/accountFallback.ts`
+- DB table: `domain_circuit_breakers`
 
-Per-connection request buckets smooth bursts before they hit upstream rate caps.
+**States:**
 
-Configure in `Dashboard → Settings → Resilience`:
+- `CLOSED` — normal traffic allowed
+- `OPEN` — provider temporarily blocked; combo routing skips it
+- `HALF_OPEN` — reset timeout elapsed; probe request allowed
 
-| Setting         | Default | Description                          |
-| --------------- | ------- | ------------------------------------ |
-| Queue Size      | `10`    | Max queued requests per connection   |
-| Pacing Interval | `0ms`   | Minimum gap between requests         |
-| Max Concurrent  | `5`     | Simultaneous requests per connection |
+**Defaults (`open-sse/config/constants.ts`):**
 
----
+| Class   | Threshold  | Reset timeout |
+| ------- | ---------- | ------------- |
+| OAuth   | 3 failures | 60s           |
+| API-key | 5 failures | 30s           |
+| Local   | 2 failures | 15s           |
 
-## Connection Cooldown
+**Trip codes:** only provider-level statuses `[408, 500, 502, 503, 504]`. Do NOT trip for account-level errors (most 401/403/429 — those belong to cooldown or lockout).
 
-A single connection cools down after retryable failures. Features:
-
-- **Exponential Backoff** — progressively longer cooldowns after each failure
-- **`Retry-After` Header Support** — respects upstream hints
-- **Configurable Base/Max** — tune cooldown duration per use case
-- **Auto-Recovery** — connection automatically becomes available after cooldown expires
+**Lazy recovery:** when `OPEN` expires, `getStatus()`, `canExecute()`, `getRetryAfterMs()` refresh state to `HALF_OPEN`. No background timer needed.
 
 ---
 
-## Circuit Breaker
+## 2. Connection Cooldown
 
-Provider-level protection against cascading failures:
+**Scope:** single provider connection/account/key.
 
-1. **Connection-scoped `429` rate limits** stay in Connection Cooldown (don't trip the breaker)
-2. **Provider-wide transient errors** (5xx, network timeouts) increment the failure counter
-3. **Breaker trips** only after fallback is exhausted AND the provider still fails
-4. **Recovery** — breaker automatically moves to half-open state after timeout, tests with probe request
+**Purpose:** skip one bad key while other connections for the same provider keep serving.
 
-Configure thresholds in `Dashboard → Settings → Resilience`.
+**Implementation:**
 
----
+- Mark unavailable: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Selection: `getProviderCredentials*` in same file
+- Cooldown calc: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Settings: `src/lib/resilience/settings.ts`
 
-## Wait For Cooldown
+**Fields per connection:**
 
-Instead of immediately failing when all connections are in cooldown, OmniRoute can wait for the earliest connection to expire and retry:
+- `rateLimitedUntil` — timestamp until cooldown expires
+- `testStatus: "unavailable"`
+- `lastError`, `lastErrorType`, `errorCode`
+- `backoffLevel` — exponential backoff counter
 
-- **Automatic** — server waits for the earliest cooldown to expire
-- **Transparent** — client sees a slightly delayed response instead of an error
-- **Configurable** — enable/disable per combo or globally
+**Default cooldowns:**
 
----
+- OAuth base: 5s
+- API-key base: 3s
+- API-key 429: prefers upstream `Retry-After`/reset headers/parseable reset text
+- Backoff: `baseCooldownMs * 2 ** failureIndex`
 
-## Anti-Thundering Herd
+**Anti-thundering-herd guard:** prevents concurrent failures from over-extending cooldown or double-incrementing `backoffLevel`.
 
-When multiple concurrent requests hit a failing provider simultaneously:
+**Terminal states (NOT cooldowns):**
 
-- **Mutex Protection** — only one retry attempt at a time per connection
-- **Semaphore** — limits concurrent retry storms across connections
-- **Deduplication** — identical requests within 5s window are deduplicated
+- `banned`
+- `expired`
+- `credits_exhausted`
 
----
+These persist until credentials change or an operator resets them. Do not overwrite terminal states with transient cooldown state.
 
-## Combo Fallback Chains
-
-The primary resilience mechanism. Configure in `Dashboard → Combos`:
-
-```txt
-Combo: "always-on"
-  1. cc/claude-opus-4-7        ← Primary (subscription)
-  2. cx/gpt-5.2-codex          ← Secondary (subscription)
-  3. glm/glm-4.7               ← Cheap backup ($0.5/1M)
-  4. if/kimi-k2-thinking        ← Free fallback (unlimited)
-```
-
-When provider #1 fails (quota, rate, or health), OmniRoute automatically routes to #2, then #3, then #4 — with zero manual intervention.
-
-### 13 Routing Strategies
-
-| Strategy            | Description                        |
-| ------------------- | ---------------------------------- |
-| `priority`          | First available in order           |
-| `weighted`          | Weighted distribution              |
-| `fill-first`        | Fill primary before moving         |
-| `round-robin`       | Rotate through all targets         |
-| `p2c`               | Power-of-two choices (quota-aware) |
-| `random`            | Random selection                   |
-| `least-used`        | Least recently used                |
-| `cost-optimized`    | Cheapest available                 |
-| `strict-random`     | True random (no tracking)          |
-| `auto`              | OmniRoute selects based on context |
-| `lkgp`              | Last Known Good Provider           |
-| `context-optimized` | Best for current context window    |
-| `context-relay`     | Session handoff during rotation    |
+**Lazy recovery:** when `rateLimitedUntil` is past, connection becomes eligible again. On successful use, `clearAccountError()` clears all error fields.
 
 ---
 
-## TLS Fingerprint Spoofing
+## 3. Model Lockout
 
-OmniRoute makes proxied traffic look like legitimate browser/CLI requests:
+**Scope:** provider + connection + model triple.
 
-- **Browser-like TLS** via `wreq-js` — prevents bot detection
-- **CLI Fingerprint Matching** — reorders headers and body fields to match native CLI binary signatures (Claude Code, Codex, etc.)
-- **Proxy IP Preservation** — stealth features work on top of proxy IP masking
+**Purpose:** avoid disabling a whole connection when only one model is unavailable or quota-limited.
+
+**Examples:**
+
+- Per-model quota providers returning 429
+- Local providers returning 404 for one missing model
+- Provider-specific mode/model permission failures (e.g., Grok modes)
+
+**Implementation:** `open-sse/services/accountFallback.ts` — `lockModel()`, `clearModelLock()`, `getAllModelLockouts()`.
+
+### Model Cooldowns Dashboard (v3.8.0)
+
+UI: Settings → Model Cooldowns (`src/app/(dashboard)/dashboard/settings/components/ModelCooldownsCard.tsx`)
+
+Lists active lockouts with: provider, connection, model, reason, expiresAt. Operators can manually re-enable a model from the card.
+
+**REST API:**
+
+- `GET /api/resilience/model-cooldowns` — list active lockouts
+- `DELETE /api/resilience/model-cooldowns` — manual re-enable. Body: `{provider, connection, model}`. Auth: management.
 
 ---
 
-## Health Dashboard
+## Other Resilience Features
 
-Monitor all resilience components in real-time at `Dashboard → Health`:
+- **14 routing strategies** (priority, weighted, round-robin, context-relay, fill-first, p2c, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized) — see [AUTO-COMBO.md](./AUTO-COMBO.md).
+- **Reset-aware routing** (v3.8.0) — prioritizes connections by quota reset time.
+- **Background mode degradation** — Responses API `background: true` degraded to sync with warning.
+- **Dynamic tool limit detection** — backs off providers when tool count limits hit.
 
-- **Uptime** — server uptime and last restart
-- **Provider Breaker States** — open/closed/half-open per provider
-- **Connection Cooldowns** — active cooldowns with expiry times
-- **Cache Stats** — signature + semantic cache hit rates
-- **Lockouts** — API key lockouts and IP bans
-- **Latency** — p50/p95/p99 percentiles
+---
+
+## Debugging
+
+- All keys for a provider skipped → check both circuit breaker state AND each connection's `rateLimitedUntil`/`testStatus`.
+- Provider permanently excluded after reset window → code reading raw `state` instead of `getStatus()`/`canExecute()`.
+- One key fails, others should work → prefer connection cooldown over circuit breaker.
+- Only one model fails → prefer model lockout over connection cooldown.
+- State should self-recover but doesn't → check for future timestamp + read path that refreshes expired state. Permanent statuses require manual changes.
+
+---
+
+## TLS Fingerprinting & Stealth
+
+Provider-specific stealth (JA3/JA4, CCH, obfuscation) is separately documented — see [STEALTH_GUIDE.md](./STEALTH_GUIDE.md).
 
 ---
 
