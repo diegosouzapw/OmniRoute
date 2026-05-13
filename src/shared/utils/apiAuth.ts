@@ -54,6 +54,14 @@ function getRequestPathname(request: RequestLike | Request | null | undefined): 
   }
 }
 
+function isOnboardingBootstrapPath(pathname: string | null): boolean {
+  return pathname === "/dashboard/onboarding";
+}
+
+function isRequireLoginBootstrapWritePath(pathname: string | null, method: string): boolean {
+  return pathname === "/api/settings/require-login" && method.toUpperCase() === "POST";
+}
+
 function getRequestMethod(request: RequestLike | Request | null | undefined): string {
   if (
     request &&
@@ -278,7 +286,16 @@ export async function isAuthRequired(
       if (!request) return false;
 
       const pathname = getRequestPathname(request);
-      if (pathname && isPublicApiRoute(pathname, getRequestMethod(request))) {
+      const method = getRequestMethod(request);
+      if (isOnboardingBootstrapPath(pathname)) {
+        return false;
+      }
+
+      if (pathname && isPublicApiRoute(pathname, method)) {
+        return false;
+      }
+
+      if (isRequireLoginBootstrapWritePath(pathname, method)) {
         return false;
       }
 

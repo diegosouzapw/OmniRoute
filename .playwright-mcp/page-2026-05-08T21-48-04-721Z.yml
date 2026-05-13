@@ -1,0 +1,5 @@
+- generic [active] [ref=e1]:
+    - link "Skip to content" [ref=e2] [cursor=pointer]:
+        - /url: "#main-content"
+    - generic [ref=e8]: Loading...
+    - alert [ref=e9]

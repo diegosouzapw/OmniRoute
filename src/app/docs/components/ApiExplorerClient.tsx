@@ -29,6 +29,12 @@ const API_ENDPOINTS: ApiEndpoint[] = [
     tag: "Models",
   },
   {
+    method: "GET",
+    path: "/v1/providers/openai/models",
+    description: "List models for a specific provider (ids without provider prefix)",
+    tag: "Models",
+  },
+  {
     method: "POST",
     path: "/v1/embeddings",
     description: "Generate text embeddings",
@@ -99,13 +105,14 @@ const EXAMPLE_BODIES: Record<string, string> = {
     2
   ),
   "/v1/models": "",
+  "/v1/providers/openai/models": "",
   "/v1/embeddings": JSON.stringify(
     { model: "openai/text-embedding-3-small", input: "Hello world" },
     null,
     2
   ),
   "/v1/images/generations": JSON.stringify(
-    { model: "openai/dall-e-3", prompt: "A sunset over mountains", n: 1 },
+    { model: "openai/gpt-image-2", prompt: "A sunset over mountains", n: 1 },
     null,
     2
   ),

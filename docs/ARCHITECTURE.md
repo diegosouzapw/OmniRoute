@@ -2,7 +2,7 @@
 
 🌐 **Languages:** 🇺🇸 [English](ARCHITECTURE.md) | 🇧🇷 [Português (Brasil)](i18n/pt-BR/ARCHITECTURE.md) | 🇪🇸 [Español](i18n/es/ARCHITECTURE.md) | 🇫🇷 [Français](i18n/fr/ARCHITECTURE.md) | 🇮🇹 [Italiano](i18n/it/ARCHITECTURE.md) | 🇷🇺 [Русский](i18n/ru/ARCHITECTURE.md) | 🇨🇳 [中文 (简体)](i18n/zh-CN/ARCHITECTURE.md) | 🇩🇪 [Deutsch](i18n/de/ARCHITECTURE.md) | 🇮🇳 [हिन्दी](i18n/in/ARCHITECTURE.md) | 🇹🇭 [ไทย](i18n/th/ARCHITECTURE.md) | 🇺🇦 [Українська](i18n/uk-UA/ARCHITECTURE.md) | 🇸🇦 [العربية](i18n/ar/ARCHITECTURE.md) | 🇯🇵 [日本語](i18n/ja/ARCHITECTURE.md) | 🇻🇳 [Tiếng Việt](i18n/vi/ARCHITECTURE.md) | 🇧🇬 [Български](i18n/bg/ARCHITECTURE.md) | 🇩🇰 [Dansk](i18n/da/ARCHITECTURE.md) | 🇫🇮 [Suomi](i18n/fi/ARCHITECTURE.md) | 🇮🇱 [עברית](i18n/he/ARCHITECTURE.md) | 🇭🇺 [Magyar](i18n/hu/ARCHITECTURE.md) | 🇮🇩 [Bahasa Indonesia](i18n/id/ARCHITECTURE.md) | 🇰🇷 [한국어](i18n/ko/ARCHITECTURE.md) | 🇲🇾 [Bahasa Melayu](i18n/ms/ARCHITECTURE.md) | 🇳🇱 [Nederlands](i18n/nl/ARCHITECTURE.md) | 🇳🇴 [Norsk](i18n/no/ARCHITECTURE.md) | 🇵🇹 [Português (Portugal)](i18n/pt/ARCHITECTURE.md) | 🇷🇴 [Română](i18n/ro/ARCHITECTURE.md) | 🇵🇱 [Polski](i18n/pl/ARCHITECTURE.md) | 🇸🇰 [Slovenčina](i18n/sk/ARCHITECTURE.md) | 🇸🇪 [Svenska](i18n/sv/ARCHITECTURE.md) | 🇵🇭 [Filipino](i18n/phi/ARCHITECTURE.md) | 🇨🇿 [Čeština](i18n/cs/ARCHITECTURE.md)
 
-_Last updated: 2026-05-02_
+_Last updated: 2026-05-13_
 
 ## Executive Summary
 
@@ -11,13 +11,13 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (160+ providers, 16 executors)
+- OpenAI-compatible API surface for CLI/tools (179 providers, 31 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`
 - Account-level fallback (multi-account per provider)
 - Quota preflight and quota-aware P2C account selection in the main chat path
-- OAuth + API-key provider connection management (13 OAuth modules)
+- OAuth + API-key provider connection management (14 OAuth modules)
 - Embedding generation via `/v1/embeddings` (6 providers, 9 models)
 - Image generation via `/v1/images/generations` (10+ providers, 20+ models)
 - Audio transcription via `/v1/audio/transcriptions` (7 providers)
@@ -60,7 +60,7 @@ Core capabilities:
 - Prompt injection guard middleware
 - Prompt compression pipeline with Caveman, RTK, stacked pipelines, compression combos, language packs, and analytics
 - ACP (Agent Communication Protocol) registry
-- Modular OAuth providers (13 individual modules under `src/lib/oauth/providers/`)
+- Modular OAuth providers (14 individual modules under `src/lib/oauth/providers/`)
 - Uninstall/full-uninstall scripts
 - OAuth environment repair action
 - WebSocket bridge for OpenAI-compatible WS clients (`/v1/ws`)
@@ -103,11 +103,22 @@ Main pages under `src/app/(dashboard)/dashboard/`:
 - `/dashboard/endpoint` — endpoint proxy + MCP + A2A + API endpoint tabs
 - `/dashboard/providers` — provider connections and credentials
 - `/dashboard/combos` — combo strategies, templates, step-based builder, model routing rules, manual persisted ordering
+- `/dashboard/auto-combo` — Auto Combo Engine: scoring weights, mode packs, virtual factory presets, telemetry
 - `/dashboard/costs` — cost aggregation and pricing visibility
 - `/dashboard/analytics` — usage analytics, evaluations, combo target health
 - `/dashboard/limits` — quota/rate controls
 - `/dashboard/cli-tools` — CLI onboarding, runtime detection, config generation
 - `/dashboard/agents` — detected ACP agents + custom agent registration
+- `/dashboard/cloud-agents` — cloud-hosted agent tasks (Codex Cloud, Devin, Jules) and task lifecycle
+- `/dashboard/skills` — A2A skill registry, sandbox execution, built-in skill catalog
+- `/dashboard/memory` — persistent conversational memory inspection and retrieval
+- `/dashboard/webhooks` — outbound webhook subscriptions, secret rotation, retry stats
+- `/dashboard/batch` — batch job submission and progress
+- `/dashboard/cache` — read-through and reasoning cache statistics, eviction controls
+- `/dashboard/playground` — interactive chat playground against any configured combo/model
+- `/dashboard/changelog` — in-app changelog viewer (renders `CHANGELOG.md`)
+- `/dashboard/system` — runtime diagnostics, version info, environment validation surface
+- `/dashboard/onboarding` — first-run setup wizard for new installations
 - `/dashboard/media` — image/video/music playground
 - `/dashboard/search-tools` — search provider testing and history
 - `/dashboard/health` — uptime, circuit breakers, rate limits, quota-monitored sessions
@@ -116,6 +127,10 @@ Main pages under `src/app/(dashboard)/dashboard/`:
 - `/dashboard/context/caveman` — Caveman compression rules, language packs, preview, and output mode
 - `/dashboard/context/rtk` — RTK command-output filters, preview, and runtime safety settings
 - `/dashboard/context/combos` — named compression pipelines assigned to routing combos
+- `/dashboard/translator` — translator inspection and request format conversion preview
+- `/dashboard/audit` — compliance audit log browser with pagination and structured metadata
+- `/dashboard/usage` — per-request usage browser tied to `usage_history`
+- `/dashboard/compression` — compression analytics, statistics, and pipeline assignment
 - `/dashboard/api-manager` — API key lifecycle and model permissions
 
 ## High-Level System Context
@@ -285,11 +300,171 @@ Domain layer modules:
 - Eval runner: `src/lib/domain/evalRunner.ts`
 - Domain state persistence: `src/lib/db/domainState.ts` — SQLite CRUD for fallback chains, budgets, cost history, lockout state, circuit breakers
 
-OAuth provider modules (13 individual files under `src/lib/oauth/providers/`):
+OAuth provider modules (14 individual files under `src/lib/oauth/providers/`):
 
 - Registry index: `src/lib/oauth/providers/index.ts`
-- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`
+- Individual providers: `claude.ts`, `codex.ts`, `gemini.ts`, `antigravity.ts`, `qoder.ts`, `qwen.ts`, `kimi-coding.ts`, `github.ts`, `kiro.ts`, `cursor.ts`, `kilocode.ts`, `cline.ts`, `windsurf.ts`, `gitlab-duo.ts`
 - Thin wrapper: `src/lib/oauth/providers.ts` — re-exports from individual modules
+
+## Major Subsystems (v3.8.0)
+
+### A. Auto Combo Engine
+
+Auto Combo dynamically scores and picks routing targets at request time, rather than
+relying on a static combo definition. It powers the `auto/*` model prefix family.
+
+- Engine entry: `open-sse/services/autoCombo/` (`autoComboEngine.ts`,
+  `scoringEngine.ts`, `virtualFactory.ts`, `modePacks.ts`)
+- Resolver: `src/domain/comboResolver.ts` (auto-detection of `auto/` prefix)
+- Dashboard: `/dashboard/auto-combo`
+- Telemetry: `auto_combo_decisions` SQLite table
+
+Key capabilities:
+
+- **14 routing strategies** (priority, weighted, fill-first, round-robin, P2C, random,
+  least-used, cost-optimized, strict-random, **auto**, lkgp, context-optimized,
+  context-relay, plus a fallback path) — auto is the headline addition in v3.8.0.
+- **9-factor scoring**: cost, latency p95, success rate, quota headroom, lockout
+  proximity, breaker state, recent failures, model availability, and tag affinity.
+- **Virtual factory** materializes ephemeral combos when no matching named combo
+  exists, sourcing candidates from healthy active provider connections.
+- **Auto prefixes**: `auto/coding`, `auto/cheap`, `auto/fast`, `auto/offline`,
+  `auto/smart`, `auto/lkgp` — each backed by a tuned weight profile.
+- **4 mode packs**: coding, fast, cheap, smart — shipped as preset weight
+  configurations callable from the dashboard.
+
+For full algorithmic detail (factor formulas, weight tuning), see
+[`docs/AUTO-COMBO.md`](AUTO-COMBO.md).
+
+### B. Cloud Agents
+
+Cloud Agents wraps third-party hosted code-agent platforms (Codex Cloud, Devin,
+Jules) behind a uniform DB-backed task lifecycle. All task creation/inspection
+endpoints require management authentication.
+
+- Module root: `src/lib/cloudAgent/` (`baseAgent.ts`, `registry.ts`, `api.ts`,
+  `types.ts`, `db.ts`, plus per-agent subdirectories under `agents/`)
+- Per-agent implementations: `agents/codex/`, `agents/devin/`, `agents/jules/`
+- Public endpoints: `/api/v1/agents/tasks/*` (list/create/get/cancel)
+- Management endpoints: `/api/cloud/*` (provisioning, status, batch)
+- Dashboard: `/dashboard/cloud-agents`
+- Storage: `cloud_agent_tasks` table
+
+For per-agent provisioning and OAuth specifics, see
+[`docs/CLOUD_AGENT.md`](CLOUD_AGENT.md).
+
+### C. Guardrails
+
+The guardrails module is a hot-reloadable middleware layer that inspects requests
+and responses for PII, prompt injection, and unsafe vision content. Violations
+short-circuit the request with HTTP **503** plus a structured error code, allowing
+downstream callers to retry or branch.
+
+- Module root: `src/lib/guardrails/` (`base.ts`, `registry.ts`, `piiMasker.ts`,
+  `promptInjection.ts`, `visionBridge.ts`, `visionBridgeHelpers.ts`)
+- Hot reload: registry watches for config changes and rebuilds the chain in place
+- Wire-in points: chat handler entry, image generation handler, response sanitizer
+- HTTP contract: violations surface as `503` with `error.code = "GUARDRAIL_VIOLATION"`
+
+For ruleset authoring and threshold tuning, see
+[`docs/GUARDRAILS.md`](GUARDRAILS.md).
+
+### D. Domain Layer
+
+The `src/domain/` namespace centralizes policy decisions so route handlers do not
+have to assemble lockout/budget/fallback logic themselves.
+
+- Policy engine: `src/domain/policyEngine.ts` — single entry point for
+  pre-execution evaluation (lockout → budget → fallback ordering)
+- Cost rules: `src/domain/costRules.ts`
+- Fallback policy: `src/domain/fallbackPolicy.ts`
+- Lockout policy: `src/domain/lockoutPolicy.ts`
+- Tag-based routing: `src/domain/tagRouter.ts`
+- Combo resolver: `src/domain/comboResolver.ts` — resolves combo names, auto/\*
+  prefixes, and wildcard model targets to concrete execution plans
+- Connection/model rule joiner: `src/domain/connectionModelRules.ts`
+- Model availability snapshots: `src/domain/modelAvailability.ts`
+- Provider expiration tracking: `src/domain/providerExpiration.ts`
+- Quota cache: `src/domain/quotaCache.ts`
+- Degradation state: `src/domain/degradation.ts`
+- Configuration audit: `src/domain/configAudit.ts`
+- OmniRoute response metadata builder: `src/domain/omnirouteResponseMeta.ts`
+- Assessment subsystem: `src/domain/assessment/` — periodic evaluation jobs
+
+### E. Authorization Pipeline
+
+The authorization pipeline classifies every incoming request and applies the
+appropriate policy chain before dispatch.
+
+- Pipeline entry: `src/server/authz/pipeline.ts`
+- Request classifier: `src/server/authz/classify.ts` — distinguishes public
+  compatibility routes from management routes
+- Public route inventory: `src/shared/constants/publicApiRoutes.ts`
+- Policies: `src/server/authz/policies/` — composable predicates
+  (`requireApiKey`, `requireManagement`, `requireFreshAuth`, etc.)
+- Header utilities: `src/server/authz/headers.ts`
+- Assertion helper: `src/server/authz/assertAuth.ts`
+- Request context: `src/server/authz/context.ts`
+
+Public vs management routes are a hard boundary: agent/cooldown APIs and
+provider mutations require management auth (HTTP 401 if missing).
+
+For the full route classification rules, see
+[`docs/AUTHZ_GUIDE.md`](AUTHZ_GUIDE.md).
+
+### F. Workflow FSM and Task-Aware Router
+
+A finite-state-machine driven router layered above combo selection to direct
+traffic based on the detected workflow stage (planning, execution,
+review) and background-task affinity.
+
+- Workflow FSM: `open-sse/services/workflowFSM.ts`
+- Task-aware router: `open-sse/services/taskAwareRouter.ts`
+- Background task detector: `open-sse/services/backgroundTaskDetector.ts`
+- Intent classifier: `open-sse/services/intentClassifier.ts`
+
+The FSM transitions feed into Auto Combo's scoring, biasing toward cheaper models
+for background/automation tasks and toward stronger models for interactive
+planning/review turns.
+
+### G. Provider-Specific Resilience
+
+Several providers ship dedicated resilience and stealth modules that piggy-back on
+the global circuit breaker / connection cooldown / model lockout layers:
+
+- Antigravity 429 engine: `open-sse/services/antigravity429Engine.ts` (rotates
+  identity, scrubs response headers, drives credits/version tracking via
+  `antigravityCredits.ts`, `antigravityHeaderScrub.ts`, `antigravityHeaders.ts`,
+  `antigravityIdentity.ts`, `antigravityObfuscation.ts`, `antigravityVersion.ts`)
+- ModelScope quota policy: `open-sse/services/modelscopePolicy.ts`
+- Claude Code CCH (Compatibility Channel Handshake): `open-sse/services/claudeCodeCCH.ts`,
+  plus `claudeCodeCompatible.ts`, `claudeCodeConstraints.ts`, `claudeCodeExtraRemap.ts`,
+  `claudeCodeToolRemapper.ts`
+- Claude Code fingerprint shaping: `open-sse/services/claudeCodeFingerprint.ts`
+- Claude Code obfuscation: `open-sse/services/claudeCodeObfuscation.ts`
+- ChatGPT TLS client: `open-sse/services/chatgptTlsClient.ts` (curl-impersonate
+  style for ChatGPT-Web sessions)
+- ChatGPT image cache: `open-sse/services/chatgptImageCache.ts`
+
+For the full stealth playbook and operational guidance, see
+[`docs/STEALTH_GUIDE.md`](STEALTH_GUIDE.md).
+
+### H. Webhooks, Reasoning Cache, Read Cache
+
+- **Webhooks** — outbound dispatch for provider/account/task events.
+  - Dispatcher: `src/lib/webhookDispatcher.ts`
+  - Storage: `webhooks` SQLite table (via `src/lib/db/webhooks.ts`)
+  - Dashboard: `/dashboard/webhooks` (subscriptions, secrets, retry history)
+  - For event taxonomy and retry semantics, see [`docs/WEBHOOKS.md`](WEBHOOKS.md).
+- **Reasoning Cache** — replayable reasoning blocks for providers that emit
+  thinking tokens (Claude, GLMT, etc.) so consecutive turns can skip re-thinking.
+  - DB layer: `src/lib/db/reasoningCache.ts`
+  - Service layer: `open-sse/services/reasoningCache.ts`
+  - For replay semantics, see [`docs/REASONING_REPLAY.md`](REASONING_REPLAY.md).
+- **Read Cache** — short-lived response cache keyed by signature and used to
+  collapse identical retries from broken upstream SDKs.
+  - DB layer: `src/lib/db/readCache.ts`
+  - Stats endpoint: `GET /api/cache/stats`, dashboard at `/dashboard/cache`
 
 ## 3) Persistence Layer
 
@@ -660,9 +835,12 @@ flowchart LR
 ### Translation Registry and Format Converters
 
 - `open-sse/translator/index.ts`: translator registry and orchestration
-- Request translators: `open-sse/translator/request/*`
-- Response translators: `open-sse/translator/response/*`
+- Request translators: `open-sse/translator/request/*` (9 modules — `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`, `gemini-to-openai`, `openai-responses`, `openai-to-claude`, `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`)
+- Response translators: `open-sse/translator/response/*` (8 modules — `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`, `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`, `openai-to-claude`)
+- Helpers: `open-sse/translator/helpers/*` (8 modules — `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`, `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`)
 - Format constants: `open-sse/translator/formats.ts`
+- Bootstrap and registry: `open-sse/translator/bootstrap.ts`, `open-sse/translator/registry.ts`
+- Image-format helpers: `open-sse/translator/image/`
 
 ### Persistence
 
@@ -674,66 +852,108 @@ flowchart LR
 
 Each provider has a specialized executor extending `BaseExecutor` (in `open-sse/executors/base.ts`), which provides URL building, header construction, retry with exponential backoff, credential refresh hooks, and the `execute()` orchestration method.
 
-| Executor               | Provider(s)                                                                                                                                                 | Special Handling                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `DefaultExecutor`      | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
-| `AntigravityExecutor`  | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing                      |
-| `CliProxyApiExecutor`  | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
-| `CloudflareAiExecutor` | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
-| `CodexExecutor`        | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
-| `CursorExecutor`       | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
-| `GithubExecutor`       | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
-| `GeminiCLIExecutor`    | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
-| `KiroExecutor`         | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
-| `OpenCodeExecutor`     | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
-| `PollinationsExecutor` | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
-| `PuterExecutor`        | Puter                                                                                                                                                       | Browser-based provider integration                                   |
-| `QoderExecutor`        | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
-| `VertexExecutor`       | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
+| Executor                 | Provider(s)                                                                                                                                                 | Special Handling                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `DefaultExecutor`        | OpenAI, Claude, Gemini, Qwen, OpenRouter, GLM, Kimi, MiniMax, DeepSeek, Groq, xAI, Mistral, Perplexity, Together, Fireworks, Cerebras, Cohere, NVIDIA, etc. | Dynamic URL/header config per provider                               |
+| `AntigravityExecutor`    | Google Antigravity                                                                                                                                          | Custom project/session IDs, Retry-After parsing, 429 obfuscation     |
+| `AzureOpenAIExecutor`    | Azure OpenAI                                                                                                                                                | Deployment-based routing, api-version query enforcement              |
+| `BlackboxWebExecutor`    | Blackbox AI (web-mode)                                                                                                                                      | Web-session reverse with TLS fingerprint emulation                   |
+| `ChatGPTWebExecutor`     | ChatGPT web                                                                                                                                                 | TLS client + session cookie management (`chatgptTlsClient.ts`)       |
+| `ClaudeIdentityExecutor` | Claude.ai (CCH path)                                                                                                                                        | Constraint + tool-remap pipelines, fingerprint shaping               |
+| `CliProxyApiExecutor`    | CLIProxyAPI-compatible providers                                                                                                                            | Custom auth and protocol handling                                    |
+| `CloudflareAiExecutor`   | Cloudflare Workers AI                                                                                                                                       | Account ID injection, Neurons-based usage tracking                   |
+| `CodexExecutor`          | OpenAI Codex                                                                                                                                                | Injects system instructions, forces reasoning effort                 |
+| `CommandCodeExecutor`    | Command Code                                                                                                                                                | OAuth + per-session header rotation                                  |
+| `CursorExecutor`         | Cursor IDE                                                                                                                                                  | ConnectRPC protocol, Protobuf encoding, request signing via checksum |
+| `DevinCliExecutor`       | Devin CLI                                                                                                                                                   | Devin task lifecycle bridging via cloud agent module                 |
+| `GeminiCLIExecutor`      | Gemini CLI                                                                                                                                                  | Google OAuth token refresh cycle                                     |
+| `GithubExecutor`         | GitHub Copilot                                                                                                                                              | Copilot token refresh, VSCode-mimicking headers                      |
+| `GitlabExecutor`         | GitLab Duo                                                                                                                                                  | GitLab OAuth + project-scoped routing                                |
+| `GlmExecutor`            | Z.AI GLM (incl. `glmt` preset)                                                                                                                              | Thinking-budget aware, GLMT preset constants                         |
+| `GrokWebExecutor`        | xAI Grok web                                                                                                                                                | Web-session reverse, mode selection (think/standard)                 |
+| `KieExecutor`            | KIE                                                                                                                                                         | Custom token issuance with rotating session anchors                  |
+| `KiroExecutor`           | AWS CodeWhisperer/Kiro                                                                                                                                      | AWS EventStream binary format → SSE conversion                       |
+| `MuseSparkWebExecutor`   | Muse Spark (web)                                                                                                                                            | Web-session reverse with image-message bridging                      |
+| `NlpCloudExecutor`       | NLP Cloud                                                                                                                                                   | Provider-specific request body shape                                 |
+| `OpenCodeExecutor`       | OpenCode                                                                                                                                                    | AI SDK compatible provider setup                                     |
+| `PerplexityWebExecutor`  | Perplexity web                                                                                                                                              | Web-session reverse for chat continuation                            |
+| `PetalsExecutor`         | Petals distributed inference                                                                                                                                | Decentralized swarm routing                                          |
+| `PollinationsExecutor`   | Pollinations AI                                                                                                                                             | No API key required, rate-limited requests                           |
+| `PuterExecutor`          | Puter                                                                                                                                                       | Browser-based provider integration                                   |
+| `QoderExecutor`          | Qoder AI                                                                                                                                                    | PAT and OAuth support, multi-model free tier                         |
+| `VertexExecutor`         | Google Vertex AI                                                                                                                                            | Service account auth, region-based endpoints                         |
+| `WindsurfExecutor`       | Windsurf (Codeium)                                                                                                                                          | Codeium OAuth + session token refresh                                |
 
 All other providers (including custom compatible nodes) use the `DefaultExecutor`.
 
 ## Provider Compatibility Matrix
 
-| Provider         | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
-| ---------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
-| Claude           | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
-| Gemini           | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Gemini CLI       | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Antigravity      | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
-| OpenAI           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Codex            | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
-| GitHub Copilot   | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
-| Cursor           | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
-| Kiro             | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
-| Qwen             | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Qoder            | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
-| Kilo Code        | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Cline            | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| Kimi Coding      | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
-| OpenRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| GLM/Kimi/MiniMax | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| DeepSeek         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Groq             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| xAI (Grok)       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Mistral          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Perplexity       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Together AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Fireworks AI     | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cerebras         | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cohere           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| NVIDIA NIM       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Cloudflare AI    | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
-| Pollinations     | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
-| Scaleway AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| LongCat          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Ollama Cloud     | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
-| HuggingFace      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Nebius           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| SiliconFlow      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Hyperbolic       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
-| Vertex AI        | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
-| Puter            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+> **Note:** The matrix below is a representative sample of the 179 registered providers in
+> OmniRoute v3.8.0. For the canonical and continuously-updated list, refer to
+> [`docs/PROVIDER_REFERENCE.md`](PROVIDER_REFERENCE.md) (auto-generated) or the source of
+> truth at `src/shared/constants/providers.ts` (Zod-validated at load).
+
+| Provider          | Format           | Auth                  | Stream           | Non-Stream | Token Refresh | Usage API          |
+| ----------------- | ---------------- | --------------------- | ---------------- | ---------- | ------------- | ------------------ |
+| Claude            | claude           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Admin only      |
+| Gemini            | gemini           | API Key / OAuth       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Gemini CLI        | gemini-cli       | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Antigravity       | antigravity      | OAuth                 | ✅               | ✅         | ✅            | ✅ Full quota API  |
+| OpenAI            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Codex             | openai-responses | OAuth                 | ✅ forced        | ❌         | ✅            | ✅ Rate limits     |
+| GitHub Copilot    | openai           | OAuth + Copilot Token | ✅               | ✅         | ✅            | ✅ Quota snapshots |
+| Cursor            | cursor           | Custom checksum       | ✅               | ✅         | ❌            | ❌                 |
+| Kiro              | kiro             | AWS SSO OIDC          | ✅ (EventStream) | ❌         | ✅            | ✅ Usage limits    |
+| Qwen              | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Kilo Code         | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Cline             | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| Kimi Coding       | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| OpenRouter        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| GLM/Kimi/MiniMax  | claude           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| DeepSeek          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Groq              | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| xAI (Grok)        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Mistral           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Together AI       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Fireworks AI      | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cerebras          | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cohere            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| NVIDIA NIM        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Cloudflare AI     | openai           | API Token + Acct ID   | ✅               | ✅         | ❌            | ❌                 |
+| Pollinations      | openai           | None (no key)         | ✅               | ✅         | ❌            | ❌                 |
+| Scaleway AI       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| LongCat           | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Ollama Cloud      | openai           | API Key (optional)    | ✅               | ✅         | ❌            | ❌                 |
+| HuggingFace       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Nebius            | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| SiliconFlow       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Hyperbolic        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Vertex AI         | gemini           | Service Account       | ✅               | ✅         | ✅            | ⚠️ Cloud Console   |
+| Puter             | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Command Code      | openai           | OAuth                 | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| Z.AI / GLM        | openai           | API Key / OAuth       | ✅               | ✅         | ❌            | ❌                 |
+| GLMT (preset)     | claude           | API Key               | ✅               | ✅         | ❌            | ⚠️ Per request     |
+| Kimi Coding       | openai           | OAuth / API Key       | ✅               | ✅         | ✅            | ❌                 |
+| KIE               | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Windsurf          | openai           | OAuth (Codeium)       | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| GitLab Duo        | openai           | OAuth (GitLab)        | ✅               | ✅         | ✅            | ❌                 |
+| Devin CLI         | openai           | OAuth                 | ✅               | ✅         | ✅            | ✅ Task API        |
+| Codex Cloud       | openai-responses | OAuth                 | ✅               | ❌         | ✅            | ✅ Rate limits     |
+| Jules             | openai           | OAuth                 | ✅               | ✅         | ✅            | ✅ Task API        |
+| AgentRouter       | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| ChatGPT-Web       | openai           | Session cookie + TLS  | ✅               | ✅         | ❌            | ❌                 |
+| Grok-Web          | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| Perplexity-Web    | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| BlackBox-Web      | openai           | Session cookie + TLS  | ✅               | ✅         | ❌            | ❌                 |
+| Muse-Spark-Web    | openai           | Session cookie        | ✅               | ✅         | ❌            | ❌                 |
+| ModelScope        | openai           | API Key               | ✅               | ✅         | ❌            | ⚠️ Quota policy    |
+| BazaarLink        | openai           | API Key               | ✅               | ✅         | ❌            | ❌                 |
+| Petals            | openai           | None                  | ✅               | ✅         | ❌            | ❌                 |
+| Qoder             | openai           | OAuth / PAT           | ✅               | ✅         | ✅            | ⚠️ Per request     |
+| OpenCode (Go/Zen) | openai           | OAuth                 | ✅               | ✅         | ✅            | ❌                 |
+| CLIProxyAPI       | openai           | Custom                | ✅               | ✅         | ❌            | ❌                 |
 
 ## Format Translation Coverage
 

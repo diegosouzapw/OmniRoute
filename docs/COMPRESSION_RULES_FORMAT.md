@@ -3,6 +3,9 @@
 Compression rules are JSON files loaded at runtime. They are intentionally data-only so new
 language packs and RTK command filters can be reviewed without changing engine code.
 
+> **Canonical schema (source of truth):** [`open-sse/services/compression/rules/_schema.json`](../open-sse/services/compression/rules/_schema.json) (JSON Schema draft 2020-12).
+> The examples below are illustrative — when in doubt, validate your pack against `_schema.json`.
+
 ## Caveman Rule Packs
 
 Caveman rule packs live under:

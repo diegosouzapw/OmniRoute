@@ -1,0 +1,19 @@
+- generic [ref=e1]:
+    - link "Skip to content" [ref=e2] [cursor=pointer]:
+        - /url: "#main-content"
+    - generic [ref=e6]:
+        - generic [ref=e10]:
+            - generic [ref=e11]:
+                - generic [ref=e13]: hub
+                - generic [ref=e14]: OmniRoute
+            - heading "Sign in" [level=1] [ref=e15]
+            - paragraph [ref=e16]: Enter your password to continue
+        - generic [ref=e17]:
+            - generic [ref=e18]:
+                - text: Password
+                - textbox "Enter your password to continue" [active] [ref=e21]
+                - paragraph [ref=e22]: "Default password: CHANGEME (unless INITIAL_PASSWORD was set)"
+            - button "Continue" [ref=e23] [cursor=pointer]
+        - link "Forgot password?" [ref=e25] [cursor=pointer]:
+            - /url: /forgot-password
+    - alert [ref=e9]

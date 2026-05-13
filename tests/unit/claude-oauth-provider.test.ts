@@ -75,3 +75,35 @@ test("Claude OAuth provider always uses the configured redirectUri during token 
   assert.equal(captured.body.state, "state-from-fragment");
   assert.equal(captured.body.code_verifier, "verifier-123");
 });
+
+test("Claude OAuth token mapper persists the first non-empty token plan field", () => {
+  const cases = [
+    [{ account_tier: " Pro ", plan: "Max" }, "Pro"],
+    [{ account_tier: "", plan: "Max" }, "Max"],
+    [{ plan: "", subscription_type: "Team" }, "Team"],
+    [{ subscription_type: "", billing: { plan: "Enterprise" } }, "Enterprise"],
+  ];
+
+  for (const [tokens, expected] of cases) {
+    const mapped = claude.mapTokens({ access_token: "token-1", ...tokens });
+
+    assert.equal(mapped.providerSpecificData.plan, expected);
+  }
+});
+
+test("Claude OAuth token mapper reads plan fields from userinfo extras after token fields", () => {
+  const mapped = claude.mapTokens(
+    { access_token: "token-1" },
+    { userInfo: { account_tier: "", subscription_type: "Max" } }
+  );
+
+  assert.equal(mapped.providerSpecificData.plan, "Max");
+});
+
+test("Claude OAuth token mapper leaves providerSpecificData.plan undefined without plan fields", () => {
+  const mapped = claude.mapTokens({ access_token: "token-1", scope: "user:profile" });
+
+  assert.ok(mapped.providerSpecificData);
+  assert.ok(typeof mapped.providerSpecificData.cliUserID === "string");
+  assert.equal(mapped.providerSpecificData.plan, undefined);
+});

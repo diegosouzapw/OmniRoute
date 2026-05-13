@@ -61,6 +61,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "LICENSE",
   "README.md",
+  "bin/cli-commands.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
@@ -84,6 +85,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
+  "bin/cli/",
   "open-sse/mcp-server/schemas/",
   "open-sse/mcp-server/tools/",
   "src/shared/contracts/",
@@ -95,6 +97,8 @@ export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "app/server.js",
   "app/server-ws.mjs",
   "app/responses-ws-proxy.mjs",
+  "bin/cli-commands.mjs",
+  "bin/cli/index.mjs",
   "bin/mcp-server.mjs",
   "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",

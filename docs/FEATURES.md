@@ -4,6 +4,43 @@
 
 Visual guide to every section of the OmniRoute dashboard.
 
+> 📅 **Last updated:** 2026-05-13 — **v3.8.0**
+
+---
+
+## ✨ v3.8.0 Highlights
+
+The v3.7.x → v3.8.0 cycle added zero-config auto routing, new providers, OAuth flows, deeper resilience, and a much richer CLI experience. Headline features below — full details further in the document and in linked specs.
+
+- 🤖 **Auto Combo / Zero-config auto-routing** — use prefixes `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Backed by a 9-factor scoring engine and 4 curated **mode packs** (ship-fast, cost-saver, quality-first, offline-friendly)
+- 🆕 **Command Code provider** (#2199) — first-class registration with model catalog and quota tracking
+- 🆕 **Z.AI provider** — new free-tier provider with quota labels
+- 🎬 **KIE media expansion** — extended catalog including video generation models
+- 🔐 **Windsurf + Devin CLI OAuth flows** (#2168) — end-to-end browser-based login
+- 🆓 **9 new free providers** — LLM7, Lepton, Kluster, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi, Command Code
+- 🎯 **Manifest-aware tier routing W1–W4** — provider manifests drive weighted tier selection
+- 🎨 **Cursor full OpenAI parity** — tool calls, streaming, session management end-to-end
+- 📊 **Cursor Pro plan usage** — quota & cycle data surfaced in the provider-limits dashboard
+- ⚡ **Service tier breakdown / Codex fast tier analytics** — per-tier consumption visibility
+- 📌 **Per-session sticky routing** — Codex sessions pin to the same account between turns
+- 🔊 **Inworld TTS enhancements** — voice catalogs, streaming, and latency improvements
+- 🔑 **Kiro headless auth** — login via local `kiro-cli` SQLite store, no browser required
+- 📉 **DeepSeek quota and limit monitoring** — daily/monthly usage exposed via dashboard
+- 🔄 **Reset-aware routing strategy** — combos now prefer accounts whose quota window resets soonest
+- ⏱️ **`fallbackDelayMs`** and **dynamic tool limit detection** — finer fallback timing + per-provider tool-count limits
+- 🔧 **Background mode degradation (Responses API)** — falls back to synchronous mode with a structured warning when an upstream lacks background polling
+- 🚦 **Per-provider 429 classification** + `useUpstream429BreakerHints` toggle — finer breaker behavior using upstream rate-limit hints
+- 🩺 **Model cooldowns dashboard** — observe per-model lockouts and manually re-enable from the UI
+- 🔒 **MITM dynamic Linux cert detection** — works across Debian/Ubuntu, Fedora/RHEL, Arch, and other distros
+- 💻 **CLI enhancement suite** — 20+ commands including `omniroute providers`, `omniroute combos`, `omniroute doctor`, `omniroute setup`
+- 🔍 **Qdrant embedding model discovery** — automatic vector-store model probe
+- 🔑 **API Manager / Bearer keys with `manage` scope** — perform admin operations programmatically via API
+- 🏥 **Combo target health analytics** + **structured combo builder** — per-target health & UI builder for assembling `(provider, model, connection)` steps
+- 🤝 **GitLab Duo OAuth provider** — login with GitLab credentials
+- 🧠 **Reasoning Replay Cache** — hybrid in-memory + SQLite persistence of reasoning traces
+
+📚 **Related docs:** [Skills Framework](./SKILLS.md) · [Memory System](./MEMORY.md) · [Cloud Agents](./CLOUD_AGENT.md) · [Webhooks](./WEBHOOKS.md) · [Reasoning Replay Cache](./REASONING_REPLAY.md)
+
 ---
 
 ## 🔌 Providers
@@ -67,14 +104,15 @@ Customizable color themes for the entire dashboard. Choose from 7 preset colors 
 
 ## ⚙️ Settings
 
-Comprehensive settings panel with tabs:
+Comprehensive settings panel with **7 tabs**:
 
 - **General** — System storage, backup management (export/import database)
 - **Appearance** — Theme selector (dark/light/system), color theme presets and custom colors, health log visibility, sidebar item visibility controls, Endpoint tunnel visibility controls
+- **AI** — AI assistant features, default routing presets (Auto Combo `auto/coding`, `auto/fast`, `auto/cheap`, `auto/smart`), reasoning replay cache, and skill/memory toggles
 - **Security** — API endpoint protection, custom provider blocking, IP filtering, session info
-- **Routing** — Model aliases, background task degradation
-- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration
-- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode
+- **Routing** — Model aliases, background task degradation, manifest-aware tier routing (W1–W4), `fallbackDelayMs`, per-session sticky routing
+- **Resilience** — Rate limit persistence, circuit breaker tuning, auto-disable banned accounts, provider expiration monitoring, **Context Relay** handoff threshold and summary model configuration, per-provider 429 classification & `useUpstream429BreakerHints` toggle, model cooldowns
+- **Advanced** — Configuration overrides, configuration audit trail, fallback degradation mode, background mode degradation for Responses API
 
 ![Settings Dashboard](screenshots/06-settings.png)
 
@@ -90,12 +128,13 @@ One-click configuration for AI coding tools: Claude Code, Codex CLI, Gemini CLI,
 
 ## 🤖 CLI Agents _(v2.0.11+)_
 
-Dashboard for discovering and managing CLI agents. Shows a grid of 14 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp) with:
+Dashboard for discovering and managing CLI agents. Shows a grid of 18 built-in agents (Codex, Claude, Goose, Gemini CLI, OpenClaw, Aider, OpenCode, Cline, Qwen Code, ForgeCode, Amazon Q, Open Interpreter, Cursor CLI, Warp, **Windsurf**, **Devin CLI**, **Kimi Coding**, **Command Code**) with:
 
 - **Installation status** — Installed / Not Found with version detection
 - **Protocol badges** — stdio, HTTP, etc.
 - **Custom agents** — Register any CLI tool via form (name, binary, version command, spawn args)
 - **CLI Fingerprint Matching** — Per-provider toggle to match native CLI request signatures, reducing ban risk while preserving proxy IP
+- **OAuth-backed agents** — Windsurf & Devin CLI now use browser OAuth flows for authentication (v3.8.0+)
 
 ---
 

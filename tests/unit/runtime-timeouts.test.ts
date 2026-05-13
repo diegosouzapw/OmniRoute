@@ -12,6 +12,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
   assert.deepEqual(config, {
     fetchTimeoutMs: 600000,
     streamIdleTimeoutMs: 600000,
+    streamReadinessTimeoutMs: 30000,
     fetchHeadersTimeoutMs: 600000,
     fetchBodyTimeoutMs: 600000,
     fetchConnectTimeoutMs: 30000,
@@ -92,4 +93,11 @@ test("API bridge timeouts align request timeout with long proxy timeout by defau
     serverKeepAliveTimeoutMs: 5000,
     serverSocketTimeoutMs: 0,
   });
+});
+
+test("API bridge proxy timeout defaults to the long upstream request window", () => {
+  const config = runtimeTimeouts.getApiBridgeTimeoutConfig({});
+
+  assert.equal(config.proxyTimeoutMs, 600000);
+  assert.equal(config.serverRequestTimeoutMs, 600000);
 });

@@ -146,6 +146,27 @@ export function listFiles(
   return rows.map((row) => rowToCamel(row) as unknown as FileRecord);
 }
 
+export function countFiles(options: { apiKeyId?: string; purpose?: string } = {}): number {
+  ensureFilesSchema();
+  const db = getDbInstance();
+  const { apiKeyId, purpose } = options;
+
+  let query = "SELECT COUNT(*) as c FROM files WHERE deleted_at IS NULL";
+  const params: Array<string> = [];
+
+  if (apiKeyId) {
+    query += " AND api_key_id = ?";
+    params.push(apiKeyId);
+  }
+  if (purpose) {
+    query += " AND purpose = ?";
+    params.push(purpose);
+  }
+
+  const row = db.prepare(query).get(...params) as { c?: number } | undefined;
+  return Number(row?.c || 0);
+}
+
 export function updateFileStatus(id: string, status: string): boolean {
   ensureFilesSchema();
   const db = getDbInstance();

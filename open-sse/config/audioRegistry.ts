@@ -17,6 +17,7 @@ export interface AudioProvider {
   authType: string;
   authHeader: string;
   format?: string;
+  supportedFormats?: string[];
   async?: boolean;
   models: AudioModel[];
 }
@@ -77,7 +78,10 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "nvidia-asr",
-    models: [{ id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" }],
+    models: [
+      { id: "nvidia/parakeet-ctc-1.1b-asr", name: "Parakeet CTC 1.1B" },
+      { id: "openai/whisper-large-v3", name: "Whisper Large v3 (NVIDIA)" },
+    ],
   },
 
   huggingface: {
@@ -100,6 +104,18 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     format: "openai",
     models: [{ id: "qwen3-asr", name: "Qwen3 ASR" }],
   },
+
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/speech-to-text", name: "ElevenLabs STT" },
+      { id: "elevenlabs/audio-isolation", name: "ElevenLabs Audio Isolation" },
+    ],
+  },
 };
 
 export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
@@ -109,8 +125,8 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "tts-1", name: "TTS 1" },
       { id: "tts-1-hd", name: "TTS 1 HD" },
+      { id: "tts-1", name: "TTS 1" },
       { id: "gpt-4o-mini-tts", name: "GPT-4o Mini TTS" },
     ],
   },
@@ -211,8 +227,9 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "basic",
     format: "inworld",
+    supportedFormats: ["mp3", "wav", "opus", "pcm"],
     models: [
-      { id: "inworld-tts-1.5-max", name: "Inworld TTS 1.5 Max" },
+      { id: "inworld-tts-2", name: "Inworld TTS 2" },
       { id: "inworld-tts-1.5-mini", name: "Inworld TTS 1.5 Mini" },
     ],
   },
@@ -227,8 +244,8 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "x-api-key",
     format: "cartesia",
     models: [
-      { id: "sonic-2", name: "Sonic 2" },
       { id: "sonic-3", name: "Sonic 3" },
+      { id: "sonic-2", name: "Sonic 2" },
     ],
   },
 
@@ -244,6 +261,20 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     models: [
       { id: "PlayDialog", name: "PlayDialog" },
       { id: "Play3.0-mini", name: "Play3.0 Mini" },
+    ],
+  },
+
+  kie: {
+    id: "kie",
+    baseUrl: "https://api.kie.ai",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "kie-audio",
+    models: [
+      { id: "elevenlabs/text-to-speech-multilingual-v2", name: "ElevenLabs TTS v2" },
+      { id: "elevenlabs/text-to-speech-turbo-2-5", name: "ElevenLabs TTS Turbo 2.5" },
+      { id: "elevenlabs/text-to-dialogue-v3", name: "ElevenLabs Text to Dialogue v3" },
+      { id: "elevenlabs/sound-effect-v2", name: "ElevenLabs Sound Effect v2" },
     ],
   },
 
@@ -268,6 +299,7 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authType: "apikey",
     authHeader: "bearer",
     format: "xiaomi-mimo-tts",
+    supportedFormats: ["mp3", "wav"],
     models: [
       { id: "mimo-v2.5-tts", name: "MiMo V2.5 TTS" },
       { id: "mimo-v2.5-tts-voicedesign", name: "MiMo V2.5 Voice Design" },

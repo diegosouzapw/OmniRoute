@@ -64,6 +64,23 @@ function parseBatchRow(row: any): BatchRecord {
       camel.usage = null;
     }
   }
+  // Normalize numeric date fields to ensure they are valid numbers
+  const coerceNum = (v: any): number | null => {
+    if (typeof v === "number" && Number.isFinite(v)) return v;
+    if (v == null) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  camel.createdAt = coerceNum(camel.createdAt) ?? 0;
+  camel.inProgressAt = coerceNum(camel.inProgressAt);
+  camel.expiresAt = coerceNum(camel.expiresAt);
+  camel.finalizingAt = coerceNum(camel.finalizingAt);
+  camel.completedAt = coerceNum(camel.completedAt);
+  camel.failedAt = coerceNum(camel.failedAt);
+  camel.expiredAt = coerceNum(camel.expiredAt);
+  camel.cancellingAt = coerceNum(camel.cancellingAt);
+  camel.cancelledAt = coerceNum(camel.cancelledAt);
   return camel as BatchRecord;
 }
 
@@ -107,12 +124,7 @@ export interface BatchRecord {
 export function createBatch(
   batch: Omit<
     BatchRecord,
-    | "id"
-    | "createdAt"
-    | "status"
-    | "requestCountsTotal"
-    | "requestCountsCompleted"
-    | "requestCountsFailed"
+    "id" | "createdAt" | "requestCountsTotal" | "requestCountsCompleted" | "requestCountsFailed"
   >
 ): BatchRecord {
   ensureBatchesSchema();
@@ -123,7 +135,7 @@ export function createBatch(
     ...batch,
     id,
     createdAt,
-    status: "validating",
+    status: batch.status || "validating",
     requestCountsTotal: 0,
     requestCountsCompleted: 0,
     requestCountsFailed: 0,
@@ -210,6 +222,19 @@ export function listBatches(apiKeyId?: string, limit: number = 20, after?: strin
     rows = db.prepare("SELECT * FROM batches ORDER BY created_at DESC, id DESC LIMIT ?").all(limit);
   }
   return rows.map((row) => parseBatchRow(row));
+}
+
+export function countBatches(apiKeyId?: string): number {
+  const db = getDbInstance();
+  if (apiKeyId) {
+    const row = db
+      .prepare("SELECT COUNT(*) as c FROM batches WHERE api_key_id = ?")
+      .get(apiKeyId) as { c: number } | undefined;
+    return row ? Number(row.c) : 0;
+  } else {
+    const row = db.prepare("SELECT COUNT(*) as c FROM batches").get() as { c: number } | undefined;
+    return row ? Number(row.c) : 0;
+  }
 }
 
 export function getPendingBatches(): BatchRecord[] {

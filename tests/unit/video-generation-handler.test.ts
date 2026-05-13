@@ -90,6 +90,62 @@ test("handleVideoGeneration routes SD WebUI payloads and normalizes mp4 output",
   }
 });
 
+test("handleVideoGeneration polls KIE market tasks and returns video URLs", async () => {
+  const originalFetch = globalThis.fetch;
+  let createBody;
+  let pollUrl = "";
+
+  globalThis.fetch = async (url, options = {}) => {
+    const stringUrl = String(url);
+
+    if (stringUrl === "https://api.kie.ai/api/v1/jobs/createTask") {
+      createBody = JSON.parse(String(options.body || "{}"));
+      return new Response(JSON.stringify({ code: 200, data: { taskId: "kie-video-task" } }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (stringUrl.startsWith("https://api.kie.ai/api/v1/jobs/recordInfo")) {
+      pollUrl = stringUrl;
+      return new Response(
+        JSON.stringify({
+          code: 200,
+          data: {
+            state: "success",
+            resultJson: '{"resultUrls":["https://example.com/kie-video.mp4"]}',
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  };
+
+  try {
+    assert.ok(VIDEO_PROVIDERS.kie.models.some((model) => model.id === "kling-3.0/video"));
+
+    const result = await handleVideoGeneration({
+      body: {
+        model: "kie/kling-3.0/video",
+        prompt: "cinematic shot of neon city rain",
+      },
+      credentials: { apiKey: "kie-key" },
+      log: null,
+    });
+
+    assert.equal(createBody.model, "kling-3.0/video");
+    assert.equal(createBody.input.prompt, "cinematic shot of neon city rain");
+    assert.match(pollUrl, /taskId=kie-video-task/);
+    assert.equal(result.success, true);
+    assert.equal(result.data.data[0].url, "https://example.com/kie-video.mp4");
+    assert.equal(result.data.data[0].format, "mp4");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleVideoGeneration executes ComfyUI workflow and returns fetched output files", async () => {
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;

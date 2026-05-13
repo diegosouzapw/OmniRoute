@@ -12,6 +12,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 const antigravityVersion = await import("../../open-sse/services/antigravityVersion.ts");
+const providerRegistry = await import("../../open-sse/config/providerRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -205,7 +206,11 @@ test("provider models route returns static catalog entries for providers with ha
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bailian-coding-plan");
-  assert.equal(body.models.length, 8);
+  assert.equal(body.models.length, providerRegistry.REGISTRY["bailian-coding-plan"].models?.length);
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    providerRegistry.REGISTRY["bailian-coding-plan"].models?.map((model) => model.id)
+  );
 });
 
 test("provider models route returns AWS Polly speech engines from the audio registry", async () => {
@@ -447,7 +452,7 @@ test("provider models route returns the local catalog for new built-in chat-open
   assert.match(body.warning, /local catalog/i);
   assert.ok(Array.isArray(body.models));
   assert.ok(body.models.length > 0);
-  assert.ok(body.models.some((model) => model.id === "Qwen/Qwen3-Coder-480B-A35B-Instruct"));
+  assert.ok(body.models.some((model) => model.id === "openai/gpt-oss-120b"));
 });
 
 test("provider models route merges Upstage chat and embedding catalogs", async () => {
@@ -651,7 +656,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^antigravity\//);
+    assert.match(init.headers["User-Agent"], /^Antigravity\//);
     return Response.json({
       models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
     });
@@ -664,7 +669,7 @@ test("provider models route retries Antigravity discovery endpoints before retur
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
@@ -691,9 +696,9 @@ test("provider models route falls back through all Antigravity discovery endpoin
   assert.equal(body.source, "local_catalog");
   assert.match(body.warning, /local catalog/i);
   assert.deepEqual(discoveryUrls, [
-    "https://cloudcode-pa.googleapis.com/v1internal:models",
-    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
+    "https://cloudcode-pa.googleapis.com/v1internal:models",
   ]);
   assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
 });

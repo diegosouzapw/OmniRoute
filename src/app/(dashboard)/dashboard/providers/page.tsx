@@ -11,6 +11,7 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
+  CLOUD_AGENT_PROVIDERS,
 } from "@/shared/constants/providers";
 import { useRouter } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -25,6 +26,10 @@ import {
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
+import {
+  getCodexEffectiveFastServiceTier,
+  isCodexGlobalFastServiceTierEnabled,
+} from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
@@ -102,6 +107,7 @@ export default function ProvidersPage() {
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
   const [expirations, setExpirations] = useState<any>(null);
+  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
@@ -131,20 +137,23 @@ export default function ProvidersPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [connectionsRes, nodesRes, expirationsRes] = await Promise.all([
+        const [connectionsRes, nodesRes, expirationsRes, settingsRes] = await Promise.all([
           fetch("/api/providers"),
           fetch("/api/provider-nodes"),
           fetch("/api/providers/expiration"),
+          fetch("/api/settings", { cache: "no-store" }),
         ]);
         const connectionsData = await connectionsRes.json();
         const nodesData = await nodesRes.json();
         const expirationsData = await expirationsRes.json();
+        const settingsData = settingsRes.ok ? await settingsRes.json() : null;
         if (connectionsRes.ok) setConnections(connectionsData.connections || []);
         if (nodesRes.ok) {
           setProviderNodes(nodesData.nodes || []);
           setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
         }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
+        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(settingsData));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -279,7 +288,23 @@ export default function ProvidersPage() {
     if (hasExpired) expiryStatus = "expired";
     else if (hasExpiringSoon) expiryStatus = "expiring_soon";
 
-    return { connected, error, total, errorCode, errorTime, allDisabled, expiryStatus };
+    const codexFastActive =
+      providerId === "codex" &&
+      (codexGlobalFastServiceTier ||
+        providerConnections.some((connection) =>
+          getCodexEffectiveFastServiceTier(connection.providerSpecificData, false)
+        ));
+
+    return {
+      connected,
+      error,
+      total,
+      errorCode,
+      errorTime,
+      allDisabled,
+      expiryStatus,
+      codexFastActive,
+    };
   };
 
   // Toggle all connections for a provider on/off
@@ -460,6 +485,13 @@ export default function ProvidersPage() {
   const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
   const audioProviderEntries = filterConfiguredProviderEntries(
     audioProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
+  );
+
+  const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
+  const cloudAgentProviderEntries = filterConfiguredProviderEntries(
+    cloudAgentProviderEntriesAll,
     showConfiguredOnly,
     searchQuery
   );
@@ -931,6 +963,51 @@ export default function ProvidersPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {audioProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Cloud Agent Providers */}
+      {cloudAgentProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("cloudAgentProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-violet-500"
+                title={t("cloudAgentProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(cloudAgentProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("cloud-agent")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "cloud-agent"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "cloud-agent" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {cloudAgentProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
                   key={providerId}

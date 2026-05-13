@@ -436,3 +436,72 @@ test("providers route rejects upstream proxy tools as direct provider connection
   assert.equal(response.status, 400);
   assert.deepEqual(await response.json(), { error: "Invalid provider" });
 });
+
+test("DELETE /api/providers batch deletes connections", async () => {
+  const createReq = async (provider, name, apiKey) =>
+    providersRoute.POST(
+      await makeManagementSessionRequest("http://localhost/api/providers", {
+        method: "POST",
+        body: { provider, name, apiKey },
+      })
+    );
+
+  const r1 = await createReq("glhf", "Conn 1", "key-1");
+  const r2 = await createReq("glhf", "Conn 2", "key-2");
+  const r3 = await createReq("glhf", "Conn 3", "key-3");
+  const id1 = (await r1.json()).connection.id;
+  const id2 = (await r2.json()).connection.id;
+  const id3 = (await r3.json()).connection.id;
+
+  const deleteRes = await providersRoute.DELETE(
+    await makeManagementSessionRequest("http://localhost/api/providers", {
+      method: "DELETE",
+      body: { ids: [id1, id3] },
+    })
+  );
+
+  assert.equal(deleteRes.status, 200);
+  const deletePayload = (await deleteRes.json()) as any;
+  assert.equal(deletePayload.deleted, 2);
+
+  const listRes = await providersRoute.GET(
+    await makeManagementSessionRequest("http://localhost/api/providers")
+  );
+  const listPayload = (await listRes.json()) as any;
+  const remainingIds = listPayload.connections.map((c) => c.id);
+  assert.equal(remainingIds.includes(id1), false);
+  assert.equal(remainingIds.includes(id3), false);
+  assert.equal(remainingIds.includes(id2), true);
+});
+
+test("DELETE /api/providers rejects empty ids array", async () => {
+  const res = await providersRoute.DELETE(
+    await makeManagementSessionRequest("http://localhost/api/providers", {
+      method: "DELETE",
+      body: { ids: [] },
+    })
+  );
+  assert.equal(res.status, 400);
+});
+
+test("DELETE /api/providers rejects ids over 100 limit", async () => {
+  const res = await providersRoute.DELETE(
+    await makeManagementSessionRequest("http://localhost/api/providers", {
+      method: "DELETE",
+      body: { ids: Array.from({ length: 101 }, (_, i) => `id-${i}`) },
+    })
+  );
+  assert.equal(res.status, 400);
+  const payload = (await res.json()) as any;
+  assert.equal(payload.error, "Cannot delete more than 100 connections at once");
+});
+
+test("DELETE /api/providers rejects non-array ids", async () => {
+  const res = await providersRoute.DELETE(
+    await makeManagementSessionRequest("http://localhost/api/providers", {
+      method: "DELETE",
+      body: { ids: "not-an-array" },
+    })
+  );
+  assert.equal(res.status, 400);
+});

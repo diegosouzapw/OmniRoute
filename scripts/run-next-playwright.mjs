@@ -159,6 +159,7 @@ const playwrightPassword =
 const testServerEnv = {
   ...sanitizeColorEnv(bootstrapEnvVars),
   ...sanitizeColorEnv(process.env),
+  NODE_ENV: mode === "start" ? "production" : "development",
   DATA_DIR: playwrightDataDir,
   NEXT_PUBLIC_OMNIROUTE_E2E_MODE: process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE || "1",
   OMNIROUTE_DISABLE_BACKGROUND_SERVICES:

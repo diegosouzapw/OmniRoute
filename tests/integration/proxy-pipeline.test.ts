@@ -59,7 +59,7 @@ describe("Chat Pipeline — handleSingleModelChat decomposition", () => {
 
   it("handleSingleModelChat should use resolveModelOrError", () => {
     // Extract handleSingleModelChat body
-    assert.match(src, /resolveModelOrError\(modelStr/);
+    assert.match(src, /resolveModelOrError\(\s*modelStr/);
   });
 
   it("handleSingleModelChat should use checkPipelineGates", () => {

@@ -289,7 +289,7 @@ test("Responses -> OpenAI: tool-call delta, reasoning delta and completed usage 
 
   assert.equal(added.choices[0].delta.tool_calls[0].function.name, "weather");
   assert.equal(args.choices[0].delta.tool_calls[0].function.arguments, '{"city":"SP"}');
-  assert.equal(reasoning.choices[0].delta.reasoning.summary, "Need weather info.");
+  assert.equal(reasoning.choices[0].delta.reasoning_content, "Need weather info.");
   assert.equal(completed.choices[0].finish_reason, "tool_calls");
   assert.equal((completed as any).usage.prompt_tokens, 8);
   assert.equal((completed as any).usage.completion_tokens, 2);

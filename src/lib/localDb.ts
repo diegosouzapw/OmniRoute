@@ -13,6 +13,7 @@ export {
   createProviderConnection,
   updateProviderConnection,
   deleteProviderConnection,
+  deleteProviderConnections,
   deleteProviderConnectionsByProvider,
   reorderProviderConnections,
   cleanupProviderConnections,
@@ -91,6 +92,7 @@ export {
   validateApiKey,
   getApiKeyMetadata,
   updateApiKeyPermissions,
+  regenerateApiKey,
   isModelAllowedForKey,
   clearApiKeyCaches,
   resetApiKeyState,
@@ -286,7 +288,7 @@ export {
   getFile,
   getFileContent,
   listFiles,
-  updateFileStatus,
+  countFiles,
   formatFileResponse,
   deleteFile,
 } from "./db/files";
@@ -297,6 +299,7 @@ export {
   getBatch,
   updateBatch,
   listBatches,
+  countBatches,
   getPendingBatches,
   getTerminalBatches,
 } from "./db/batches";
@@ -411,3 +414,13 @@ export {
 } from "./db/oneproxy";
 
 export type { OneproxyProxyRecord, OneproxyStats } from "./db/oneproxy";
+
+export {
+  getSessionAccountAffinity,
+  upsertSessionAccountAffinity,
+  touchSessionAccountAffinity,
+  deleteSessionAccountAffinity,
+  cleanupStaleSessionAccountAffinities,
+  startSessionAccountAffinityCleanup,
+  stopSessionAccountAffinityCleanupForTests,
+} from "./db/sessionAccountAffinity";
