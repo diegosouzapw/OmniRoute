@@ -116,6 +116,7 @@ export function applyCavemanOutputMode(
 
   const messages = Array.isArray(body.messages) ? body.messages : null;
   if (!messages || messages.length === 0) {
+    const instruction = buildCavemanOutputInstruction(config, language);
     if (typeof body.instructions === "string") {
       if (body.instructions.includes(CAVEMAN_OUTPUT_MARKER)) {
         return { body, applied: false, skippedReason: "already_applied" };
@@ -123,10 +124,13 @@ export function applyCavemanOutputMode(
       return {
         body: {
           ...body,
-          instructions: `${body.instructions.trim()}\n\n${buildCavemanOutputInstruction(config, language)}`,
+          instructions: `${body.instructions.trim()}\n\n${instruction}`,
         },
         applied: true,
       };
+    }
+    if (typeof body.input === "string" || Array.isArray(body.input)) {
+      return { body: { ...body, instructions: instruction }, applied: true };
     }
     return { body, applied: false, skippedReason: "no_messages" };
   }

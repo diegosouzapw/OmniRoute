@@ -7,10 +7,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { pricingSyncRequestSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 export async function POST(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   let rawBody: unknown;
   try {
     rawBody = await request.json();
@@ -43,7 +47,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { getSyncStatus } = await import("@/lib/pricingSync");
     return NextResponse.json(getSyncStatus());
@@ -53,7 +60,10 @@ export async function GET() {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { clearSyncedPricing } = await import("@/lib/pricingSync");
     clearSyncedPricing();

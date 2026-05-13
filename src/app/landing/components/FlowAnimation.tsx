@@ -1,17 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+
+import ProviderIcon from "@/shared/components/ProviderIcon";
 
 export default function FlowAnimation() {
   const t = useTranslations("landing");
   const [activeFlow, setActiveFlow] = useState(0);
 
   const cliTools = [
-    { id: "claude", name: t("flowToolClaudeCode"), image: "/providers/claude.png" },
-    { id: "codex", name: t("flowToolOpenAICodex"), image: "/providers/codex.png" },
-    { id: "cline", name: t("flowToolCline"), image: "/providers/cline.png" },
-    { id: "cursor", name: t("flowToolCursor"), image: "/providers/cursor.png" },
+    { id: "claude", name: t("flowToolClaudeCode") },
+    { id: "codex", name: t("flowToolOpenAICodex") },
+    { id: "cline", name: t("flowToolCline") },
+    { id: "cursor", name: t("flowToolCursor") },
   ];
 
   const providers = [
@@ -70,14 +71,7 @@ export default function FlowAnimation() {
               className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity group"
             >
               <div className="w-16 h-16 rounded-2xl bg-[#111520] border border-[#2D333B] flex items-center justify-center overflow-hidden p-2 hover:border-[#E54D5E]/50 transition-all hover:scale-105">
-                <Image
-                  src={tool.image}
-                  alt={tool.name}
-                  width={48}
-                  height={48}
-                  className="object-contain rounded-xl max-w-[48px] max-h-[48px]"
-                  sizes="48px"
-                />
+                <ProviderIcon providerId={tool.id} size={48} type="color" />
               </div>
             </div>
           ))}

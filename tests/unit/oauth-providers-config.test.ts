@@ -42,6 +42,7 @@ const {
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   QWEN_CONFIG,
+  WINDSURF_CONFIG,
 } = oauthModule;
 const { REGISTRY } = registryModule;
 
@@ -62,6 +63,8 @@ const EXPECTED_PROVIDER_KEYS = [
   "cursor",
   "kilocode",
   "cline",
+  "windsurf",
+  "devin-cli",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -79,6 +82,8 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cursor: CURSOR_CONFIG,
   kilocode: KILOCODE_CONFIG,
   cline: CLINE_CONFIG,
+  windsurf: WINDSURF_CONFIG,
+  "devin-cli": WINDSURF_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -123,6 +128,8 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
   kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
+  windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
 };
 
 function getByPath(object, path) {
@@ -438,19 +445,10 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     (_url, init = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-      assert.equal(
-        init.headers["X-Goog-Api-Client"],
-        "google-cloud-sdk vscode_cloudshelleditor/0.1"
-      );
-      assert.equal(
-        init.headers["Client-Metadata"],
-        JSON.stringify({
-          ideType: "IDE_UNSPECIFIED",
-          platform: "PLATFORM_UNSPECIFIED",
-          pluginType: "GEMINI",
-        })
-      );
+      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.equal(init.headers["Client-Metadata"], undefined);
+      assert.deepEqual(JSON.parse(String(init.body)).metadata, { ideType: "ANTIGRAVITY" });
       return jsonResponse({
         cloudaicompanionProject: { id: "anti-project" },
         allowedTiers: [{ id: "tier-default", isDefault: true }],
@@ -459,11 +457,9 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     (_url, init = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
-      assert.equal(init.headers["User-Agent"], "google-api-nodejs-client/10.3.0");
-      assert.equal(
-        init.headers["X-Goog-Api-Client"],
-        "google-cloud-sdk vscode_cloudshelleditor/0.1"
-      );
+      assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
+      assert.equal(init.headers["X-Goog-Api-Client"], undefined);
+      assert.deepEqual(JSON.parse(String(init.body)).metadata, { ideType: "ANTIGRAVITY" });
       return jsonResponse({
         done: true,
         response: { cloudaicompanionProject: { id: "anti-project-final" } },

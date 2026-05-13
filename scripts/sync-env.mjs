@@ -111,8 +111,15 @@ function parseEnvEntry(line) {
   if (eqIndex < 1) return null;
 
   const key = trimmed.slice(0, eqIndex).trim();
-  const value = trimmed.slice(eqIndex + 1).trim();
+  const value = unquoteEnvValue(trimmed.slice(eqIndex + 1).trim());
   return [key, value];
+}
+
+function unquoteEnvValue(value) {
+  if (value.length < 2) return value;
+  const quote = value[0];
+  if ((quote !== '"' && quote !== "'") || value[value.length - 1] !== quote) return value;
+  return value.slice(1, -1);
 }
 
 function parseExampleEntries(content, scope = "full") {

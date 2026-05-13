@@ -241,44 +241,53 @@ test("handleChat returns model_cooldown when every credential for the requested 
   assert.ok(Number(response.headers.get("Retry-After")) >= 1);
 });
 
-test("handleChat returns stream readiness timeout without entering cooldown-aware retry or account lockout", async () => {
-  const connection = await seedConnection("openai", {
-    apiKey: "sk-openai-stream-readiness-timeout",
-  });
-  await settingsDb.updateSettings({
-    requestRetry: 1,
-    maxRetryIntervalSec: 10,
-  });
+test("handleChat returns stream readiness timeout without entering cooldown-aware retry or account lockout", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  try {
+    const connection = await seedConnection("openai", {
+      apiKey: "sk-openai-stream-readiness-timeout",
+    });
+    await settingsDb.updateSettings({
+      requestRetry: 1,
+      maxRetryIntervalSec: 10,
+    });
 
-  let fetchCalls = 0;
-  globalThis.fetch = async () => {
-    fetchCalls += 1;
-    return buildZombieSseResponse();
-  };
+    let fetchCalls = 0;
+    globalThis.fetch = async () => {
+      fetchCalls += 1;
+      return buildZombieSseResponse();
+    };
 
-  const startedAt = Date.now();
-  const response = await handleChat(
-    buildRequest({
-      body: {
-        model: "openai/gpt-4o-mini",
-        stream: true,
-        messages: [{ role: "user", content: "trigger zombie stream" }],
-      },
-    })
-  );
-  const elapsedMs = Date.now() - startedAt;
-  const body = (await response.json()) as any;
+    const responsePromise = handleChat(
+      buildRequest({
+        body: {
+          model: "openai/gpt-4o-mini",
+          stream: true,
+          messages: [{ role: "user", content: "trigger zombie stream" }],
+        },
+      })
+    );
 
-  assert.equal(response.status, 504);
-  assert.equal(fetchCalls, 1);
-  assert.ok(elapsedMs < 1000, `should not wait for cooldown retry, got ${elapsedMs}ms`);
-  assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
+    // Give the async pipeline a chance to settle and start the fetch
+    await new Promise((resolve) => process.nextTick(resolve));
+    // Fast-forward past the default 30s stream readiness timeout
+    t.mock.timers.tick(30500);
 
-  const refreshedConnection = (await getProviderConnectionById((connection as any).id)) as any;
-  assert.equal(refreshedConnection.testStatus, "active");
-  assert.ok(refreshedConnection.rateLimitedUntil == null);
-  assert.ok(refreshedConnection.errorCode == null);
-  assert.equal(refreshedConnection.backoffLevel, 0);
+    const response = await responsePromise;
+    const body = (await response.json()) as any;
+
+    assert.equal(response.status, 504);
+    assert.equal(fetchCalls, 1);
+    assert.equal(body.error.code, "STREAM_READINESS_TIMEOUT");
+
+    const refreshedConnection = (await getProviderConnectionById((connection as any).id)) as any;
+    assert.equal(refreshedConnection.testStatus, "active");
+    assert.ok(refreshedConnection.rateLimitedUntil == null);
+    assert.ok(refreshedConnection.errorCode == null);
+    assert.equal(refreshedConnection.backoffLevel, 0);
+  } finally {
+    t.mock.timers.reset();
+  }
 });
 
 test("handleChat aborts the pending cooldown wait when the client disconnects", async () => {

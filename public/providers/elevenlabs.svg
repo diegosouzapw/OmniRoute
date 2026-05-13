@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="18" fill="#6C47FF"/>
-  <!-- ElevenLabs "11" logo mark — two vertical bars -->
-  <rect x="24" y="20" width="20" height="60" rx="4" fill="white"/>
-  <rect x="56" y="20" width="20" height="60" rx="4" fill="white"/>
-</svg>

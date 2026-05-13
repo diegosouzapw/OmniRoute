@@ -9,6 +9,9 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 const GOOGLE_OAUTH_PROVIDERS = new Set(["antigravity", "gemini-cli"]);
 
+/** Providers that use a local callback server on a random port (PKCE browser flow). */
+const PKCE_CALLBACK_SERVER_PROVIDERS = new Set(["codex", "windsurf", "devin-cli"]);
+
 type OAuthModalProps = {
   isOpen: boolean;
   provider?: string;
@@ -41,6 +44,12 @@ export default function OAuthModal({
   const [isDeviceCode, setIsDeviceCode] = useState(false);
   const [deviceData, setDeviceData] = useState(null);
   const [polling, setPolling] = useState(false);
+  // API-key paste mode: for providers that accept a token directly (windsurf, devin-cli)
+  const [showPasteToken, setShowPasteToken] = useState(false);
+  const [pasteToken, setPasteToken] = useState("");
+  const [savingToken, setSavingToken] = useState(false);
+
+  const supportsTokenPaste = provider === "windsurf" || provider === "devin-cli";
   const popupRef = useRef(null);
   const { copied, copy } = useCopyToClipboard();
   const deviceVerificationUrl =
@@ -148,6 +157,42 @@ export default function OAuthModal({
     },
     [authData, provider, onSuccess, reauthConnection]
   );
+
+  // Save a raw API token directly (windsurf / devin-cli import-token path)
+  const handleSaveToken = useCallback(async () => {
+    const token = pasteToken.trim();
+    if (!token || !provider) return;
+    setSavingToken(true);
+    setError(null);
+    try {
+      // POST to /exchange with a synthetic "import_token" payload.
+      // The windsurf provider's mapTokens() handles a bare accessToken/apiKey field.
+      const res = await fetch(`/api/oauth/${provider}/import-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          connectionId: reauthConnection?.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const errMsg =
+          typeof data.error === "object" && data.error !== null
+            ? ((data.error as Record<string, unknown>).message as string) ||
+              JSON.stringify(data.error)
+            : data.error || "Save failed";
+        throw new Error(errMsg);
+      }
+      setStep("success");
+      onSuccess?.();
+    } catch (err) {
+      // Show error inline inside the paste-token form (don't flip to error step)
+      setError(err.message);
+    } finally {
+      setSavingToken(false);
+    }
+  }, [pasteToken, provider, onSuccess, reauthConnection]);
 
   // Poll for device code token
   const startPolling = useCallback(
@@ -273,13 +318,14 @@ export default function OAuthModal({
         forceManual = true;
       }
 
-      // Codex: on localhost use callback server on port 1455,
-      // on remote use standard auth code flow (callback server is unreachable)
-      if (provider === "codex") {
-        if (isLocalhost) {
-          // Localhost: use callback server on port 1455 + polling
+      // PKCE callback server providers (Codex, Windsurf, Devin CLI):
+      // On localhost, spin up a local callback server and poll for the result.
+      // Codex uses a fixed port 1455; Windsurf/Devin CLI use a random OS-assigned port.
+      // On remote the server is unreachable — fall through to standard manual flow.
+      if (PKCE_CALLBACK_SERVER_PROVIDERS.has(provider)) {
+        if (isTrueLocalhost) {
           try {
-            const serverRes = await fetch(`/api/oauth/codex/start-callback-server`);
+            const serverRes = await fetch(`/api/oauth/${provider}/start-callback-server`);
             const serverData = await serverRes.json();
             if (!serverRes.ok) throw new Error(serverData.error);
 
@@ -297,7 +343,7 @@ export default function OAuthModal({
             for (let i = 0; i < maxAttempts; i++) {
               await new Promise((r) => setTimeout(r, 2000));
 
-              const pollRes = await fetch(`/api/oauth/codex/poll-callback`, {
+              const pollRes = await fetch(`/api/oauth/${provider}/poll-callback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ connectionId: reauthConnection?.id }),
@@ -318,10 +364,10 @@ export default function OAuthModal({
 
             setPolling(false);
             throw new Error("Authorization timeout");
-          } catch (codexErr) {
+          } catch (pkceErr) {
             console.warn(
-              "Codex callback server failed, falling back to standard manual flow",
-              codexErr
+              `${provider} callback server failed, falling back to manual flow`,
+              pkceErr
             );
             setPolling(false);
             forceManual = true;
@@ -333,6 +379,8 @@ export default function OAuthModal({
       // Authorization code flow
       // Redirect URI strategy:
       // - Codex/OpenAI: always port 1455 (registered in OAuth app)
+      // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
+      //   (on true localhost the callback server handles it; this is only reached on remote)
       // - Google OAuth providers (antigravity, gemini-cli): always localhost, regardless of
       //   where OmniRoute is hosted — Google only accepts pre-registered localhost URIs with
       //   the built-in credentials. Remote users must configure their own credentials.
@@ -341,6 +389,11 @@ export default function OAuthModal({
       let redirectUri: string;
       if (provider === "codex" || provider === "openai") {
         redirectUri = "http://localhost:1455/auth/callback";
+      } else if (provider === "windsurf" || provider === "devin-cli") {
+        // Remote fallback: use OmniRoute's port with the /auth/callback path Windsurf expects.
+        // On true localhost this code is never reached (callback server handles the flow above).
+        const port = window.location.port || "20128";
+        redirectUri = `http://localhost:${port}/auth/callback`;
       } else if (GOOGLE_OAUTH_PROVIDERS.has(provider)) {
         // Google OAuth built-in credentials only accept localhost redirect URIs.
         // Even in remote deployments we use localhost — user copies the callback URL manually.
@@ -618,148 +671,210 @@ export default function OAuthModal({
       size="lg"
     >
       <div className="flex flex-col gap-4">
-        {/* Waiting Step (Localhost - popup mode) */}
-        {step === "waiting" && !isDeviceCode && (
-          <div className="text-center py-6">
-            <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl text-primary animate-spin">
-                progress_activity
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">{t("waiting")}</h3>
-            <p className="text-sm text-text-muted mb-2">{t("completeAuthInPopup")}</p>
-            <p className="text-xs text-text-muted mb-4 opacity-70">{t("popupClosedHint")}</p>
-            <Button variant="ghost" onClick={() => setStep("input")}>
-              {t("popupBlocked")}
-            </Button>
+        {/* Paste-token tab toggle (Windsurf / Devin CLI only) */}
+        {supportsTokenPaste && step !== "success" && (
+          <div className="flex gap-2 border-b border-border pb-3">
+            <button
+              className={`text-sm px-3 py-1 rounded-t ${!showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
+              onClick={() => setShowPasteToken(false)}
+            >
+              Browser Login
+            </button>
+            <button
+              className={`text-sm px-3 py-1 rounded-t ${showPasteToken ? "font-semibold border-b-2 border-primary text-primary" : "text-text-muted"}`}
+              onClick={() => setShowPasteToken(true)}
+            >
+              Paste API Key
+            </button>
           </div>
         )}
 
-        {/* Device Code Flow - Waiting */}
-        {step === "waiting" && isDeviceCode && deviceData && (
-          <>
-            <div className="text-center py-4">
-              <p className="text-sm text-text-muted mb-4">{t("deviceCodeVisitUrl")}</p>
-              <div className="bg-sidebar p-4 rounded-lg mb-4">
-                <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={copied === "verify_url" ? "check" : "content_copy"}
-                    onClick={() => copy(deviceVerificationUrl, "verify_url")}
-                  />
-                </div>
-              </div>
-              <div className="bg-primary/10 p-4 rounded-lg">
-                <p className="text-xs text-text-muted mb-1">{t("deviceCodeYourCode")}</p>
-                <div className="flex items-center justify-center gap-2">
-                  <p className="text-2xl font-mono font-bold text-primary">
-                    {deviceData.user_code}
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    icon={copied === "user_code" ? "check" : "content_copy"}
-                    onClick={() => copy(deviceData.user_code, "user_code")}
-                  />
-                </div>
-              </div>
+        {/* Paste-token form (Windsurf / Devin CLI) */}
+        {supportsTokenPaste && showPasteToken && step !== "success" && (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-text-muted">
+              {provider === "windsurf"
+                ? "Visit windsurf.com/show-auth-token, copy your Windsurf API key, and paste it below."
+                : "Provide your WINDSURF_API_KEY (obtained via `devin auth login` or windsurf.com/show-auth-token)."}
+            </p>
+            <Input
+              value={pasteToken}
+              onChange={(e) => setPasteToken(e.target.value)}
+              placeholder="ws-..."
+              type="password"
+              label="API Key / Token"
+            />
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSaveToken}
+                fullWidth
+                disabled={!pasteToken.trim() || savingToken}
+              >
+                {savingToken ? "Saving…" : "Save Connection"}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                Cancel
+              </Button>
             </div>
-            {polling && (
-              <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
-                <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                {t("deviceCodeWaiting")}
+          </div>
+        )}
+
+        {/* OAuth flow steps — hidden when paste-token mode is active */}
+        {(!supportsTokenPaste || !showPasteToken) && (
+          <>
+            {/* Waiting Step (Localhost - popup mode) */}
+            {step === "waiting" && !isDeviceCode && (
+              <div className="text-center py-6">
+                <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-3xl text-primary animate-spin">
+                    progress_activity
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{t("waiting")}</h3>
+                <p className="text-sm text-text-muted mb-2">{t("completeAuthInPopup")}</p>
+                <p className="text-xs text-text-muted mb-4 opacity-70">{t("popupClosedHint")}</p>
+                <Button variant="ghost" onClick={() => setStep("input")}>
+                  {t("popupBlocked")}
+                </Button>
               </div>
+            )}
+
+            {/* Device Code Flow - Waiting */}
+            {step === "waiting" && isDeviceCode && deviceData && (
+              <>
+                <div className="text-center py-4">
+                  <p className="text-sm text-text-muted mb-4">{t("deviceCodeVisitUrl")}</p>
+                  <div className="bg-sidebar p-4 rounded-lg mb-4">
+                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeVerificationUrl")}</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-sm break-all">{deviceVerificationUrl}</code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={copied === "verify_url" ? "check" : "content_copy"}
+                        onClick={() => copy(deviceVerificationUrl, "verify_url")}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-primary/10 p-4 rounded-lg">
+                    <p className="text-xs text-text-muted mb-1">{t("deviceCodeYourCode")}</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <p className="text-2xl font-mono font-bold text-primary">
+                        {deviceData.user_code}
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={copied === "user_code" ? "check" : "content_copy"}
+                        onClick={() => copy(deviceData.user_code, "user_code")}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {polling && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
+                    <span className="material-symbols-outlined animate-spin">
+                      progress_activity
+                    </span>
+                    {t("deviceCodeWaiting")}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Manual Input Step */}
+            {step === "input" && !isDeviceCode && (
+              <>
+                <div className="space-y-4">
+                  {/* Remote/LAN server info for Google OAuth providers */}
+                  {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">
+                        warning
+                      </span>
+                      <strong>
+                        {t.rich("googleOAuthWarning", {
+                          code: (c) => <code className="font-mono">{c}</code>,
+                          a: (c) => (
+                            <a
+                              href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="underline"
+                            >
+                              {c}
+                            </a>
+                          ),
+                        })}
+                      </strong>
+                    </div>
+                  )}
+                  {/* Generic remote info for other providers */}
+                  {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
+                    <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
+                      <span className="material-symbols-outlined text-sm align-middle mr-1">
+                        info
+                      </span>
+                      {t("remoteAccessInfo")}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={authData?.authUrl || ""}
+                        readOnly
+                        className="flex-1 font-mono text-xs"
+                      />
+                      <Button
+                        variant="secondary"
+                        icon={copied === "auth_url" ? "check" : "content_copy"}
+                        onClick={() => copy(authData?.authUrl, "auth_url")}
+                      >
+                        {t("copy")}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
+                    <p className="text-xs text-text-muted mb-2">
+                      {t.rich("step2Hint", {
+                        code: (c) => <code className="font-mono">{c}</code>,
+                      })}
+                    </p>
+                    <Input
+                      value={callbackUrl}
+                      onChange={(e) => setCallbackUrl(e.target.value)}
+                      placeholder={
+                        provider === "claude" || provider === "cline"
+                          ? "code#state or /callback?code=..."
+                          : placeholderUrl
+                      }
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleManualSubmit}
+                    fullWidth
+                    disabled={!callbackUrl || !authData}
+                  >
+                    {t("connect")}
+                  </Button>
+                  <Button onClick={onClose} variant="ghost" fullWidth>
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </>
             )}
           </>
         )}
 
-        {/* Manual Input Step */}
-        {step === "input" && !isDeviceCode && (
-          <>
-            <div className="space-y-4">
-              {/* Remote/LAN server info for Google OAuth providers */}
-              {!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
-                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
-                  <span className="material-symbols-outlined text-sm align-middle mr-1">
-                    warning
-                  </span>
-                  <strong>
-                    {t.rich("googleOAuthWarning", {
-                      code: (c) => <code className="font-mono">{c}</code>,
-                      a: (c) => (
-                        <a
-                          href="https://github.com/diegosouzapw/OmniRoute#oauth-on-a-remote-server"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="underline"
-                        >
-                          {c}
-                        </a>
-                      ),
-                    })}
-                  </strong>
-                </div>
-              )}
-              {/* Generic remote info for other providers */}
-              {!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
-                <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
-                  <span className="material-symbols-outlined text-sm align-middle mr-1">info</span>
-                  {t("remoteAccessInfo")}
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium mb-2">{t("step1OpenUrl")}</p>
-                <div className="flex gap-2">
-                  <Input
-                    value={authData?.authUrl || ""}
-                    readOnly
-                    className="flex-1 font-mono text-xs"
-                  />
-                  <Button
-                    variant="secondary"
-                    icon={copied === "auth_url" ? "check" : "content_copy"}
-                    onClick={() => copy(authData?.authUrl, "auth_url")}
-                  >
-                    {t("copy")}
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-2">{t("step2PasteCallback")}</p>
-                <p className="text-xs text-text-muted mb-2">
-                  {t.rich("step2Hint", {
-                    code: (c) => <code className="font-mono">{c}</code>,
-                  })}
-                </p>
-                <Input
-                  value={callbackUrl}
-                  onChange={(e) => setCallbackUrl(e.target.value)}
-                  placeholder={
-                    provider === "claude" || provider === "cline"
-                      ? "code#state or /callback?code=..."
-                      : placeholderUrl
-                  }
-                  className="font-mono text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleManualSubmit} fullWidth disabled={!callbackUrl || !authData}>
-                {t("connect")}
-              </Button>
-              <Button onClick={onClose} variant="ghost" fullWidth>
-                {t("cancel")}
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* Success Step */}
+        {/* Success Step — shown for both OAuth and paste-token flows */}
         {step === "success" && (
           <div className="text-center py-6">
             <div className="size-16 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -777,8 +892,8 @@ export default function OAuthModal({
           </div>
         )}
 
-        {/* Error Step */}
-        {step === "error" && (
+        {/* Error Step — OAuth errors only; paste-token errors shown inline */}
+        {step === "error" && !showPasteToken && (
           <div className="text-center py-6">
             <div className="size-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <span className="material-symbols-outlined text-3xl text-red-600">error</span>

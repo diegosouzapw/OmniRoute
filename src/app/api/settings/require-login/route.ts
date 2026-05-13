@@ -20,7 +20,7 @@ function hasConfiguredPassword(settings: Record<string, unknown>) {
 }
 
 function isBootstrapSecurityWindow(settings: Record<string, unknown>) {
-  return settings.setupComplete !== true && !hasConfiguredPassword(settings);
+  return !hasConfiguredPassword(settings);
 }
 
 export async function GET() {

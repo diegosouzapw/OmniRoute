@@ -114,6 +114,26 @@ test("parseSSEToClaudeResponse parses text, thinking, tool_use, and usage events
   assert.deepEqual(parsed.usage, { input_tokens: 10, output_tokens: 4 });
 });
 
+test("parseSSEToClaudeResponse tolerates event-only types and missing blank separators", () => {
+  const rawSSE = [
+    "event: message_start",
+    'data: {"message":{"id":"msg_event_fallback","model":"claude-sonnet-4-6","role":"assistant","usage":{"input_tokens":3}}}',
+    "event: content_block_delta",
+    'data: {"index":0,"delta":{"text":"event fallback ok"}}',
+    "event: message_delta",
+    'data: {"delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":2}}',
+    "event: message_stop",
+    "data: {}",
+  ].join("\n");
+
+  const parsed = parseSSEToClaudeResponse(rawSSE, "fallback-model");
+
+  assert.equal(parsed.id, "msg_event_fallback");
+  assert.equal(parsed.model, "claude-sonnet-4-6");
+  assert.equal((parsed.content[0] as any).text, "event fallback ok");
+  assert.deepEqual(parsed.usage, { input_tokens: 3, output_tokens: 2 });
+});
+
 test("parseSSEToClaudeResponse ignores malformed payloads and returns null when nothing valid remains", () => {
   const parsed = parseSSEToClaudeResponse(
     ["event: content_block_delta", "data: not-json", "", "data: [DONE]"].join("\n"),

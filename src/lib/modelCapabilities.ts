@@ -218,18 +218,20 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
         ? `${resolved.provider}/${resolved.model}`
         : resolved.model || resolved.rawModel || resolved.lookupKey
     ) || "";
+  const reasoningDenied = !heuristicReasoning(lookupKey);
 
   const supportsTools =
     synced?.tool_call ??
     (typeof registryModel?.toolCalling === "boolean" ? registryModel.toolCalling : null) ??
     (typeof spec?.supportsTools === "boolean" ? spec.supportsTools : null);
 
-  const supportsThinking =
-    synced?.reasoning ??
-    (typeof registryModel?.supportsReasoning === "boolean"
-      ? registryModel.supportsReasoning
-      : null) ??
-    (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null);
+  const supportsThinking = reasoningDenied
+    ? false
+    : (synced?.reasoning ??
+      (typeof registryModel?.supportsReasoning === "boolean"
+        ? registryModel.supportsReasoning
+        : null) ??
+      (typeof spec?.supportsThinking === "boolean" ? spec.supportsThinking : null));
 
   const contextWindow =
     synced?.limit_context ??
@@ -259,7 +261,10 @@ export function getResolvedModelCapabilities(input: CapabilityInput): ResolvedMo
     contextWindow,
     maxInputTokens: synced?.limit_input ?? contextWindow,
     maxOutputTokens:
-      synced?.limit_output ?? spec?.maxOutputTokens ?? MODEL_SPECS.__default__.maxOutputTokens,
+      synced?.limit_output ??
+      (typeof registryModel?.maxOutputTokens === "number" ? registryModel.maxOutputTokens : null) ??
+      spec?.maxOutputTokens ??
+      MODEL_SPECS.__default__.maxOutputTokens,
     defaultThinkingBudget: spec?.defaultThinkingBudget ?? 0,
     thinkingBudgetCap: spec?.thinkingBudgetCap ?? null,
     thinkingOverhead: spec?.thinkingOverhead ?? null,

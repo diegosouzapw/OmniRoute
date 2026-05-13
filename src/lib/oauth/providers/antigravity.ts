@@ -1,5 +1,6 @@
 import { ANTIGRAVITY_CONFIG } from "../constants/oauth";
 import {
+  antigravityNativeOAuthUserAgent,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
@@ -36,6 +37,7 @@ export const antigravity = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "application/json",
+        "User-Agent": antigravityNativeOAuthUserAgent(),
       },
       body: new URLSearchParams(bodyParams),
     });

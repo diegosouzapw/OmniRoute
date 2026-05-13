@@ -54,7 +54,7 @@ apt install -y ca-certificates curl gnupg
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo “$VERSION_CODENAME”) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $ (. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
@@ -91,7 +91,7 @@ mkdir -p /opt/omniroute
 ### 2.2 Create environment variables file
 
 ```bash
-cat > /opt/omniroute/.env << ‘EOF’
+cat > /opt/omniroute/.env << 'EOF'
 # === Security ===
 JWT_SECRET=CHANGE-TO-A-UNIQUE-64-CHAR-SECRET-KEY
 INITIAL_PASSWORD=YourSecurePassword123!
@@ -99,13 +99,13 @@ API_KEY_SECRET=REPLACE-WITH-ANOTHER-SECRET-KEY
 STORAGE_ENCRYPTION_KEY=REPLACE-WITH-THIRD-SECRET-KEY
 STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=CHANGE-TO-A-UNIQUE-SALT
+OMNIROUTE_WS_BRIDGE_SECRET=REPLACE-WITH-WS-BRIDGE-SECRET  # REQUIRED em produção: usado pelo Codex Responses WS bridge
 
 # === App ===
 PORT=20128
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
-STORAGE_DRIVER=sqlite
 APP_LOG_TO_FILE=true
 AUTH_COOKIE_SECURE=false
 REQUIRE_API_KEY=false
@@ -173,7 +173,7 @@ chmod 600 /etc/nginx/ssl/origin.key
 ### 3.2 Nginx Configuration
 
 ```bash
-cat > /etc/nginx/sites-available/omniroute << ‘NGINX’
+cat > /etc/nginx/sites-available/omniroute << 'NGINX'
 # Default server — blocks direct access via IP
 server {
     listen 80 default_server;
@@ -208,7 +208,7 @@ server {
         # WebSocket support
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection “upgrade”;
+        proxy_set_header Connection "upgrade";
 
         # SSE (Server-Sent Events) — streaming AI responses
         proxy_buffering off;
@@ -315,7 +315,7 @@ docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
 ```bash
 docker stop omniroute
 docker run --rm -v omniroute-data:/data -v $(pwd):/backup \
-  alpine sh -c “rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /”
+  alpine sh -c "rm -rf /data/* && tar xzf /backup/omniroute-data-YYYY-MM-DD.tar.gz -C /"
 docker start omniroute
 ```
 
@@ -326,7 +326,7 @@ docker start omniroute
 ### Restrict nginx to Cloudflare IPs
 
 ```bash
-cat > /etc/nginx/cloudflare-ips.conf << ‘CF’
+cat > /etc/nginx/cloudflare-ips.conf << 'CF'
 # Cloudflare IPv4 ranges — update periodically
 # https://www.cloudflare.com/ips-v4/
 set_real_ip_from 173.245.48.0/20;

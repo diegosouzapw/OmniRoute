@@ -11,6 +11,7 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 
 const planVariants = {
   free: "default",
+  lite: "primary",
   pro: "primary",
   ultra: "success",
   enterprise: "info",

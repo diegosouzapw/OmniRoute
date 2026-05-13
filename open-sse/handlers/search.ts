@@ -3,9 +3,9 @@ import { randomUUID } from "crypto";
  * Search Handler
  *
  * Handles POST /v1/search requests.
- * Routes to 10 search providers with automatic failover:
+ * Routes to 11 search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
- *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search
+ *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, ollama-search
  *
  * Request format:
  * {
@@ -582,6 +582,26 @@ function buildSearxngRequest(
   };
 }
 
+function buildOllamaRequest(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  return {
+    url: resolveSearchBaseUrl(config, params),
+    init: {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(params.token ? { Authorization: `Bearer ${params.token}` } : {}),
+      },
+      body: JSON.stringify({
+        query: params.query,
+        max_results: params.maxResults,
+      }),
+    },
+  };
+}
+
 function buildRequest(
   config: SearchProviderConfig,
   params: SearchRequestParams
@@ -596,6 +616,7 @@ function buildRequest(
   if (config.id === "searchapi-search") return buildSearchApiRequest(config, params);
   if (config.id === "youcom-search") return buildYouComRequest(config, params);
   if (config.id === "searxng-search") return buildSearxngRequest(config, params);
+  if (config.id === "ollama-search") return buildOllamaRequest(config, params);
   // Fallback for future providers: POST with bearer auth
   return {
     url: resolveSearchBaseUrl(config, params),
@@ -881,6 +902,32 @@ function normalizeSearxngResponse(
   return { results, totalResults: results.length };
 }
 
+function normalizeOllamaResponse(
+  data: any,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const items = Array.isArray(data?.results) ? data.results : [];
+
+  const results = items.map((item: any, idx: number) =>
+    makeResult(
+      "ollama-search",
+      {
+        title: item?.title,
+        url: item?.url,
+        snippet: item?.content || "",
+        full_text: item?.content,
+        text_format: "text",
+      },
+      idx,
+      now
+    )
+  );
+
+  return { results, totalResults: results.length };
+}
+
 function normalizeResponse(
   providerId: string,
   data: any,
@@ -899,6 +946,7 @@ function normalizeResponse(
   if (providerId === "searchapi-search") return normalizeSearchApiResponse(data, query, searchType);
   if (providerId === "youcom-search") return normalizeYouComResponse(data, query, searchType);
   if (providerId === "searxng-search") return normalizeSearxngResponse(data, query, searchType);
+  if (providerId === "ollama-search") return normalizeOllamaResponse(data, query, searchType);
   return { results: [], totalResults: null };
 }
 

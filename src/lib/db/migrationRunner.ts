@@ -110,10 +110,34 @@ const RENAMED_MIGRATION_COMPATIBILITY = [
     toName: "provider_connection_max_concurrent",
   },
   {
+    fromVersion: "028",
+    fromName: "compression_settings",
+    toVersion: "034",
+    toName: "compression_settings",
+  },
+  {
     fromVersion: "032",
     fromName: "create_reasoning_cache",
     toVersion: "033",
     toName: "create_reasoning_cache",
+  },
+  {
+    fromVersion: "032",
+    fromName: "compression_analytics",
+    toVersion: "038",
+    toName: "compression_analytics",
+  },
+  {
+    fromVersion: "033",
+    fromName: "compression_cache_stats",
+    toVersion: "039",
+    toName: "compression_cache_stats",
+  },
+  {
+    fromVersion: "041",
+    fromName: "session_account_affinity",
+    toVersion: "050",
+    toName: "session_account_affinity",
   },
 ] as const;
 
@@ -124,6 +148,15 @@ const LEGACY_VERSION_SLOT_MIGRATIONS = [
   { version: "031", name: "api_keys_expires" },
   { version: "032", name: "detailed_logs_warnings" },
   { version: "033", name: "provider_connections_block_extra_usage" },
+] as const;
+
+const SUPERSEDED_DUPLICATE_MIGRATIONS = [
+  {
+    version: "041",
+    name: "session_account_affinity",
+    supersededByVersion: "050",
+    supersededByName: "session_account_affinity",
+  },
 ] as const;
 
 const PHYSICAL_SCHEMA_SENTINELS = [
@@ -178,6 +211,34 @@ function getMigrationFiles(): Array<{ version: string; name: string; path: strin
       };
     })
     .filter(Boolean) as Array<{ version: string; name: string; path: string }>;
+}
+
+function filterSupersededDuplicateMigrations(
+  files: Array<{ version: string; name: string; path: string }>
+): Array<{ version: string; name: string; path: string }> {
+  return files.filter((file) => {
+    const superseded = SUPERSEDED_DUPLICATE_MIGRATIONS.find(
+      (migration) => migration.version === file.version && migration.name === file.name
+    );
+    if (!superseded) {
+      return true;
+    }
+
+    const hasReplacement = files.some(
+      (candidate) =>
+        candidate.version === superseded.supersededByVersion &&
+        candidate.name === superseded.supersededByName
+    );
+    if (!hasReplacement) {
+      return true;
+    }
+
+    console.warn(
+      `[Migration] Ignoring superseded duplicate migration ${file.version}_${file.name}; ` +
+        `${superseded.supersededByVersion}_${superseded.supersededByName} is the canonical slot.`
+    );
+    return false;
+  });
 }
 
 /**
@@ -268,6 +329,9 @@ function isSchemaAlreadyApplied(
     case "040":
       return hasColumn(db, "proxy_registry", "source");
     case "041":
+      if (migration.name === "session_account_affinity") {
+        return hasTable(db, "session_account_affinity");
+      }
       return (
         hasColumn(db, "compression_analytics", "actual_prompt_tokens") &&
         hasColumn(db, "compression_analytics", "actual_completion_tokens") &&
@@ -285,6 +349,10 @@ function isSchemaAlreadyApplied(
       );
     case "045":
       return hasColumn(db, "call_logs", "tokens_compressed");
+    case "053":
+      return !hasColumn(db, "files", "status");
+    case "054":
+      return hasColumn(db, "usage_history", "service_tier");
     default:
       return false;
   }
@@ -645,7 +713,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
   const isNewDb = options?.isNewDb === true;
   ensureMigrationsTable(db);
 
-  const files = getMigrationFiles();
+  const files = filterSupersededDuplicateMigrations(getMigrationFiles());
   rehomeLegacyVersionSlotMigrations(db, files);
   reconcileRenumberedMigrations(db, files);
   const applied = getAppliedVersions(db);
@@ -757,7 +825,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
         );
       } else if (migration.version === "032") {
         applyApiKeyLifecycleMigration(db);
-      } else if (migration.version === "041") {
+      } else if (migration.version === "041" && migration.name === "compression_receipts") {
         applyCompressionReceiptsMigration(db);
       } else if (migration.version === "042") {
         applyCompressionCombosMigration(db, migration.path);
@@ -802,7 +870,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
 
   // After applying all migrations, insert default settings if we just ran migration 46
   try {
-    if (appliedRecords.some((m) => m.name.startsWith("046_"))) {
+    if (appliedRecords.some((m) => m.name.startsWith("051_"))) {
       insertDefaultDatabaseSettings(db);
     }
   } catch (error) {

@@ -1503,7 +1503,7 @@ test("handleComboChat auto strategy honors LKGP after filtering to tool-capable 
       name: "auto-lkgp",
       strategy: "auto",
       models: ["openai/gpt-oss-120b", "openai/gpt-4o-mini", "claude/claude-sonnet-4-6"],
-      autoConfig: { routingStrategy: "lkgp" },
+      autoConfig: { routerStrategy: "lkgp" },
     },
     handleSingleModel: async (_body: any, modelStr: any) => {
       calls.push(modelStr);
@@ -1589,6 +1589,9 @@ test("handleComboChat standalone lkgp strategy updates LKGP after a successful c
     allCombos: null,
   });
 
+  // Give the async fire-and-forget LKGP update a chance to execute
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
   const persistedProvider = await settingsDb.getLKGP(
     "standalone-lkgp-save",
     "standalone-lkgp-save"
@@ -1618,7 +1621,7 @@ test("handleComboChat auto strategy falls back to the full pool when tool filter
       name: "auto-cost-fallback",
       strategy: "auto",
       models: ["openai/gpt-oss-120b", "deepseek/reasoner"],
-      autoConfig: { routingStrategy: "cost" },
+      autoConfig: { routerStrategy: "cost" },
     },
     handleSingleModel: async (_body: any, modelStr: any) => {
       calls.push(modelStr);
@@ -1655,7 +1658,7 @@ test("handleComboChat auto strategy falls back to rules when a custom router str
       name: "auto-throwing-strategy",
       strategy: "auto",
       models: ["openai/gpt-4o-mini"],
-      autoConfig: { routingStrategy: "throwing-test" },
+      autoConfig: { routerStrategy: "throwing-test" },
     },
     handleSingleModel: async (_body: any, modelStr: any) => {
       calls.push(modelStr);

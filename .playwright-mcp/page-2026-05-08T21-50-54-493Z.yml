@@ -1,0 +1,158 @@
+- generic [active] [ref=e1]:
+    - link "Skip to content" [ref=e2] [cursor=pointer]:
+        - /url: "#main-content"
+    - generic [ref=e3]:
+        - complementary [ref=e5]:
+            - link "Skip to content" [ref=e6] [cursor=pointer]:
+                - /url: "#main-content"
+            - link "OmniRoute v3.7.9" [ref=e12] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e14]
+                - generic [ref=e26]:
+                    - heading "OmniRoute" [level=1] [ref=e27]
+                    - generic [ref=e28]: v3.7.9
+            - navigation "Main navigation" [ref=e29]:
+                - generic [ref=e30]:
+                    - link "home Home" [ref=e31] [cursor=pointer]:
+                        - /url: /dashboard
+                        - generic [ref=e32]: home
+                        - generic [ref=e33]: Home
+                    - link "api Endpoints" [ref=e34] [cursor=pointer]:
+                        - /url: /dashboard/endpoint
+                        - generic [ref=e35]: api
+                        - generic [ref=e36]: Endpoints
+                    - link "vpn_key API Manager" [ref=e37] [cursor=pointer]:
+                        - /url: /dashboard/api-manager
+                        - generic [ref=e38]: vpn_key
+                        - generic [ref=e39]: API Manager
+                    - link "dns Providers" [ref=e40] [cursor=pointer]:
+                        - /url: /dashboard/providers
+                        - generic [ref=e41]: dns
+                        - generic [ref=e42]: Providers
+                    - link "layers Combos" [ref=e43] [cursor=pointer]:
+                        - /url: /dashboard/combos
+                        - generic [ref=e44]: layers
+                        - generic [ref=e45]: Combos
+                    - link "view_list Batch Testing" [ref=e46] [cursor=pointer]:
+                        - /url: /dashboard/batch
+                        - generic [ref=e47]: view_list
+                        - generic [ref=e48]: Batch Testing
+                    - link "account_balance_wallet Costs" [ref=e49] [cursor=pointer]:
+                        - /url: /dashboard/costs
+                        - generic [ref=e50]: account_balance_wallet
+                        - generic [ref=e51]: Costs
+                    - link "analytics Analytics" [ref=e52] [cursor=pointer]:
+                        - /url: /dashboard/analytics
+                        - generic [ref=e53]: analytics
+                        - generic [ref=e54]: Analytics
+                    - link "cached Cache" [ref=e55] [cursor=pointer]:
+                        - /url: /dashboard/cache
+                        - generic [ref=e56]: cached
+                        - generic [ref=e57]: Cache
+                    - link "tune Limits & Quotas" [ref=e58] [cursor=pointer]:
+                        - /url: /dashboard/limits
+                        - generic [ref=e59]: tune
+                        - generic [ref=e60]: Limits & Quotas
+                    - link "perm_media Media" [ref=e61] [cursor=pointer]:
+                        - /url: /dashboard/cache/media
+                        - generic [ref=e62]: perm_media
+                        - generic [ref=e63]: Media
+                - generic [ref=e64]:
+                    - paragraph [ref=e65]: Context & Cache
+                    - link "compress Caveman" [ref=e66] [cursor=pointer]:
+                        - /url: /dashboard/context/caveman
+                        - generic [ref=e67]: compress
+                        - generic [ref=e68]: Caveman
+                    - link "filter_alt RTK" [ref=e69] [cursor=pointer]:
+                        - /url: /dashboard/context/rtk
+                        - generic [ref=e70]: filter_alt
+                        - generic [ref=e71]: RTK
+                    - link "hub Compression Combos" [ref=e72] [cursor=pointer]:
+                        - /url: /dashboard/context/combos
+                        - generic [ref=e73]: hub
+                        - generic [ref=e74]: Compression Combos
+                - generic [ref=e75]:
+                    - paragraph [ref=e76]: CLI
+                    - link "terminal Tools" [ref=e77] [cursor=pointer]:
+                        - /url: /dashboard/cli-tools
+                        - generic [ref=e78]: terminal
+                        - generic [ref=e79]: Tools
+                    - link "smart_toy Agents" [ref=e80] [cursor=pointer]:
+                        - /url: /dashboard/agents
+                        - generic [ref=e81]: smart_toy
+                        - generic [ref=e82]: Agents
+                    - link "psychology Memory" [ref=e83] [cursor=pointer]:
+                        - /url: /dashboard/memory
+                        - generic [ref=e84]: psychology
+                        - generic [ref=e85]: Memory
+                    - link "auto_fix_high Skills" [ref=e86] [cursor=pointer]:
+                        - /url: /dashboard/skills
+                        - generic [ref=e87]: auto_fix_high
+                        - generic [ref=e88]: Skills
+                - generic [ref=e89]:
+                    - paragraph [ref=e90]: System
+                    - link "description Logs" [ref=e91] [cursor=pointer]:
+                        - /url: /dashboard/logs
+                        - generic [ref=e92]: description
+                        - generic [ref=e93]: Logs
+                    - link "policy Audit Log" [ref=e94] [cursor=pointer]:
+                        - /url: /dashboard/audit
+                        - generic [ref=e95]: policy
+                        - generic [ref=e96]: Audit Log
+                    - link "webhook Webhooks" [ref=e97] [cursor=pointer]:
+                        - /url: /dashboard/webhooks
+                        - generic [ref=e98]: webhook
+                        - generic [ref=e99]: Webhooks
+                    - link "health_and_safety Health" [ref=e100] [cursor=pointer]:
+                        - /url: /dashboard/health
+                        - generic [ref=e101]: health_and_safety
+                        - generic [ref=e102]: Health
+                    - link "dns Proxy" [ref=e103] [cursor=pointer]:
+                        - /url: /dashboard/system/proxy
+                        - generic [ref=e104]: dns
+                        - generic [ref=e105]: Proxy
+                    - link "settings Settings" [ref=e106] [cursor=pointer]:
+                        - /url: /dashboard/settings
+                        - generic [ref=e107]: settings
+                        - generic [ref=e108]: Settings
+                - generic [ref=e109]:
+                    - paragraph [ref=e110]: Help
+                    - link "menu_book Docs" [ref=e111] [cursor=pointer]:
+                        - /url: /docs
+                        - generic [ref=e112]: menu_book
+                        - generic [ref=e113]: Docs
+                    - link "bug_report Issues" [ref=e114] [cursor=pointer]:
+                        - /url: https://github.com/diegosouzapw/OmniRoute/issues
+                        - generic [ref=e115]: bug_report
+                        - generic [ref=e116]: Issues
+                    - link "campaign Changelog" [ref=e117] [cursor=pointer]:
+                        - /url: /dashboard/changelog
+                        - generic [ref=e118]: campaign
+                        - generic [ref=e119]: Changelog
+            - generic [ref=e120]:
+                - button "restart_alt Restart" [ref=e121]:
+                    - generic: restart_alt
+                    - text: Restart
+                - button "power_settings_new Shutdown" [ref=e122]:
+                    - generic: power_settings_new
+                    - text: Shutdown
+        - main [ref=e123]:
+            - generic [ref=e124]:
+                - button "menu" [ref=e126]:
+                    - generic: menu
+                - generic [ref=e127]:
+                    - button "🇺🇸 EN expand_more" [ref=e129]:
+                        - generic [ref=e130]: 🇺🇸
+                        - generic [ref=e131]: EN
+                        - generic: expand_more
+                    - button "Switch to light mode" [ref=e132]:
+                        - generic: light_mode
+                    - button "logout" [ref=e133]:
+                        - generic: logout
+            - navigation "Breadcrumb" [ref=e136]:
+                - link "Dashboard" [ref=e138] [cursor=pointer]:
+                    - /url: /dashboard
+                - generic [ref=e139]:
+                    - generic [ref=e140]: ›
+                    - generic [ref=e141]: Combos
+    - alert [ref=e155]

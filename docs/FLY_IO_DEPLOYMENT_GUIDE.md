@@ -85,7 +85,7 @@ flyctl version
 ### 4.1 获取代码并进入目录
 
 ```powershell
-git clone https://github.com/xiaoge1688/OmniRoute.git
+git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute
 ```
 
@@ -139,6 +139,7 @@ flyctl deploy
 - `JWT_SECRET`
 - `MACHINE_ID_SALT`
 - `NEXT_PUBLIC_BASE_URL`
+- `OMNIROUTE_WS_BRIDGE_SECRET` (生产环境必需 / required in production / obrigatório em produção — 用于 WebSocket 桥接鉴权 / used for WebSocket bridge authentication)
 - `STORAGE_ENCRYPTION_KEY`
 
 ### 5.2 关于 `INITIAL_PASSWORD`
@@ -162,26 +163,55 @@ flyctl deploy
 
 建议放入 Fly Secrets：
 
-| 变量名 | 是否推荐 | 说明 |
-| --- | --- | --- |
-| `API_KEY_SECRET` | 必需 | API Key 生成与校验使用 |
-| `JWT_SECRET` | 必需 | 登录态和 JWT 签名使用 |
-| `STORAGE_ENCRYPTION_KEY` | 强烈推荐 | 加密存储敏感连接信息 |
-| `MACHINE_ID_SALT` | 推荐 | 生成稳定机器标识 |
-| `INITIAL_PASSWORD` | 可选 | 首次部署时直接指定后台初始密码 |
-| OAuth/API 私密凭证 | 按需 | 各类外部平台鉴权配置 |
+| 变量名                       | 是否推荐                          | 说明                                                                                      |
+| ---------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `API_KEY_SECRET`             | 必需                              | API Key 生成与校验使用                                                                    |
+| `JWT_SECRET`                 | 必需                              | 登录态和 JWT 签名使用                                                                     |
+| `OMNIROUTE_WS_BRIDGE_SECRET` | 生产必需 (required / obrigatório) | WebSocket 桥接鉴权密钥 (WebSocket bridge auth / chave de autenticação da ponte WebSocket) |
+| `STORAGE_ENCRYPTION_KEY`     | 强烈推荐                          | 加密存储敏感连接信息                                                                      |
+| `MACHINE_ID_SALT`            | 推荐                              | 生成稳定机器标识                                                                          |
+| `INITIAL_PASSWORD`           | 可选                              | 首次部署时直接指定后台初始密码                                                            |
+| OAuth/API 私密凭证           | 按需                              | 各类外部平台鉴权配置                                                                      |
 
 ### 6.2 当前项目推荐值
 
-| 变量名 | 推荐值 |
-| --- | --- |
-| `DATA_DIR` | `/data` |
+| 变量名                 | 推荐值                      |
+| ---------------------- | --------------------------- |
+| `DATA_DIR`             | `/data`                     |
 | `NEXT_PUBLIC_BASE_URL` | `https://omniroute.fly.dev` |
 
 说明：
 
 - `DATA_DIR=/data` 非常关键，必须与 Fly Volume 挂载点一致
 - `NEXT_PUBLIC_BASE_URL` 用于调度器和前端回调等场景
+
+### 6.3 OAuth 回调地址配置 (OAuth callback URL / URL de callback OAuth)
+
+如果你需要在 Fly.io 部署上启用 OAuth 登录类的 provider（例如 Antigravity、Gemini、Cursor 等），必须确保以下两点：
+(If you need to enable OAuth-based providers — e.g. Antigravity, Gemini, Cursor — on the Fly.io deployment, make sure of the following two points. / Se precisar habilitar providers via OAuth — p.ex. Antigravity, Gemini, Cursor — na implantação Fly.io, garanta os dois pontos abaixo.)
+
+1. **设置 `NEXT_PUBLIC_BASE_URL` 指向你公开的 HTTPS 域名 (set `NEXT_PUBLIC_BASE_URL` to the public HTTPS domain / defina `NEXT_PUBLIC_BASE_URL` para o domínio HTTPS público)**
+
+   ```powershell
+   flyctl secrets set NEXT_PUBLIC_BASE_URL=https://omniroute.fly.dev -a omniroute
+   ```
+
+   如果你使用了自定义域名 (if using a custom domain / se usar um domínio personalizado)，请替换为对应域名 (e.g. `https://omniroute.yourdomain.com`)。
+
+2. **在 provider 控制台配置回调 URL (configure the callback URL on the provider console / configure a URL de callback no painel do provider)**
+
+   通常格式为 (typical format / formato típico)：
+
+   ```text
+   <NEXT_PUBLIC_BASE_URL>/api/oauth/<provider>/callback
+   ```
+
+   例如 (e.g. / p.ex.)：
+   - `https://omniroute.fly.dev/api/oauth/gemini/callback`
+   - `https://omniroute.fly.dev/api/oauth/antigravity/callback`
+   - `https://omniroute.fly.dev/api/oauth/cursor/callback`
+
+   如果 `NEXT_PUBLIC_BASE_URL` 与 provider 控制台中注册的回调 URL 不一致，OAuth 流程会在浏览器回跳阶段失败 (mismatch between `NEXT_PUBLIC_BASE_URL` and the registered callback URL will cause OAuth to fail at the browser redirect step / divergência entre `NEXT_PUBLIC_BASE_URL` e a URL de callback registrada quebra o OAuth no redirect do navegador)。
 
 ---
 
@@ -199,16 +229,28 @@ $apiKeySecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Min
 $jwtSecret = [Convert]::ToHexString((1..64 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 $machineIdSalt = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 $storageKey = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
+$wsBridgeSecret = [Convert]::ToHexString((1..32 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 })).ToLower()
 
 flyctl secrets set `
   API_KEY_SECRET=$apiKeySecret `
   JWT_SECRET=$jwtSecret `
   MACHINE_ID_SALT=$machineIdSalt `
   STORAGE_ENCRYPTION_KEY=$storageKey `
+  OMNIROUTE_WS_BRIDGE_SECRET=$wsBridgeSecret `
   DATA_DIR=/data `
   NEXT_PUBLIC_BASE_URL=https://omniroute.fly.dev `
   -a omniroute
 ```
+
+在 Linux / macOS 上，也可以直接用 `openssl rand -hex 32` 生成 (on Linux / macOS, you can also use `openssl rand -hex 32` / em Linux / macOS, também é possível usar `openssl rand -hex 32`)：
+
+```bash
+flyctl secrets set OMNIROUTE_WS_BRIDGE_SECRET=$(openssl rand -hex 32) -a omniroute
+```
+
+说明 (notes / observações)：
+
+- `OMNIROUTE_WS_BRIDGE_SECRET` 在生产环境必需，缺失会导致 WebSocket 桥接握手失败 (required in production; missing it breaks WebSocket bridge handshake / obrigatório em produção; sem ele o handshake da ponte WebSocket falha)
 
 如果你还要加初始密码：
 
@@ -282,6 +324,8 @@ git describe --tags --always
 git show --no-patch --oneline v3.4.7
 ```
 
+> 注 (note / nota)：当前项目版本为 `v3.8.0` (current project version is `v3.8.0` / a versão atual do projeto é `v3.8.0`)。下文中的 `v3.4.7` 仅为历史示例 (the `v3.4.7` references below are kept as historical examples only / as referências a `v3.4.7` abaixo são apenas exemplos históricos)；实际发布时请使用 `:latest` 或当前版本标签 (e.g. `:v3.8.0`) (use `:latest` or the current version tag — e.g. `:v3.8.0` — for actual releases / use `:latest` ou a tag da versão atual — p.ex. `:v3.8.0` — em releases reais)。
+
 如果你想合并上游最新 `main`，并强制保留 fork 当前的 `fly.toml`，可按下面流程执行：
 
 ```powershell
@@ -319,7 +363,7 @@ git merge-base --is-ancestor v3.4.7 upstream/main
 6. `flyctl status -a omniroute`
 7. `flyctl logs --no-tail -a omniroute`
 
-这就是当前项目升级到 `v3.4.7` 时使用的实际流程。
+这就是当前项目升级到 `v3.4.7` 时使用的实际流程 (示例为历史版本，当前实际版本是 `v3.8.0` / example refers to a historical version; the current actual version is `v3.8.0` / o exemplo refere-se a uma versão histórica; a versão atual é `v3.8.0`)。
 
 ---
 

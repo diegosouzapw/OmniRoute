@@ -1,19 +1,18 @@
 # OmniRoute (Tiếng Việt)
 
-🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇹🇷 [tr](../tr/llm.txt)
+🌐 **Languages:** 🇺🇸 [English](../../../llm.txt) · 🇸🇦 [ar](../ar/llm.txt) · 🇧🇬 [bg](../bg/llm.txt) · 🇧🇩 [bn](../bn/llm.txt) · 🇨🇿 [cs](../cs/llm.txt) · 🇩🇰 [da](../da/llm.txt) · 🇩🇪 [de](../de/llm.txt) · 🇪🇸 [es](../es/llm.txt) · 🇮🇷 [fa](../fa/llm.txt) · 🇫🇮 [fi](../fi/llm.txt) · 🇫🇷 [fr](../fr/llm.txt) · 🇮🇳 [gu](../gu/llm.txt) · 🇮🇱 [he](../he/llm.txt) · 🇮🇳 [hi](../hi/llm.txt) · 🇭🇺 [hu](../hu/llm.txt) · 🇮🇩 [id](../id/llm.txt) · 🇮🇳 [in](../in/llm.txt) · 🇮🇹 [it](../it/llm.txt) · 🇯🇵 [ja](../ja/llm.txt) · 🇰🇷 [ko](../ko/llm.txt) · 🇮🇳 [mr](../mr/llm.txt) · 🇲🇾 [ms](../ms/llm.txt) · 🇳🇱 [nl](../nl/llm.txt) · 🇳🇴 [no](../no/llm.txt) · 🇵🇭 [phi](../phi/llm.txt) · 🇵🇱 [pl](../pl/llm.txt) · 🇵🇹 [pt](../pt/llm.txt) · 🇧🇷 [pt-BR](../pt-BR/llm.txt) · 🇷🇴 [ro](../ro/llm.txt) · 🇷🇺 [ru](../ru/llm.txt) · 🇸🇰 [sk](../sk/llm.txt) · 🇸🇪 [sv](../sv/llm.txt) · 🇰🇪 [sw](../sw/llm.txt) · 🇮🇳 [ta](../ta/llm.txt) · 🇮🇳 [te](../te/llm.txt) · 🇹🇭 [th](../th/llm.txt) · 🇹🇷 [tr](../tr/llm.txt) · 🇺🇦 [uk-UA](../uk-UA/llm.txt) · 🇵🇰 [ur](../ur/llm.txt) · 🇻🇳 [vi](../vi/llm.txt) · 🇨🇳 [zh-CN](../zh-CN/llm.txt)
 
 ---
 
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 160+ AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (29 tools), A2A v0.3 protocol, Memory/Skills systems, and an Electron desktop app.
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 60+ AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (25 tools), A2A v0.3 protocol, Memory/Skills systems, and an Electron desktop app.
-
-## Tổng quan
+## Overview
 
 OmniRoute solves the problem of managing multiple AI provider subscriptions, quotas, and rate limits. It sits between your AI-powered tools (IDE agents, CLI tools) and AI providers, routing requests intelligently through a 4-tier fallback system: Subscription → API Key → Cheap → Free.
 
 **Key value:** One endpoint (`http://localhost:20128/v1`), unlimited models, zero downtime, minimal cost.
 
-**Current version:** 3.5.5
+**Current version:** 3.8.0
 
 ## Tech Stack
 
@@ -27,7 +26,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Background jobs:** Custom token health check scheduler, 24h model auto-sync
 - **Streaming:** Server-Sent Events (SSE) for real-time proxy responses
 - **Proxy engine:** Custom pipeline with format translation, circuit breaker, rate limiting, auto-combo engine
-- **i18n:** next-intl with 30 languages
+- **i18n:** next-intl with 40+ languages
 - **Desktop:** Electron (cross-platform: Windows, macOS, Linux)
 - **Package:** Published on npm (`omniroute`) and Docker Hub (`diegosouzapw/omniroute`)
 
@@ -99,7 +98,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── configAudit.ts        # Configuration auditing
 │   │   └── responses.ts          # Domain response types
 │   ├── i18n/                     # Internationalization
-│   │   └── messages/             # 30 language JSON files
+│   │   └── messages/             # 40+ language JSON files
 │   ├── lib/                      # Core libraries
 │   │   ├── a2a/                  # Agent-to-Agent v0.3 protocol server
 │   │   │   ├── skills/           # A2A skills (quotaManagement, smartRouting)
@@ -170,7 +169,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   └── manager.ts            # MITM proxy manager
 │   ├── shared/                   # Shared utilities, components, and constants
 │   │   ├── components/           # Reusable UI components (Card, Badge, Button, Modal, Sidebar, ProviderIcon, etc.)
-│   │   ├── constants/            # Provider definitions (60+), model lists, pricing, routing strategies, MCP scopes
+│   │   ├── constants/            # Provider definitions (160+), model lists, pricing, routing strategies, MCP scopes
 │   │   ├── contracts/            # Shared API contracts
 │   │   ├── hooks/                # React hooks
 │   │   ├── middleware/           # Shared middleware utilities
@@ -206,7 +205,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── chatCore.ts           # Main chat completions handler
 │   │   ├── responsesHandler.ts   # OpenAI Responses API handler
 │   │   ├── embeddings.ts         # Embedding generation
-│   │   ├── imageGeneration.ts    # Image generation (DALL-E, FLUX, SD, etc.)
+│   │   ├── imageGeneration.ts    # Image generation (GPT-Image, FLUX, SD, etc.)
 │   │   ├── videoGeneration.ts    # Video generation
 │   │   ├── musicGeneration.ts    # Music generation
 │   │   ├── audioSpeech.ts        # Text-to-speech
@@ -214,7 +213,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   ├── moderations.ts        # Content moderation
 │   │   ├── rerank.ts             # Reranking API
 │   │   └── search.ts             # Web search API
-│   ├── mcp-server/               # Built-in MCP server (25 tools, 3 transports: stdio/SSE/streamable-HTTP)
+│   ├── mcp-server/               # Built-in MCP server (29 tools, 3 transports: stdio/SSE/streamable-HTTP)
 │   │   ├── server.ts             # MCP server core (tool registration, scope enforcement)
 │   │   ├── tools/                # Tool implementations (advancedTools, memoryTools, skillTools)
 │   │   ├── schemas/              # Zod input schemas (tools, audit, a2a)
@@ -274,7 +273,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   ├── CLI-TOOLS.md              # CLI tools integration guide
 │   ├── A2A-SERVER.md             # A2A agent protocol documentation
 │   ├── AUTO-COMBO.md             # Auto-combo engine (6-factor scoring)
-│   ├── MCP-SERVER.md             # MCP server (25 tools)
+│   ├── MCP-SERVER.md             # MCP server (29 tools)
 │   ├── TROUBLESHOOTING.md        # Troubleshooting guide
 │   ├── VM_DEPLOYMENT_GUIDE.md    # VPS deployment guide
 │   ├── openapi.yaml              # OpenAPI specification
@@ -284,11 +283,11 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 └── .env.example                  # Environment variable template
 ```
 
-## Key Features (v3.5.5)
+## Key Features (v3.8.0)
 
 ### Core Proxy
-- **60+ AI providers** with automatic format translation
-- **4 provider categories**: Free (4), OAuth (8), API Key (48+), Custom (OpenAI/Anthropic-compatible)
+- **160+ AI providers** with automatic format translation
+- **4 provider categories**: Free (4), OAuth (8), API Key (120+), Self-Hosted (8+), Custom (OpenAI/Anthropic-compatible)
 - **13 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
 - **Context Relay strategy**: Session handoff summaries on account rotation for continuity
@@ -306,7 +305,8 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Cloudflare Tunnels**: Managed tunnel creation for remote access
 - **122 unit test files** with comprehensive coverage (55% statements/lines/functions, 60% branches)
 
-### Bảo mật
+### Security
+- **Data Loss Prevention**: SQLite migration safety bounds abort startup on dangerous massive schema overrides. Pre-migration `VACUUM INTO` backups isolate rollback snapshots.
 - **CodeQL security**: Fixed 10+ CodeQL alerts (polynomial-redos, insecure-randomness, shell-injection, SSRF, incomplete URLs)
 - **Web Crypto session IDs**: `generateSessionId` uses `crypto.getRandomValues()` instead of `Math.random()`
 - **Route validation**: All API routes validated with Zod v4 schemas + `validateBody()`
@@ -331,7 +331,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **CLI Tools** — One-click configuration for 10+ AI CLI tools
 - **CLI Agents** — Grid of 14+ built-in agents with ProviderIcon and install detection + custom agent registration
 - **Playground** — Test any model with Monaco editor, streaming responses
-- **Media** — Image/video/music generation (DALL-E, FLUX, etc.) + audio transcription (up to 2GB files)
+- **Media** — Image/video/music generation (GPT-Image, FLUX, etc.) + audio transcription (up to 2GB files)
 - **Search Tools** — Search provider configuration and testing
 - **Memory** — Memory system management and visualization
 - **Skills** — Skills framework management and execution
@@ -349,14 +349,15 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
 - **Ollama** — `/v1/api/chat`, `/api/tags`
 - **Search** — `/v1/search` (Perplexity, Serper, Brave, Exa, Tavily)
-- **MCP** — 25-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **MCP** — 29-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
 - **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, smart-routing + quota-management skills)
 - **ACP** — Agent Communication Protocol registry and manager
 
-### MCP Server (25 Tools)
+### MCP Server (29 Tools)
 | Category  | Tools |
 |-----------|-------|
-| Core (18)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `sync_pricing` |
+| Core (20)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing` |
+| Cache (2)  | `cache_stats`, `cache_flush` |
 | Memory (3) | `memory_search`, `memory_add`, `memory_clear` |
 | Skills (4) | `skills_list`, `skills_enable`, `skills_execute`, `skills_executions` |
 
@@ -373,8 +374,8 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 **Custom Providers:** OpenAI-compatible (`openai-compatible-*`) and Anthropic-compatible (`anthropic-compatible-*`) with custom base URLs
 
 ### Internationalization
-- 30 languages for UI (all dashboard pages)
-- 30 translated documentation sets in docs/i18n/
+- 40+ languages for UI (all dashboard pages)
+- 40 translated documentation sets in docs/i18n/
 - Language switcher in documentation
 
 ## Key Architectural Decisions

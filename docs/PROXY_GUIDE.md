@@ -10,7 +10,7 @@ OmniRoute includes a full-featured proxy management system that lets you route u
 
 - [Why Use Proxies?](#why-use-proxies)
 - [Architecture Overview](#architecture-overview)
-- [3-Level Proxy System](#3-level-proxy-system)
+- [4-Level Proxy System](#4-level-proxy-system)
 - [Proxy Registry (CRUD)](#proxy-registry-crud)
 - [1proxy Free Marketplace](#1proxy-free-proxy-marketplace)
 - [Proxy Rotation](#proxy-rotation)
@@ -78,7 +78,7 @@ Even outside blocked regions, proxies are useful for:
 
 ---
 
-## 3-Level Proxy System
+## 4-Level Proxy System
 
 OmniRoute supports proxy configuration at **four independent scopes**, resolved in priority order:
 
@@ -471,6 +471,10 @@ curl -X PUT "http://localhost:20128/api/upstream-proxy/openai" \
 | `GET`    | `/api/v1/management/proxies/assignments`          | List assignments      |
 | `GET`    | `/api/v1/management/proxies/health`               | Proxy health stats    |
 
+### Tunnels API
+
+For exposing your OmniRoute instance to the public internet (Cloudflare/ngrok/Tailscale) instead of routing outbound through a proxy, see [TUNNELS_GUIDE.md](./TUNNELS_GUIDE.md). The tunnel REST API lives under `/api/tunnels/{cloudflared,ngrok,tailscale}/*` and is orthogonal to the outbound proxy chain documented above.
+
 ### 1proxy API
 
 | Method   | Endpoint                               | Description             |
@@ -495,13 +499,13 @@ curl -X PUT "http://localhost:20128/api/upstream-proxy/openai" \
 
 ## Environment Variables
 
-| Variable                         | Default                               | Description                     |
-| -------------------------------- | ------------------------------------- | ------------------------------- |
-| `ENABLE_SOCKS5_PROXY`            | `false`                               | Enable SOCKS5 proxy support     |
-| `ONEPROXY_ENABLED`               | `true`                                | Enable 1proxy integration       |
-| `ONEPROXY_API_URL`               | `https://1proxy-api.aitradepulse.com` | 1proxy API endpoint             |
-| `ONEPROXY_MAX_PROXIES`           | `500`                                 | Maximum proxies to sync         |
-| `ONEPROXY_MIN_QUALITY_THRESHOLD` | `50`                                  | Minimum quality score to import |
+| Variable                         | Default                               | Description                                                    |
+| -------------------------------- | ------------------------------------- | -------------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY`            | `true`                                | Enable SOCKS5 proxy support (default `true` in `.env.example`) |
+| `ONEPROXY_ENABLED`               | `true`                                | Enable 1proxy integration                                      |
+| `ONEPROXY_API_URL`               | `https://1proxy-api.aitradepulse.com` | 1proxy API endpoint                                            |
+| `ONEPROXY_MAX_PROXIES`           | `500`                                 | Maximum proxies to sync                                        |
+| `ONEPROXY_MIN_QUALITY_THRESHOLD` | `50`                                  | Minimum quality score to import                                |
 
 ---
 

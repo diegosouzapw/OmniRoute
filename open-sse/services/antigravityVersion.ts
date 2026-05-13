@@ -5,7 +5,7 @@ const ANTIGRAVITY_GITHUB_RELEASE_URL =
 
 export const ANTIGRAVITY_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 export const ANTIGRAVITY_VERSION_FETCH_TIMEOUT_MS = 5_000;
-export const ANTIGRAVITY_FALLBACK_VERSION = "1.23.2";
+export const ANTIGRAVITY_FALLBACK_VERSION = "4.1.33";
 
 type VersionCache = {
   fetchedAt: number;
@@ -22,6 +22,25 @@ function normalizeVersion(value: unknown): string | null {
   const trimmed = value.trim().replace(/^v/i, "");
   const match = trimmed.match(/^(\d+\.\d+\.\d+)\b/);
   return match ? match[1] : null;
+}
+
+function compareSemver(a: string, b: string): number {
+  const aParts = a.split(".").map((part) => Number.parseInt(part, 10) || 0);
+  const bParts = b.split(".").map((part) => Number.parseInt(part, 10) || 0);
+  for (let i = 0; i < 3; i += 1) {
+    if (aParts[i] !== bParts[i]) return aParts[i] - bParts[i];
+  }
+  return 0;
+}
+
+function pickNewestVersion(...versions: Array<string | null | undefined>): string {
+  return versions
+    .map((version) => normalizeVersion(version))
+    .filter((version): version is string => !!version)
+    .reduce(
+      (best, version) => (compareSemver(version, best) > 0 ? version : best),
+      ANTIGRAVITY_FALLBACK_VERSION
+    );
 }
 
 async function fetchJsonWithTimeout(fetchImpl: FetchLike, url: string): Promise<unknown> {
@@ -105,7 +124,9 @@ export async function resolveAntigravityVersion(fetchImpl: FetchLike = fetch): P
 
   inFlightRequest = (async () => {
     const resolved = await fetchLatestAntigravityVersion(fetchImpl);
-    const version = resolved || versionCache?.version || ANTIGRAVITY_FALLBACK_VERSION;
+    const version = resolved
+      ? pickNewestVersion(resolved, ANTIGRAVITY_FALLBACK_VERSION)
+      : pickNewestVersion(versionCache?.version, ANTIGRAVITY_FALLBACK_VERSION);
 
     if (resolved) {
       versionCache = {
