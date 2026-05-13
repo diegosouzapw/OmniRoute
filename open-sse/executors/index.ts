@@ -19,9 +19,12 @@ import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
+import { WindsurfExecutor } from "./windsurf.ts";
+import { DevinCliExecutor } from "./devin-cli.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -37,6 +40,8 @@ const executors = {
   glmt: new GlmExecutor("glmt"),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
+  "command-code": new CommandCodeExecutor(),
+  cmd: new CommandCodeExecutor(), // Alias
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
@@ -62,6 +67,10 @@ const executors = {
   "bb-web": new BlackboxWebExecutor(), // Alias
   "muse-spark-web": new MuseSparkWebExecutor(),
   "ms-web": new MuseSparkWebExecutor(), // Alias
+  windsurf: new WindsurfExecutor(),
+  ws: new WindsurfExecutor(), // Alias
+  "devin-cli": new DevinCliExecutor(),
+  devin: new DevinCliExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -99,6 +108,9 @@ export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
+export { WindsurfExecutor } from "./windsurf.ts";
+export { DevinCliExecutor } from "./devin-cli.ts";

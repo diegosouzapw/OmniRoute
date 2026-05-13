@@ -11,6 +11,7 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
+  CLOUD_AGENT_PROVIDERS,
 } from "@/shared/constants/providers";
 import { useRouter } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -488,6 +489,13 @@ export default function ProvidersPage() {
     searchQuery
   );
 
+  const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
+  const cloudAgentProviderEntries = filterConfiguredProviderEntries(
+    cloudAgentProviderEntriesAll,
+    showConfiguredOnly,
+    searchQuery
+  );
+
   const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
   const upstreamProxyEntries = filterConfiguredProviderEntries(
     upstreamProxyEntriesAll,
@@ -955,6 +963,51 @@ export default function ProvidersPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {audioProviderEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Cloud Agent Providers */}
+      {cloudAgentProviderEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("cloudAgentProviders")}{" "}
+              <span
+                className="size-2.5 rounded-full bg-violet-500"
+                title={t("cloudAgentProviders")}
+              />
+              <ProviderCountBadge {...countConfigured(cloudAgentProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("cloud-agent")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "cloud-agent"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "cloud-agent" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {cloudAgentProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
                   key={providerId}

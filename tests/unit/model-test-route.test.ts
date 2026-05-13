@@ -94,8 +94,8 @@ test("model test route requires management auth when login protection is enabled
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
-  assert.equal(invalidToken.status, 401);
-  assert.equal(invalidTokenBody.error.message, "Invalid API key");
+  assert.equal(invalidToken.status, 403);
+  assert.equal(invalidTokenBody.error.message, "Invalid management token");
 });
 
 test("model test route ignores forwarded hosts and works in strict API-key mode", async () => {

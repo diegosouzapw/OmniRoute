@@ -209,19 +209,15 @@ export function buildGeminiTools(
     }
   }
 
-  if (googleSearchTool && functionDeclarations.length > 0) {
-    console.warn(
-      `[GeminiTools] Removing ${functionDeclarations.length} functionDeclarations because googleSearch cannot be mixed with Gemini function tools`
-    );
-  }
+  const result: GeminiTool[] = [];
 
   if (googleSearchTool) {
     return [googleSearchTool];
   }
 
   if (functionDeclarations.length > 0) {
-    return [{ functionDeclarations }];
+    result.push({ functionDeclarations });
   }
 
-  return undefined;
+  return result.length > 0 ? result : undefined;
 }

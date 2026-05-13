@@ -1,14 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { validateProviderApiKey, validateClaudeCodeCompatibleProvider } =
-  await import("../../src/lib/providers/validation.ts");
+const {
+  validateProviderApiKey,
+  validateClaudeCodeCompatibleProvider,
+  validateCommandCodeProvider,
+} = await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
 });
+
+function toPlainHeaders(headers: any) {
+  if (headers instanceof Headers) return Object.fromEntries(headers.entries());
+  return Object.fromEntries(
+    Object.entries(headers || {}).map(([key, value]) => [key, String(value)])
+  );
+}
 
 function metaAiSseText(content: string, streamingState = "DONE") {
   return `event: next
@@ -71,6 +81,28 @@ test("specialty provider validators cover Deepgram, AssemblyAI, NanoBanana, Elev
   assert.equal(banana.error, "Invalid API key");
   assert.equal(eleven.valid, true);
   assert.equal(inworld.valid, true);
+});
+
+test("validateCommandCodeProvider ignores caller baseUrl and chatPath overrides", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    assert.equal(String(url), "https://api.commandcode.ai/alpha/generate");
+    const headers = init.headers as Record<string, string>;
+    assert.equal(headers.Authorization, "Bearer cc-key");
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.params.model, "command-code-validation-model");
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+
+  const result = await validateCommandCodeProvider({
+    apiKey: "cc-key",
+    providerSpecificData: {
+      baseUrl: "https://evil.example/api",
+      chatPath: "/v1/chat/completions",
+      validationModelId: "command-code-validation-model",
+    },
+  });
+
+  assert.equal(result.valid, true);
 });
 
 test("specialty providers surface network failures and non-auth upstream failures", async () => {
@@ -1875,4 +1907,64 @@ test("specialty validator rejects invalid Runway credentials", async () => {
   });
 
   assert.equal(runway.error, "Invalid API key");
+});
+
+test("validateCommandCodeProvider sends Command Code probe URL, headers, and wrapper body", async () => {
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({
+      url: String(url),
+      method: init.method,
+      headers: toPlainHeaders(init.headers),
+      body: JSON.parse(String(init.body)),
+    });
+    return new Response("", { status: 400 });
+  };
+
+  const result = await validateCommandCodeProvider({
+    apiKey: "cc_test_key",
+    providerSpecificData: { validationModelId: "gpt-5.4-mini" },
+  });
+
+  assert.deepEqual(result, { valid: true, error: null });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(calls[0].method, "POST");
+  assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
+  assert.equal(calls[0].headers["Content-Type"], "application/json");
+  assert.equal(calls[0].headers["x-command-code-version"], "0.24.1");
+  assert.equal(calls[0].headers["x-cli-environment"], "production");
+  assert.equal(calls[0].headers["x-project-slug"], "pi-cc");
+  assert.equal(calls[0].headers["x-taste-learning"], "false");
+  assert.equal(calls[0].headers["x-co-flag"], "false");
+  assert.equal(typeof calls[0].headers["x-session-id"], "string");
+  assert.equal(calls[0].body.config.environment, "omniroute-validation");
+  assert.equal(calls[0].body.permissionMode, "standard");
+  assert.equal(calls[0].body.params.model, "gpt-5.4-mini");
+  assert.equal(calls[0].body.params.stream, true);
+  assert.equal(calls[0].body.params.max_tokens, 1);
+});
+
+for (const status of [400, 422, 429]) {
+  test(`validateCommandCodeProvider accepts ${status} as direct validator auth success`, async () => {
+    globalThis.fetch = async () => new Response("", { status });
+    assert.deepEqual(await validateCommandCodeProvider({ apiKey: "cc_test_key" }), {
+      valid: true,
+      error: null,
+    });
+  });
+}
+
+test("validateCommandCodeProvider rejects auth failures and provider outages", async () => {
+  globalThis.fetch = async () => new Response("unauthorized", { status: 401 });
+  assert.deepEqual(await validateCommandCodeProvider({ apiKey: "bad" }), {
+    valid: false,
+    error: "Invalid API key",
+  });
+
+  globalThis.fetch = async () => new Response("server down", { status: 500 });
+  assert.deepEqual(await validateCommandCodeProvider({ apiKey: "cc_test_key" }), {
+    valid: false,
+    error: "Provider unavailable (500)",
+  });
 });

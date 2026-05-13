@@ -58,22 +58,33 @@ export async function POST(request: Request) {
       cursorService.validateImportToken(accessToken.trim(), machineId?.trim())
     );
 
-    // Try to extract user info from token
-    const userInfo = cursorService.extractUserInfo(tokenData.accessToken);
+    // Try to extract user info from token (JWT decode, no API call)
+    const jwtInfo = cursorService.extractUserInfo(tokenData.accessToken);
 
-    // Save to database
+    // Best-effort fetch real profile (email + name) from cursor.com using the
+    // same WorkOS session cookie format we use for usage limits.
+    const profile = jwtInfo?.userId
+      ? await runWithProxyContext(proxy, () =>
+          cursorService.fetchUserInfo(tokenData.accessToken, jwtInfo.userId)
+        )
+      : null;
+
+    const email = profile?.email || jwtInfo?.email || null;
+
+    // Save to database (no `name` — let the dashboard fall back to email so the
+    // privacy mask toggle applies, matching the codex/claude rendering).
     const connection: any = await createProviderConnection({
       provider: "cursor",
       authType: "oauth",
       accessToken: tokenData.accessToken,
       refreshToken: null, // Cursor doesn't have public refresh endpoint
       expiresAt: new Date(Date.now() + tokenData.expiresIn * 1000).toISOString(),
-      email: userInfo?.email || null,
+      email,
       providerSpecificData: {
         machineId: tokenData.machineId,
         authMethod: "imported",
         provider: "Imported",
-        userId: userInfo?.userId,
+        userId: jwtInfo?.userId,
       },
       testStatus: "active",
     });
