@@ -3,16 +3,6 @@ import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
-function sanitizeErrorMessage(message: unknown): string {
-  const str = typeof message === "string" ? message : String(message ?? "");
-  return str.split("\n")[0] || str;
-}
-
-/**
- * Sanitize an error message to prevent stack trace exposure in API responses.
- * Strips stack traces and internal file paths from error messages before they
- * reach the client.
- */
 interface ErrorResponseBody {
   error: {
     message: string;
