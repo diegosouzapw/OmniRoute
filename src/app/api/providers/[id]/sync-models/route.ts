@@ -212,7 +212,7 @@ export function __resetLoopbackReadinessForTests(): void {
 export type SelfFetchWithRetryOptions = {
   /** Injectable fetch implementation; defaults to global fetch. */
   fetch?: typeof fetch;
-  /** Maximum number of HTTP attempts before falling back. Default: 5. */
+  /** Maximum number of HTTP attempts before falling back. Default: 3. */
   maxRetries?: number;
   /**
    * Base backoff in ms. Each attempt waits backoffMs * (attempt + 1) before
