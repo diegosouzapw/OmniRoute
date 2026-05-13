@@ -87,8 +87,8 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    console.log("Kiro-compatible import token error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Kiro-compatible import token error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

@@ -34,7 +34,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
     return NextResponse.json({ mapping });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to get mapping" }, { status: 500 });
+    console.error("Failed to get mapping:", error);
+    return NextResponse.json({ error: "Failed to get mapping" }, { status: 500 });
   }
 }
 
@@ -58,8 +59,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
     return NextResponse.json({ mapping });
   } catch (error: any) {
+    console.error("Failed to update mapping:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update mapping" },
+      { error: "Failed to update mapping" },
       { status: 500 }
     );
   }
@@ -79,8 +81,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error("Failed to delete mapping:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to delete mapping" },
+      { error: "Failed to delete mapping" },
       { status: 500 }
     );
   }

@@ -184,6 +184,18 @@ export const APIKEY_PROVIDERS = {
     freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
   },
+  "command-code": {
+    id: "command-code",
+    alias: "cmd",
+    name: "Command Code",
+    icon: "terminal",
+    color: "#111827",
+    textIcon: "CC",
+    website: "https://commandcode.ai/",
+    authHint:
+      "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
+    apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
+  },
   openrouter: {
     id: "openrouter",
     alias: "openrouter",

@@ -1,5 +1,5 @@
 ---
-name: capture-release-evidences-codex
+name: capture-release-evidences-cx
 description: Automatically run the browser_subagent to visually validate all new UI features from the current release and capture evidence WebP recordings of the changes.
 ---
 

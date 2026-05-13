@@ -265,9 +265,6 @@ async function saveAndRespond(
     });
   } catch (error: any) {
     console.error("[kiro auto-import] save error:", error);
-    return NextResponse.json(
-      { found: false, error: `Import failed: ${error.message}` },
-      { status: 500 }
-    );
+    return NextResponse.json({ found: false, error: "Internal server error" }, { status: 500 });
   }
 }

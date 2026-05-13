@@ -26,8 +26,9 @@ export async function GET(request: Request) {
     const mappings = await getModelComboMappings();
     return NextResponse.json({ mappings });
   } catch (error: any) {
+    console.error("Failed to list model-combo mappings:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to list model-combo mappings" },
+      { error: "Failed to list model-combo mappings" },
       { status: 500 }
     );
   }
@@ -55,8 +56,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ mapping }, { status: 201 });
   } catch (error: any) {
+    console.error("Failed to create model-combo mapping:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create model-combo mapping" },
+      { error: "Failed to create model-combo mapping" },
       { status: 500 }
     );
   }

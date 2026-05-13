@@ -155,8 +155,8 @@ export async function GET(
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    console.log("OAuth GET error:", error);
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    console.error("OAuth GET error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -227,7 +227,8 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
       serverPort: port,
     });
   } catch (error) {
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    console.error("OAuth start-callback-server error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -593,7 +594,8 @@ export async function POST(
           },
         });
       } catch (exchangeErr: any) {
-        return NextResponse.json({ success: false, error: exchangeErr.message }, { status: 500 });
+        console.error("OAuth exchange error:", exchangeErr);
+        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
       }
     }
 
@@ -669,8 +671,8 @@ export async function POST(
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    console.log("OAuth POST error:", error);
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    console.error("OAuth POST error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

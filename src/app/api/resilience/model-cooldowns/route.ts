@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   clearModelUnavailability,
   getAvailabilityReport,
   resetAllAvailability,
 } from "@/domain/modelAvailability";
+import { validateBody } from "@/shared/validation/helpers";
+
+const deleteCooldownSchema = z
+  .object({
+    provider: z.string().optional(),
+    model: z.string().optional(),
+    all: z.boolean().optional(),
+  })
+  .passthrough();
 
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -24,11 +34,12 @@ export async function GET() {
 
 export async function DELETE(request: Request) {
   try {
-    const body = (await request.json().catch(() => ({}))) as {
-      provider?: string;
-      model?: string;
-      all?: boolean;
-    };
+    const rawBody = await request.json().catch(() => ({}));
+    const validation = validateBody(deleteCooldownSchema, rawBody);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const body = validation.data;
 
     if (body.all) {
       resetAllAvailability();

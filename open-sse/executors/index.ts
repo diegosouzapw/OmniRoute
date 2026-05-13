@@ -19,6 +19,7 @@ import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
@@ -39,6 +40,8 @@ const executors = {
   glmt: new GlmExecutor("glmt"),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
+  "command-code": new CommandCodeExecutor(),
+  cmd: new CommandCodeExecutor(), // Alias
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
@@ -105,6 +108,7 @@ export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";

@@ -429,6 +429,7 @@ When a provider fails (rate limit, outage, error), Auto-Combo automatically:
 - **GitHub**: [github.com/diegosouzapw/OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
+- 🇧🇷 **Official Brazilian WhatsApp Group**: [Community Group](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
 - **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 

@@ -347,7 +347,7 @@ function ConnectionCooldownCard({
         {editing ? (
           <>
             <NumberField
-              label="Cooldown base"
+              label="Base cooldown"
               value={current.baseCooldownMs}
               min={0}
               suffix="ms"
@@ -356,7 +356,7 @@ function ConnectionCooldownCard({
               }
             />
             <BooleanField
-              label="Usar dicas de retry do upstream"
+              label="Use upstream retry hints"
               description="Usa valores de retry-after/reset do upstream quando disponíveis."
               checked={current.useUpstreamRetryHints}
               onChange={(useUpstreamRetryHints) =>
@@ -409,7 +409,7 @@ function ConnectionCooldownCard({
               </p>
             </div>
             <NumberField
-              label="Máximo de passos de backoff"
+              label="Max backoff steps"
               value={current.maxBackoffSteps}
               min={0}
               onChange={(maxBackoffSteps) =>
@@ -420,11 +420,11 @@ function ConnectionCooldownCard({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Cooldown base</span>
+              <span className="text-text-muted">Base cooldown</span>
               <span className="font-mono text-text-main">{formatMs(current.baseCooldownMs)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Usar dicas de retry do upstream</span>
+              <span className="text-text-muted">Use upstream retry hints</span>
               <span className="font-mono text-text-main">
                 {current.useUpstreamRetryHints ? "Sim" : "Não"}
               </span>
@@ -440,7 +440,7 @@ function ConnectionCooldownCard({
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Máximo de passos de backoff</span>
+              <span className="text-text-muted">Max backoff steps</span>
               <span className="font-mono text-text-main">{current.maxBackoffSteps}</span>
             </div>
           </>
@@ -455,7 +455,7 @@ function ConnectionCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">timer_off</span>
-            <h2 className="text-lg font-bold">Cooldown de Conexão</h2>
+            <h2 className="text-lg font-bold">Connection Cooldown</h2>
           </div>
           <SectionDescription
             scope="Conexão individual"
