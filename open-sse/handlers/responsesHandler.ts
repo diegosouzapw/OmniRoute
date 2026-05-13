@@ -7,7 +7,8 @@ import { CORS_HEADERS } from "../utils/cors.ts";
 import { handleChatCore } from "./chatCore.ts";
 import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHelper.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
-import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
+import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
+import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
 
 /**
  * Handle /v1/responses request
@@ -71,7 +72,11 @@ export async function handleResponsesCore({
   const transformStream = createResponsesApiTransformStream(null);
   const transformedBody = response.body
     .pipeThrough(transformStream)
-    .pipeThrough(createSseHeartbeatTransform({ signal }));
+    .pipeThrough(createSseHeartbeatTransform({
+      signal,
+      intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
+      shape: HEARTBEAT_SHAPES.OPENAI_RESPONSES_IN_PROGRESS,
+    }));
 
   return {
     success: true,
