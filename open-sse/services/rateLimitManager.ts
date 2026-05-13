@@ -738,6 +738,7 @@ export async function __resetRateLimitManagerForTests() {
   enabledConnections.clear();
   initialized = false;
   lastDispatchAt.clear();
+  shutdownHandlersRegistered = false;
 
   for (const key of Object.keys(learnedLimits)) {
     delete learnedLimits[key];
