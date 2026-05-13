@@ -12,6 +12,8 @@ pkg upgrade
 pkg install nodejs-lts python build-essential git
 ```
 
+> **Node.js version:** OmniRoute requires Node `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27` (per `engines` in `package.json`). Termux's `nodejs-lts` typically ships Node 20 LTS, which is compatible. If `node --version` reports an older line, install `pkg install nodejs` (current) and verify the major matches a supported range.
+
 If native package compilation fails, rerun the `pkg install` command above and then retry the OmniRoute install.
 
 ## Install

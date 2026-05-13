@@ -85,13 +85,13 @@ export const CloudAgentActivitySchema = z.object({
   type: z.enum(["plan", "command", "code_change", "message", "error", "completion"]),
   content: z.string(),
   timestamp: z.string().datetime(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const CloudAgentTaskOptionsSchema = z.object({
   autoCreatePr: z.boolean().optional(),
   planApprovalRequired: z.boolean().optional(),
-  environment: z.record(z.string()).optional(),
+  environment: z.record(z.string(), z.string()).optional(),
 });
 
 export const CreateCloudAgentTaskSchema = z.object({

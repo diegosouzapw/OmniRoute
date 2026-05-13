@@ -1,5 +1,13 @@
 # RFC: Auto-Assessment & Self-Healing Combo Engine
 
+> ⚠️ **ARCHIVED (DEPRECATED) — 2026-05-13**
+>
+> This RFC was partially implemented in `src/domain/assessment/` (Phase 1 ~30%: `assessor.ts`, `categorizer.ts`, `selfHealer.ts` exist; persistence is in-memory only, scoped to `auto/*` models).
+>
+> **The broader generic eval framework that supplanted this RFC** lives at `src/lib/evals/` and is documented in [EVALS.md](../EVALS.md). For Auto Combo scoring (which absorbed the "self-healing" direction), see [AUTO-COMBO.md](../AUTO-COMBO.md) and `open-sse/services/autoCombo/`.
+>
+> Kept here for historical context. Do not implement against this document — refer to the source files and the docs above.
+
 ## Summary
 
 Omniroute's combo system currently requires manual configuration: users must know which providers and models are actually working, then manually wire them into combo chains. When providers fail (rate limits, auth errors, model deprecation), combos silently degrade — routing to dead endpoints that timeout or return errors. There is no automated way to:

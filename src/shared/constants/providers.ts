@@ -1962,6 +1962,8 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
   return (
     providerId === "searxng-search" ||
     providerId === "petals" ||
+    providerId === "pollinations" ||
+    isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
     isAnthropicCompatibleProvider(providerId)

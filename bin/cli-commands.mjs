@@ -27,7 +27,13 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform, release } from "node:os";
 import { execSync, spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { resolveStoragePath } from "./cli/data-dir.mjs";
+import {
+  ensureProviderSchema,
+  getProviderApiKey,
+  listProviderConnections,
+  upsertApiKeyProviderConnection,
+} from "./cli/provider-store.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1357,8 +1363,7 @@ async function runKeysAdd(args) {
   }
 
   // Direct DB fallback
-  const dataDir = resolveConfigPath(".omniroute");
-  const dbPath = join(dataDir, "storage.sqlite");
+  const dbPath = resolveStoragePath();
 
   if (!existsSync(dbPath)) {
     log("Database not found. Start server first.", "red");
@@ -1371,24 +1376,28 @@ async function runKeysAdd(args) {
     const require = createRequire(import.meta.url);
     const Database = require("better-sqlite3");
     const db = new Database(dbPath);
+    ensureProviderSchema(db);
 
-    // Check if connection exists
     const existing = db
-      .prepare("SELECT id FROM provider_connections WHERE provider = ?")
+      .prepare(
+        "SELECT id, name FROM provider_connections WHERE provider = ? AND auth_type = 'apikey' ORDER BY priority ASC, updated_at DESC LIMIT 1"
+      )
       .get(providerLower);
-
-    if (existing) {
-      db.prepare("UPDATE provider_connections SET api_key = ? WHERE provider = ?").run(
-        apiKey,
-        providerLower
+    const connectionName = existing?.name || providerLower;
+    if (existing && !existing.name) {
+      db.prepare("UPDATE provider_connections SET name = ? WHERE id = ?").run(
+        connectionName,
+        existing.id
       );
-      log(`API key for ${provider} updated`, "green");
-    } else {
-      db.prepare(
-        "INSERT INTO provider_connections (id, provider, api_key, name, is_active) VALUES (?, ?, ?, ?, 1)"
-      ).run(randomUUID(), providerLower, apiKey, provider);
-      log(`API key for ${provider} added`, "green");
     }
+
+    upsertApiKeyProviderConnection(db, {
+      provider: providerLower,
+      name: connectionName,
+      apiKey,
+    });
+
+    log(`API key for ${provider} ${existing ? "updated" : "added"}`, "green");
 
     db.close();
   } catch (err) {
@@ -1401,8 +1410,7 @@ async function runKeysAdd(args) {
 async function runKeysList(args) {
   logSection("Configured API Keys");
 
-  const dataDir = resolveConfigPath(".omniroute");
-  const dbPath = join(dataDir, "storage.sqlite");
+  const dbPath = resolveStoragePath();
 
   if (!existsSync(dbPath)) {
     log("Database not found. Start server first.", "yellow");
@@ -1415,16 +1423,11 @@ async function runKeysList(args) {
     const require = createRequire(import.meta.url);
     const Database = require("better-sqlite3");
     const db = new Database(dbPath);
+    ensureProviderSchema(db);
 
-    const keys = db
-      .prepare(
-        `
-      SELECT provider_id, api_key, enabled
-      FROM provider_connections
-      WHERE api_key IS NOT NULL AND api_key != ''
-    `
-      )
-      .all();
+    const keys = listProviderConnections(db).filter(
+      (connection) => connection.authType === "apikey" && connection.apiKey
+    );
 
     db.close();
 
@@ -1432,14 +1435,20 @@ async function runKeysList(args) {
       log("No API keys configured", "yellow");
     } else {
       for (const key of keys) {
+        let rawApiKey = "";
+        try {
+          rawApiKey = getProviderApiKey(key);
+        } catch {
+          rawApiKey = key.apiKey || "";
+        }
         const masked =
-          key.api_key && key.api_key.length > 8
-            ? key.api_key.slice(0, 6) + "***" + key.api_key.slice(-4)
+          rawApiKey && rawApiKey.length > 8
+            ? rawApiKey.slice(0, 6) + "***" + rawApiKey.slice(-4)
             : "***";
-        const status = key.enabled
+        const status = key.isActive
           ? colorize("● enabled", "green")
           : colorize("○ disabled", "yellow");
-        log(`  ${key.provider_id.padEnd(20)} ${masked.padEnd(20)} ${status}`);
+        log(`  ${key.provider.padEnd(20)} ${masked.padEnd(20)} ${status}`);
       }
     }
   } catch (err) {
@@ -1459,8 +1468,7 @@ async function runKeysRemove(args) {
 
   logSection(`Removing API Key for ${provider}`);
 
-  const dataDir = resolveConfigPath(".omniroute");
-  const dbPath = join(dataDir, "storage.sqlite");
+  const dbPath = resolveStoragePath();
 
   if (!existsSync(dbPath)) {
     log("Database not found. Start server first.", "red");
@@ -1473,9 +1481,12 @@ async function runKeysRemove(args) {
     const require = createRequire(import.meta.url);
     const Database = require("better-sqlite3");
     const db = new Database(dbPath);
+    ensureProviderSchema(db);
 
     const result = db
-      .prepare("DELETE FROM provider_connections WHERE provider_id = ?")
+      .prepare(
+        "DELETE FROM provider_connections WHERE provider = ? AND (auth_type = 'apikey' OR (api_key IS NOT NULL AND api_key != ''))"
+      )
       .run(provider.toLowerCase());
 
     if (result.changes > 0) {

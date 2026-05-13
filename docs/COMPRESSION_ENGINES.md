@@ -21,12 +21,23 @@ The registry lives in `open-sse/services/compression/engines/registry.ts`. Engin
 contract:
 
 - `id`: stable engine id such as `caveman` or `rtk`
-- `label`: dashboard-readable name
-- `supports(mode)`: whether the engine can execute a compression mode
-- `compress(input)`: transforms text/messages and returns stats
+- `apply(text, config)`: legacy execution path used by stacked pipelines
+- `compress(input, config)`: primary execution path returning text + stats
+- `getConfigSchema()`: returns the JSON-Schema-like shape of valid config
+- `validateConfig(config)`: returns `{ valid, errors[] }`
+
+Registration uses `registerCompressionEngine(engine)` (or `registerEngine` for advanced cases),
+which calls `assertValidEngine()` and `validateConfig(defaultConfig)` before accepting.
+Use `unregisterCompressionEngine(id)` to remove an engine at runtime.
 
 `strategySelector.ts` registers the built-in engines before compression runs. This lets preview,
 runtime compression, stacked mode, tests, and future engines use the same execution path.
+
+### MCP description compression (related)
+
+A separate registry compresses MCP tool description metadata at registry-level — see
+`open-sse/mcp-server/descriptionCompressor.ts` and [MCP-SERVER.md](./MCP-SERVER.md). It reuses
+Caveman rules but operates on tool metadata, not request payloads.
 
 ## Caveman
 

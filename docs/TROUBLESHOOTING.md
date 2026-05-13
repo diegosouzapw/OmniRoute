@@ -14,7 +14,7 @@ Common problems and solutions for OmniRoute.
 | Dashboard opens on wrong port                       | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`                                                                                       |
 | No logs written to disk                             | Set `APP_LOG_TO_FILE=true` and verify call log capture is enabled                                                                                        |
 | EACCES: permission denied                           | Set `DATA_DIR=/path/to/writable/dir` to override `~/.omniroute`                                                                                          |
-| Routing strategy not saving                         | Update to v1.4.11+ (Zod schema fix for settings persistence)                                                                                             |
+| Routing strategy not saving                         | Update to the latest v3.x release (Zod schema fix for settings persistence shipped in earlier versions)                                                  |
 | Login crash / blank page                            | Check Node.js version — see [Node.js Compatibility](#nodejs-compatibility) below                                                                         |
 | `dlopen` / `slice is not valid mach-o file` (macOS) | Run `cd $(npm root -g)/omniroute/app && npm rebuild better-sqlite3 && omniroute` — see [macOS native module rebuild](#macos-native-module-rebuild) below |
 | Proxy "fetch failed"                                | Ensure proxy config is set at the correct level — see [Proxy Issues](#proxy-issues) below                                                                |
@@ -46,7 +46,7 @@ Common problems and solutions for OmniRoute.
 3. Reinstall OmniRoute: `npm install -g omniroute`
 4. Restart: `omniroute`
 
-> **Supported secure versions:** `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`. Node.js 24.x LTS (Krypton) is fully supported.
+> **Supported secure versions:** `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <27`. Node.js 24.x LTS (Krypton) and Node.js 26 are fully supported.
 
 ### macOS: `dlopen` / "slice is not valid mach-o file"
 
@@ -72,7 +72,7 @@ npm rebuild better-sqlite3
 omniroute
 ```
 
-> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range is **`>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25`** (`engines` field in `package.json`). Node.js 24.x LTS (Krypton) is fully supported with `better-sqlite3` v12.x.
+> **Note:** This recompiles the native binding against your local Node.js version and CPU architecture, resolving the binary mismatch. The officially supported range is **`>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <27`** (`engines` field in `package.json`). Node.js 24.x LTS (Krypton) and Node.js 26 are fully supported with `better-sqlite3` v12.x.
 
 ---
 
@@ -268,10 +268,10 @@ Use **Dashboard → Translator** to debug format translation issues:
 - **Thinking tags not appearing** — Check if the target provider supports thinking and the thinking budget setting
 - **Tool calls dropping** — Some format translations may strip unsupported fields; verify in Playground mode
 - **System prompt missing** — Claude and Gemini handle system prompts differently; check translation output
-- **SDK returns raw string instead of object** — Fixed in v1.1.0: response sanitizer now strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures
-- **GLM/ERNIE rejects `system` role** — Fixed in v1.1.0: role normalizer automatically merges system messages into user messages for incompatible models
-- **`developer` role not recognized** — Fixed in v1.1.0: automatically converted to `system` for non-OpenAI providers
-- **`json_schema` not working with Gemini** — Fixed in v1.1.0: `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`
+- **SDK returns raw string instead of object** — Resolved in v1.x; response sanitizer strips non-standard fields (`x_groq`, `usage_breakdown`, etc.) that cause OpenAI SDK Pydantic validation failures. If you still see this on v3.x+, please file an issue.
+- **GLM/ERNIE rejects `system` role** — Resolved in v1.x; role normalizer automatically merges system messages into user messages for incompatible models. If you still see this on v3.x+, please file an issue.
+- **`developer` role not recognized** — Resolved in v1.x; automatically converted to `system` for non-OpenAI providers. If you still see this on v3.x+, please file an issue.
+- **`json_schema` not working with Gemini** — Resolved in v1.x; `response_format` is now converted to Gemini's `responseMimeType` + `responseSchema`. If you still see this on v3.x+, please file an issue.
 
 ---
 
@@ -329,6 +329,118 @@ Full text and concrete recipes live here (MIT license, text only):
 [WFGY ProblemMap README](https://github.com/onestardao/WFGY/blob/main/ProblemMap/README.md)
 
 You can ignore this section if you do not run RAG or agent pipelines behind OmniRoute.
+
+---
+
+## v3.8.0 Known Issues
+
+Issues specific to the v3.8.0 release and their current workarounds. If a fix lands in a later patch, the entry will be updated or removed.
+
+### Windsurf OAuth flow fails with 401
+
+**Symptoms:**
+
+- "401 unauthorized" while completing the Windsurf OAuth flow from the dashboard
+- Windsurf provider card stays in "needs reconnection" state after the callback
+
+**Causes:**
+
+- `WINDSURF_FIREBASE_API_KEY` env var missing or empty
+- `WINDSURF_API_KEY` misconfigured or pointing at a stale token
+- Local firewall/proxy blocking the OAuth callback
+
+**Fix:**
+
+1. Verify both `WINDSURF_FIREBASE_API_KEY` and `WINDSURF_API_KEY` are set in `.env`
+2. Restart OmniRoute so the new env values are picked up
+3. Re-run the OAuth flow from **Dashboard → Providers → Windsurf → Reconnect**
+
+### Devin CLI auth failures
+
+**Symptoms:**
+
+- "Devin CLI not found" or "auth failed" when invoking Devin-backed tools
+- CLI runtime check reports `installed=false`
+
+**Causes:**
+
+- `CLI_DEVIN_BIN` points to a path that does not exist
+- Devin CLI is not installed on the host
+
+**Fix:**
+
+1. Install the Devin CLI for your platform
+2. Set `CLI_DEVIN_BIN=/usr/local/bin/devin` (or the real path) in `.env`
+3. Restart OmniRoute and re-test from **Dashboard → CLI Tools**
+
+### Model cooldown stuck (manual reset)
+
+**Symptoms:**
+
+- A model stays listed in cooldown even after the expiration time has passed
+- Requests still skip the model in combo routing despite the timestamp being in the past
+
+**Manual reset:**
+
+- **Dashboard:** **Settings → Model Cooldowns** → click **Re-enable** on the affected card
+- **API:** `DELETE /api/resilience/model-cooldowns` with management auth headers
+
+### Command Code provider connection fails with 403
+
+**Symptoms:**
+
+- 403 when testing the Command Code provider connection
+- The provider card shows "unauthorized" after a fresh add
+
+**Cause:** The OAuth flow did not complete (callback not received or token not persisted).
+
+**Fix:**
+
+- Run `omniroute providers` from the CLI to re-trigger the OAuth flow, or
+- Re-run OAuth from **Dashboard → Providers → Command Code → Reconnect**
+
+### ModelScope returns aggressive 429 cooldowns
+
+**Symptoms:**
+
+- Very short or immediate cooldowns on ModelScope after a small burst of requests
+- Combo routing skips ModelScope earlier than expected
+
+**Cause:** ModelScope emits provider-specific `Retry-After` headers. v3.8.0 ships dedicated handling for those headers, so older versions misread them as generic rate-limit hints.
+
+**Fix:**
+
+- Ensure you are on v3.8.0 or later
+- Verify the `useUpstream429BreakerHints` toggle is enabled under **Settings → Resilience**
+
+### OMNIROUTE_WS_BRIDGE_SECRET missing in production
+
+**Symptoms:**
+
+- 401 on every Codex/Responses WebSocket bridge request when running on a remote production host
+- WebSocket bridge handshake closes immediately after connect
+
+**Cause:** The `OMNIROUTE_WS_BRIDGE_SECRET` env var is missing from the production environment.
+
+**Fix:**
+
+1. Generate a random secret: `openssl rand -hex 32`
+2. Set `OMNIROUTE_WS_BRIDGE_SECRET=<random-secret>` in the production server env (and any client that talks to the bridge)
+3. Restart OmniRoute
+
+### Responses API: background mode degraded to synchronous
+
+**Symptoms:**
+
+- Warning logged: `background mode degraded to synchronous`
+- A `background: true` request returns a normal synchronous response instead of a background job handle
+
+**Cause:** v3.8.0 intentionally degrades `background: true` on the Responses API to synchronous execution while emitting a warning. Full async background execution is a future deliverable.
+
+**Fix:**
+
+- Adjust the client to call without `background`, or
+- Wait for a later release that ships full async background mode (track the changelog)
 
 ---
 

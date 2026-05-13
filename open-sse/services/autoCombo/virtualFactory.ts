@@ -1,4 +1,4 @@
-import { AutoComboConfig, SelectionResult } from "./engine";
+import { AutoComboConfig } from "./engine";
 import { MODE_PACKS } from "./modePacks";
 import { DEFAULT_WEIGHTS, ScoringWeights } from "./scoring";
 import { AutoVariant } from "./autoPrefix";
@@ -12,7 +12,8 @@ interface VirtualFactoryConn extends ConnectionFields {
   id: string;
   provider: string;
   defaultModel?: string;
-  oauthExpiresAt?: number | string; // timestamp or ISO string
+  expiresAt?: number | string | null;
+  tokenExpiresAt?: number | string | null;
 }
 
 export interface VirtualAutoComboCandidate {
@@ -23,38 +24,98 @@ export interface VirtualAutoComboCandidate {
   costPer1MTokens: number; // from providerRegistry
 }
 
+type VirtualAutoCombo = AutoComboConfig & {
+  strategy: "auto";
+  models: Array<{
+    id: string;
+    kind: "model";
+    model: string;
+    providerId: string;
+    connectionId: string;
+    weight: number;
+    label: string;
+  }>;
+  autoConfig: {
+    candidatePool: string[];
+    weights: ScoringWeights;
+    explorationRate: number;
+    routerStrategy: string;
+  };
+  config: {
+    auto: {
+      candidatePool: string[];
+      weights: ScoringWeights;
+      explorationRate: number;
+      routerStrategy: string;
+    };
+  };
+};
+
+function toExpiryMs(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim().length > 0
+        ? Number(value)
+        : Number.NaN;
+
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed < 10_000_000_000 ? parsed * 1000 : parsed;
+  }
+
+  if (typeof value === "string") {
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : null;
+  }
+
+  return null;
+}
+
+function hasUsableOAuthToken(conn: VirtualFactoryConn): boolean {
+  if (typeof conn.accessToken !== "string" || conn.accessToken.trim().length === 0) return false;
+
+  const expiryMs = toExpiryMs(conn.tokenExpiresAt) ?? toExpiryMs(conn.expiresAt);
+
+  return expiryMs === null || expiryMs > Date.now();
+}
+
 /**
  * Creates a virtual AutoCombo configuration dynamically based on connected providers and a specified variant.
  * This combo is not persisted in the DB.
  */
 export async function createVirtualAutoCombo(
   variant: AutoVariant | undefined
-): Promise<AutoComboConfig> {
+): Promise<VirtualAutoCombo> {
   const connections = (await getProviderConnections({ isActive: true })) as VirtualFactoryConn[];
 
   const validConnections = connections.filter((conn) => {
-    const hasApiKey = !!conn.apiKey;
-    let expiresAt: number;
-    if (typeof conn.oauthExpiresAt === "string") {
-      expiresAt = new Date(conn.oauthExpiresAt).getTime();
-    } else {
-      expiresAt = Number(conn.oauthExpiresAt) || 0;
-    }
-    const hasOAuthToken = !!conn.oauthToken && new Date(expiresAt) > new Date();
-    return hasApiKey || hasOAuthToken;
+    const hasApiKey = typeof conn.apiKey === "string" && conn.apiKey.trim().length > 0;
+    return hasApiKey || hasUsableOAuthToken(conn);
   });
 
   if (validConnections.length === 0) {
     log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
     const emptyPool: string[] = [];
-    return {
-      id: `virtual-auto-${variant || "default"}`,
-      name: `Auto ${variant || "Default"}`,
-      type: "auto" as const,
+    const autoConfig = {
       candidatePool: emptyPool,
       weights: { ...DEFAULT_WEIGHTS },
       explorationRate: 0.05,
       routerStrategy: "lkgp",
+    };
+    return {
+      id: `virtual-auto-${variant || "default"}`,
+      name: `Auto ${variant || "Default"}`,
+      type: "auto" as const,
+      strategy: "auto",
+      models: [],
+      candidatePool: emptyPool,
+      weights: autoConfig.weights,
+      explorationRate: autoConfig.explorationRate,
+      routerStrategy: autoConfig.routerStrategy,
+      autoConfig,
+      config: { auto: autoConfig },
     };
   }
 
@@ -109,15 +170,34 @@ export async function createVirtualAutoCombo(
       break;
   }
 
-  const pool = candidatePool.map((c) => c.modelStr);
+  const providerPool = [...new Set(candidatePool.map((c) => c.provider))];
+  const models = candidatePool.map((candidate, index) => ({
+    id: `virtual-auto-${variant || "default"}-${index + 1}-${candidate.provider}`,
+    kind: "model" as const,
+    model: candidate.modelStr,
+    providerId: candidate.provider,
+    connectionId: candidate.connectionId,
+    weight: 1,
+    label: candidate.provider,
+  }));
+  const autoConfig = {
+    candidatePool: providerPool,
+    weights,
+    explorationRate,
+    routerStrategy,
+  };
 
   return {
     id: `virtual-auto-${variant || "default"}`,
     name: `Auto ${variant || "Default"}`,
     type: "auto",
-    candidatePool: pool,
-    weights: weights,
-    explorationRate: explorationRate,
-    routerStrategy: routerStrategy,
+    strategy: "auto",
+    models,
+    candidatePool: providerPool,
+    weights,
+    explorationRate,
+    routerStrategy,
+    autoConfig,
+    config: { auto: autoConfig },
   };
 }

@@ -12,16 +12,20 @@ Language packs live under:
 open-sse/services/compression/rules/<language>/
 ```
 
-Current shipped packs include:
+Current shipped packs (verified against `rules/` directory contents):
 
-| Language            | Directory      |
-| ------------------- | -------------- |
-| English             | `rules/en/`    |
-| Portuguese (Brazil) | `rules/pt-BR/` |
-| Spanish             | `rules/es/`    |
-| German              | `rules/de/`    |
-| French              | `rules/fr/`    |
-| Japanese            | `rules/ja/`    |
+| Language            | Directory      | Rule categories present                             |
+| ------------------- | -------------- | --------------------------------------------------- |
+| English             | `rules/en/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
+| Spanish             | `rules/es/`    | `context`, `dedup`, `filler`, `structural`, `ultra` |
+| Portuguese (Brazil) | `rules/pt-BR/` | `context`, `filler`, `structural`                   |
+| German              | `rules/de/`    | `context`, `filler`, `structural`                   |
+| French              | `rules/fr/`    | `context`, `filler`, `structural`                   |
+| Japanese            | `rules/ja/`    | `context`, `filler`, `structural`                   |
+
+> **Parity note:** `en` and `es` packs have the full 5 categories; `pt-BR`, `de`, `fr`, `ja` ship 3 categories. The missing `dedup` and `ultra` categories silently fall back to the English built-ins. Contributions welcome to add `dedup.json` and `ultra.json` for the smaller packs.
+>
+> The canonical category list and per-category schema live in [`open-sse/services/compression/rules/_schema.json`](../open-sse/services/compression/rules/_schema.json) (JSON Schema draft 2020-12).
 
 ## Language Detection
 
