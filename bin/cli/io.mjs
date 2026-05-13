@@ -16,11 +16,31 @@ export function createPrompt() {
     });
   }
 
+  function askSecret(question) {
+    return new Promise((resolve) => {
+      let prompted = false;
+      const saved = rl._writeToOutput.bind(rl);
+      rl._writeToOutput = function (str) {
+        if (!prompted) {
+          rl.output.write(str);
+          if (str.endsWith(": ")) prompted = true;
+          return;
+        }
+        // Suppress character echo; allow only newlines through
+        if (str === "\r\n" || str === "\n" || str === "\r") rl.output.write("\n");
+      };
+      rl.question(`${question}: `, (answer) => {
+        rl._writeToOutput = saved;
+        resolve(answer.trim());
+      });
+    });
+  }
+
   function close() {
     rl.close();
   }
 
-  return { ask, close };
+  return { ask, askSecret, close };
 }
 
 export function printHeading(title) {

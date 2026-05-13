@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getModelComboMappings, createModelComboMapping } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
@@ -17,7 +18,10 @@ const createMappingSchema = z.object({
   description: z.string().max(1000).optional().default(""),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const mappings = await getModelComboMappings();
     return NextResponse.json({ mappings });
@@ -30,6 +34,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const rawBody = await request.json();
     const validation = validateBody(createMappingSchema, rawBody);

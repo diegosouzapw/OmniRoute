@@ -21,6 +21,7 @@ import {
   isGitLabDirectAccessDisabled,
   resolveGitLabOAuthBaseUrl,
 } from "@/lib/oauth/gitlab";
+import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -522,7 +523,8 @@ async function testOAuthConnection(connection: any) {
  * Test API key connection
  */
 async function testApiKeyConnection(connection: any) {
-  if (!connection.apiKey) {
+  const requiresApiKey = !providerAllowsOptionalApiKey(connection.provider);
+  if (requiresApiKey && !connection.apiKey) {
     const error = "Missing API key";
     return {
       valid: false,

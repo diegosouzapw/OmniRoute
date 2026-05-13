@@ -775,6 +775,11 @@ const connectionCooldownProfileSchema = z
   .object({
     baseCooldownMs: z.number().int().min(0).optional(),
     useUpstreamRetryHints: z.boolean().optional(),
+    // Issue #2100 follow-up: per-profile toggle for upstream 429 hint trust.
+    // `null` is an explicit unset sentinel — PATCH handler deletes the key
+    // from stored settings so the per-provider default resolves at runtime.
+    // `undefined` (key omitted) means "leave existing value unchanged".
+    useUpstream429BreakerHints: z.boolean().nullable().optional(),
     maxBackoffSteps: z.number().int().min(0).optional(),
   })
   .strict();
@@ -1262,6 +1267,12 @@ export const oauthPollSchema = z.object({
   deviceCode: z.string().trim().min(1),
   codeVerifier: z.string().optional(),
   extraData: z.unknown().optional(),
+});
+
+/** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
+export const oauthImportTokenSchema = z.object({
+  token: z.string().trim().min(1, "Token is required"),
+  connectionId: z.string().optional(),
 });
 
 export const cursorImportSchema = z.object({
@@ -1792,6 +1803,7 @@ export const v1SearchSchema = z
         "tavily-search",
         "google-pse-search",
         "linkup-search",
+        "ollama-search",
         "searchapi-search",
         "youcom-search",
         "searxng-search",

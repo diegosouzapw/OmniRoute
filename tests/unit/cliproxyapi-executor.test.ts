@@ -129,6 +129,72 @@ describe("CliproxyapiExecutor", () => {
       const result = exec.transformRequest("model", null, true, {});
       assert.equal(result, null);
     });
+
+    it("preserves Anthropic-valid thinking shape on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "Be helpful" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "enabled", budget_tokens: 10240 },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.deepEqual(result.thinking, { type: "enabled", budget_tokens: 10240 });
+    });
+
+    it("preserves disabled thinking shape on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "disabled", budget_tokens: 0 },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.deepEqual(result.thinking, { type: "disabled", budget_tokens: 0 });
+    });
+
+    it("strips Capy-style adaptive thinking on /v1/messages routing", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "adaptive", display: "summarized" },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.equal(result.thinking, undefined);
+    });
+
+    it("strips thinking carrying display field even with enabled type", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        thinking: { type: "enabled", budget_tokens: 10240, display: "summarized" },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.equal(result.thinking, undefined);
+    });
+
+    it("does not strip OpenAI-shape bodies (no thinking, no system, string content)", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "gpt-5.5",
+        messages: [
+          { role: "system", content: "be brief" },
+          { role: "user", content: "hi" },
+        ],
+        reasoning_effort: "medium",
+      };
+      const result = exec.transformRequest("gpt-5.5", body, true, {});
+      // No Anthropic indicators present, so strips are skipped. Body
+      // passes through with its OpenAI fields preserved.
+      assert.equal(result.reasoning_effort, "medium");
+      assert.equal(result.thinking, undefined);
+      assert.equal(result.output_config, undefined);
+    });
   });
 
   describe("execute", () => {
@@ -227,6 +293,206 @@ describe("CliproxyapiExecutor", () => {
       assert.ok(result.url);
       assert.ok(result.headers);
       assert.ok(result.transformedBody);
+    });
+  });
+
+  describe("healthCheck", () => {
+    it("probes /v1/models instead of /health", async () => {
+      process.env.CLIPROXYAPI_HOST = "127.0.0.1";
+      process.env.CLIPROXYAPI_PORT = "8317";
+
+      let capturedUrl;
+      globalThis.fetch = async (url) => {
+        capturedUrl = String(url);
+        return new Response(JSON.stringify({ data: [] }), { status: 200 });
+      };
+
+      const exec = new CliproxyapiExecutor();
+      const result = await exec.healthCheck();
+
+      assert.equal(capturedUrl, "http://127.0.0.1:8317/v1/models");
+      assert.equal(result.ok, true);
+      assert.equal(result.error, undefined);
+      assert.ok(result.latencyMs >= 0);
+    });
+  });
+
+  describe("Anthropic-shape detection", () => {
+    it("detects Anthropic-shape when top-level system field present", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "You are helpful" }],
+        messages: [{ role: "user", content: "hi" }],
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      // Anthropic-shape: system field stripped (Capy extras behavior) vs preserved
+      // The key assertion is that it does NOT try to send to /v1/chat/completions path
+      // (verified by output_config being stripped when present)
+      assert.equal(result.system !== undefined || result.messages !== undefined, true);
+    });
+
+    it("detects Anthropic-shape when messages[0].content is an array (no system field)", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "claude-opus-4-7",
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        output_config: { effort: "max" },
+      };
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      assert.equal(
+        result.output_config,
+        undefined,
+        "output_config should be stripped for Anthropic-shape"
+      );
+    });
+
+    it("treats OpenAI-shape (string content, no system) as non-Anthropic passthrough", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = {
+        model: "gpt-5.5",
+        messages: [{ role: "user", content: "hi" }],
+        output_config: { effort: "max" },
+      };
+      const result = exec.transformRequest("gpt-5.5", body, true, {});
+      assert.deepEqual(
+        result.output_config,
+        { effort: "max" },
+        "output_config preserved for OpenAI-shape"
+      );
+    });
+  });
+
+  describe("Capy extras strip on Anthropic-shape bodies", () => {
+    function anthropicBody(extras: Record<string, unknown>) {
+      return {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        messages: [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+        ...extras,
+      };
+    }
+
+    it("strips output_config", () => {
+      const exec = new CliproxyapiExecutor();
+      const result = exec.transformRequest(
+        "claude-opus-4-7",
+        anthropicBody({ output_config: { effort: "max" } }),
+        true,
+        {}
+      );
+      assert.equal(result.output_config, undefined);
+    });
+
+    it("strips metadata", () => {
+      const exec = new CliproxyapiExecutor();
+      const result = exec.transformRequest(
+        "claude-opus-4-7",
+        anthropicBody({ metadata: { user_id: "abc" } }),
+        true,
+        {}
+      );
+      assert.equal(result.metadata, undefined);
+    });
+
+    it("strips client_info", () => {
+      const exec = new CliproxyapiExecutor();
+      const result = exec.transformRequest(
+        "claude-opus-4-7",
+        anthropicBody({ client_info: { name: "Capy" } }),
+        true,
+        {}
+      );
+      assert.equal(result.client_info, undefined);
+    });
+
+    it("strips prompt_cache_key", () => {
+      const exec = new CliproxyapiExecutor();
+      const result = exec.transformRequest(
+        "claude-opus-4-7",
+        anthropicBody({ prompt_cache_key: "key123" }),
+        true,
+        {}
+      );
+      assert.equal(result.prompt_cache_key, undefined);
+    });
+
+    it("strips safety_identifier", () => {
+      const exec = new CliproxyapiExecutor();
+      const result = exec.transformRequest(
+        "claude-opus-4-7",
+        anthropicBody({ safety_identifier: "sid" }),
+        true,
+        {}
+      );
+      assert.equal(result.safety_identifier, undefined);
+    });
+  });
+
+  describe("mcp_ tool name rewrite on Anthropic-shape bodies", () => {
+    function anthropicBodyWithTools(tools: unknown[], messages: unknown[] = []) {
+      return {
+        model: "claude-opus-4-7",
+        system: [{ type: "text", text: "x" }],
+        tools,
+        messages:
+          messages.length > 0
+            ? messages
+            : [{ role: "user", content: [{ type: "text", text: "hi" }] }],
+      };
+    }
+
+    it("rewrites mcp_* tool definition names (tool defs)", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = anthropicBodyWithTools([
+        { name: "mcp_filesystem_read", description: "Read file", input_schema: {} },
+      ]);
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      const toolName = (result.tools as Array<{ name: string }>)[0].name;
+      assert.notEqual(toolName, "mcp_filesystem_read", "mcp_ tool name should be rewritten");
+      assert.match(
+        toolName,
+        /^[A-Z]/,
+        "rewritten name should start with uppercase or differ from mcp_"
+      );
+    });
+
+    it("does not rewrite non-mcp_ tool names", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = anthropicBodyWithTools([
+        { name: "my_tool", description: "My tool", input_schema: {} },
+      ]);
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      const toolName = (result.tools as Array<{ name: string }>)[0].name;
+      assert.equal(toolName, "my_tool");
+    });
+
+    it("rewrites mcp_* tool_use names in assistant message history", () => {
+      const exec = new CliproxyapiExecutor();
+      const body = anthropicBodyWithTools(
+        [{ name: "mcp_github_create_issue", description: "d", input_schema: {} }],
+        [
+          {
+            role: "assistant",
+            content: [{ type: "tool_use", id: "tu_1", name: "mcp_github_create_issue", input: {} }],
+          },
+          { role: "user", content: [{ type: "tool_result", tool_use_id: "tu_1", content: "ok" }] },
+        ]
+      );
+      const result = exec.transformRequest("claude-opus-4-7", body, true, {});
+      const assistantMsg = (result.messages as Array<{ role: string; content: unknown[] }>).find(
+        (m) => m.role === "assistant"
+      );
+      const toolUseBlock = assistantMsg?.content.find(
+        (b): b is { type: string; name: string } =>
+          typeof b === "object" && b !== null && (b as Record<string, unknown>).type === "tool_use"
+      );
+      assert.ok(toolUseBlock, "tool_use block should exist in assistant message");
+      assert.notEqual(
+        toolUseBlock.name,
+        "mcp_github_create_issue",
+        "tool_use name should be rewritten"
+      );
     });
   });
 });

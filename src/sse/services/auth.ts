@@ -1326,21 +1326,26 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return credentials;
     }
 
-    const preflight = await preflightQuota(provider, credentials.connectionId, credentials);
+    const connectionId = credentials.connectionId;
+    if (!connectionId) {
+      return credentials;
+    }
+
+    const preflight = await preflightQuota(provider, connectionId, credentials);
     if (preflight.proceed) {
       return credentials;
     }
 
     blockedByPreflight.push({
-      id: credentials.connectionId,
+      id: connectionId,
       quotaPercent: preflight.quotaPercent,
       resetAt: preflight.resetAt ?? null,
     });
-    excludedConnectionIds.add(credentials.connectionId);
+    excludedConnectionIds.add(connectionId);
 
     log.info(
       "AUTH",
-      `${provider} | preflight blocked ${credentials.connectionId.slice(0, 8)}${
+      `${provider} | preflight blocked ${connectionId.slice(0, 8)}${
         Number.isFinite(preflight.quotaPercent)
           ? ` at ${Math.round((preflight.quotaPercent as number) * 100)}%`
           : ""

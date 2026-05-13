@@ -104,6 +104,11 @@ export const updateSettingsSchema = z.object({
   lkgpEnabled: z.boolean().optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
+  // Auto-routing settings
+  autoRoutingEnabled: z.boolean().optional(),
+  autoRoutingDefaultVariant: z
+    .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
+    .optional(),
 });
 
 export const databaseSettingsSchema = z.object(
