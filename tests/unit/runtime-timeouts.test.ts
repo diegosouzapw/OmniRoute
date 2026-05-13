@@ -12,6 +12,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
   assert.deepEqual(config, {
     fetchTimeoutMs: 600000,
     streamIdleTimeoutMs: 600000,
+    sseHeartbeatIntervalMs: 15000,
     streamReadinessTimeoutMs: 30000,
     fetchHeadersTimeoutMs: 600000,
     fetchBodyTimeoutMs: 600000,
@@ -93,4 +94,22 @@ test("API bridge timeouts align request timeout with long proxy timeout by defau
     serverKeepAliveTimeoutMs: 5000,
     serverSocketTimeoutMs: 0,
   });
+});
+
+test("idle timeout default lowered to 5min (300_000)", () => {
+  assert.equal(runtimeTimeouts.DEFAULT_STREAM_IDLE_TIMEOUT_MS, 300_000);
+  assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).streamIdleTimeoutMs, 300_000);
+});
+
+test("heartbeat interval default = 15s, env-overridable", () => {
+  assert.equal(runtimeTimeouts.DEFAULT_SSE_HEARTBEAT_INTERVAL_MS, 15_000);
+  assert.equal(runtimeTimeouts.getUpstreamTimeoutConfig({}).sseHeartbeatIntervalMs, 15_000);
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "8000" }).sseHeartbeatIntervalMs,
+    8_000
+  );
+  assert.equal(
+    runtimeTimeouts.getUpstreamTimeoutConfig({ SSE_HEARTBEAT_INTERVAL_MS: "0" }).sseHeartbeatIntervalMs,
+    0
+  );
 });
