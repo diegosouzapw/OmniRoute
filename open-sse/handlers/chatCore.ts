@@ -986,7 +986,7 @@ export async function handleChatCore({
   disableEmergencyFallback = false,
   cachedSettings = null,
 }) {
-  let { provider, model, extendedContext } = modelInfo;
+  let { provider, model, extendedContext, apiFormat } = modelInfo as any;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const startTime = Date.now();
@@ -1223,7 +1223,9 @@ export async function handleChatCore({
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
-    modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+    apiFormat === "responses"
+      ? FORMATS.OPENAI_RESPONSES
+      : modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
   const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
     prepareWebSearchFallbackBody(body as Record<string, unknown>, {
       provider,
@@ -2576,6 +2578,12 @@ export async function handleChatCore({
     delete translatedBody.store;
   }
 
+  // Chat clients may send stream_options.include_usage, but OpenAI Responses
+  // upstreams (including Azure AI Foundry /responses) reject stream_options.
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && "stream_options" in translatedBody) {
+    delete translatedBody.stream_options;
+  }
+
   // Provider-specific max_tokens caps (#711)
   // Some providers reject requests when max_tokens exceeds their API limit.
   // Cap before sending to avoid upstream HTTP 400 errors.
@@ -2661,12 +2669,41 @@ export async function handleChatCore({
       ? { ...credentials, requestEndpointPath: endpointPath }
       : credentials;
 
-    if (!ccSessionId) return nextCredentials;
+    const providerSpecificData =
+      nextCredentials?.providerSpecificData &&
+      typeof nextCredentials.providerSpecificData === "object"
+        ? { ...nextCredentials.providerSpecificData }
+        : {};
+
+    // Some providers (Azure AI Foundry, OCI OpenAI-compatible) choose upstream
+    // endpoint path from providerSpecificData.apiType. When a model routes to
+    // OpenAI Responses format, force apiType=responses unless explicitly set.
+    if (
+      targetFormat === FORMATS.OPENAI_RESPONSES &&
+      (provider === "azure-ai" || provider === "oci") &&
+      providerSpecificData.apiType !== "responses"
+    ) {
+      providerSpecificData.apiType = "responses";
+    }
+
+    if (
+      targetFormat === FORMATS.OPENAI_RESPONSES &&
+      (provider === "azure-ai" || provider === "oci")
+    ) {
+      providerSpecificData._omnirouteForceResponsesUpstream = true;
+    }
+
+    const withApiType = {
+      ...nextCredentials,
+      providerSpecificData,
+    };
+
+    if (!ccSessionId) return withApiType;
 
     return {
-      ...nextCredentials,
+      ...withApiType,
       providerSpecificData: {
-        ...(nextCredentials?.providerSpecificData || {}),
+        ...(withApiType?.providerSpecificData || {}),
         ccSessionId,
       },
     };

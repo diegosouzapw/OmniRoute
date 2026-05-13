@@ -5581,6 +5581,7 @@ function ConnectionRow({
 
 const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
   "azure-openai",
+  "azure-ai",
   "bailian-coding-plan",
   "xiaomi-mimo",
   "heroku",
@@ -5592,6 +5593,7 @@ const CONFIGURABLE_BASE_URL_PROVIDERS = new Set([
 
 const DEFAULT_PROVIDER_BASE_URLS: Record<string, string> = {
   "azure-openai": "https://example-resource.openai.azure.com",
+  "azure-ai": "https://example-resource.services.ai.azure.com/openai/v1",
   "bailian-coding-plan": "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1",
   "xiaomi-mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
   "searxng-search": "http://localhost:8888/search",
