@@ -393,8 +393,16 @@ export class AntigravityExecutor extends BaseExecutor {
     // TODO: Consider removing project override like gemini-cli.ts — stored projectId
     // can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
     // Antigravity accounts may have more stable project IDs, but the risk exists.
-    const bodyProjectId = body?.project;
-    const credentialsProjectId = credentials?.projectId;
+    const normalizeProjectId = (value: unknown): string | null => {
+      if (typeof value !== "string") return null;
+      const trimmedValue = value.trim();
+      return trimmedValue ? trimmedValue : null;
+    };
+    const bodyProjectId = normalizeProjectId(body?.project);
+    const credentialsProjectId = normalizeProjectId(credentials?.projectId);
+    const providerSpecificProjectId = normalizeProjectId(
+      (credentials?.providerSpecificData as Record<string, unknown> | undefined)?.projectId
+    );
     const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
 
     // Default: prefer OAuth-stored projectId over incoming body.project to avoid
@@ -403,7 +411,7 @@ export class AntigravityExecutor extends BaseExecutor {
     const projectId =
       allowBodyProjectOverride && bodyProjectId
         ? bodyProjectId
-        : credentialsProjectId || bodyProjectId;
+        : credentialsProjectId || providerSpecificProjectId || bodyProjectId;
 
     if (!projectId) {
       // (#489) Return a structured error instead of throwing — gives the client a clear signal

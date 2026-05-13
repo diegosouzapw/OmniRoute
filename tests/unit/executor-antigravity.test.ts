@@ -115,8 +115,10 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
   assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
   assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
   assert.ok(result.request.sessionId);
-  assert.equal(result.request.generationConfig.topK, 40);
-  assert.equal(result.request.generationConfig.topP, 1.0);
+  const request = result.request as { generationConfig?: { topK?: number; topP?: number } };
+  const generationConfig = request.generationConfig || {};
+  assert.equal(generationConfig.topK, 40);
+  assert.equal(generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
     functionCallingConfig: { mode: "VALIDATED" },
   });
@@ -198,11 +200,94 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
     true,
     {}
   );
+  if (!(result instanceof Response)) throw new Error("Expected Response from transformRequest");
   const payload = (await result.json()) as any;
 
   assert.equal(result.status, 422);
   assert.equal(payload.error.code, "missing_project_id");
   assert.match(payload.error.message, /Missing Google projectId/);
+});
+
+test("AntigravityExecutor.transformRequest prefers top-level credentials projectId over nested providerSpecificData", async () => {
+  const executor = new AntigravityExecutor();
+  const result = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: "body-project",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "credential-project",
+      providerSpecificData: { projectId: "nested-project" },
+    }
+  );
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.equal(result.project, "credential-project");
+});
+
+test("AntigravityExecutor.transformRequest uses nested providerSpecificData projectId when top-level is absent", async () => {
+  const executor = new AntigravityExecutor();
+  const result = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      providerSpecificData: { projectId: "nested-project" },
+    }
+  );
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.equal(result.project, "nested-project");
+});
+
+test("AntigravityExecutor.transformRequest treats whitespace-only project values as missing", async () => {
+  const executor = new AntigravityExecutor();
+
+  const nestedFallback = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: "   ",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "   ",
+      providerSpecificData: { projectId: " nested-project " },
+    }
+  );
+
+  if (nestedFallback instanceof Response)
+    throw new Error("Unexpected Response from transformRequest");
+  assert.equal(nestedFallback.project, "nested-project");
+
+  const bodyFallback = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: " body-project ",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "   ",
+      providerSpecificData: { projectId: "   " },
+    }
+  );
+
+  if (bodyFallback instanceof Response)
+    throw new Error("Unexpected Response from transformRequest");
+  assert.equal(bodyFallback.project, "body-project");
 });
 
 test("AntigravityExecutor.transformRequest allows body project overrides when the env flag is enabled", async () => {
