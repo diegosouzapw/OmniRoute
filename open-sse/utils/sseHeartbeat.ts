@@ -59,6 +59,8 @@ type SseHeartbeatTransformOptions = {
   chunkModel?: string;
 };
 
+const HEARTBEAT_ENCODER = new TextEncoder();
+
 export function createSseHeartbeatTransform({
   intervalMs = DEFAULT_SSE_HEARTBEAT_INTERVAL_MS,
   signal,
@@ -67,15 +69,10 @@ export function createSseHeartbeatTransform({
   chunkModel,
 }: SseHeartbeatTransformOptions = {}): TransformStream<Uint8Array, Uint8Array> {
   if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
-    return new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        controller.enqueue(chunk);
-      },
-    });
+    return new TransformStream<Uint8Array, Uint8Array>();
   }
 
   let intervalId: ReturnType<typeof setInterval> | undefined;
-  const encoder = new TextEncoder();
 
   const stop = () => {
     if (!intervalId) return;
@@ -93,7 +90,7 @@ export function createSseHeartbeatTransform({
 
         try {
           controller.enqueue(
-            encoder.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel })),
+            HEARTBEAT_ENCODER.encode(buildHeartbeatPayload(shape, { chunkId, chunkModel })),
           );
         } catch {
           stop();
