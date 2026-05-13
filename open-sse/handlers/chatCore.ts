@@ -11,7 +11,7 @@ import {
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
-import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
+import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
@@ -34,6 +34,7 @@ import {
   HTTP_STATUS,
   MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
+  SSE_HEARTBEAT_INTERVAL_MS,
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
 } from "../config/constants.ts";
@@ -4273,7 +4274,11 @@ export async function handleChatCore({
     finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
   }
   finalStream = finalStream.pipeThrough(
-    createSseHeartbeatTransform({ signal: streamController.signal })
+    createSseHeartbeatTransform({
+      signal: streamController.signal,
+      intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
+      shape: shapeForClientFormat(clientResponseFormat),
+    })
   );
 
   return {
