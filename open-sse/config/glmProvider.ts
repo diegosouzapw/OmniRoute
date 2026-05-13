@@ -236,11 +236,16 @@ function addBetaQuery(url: string): string {
 }
 
 export function isAnthropicGlmBaseUrl(baseUrl: string): boolean {
-  return /\/api\/anthropic(?:\/|$)/i.test(stripQueryAndTrailingSlash(baseUrl));
+  const base = stripQueryAndTrailingSlash(baseUrl).toLowerCase();
+  return base.includes("/api/anthropic/") || base.endsWith("/api/anthropic");
 }
 
 export function isCodingGlmBaseUrl(baseUrl: string): boolean {
-  return /\/api\/coding\/paas\/v\d+(?:\/|$)/i.test(stripQueryAndTrailingSlash(baseUrl));
+  const base = stripQueryAndTrailingSlash(baseUrl).toLowerCase();
+  const idx = base.indexOf("/api/coding/paas/v");
+  if (idx === -1) return false;
+  const afterV = base.charCodeAt(idx + "/api/coding/paas/v".length);
+  return afterV >= 48 && afterV <= 57; // first char after 'v' must be a digit
 }
 
 export function getGlmBaseUrl(

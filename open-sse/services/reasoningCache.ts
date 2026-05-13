@@ -34,6 +34,11 @@ const REASONING_REPLAY_PROVIDERS = new Set([
   "sambanova",
   "fireworks",
   "together",
+  // Xiaomi MiMo enforces the same "pass back reasoning_content on subsequent
+  // turns" contract as DeepSeek/Kimi-thinking. Without replay the upstream
+  // 400s with "Param Incorrect: The reasoning_content in the thinking mode
+  // must be passed back to the API."
+  "xiaomi-mimo",
 ]);
 
 const REASONING_REPLAY_MODEL_PATTERNS = [
@@ -44,6 +49,9 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /qwq/i,
   /qwen.*think/i,
   /glm.*think/i,
+  // MiMo (Xiaomi) thinking models — defensive match if a wildcard route
+  // assigns a non-`xiaomi-mimo` provider ID to a mimo-* model alias.
+  /^mimo[-.]?v\d/i,
 ];
 
 /**

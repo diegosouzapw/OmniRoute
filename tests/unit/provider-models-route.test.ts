@@ -12,6 +12,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 const antigravityVersion = await import("../../open-sse/services/antigravityVersion.ts");
+const providerRegistry = await import("../../open-sse/config/providerRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -205,7 +206,11 @@ test("provider models route returns static catalog entries for providers with ha
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bailian-coding-plan");
-  assert.equal(body.models.length, 8);
+  assert.equal(body.models.length, providerRegistry.REGISTRY["bailian-coding-plan"].models?.length);
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    providerRegistry.REGISTRY["bailian-coding-plan"].models?.map((model) => model.id)
+  );
 });
 
 test("provider models route returns AWS Polly speech engines from the audio registry", async () => {

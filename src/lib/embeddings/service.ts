@@ -15,7 +15,7 @@ import { getProviderNodes } from "@/lib/localDb";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
-interface EmbeddingHandlerOptions {
+export interface EmbeddingHandlerOptions {
   clientRawRequest?: {
     endpoint: string;
     body: Record<string, unknown>;

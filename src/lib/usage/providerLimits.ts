@@ -47,6 +47,7 @@ interface ProviderConnectionLike {
 const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "glm",
   "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",
@@ -297,7 +298,9 @@ async function fetchLiveProviderLimitsWithOptions(
   connection: ProviderConnectionLike;
   usage: JsonRecord;
 }> {
-  let connection = (await getProviderConnectionById(connectionId)) as ProviderConnectionLike | null;
+  let connection = (await getProviderConnectionById(
+    connectionId
+  )) as unknown as ProviderConnectionLike | null;
   if (!connection) {
     throw withStatus(new Error("Connection not found"), 404);
   }
@@ -435,7 +438,7 @@ export async function syncAllProviderLimits(
 }> {
   const { source = "manual", concurrency = 5 } = options;
   const connections = (
-    (await getProviderConnections({ isActive: true })) as ProviderConnectionLike[]
+    (await getProviderConnections({ isActive: true })) as unknown as ProviderConnectionLike[]
   ).filter(isSupportedUsageConnection);
   const cacheEntries: Array<{ connectionId: string; entry: ProviderLimitsCacheEntry }> = [];
   const caches: Record<string, ProviderLimitsCacheEntry> = {};

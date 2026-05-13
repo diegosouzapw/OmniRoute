@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {
+  providerAllowsOptionalApiKey,
+  SELF_HOSTED_CHAT_PROVIDER_IDS,
+} from "@/shared/constants/providers";
 
 // ── Import test targets from connection test route ──────────────────────────
 
@@ -318,6 +322,46 @@ test("OAuth test config covers all expected providers", () => {
     assert.ok(
       configuredProviders.includes(provider),
       `Missing OAUTH_TEST_CONFIG for provider: ${provider}`
+    );
+  }
+});
+
+// ── testApiKeyConnection requiresApiKey Check ──────────────────────────────
+// Uses the centralized providerAllowsOptionalApiKey from providers.ts
+
+test("testApiKeyConnection: searxng-search with empty API key does NOT require API key", () => {
+  assert.equal(providerAllowsOptionalApiKey("searxng-search"), true);
+});
+
+test("testApiKeyConnection: petals with empty API key does NOT require API key", () => {
+  assert.equal(providerAllowsOptionalApiKey("petals"), true);
+});
+
+test("testApiKeyConnection: self-hosted chat providers with empty API key do NOT require API key", () => {
+  for (const provider of SELF_HOSTED_CHAT_PROVIDER_IDS) {
+    assert.equal(
+      providerAllowsOptionalApiKey(provider),
+      true,
+      `Expected ${provider} to not require API key`
+    );
+  }
+});
+
+test("testApiKeyConnection: openai-compatible providers with empty API key do NOT require API key", () => {
+  assert.equal(providerAllowsOptionalApiKey("openai-compatible-chat-test"), true);
+});
+
+test("testApiKeyConnection: anthropic-compatible providers with empty API key do NOT require API key", () => {
+  assert.equal(providerAllowsOptionalApiKey("anthropic-compatible-chat-test"), true);
+});
+
+test("testApiKeyConnection: providers requiring an API key are correctly identified", () => {
+  const providersThatRequireKeys = ["openai", "groq", "gemini", "unknown-provider"];
+  for (const provider of providersThatRequireKeys) {
+    assert.equal(
+      providerAllowsOptionalApiKey(provider),
+      false,
+      `Expected ${provider} to require an API key`
     );
   }
 });

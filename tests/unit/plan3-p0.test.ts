@@ -40,8 +40,8 @@ test("getModelInfoCore keeps unprefixed gpt-5.5 on the OpenAI fallback", async (
   assert.equal(info.model, "gpt-5.5");
 });
 
-test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
-  const info = await getModelInfoCore("gpt-5.5-medium", {});
+test("getModelInfoCore keeps explicit cx/gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5-medium", {});
   assert.equal(info.provider, "codex");
   assert.equal(info.model, "gpt-5.5-medium");
 });

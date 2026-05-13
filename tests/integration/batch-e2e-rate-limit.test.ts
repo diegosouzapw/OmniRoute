@@ -111,26 +111,29 @@ function createServerProcess() {
   const stderrLines: string[] = [];
   let exitInfo: { code: number | null; signal: NodeJS.Signals | null } | null = null;
 
-  const child = spawn(
-    process.execPath,
-    ["node_modules/next/dist/bin/next", "dev", "--port", String(SERVER_PORT)],
-    {
-      cwd: REPO_ROOT,
-      env: {
-        DATA_DIR: TEST_DATA_DIR,
-        PORT: String(SERVER_PORT),
-        HOST: "127.0.0.1",
-        REQUIRE_API_KEY: "false",
-        API_KEY_SECRET: "batch-e2e-rl-secret",
-        DISABLE_SQLITE_AUTO_BACKUP: "true",
-        INITIAL_PASSWORD: "",
-        NEXT_TELEMETRY_DISABLED: "1",
-        OMNIROUTE_E2E_BOOTSTRAP_MODE: "open",
-        PATH: process.env.PATH,
-      },
-      stdio: ["ignore", "pipe", "pipe"],
-    }
-  );
+  const child = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      DATA_DIR: TEST_DATA_DIR,
+      PORT: String(SERVER_PORT),
+      DASHBOARD_PORT: String(SERVER_PORT),
+      API_PORT: String(SERVER_PORT),
+      HOST: "127.0.0.1",
+      REQUIRE_API_KEY: "false",
+      API_KEY_SECRET: "batch-e2e-rl-secret",
+      DISABLE_SQLITE_AUTO_BACKUP: "true",
+      INITIAL_PASSWORD: "",
+      NEXT_TELEMETRY_DISABLED: "1",
+      OMNIROUTE_E2E_BOOTSTRAP_MODE: "open",
+      OMNIROUTE_DISABLE_BACKGROUND_SERVICES: "false",
+      OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK: "true",
+      OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: "true",
+      OMNIROUTE_HIDE_HEALTHCHECK_LOGS: "true",
+      PATH: process.env.PATH,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 
   child.once("exit", (code, signal) => {
     exitInfo = { code, signal };
