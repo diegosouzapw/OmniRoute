@@ -86,6 +86,7 @@ function tryIdeAuth(): {
     };
   } catch (error) {
     db?.close();
+    console.error("Failed to read Cursor IDE database:", error);
     return { found: false, error: "Failed to read database" };
   }
 }
