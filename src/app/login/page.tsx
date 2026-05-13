@@ -214,11 +214,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg">
+    <div
+      className="min-h-screen flex flex-col bg-bg"
+      style={{
+        backgroundImage:
+          "linear-gradient(180deg, rgba(5,10,24,0.72) 0%, rgba(7,12,30,0.84) 45%, rgba(7,12,30,0.92) 100%), url('/image.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {nodeWarningBanner && (
         <div className="flex justify-center pt-6 px-6">{nodeWarningBanner}</div>
       )}
-      <div className="flex-1 flex bg-bg">
+      <div className="flex-1 flex">
         <div className="flex-1 flex items-center justify-center p-6">
           <div
             className={`w-full max-w-sm transition-all duration-700 ease-out ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
@@ -234,7 +242,10 @@ export default function LoginPage() {
               <p className="text-text-muted mt-1.5">{t("enterPassword")}</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form
+              onSubmit={handleLogin}
+              className="space-y-5 rounded-2xl border border-white/10 bg-slate-950/55 p-5 backdrop-blur-sm shadow-2xl"
+            >
               <div className="space-y-2">
                 <label className="text-sm font-medium text-text-main">{t("password")}</label>
                 <Input
