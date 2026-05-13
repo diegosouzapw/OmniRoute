@@ -436,7 +436,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx/esm --test --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - run: node --import tsx/esm --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests

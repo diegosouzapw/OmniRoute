@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { listMemories, createMemory } from "@/lib/memory/store";
 import { MemoryType } from "@/lib/memory/types";
 import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
@@ -16,6 +17,9 @@ const createMemorySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const url = new URL(request.url);
     const { searchParams } = url;
@@ -68,6 +72,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const rawBody = await request.json();
     const validation = validateBody(createMemorySchema, rawBody);

@@ -432,6 +432,38 @@ paths:
                     items:
                       $ref: "#/components/schemas/Model"
 
+  /api/v1/providers/{provider}/models:
+    get:
+      tags: [Models]
+      summary: List models for a specific provider
+      description: Returns only models for the selected provider with provider prefix removed from each model id.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+          description: Provider id or alias (for example `openai`, `claude`, `cc`).
+      responses:
+        "200":
+          description: Provider-scoped model list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                    example: list
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Model"
+        "400":
+          description: Unknown provider
+
   /api/models:
     get:
       tags: [Models]

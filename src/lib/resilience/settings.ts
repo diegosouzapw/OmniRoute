@@ -14,6 +14,17 @@ export interface RequestQueueSettings {
 export interface ConnectionCooldownProfileSettings {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  /**
+   * Issue #2100 follow-up: opt-in toggle for upstream 429 hint trust at the
+   * circuit-breaker cooldown layer (independent of `useUpstreamRetryHints`
+   * which controls retry scheduling).
+   *
+   * Stored shape is intentionally optional / `boolean | undefined`: when
+   * unset, the per-provider default from `providerHints.ts` applies.
+   * Normalize/merge MUST preserve `undefined` — do not coerce via
+   * `toBoolean(value, fallback)`.
+   */
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
 }
 
@@ -155,7 +166,26 @@ function normalizeConnectionCooldownProfile(
   fallback: ConnectionCooldownProfileSettings
 ): ConnectionCooldownProfileSettings {
   const record = asRecord(next);
-  return {
+  // useUpstream429BreakerHints uses a 3-state input contract:
+  //   - boolean  → user override, store as-is
+  //   - null     → explicit unset sentinel, drop key so the per-provider
+  //                default in `providerHints.ts` resolves at runtime
+  //   - omitted  → leave existing fallback value unchanged (partial-merge)
+  // Never coerce via `toBoolean(value, fallback)` because that would
+  // collapse the unset state.
+  const hasHintsKey = Object.prototype.hasOwnProperty.call(record, "useUpstream429BreakerHints");
+  const rawHints = record.useUpstream429BreakerHints;
+  let useUpstream429BreakerHints: boolean | undefined;
+  if (!hasHintsKey) {
+    useUpstream429BreakerHints = fallback.useUpstream429BreakerHints;
+  } else if (rawHints === null) {
+    useUpstream429BreakerHints = undefined;
+  } else if (typeof rawHints === "boolean") {
+    useUpstream429BreakerHints = rawHints;
+  } else {
+    useUpstream429BreakerHints = fallback.useUpstream429BreakerHints;
+  }
+  const out: ConnectionCooldownProfileSettings = {
     baseCooldownMs: toInteger(record.baseCooldownMs, fallback.baseCooldownMs, {
       min: 0,
       max: 24 * 60 * 60 * 1000,
@@ -166,6 +196,11 @@ function normalizeConnectionCooldownProfile(
       max: 32,
     }),
   };
+  // Only attach the key when defined — preserves omission across round-trips.
+  if (useUpstream429BreakerHints !== undefined) {
+    out.useUpstream429BreakerHints = useUpstream429BreakerHints;
+  }
+  return out;
 }
 
 function normalizeLegacyConnectionCooldownProfile(

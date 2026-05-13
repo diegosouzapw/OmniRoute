@@ -15,6 +15,8 @@ export default function RoutingTab() {
     alwaysPreserveClientCache: "auto",
     antigravitySignatureCacheMode: "enabled",
     cliCompatProviders: [],
+    autoRoutingEnabled: true,
+    autoRoutingDefaultVariant: "lkgp",
   });
   const [loading, setLoading] = useState(true);
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
@@ -393,6 +395,81 @@ export default function RoutingTab() {
               <p className="text-xs text-text-muted ml-7">{option.desc}</p>
             </button>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500 h-fit">
+              <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+                auto_awesome
+              </span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Zero-Config Auto-Routing</h3>
+              <p className="text-sm text-text-muted mt-1">
+                Enable automatic provider selection using the auto/ prefix. When enabled, requests
+                to auto, auto/coding, auto/fast, etc. will dynamically route across all connected
+                providers.
+              </p>
+            </div>
+          </div>
+          <div className="pt-1">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={settings.autoRoutingEnabled !== false}
+                onChange={(e) => updateSetting({ autoRoutingEnabled: e.target.checked })}
+                disabled={loading}
+              />
+              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-border/30">
+          <label className="block text-sm font-medium mb-2">Default Auto Variant</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {[
+              { value: "lkgp", label: "LKGP", desc: "Last Known Good Provider" },
+              { value: "coding", label: "Coding", desc: "Quality-first for code" },
+              { value: "fast", label: "Fast", desc: "Low-latency routing" },
+              { value: "cheap", label: "Cheap", desc: "Cost-optimized" },
+              { value: "offline", label: "Offline", desc: "High availability" },
+              { value: "smart", label: "Smart", desc: "Best discovery (10% explore)" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => updateSetting({ autoRoutingDefaultVariant: option.value })}
+                disabled={loading}
+                className={`p-2 rounded-lg border text-left transition-all ${
+                  settings.autoRoutingDefaultVariant === option.value
+                    ? "border-indigo-500/50 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                    : "border-border/50 hover:border-border hover:bg-surface/30"
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`material-symbols-outlined text-[14px] ${
+                      settings.autoRoutingDefaultVariant === option.value
+                        ? "text-indigo-400"
+                        : "text-text-muted"
+                    }`}
+                  >
+                    {settings.autoRoutingDefaultVariant === option.value
+                      ? "check_circle"
+                      : "radio_button_unchecked"}
+                  </span>
+                  <span
+                    className={`text-xs font-medium ${settings.autoRoutingDefaultVariant === option.value ? "text-indigo-400" : ""}`}
+                  >
+                    {option.label}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </Card>
     </div>

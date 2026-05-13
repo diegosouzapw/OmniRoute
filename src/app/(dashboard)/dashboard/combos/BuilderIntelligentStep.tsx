@@ -15,7 +15,7 @@ function getI18nOrFallback(t: any, key: string, fallback: string) {
   return fallback;
 }
 
-function toProviderOptions(activeProviders: any[] = []) {
+function toProviderOptions(activeProviders: any[] = [], candidatePool: string[] = []) {
   const uniqueProviders = new Map<string, { id: string; label: string; connectionCount: number }>();
 
   activeProviders.forEach((provider) => {
@@ -41,6 +41,16 @@ function toProviderOptions(activeProviders: any[] = []) {
     });
   });
 
+  candidatePool.forEach((poolId) => {
+    if (!uniqueProviders.has(poolId)) {
+      uniqueProviders.set(poolId, {
+        id: poolId,
+        label: `${poolId} (Offline/Deleted)`,
+        connectionCount: 0,
+      });
+    }
+  });
+
   return [...uniqueProviders.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
@@ -56,7 +66,10 @@ export default function BuilderIntelligentStep({
   activeProviders: any[];
 }) {
   const normalizedConfig = normalizeIntelligentRoutingConfig(config);
-  const providerOptions = useMemo(() => toProviderOptions(activeProviders), [activeProviders]);
+  const providerOptions = useMemo(
+    () => toProviderOptions(activeProviders, normalizedConfig.candidatePool),
+    [activeProviders, normalizedConfig.candidatePool]
+  );
 
   const updateConfig = (patch: Record<string, unknown>) => {
     onChange({
@@ -64,7 +77,7 @@ export default function BuilderIntelligentStep({
       ...patch,
       weights: {
         ...normalizedConfig.weights,
-        ...(patch.weights || {}),
+        ...((patch.weights as Record<string, number>) || {}),
       },
     });
   };
