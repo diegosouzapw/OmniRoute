@@ -122,7 +122,7 @@ export OPENAI_BASE_URL=http://localhost:20128/v1
 export OPENAI_API_KEY=or_<your-omniroute-key>
 ```
 
-That's it. Cursor, Cline, Codex, Continue, Aider, and any SDK now work. → Detailed setup: [`docs/SETUP_GUIDE.md`](docs/SETUP_GUIDE.md)
+That's it. Cursor, Cline, Codex, Continue, Aider, and any SDK now work. → Detailed setup: [`docs/guides/SETUP_GUIDE.md`](docs/guides/SETUP_GUIDE.md)
 
 ---
 
@@ -162,7 +162,7 @@ That's it. Cursor, Cline, Codex, Continue, Aider, and any SDK now work. → Deta
 | Self-hosted        | ✅ MIT              | Limited          | ❌ (cloud)    |
 | Pricing            | **$0 forever**      | OSS / Cloud paid | 10% fee + API |
 
-→ Detailed comparison: [`docs/FEATURES.md`](docs/FEATURES.md)
+→ Detailed comparison: [`docs/guides/FEATURES.md`](docs/guides/FEATURES.md)
 
 ---
 
@@ -175,7 +175,7 @@ All work out-of-the-box once you point `OPENAI_BASE_URL` at OmniRoute:
 **Google family:** Gemini CLI · Antigravity · Jules
 **Others:** Windsurf · GitLab Duo · Devin CLI · Hermes · Amazon Q · Kiro · Qoder · Custom
 
-→ Full setup: [`docs/CLI-TOOLS.md`](docs/CLI-TOOLS.md)
+→ Full setup: [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md)
 
 ---
 
@@ -196,7 +196,7 @@ All work out-of-the-box once you point `OPENAI_BASE_URL` at OmniRoute:
 
 ⚠️ Qwen Code OAuth was **discontinued on 2026-04-15** (use API key with `alicode` provider instead).
 
-→ Curated guide: [`docs/FREE_TIERS.md`](docs/FREE_TIERS.md) · Full catalog: [`docs/PROVIDER_REFERENCE.md`](docs/PROVIDER_REFERENCE.md) (auto-generated)
+→ Curated guide: [`docs/reference/FREE_TIERS.md`](docs/reference/FREE_TIERS.md) · Full catalog: [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md) (auto-generated)
 
 ### 🔐 OAuth providers (14)
 
@@ -229,7 +229,7 @@ auto           # → balanced default
 
 **How it picks:** 9-factor scoring (health · quota · cost · latency · taskFit · stability · tierPriority · tierAffinity · specificityMatch) over a virtual candidate pool built from all enabled providers.
 
-→ Full guide: [`docs/AUTO-COMBO.md`](docs/AUTO-COMBO.md)
+→ Full guide: [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -242,7 +242,7 @@ Two engines, stackable:
 
 **Modes:** `off` · `lite` · `standard` · `aggressive` · `ultra` · `rtk` · `stacked` (RTK→Caveman, max savings).
 
-→ [`docs/COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) · [`docs/RTK_COMPRESSION.md`](docs/RTK_COMPRESSION.md) · [`docs/COMPRESSION_LANGUAGE_PACKS.md`](docs/COMPRESSION_LANGUAGE_PACKS.md)
+→ [`docs/compression/COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`docs/compression/RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`docs/compression/COMPRESSION_LANGUAGE_PACKS.md`](docs/compression/COMPRESSION_LANGUAGE_PACKS.md)
 
 ---
 
@@ -255,37 +255,37 @@ For users in **Russia, China, Iran, Cuba, Turkey** and other regions:
 - **Anti-detection** — TLS fingerprinting (JA3/JA4), CCH headshakes, header sanitization
 - **Public tunnels** — Cloudflare (Quick or Named), ngrok, Tailscale Funnel for OAuth callbacks
 
-→ [`docs/PROXY_GUIDE.md`](docs/PROXY_GUIDE.md) · [`docs/TUNNELS_GUIDE.md`](docs/TUNNELS_GUIDE.md) · [`docs/STEALTH_GUIDE.md`](docs/STEALTH_GUIDE.md)
+→ [`docs/ops/PROXY_GUIDE.md`](docs/ops/PROXY_GUIDE.md) · [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md) · [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md)
 
 ---
 
 ## 📱 Multi-Platform
 
-| Platform                    | Install                                                  | Doc                                                             |
-| --------------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
-| **CLI / Server**            | `npm install -g omniroute`                               | [`SETUP_GUIDE.md`](docs/SETUP_GUIDE.md)                         |
-| **Desktop (Win/Mac/Linux)** | Electron installer from GitHub Releases                  | [`ELECTRON_GUIDE.md`](docs/ELECTRON_GUIDE.md)                   |
-| **PWA**                     | Install from any modern browser                          | [`PWA_GUIDE.md`](docs/PWA_GUIDE.md)                             |
-| **Android (Termux)**        | `pkg install nodejs-lts && npm i -g omniroute`           | [`TERMUX_GUIDE.md`](docs/TERMUX_GUIDE.md)                       |
-| **Docker**                  | `docker compose up` (base/cli/host/cliproxyapi profiles) | [`DOCKER_GUIDE.md`](docs/DOCKER_GUIDE.md)                       |
-| **VM / VPS**                | Generic Ubuntu/Debian + nginx + systemd                  | [`VM_DEPLOYMENT_GUIDE.md`](docs/VM_DEPLOYMENT_GUIDE.md)         |
-| **Fly.io**                  | `fly deploy`                                             | [`FLY_IO_DEPLOYMENT_GUIDE.md`](docs/FLY_IO_DEPLOYMENT_GUIDE.md) |
+| Platform                    | Install                                                  | Doc                                                                 |
+| --------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------- |
+| **CLI / Server**            | `npm install -g omniroute`                               | [`SETUP_GUIDE.md`](docs/guides/SETUP_GUIDE.md)                      |
+| **Desktop (Win/Mac/Linux)** | Electron installer from GitHub Releases                  | [`ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                |
+| **PWA**                     | Install from any modern browser                          | [`PWA_GUIDE.md`](docs/guides/PWA_GUIDE.md)                          |
+| **Android (Termux)**        | `pkg install nodejs-lts && npm i -g omniroute`           | [`TERMUX_GUIDE.md`](docs/guides/TERMUX_GUIDE.md)                    |
+| **Docker**                  | `docker compose up` (base/cli/host/cliproxyapi profiles) | [`DOCKER_GUIDE.md`](docs/guides/DOCKER_GUIDE.md)                    |
+| **VM / VPS**                | Generic Ubuntu/Debian + nginx + systemd                  | [`VM_DEPLOYMENT_GUIDE.md`](docs/ops/VM_DEPLOYMENT_GUIDE.md)         |
+| **Fly.io**                  | `fly deploy`                                             | [`FLY_IO_DEPLOYMENT_GUIDE.md`](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md) |
 
 ---
 
 ## 🧩 Extensibility
 
-| System                  | What it does                                                            | Docs                                         |
-| ----------------------- | ----------------------------------------------------------------------- | -------------------------------------------- |
-| 🧠 **Skills**           | Built-in skills + marketplace + sandboxed custom skills (Docker)        | [`docs/SKILLS.md`](docs/SKILLS.md)           |
-| 💾 **Memory**           | Persistent conversational memory (SQLite FTS5 + Qdrant vector)          | [`docs/MEMORY.md`](docs/MEMORY.md)           |
-| ☁️ **Cloud Agents**     | Submit long tasks to Codex Cloud / Devin / Jules                        | [`docs/CLOUD_AGENT.md`](docs/CLOUD_AGENT.md) |
-| 🪝 **Webhooks**         | HMAC-signed event delivery (request.completed, quota.exceeded, etc.)    | [`docs/WEBHOOKS.md`](docs/WEBHOOKS.md)       |
-| 🛡️ **Guardrails**       | PII masker, prompt injection guard, vision bridge — hot-reload          | [`docs/GUARDRAILS.md`](docs/GUARDRAILS.md)   |
-| 🧪 **Evals**            | Suite-based regression testing (combos/models/cases/rubrics)            | [`docs/EVALS.md`](docs/EVALS.md)             |
-| 🔍 **Compliance/Audit** | `audit_log` table, retention, `noLog` opt-out, SSRF logging             | [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md)   |
-| 🛡️ **MCP Server**       | 37 tools, 3 transports (stdio/SSE/Streamable HTTP), ~13 scopes          | [`docs/MCP-SERVER.md`](docs/MCP-SERVER.md)   |
-| 🤝 **A2A Protocol**     | v0.3 JSON-RPC, 5 skills (smart-routing, quota, discovery, cost, health) | [`docs/A2A-SERVER.md`](docs/A2A-SERVER.md)   |
+| System                  | What it does                                                            | Docs                                                               |
+| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 🧠 **Skills**           | Built-in skills + marketplace + sandboxed custom skills (Docker)        | [`docs/frameworks/SKILLS.md`](docs/frameworks/SKILLS.md)           |
+| 💾 **Memory**           | Persistent conversational memory (SQLite FTS5 + Qdrant vector)          | [`docs/frameworks/MEMORY.md`](docs/frameworks/MEMORY.md)           |
+| ☁️ **Cloud Agents**     | Submit long tasks to Codex Cloud / Devin / Jules                        | [`docs/frameworks/CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md) |
+| 🪝 **Webhooks**         | HMAC-signed event delivery (request.completed, quota.exceeded, etc.)    | [`docs/frameworks/WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md)       |
+| 🛡️ **Guardrails**       | PII masker, prompt injection guard, vision bridge — hot-reload          | [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md)       |
+| 🧪 **Evals**            | Suite-based regression testing (combos/models/cases/rubrics)            | [`docs/frameworks/EVALS.md`](docs/frameworks/EVALS.md)             |
+| 🔍 **Compliance/Audit** | `audit_log` table, retention, `noLog` opt-out, SSRF logging             | [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md)       |
+| 🛡️ **MCP Server**       | 37 tools, 3 transports (stdio/SSE/Streamable HTTP), ~13 scopes          | [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)   |
+| 🤝 **A2A Protocol**     | v0.3 JSON-RPC, 5 skills (smart-routing, quota, discovery, cost, health) | [`docs/frameworks/A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md)   |
 
 ---
 
@@ -295,75 +295,75 @@ Everything you need, organized by area.
 
 ### 🚀 Start here
 
-- [`SETUP_GUIDE.md`](docs/SETUP_GUIDE.md) — install + connect first provider
-- [`USER_GUIDE.md`](docs/USER_GUIDE.md) — end-user manual (modes, combos, CLIs, audio, ~1200 lines)
-- [`FREE_TIERS.md`](docs/FREE_TIERS.md) — start free, no card
-- [`TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) — common issues + v3.8 known issues
+- [`SETUP_GUIDE.md`](docs/guides/SETUP_GUIDE.md) — install + connect first provider
+- [`USER_GUIDE.md`](docs/guides/USER_GUIDE.md) — end-user manual (modes, combos, CLIs, audio, ~1200 lines)
+- [`FREE_TIERS.md`](docs/reference/FREE_TIERS.md) — start free, no card
+- [`TROUBLESHOOTING.md`](docs/guides/TROUBLESHOOTING.md) — common issues + v3.8 known issues
 
 ### 🏛️ Architecture
 
-- [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) — high-level architecture
-- [`CODEBASE_DOCUMENTATION.md`](docs/CODEBASE_DOCUMENTATION.md) — engineering reference
-- [`REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md) — every directory and root file
-- [`FEATURES.md`](docs/FEATURES.md) — full feature matrix
+- [`ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) — high-level architecture
+- [`CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md) — engineering reference
+- [`REPOSITORY_MAP.md`](docs/architecture/REPOSITORY_MAP.md) — every directory and root file
+- [`FEATURES.md`](docs/guides/FEATURES.md) — full feature matrix
 
 ### 🔌 API & contracts
 
-- [`API_REFERENCE.md`](docs/API_REFERENCE.md) — endpoint reference
-- [`openapi.yaml`](docs/openapi.yaml) — OpenAPI 3.0 spec
-- [`PROVIDER_REFERENCE.md`](docs/PROVIDER_REFERENCE.md) — full catalog (auto-generated)
-- [`CLI-TOOLS.md`](docs/CLI-TOOLS.md) — CLI integrations + internal CLI
-- [`ENVIRONMENT.md`](docs/ENVIRONMENT.md) — all env vars
+- [`API_REFERENCE.md`](docs/reference/API_REFERENCE.md) — endpoint reference
+- [`openapi.yaml`](docs/reference/openapi.yaml) — OpenAPI 3.0 spec
+- [`PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md) — full catalog (auto-generated)
+- [`CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) — CLI integrations + internal CLI
+- [`ENVIRONMENT.md`](docs/reference/ENVIRONMENT.md) — all env vars
 
 ### 🎯 Routing & resilience
 
-- [`AUTO-COMBO.md`](docs/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 14 strategies)
-- [`RESILIENCE_GUIDE.md`](docs/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
-- [`REASONING_REPLAY.md`](docs/REASONING_REPLAY.md) — reasoning cache for DeepSeek/Kimi/Qwen
-- [`STEALTH_GUIDE.md`](docs/STEALTH_GUIDE.md) — TLS fingerprinting + obfuscation
+- [`AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md) — Auto-Combo (9-factor scoring, 14 strategies)
+- [`RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`REASONING_REPLAY.md`](docs/routing/REASONING_REPLAY.md) — reasoning cache for DeepSeek/Kimi/Qwen
+- [`STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting + obfuscation
 
 ### 🤖 Agent protocols
 
-- [`AGENT_PROTOCOLS_GUIDE.md`](docs/AGENT_PROTOCOLS_GUIDE.md) — A2A vs ACP vs Cloud Agents
-- [`MCP-SERVER.md`](docs/MCP-SERVER.md) — Model Context Protocol server
-- [`A2A-SERVER.md`](docs/A2A-SERVER.md) — Agent-to-Agent protocol
-- [`CLOUD_AGENT.md`](docs/CLOUD_AGENT.md) — Codex Cloud / Devin / Jules
+- [`AGENT_PROTOCOLS_GUIDE.md`](docs/frameworks/AGENT_PROTOCOLS_GUIDE.md) — A2A vs ACP vs Cloud Agents
+- [`MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md) — Model Context Protocol server
+- [`A2A-SERVER.md`](docs/frameworks/A2A-SERVER.md) — Agent-to-Agent protocol
+- [`CLOUD_AGENT.md`](docs/frameworks/CLOUD_AGENT.md) — Codex Cloud / Devin / Jules
 
 ### 🧠 Extensions
 
-- [`SKILLS.md`](docs/SKILLS.md) — Skills framework
-- [`MEMORY.md`](docs/MEMORY.md) — Memory system
-- [`EVALS.md`](docs/EVALS.md) — Eval framework
-- [`GUARDRAILS.md`](docs/GUARDRAILS.md) — PII / injection / vision
-- [`WEBHOOKS.md`](docs/WEBHOOKS.md) — Webhook delivery
-- [`COMPLIANCE.md`](docs/COMPLIANCE.md) — Audit + retention
-- [`AUTHZ_GUIDE.md`](docs/AUTHZ_GUIDE.md) — Authorization pipeline
+- [`SKILLS.md`](docs/frameworks/SKILLS.md) — Skills framework
+- [`MEMORY.md`](docs/frameworks/MEMORY.md) — Memory system
+- [`EVALS.md`](docs/frameworks/EVALS.md) — Eval framework
+- [`GUARDRAILS.md`](docs/security/GUARDRAILS.md) — PII / injection / vision
+- [`WEBHOOKS.md`](docs/frameworks/WEBHOOKS.md) — Webhook delivery
+- [`COMPLIANCE.md`](docs/security/COMPLIANCE.md) — Audit + retention
+- [`AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — Authorization pipeline
 
 ### 🗜️ Compression
 
-- [`COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md)
-- [`COMPRESSION_ENGINES.md`](docs/COMPRESSION_ENGINES.md)
-- [`COMPRESSION_RULES_FORMAT.md`](docs/COMPRESSION_RULES_FORMAT.md)
-- [`COMPRESSION_LANGUAGE_PACKS.md`](docs/COMPRESSION_LANGUAGE_PACKS.md)
-- [`RTK_COMPRESSION.md`](docs/RTK_COMPRESSION.md)
+- [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md)
+- [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
+- [`COMPRESSION_RULES_FORMAT.md`](docs/compression/COMPRESSION_RULES_FORMAT.md)
+- [`COMPRESSION_LANGUAGE_PACKS.md`](docs/compression/COMPRESSION_LANGUAGE_PACKS.md)
+- [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md)
 
 ### 🚀 Deployment
 
-- [`DOCKER_GUIDE.md`](docs/DOCKER_GUIDE.md)
-- [`VM_DEPLOYMENT_GUIDE.md`](docs/VM_DEPLOYMENT_GUIDE.md)
-- [`FLY_IO_DEPLOYMENT_GUIDE.md`](docs/FLY_IO_DEPLOYMENT_GUIDE.md)
-- [`ELECTRON_GUIDE.md`](docs/ELECTRON_GUIDE.md)
-- [`PWA_GUIDE.md`](docs/PWA_GUIDE.md)
-- [`TERMUX_GUIDE.md`](docs/TERMUX_GUIDE.md)
-- [`TUNNELS_GUIDE.md`](docs/TUNNELS_GUIDE.md)
-- [`PROXY_GUIDE.md`](docs/PROXY_GUIDE.md)
+- [`DOCKER_GUIDE.md`](docs/guides/DOCKER_GUIDE.md)
+- [`VM_DEPLOYMENT_GUIDE.md`](docs/ops/VM_DEPLOYMENT_GUIDE.md)
+- [`FLY_IO_DEPLOYMENT_GUIDE.md`](docs/ops/FLY_IO_DEPLOYMENT_GUIDE.md)
+- [`ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)
+- [`PWA_GUIDE.md`](docs/guides/PWA_GUIDE.md)
+- [`TERMUX_GUIDE.md`](docs/guides/TERMUX_GUIDE.md)
+- [`TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)
+- [`PROXY_GUIDE.md`](docs/ops/PROXY_GUIDE.md)
 
 ### 📋 Operations
 
-- [`RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) — release flow with Claude Code skills
-- [`COVERAGE_PLAN.md`](docs/COVERAGE_PLAN.md) — test coverage state (current: 82.58%/82.58%/84.23%/75.22%)
-- [`I18N.md`](docs/I18N.md) — 30 supported locales
-- [`UNINSTALL.md`](docs/UNINSTALL.md)
+- [`RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md) — release flow with Claude Code skills
+- [`COVERAGE_PLAN.md`](docs/ops/COVERAGE_PLAN.md) — test coverage state (current: 82.58%/82.58%/84.23%/75.22%)
+- [`I18N.md`](docs/guides/I18N.md) — 30 supported locales
+- [`UNINSTALL.md`](docs/guides/UNINSTALL.md)
 
 ### 🤝 Contributing & policy
 
@@ -388,7 +388,7 @@ Everything you need, organized by area.
 | "Multi-agent system"              | Expose OmniRoute as A2A node, route via `smart-routing` skill |
 | "Long-running coding task"        | Cloud Agents → Devin/Jules with management auth               |
 
-→ Detailed playbooks: [`USER_GUIDE.md`](docs/USER_GUIDE.md) · [`AUTO-COMBO.md`](docs/AUTO-COMBO.md)
+→ Detailed playbooks: [`USER_GUIDE.md`](docs/guides/USER_GUIDE.md) · [`AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)
 
 ---
 
@@ -425,7 +425,7 @@ Client → /v1/chat/completions → [CORS → Zod → Auth → Authz → Guardra
 - **`src/domain/`** — Pure business logic (policies, fallback, cost rules)
 - **`src/server/`** — Server-only (authz pipeline, cors)
 
-→ Deep dive: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/CODEBASE_DOCUMENTATION.md`](docs/CODEBASE_DOCUMENTATION.md)
+→ Deep dive: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) · [`docs/architecture/CODEBASE_DOCUMENTATION.md`](docs/architecture/CODEBASE_DOCUMENTATION.md)
 
 ---
 
@@ -435,7 +435,7 @@ UI translated to **30 languages** with full RTL support for Arabic and Hebrew.
 
 🌐 [English](README.md) · [Português](docs/i18n/pt-BR/README.md) · [Español](docs/i18n/es/README.md) · [Français](docs/i18n/fr/README.md) · [Deutsch](docs/i18n/de/README.md) · [中文](docs/i18n/zh-CN/README.md) · [日本語](docs/i18n/ja/README.md) · [한국어](docs/i18n/ko/README.md) · [العربية](docs/i18n/ar/README.md) · [हिन्दी](docs/i18n/hi/README.md) · [Русский](docs/i18n/ru/README.md) · [+ 19 more](docs/i18n/)
 
-→ Adding a language: [`docs/I18N.md`](docs/I18N.md)
+→ Adding a language: [`docs/guides/I18N.md`](docs/guides/I18N.md)
 
 ---
 
@@ -459,9 +459,9 @@ We welcome PRs! Start with:
 3. Branch from `main` (`feat/*`, `fix/*`, `docs/*`, `refactor/*`, `test/*`, `chore/*`)
 4. Hooks will run lint + test on commit/push
 
-**Adding a provider?** [`docs/ARCHITECTURE.md § Adding a New Provider`](docs/ARCHITECTURE.md)
-**Adding an MCP tool?** [`docs/MCP-SERVER.md`](docs/MCP-SERVER.md)
-**Adding an A2A skill?** [`docs/A2A-SERVER.md § Adding a New Skill`](docs/A2A-SERVER.md)
+**Adding a provider?** [`docs/architecture/ARCHITECTURE.md § Adding a New Provider`](docs/architecture/ARCHITECTURE.md)
+**Adding an MCP tool?** [`docs/frameworks/MCP-SERVER.md`](docs/frameworks/MCP-SERVER.md)
+**Adding an A2A skill?** [`docs/frameworks/A2A-SERVER.md § Adding a New Skill`](docs/frameworks/A2A-SERVER.md)
 
 ---
 
@@ -471,7 +471,7 @@ We welcome PRs! Start with:
 - **Supported versions:** 3.8.x (Active), 3.7.x (Security only)
 - **Secrets:** never commit. Use `.env` (auto-generated from `.env.example` on first install) or vaults
 - **Encryption:** credentials at rest with AES-256-GCM
-- **Authz:** route-aware classification (`src/server/authz/`) — see [`docs/AUTHZ_GUIDE.md`](docs/AUTHZ_GUIDE.md)
+- **Authz:** route-aware classification (`src/server/authz/`) — see [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md)
 - **Guardrails:** PII masking, prompt injection detection — hot-reloadable
 
 ---

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 
-const { createResponsesWsProxy } = await import("../../scripts/responses-ws-proxy.mjs");
+const { createResponsesWsProxy } = await import("../../scripts/dev/responses-ws-proxy.mjs");
 
 function listen(server) {
   return new Promise((resolve) => {

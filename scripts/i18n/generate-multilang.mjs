@@ -1,7 +1,21 @@
 #!/usr/bin/env node
 
+/**
+ * DEPRECATED 2026-05-13. Use `npm run i18n:run`
+ * (scripts/i18n/run-translation.mjs) for docs translation.
+ *
+ * This Google-Translate-backed generator is kept for the `messages` and
+ * `readme` modes which target `src/i18n/messages/*.json` and root README
+ * variants — those are not yet handled by the new LLM pipeline. The `docs`
+ * mode is superseded and will be removed in v3.10.
+ */
+
 import { promises as fs } from "node:fs";
 import path from "node:path";
+
+console.warn(
+  "[generate-multilang] DEPRECATED: prefer `npm run i18n:run` for docs (this script will be removed in v3.10)."
+);
 
 const ROOT = process.cwd();
 const MESSAGES_DIR = path.join(ROOT, "src", "i18n", "messages");

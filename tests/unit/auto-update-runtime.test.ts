@@ -130,7 +130,7 @@ describe("buildSourceUpdateScript", () => {
 
     assert.match(script, /git fetch --tags 'upstream'/);
     assert.match(script, /git checkout "v3\.2\.6"/);
-    assert.match(script, /node scripts\/sync-env\.mjs 2>\/dev\/null \|\| true/);
+    assert.match(script, /node scripts\/dev\/sync-env\.mjs 2>\/dev\/null \|\| true/);
     assert.match(script, /pm2 restart omniroute --update-env \|\| true/);
   });
 });

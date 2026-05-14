@@ -595,7 +595,80 @@ export async function POST(
         });
       } catch (exchangeErr: any) {
         console.error("OAuth exchange error:", exchangeErr);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        return NextResponse.json(
+          { success: false, error: "Internal server error" },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (action === "import-token") {
+      const { token, connectionId } = body;
+
+      if (!IMPORT_TOKEN_PROVIDERS.has(provider)) {
+        return NextResponse.json(
+          {
+            error: `import-token not supported for provider: ${provider}. Supported: ${[...IMPORT_TOKEN_PROVIDERS].join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+
+      try {
+        // Map the raw token via the provider's mapTokens() — skips the HTTP exchange entirely.
+        const providerData = getProvider(provider);
+        const tokenData = providerData.mapTokens({ accessToken: token });
+
+        // Normalize: if name is missing, use email as fallback display label
+        if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
+          tokenData.name = tokenData.email || tokenData.displayName;
+        }
+
+        const expiresAt = tokenData.expiresIn
+          ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
+          : null;
+
+        let connection: any;
+        if (tokenData.email) {
+          const existing = await getProviderConnections({ provider });
+          const match = existing.find((c: any) => {
+            if (c.id && safeEqual(connectionId, c.id)) return true;
+            if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
+            return true;
+          });
+          const matchId = typeof match?.id === "string" ? match.id : null;
+          if (matchId) {
+            connection = await updateProviderConnection(matchId, {
+              ...tokenData,
+              expiresAt,
+              testStatus: "active",
+              isActive: true,
+            });
+          }
+        }
+        if (!connection) {
+          connection = await createProviderConnection({
+            provider,
+            authType: "oauth",
+            ...tokenData,
+            expiresAt,
+            testStatus: "active",
+          });
+        }
+
+        await syncToCloudIfEnabled();
+
+        return NextResponse.json({
+          success: true,
+          connection: {
+            id: connection.id,
+            provider: connection.provider,
+            email: connection.email,
+            displayName: connection.displayName,
+          },
+        });
+      } catch (importErr: any) {
+        return NextResponse.json({ success: false, error: importErr.message }, { status: 500 });
       }
     }
 

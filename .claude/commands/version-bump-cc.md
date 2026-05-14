@@ -136,9 +136,9 @@ The date must be today's date in `YYYY-MM-DD` format.
 cd /home/diegosouzapw/dev/proxys/OmniRoute
 VERSION=$(node -p "require('./package.json').version")
 
-# Update docs/openapi.yaml version
-sed -i "s/  version: .*/  version: $VERSION/" docs/openapi.yaml
-echo "✓ docs/openapi.yaml → $VERSION"
+# Update docs/reference/openapi.yaml version
+sed -i "s/  version: .*/  version: $VERSION/" docs/reference/openapi.yaml
+echo "✓ docs/reference/openapi.yaml → $VERSION"
 
 # Update workspace packages (open-sse, electron)
 for dir in electron open-sse; do
@@ -208,22 +208,36 @@ For each file below, read the current content and determine if the CHANGELOG ent
 
 For each file in `docs/` (excluding `docs/i18n/`), review if CHANGELOG changes affect it:
 
-| File                             | When to update                                      |
-| -------------------------------- | --------------------------------------------------- |
-| `docs/API_REFERENCE.md`          | New API endpoints, changed request/response formats |
-| `docs/ARCHITECTURE.md`           | New modules, new services, changed data flow        |
-| `docs/CLI-TOOLS.md`              | New CLI tool integrations, config format changes    |
-| `docs/FEATURES.md`               | New features, removed features, changed settings    |
-| `docs/MCP-SERVER.md`             | New MCP tools, changed tool signatures              |
-| `docs/A2A-SERVER.md`             | New A2A skills, protocol changes                    |
-| `docs/USER_GUIDE.md`             | UX changes, new dashboard pages, settings changes   |
-| `docs/VM_DEPLOYMENT_GUIDE.md`    | Deployment changes, new env vars                    |
-| `docs/TROUBLESHOOTING.md`        | New known issues, resolved problems                 |
-| `docs/AUTO-COMBO.md`             | Routing changes, new strategies                     |
-| `docs/CODEBASE_DOCUMENTATION.md` | New files, architectural changes                    |
-| `docs/RELEASE_CHECKLIST.md`      | Process changes                                     |
-| `docs/COVERAGE_PLAN.md`          | Test changes                                        |
-| `docs/openapi.yaml`              | Already updated in step 7                           |
+| File                                          | When to update                                                     |
+| --------------------------------------------- | ------------------------------------------------------------------ |
+| `docs/reference/API_REFERENCE.md`             | New API endpoints, changed request/response formats                |
+| `docs/architecture/ARCHITECTURE.md`           | New modules, new services, changed data flow                       |
+| `docs/architecture/CODEBASE_DOCUMENTATION.md` | New files, architectural changes, module reorganization            |
+| `docs/architecture/REPOSITORY_MAP.md`         | New folders / files / one-line descriptions                        |
+| `docs/reference/CLI-TOOLS.md`                 | New CLI tool integrations, config format changes                   |
+| `docs/guides/USER_GUIDE.md`                   | UX changes, new dashboard pages, settings changes                  |
+| `docs/reference/PROVIDER_REFERENCE.md`        | New providers (regenerate via `scripts/gen-provider-reference.ts`) |
+| `docs/frameworks/MCP-SERVER.md`               | New MCP tools, changed tool signatures, scope changes              |
+| `docs/frameworks/A2A-SERVER.md`               | New A2A skills, protocol changes                                   |
+| `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`    | New external agent protocols supported                             |
+| `docs/frameworks/CLOUD_AGENT.md`              | Cloud agent additions (codex-cloud, devin, jules) or API changes   |
+| `docs/architecture/AUTHZ_GUIDE.md`            | New route classifications, policy changes                          |
+| `docs/security/GUARDRAILS.md`                 | New guardrails registered, priority/order changes                  |
+| `docs/security/COMPLIANCE.md`                 | Audit log / retention / no-log policy changes                      |
+| `docs/frameworks/SKILLS.md`                   | Skill framework / registry / built-in skill changes                |
+| `docs/frameworks/MEMORY.md`                   | Memory pipeline / extraction / injection / Qdrant changes          |
+| `docs/frameworks/EVALS.md`                    | Evaluation framework changes, new evaluators                       |
+| `docs/frameworks/WEBHOOKS.md`                 | New webhook events, payload schema changes                         |
+| `docs/routing/REASONING_REPLAY.md`            | Reasoning capture/replay pipeline changes                          |
+| `docs/routing/AUTO-COMBO.md`                  | Routing changes, new strategies, scoring weight changes            |
+| `docs/architecture/RESILIENCE_GUIDE.md`       | Circuit breaker / cooldown / lockout behavior changes              |
+| `docs/security/STEALTH_GUIDE.md`              | TLS / CLI fingerprint changes                                      |
+| `docs/ops/TUNNELS_GUIDE.md`                   | Cloudflare tunnel feature changes                                  |
+| `docs/guides/ELECTRON_GUIDE.md`               | Electron build / signing / packaging changes                       |
+| `docs/guides/TROUBLESHOOTING.md`              | New known issues, resolved problems                                |
+| `docs/ops/RELEASE_CHECKLIST.md`               | Process changes                                                    |
+| `docs/ops/COVERAGE_PLAN.md`                   | Coverage gate adjustments, target metrics                          |
+| `docs/reference/openapi.yaml`                 | Already updated in step 7                                          |
 
 **Only update files where the CHANGELOG entries directly affect the documented content.** Do NOT update files just to bump a version number — only when the documented behavior, features, or architecture has actually changed.
 
@@ -268,8 +282,8 @@ grep '"version"' open-sse/package.json | head -1
 echo "--- electron/package.json ---"
 [ -f electron/package.json ] && grep '"version"' electron/package.json | head -1
 
-echo "--- docs/openapi.yaml ---"
-grep "  version:" docs/openapi.yaml | head -1
+echo "--- docs/reference/openapi.yaml ---"
+grep "  version:" docs/reference/openapi.yaml | head -1
 
 echo "--- llm.txt ---"
 grep "Current version:" llm.txt
@@ -310,18 +324,18 @@ git commit -m "chore(release): bump to v$VERSION — changelog, docs, version sy
 ## Notes
 
 - This workflow does **NOT** create tags, releases, or deploy. Use `/generate-release` for the full release cycle after this.
-- This workflow does **NOT** update `docs/i18n/` translations. Use `/update-i18n` separately after committing.
+- This workflow does **NOT** update `docs/i18n/` translations. Translation updates are handled manually or via release tooling — the `/update-i18n` command does not currently exist as a Claude Code slash command.
 - The CHANGELOG generation is based on git commits since the last tag. If there are no new commits, the workflow should inform the user and stop.
 - Always verify the generated CHANGELOG entries make sense — raw commit messages may need rewriting for clarity.
 - If the version was already bumped (e.g. you're on a `release/vX.Y.Z` branch), skip the `npm version` step and use the existing version.
 
 ## Version Touchpoints Checklist
 
-| File                    | Field/Pattern                                               |
-| ----------------------- | ----------------------------------------------------------- |
-| `package.json`          | `"version": "X.Y.Z"`                                        |
-| `open-sse/package.json` | `"version": "X.Y.Z"`                                        |
-| `electron/package.json` | `"version": "X.Y.Z"`                                        |
-| `docs/openapi.yaml`     | `version: X.Y.Z`                                            |
-| `llm.txt`               | `**Current version:** X.Y.Z` and `## Key Features (vX.Y.Z)` |
-| `CHANGELOG.md`          | `## [X.Y.Z] — YYYY-MM-DD`                                   |
+| File                          | Field/Pattern                                               |
+| ----------------------------- | ----------------------------------------------------------- |
+| `package.json`                | `"version": "X.Y.Z"`                                        |
+| `open-sse/package.json`       | `"version": "X.Y.Z"`                                        |
+| `electron/package.json`       | `"version": "X.Y.Z"`                                        |
+| `docs/reference/openapi.yaml` | `version: X.Y.Z`                                            |
+| `llm.txt`                     | `**Current version:** X.Y.Z` and `## Key Features (vX.Y.Z)` |
+| `CHANGELOG.md`                | `## [X.Y.Z] — YYYY-MM-DD`                                   |

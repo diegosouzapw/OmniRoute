@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { hasStandaloneAppBundle } from "../../scripts/postinstallSupport.mjs";
+import { hasStandaloneAppBundle } from "../../scripts/build/postinstallSupport.mjs";
 
 test("hasStandaloneAppBundle returns false for source checkout without standalone app", () => {
   const root = mkdtempSync(join(tmpdir(), "omniroute-postinstall-src-"));

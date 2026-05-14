@@ -86,10 +86,46 @@ export const DOCS_USE_CASE_ITEMS = [
 
 export const DOCS_DEPLOYMENT_GUIDES = [
   {
+    icon: "rocket_launch",
+    titleKey: "deploySetupTitle",
+    textKey: "deploySetupText",
+    href: "/docs/setup-guide",
+  },
+  {
+    icon: "computer",
+    titleKey: "deployElectronTitle",
+    textKey: "deployElectronText",
+    href: "/docs/electron-guide",
+  },
+  {
+    icon: "directions_boat_filled",
+    titleKey: "deployDockerTitle",
+    textKey: "deployDockerText",
+    href: "/docs/docker-guide",
+  },
+  {
+    icon: "dns",
+    titleKey: "deployVmTitle",
+    textKey: "deployVmText",
+    href: "/docs/vm-deployment-guide",
+  },
+  {
+    icon: "cloud",
+    titleKey: "deployFlyTitle",
+    textKey: "deployFlyText",
+    href: "/docs/fly-io-deployment-guide",
+  },
+  {
+    icon: "phone_iphone",
+    titleKey: "deployPwaTitle",
+    textKey: "deployPwaText",
+    href: "/docs/pwa-guide",
+  },
+  {
     icon: "android",
     titleKey: "deployTermuxTitle",
     textKey: "deployTermuxText",
-    href: "https://github.com/diegosouzapw/OmniRoute/blob/main/docs/TERMUX_GUIDE.md",
+    href: "/docs/termux-guide",
   },
 ] as const;
 
@@ -154,6 +190,22 @@ export const DOCS_MCP_TOOL_GROUPS = [
     titleKey: "mcpToolsCacheTitle",
     textKey: "mcpToolsCacheDesc",
     tools: ["omniroute_cache_stats", "omniroute_cache_flush"],
+  },
+  {
+    titleKey: "mcpToolsCompressionTitle",
+    textKey: "mcpToolsCompressionDesc",
+    tools: [
+      "omniroute_compression_status",
+      "omniroute_compression_configure",
+      "omniroute_compression_combo_stats",
+      "omniroute_list_compression_combos",
+      "omniroute_set_compression_engine",
+    ],
+  },
+  {
+    titleKey: "mcpToolsOneProxyTitle",
+    textKey: "mcpToolsOneProxyDesc",
+    tools: ["omniroute_oneproxy_fetch", "omniroute_oneproxy_rotate", "omniroute_oneproxy_stats"],
   },
   {
     titleKey: "mcpToolsMemoryTitle",

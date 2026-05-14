@@ -1,11 +1,13 @@
 ---
 name: capture-release-evidences-cx
-description: Automatically run the browser_subagent to visually validate all new UI features from the current release and capture evidence WebP recordings of the changes.
+description: Automatically run a browser-automation agent to visually validate all new UI features from the current release and capture evidence WebP recordings of the changes.
 ---
 
 # Capture Release Evidences Workflow
 
-Use this workflow to automatically drive the `browser_subagent` to explore the newly deployed or locally running application and record evidence of the UI changes introduced in the latest release.
+Use this workflow to automatically drive a browser-automation agent to explore the newly deployed or locally running application and record evidence of the UI changes introduced in the latest release.
+
+> **Tool mapping note (v3.8):** The `browser_subagent` tool referenced below is specific to an earlier agent runtime. In Claude Code, substitute with the available browser MCP tools (e.g. `mcp__claude-in-chrome__*`) for navigation/screenshots, plus the `Write` tool for saving artifacts. The high-level steps remain the same regardless of the browser-automation surface in use.
 
 ## Prerequisites
 
@@ -36,7 +38,7 @@ _(Note: The `browser_subagent` automatically creates a WebP recording named by t
 
 ### 3. Generate Report Artifact
 
-After the `browser_subagent` finishes its sessions, generate a final Markdown artifact (using `write_to_file` and `IsArtifact=true`) to present the recordings inline to the user using the `![caption](/absolute/path/to/media.webp)` syntax.
+After the `browser_subagent` finishes its sessions, generate a final Markdown artifact (using `Write` and `IsArtifact=true`) to present the recordings inline to the user using the `![caption](/absolute/path/to/media.webp)` syntax.
 
 ### Example Invocation
 

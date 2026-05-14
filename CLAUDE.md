@@ -11,7 +11,7 @@ npm run build                  # Production build (Next.js 16 standalone)
 npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
 npm run typecheck:core         # TypeScript check (should be clean)
 npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
+npm run test:coverage          # Unit tests + coverage gate (75/75/75/70 — statements/lines/functions/branches)
 npm run check                  # lint + test combined
 npm run check:cycles           # Detect circular dependencies
 ```
@@ -37,20 +37,20 @@ For full test matrix, see `CONTRIBUTING.md` → "Running Tests". For deep archit
 
 **OmniRoute** — unified AI proxy/router. One endpoint, 160+ LLM providers, auto-fallback.
 
-| Layer         | Location                | Purpose                                    |
-| ------------- | ----------------------- | ------------------------------------------ |
-| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points          |
-| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc) |
-| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch            |
-| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions           |
-| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc   |
-| Database      | `src/lib/db/`           | SQLite domain modules (22 files)           |
-| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic  |
-| MCP Server    | `open-sse/mcp-server/`  | 29 tools, 3 transports, 10 scopes          |
-| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                |
-| Skills        | `src/lib/skills/`       | Extensible skill framework                 |
-| Memory        | `src/lib/memory/`       | Persistent conversational memory           |
+| Layer         | Location                | Purpose                                                            |
+| ------------- | ----------------------- | ------------------------------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — entry points                                  |
+| Handlers      | `open-sse/handlers/`    | Request processing (chat, embeddings, etc)                         |
+| Executors     | `open-sse/executors/`   | Provider-specific HTTP dispatch                                    |
+| Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                           |
+| Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                   |
+| Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                           |
+| Database      | `src/lib/db/`           | SQLite domain modules (45+ files, 55 migrations)                   |
+| Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                          |
+| MCP Server    | `open-sse/mcp-server/`  | 37 tools (30 base + 3 memory + 4 skills), 3 transports, ~13 scopes |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                        |
+| Skills        | `src/lib/skills/`       | Extensible skill framework                                         |
+| Memory        | `src/lib/memory/`       | Persistent conversational memory                                   |
 
 Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine workspace), `electron/` (desktop app), `tests/`, `bin/` (CLI entry point).
 
@@ -72,14 +72,17 @@ Client → /v1/chat/completions (Next.js route)
 
 API routes follow a consistent pattern: `Route → CORS preflight → Zod body validation → Optional auth (extractApiKey/isValidApiKey) → API key policy enforcement → Handler delegation (open-sse)`. No global Next.js middleware — interception is route-specific.
 
-**Combo routing** (`open-sse/services/combo.ts`): 13 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks.
+**Combo routing** (`open-sse/services/combo.ts`): 14 strategies (priority, weighted, fill-first, round-robin, P2C, random, least-used, cost-optimized, reset-aware, strict-random, auto, lkgp, context-optimized, context-relay). Each target calls `handleSingleModel()` which wraps `handleChatCore()` with per-target error handling and circuit breaker checks. See `docs/routing/AUTO-COMBO.md` for the 9-factor Auto-Combo scoring and `docs/architecture/RESILIENCE_GUIDE.md` for the 3 resilience layers.
 
 ---
 
 ## Resilience Runtime State
 
 OmniRoute has three related but distinct temporary-failure mechanisms. Keep their
-scope separate when debugging routing behavior.
+scope separate when debugging routing behavior. See the
+[3-layer resilience diagram](./docs/diagrams/exported/resilience-3layers.svg)
+(source: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+for an at-a-glance map.
 
 ### Provider Circuit Breaker
 
@@ -280,31 +283,78 @@ connection continue serving other models.
 
 ### Adding a New A2A Skill
 
-1. Create skill in `src/lib/a2a/skills/`
+1. Create skill in `src/lib/a2a/skills/` (5 already exist: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
 2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+3. Register in `A2A_SKILL_HANDLERS` in `src/lib/a2a/taskExecution.ts`
+4. Expose in `src/app/.well-known/agent.json/route.ts` (Agent Card)
+5. Write tests in `tests/unit/`
+6. Document in `docs/frameworks/A2A-SERVER.md` skill table
+
+### Adding a New Cloud Agent
+
+1. Create agent class in `src/lib/cloudAgent/agents/` extending `CloudAgentBase` (3 already exist: codex-cloud, devin, jules)
+2. Implement `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Register in `src/lib/cloudAgent/registry.ts`
+4. Add OAuth/credentials handling if needed (`src/lib/oauth/providers/`)
+5. Tests + document in `docs/frameworks/CLOUD_AGENT.md`
+
+### Adding a New Guardrail / Eval / Skill / Webhook event
+
+- Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
+- Eval suite: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
+- Skill (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
+- Webhook event: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
+
+---
+
+## Reference Documentation
+
+For any non-trivial change, read the matching deep-dive first:
+
+| Area                                         | Doc                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| Repo navigation                              | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architecture                                 | `docs/architecture/ARCHITECTURE.md`                               |
+| Engineering reference                        | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (9-factor scoring, 14 strategies) | `docs/routing/AUTO-COMBO.md`                                      |
+| Resilience (3 mechanisms)                    | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Reasoning replay                             | `docs/routing/REASONING_REPLAY.md`                                |
+| Skills framework                             | `docs/frameworks/SKILLS.md`                                       |
+| Memory system (FTS5 + Qdrant)                | `docs/frameworks/MEMORY.md`                                       |
+| Cloud agents                                 | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Guardrails (PII / injection / vision)        | `docs/security/GUARDRAILS.md`                                     |
+| Evals                                        | `docs/frameworks/EVALS.md`                                        |
+| Compliance / audit                           | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                     | `docs/frameworks/WEBHOOKS.md`                                     |
+| Authorization pipeline                       | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / fingerprint)                  | `docs/security/STEALTH_GUIDE.md`                                  |
+| Agent protocols (A2A / ACP / Cloud)          | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                   | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                   | `docs/frameworks/A2A-SERVER.md`                                   |
+| API reference + OpenAPI                      | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Provider catalog (auto-generated)            | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Release flow                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
 ## Testing
 
-| What                    | Command                                                |
-| ----------------------- | ------------------------------------------------------ |
-| Unit tests              | `npm run test:unit`                                    |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.ts` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                  |
-| E2E (Playwright)        | `npm run test:e2e`                                     |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                           |
-| Ecosystem               | `npm run test:ecosystem`                               |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)          |
-| Coverage report         | `npm run coverage:report`                              |
+| What                    | Command                                                                     |
+| ----------------------- | --------------------------------------------------------------------------- |
+| Unit tests              | `npm run test:unit`                                                         |
+| Single file             | `node --import tsx/esm --test tests/unit/file.test.ts`                      |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                       |
+| E2E (Playwright)        | `npm run test:e2e`                                                          |
+| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                                |
+| Ecosystem               | `npm run test:ecosystem`                                                    |
+| Coverage gate           | `npm run test:coverage` (75/75/75/70 — statements/lines/functions/branches) |
+| Coverage report         | `npm run coverage:report`                                                   |
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`, you must include or update tests in the same PR.
 
 **Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
 
-**Copilot coverage policy**: When a PR changes production code and coverage is below 60%, do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
+**Copilot coverage policy**: When a PR changes production code and coverage is below 75% (statements/lines/functions) or 70% (branches), do not just report — add or update tests, rerun the coverage gate, then ask for confirmation. Include commands run, changed test files, and final coverage result in the PR report.
 
 ---
 
@@ -350,4 +400,5 @@ git push -u origin feat/your-feature
 6. Never silently swallow errors in SSE streams
 7. Always validate inputs with Zod schemas
 8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+9. Coverage must stay ≥75% (statements, lines, functions) / ≥70% (branches). Current measured: ~82%.
+10. Never bypass Husky hooks (`--no-verify`, `--no-gpg-sign`) without explicit operator approval.
