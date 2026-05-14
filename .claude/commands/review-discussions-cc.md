@@ -8,6 +8,8 @@ description: Read all open GitHub Discussions, summarize them, respond to pendin
 
 This workflow reads all open GitHub Discussions, generates a categorized summary, identifies which ones need a response, drafts and posts replies, and optionally creates issues from actionable feature requests. It follows the same flow used for Issues but adapted for the Discussions forum.
 
+> **Tool mapping note (v3.8):** Where steps below say `browser_subagent` (an earlier-runtime tool), in Claude Code use the `gh` CLI via the `Bash` tool — `gh api graphql` for reading discussions and `gh api graphql -F query=...` mutations for posting comments. `WebFetch` is acceptable for read-only HTML scraping when GraphQL is overkill, but prefer `gh` for any write actions.
+
 // turbo-all
 
 ## Steps
@@ -19,7 +21,7 @@ This workflow reads all open GitHub Discussions, generates a categorized summary
 
 ### 2. Fetch All Open Discussions
 
-- Use `read_url_content` to fetch `https://github.com/<owner>/<repo>/discussions`
+- Use `WebFetch` to fetch `https://github.com/<owner>/<repo>/discussions`
 - Parse the discussion list to get all discussion titles, IDs, authors, categories, and dates
 - For each discussion, fetch the individual page to read the full content and all comments/replies
 

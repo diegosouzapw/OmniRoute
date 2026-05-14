@@ -202,6 +202,22 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     timeoutMs: 10_000,
     cacheTTLMs: 5 * 60 * 1000,
   },
+
+  "zai-search": {
+    id: "zai-search",
+    name: "Z.AI Coding Plan Search",
+    baseUrl: "https://api.z.ai/api/mcp/web_search_prime/mcp",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0,
+    freeMonthlyQuota: 0,
+    searchTypes: ["web"],
+    defaultMaxResults: 5,
+    maxMaxResults: 50,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
 };
 
 /**
@@ -211,6 +227,7 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
 export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
   "perplexity-search": "perplexity",
   "ollama-search": "ollama-cloud",
+  "zai-search": "zai",
 };
 
 /**

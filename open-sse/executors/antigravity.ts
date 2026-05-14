@@ -55,7 +55,7 @@ interface AntigravityContent {
 }
 
 type AntigravityCredentials = ProviderCredentials & {
-  projectId?: string;
+  projectId?: string | null;
   expiresIn?: number;
 };
 
@@ -437,9 +437,17 @@ export class AntigravityExecutor extends BaseExecutor {
     // TODO: Consider removing project override like gemini-cli.ts — stored projectId
     // can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
     // Antigravity accounts may have more stable project IDs, but the risk exists.
+    const normalizeProjectId = (value: unknown): string | null => {
+      if (typeof value !== "string") return null;
+      const trimmedValue = value.trim();
+      return trimmedValue ? trimmedValue : null;
+    };
     const bodyRecord = asRecord(body) ?? {};
-    const bodyProjectId = typeof bodyRecord.project === "string" ? bodyRecord.project : undefined;
-    const credentialsProjectId = credentials?.projectId;
+    const bodyProjectId = normalizeProjectId(bodyRecord.project);
+    const credentialsProjectId = normalizeProjectId(credentials?.projectId);
+    const providerSpecificProjectId = normalizeProjectId(
+      (credentials?.providerSpecificData as Record<string, unknown> | undefined)?.projectId
+    );
     const allowBodyProjectOverride = process.env.OMNIROUTE_ALLOW_BODY_PROJECT_OVERRIDE === "1";
 
     // Default: prefer OAuth-stored projectId over incoming body.project to avoid
@@ -448,7 +456,7 @@ export class AntigravityExecutor extends BaseExecutor {
     const projectId =
       allowBodyProjectOverride && bodyProjectId
         ? bodyProjectId
-        : credentialsProjectId || bodyProjectId;
+        : credentialsProjectId || providerSpecificProjectId || bodyProjectId;
 
     if (!projectId) {
       // (#489) Return a structured error instead of throwing — gives the client a clear signal

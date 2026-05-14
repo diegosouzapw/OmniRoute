@@ -12,7 +12,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --no-sandbox",
-    "prepare:bundle": "node ../scripts/prepare-electron-standalone.mjs",
+    "prepare:bundle": "node ../scripts/build/prepare-electron-standalone.mjs",
     "build": "npm run prepare:bundle && electron-builder",
     "build:win": "npm run prepare:bundle && electron-builder --win",
     "build:mac": "npm run prepare:bundle && electron-builder --mac",
@@ -26,7 +26,7 @@
     "electron-updater": "^6.8.5"
   },
   "devDependencies": {
-"electron": "^42.0.1",
+    "electron": "^42.0.1",
     "electron-builder": "^26.10.0"
   },
   "overrides": {

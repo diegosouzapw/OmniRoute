@@ -661,7 +661,7 @@ async function handleSingleModelChat(
     });
   }
 
-  const { provider, model, sourceFormat, targetFormat, extendedContext } = resolved;
+  const { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat } = resolved;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const hasForcedConnection =
     typeof runtimeOptions.forcedConnectionId === "string" &&
@@ -901,6 +901,7 @@ async function handleSingleModelChat(
         comboStepId: runtimeOptions.comboStepId ?? null,
         comboExecutionKey: runtimeOptions.comboExecutionKey ?? runtimeOptions.comboStepId ?? null,
         extendedContext,
+        modelApiFormat: apiFormat,
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
       });

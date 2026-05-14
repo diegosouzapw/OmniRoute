@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OmniRoute i18n config",
+  "description": "Canonical list of locales used by both the UI (next-intl) and the docs translation pipeline.",
+  "type": "object",
+  "required": ["default", "rtl", "locales"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "default": {
+      "type": "string",
+      "description": "Default fallback locale code (must exist in `locales`)."
+    },
+    "rtl": {
+      "type": "array",
+      "description": "Locale codes that should be rendered right-to-left.",
+      "items": { "type": "string" }
+    },
+    "uiOnly": {
+      "type": "array",
+      "description": "Locale codes shipped in the UI but not produced as a docs translation target.",
+      "items": { "type": "string" }
+    },
+    "docsExcluded": {
+      "type": "array",
+      "description": "Locale codes that should NOT receive docs translations (e.g. the source language).",
+      "items": { "type": "string" }
+    },
+    "locales": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["code", "label", "name", "flag"],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Locale code (ISO-639-1, optionally with region — e.g. `pt-BR`)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Short uppercase label for compact UI badges."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name in the locale's native script (kept for compatibility with existing LanguageSelector)."
+          },
+          "native": {
+            "type": "string",
+            "description": "Same as `name` — present as an alias so new code can rely on a stable field name."
+          },
+          "english": {
+            "type": "string",
+            "description": "English name of the language (used by the docs translator system prompt)."
+          },
+          "flag": {
+            "type": "string",
+            "description": "Flag emoji shown next to the locale."
+          }
+        }
+      }
+    }
+  }
+}

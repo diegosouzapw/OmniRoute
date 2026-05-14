@@ -21,14 +21,16 @@ let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
 const CHATGPT_PROFILE = "firefox_148"; // matches the Firefox 148 UA we send
-const DEFAULT_TIMEOUT_MS = 60_000;
+const DEFAULT_TIMEOUT_MS =
+  Number.parseInt(process.env.OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
 // hard timeout fires. Under healthy operation `tls-client-node` honors
 // `timeoutMilliseconds` and rejects on its own; the JS-level race only wins
 // when the koffi-loaded native library is wedged (which the binding's own
 // timer can't escape). Keep the grace small so users don't wait noticeably
 // longer than the configured timeout when the binding is dead.
-const HARD_TIMEOUT_GRACE_MS = 10_000;
+const HARD_TIMEOUT_GRACE_MS =
+  Number.parseInt(process.env.OMNIROUTE_CHATGPT_TLS_GRACE_MS || "", 10) || 10_000;
 
 function installExitHook(): void {
   if (exitHookInstalled) return;

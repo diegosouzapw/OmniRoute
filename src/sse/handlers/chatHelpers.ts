@@ -207,9 +207,16 @@ export async function resolveModelOrError(
   }
 
   const { provider, model, extendedContext } = modelInfo;
+  // apiFormat: optional custom-model marker — see chatCore.ts for shape narrowing rationale.
+  const apiFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
+      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
+        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
+        : undefined
+      : undefined;
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
-  if ((modelInfo as any).apiFormat === "responses") {
+  if (apiFormat === "responses") {
     targetFormat = "openai-responses";
     log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
   }
@@ -221,7 +228,7 @@ export async function resolveModelOrError(
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat, extendedContext };
+  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat };
 }
 
 export async function checkPipelineGates(
@@ -292,6 +299,7 @@ export async function executeChatWithBreaker({
   comboStepId,
   comboExecutionKey,
   extendedContext,
+  modelApiFormat,
   providerProfile,
   cachedSettings,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
@@ -302,7 +310,7 @@ export async function executeChatWithBreaker({
       runWithProxyContext(proxyInfo?.proxy || null, () =>
         (handleChatCore as any)({
           body: { ...body, model: `${provider}/${model}` },
-          modelInfo: { provider, model, extendedContext },
+          modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
           credentials: refreshedCredentials,
           log: handlerLog,
           clientRawRequest,

@@ -11,7 +11,7 @@ import {
 } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
-import { createSseHeartbeatTransform } from "../utils/sseHeartbeat.ts";
+import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
 import { refreshWithRetry } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
@@ -35,6 +35,7 @@ import {
   FETCH_BODY_TIMEOUT_MS,
   MAX_TOOLS_LIMIT,
   PROVIDER_MAX_TOKENS,
+  SSE_HEARTBEAT_INTERVAL_MS,
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
 } from "../config/constants.ts";
@@ -1163,6 +1164,16 @@ export async function handleChatCore({
   cachedSettings = null,
 }) {
   let { provider, model, extendedContext } = modelInfo;
+  // apiFormat is an optional custom-model marker injected by getModelInfo for
+  // providers whose models can route to /chat/completions or /responses
+  // (Azure AI Foundry, OCI generic OpenAI). It's not on the base ModelInfo
+  // shape, so we read it via a structural narrowing without `as any`.
+  const apiFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
+      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
+        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
+        : undefined
+      : undefined;
   const requestedModel =
     typeof body?.model === "string" && body.model.trim().length > 0 ? body.model : model;
   const isModelScope = () => isModelScopeProvider(provider, credentials?.providerSpecificData);
@@ -1400,7 +1411,9 @@ export async function handleChatCore({
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
-    modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
+    apiFormat === "responses"
+      ? FORMATS.OPENAI_RESPONSES
+      : modelTargetFormat || getTargetFormat(provider, credentials?.providerSpecificData);
   const { body: bodyWithWebSearchFallback, fallback: webSearchFallbackPlan } =
     prepareWebSearchFallbackBody(body as Record<string, unknown>, {
       provider,
@@ -2753,6 +2766,12 @@ export async function handleChatCore({
     delete translatedBody.store;
   }
 
+  // Chat clients may send stream_options.include_usage, but OpenAI Responses
+  // upstreams (including Azure AI Foundry /responses) reject stream_options.
+  if (targetFormat === FORMATS.OPENAI_RESPONSES && "stream_options" in translatedBody) {
+    delete translatedBody.stream_options;
+  }
+
   // Provider-specific max_tokens caps (#711)
   // Some providers reject requests when max_tokens exceeds their API limit.
   // Cap before sending to avoid upstream HTTP 400 errors.
@@ -2838,12 +2857,41 @@ export async function handleChatCore({
       ? { ...credentials, requestEndpointPath: endpointPath }
       : credentials;
 
-    if (!ccSessionId) return nextCredentials;
+    const providerSpecificData =
+      nextCredentials?.providerSpecificData &&
+      typeof nextCredentials.providerSpecificData === "object"
+        ? { ...nextCredentials.providerSpecificData }
+        : {};
+
+    // Some providers (Azure AI Foundry, OCI OpenAI-compatible) choose upstream
+    // endpoint path from providerSpecificData.apiType. When a model routes to
+    // OpenAI Responses format, force apiType=responses unless explicitly set.
+    if (
+      targetFormat === FORMATS.OPENAI_RESPONSES &&
+      (provider === "azure-ai" || provider === "oci") &&
+      providerSpecificData.apiType !== "responses"
+    ) {
+      providerSpecificData.apiType = "responses";
+    }
+
+    if (
+      targetFormat === FORMATS.OPENAI_RESPONSES &&
+      (provider === "azure-ai" || provider === "oci")
+    ) {
+      providerSpecificData._omnirouteForceResponsesUpstream = true;
+    }
+
+    const withApiType = {
+      ...nextCredentials,
+      providerSpecificData,
+    };
+
+    if (!ccSessionId) return withApiType;
 
     return {
-      ...nextCredentials,
+      ...withApiType,
       providerSpecificData: {
-        ...(nextCredentials?.providerSpecificData || {}),
+        ...(withApiType?.providerSpecificData || {}),
         ccSessionId,
       },
     };
@@ -3029,11 +3077,7 @@ export async function handleChatCore({
                 }
               }
 
-              if (
-                isModelScope() &&
-                res.response.status === 429 &&
-                attempts < maxAttempts - 1
-              ) {
+              if (isModelScope() && res.response.status === 429 && attempts < maxAttempts - 1) {
                 const bodyPeek = await res.response
                   .clone()
                   .text()
@@ -4559,7 +4603,11 @@ export async function handleChatCore({
     finalStream = pipeWithDisconnect(providerResponse, transformStream, streamController);
   }
   finalStream = finalStream.pipeThrough(
-    createSseHeartbeatTransform({ signal: streamController.signal })
+    createSseHeartbeatTransform({
+      signal: streamController.signal,
+      intervalMs: SSE_HEARTBEAT_INTERVAL_MS,
+      shape: shapeForClientFormat(clientResponseFormat),
+    })
   );
 
   return {

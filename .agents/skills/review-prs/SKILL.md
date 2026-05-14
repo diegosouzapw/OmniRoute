@@ -91,7 +91,7 @@ If already on a `release/vX.Y.Z` branch, continue working there.
 
 - For each PR number, run:
   `gh pr diff <NUMBER> --repo <owner>/<repo> > /tmp/pr<NUMBER>.diff`
-- Then read each diff file with `view_file`.
+- Then read each diff file with the appropriate file-read tool (`Read` in Claude Code; equivalent in your agent runtime).
 
 - For each open PR, collect:
   - PR number, title, author, branch, number of commits, date
@@ -186,7 +186,7 @@ Perform a **global impact assessment** to verify whether the PR changes are comp
 
 ### 6. Present to User
 
-- Show the report via `notify_user` with `BlockedOnUser: true`
+- Show the report in the final response and stop. Mark this as a blocking checkpoint awaiting explicit user approval before continuing.
 - Wait for user decision:
   - **Approved** → Proceed to step 7
   - **Approved with changes** → Implement the fixes and corrections before merging
@@ -259,7 +259,7 @@ After processing all approved PRs:
 
 - If more PRs remain, go back to step 7
 - When all PRs are processed, **update CHANGELOG.md** on the release branch with all new entries
-- Run **test coverage** to verify all metrics stay above 85%:
+- Run **test coverage** to verify the gate (≥75% statements/lines/functions, ≥70% branches — measured ~82%):
   ```bash
   npm run test:coverage
   ```

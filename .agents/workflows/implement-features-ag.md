@@ -201,22 +201,22 @@ For each viable feature, perform systematic research:
 **Step 1 — Web search for similar implementations:**
 
 ```
-search_web("how to implement <feature description> in <tech stack>")
-search_web("<feature keyword> implementation nextjs typescript 2025 2026")
-search_web("<feature keyword> open source library npm")
+WebSearch("how to implement <feature description> in <tech stack>")
+WebSearch("<feature keyword> implementation nextjs typescript 2025 2026")
+WebSearch("<feature keyword> open source library npm")
 ```
 
 **Step 2 — Find reference Git repositories:**
 
 ```
-search_web("site:github.com <feature keyword> <tech stack> stars:>100")
-search_web("github <feature keyword> implementation recently updated 2026")
+WebSearch("site:github.com <feature keyword> <tech stack> stars:>100")
+WebSearch("github <feature keyword> implementation recently updated 2026")
 ```
 
 - Find **up to 10 relevant repositories**, sorted by most recently updated.
 - For each repository:
   - Note the repo URL, star count, last commit date
-  - Read its README and relevant source files via `read_url_content`
+  - Read its README and relevant source files via `WebFetch`
   - Extract the architectural approach, patterns used, and key code snippets
 
 **Step 3 — Read API docs and standards:**

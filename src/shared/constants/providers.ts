@@ -1798,6 +1798,16 @@ export const SEARCH_PROVIDERS = {
     website: "https://ollama.com/settings/api-keys",
     authHint: "Same API key as Ollama Cloud (from ollama.com/settings/api-keys)",
   },
+  "zai-search": {
+    id: "zai-search",
+    alias: "zai-search",
+    name: "Z.AI Coding Plan Search",
+    icon: "search",
+    color: "#2563EB",
+    textIcon: "ZS",
+    website: "https://docs.z.ai/devpack/mcp/search-mcp-server",
+    authHint: "Same API key as Z.AI Coding Plan (from open.bigmodel.cn or z.ai)",
+  },
 };
 
 // Audio Only Providers

@@ -2,7 +2,7 @@
 
 > **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **37 tools** for AI agents.
 >
-> **Source of truth for the full tool catalog and REST surface:** [`docs/MCP-SERVER.md`](../../docs/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
+> **Source of truth for the full tool catalog and REST surface:** [`docs/frameworks/MCP-SERVER.md`](../../docs/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
 
 The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, custom agents) to **monitor, control, and optimize** the OmniRoute AI gateway programmatically.
 

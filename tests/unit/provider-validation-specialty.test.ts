@@ -1933,15 +1933,15 @@ test("validateCommandCodeProvider sends Command Code probe URL, headers, and wra
   assert.equal(calls[0].headers.Authorization, "Bearer cc_test_key");
   assert.equal(calls[0].headers["Content-Type"], "application/json");
   assert.equal(calls[0].headers["x-command-code-version"], "0.24.1");
-  assert.equal(calls[0].headers["x-cli-environment"], "production");
+  assert.equal(calls[0].headers["x-cli-environment"], "external");
   assert.equal(calls[0].headers["x-project-slug"], "pi-cc");
   assert.equal(calls[0].headers["x-taste-learning"], "false");
   assert.equal(calls[0].headers["x-co-flag"], "false");
   assert.equal(typeof calls[0].headers["x-session-id"], "string");
-  assert.equal(calls[0].body.config.environment, "omniroute-validation");
+  assert.equal(calls[0].body.config.environment, "external");
   assert.equal(calls[0].body.permissionMode, "standard");
   assert.equal(calls[0].body.params.model, "gpt-5.4-mini");
-  assert.equal(calls[0].body.params.stream, true);
+  assert.equal(calls[0].body.params.stream, false);
   assert.equal(calls[0].body.params.max_tokens, 1);
 });
 
