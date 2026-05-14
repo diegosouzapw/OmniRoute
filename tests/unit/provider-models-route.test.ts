@@ -12,6 +12,7 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
 const providerModelsRoute = await import("../../src/app/api/providers/[id]/models/route.ts");
 const antigravityVersion = await import("../../open-sse/services/antigravityVersion.ts");
+const providerRegistry = await import("../../open-sse/config/providerRegistry.ts");
 
 const originalFetch = globalThis.fetch;
 const originalAllowPrivateProviderUrls = process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -205,7 +206,11 @@ test("provider models route returns static catalog entries for providers with ha
 
   assert.equal(response.status, 200);
   assert.equal(body.provider, "bailian-coding-plan");
-  assert.equal(body.models.length, 8);
+  assert.equal(body.models.length, providerRegistry.REGISTRY["bailian-coding-plan"].models?.length);
+  assert.deepEqual(
+    body.models.map((model) => model.id),
+    providerRegistry.REGISTRY["bailian-coding-plan"].models?.map((model) => model.id)
+  );
 });
 
 test("provider models route returns AWS Polly speech engines from the audio registry", async () => {
@@ -640,11 +645,18 @@ test("provider models route retries Antigravity discovery endpoints before retur
     accessToken: "ag-access",
     apiKey: null,
   });
-  const seenUrls = [];
+  const seenUrls: string[] = [];
   antigravityVersion.seedAntigravityVersionCache("1.22.2");
 
   globalThis.fetch = async (url, init = {}) => {
-    seenUrls.push(String(url));
+    const urlString = String(url);
+    // After PR #2219, the discovery flow calls loadCodeAssist first as a project
+    // bootstrap; treat all bootstrap calls as non-fatal failures so the test
+    // exercises the discovery retry path.
+    if (urlString.includes("/v1internal:loadCodeAssist")) {
+      return new Response("nope", { status: 503 });
+    }
+    seenUrls.push(urlString);
     if (seenUrls.length === 1) {
       return new Response("unavailable", { status: 503 });
     }
@@ -659,13 +671,20 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
   const response = await callRoute(connection.id);
   const body = (await response.json()) as any;
-  const discoveryUrls = seenUrls.filter((url) => url.includes("/v1internal:models"));
+  // After PR #2219, the route tries `:fetchAvailableModels` URLs before
+  // `:models` URLs. The test mock returns 503 on the first call and success
+  // on the second, so only the first two `:fetchAvailableModels` URLs are
+  // hit — `:models` URLs are never reached. Assert on the actual discovery
+  // sequence the route follows.
+  const discoveryUrls = seenUrls.filter(
+    (url) => url.includes("/v1internal:fetchAvailableModels") || url.includes("/v1internal:models")
+  );
 
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(discoveryUrls, [
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
-    "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+    "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   ]);
   assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
 });

@@ -1354,6 +1354,25 @@ test("chatCore attaches OmniRoute response metadata headers to non-stream respon
   assert.match(String(result.response.headers.get("X-OmniRoute-Response-Cost")), /^\d+\.\d{10}$/);
 });
 
+test("chatCore does not expose provider request credentials in non-stream response headers", async () => {
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    body: {
+      model: "gpt-4o-mini",
+      stream: false,
+      messages: [{ role: "user", content: "hide provider credentials" }],
+    },
+    responseFormat: "openai",
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.response.headers.get("authorization"), null);
+  assert.equal(result.response.headers.get("x-api-key"), null);
+  assert.equal(result.response.headers.get("Content-Type"), "application/json");
+  assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");
+});
+
 test("chatCore normalizes tool finish reasons and estimates usage when upstream omits it", async () => {
   const { result } = await invokeChatCore({
     provider: "openai",

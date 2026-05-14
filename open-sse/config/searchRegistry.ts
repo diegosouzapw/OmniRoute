@@ -187,6 +187,22 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
     cacheTTLMs: 3 * 60 * 1000,
   },
 
+  "ollama-search": {
+    id: "ollama-search",
+    name: "Ollama Search",
+    baseUrl: "https://ollama.com/api/web_search",
+    method: "POST",
+    authType: "apikey",
+    authHeader: "bearer",
+    costPerQuery: 0,
+    freeMonthlyQuota: 1000,
+    searchTypes: ["web"],
+    defaultMaxResults: 5,
+    maxMaxResults: 10,
+    timeoutMs: 10_000,
+    cacheTTLMs: 5 * 60 * 1000,
+  },
+
   "zai-search": {
     id: "zai-search",
     name: "Z.AI Coding Plan Search",
@@ -210,6 +226,7 @@ export const SEARCH_PROVIDERS: Record<string, SearchProviderConfig> = {
  */
 export const SEARCH_CREDENTIAL_FALLBACKS: Record<string, string> = {
   "perplexity-search": "perplexity",
+  "ollama-search": "ollama-cloud",
   "zai-search": "zai",
 };
 

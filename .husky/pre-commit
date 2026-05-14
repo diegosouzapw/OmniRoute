@@ -6,5 +6,16 @@ if ! command -v npx >/dev/null 2>&1; then
 fi
 
 npx lint-staged
-node scripts/check-docs-sync.mjs
+node scripts/check/check-docs-sync.mjs
 npm run check:any-budget:t11
+
+# Strict env-doc sync (FASE 2)
+node scripts/check/check-env-doc-sync.mjs
+
+# i18n docs drift advisory (FASE 5) — warn-only on pre-commit; CI enforces strict.
+node scripts/i18n/check-translation-drift.mjs --warn || \
+  echo "⚠️  i18n drift detected. Run 'npm run i18n:run' to update locale mirrors."
+
+# i18n UI coverage advisory (FASE 6) — pre-commit warns; CI enforces strict.
+node scripts/i18n/check-ui-keys-coverage.mjs --threshold=80 || \
+  echo "⚠️  UI i18n coverage below 80% for at least one locale."

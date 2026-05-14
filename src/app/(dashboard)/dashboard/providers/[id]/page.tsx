@@ -27,6 +27,7 @@ import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isSelfHostedChatProvider,
+  providerAllowsOptionalApiKey,
   supportsApiKeyOnFreeProvider,
 } from "@/shared/constants/providers";
 import { getModelsByProviderId } from "@/shared/constants/models";
@@ -509,6 +510,7 @@ interface ConnectionRowConnection {
   expiresAt?: string;
   tokenExpiresAt?: string;
   maxConcurrent?: number | null;
+  authType?: string;
 }
 
 interface ConnectionRowProps {
@@ -555,6 +557,9 @@ interface AddApiKeyModalProps {
   isCompatible?: boolean;
   isAnthropic?: boolean;
   isCcCompatible?: boolean;
+  isCommandCode?: boolean;
+  commandCodeAuthState?: CommandCodeAuthFlowState;
+  onStartCommandCodeAuth?: () => void;
   onSave: (data: {
     name: string;
     apiKey?: string;
@@ -564,6 +569,23 @@ interface AddApiKeyModalProps {
   }) => Promise<void | unknown>;
   onClose: () => void;
 }
+
+type CommandCodeAuthFlowState = {
+  phase:
+    | "idle"
+    | "starting"
+    | "polling"
+    | "received"
+    | "applying"
+    | "applied"
+    | "expired"
+    | "error";
+  state: string;
+  authUrl: string;
+  callbackUrl: string;
+  expiresAt: string | null;
+  message?: string;
+};
 
 interface EditConnectionModalConnection {
   id?: string;
@@ -575,6 +597,7 @@ interface EditConnectionModalConnection {
   provider?: string;
   providerSpecificData?: Record<string, unknown>;
   healthCheckInterval?: number;
+  projectId?: string | null;
 }
 
 interface EditConnectionModalProps {
@@ -980,6 +1003,14 @@ export default function ProviderDetailPage() {
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
+  const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
+    phase: "idle",
+    state: "",
+    authUrl: "",
+    callbackUrl: "",
+    expiresAt: null,
+    message: "",
+  });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
@@ -1026,8 +1057,11 @@ export default function ProviderDetailPage() {
   const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
+  const commandCodeAuthWindowRef = useRef<Window | null>(null);
+  const commandCodeAuthTimerRef = useRef<number | null>(null);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
+  const isCommandCode = providerId === "command-code";
   const isAnthropicCompatible =
     isAnthropicCompatibleProvider(providerId) && !isClaudeCodeCompatibleProvider(providerId);
   const isCompatible = isOpenAICompatible || isAnthropicCompatible || isCcCompatible;
@@ -1435,6 +1469,257 @@ export default function ProviderDetailPage() {
     setShowAddApiKeyModal(true);
   }, [isOAuth]);
 
+  const clearCommandCodeAuthTimer = useCallback(() => {
+    if (commandCodeAuthTimerRef.current !== null) {
+      window.clearTimeout(commandCodeAuthTimerRef.current);
+      commandCodeAuthTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearCommandCodeAuthTimer();
+      commandCodeAuthWindowRef.current?.close?.();
+    };
+  }, [clearCommandCodeAuthTimer]);
+
+  const handleCloseAddApiKeyModal = useCallback(() => {
+    clearCommandCodeAuthTimer();
+    commandCodeAuthWindowRef.current?.close?.();
+    commandCodeAuthWindowRef.current = null;
+    setCommandCodeAuthState({
+      phase: "idle",
+      state: "",
+      authUrl: "",
+      callbackUrl: "",
+      expiresAt: null,
+      message: "",
+    });
+    setShowAddApiKeyModal(false);
+  }, [clearCommandCodeAuthTimer]);
+
+  const handleCommandCodeAuthApply = useCallback(
+    async (state: string, connectionId?: string, name?: string, setDefault?: boolean) => {
+      setCommandCodeAuthState((current) => ({
+        ...current,
+        phase: "applying",
+        message: "Applying browser-approved key…",
+      }));
+
+      try {
+        const res = await fetch("/api/providers/command-code/auth/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ state, connectionId, name, setDefault }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const errorMessage = data.error || "Failed to apply Command Code auth";
+          setCommandCodeAuthState((current) => ({
+            ...current,
+            phase: "error",
+            message: errorMessage,
+          }));
+          notify.error(errorMessage);
+          return false;
+        }
+
+        setCommandCodeAuthState((current) => ({
+          ...current,
+          phase: "applied",
+          message: "Command Code connected",
+        }));
+        commandCodeAuthWindowRef.current?.close?.();
+        commandCodeAuthWindowRef.current = null;
+        await fetchConnections();
+        handleCloseAddApiKeyModal();
+        notify.success("Command Code connection added");
+        return true;
+      } catch (error) {
+        console.error("Error applying Command Code auth:", error);
+        setCommandCodeAuthState((current) => ({
+          ...current,
+          phase: "error",
+          message: "Failed to apply Command Code auth",
+        }));
+        notify.error("Failed to apply Command Code auth");
+        return false;
+      }
+    },
+    [fetchConnections, handleCloseAddApiKeyModal, notify]
+  );
+
+  const handleStartCommandCodeAuth = useCallback(async () => {
+    if (commandCodeAuthState.phase === "starting" || commandCodeAuthState.phase === "polling") {
+      return;
+    }
+
+    clearCommandCodeAuthTimer();
+    commandCodeAuthWindowRef.current?.close?.();
+
+    const popup = window.open("about:blank", "_blank");
+    setCommandCodeAuthState({
+      phase: "starting",
+      state: "",
+      authUrl: "",
+      callbackUrl: "",
+      expiresAt: null,
+      message: "Opening Command Code Studio…",
+    });
+
+    try {
+      const res = await fetch("/api/providers/command-code/auth/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.state || !data.authUrl) {
+        const errorMessage = data.error || "Failed to start Command Code auth";
+        setCommandCodeAuthState((current) => ({
+          ...current,
+          phase: "error",
+          message: errorMessage,
+        }));
+        notify.error(errorMessage);
+        popup?.close?.();
+        return;
+      }
+
+      setCommandCodeAuthState({
+        phase: "polling",
+        state: data.state,
+        authUrl: data.authUrl,
+        callbackUrl: data.callbackUrl || "",
+        expiresAt: data.expiresAt || null,
+        message: "Open the auth URL, approve access, then paste the returned key/JSON/URL below…",
+      });
+
+      if (popup) {
+        try {
+          popup.opener = null;
+        } catch {
+          // Ignore opener cleanup failures.
+        }
+        popup.location.href = data.authUrl;
+        commandCodeAuthWindowRef.current = popup;
+      } else {
+        const fallbackPopup = window.open(data.authUrl, "_blank", "noopener,noreferrer");
+        if (!fallbackPopup) {
+          setCommandCodeAuthState((current) => ({
+            ...current,
+            phase: "error",
+            message: "Popup blocked. Please allow popups and try Command Code Connect again.",
+          }));
+          notify.error("Popup blocked. Please allow popups and try Command Code Connect again.");
+          return;
+        }
+        commandCodeAuthWindowRef.current = fallbackPopup;
+      }
+
+      const deadline = data.expiresAt ? new Date(data.expiresAt).getTime() : Date.now() + 180000;
+      const poll = async () => {
+        if (Date.now() >= deadline) {
+          setCommandCodeAuthState((current) => ({
+            ...current,
+            phase: "expired",
+            message: "Command Code link expired",
+          }));
+          commandCodeAuthWindowRef.current?.close?.();
+          commandCodeAuthWindowRef.current = null;
+          notify.error("Command Code auth expired");
+          clearCommandCodeAuthTimer();
+          return;
+        }
+
+        try {
+          const statusRes = await fetch(
+            `/api/providers/command-code/auth/status?state=${encodeURIComponent(data.state)}`,
+            { method: "GET", cache: "no-store" }
+          );
+          const statusData = await statusRes.json().catch(() => ({}));
+          const status = String(statusData.status || statusData.state || statusData.phase || "")
+            .toLowerCase()
+            .trim();
+
+          if (status === "expired") {
+            setCommandCodeAuthState((current) => ({
+              ...current,
+              phase: "expired",
+              message: "Command Code link expired",
+            }));
+            commandCodeAuthWindowRef.current?.close?.();
+            commandCodeAuthWindowRef.current = null;
+            notify.error("Command Code auth expired");
+            clearCommandCodeAuthTimer();
+            return;
+          }
+
+          if (status === "applied") {
+            setCommandCodeAuthState((current) => ({
+              ...current,
+              phase: "applied",
+              message: "Command Code connected",
+            }));
+            commandCodeAuthWindowRef.current?.close?.();
+            commandCodeAuthWindowRef.current = null;
+            await fetchConnections();
+            handleCloseAddApiKeyModal();
+            notify.success("Command Code connection added");
+            clearCommandCodeAuthTimer();
+            return;
+          }
+
+          if (status === "received") {
+            setCommandCodeAuthState((current) => ({
+              ...current,
+              phase: "received",
+              message: "Browser approved, applying…",
+            }));
+            clearCommandCodeAuthTimer();
+            await handleCommandCodeAuthApply(
+              data.state,
+              statusData.connectionId,
+              statusData.name,
+              statusData.setDefault
+            );
+            return;
+          }
+        } catch {
+          // Keep polling until the contract reports a terminal state or timeout.
+        }
+
+        commandCodeAuthTimerRef.current = window.setTimeout(poll, 2000);
+      };
+
+      commandCodeAuthTimerRef.current = window.setTimeout(poll, 1000);
+    } catch (error) {
+      console.error("Error starting Command Code auth:", error);
+      setCommandCodeAuthState((current) => ({
+        ...current,
+        phase: "error",
+        message: "Failed to start Command Code auth",
+      }));
+      notify.error("Failed to start Command Code auth");
+      popup?.close?.();
+      commandCodeAuthWindowRef.current = null;
+      clearCommandCodeAuthTimer();
+    }
+  }, [
+    clearCommandCodeAuthTimer,
+    handleCloseAddApiKeyModal,
+    commandCodeAuthState.phase,
+    fetchConnections,
+    handleCommandCodeAuthApply,
+    notify,
+  ]);
+
+  const handleOpenCommandCodeConnect = useCallback(() => {
+    setShowAddApiKeyModal(true);
+    void handleStartCommandCodeAuth();
+  }, [handleStartCommandCodeAuth]);
+
   const handleSaveApiKey = async (formData) => {
     try {
       const res = await fetch("/api/providers", {
@@ -1629,9 +1914,7 @@ export default function ProviderDetailPage() {
             : connection
         )
       );
-      notify.success(
-        enabled ? "Claude extra-usage blocking enabled" : "Claude extra-usage blocking disabled"
-      );
+      notify.success(enabled ? "Claude extra-usage blocked" : "Claude extra-usage allowed");
     } catch (error) {
       console.error("Error toggling Claude extra-usage policy:", error);
       notify.error("Failed to update Claude extra-usage policy");
@@ -2951,13 +3234,44 @@ export default function ProviderDetailPage() {
               )}
               {!isCompatible ? (
                 <>
-                  <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
-                    {providerSupportsPat ? "Add PAT" : t("add")}
-                  </Button>
-                  {providerId === "qoder" && (
-                    <Button size="sm" variant="secondary" onClick={() => setShowOAuthModal(true)}>
-                      Experimental OAuth
-                    </Button>
+                  {isCommandCode ? (
+                    <>
+                      <Button
+                        size="sm"
+                        icon="open_in_new"
+                        loading={
+                          commandCodeAuthState.phase === "starting" ||
+                          commandCodeAuthState.phase === "polling" ||
+                          commandCodeAuthState.phase === "applying"
+                        }
+                        onClick={handleOpenCommandCodeConnect}
+                      >
+                        Connect
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        icon="add"
+                        onClick={() => setShowAddApiKeyModal(true)}
+                      >
+                        Manual API key
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                        {providerSupportsPat ? "Add PAT" : t("add")}
+                      </Button>
+                      {providerId === "qoder" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => setShowOAuthModal(true)}
+                        >
+                          Experimental OAuth
+                        </Button>
+                      )}
+                    </>
                   )}
                 </>
               ) : (
@@ -2981,13 +3295,38 @@ export default function ProviderDetailPage() {
               <p className="text-sm text-text-muted mb-4">{t("addFirstConnectionHint")}</p>
               {!isCompatible && (
                 <div className="flex items-center justify-center gap-2">
-                  <Button icon="add" onClick={openPrimaryAddFlow}>
-                    {providerSupportsPat ? "Add PAT" : t("addConnection")}
-                  </Button>
-                  {providerId === "qoder" && (
-                    <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
-                      Experimental OAuth
-                    </Button>
+                  {isCommandCode ? (
+                    <>
+                      <Button
+                        icon="open_in_new"
+                        loading={
+                          commandCodeAuthState.phase === "starting" ||
+                          commandCodeAuthState.phase === "polling" ||
+                          commandCodeAuthState.phase === "applying"
+                        }
+                        onClick={handleOpenCommandCodeConnect}
+                      >
+                        Connect
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        icon="add"
+                        onClick={() => setShowAddApiKeyModal(true)}
+                      >
+                        Manual API key
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button icon="add" onClick={openPrimaryAddFlow}>
+                        {providerSupportsPat ? "Add PAT" : t("addConnection")}
+                      </Button>
+                      {providerId === "qoder" && (
+                        <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                          Experimental OAuth
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -3024,7 +3363,7 @@ export default function ProviderDetailPage() {
 
                       {selectedIds.size > 0 && (
                         <Button
-                          variant="destructive"
+                          variant="danger"
                           size="sm"
                           icon="delete"
                           loading={batchDeleting}
@@ -3154,7 +3493,7 @@ export default function ProviderDetailPage() {
 
                       {selectedIds.size > 0 && (
                         <Button
-                          variant="destructive"
+                          variant="danger"
                           size="sm"
                           icon="delete"
                           loading={batchDeleting}
@@ -3410,8 +3749,11 @@ export default function ProviderDetailPage() {
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
+          isCommandCode={isCommandCode}
+          commandCodeAuthState={commandCodeAuthState}
+          onStartCommandCodeAuth={handleStartCommandCodeAuth}
           onSave={handleSaveApiKey}
-          onClose={() => setShowAddApiKeyModal(false)}
+          onClose={handleCloseAddApiKeyModal}
         />
       )}
       {!isUpstreamProxyProvider && (
@@ -5376,7 +5718,7 @@ function ConnectionRow({
                 <button
                   onClick={() => onToggleClaudeExtraUsage?.(!claudeBlockExtraUsageEnabled)}
                   className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                    claudeBlockExtraUsageEnabled
+                    !claudeBlockExtraUsageEnabled
                       ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
                       : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
                   }`}
@@ -5384,7 +5726,7 @@ function ConnectionRow({
                 >
                   <span className="material-symbols-outlined text-[13px]">payments</span>
                   {t("claudeExtraUsageShort")}{" "}
-                  {claudeBlockExtraUsageEnabled ? t("toggleOnShort") : t("toggleOffShort")}
+                  {!claudeBlockExtraUsageEnabled ? t("toggleOnShort") : t("toggleOffShort")}
                 </button>
               </>
             )}
@@ -5716,6 +6058,52 @@ function formatExcludedModelsInput(value: unknown): string {
     .join(", ");
 }
 
+function extractCommandCodeCredentialInput(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (parsed && typeof parsed === "object") {
+      const record = parsed as Record<string, unknown>;
+      const direct = record.apiKey || record.api_key || record.key || record.token;
+      if (typeof direct === "string" && direct.trim()) return direct.trim();
+      const nested = record.data;
+      if (nested && typeof nested === "object") {
+        const nestedRecord = nested as Record<string, unknown>;
+        const nestedKey = nestedRecord.apiKey || nestedRecord.api_key || nestedRecord.key;
+        if (typeof nestedKey === "string" && nestedKey.trim()) return nestedKey.trim();
+      }
+    }
+  } catch {
+    // Not JSON; continue with URL/raw parsing.
+  }
+
+  try {
+    const url = new URL(trimmed);
+    const key =
+      url.searchParams.get("apiKey") ||
+      url.searchParams.get("api_key") ||
+      url.searchParams.get("key") ||
+      url.searchParams.get("token");
+    if (key?.trim()) return key.trim();
+    const hash = url.hash.replace(/^#/, "");
+    if (hash) {
+      const hashParams = new URLSearchParams(hash);
+      const hashKey =
+        hashParams.get("apiKey") ||
+        hashParams.get("api_key") ||
+        hashParams.get("key") ||
+        hashParams.get("token");
+      if (hashKey?.trim()) return hashKey.trim();
+    }
+  } catch {
+    // Not a URL; use the raw value.
+  }
+
+  return trimmed;
+}
+
 function AddApiKeyModal({
   isOpen,
   provider,
@@ -5723,6 +6111,9 @@ function AddApiKeyModal({
   isCompatible,
   isAnthropic,
   isCcCompatible,
+  isCommandCode,
+  commandCodeAuthState,
+  onStartCommandCodeAuth,
   onSave,
   onClose,
 }: AddApiKeyModalProps) {
@@ -5736,15 +6127,25 @@ function AddApiKeyModal({
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
-  const isSearxng = provider === "searxng-search";
   const isGooglePse = provider === "google-pse-search";
   const isGrokWeb = provider === "grok-web";
   const isPerplexityWeb = provider === "perplexity-web";
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const isPetals = provider === "petals";
-  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
+  const apiKeyOptional = providerAllowsOptionalApiKey(provider);
+  const commandCodeAuthPhaseLabel = commandCodeAuthState
+    ? {
+        idle: "Ready",
+        starting: "Starting…",
+        polling: "Waiting for browser…",
+        received: "Browser approved",
+        applying: "Applying key…",
+        applied: "Connected",
+        expired: "Link expired",
+        error: "Connection failed",
+      }[commandCodeAuthState.phase]
+    : null;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -5768,6 +6169,7 @@ function AddApiKeyModal({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
     : isWebSessionProvider
@@ -5804,7 +6206,7 @@ function AddApiKeyModal({
               ? t("localProviderApiKeyOptionalHint", {
                   provider: localProviderMetadata?.name || providerName || provider || "",
                 })
-              : isSearxng || isPetals
+              : apiKeyOptional
                 ? t("apiKeyOptionalHint")
                 : undefined;
 
@@ -5812,12 +6214,15 @@ function AddApiKeyModal({
     setValidating(true);
     setSaveError(null);
     try {
+      const credentialInput = isCommandCode
+        ? extractCommandCodeCredentialInput(formData.apiKey)
+        : formData.apiKey;
       const res = await fetch("/api/providers/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider,
-          apiKey: formData.apiKey,
+          apiKey: credentialInput,
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
@@ -5833,8 +6238,22 @@ function AddApiKeyModal({
     }
   };
 
+  const copyCommandCodeValue = async (value: string | undefined, key: string) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedCommandCodeField(key);
+      window.setTimeout(() => setCopiedCommandCodeField(null), 1500);
+    } catch {
+      setSaveError("Copy failed. Select the text and copy it manually.");
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!provider || (!isCompatible && !apiKeyOptional && !formData.apiKey)) return;
+    const credentialInput = isCommandCode
+      ? extractCommandCodeCredentialInput(formData.apiKey)
+      : formData.apiKey;
+    if (!provider || (!isCompatible && !apiKeyOptional && !credentialInput)) return;
 
     setSaving(true);
     setSaveError(null);
@@ -5864,7 +6283,7 @@ function AddApiKeyModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             provider,
-            apiKey: formData.apiKey,
+            apiKey: credentialInput,
             validationModelId: formData.validationModelId || undefined,
             customUserAgent: formData.customUserAgent.trim() || undefined,
             baseUrl: formData.baseUrl.trim() || undefined,
@@ -5884,7 +6303,7 @@ function AddApiKeyModal({
       }
 
       if (!isValid) {
-        if (apiKeyOptional && !formData.apiKey) {
+        if (apiKeyOptional && !credentialInput) {
           // Bypass validation block for local/optional providers when no key is provided
           console.debug("Validation failed but apiKey is optional; proceeding to save.");
         } else {
@@ -5927,7 +6346,7 @@ function AddApiKeyModal({
 
       const payload = {
         name: formData.name,
-        apiKey: formData.apiKey.trim() || undefined,
+        apiKey: credentialInput.trim() || undefined,
         priority: formData.priority,
         testStatus: "active",
         providerSpecificData:
@@ -5959,6 +6378,84 @@ function AddApiKeyModal({
                 warning
               </span>
               <p>{t("ccCompatibleValidationHint")}</p>
+            </div>
+          </div>
+        )}
+        {isCommandCode && onStartCommandCodeAuth && (
+          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-sm">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined mt-0.5 text-[18px] text-sky-500">
+                open_in_new
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-text-main">Browser/manual connect</p>
+                <p className="mt-1 text-xs text-text-muted">
+                  Open Command Code Studio, then paste the returned key/JSON/URL into the API key
+                  field below.
+                </p>
+                {commandCodeAuthState?.message && (
+                  <p className="mt-2 text-xs text-text-muted">
+                    {commandCodeAuthPhaseLabel}: {commandCodeAuthState.message}
+                  </p>
+                )}
+                {commandCodeAuthState?.authUrl && (
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                      <div className="flex gap-2">
+                        <Input
+                          value={commandCodeAuthState.authUrl}
+                          readOnly
+                          className="flex-1 font-mono text-xs"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={copiedCommandCodeField === "authUrl" ? "check" : "content_copy"}
+                          onClick={() =>
+                            copyCommandCodeValue(commandCodeAuthState.authUrl, "authUrl")
+                          }
+                        />
+                      </div>
+                    </div>
+                    {commandCodeAuthState.callbackUrl && (
+                      <div>
+                        <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                        <div className="flex gap-2">
+                          <Input
+                            value={commandCodeAuthState.callbackUrl}
+                            readOnly
+                            className="flex-1 font-mono text-xs"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            icon={
+                              copiedCommandCodeField === "callbackUrl" ? "check" : "content_copy"
+                            }
+                            onClick={() =>
+                              copyCommandCodeValue(commandCodeAuthState.callbackUrl, "callbackUrl")
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon="open_in_new"
+                loading={
+                  commandCodeAuthState?.phase === "starting" ||
+                  commandCodeAuthState?.phase === "polling" ||
+                  commandCodeAuthState?.phase === "applying"
+                }
+                onClick={onStartCommandCodeAuth}
+              >
+                Connect in browser
+              </Button>
             </div>
           </div>
         )}
@@ -6211,7 +6708,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
-    geminiProjectId: "",
+    cloudCodeProjectId: "",
     blockExtraUsage:
       connection?.provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
@@ -6238,19 +6735,19 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const isCodex = connection?.provider === "codex";
   const isClaude = connection?.provider === "claude";
   const isGeminiCli = connection?.provider === "gemini-cli";
+  const isAntigravity = connection?.provider === "antigravity";
+  const supportsGoogleProjectId = isGeminiCli || isAntigravity;
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
-  const isSearxng = connection?.provider === "searxng-search";
   const isGooglePse = connection?.provider === "google-pse-search";
-  const isPetals = connection?.provider === "petals";
-  const apiKeyOptional = isSearxng || isPetals || isLocalSelfHostedProvider;
+  const apiKeyOptional = providerAllowsOptionalApiKey(connection?.provider);
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
   const defaultRegion = "us-central1";
   const apiCredentialHint = isLocalSelfHostedProvider
     ? t("localProviderApiKeyOptionalHint", {
         provider: localProviderMetadata?.name || connection?.provider || "",
       })
-    : isSearxng || isPetals
+    : apiKeyOptional
       ? t("apiKeyOptionalHint")
       : t("leaveBlankKeepCurrentApiKey");
 
@@ -6300,7 +6797,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
-        geminiProjectId: (connection.providerSpecificData?.projectId as string) || "",
+        cloudCodeProjectId:
+          (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
         blockExtraUsage: isClaudeExtraUsageBlockEnabled(
           connection.provider,
           connection.providerSpecificData
@@ -6390,6 +6888,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     setSaveError(null);
     try {
       const trimmedMaxConcurrent = formData.maxConcurrent.trim();
+      const trimmedCloudCodeProjectId = formData.cloudCodeProjectId.trim();
       let parsedMaxConcurrent: number | null = null;
       if (trimmedMaxConcurrent) {
         const numericMaxConcurrent = Number(trimmedMaxConcurrent);
@@ -6407,8 +6906,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: formData.healthCheckInterval,
       };
 
-      if (isGeminiCli) {
-        updates.projectId = formData.geminiProjectId.trim() || null;
+      if (supportsGoogleProjectId) {
+        updates.projectId = trimmedCloudCodeProjectId || null;
       }
 
       if (isGooglePse && !formData.cx.trim()) {
@@ -6498,6 +6997,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         } else if (isCloudflare && formData.accountId.trim()) {
           updates.providerSpecificData.accountId = formData.accountId.trim();
         }
+        if (supportsGoogleProjectId) {
+          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
+        }
         if (isCcCompatible) {
           const currentRequestDefaults =
             updates.providerSpecificData.requestDefaults &&
@@ -6532,8 +7034,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
         }
-        if (isGeminiCli) {
-          updates.providerSpecificData.projectId = formData.geminiProjectId.trim() || undefined;
+        if (supportsGoogleProjectId) {
+          updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
       const error = (await onSave(updates)) as void | unknown;
@@ -6629,14 +7131,18 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
             />
           </div>
         )}
-        {isGeminiCli && (
+        {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
             <Input
-              label={t("geminiCliProjectIdLabel")}
-              value={formData.geminiProjectId}
-              onChange={(e) => setFormData({ ...formData, geminiProjectId: e.target.value })}
-              placeholder={t("geminiCliProjectIdPlaceholder")}
-              hint={t("geminiCliProjectIdHint")}
+              label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
+              value={formData.cloudCodeProjectId}
+              onChange={(e) => setFormData({ ...formData, cloudCodeProjectId: e.target.value })}
+              placeholder={
+                isAntigravity
+                  ? t("antigravityProjectIdPlaceholder")
+                  : t("geminiCliProjectIdPlaceholder")
+              }
+              hint={isAntigravity ? t("antigravityProjectIdHint") : t("geminiCliProjectIdHint")}
               className="font-mono text-xs"
             />
           </div>

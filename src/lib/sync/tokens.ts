@@ -16,7 +16,10 @@ function normalizeToken(rawToken: string | null | undefined) {
 }
 
 export function hashSyncToken(rawToken: string) {
-  return createHash("sha256").update(rawToken).digest("hex");
+  // CodeQL: Intentionally SHA-256, NOT password hashing. Sync tokens are
+  // high-entropy random values (osync_ + 32 random bytes) — not user passwords.
+  // codeql[js/insufficient-password-hash]
+  return createHash("sha256").update(rawToken).digest("hex"); // nosemgrep: insufficient-password-hash
 }
 
 export function generatePlaintextSyncToken() {

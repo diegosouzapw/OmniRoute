@@ -11,7 +11,7 @@ const {
   pruneStandaloneArtifacts,
   resolveNextBuildEnv,
   syncStandaloneNativeAssets,
-} = await import("../../scripts/build-next-isolated.mjs");
+} = await import("../../scripts/build/build-next-isolated.mjs");
 
 async function withTempDir(fn) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));

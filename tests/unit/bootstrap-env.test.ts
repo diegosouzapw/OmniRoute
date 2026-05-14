@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
 
-import { bootstrapEnv } from "../../scripts/bootstrap-env.mjs";
+import { bootstrapEnv } from "../../scripts/build/bootstrap-env.mjs";
 
 function withTempEnv(fn) {
   const originalCwd = process.cwd();

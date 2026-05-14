@@ -310,13 +310,15 @@ export class GeminiCLIExecutor extends BaseExecutor {
         ? cloneGeminiCliRecord(bodyRecord.request as Record<string, any>)
         : {};
 
+    const storedProject =
+      bodyRecord.project ||
+      credentials.projectId ||
+      (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
+      "";
+
     const envelope: Record<string, any> = {
       model: currentModel,
-      project:
-        bodyRecord.project ||
-        credentials.projectId ||
-        (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
-        "",
+      project: storedProject,
       user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
       request: {
         ...requestRecord,
@@ -330,9 +332,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
     }
 
-    // Refresh the project ID via loadCodeAssist (cached for 30s) only when project not provided
-    // and credentials have an access token
-    if (!envelope.project && credentials.accessToken) {
+    // Native Gemini CLI refreshes the Cloud Code project periodically because
+    // stored project IDs can go stale. Keep the stored value as a fallback.
+    if (credentials.accessToken) {
       const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
       if (freshProject) {
         envelope.project = freshProject;

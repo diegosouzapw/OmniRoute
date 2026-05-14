@@ -1,0 +1,337 @@
+{
+  "$schema": "./i18n-schema.json",
+  "default": "en",
+  "rtl": ["ar", "fa", "he", "ur"],
+  "uiOnly": ["en"],
+  "docsExcluded": ["en"],
+  "locales": [
+    {
+      "code": "ar",
+      "label": "AR",
+      "name": "العربية",
+      "native": "العربية",
+      "english": "Arabic",
+      "flag": "🇸🇦"
+    },
+    {
+      "code": "bg",
+      "label": "BG",
+      "name": "Български",
+      "native": "Български",
+      "english": "Bulgarian",
+      "flag": "🇧🇬"
+    },
+    {
+      "code": "bn",
+      "label": "BN",
+      "name": "বাংলা",
+      "native": "বাংলা",
+      "english": "Bengali",
+      "flag": "🇧🇩"
+    },
+    {
+      "code": "cs",
+      "label": "CS",
+      "name": "Čeština",
+      "native": "Čeština",
+      "english": "Czech",
+      "flag": "🇨🇿"
+    },
+    {
+      "code": "da",
+      "label": "DA",
+      "name": "Dansk",
+      "native": "Dansk",
+      "english": "Danish",
+      "flag": "🇩🇰"
+    },
+    {
+      "code": "de",
+      "label": "DE",
+      "name": "Deutsch",
+      "native": "Deutsch",
+      "english": "German",
+      "flag": "🇩🇪"
+    },
+    {
+      "code": "en",
+      "label": "EN",
+      "name": "English",
+      "native": "English",
+      "english": "English",
+      "flag": "🇺🇸"
+    },
+    {
+      "code": "es",
+      "label": "ES",
+      "name": "Español",
+      "native": "Español",
+      "english": "Spanish",
+      "flag": "🇪🇸"
+    },
+    {
+      "code": "fa",
+      "label": "FA",
+      "name": "فارسی",
+      "native": "فارسی",
+      "english": "Persian",
+      "flag": "🇮🇷"
+    },
+    {
+      "code": "fi",
+      "label": "FI",
+      "name": "Suomi",
+      "native": "Suomi",
+      "english": "Finnish",
+      "flag": "🇫🇮"
+    },
+    {
+      "code": "fr",
+      "label": "FR",
+      "name": "Français",
+      "native": "Français",
+      "english": "French",
+      "flag": "🇫🇷"
+    },
+    {
+      "code": "gu",
+      "label": "GU",
+      "name": "ગુજરાતી",
+      "native": "ગુજરાતી",
+      "english": "Gujarati",
+      "flag": "🇮🇳"
+    },
+    {
+      "code": "he",
+      "label": "HE",
+      "name": "עברית",
+      "native": "עברית",
+      "english": "Hebrew",
+      "flag": "🇮🇱"
+    },
+    {
+      "code": "hi",
+      "label": "HI",
+      "name": "हिन्दी",
+      "native": "हिन्दी",
+      "english": "Hindi",
+      "flag": "🇮🇳"
+    },
+    {
+      "code": "hu",
+      "label": "HU",
+      "name": "Magyar",
+      "native": "Magyar",
+      "english": "Hungarian",
+      "flag": "🇭🇺"
+    },
+    {
+      "code": "id",
+      "label": "ID",
+      "name": "Bahasa Indonesia",
+      "native": "Bahasa Indonesia",
+      "english": "Indonesian",
+      "flag": "🇮🇩"
+    },
+    {
+      "code": "in",
+      "label": "IN",
+      "name": "Bahasa Indonesia (Alt)",
+      "native": "Bahasa Indonesia (Alt)",
+      "english": "Indonesian (Legacy)",
+      "flag": "🇮🇩"
+    },
+    {
+      "code": "it",
+      "label": "IT",
+      "name": "Italiano",
+      "native": "Italiano",
+      "english": "Italian",
+      "flag": "🇮🇹"
+    },
+    {
+      "code": "ja",
+      "label": "JA",
+      "name": "日本語",
+      "native": "日本語",
+      "english": "Japanese",
+      "flag": "🇯🇵"
+    },
+    {
+      "code": "ko",
+      "label": "KO",
+      "name": "한국어",
+      "native": "한국어",
+      "english": "Korean",
+      "flag": "🇰🇷"
+    },
+    {
+      "code": "mr",
+      "label": "MR",
+      "name": "मराठी",
+      "native": "मराठी",
+      "english": "Marathi",
+      "flag": "🇮🇳"
+    },
+    {
+      "code": "ms",
+      "label": "MS",
+      "name": "Bahasa Melayu",
+      "native": "Bahasa Melayu",
+      "english": "Malay",
+      "flag": "🇲🇾"
+    },
+    {
+      "code": "nl",
+      "label": "NL",
+      "name": "Nederlands",
+      "native": "Nederlands",
+      "english": "Dutch",
+      "flag": "🇳🇱"
+    },
+    {
+      "code": "no",
+      "label": "NO",
+      "name": "Norsk",
+      "native": "Norsk",
+      "english": "Norwegian",
+      "flag": "🇳🇴"
+    },
+    {
+      "code": "phi",
+      "label": "PHI",
+      "name": "Filipino",
+      "native": "Filipino",
+      "english": "Filipino",
+      "flag": "🇵🇭"
+    },
+    {
+      "code": "pl",
+      "label": "PL",
+      "name": "Polski",
+      "native": "Polski",
+      "english": "Polish",
+      "flag": "🇵🇱"
+    },
+    {
+      "code": "pt",
+      "label": "PT",
+      "name": "Português (Portugal)",
+      "native": "Português (Portugal)",
+      "english": "Portuguese (Portugal)",
+      "flag": "🇵🇹"
+    },
+    {
+      "code": "pt-BR",
+      "label": "PT-BR",
+      "name": "Português (Brasil)",
+      "native": "Português (Brasil)",
+      "english": "Portuguese (Brazil)",
+      "flag": "🇧🇷"
+    },
+    {
+      "code": "ro",
+      "label": "RO",
+      "name": "Română",
+      "native": "Română",
+      "english": "Romanian",
+      "flag": "🇷🇴"
+    },
+    {
+      "code": "ru",
+      "label": "RU",
+      "name": "Русский",
+      "native": "Русский",
+      "english": "Russian",
+      "flag": "🇷🇺"
+    },
+    {
+      "code": "sk",
+      "label": "SK",
+      "name": "Slovenčina",
+      "native": "Slovenčina",
+      "english": "Slovak",
+      "flag": "🇸🇰"
+    },
+    {
+      "code": "sv",
+      "label": "SV",
+      "name": "Svenska",
+      "native": "Svenska",
+      "english": "Swedish",
+      "flag": "🇸🇪"
+    },
+    {
+      "code": "sw",
+      "label": "SW",
+      "name": "Kiswahili",
+      "native": "Kiswahili",
+      "english": "Swahili",
+      "flag": "🇰🇪"
+    },
+    {
+      "code": "ta",
+      "label": "TA",
+      "name": "தமிழ்",
+      "native": "தமிழ்",
+      "english": "Tamil",
+      "flag": "🇮🇳"
+    },
+    {
+      "code": "te",
+      "label": "TE",
+      "name": "తెలుగు",
+      "native": "తెలుగు",
+      "english": "Telugu",
+      "flag": "🇮🇳"
+    },
+    {
+      "code": "th",
+      "label": "TH",
+      "name": "ไทย",
+      "native": "ไทย",
+      "english": "Thai",
+      "flag": "🇹🇭"
+    },
+    {
+      "code": "tr",
+      "label": "TR",
+      "name": "Türkçe",
+      "native": "Türkçe",
+      "english": "Turkish",
+      "flag": "🇹🇷"
+    },
+    {
+      "code": "uk-UA",
+      "label": "UK-UA",
+      "name": "Українська",
+      "native": "Українська",
+      "english": "Ukrainian",
+      "flag": "🇺🇦"
+    },
+    {
+      "code": "ur",
+      "label": "UR",
+      "name": "اردو",
+      "native": "اردو",
+      "english": "Urdu",
+      "flag": "🇵🇰"
+    },
+    {
+      "code": "vi",
+      "label": "VI",
+      "name": "Tiếng Việt",
+      "native": "Tiếng Việt",
+      "english": "Vietnamese",
+      "flag": "🇻🇳"
+    },
+    {
+      "code": "zh-CN",
+      "label": "ZH-CN",
+      "name": "中文 (简体)",
+      "native": "中文 (简体)",
+      "english": "Chinese (Simplified)",
+      "flag": "🇨🇳"
+    }
+  ]
+}

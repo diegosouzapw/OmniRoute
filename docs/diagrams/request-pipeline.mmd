@@ -1,0 +1,24 @@
+%% Request pipeline for /v1/chat/completions
+%% Reflects: src/app/api/v1/chat/completions/route.ts → open-sse/handlers/chatCore.ts
+%% v3.8.0
+flowchart LR
+  Client["Client<br/>(IDE/CLI/SDK)"] --> Route["Next.js Route<br/>/v1/chat/completions"]
+  Route --> CORS["CORS preflight"]
+  CORS --> Validate["Zod validation<br/>(request body)"]
+  Validate --> Authz["AuthZ pipeline<br/>(extractApiKey +<br/>isValidApiKey)"]
+  Authz --> Policy["API key policy<br/>(allowlist + scopes)"]
+  Policy --> Guard["Prompt-injection<br/>guardrail"]
+  Guard --> ChatCore["handleChatCore"]
+  ChatCore --> Cache{"Cache hit?"}
+  Cache -->|yes| Return["Return cached"]
+  Cache -->|no| Rate["Rate limit<br/>(per-key, per-IP)"]
+  Rate --> Combo{"Combo<br/>target?"}
+  Combo -->|combo| Resolve["resolveComboTargets<br/>(14 strategies)"]
+  Resolve --> Single["handleSingleModel<br/>(per target)"]
+  Combo -->|single| Single
+  Single --> Translate["translateRequest<br/>(OpenAI↔Claude↔Gemini)"]
+  Translate --> Exec["getExecutor<br/>(31 executors)"]
+  Exec --> Upstream["Upstream Provider<br/>(177 providers)"]
+  Upstream --> Stream["SSE / JSON"]
+  Stream --> Transformer["responsesTransformer<br/>(Responses↔Chat)"]
+  Transformer --> Client

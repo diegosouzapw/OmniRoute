@@ -14,6 +14,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "limits",
   "cli-tools",
   "agents",
+  "cloud-agents",
   "memory",
   "skills",
   "translator",
@@ -69,6 +70,7 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
   { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
+  { id: "cloud-agents", href: "/dashboard/cloud-agents", i18nKey: "cloudAgents", icon: "cloud" },
   { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
   { id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_fix_high" },
 ];

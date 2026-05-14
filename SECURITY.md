@@ -20,9 +20,9 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 | Version | Support Status |
 | ------- | -------------- |
-| 3.6.x   | ✅ Active      |
-| 3.5.x   | ✅ Security    |
-| < 3.5.0 | ❌ Unsupported |
+| 3.8.x   | ✅ Active      |
+| 3.7.x   | ✅ Security    |
+| < 3.7.0 | ❌ Unsupported |
 
 ---
 
@@ -31,19 +31,22 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 OmniRoute implements a multi-layered security model:
 
 ```
-Request → CORS → API Key Auth → Prompt Injection Guard → Input Sanitizer → Rate Limiter → Circuit Breaker → Provider
+Request → CORS → Authz pipeline (classify → policies → enforce)
+       → Guardrails (PII masker, prompt injection, vision bridge)
+       → Rate Limiter → Circuit Breaker → Cooldown → Model Lockout → Provider
 ```
 
 ### 🔐 Authentication & Authorization
 
-| Feature              | Implementation                                             |
-| -------------------- | ---------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)     |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                       |
-| **OAuth 2.0 + PKCE** | Secure provider auth (Claude, Codex, Gemini, Cursor, etc.) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments           |
-| **MCP Scopes**       | 10 granular scopes for MCP tool access control             |
+| Feature              | Implementation                                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
+| **API Key Auth**     | HMAC-signed keys with CRC validation                                                                                                      |
+| **OAuth 2.0 + PKCE** | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
+| **Token Refresh**    | Automatic OAuth token refresh before expiry                                                                                               |
+| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
+| **Authz Pipeline**   | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
+| **MCP Scopes**       | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
 
 ### 🛡️ Encryption at Rest
 
@@ -57,6 +60,18 @@ All sensitive data stored in SQLite is encrypted using **AES-256-GCM** with scry
 # Generate encryption key:
 STORAGE_ENCRYPTION_KEY=$(openssl rand -hex 32)
 ```
+
+### 🛡️ Guardrails Framework
+
+OmniRoute ships a hot-reloadable **guardrails registry** (`src/lib/guardrails/`) with 3 built-in guardrails ordered by priority:
+
+| Guardrail          | Priority | Purpose                                                                                 |
+| ------------------ | -------- | --------------------------------------------------------------------------------------- |
+| `vision-bridge`    | 5        | Bridges non-vision models with image-aware descriptions; SSRF protection for image URLs |
+| `pii-masker`       | 10       | Pre+post call PII redaction (emails, phone, CPF, CNPJ, credit cards, SSN)               |
+| `prompt-injection` | 20       | Detects override/role-hijack/jailbreak/leak patterns                                    |
+
+Custom guardrails register via `registerGuardrail(new MyGuardrail())`. The model is fail-open (exceptions never block traffic). Per-request opt-out via `x-omniroute-disabled-guardrails` header. → See [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md).
 
 ### 🧠 Prompt Injection Guard
 
@@ -168,8 +183,30 @@ docker run -d \
 
 ## Dependencies
 
-- Run `npm audit` regularly
+- Run `npm audit` regularly (`npm run audit:deps` covers main + electron)
 - Keep dependencies updated
-- The project uses `husky` + `lint-staged` for pre-commit checks
-- CI pipeline runs ESLint security rules on every push
-- Provider constants validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
+- The project uses `husky` + `lint-staged` for pre-commit checks (lint-staged + check-docs-sync + check:any-budget:t11)
+- CI pipeline runs ESLint security rules on every push (`no-eval`, `no-implied-eval`, `no-new-func` = error)
+- Provider constants validated at module load via Zod (`src/shared/validation/schemas.ts`)
+- Secure-by-default libraries used: `dompurify` / `isomorphic-dompurify` (XSS), `jose` (JWT), `better-sqlite3` (no SQLi risk via parameterized queries), `bcryptjs` (password hashing)
+
+## Hard Security Rules
+
+These rules are enforced by tooling and reviewers:
+
+1. **Never commit secrets** — `.env` is gitignored; `.env.example` is the template
+2. **Never use `eval()`, `new Function()`, or implied eval** — ESLint enforces
+3. **Never bypass Husky hooks** (`--no-verify`, `--no-gpg-sign`) without explicit operator approval
+4. **Never write raw SQL in routes** — always go through `src/lib/db/` (parameterized)
+5. **Always validate inputs with Zod** — `src/shared/validation/schemas.ts`
+6. **Always sanitize upstream headers** — denylist in `src/shared/constants/upstreamHeaders.ts`
+7. **Encrypt credentials at rest** — AES-256-GCM via `src/lib/db/encryption.ts`
+
+## References
+
+- [`docs/architecture/AUTHZ_GUIDE.md`](docs/architecture/AUTHZ_GUIDE.md) — authorization pipeline
+- [`docs/security/GUARDRAILS.md`](docs/security/GUARDRAILS.md) — guardrails framework
+- [`docs/security/COMPLIANCE.md`](docs/security/COMPLIANCE.md) — audit log and retention
+- [`docs/architecture/RESILIENCE_GUIDE.md`](docs/architecture/RESILIENCE_GUIDE.md) — circuit breaker + cooldown + lockout
+- [`docs/security/STEALTH_GUIDE.md`](docs/security/STEALTH_GUIDE.md) — TLS fingerprinting (legal/ethical notice)
+- [`CLAUDE.md`](CLAUDE.md) — hard rules for AI agents

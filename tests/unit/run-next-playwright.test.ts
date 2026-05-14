@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const playwrightRunner = await import("../../scripts/run-next-playwright.mjs");
+const playwrightRunner = await import("../../scripts/dev/run-next-playwright.mjs");
 
 test("resolvePlaywrightAppBackupDir uses a per-run backup when a stale backup already exists", () => {
   const cwd = "/tmp/omniroute-playwright-runner";

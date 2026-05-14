@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
  * Handles POST /v1/search requests.
  * Routes to 11 search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
- *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, zai-search
+ *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, ollama-search, zai-search
  *
  * Request format:
  * {
@@ -21,6 +21,7 @@ import { saveCallLog } from "@/lib/usageDb";
 import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { z } from "zod";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -585,6 +586,26 @@ function buildSearxngRequest(
   };
 }
 
+function buildOllamaRequest(
+  config: SearchProviderConfig,
+  params: SearchRequestParams
+): { url: string; init: RequestInit } {
+  return {
+    url: resolveSearchBaseUrl(config, params),
+    init: {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(params.token ? { Authorization: `Bearer ${params.token}` } : {}),
+      },
+      body: JSON.stringify({
+        query: params.query,
+        max_results: params.maxResults,
+      }),
+    },
+  };
+}
+
 function buildRequest(
   config: SearchProviderConfig,
   params: SearchRequestParams
@@ -599,6 +620,7 @@ function buildRequest(
   if (config.id === "searchapi-search") return buildSearchApiRequest(config, params);
   if (config.id === "youcom-search") return buildYouComRequest(config, params);
   if (config.id === "searxng-search") return buildSearxngRequest(config, params);
+  if (config.id === "ollama-search") return buildOllamaRequest(config, params);
   // Fallback for future providers: POST with bearer auth
   return {
     url: resolveSearchBaseUrl(config, params),
@@ -884,18 +906,84 @@ function normalizeSearxngResponse(
   return { results, totalResults: results.length };
 }
 
+function normalizeOllamaResponse(
+  data: any,
+  _query: string,
+  _searchType: string
+): { results: SearchResult[]; totalResults: number | null } {
+  const now = new Date().toISOString();
+  const items = Array.isArray(data?.results) ? data.results : [];
+
+  const results = items.map((item: any, idx: number) =>
+    makeResult(
+      "ollama-search",
+      {
+        title: item?.title,
+        url: item?.url,
+        snippet: item?.content || "",
+        full_text: item?.content,
+        text_format: "text",
+      },
+      idx,
+      now
+    )
+  );
+
+  return { results, totalResults: results.length };
+}
+
 // ── Z.AI Coding Plan Search MCP Execution ───────────────────────────
 
-function unwrapZaiContent(rawText: string): unknown {
+// Schema for the Z.AI MCP web_search_prime tool result. Z.AI double-encodes
+// the results array as a JSON string inside the MCP text content, so we
+// safely unwrap it with a typed schema instead of `JSON.parse(parsed)`.
+const ZaiSearchItemSchema = z
+  .object({
+    title: z.string().optional(),
+    link: z.string().optional(),
+    content: z.string().optional(),
+    publish_date: z.string().optional(),
+    icon: z.string().optional(),
+    media: z.string().optional(),
+  })
+  .passthrough();
+
+type ZaiSearchItem = z.infer<typeof ZaiSearchItemSchema>;
+
+const ZaiSearchResultsSchema = z.array(ZaiSearchItemSchema);
+
+/**
+ * Unwrap the double-encoded JSON from a Z.AI MCP web_search_prime response.
+ *
+ * Quirk: the MCP server returns a text content block whose body is a JSON
+ * string. That JSON string, once parsed, is itself another JSON string
+ * containing the actual results array. We try a single parse first
+ * (in case the upstream behavior ever changes), then a nested parse.
+ * Both paths are validated through `ZaiSearchResultsSchema` so any shape
+ * regression upstream lands in our error path instead of corrupting results.
+ */
+function unwrapZaiContent(rawText: string): ZaiSearchItem[] | null {
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(rawText);
-    if (typeof parsed === "string") {
-      return JSON.parse(parsed);
-    }
-    return parsed;
+    parsed = JSON.parse(rawText);
   } catch {
     return null;
   }
+
+  // Direct array path (defensive, in case Z.AI stops double-encoding).
+  const direct = ZaiSearchResultsSchema.safeParse(parsed);
+  if (direct.success) return direct.data;
+
+  // Documented Z.AI behavior: parsed is a JSON string of the results array.
+  if (typeof parsed !== "string") return null;
+  let inner: unknown;
+  try {
+    inner = JSON.parse(parsed);
+  } catch {
+    return null;
+  }
+  const validated = ZaiSearchResultsSchema.safeParse(inner);
+  return validated.success ? validated.data : null;
 }
 
 async function zaiSearchExecute(params: {
@@ -906,22 +994,16 @@ async function zaiSearchExecute(params: {
   signal?: AbortSignal;
 }): Promise<{ results: SearchResult[]; totalResults: number | null }> {
   const baseUrl = resolveSearchBaseUrl(params.config, params.params);
-  const transport = new StreamableHTTPClientTransport(
-    new URL(baseUrl),
-    {
-      fetch: safeOutboundFetch,
-      requestInit: {
-        headers: {
-          Authorization: `Bearer ${params.token}`,
-        },
+  const transport = new StreamableHTTPClientTransport(new URL(baseUrl), {
+    fetch: safeOutboundFetch,
+    requestInit: {
+      headers: {
+        Authorization: `Bearer ${params.token}`,
       },
-    }
-  );
+    },
+  });
 
-  const client = new Client(
-    { name: "omniroute-search", version: "1.0" },
-    { capabilities: {} }
-  );
+  const client = new Client({ name: "omniroute-search", version: "1.0" }, { capabilities: {} });
 
   const { signal } = params;
 
@@ -957,9 +1039,10 @@ async function zaiSearchExecute(params: {
       arguments: args,
     });
 
-    const rawText = (toolResult.content as any[])
-      .filter((c: any) => c.type === "text")
-      .map((c: any) => c.text)
+    const rawContent = Array.isArray(toolResult.content) ? toolResult.content : [];
+    const rawText = rawContent
+      .filter((c: any) => c?.type === "text")
+      .map((c: any) => (typeof c?.text === "string" ? c.text : ""))
       .join("\n");
 
     if (!rawText.trim()) {
@@ -967,12 +1050,12 @@ async function zaiSearchExecute(params: {
     }
 
     const items = unwrapZaiContent(rawText);
-    if (!Array.isArray(items)) {
+    if (!items) {
       return { results: [], totalResults: null };
     }
 
     const now = new Date().toISOString();
-    const results = items.map((item: any, idx: number) =>
+    const results = items.map((item, idx) =>
       makeResult(
         "zai-search",
         {
@@ -989,7 +1072,7 @@ async function zaiSearchExecute(params: {
     );
     return { results, totalResults: results.length };
   } finally {
-    if (abortHandler) {
+    if (abortHandler && signal) {
       signal.removeEventListener("abort", abortHandler);
     }
     await client.close();
@@ -1104,6 +1187,7 @@ function normalizeResponse(
   if (providerId === "searchapi-search") return normalizeSearchApiResponse(data, query, searchType);
   if (providerId === "youcom-search") return normalizeYouComResponse(data, query, searchType);
   if (providerId === "searxng-search") return normalizeSearxngResponse(data, query, searchType);
+  if (providerId === "ollama-search") return normalizeOllamaResponse(data, query, searchType);
   return { results: [], totalResults: null };
 }
 
@@ -1219,7 +1303,15 @@ async function tryProvider(
   const { query, searchType, maxResults } = params;
 
   if (config.id === "zai-search" && token) {
-    return tryZaiMCPProvider(config, params, token, providerSpecificData, startTime, globalStartTime, log);
+    return tryZaiMCPProvider(
+      config,
+      params,
+      token,
+      providerSpecificData,
+      startTime,
+      globalStartTime,
+      log
+    );
   }
 
   let url = "";

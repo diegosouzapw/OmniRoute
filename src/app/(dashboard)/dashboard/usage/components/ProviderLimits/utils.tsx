@@ -26,6 +26,11 @@ const QUOTA_LABEL_MAP: Record<string, string> = {
   "search-prime": "Web Search",
   "web-reader": "Web Reader",
   zread: "Zread",
+  "5 Hours Quota": "5 Hours",
+  "Weekly Quota": "Weekly",
+  "Monthly Tools": "Monthly Tools",
+  tokens: "Tokens",
+  time_limit: "Time Limit",
 };
 
 const GLM_QUOTA_ORDER: Record<string, number> = {

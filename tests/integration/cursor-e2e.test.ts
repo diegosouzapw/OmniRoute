@@ -16,7 +16,7 @@
  *     node --import tsx/esm --test tests/integration/cursor-e2e.test.ts
  *
  * Capturing wire fixtures (separate workflow):
- *   CURSOR_TOKEN=... node scripts/cursor-tap.cjs single-turn-chat "say PING"
+ *   CURSOR_TOKEN=... node scripts/ad-hoc/cursor-tap.cjs single-turn-chat "say PING"
  */
 
 import test from "node:test";
