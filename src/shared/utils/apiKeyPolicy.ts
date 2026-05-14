@@ -16,11 +16,31 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 
-const DEFAULT_RATE_LIMITS: RateLimitRule[] = [
-  { limit: 1000, window: 86400 }, // 1000 per day
-  { limit: 5000, window: 604800 }, // 5000 per week
-  { limit: 20000, window: 2592000 }, // 20000 per month
-];
+/**
+ * Build the fallback rate-limit rules applied to API keys whose
+ * `rate_limits` column is null. Configurable via DEFAULT_RATE_LIMIT_PER_DAY:
+ *
+ * - `0` (the default) means "no fallback" — return an empty rule set.
+ *   `checkRateLimit()` short-circuits empty input as allowed, so keys
+ *   without an explicit limit are effectively unlimited.
+ * - Any positive integer N enables N/day, 5N/week, 20N/month windows.
+ *
+ * Exported for unit testing; production code should reference the
+ * `DEFAULT_RATE_LIMITS` constant below.
+ */
+export function buildDefaultRateLimits(
+  envValue = process.env.DEFAULT_RATE_LIMIT_PER_DAY
+): RateLimitRule[] {
+  const perDay = parseInt(envValue ?? "0", 10);
+  if (!Number.isFinite(perDay) || perDay <= 0) return [];
+  return [
+    { limit: perDay, window: 86400 },
+    { limit: perDay * 5, window: 604800 },
+    { limit: perDay * 20, window: 2592000 },
+  ];
+}
+
+const DEFAULT_RATE_LIMITS: RateLimitRule[] = buildDefaultRateLimits();
 
 interface AccessSchedule {
   enabled: boolean;
