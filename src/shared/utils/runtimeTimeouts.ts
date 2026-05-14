@@ -8,10 +8,11 @@ type ReadTimeoutOptions = {
 
 export const DEFAULT_FETCH_TIMEOUT_MS = 600_000;
 export const DEFAULT_STREAM_IDLE_TIMEOUT_MS = 600_000;
+export const DEFAULT_SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 export const DEFAULT_STREAM_READINESS_TIMEOUT_MS = 30_000;
 export const DEFAULT_FETCH_CONNECT_TIMEOUT_MS = 30_000;
 export const DEFAULT_FETCH_KEEPALIVE_TIMEOUT_MS = 4_000;
-export const DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS = 30_000;
+export const DEFAULT_API_BRIDGE_PROXY_TIMEOUT_MS = 600_000;
 export const DEFAULT_API_BRIDGE_SERVER_REQUEST_TIMEOUT_MS = 300_000;
 export const DEFAULT_API_BRIDGE_SERVER_HEADERS_TIMEOUT_MS = 60_000;
 export const DEFAULT_API_BRIDGE_SERVER_KEEPALIVE_TIMEOUT_MS = 5_000;
@@ -25,6 +26,7 @@ function hasEnvValue(env: EnvSource, name: string): boolean {
 export type UpstreamTimeoutConfig = {
   fetchTimeoutMs: number;
   streamIdleTimeoutMs: number;
+  sseHeartbeatIntervalMs: number;
   streamReadinessTimeoutMs: number;
   fetchHeadersTimeoutMs: number;
   fetchBodyTimeoutMs: number;
@@ -100,11 +102,21 @@ export function getUpstreamTimeoutConfig(
       logger,
     }
   );
+  const sseHeartbeatIntervalMs = readTimeoutMs(
+    env,
+    "SSE_HEARTBEAT_INTERVAL_MS",
+    DEFAULT_SSE_HEARTBEAT_INTERVAL_MS,
+    {
+      allowZero: true,
+      logger,
+    }
+  );
 
   return {
     fetchTimeoutMs,
     streamIdleTimeoutMs,
     streamReadinessTimeoutMs,
+    sseHeartbeatIntervalMs,
     fetchHeadersTimeoutMs: readTimeoutMs(env, "FETCH_HEADERS_TIMEOUT_MS", fetchTimeoutMs, {
       allowZero: true,
       logger,

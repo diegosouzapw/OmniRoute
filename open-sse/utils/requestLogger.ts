@@ -50,7 +50,7 @@ type RequestLoggerOptions = {
 const DEFAULT_MAX_STREAM_CHUNK_BYTES = 128 * 1024;
 const DEFAULT_MAX_STREAM_CHUNK_ITEMS = 512;
 const MAX_LOG_STRING_LENGTH = 64 * 1024;
-const MAX_LOG_ARRAY_ITEMS = 24;
+export const MAX_LOG_ARRAY_ITEMS = 24;
 const MAX_LOG_OBJECT_KEYS = 80;
 
 function maskSensitiveHeaders(headers: HeaderInput): Record<string, unknown> {
@@ -98,16 +98,31 @@ function truncateLogString(value: string, maxLength = MAX_LOG_STRING_LENGTH): st
   return `${value.slice(0, Math.floor(maxLength / 2))}\n[...truncated ${value.length - maxLength} chars...]\n${value.slice(-Math.ceil(maxLength / 2))}`;
 }
 
-function cloneBoundedForLog(value: unknown, depth = 0): unknown {
+/**
+ * Recursively clone `value` for logging, with size bounds applied:
+ * - Arrays longer than MAX_LOG_ARRAY_ITEMS are truncated to the tail with a
+ *   sentinel marker prepended.
+ * - The `tools` field is exempt from array truncation: the full tool inventory
+ *   is debug-critical for understanding which tools the model had access to,
+ *   and individual tool descriptions are independently bounded by
+ *   truncateLogString, so the total size remains naturally capped.
+ *
+ * The optional `key` parameter carries the parent object's field name when
+ * recursing into an object's values, enabling the per-field exemption above.
+ * Top-level arrays (no key context) remain subject to truncation.
+ */
+export function cloneBoundedForLog(value: unknown, depth = 0, key: string | null = null): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === "string") return truncateLogString(value);
   if (typeof value !== "object") return value;
   if (depth >= 6) return "[MaxDepth]";
 
   if (Array.isArray(value)) {
-    const source = value.length > MAX_LOG_ARRAY_ITEMS ? value.slice(-MAX_LOG_ARRAY_ITEMS) : value;
+    const exempt = key === "tools";
+    const shouldTruncate = !exempt && value.length > MAX_LOG_ARRAY_ITEMS;
+    const source = shouldTruncate ? value.slice(-MAX_LOG_ARRAY_ITEMS) : value;
     const mapped = source.map((item) => cloneBoundedForLog(item, depth + 1));
-    if (value.length > MAX_LOG_ARRAY_ITEMS) {
+    if (shouldTruncate) {
       return [
         {
           _omniroute_truncated_array: true,
@@ -122,8 +137,8 @@ function cloneBoundedForLog(value: unknown, depth = 0): unknown {
 
   const result: JsonRecord = {};
   const entries = Object.entries(value as JsonRecord);
-  for (const [key, item] of entries.slice(0, MAX_LOG_OBJECT_KEYS)) {
-    result[key] = cloneBoundedForLog(item, depth + 1);
+  for (const [k, item] of entries.slice(0, MAX_LOG_OBJECT_KEYS)) {
+    result[k] = cloneBoundedForLog(item, depth + 1, k);
   }
   if (entries.length > MAX_LOG_OBJECT_KEYS) {
     result._omniroute_truncated_keys = entries.length - MAX_LOG_OBJECT_KEYS;

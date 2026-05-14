@@ -8,26 +8,41 @@ import {
   getProviderNodes,
   getModelIsHidden,
 } from "@/lib/localDb";
-import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry.ts";
-import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry.ts";
-import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry.ts";
-import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry.ts";
-import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry.ts";
-import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry.ts";
-import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
-import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model.ts";
+import { getAllEmbeddingModels } from "@omniroute/open-sse/config/embeddingRegistry";
+import { getAllImageModels } from "@omniroute/open-sse/config/imageRegistry";
+import { getAllRerankModels } from "@omniroute/open-sse/config/rerankRegistry";
+import { getAllAudioModels } from "@omniroute/open-sse/config/audioRegistry";
+import { getAllModerationModels } from "@omniroute/open-sse/config/moderationRegistry";
+import { getAllVideoModels } from "@omniroute/open-sse/config/videoRegistry";
+import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
+import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
+import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
 import { getAllSyncedAvailableModels } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
   INTERNAL_PROXY_ERROR,
   enrichCatalogModelEntry,
+  getCanonicalModelMetadata,
   getCatalogDiagnosticsHeaders,
 } from "@/lib/modelMetadataRegistry";
+import { getSyncedCapability } from "@/lib/modelsDevSync";
+import { getModelSpec } from "@/shared/constants/modelSpecs";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/apiAuth";
-import { parseModel } from "@omniroute/open-sse/services/model.ts";
-import { getTokenLimit } from "@omniroute/open-sse/services/contextManager.ts";
+import { parseModel } from "@omniroute/open-sse/services/model";
+import { getTokenLimit } from "@omniroute/open-sse/services/contextManager";
+import type { ComboModelStep } from "@/lib/combos/steps";
+
+interface CustomModelEntry {
+  id?: string;
+  name?: string;
+  source?: string;
+  apiFormat?: string;
+  supportedEndpoints?: string[];
+  inputTokenLimit?: number;
+  isHidden?: boolean;
+}
 
 const FALLBACK_ALIAS_TO_PROVIDER = {
   ag: "antigravity",
@@ -42,6 +57,50 @@ const FALLBACK_ALIAS_TO_PROVIDER = {
   kr: "kiro",
   qw: "qwen",
 };
+
+type ComboCatalogTarget = {
+  modelStr?: string;
+  provider?: string | null;
+};
+
+type ComboTargetCatalogMetadata = {
+  contextLength?: number;
+  maxInputTokens?: number;
+  maxOutputTokens?: number;
+  inputModalities?: string[];
+  outputModalities?: string[];
+  capabilities: Record<string, boolean>;
+};
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function parseJsonStringArray(value: unknown): string[] {
+  if (typeof value !== "string" || value.trim().length === 0) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function intersectStringArrays(arrays: string[][]): string[] {
+  if (arrays.length === 0 || arrays.some((values) => values.length === 0)) return [];
+  const [first, ...rest] = arrays;
+  return first.filter((value, index) => {
+    if (first.indexOf(value) !== index) return false;
+    return rest.every((values) => values.includes(value));
+  });
+}
+
+function minKnownNumber(values: Array<number | undefined>): number | undefined {
+  if (values.length === 0 || !values.every(isPositiveFiniteNumber)) return undefined;
+  return Math.min(...values);
+}
 
 const VISION_MODEL_KEYWORDS = [
   "gpt-4o",
@@ -309,6 +368,212 @@ export async function getUnifiedModelsResponse(
       );
     };
 
+    const getRegistryModel = (providerId: string, modelId: string) => {
+      const alias = providerIdToAlias[providerId] || PROVIDER_ID_TO_ALIAS[providerId] || providerId;
+      const providerModels = PROVIDER_MODELS[alias] || PROVIDER_MODELS[providerId] || [];
+      return providerModels.find((model) => model?.id === modelId) || null;
+    };
+
+    const getProviderPrefixes = (providerId: string, rawProvider: string) => {
+      const prefixes = new Set<string>([providerId, rawProvider, providerIdToAlias[providerId]]);
+      for (const [alias, mappedProviderId] of Object.entries(aliasToProviderId)) {
+        if (mappedProviderId === providerId) prefixes.add(alias);
+      }
+      return [...prefixes].filter(
+        (prefix): prefix is string => typeof prefix === "string" && prefix.length > 0
+      );
+    };
+
+    const getComboTargetModelId = (target: ComboCatalogTarget) => {
+      const rawProvider = typeof target.provider === "string" ? target.provider.trim() : "";
+      const modelStr = typeof target.modelStr === "string" ? target.modelStr.trim() : "";
+      if (!rawProvider || rawProvider === "unknown" || !modelStr) return null;
+
+      const providerId = resolveCanonicalProviderId(rawProvider);
+      if (!providerId || providerId === "unknown") return null;
+
+      for (const prefix of getProviderPrefixes(providerId, rawProvider)) {
+        const prefixWithSlash = `${prefix}/`;
+        if (modelStr.startsWith(prefixWithSlash)) {
+          const modelId = modelStr.slice(prefixWithSlash.length).trim();
+          return modelId ? { providerId, modelId } : null;
+        }
+      }
+
+      return { providerId, modelId: modelStr };
+    };
+
+    const getComboTargetCatalogMetadata = (
+      target: ComboCatalogTarget
+    ): ComboTargetCatalogMetadata | null => {
+      const targetModel = getComboTargetModelId(target);
+      if (!targetModel) return null;
+
+      const canonical = getCanonicalModelMetadata({
+        provider: targetModel.providerId,
+        model: targetModel.modelId,
+      });
+      if (!canonical) return null;
+
+      const source = canonical.metadata.source;
+      if (!source.providerRegistry && !source.staticSpec && !source.syncedCapability) return null;
+
+      const providerId = canonical.provider || targetModel.providerId;
+      const modelId = canonical.model || targetModel.modelId;
+      const synced = getSyncedCapability(providerId, modelId);
+      const spec = getModelSpec(modelId);
+      const registryModel = getRegistryModel(providerId, modelId);
+      const syncedInputModalities = parseJsonStringArray(synced?.modalities_input);
+      const syncedOutputModalities = parseJsonStringArray(synced?.modalities_output);
+
+      const syncedContext = isPositiveFiniteNumber(synced?.limit_context)
+        ? synced.limit_context
+        : undefined;
+      const registryContext = isPositiveFiniteNumber(registryModel?.contextLength)
+        ? registryModel.contextLength
+        : undefined;
+      const specContext = isPositiveFiniteNumber(spec?.contextWindow)
+        ? spec.contextWindow
+        : undefined;
+      const contextLength = syncedContext ?? registryContext ?? specContext;
+      const maxInputTokens = isPositiveFiniteNumber(synced?.limit_input)
+        ? synced.limit_input
+        : contextLength;
+      const maxOutputTokens = isPositiveFiniteNumber(synced?.limit_output)
+        ? synced.limit_output
+        : isPositiveFiniteNumber(spec?.maxOutputTokens)
+          ? spec.maxOutputTokens
+          : undefined;
+
+      const syncedVision =
+        typeof synced?.attachment === "boolean"
+          ? synced.attachment
+          : syncedInputModalities.length > 0 || syncedOutputModalities.length > 0
+            ? [...syncedInputModalities, ...syncedOutputModalities].some((entry) =>
+                entry.toLowerCase().includes("image")
+              )
+            : undefined;
+      const registryVision =
+        typeof registryModel?.supportsVision === "boolean"
+          ? registryModel.supportsVision
+          : undefined;
+      const specVision =
+        typeof spec?.supportsVision === "boolean" ? spec.supportsVision : undefined;
+      const knownVision = syncedVision ?? registryVision ?? specVision;
+
+      const inputModalities =
+        syncedInputModalities.length > 0
+          ? syncedInputModalities
+          : knownVision === true
+            ? ["text", "image"]
+            : undefined;
+      const outputModalities =
+        syncedOutputModalities.length > 0
+          ? syncedOutputModalities
+          : knownVision === true
+            ? ["text"]
+            : undefined;
+
+      const capabilities: Record<string, boolean> = {};
+      if (typeof synced?.tool_call === "boolean") {
+        capabilities.tool_calling = synced.tool_call;
+      } else if (typeof registryModel?.toolCalling === "boolean") {
+        capabilities.tool_calling = registryModel.toolCalling;
+      } else if (typeof spec?.supportsTools === "boolean") {
+        capabilities.tool_calling = spec.supportsTools;
+      }
+      if (typeof synced?.reasoning === "boolean") {
+        capabilities.reasoning = synced.reasoning;
+      } else if (typeof registryModel?.supportsReasoning === "boolean") {
+        capabilities.reasoning = registryModel.supportsReasoning;
+      } else if (typeof spec?.supportsThinking === "boolean") {
+        capabilities.reasoning = spec.supportsThinking;
+      }
+      if (typeof knownVision === "boolean") capabilities.vision = knownVision;
+      if (typeof synced?.attachment === "boolean") capabilities.attachment = synced.attachment;
+      if (typeof synced?.structured_output === "boolean") {
+        capabilities.structured_output = synced.structured_output;
+      }
+      if (typeof synced?.temperature === "boolean") capabilities.temperature = synced.temperature;
+      if (typeof synced?.reasoning === "boolean") {
+        capabilities.thinking = synced.reasoning;
+      } else if (typeof spec?.supportsThinking === "boolean") {
+        capabilities.thinking = spec.supportsThinking;
+      }
+
+      return {
+        ...(contextLength ? { contextLength } : {}),
+        ...(maxInputTokens ? { maxInputTokens } : {}),
+        ...(maxOutputTokens ? { maxOutputTokens } : {}),
+        ...(inputModalities && inputModalities.length > 0 ? { inputModalities } : {}),
+        ...(outputModalities && outputModalities.length > 0 ? { outputModalities } : {}),
+        capabilities,
+      };
+    };
+
+    const buildComboCatalogMetadata = (combo: Record<string, any>, allCombos: any[]) => {
+      const explicitContextLength = isPositiveFiniteNumber(combo.context_length)
+        ? combo.context_length
+        : undefined;
+
+      const baseMetadata = explicitContextLength ? { context_length: explicitContextLength } : {};
+      const targets = resolveNestedComboTargets(combo, allCombos) as ComboCatalogTarget[];
+      if (targets.length === 0) return baseMetadata;
+
+      const targetMetadata = targets.map((target) => getComboTargetCatalogMetadata(target));
+      if (targetMetadata.some((metadata) => metadata === null)) return baseMetadata;
+
+      const knownMetadata = targetMetadata as ComboTargetCatalogMetadata[];
+      const contextLength =
+        explicitContextLength ??
+        minKnownNumber(knownMetadata.map((metadata) => metadata.contextLength));
+      const maxInputTokens = minKnownNumber(
+        knownMetadata.map((metadata) => metadata.maxInputTokens)
+      );
+      const maxOutputTokens = minKnownNumber(
+        knownMetadata.map((metadata) => metadata.maxOutputTokens)
+      );
+
+      const inputModalities = knownMetadata.every(
+        (metadata) => Array.isArray(metadata.inputModalities) && metadata.inputModalities.length > 0
+      )
+        ? intersectStringArrays(knownMetadata.map((metadata) => metadata.inputModalities || []))
+        : [];
+      const outputModalities = knownMetadata.every(
+        (metadata) =>
+          Array.isArray(metadata.outputModalities) && metadata.outputModalities.length > 0
+      )
+        ? intersectStringArrays(knownMetadata.map((metadata) => metadata.outputModalities || []))
+        : [];
+
+      const capabilities: Record<string, boolean> = {};
+      for (const key of [
+        "tool_calling",
+        "reasoning",
+        "vision",
+        "attachment",
+        "structured_output",
+        "temperature",
+        "thinking",
+      ]) {
+        const values = knownMetadata.map((metadata) => metadata.capabilities[key]);
+        if (values.every((value): value is boolean => typeof value === "boolean")) {
+          const [first] = values;
+          if (values.every((value) => value === first)) capabilities[key] = first;
+        }
+      }
+
+      return {
+        ...baseMetadata,
+        ...(contextLength ? { context_length: contextLength } : {}),
+        ...(maxInputTokens ? { max_input_tokens: maxInputTokens } : {}),
+        ...(maxOutputTokens ? { max_output_tokens: maxOutputTokens } : {}),
+        ...(inputModalities.length > 0 ? { input_modalities: inputModalities } : {}),
+        ...(outputModalities.length > 0 ? { output_modalities: outputModalities } : {}),
+        ...(Object.keys(capabilities).length > 0 ? { capabilities } : {}),
+      };
+    };
+
     // Collect models from active providers (or all if none active)
     const models = [];
     const timestamp = Math.floor(Date.now() / 1000);
@@ -316,29 +581,7 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
-
-      // Calculate combo context length from its model targets.
-      // OpenCode and other clients read context_length from the catalog; without it
-      // they fall back to a conservative ~4000 token limit, causing truncation.
-      const comboContextLength = Array.isArray(combo.models)
-        ? combo.models
-            .filter((step) => step && step.kind === "model" && step.model)
-            .map((step) => {
-              const parsed = parseModel(step.model);
-              const provider = parsed.provider || (step as any).providerId || "unknown";
-              const model = parsed.model || step.model;
-              return getTokenLimit(provider, model);
-            })
-            .filter((limit): limit is number => typeof limit === "number" && limit > 0)
-            .reduce((min, limit) => Math.min(min, limit), Infinity)
-        : undefined;
-
-      const effectiveContextLength =
-        typeof combo.context_length === "number" && combo.context_length > 0
-          ? combo.context_length
-          : comboContextLength !== undefined && comboContextLength !== Infinity
-            ? comboContextLength
-            : undefined;
+      const comboMetadata = buildComboCatalogMetadata(combo, combos);
 
       models.push({
         id: combo.name,
@@ -348,7 +591,7 @@ export async function getUnifiedModelsResponse(
         permission: [],
         root: combo.name,
         parent: null,
-        ...(effectiveContextLength !== undefined ? { context_length: effectiveContextLength } : {}),
+        ...comboMetadata,
       });
     }
 
@@ -685,9 +928,9 @@ export async function getUnifiedModelsResponse(
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         if (providerId === "reka") continue;
-        const providerCustomModels = Array.isArray(rawProviderCustomModels)
+        const providerCustomModels: CustomModelEntry[] = Array.isArray(rawProviderCustomModels)
           ? rawProviderCustomModels.filter(
-              (model): model is Record<string, unknown> =>
+              (model): model is CustomModelEntry =>
                 !!model && typeof model === "object" && !Array.isArray(model)
             )
           : [];
@@ -760,8 +1003,8 @@ export async function getUnifiedModelsResponse(
             ...(endpoints.length > 1 || !endpoints.includes("chat")
               ? { supported_endpoints: endpoints }
               : {}),
-            ...(typeof (model as any).inputTokenLimit === "number"
-              ? { context_length: (model as any).inputTokenLimit }
+            ...(typeof model.inputTokenLimit === "number"
+              ? { context_length: model.inputTokenLimit }
               : {}),
             ...(visionFields || {}),
           });
@@ -785,8 +1028,8 @@ export async function getUnifiedModelsResponse(
               parent: aliasId,
               custom: true,
               ...(modelType ? { type: modelType } : {}),
-              ...(typeof (model as any).inputTokenLimit === "number"
-                ? { context_length: (model as any).inputTokenLimit }
+              ...(typeof model.inputTokenLimit === "number"
+                ? { context_length: model.inputTokenLimit }
                 : {}),
               ...(providerVisionFields || {}),
             });
@@ -821,9 +1064,7 @@ export async function getUnifiedModelsResponse(
         const visionFields =
           getVisionCapabilityFields(aliasId) || getVisionCapabilityFields(modelId);
         const contextLength =
-          typeof (model as any).contextLength === "number"
-            ? (model as any).contextLength
-            : undefined;
+          typeof model.contextLength === "number" ? model.contextLength : undefined;
 
         models.push({
           id: aliasId,
@@ -867,10 +1108,17 @@ export async function getUnifiedModelsResponse(
       const provider = typeof model.owned_by === "string" ? model.owned_by : null;
       if (!provider) return undefined;
       const canonicalId = aliasToProviderId[provider] || provider;
-      return REGISTRY[canonicalId]?.defaultContextLength;
+
+      const registryFallback = REGISTRY[canonicalId]?.defaultContextLength;
+      if (registryFallback) return registryFallback;
+
+      const modelId =
+        model.root || (typeof model.id === "string" ? model.id.split("/").pop() : undefined);
+      return modelId ? getTokenLimit(canonicalId, modelId) : getTokenLimit(canonicalId);
     };
 
     const enrichedModels = finalModels.map((model) => {
+      if (model.owned_by === "combo") return model;
       const enriched = enrichCatalogModelEntry(model);
       const fallbackContextLength = getDefaultContextFallback(enriched);
       return fallbackContextLength
@@ -895,7 +1143,7 @@ export async function getUnifiedModelsResponse(
     return Response.json(
       {
         error: {
-          message: (error as any).message,
+          message: error instanceof Error ? error.message : String(error),
           type: "server_error",
           code: INTERNAL_PROXY_ERROR,
         },

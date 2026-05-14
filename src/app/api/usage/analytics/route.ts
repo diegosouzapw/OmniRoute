@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
 
@@ -261,6 +262,9 @@ function computeActivityStreak(activityMap: Record<string, number>): number {
 }
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
+
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "30d";
@@ -555,6 +559,7 @@ export async function GET(request: Request) {
           COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           LOWER(provider) as provider,
           LOWER(model) as model,
+          COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
           COUNT(*) as requests,
           COALESCE(SUM(tokens_input), 0) as promptTokens,
           COALESCE(SUM(tokens_output), 0) as completionTokens,
@@ -563,6 +568,7 @@ export async function GET(request: Request) {
           COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
           COALESCE(SUM(tokens_input + tokens_output), 0) as totalTokens
         FROM usage_history
+
         ${whereClause}
         GROUP BY serviceTier, LOWER(provider), LOWER(model)
       `

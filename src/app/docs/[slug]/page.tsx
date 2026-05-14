@@ -8,6 +8,7 @@ import matter from "gray-matter";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import { Metadata } from "next";
+import { getLocale } from "next-intl/server";
 import { DocCodeBlocks } from "../components/DocCodeBlocks";
 import { FeedbackWidget } from "../components/FeedbackWidget";
 import { DocsPageAnalytics } from "../components/DocsPageAnalytics";
@@ -127,8 +128,6 @@ function addProseClasses(html: string): string {
   return result;
 }
 
-
-
 export async function generateMetadata({
   params,
 }: {
@@ -168,8 +167,27 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
   let mermaidCharts: string[] = [];
 
   try {
-    const docsRoot = path.join(process.cwd(), "docs");
-    const fileContent = fs.readFileSync(path.join(docsRoot, item.fileName), "utf8");
+    // Resolve the current request locale via next-intl. When it isn't `en`
+    // and a translated copy exists under `docs/i18n/<locale>/docs/<file>`,
+    // prefer the translated file. Otherwise fall back to the English source.
+    // Path resolution is hardened: the docs index supplies the safe filename
+    // (never user input), and we constrain the resolved path to the docs
+    // root so traversal sequences in a stray fileName cannot escape it.
+    const locale = await getLocale();
+    const docsRoot = path.resolve(process.cwd(), "docs");
+    const englishAbs = path.resolve(docsRoot, item.fileName);
+    if (!englishAbs.startsWith(docsRoot + path.sep) && englishAbs !== docsRoot) {
+      throw new Error("Refusing to read doc outside the docs root");
+    }
+    let sourceAbs = englishAbs;
+    if (locale && locale !== "en") {
+      const localeRoot = path.resolve(docsRoot, "i18n", locale, "docs");
+      const localeAbs = path.resolve(localeRoot, item.fileName);
+      if (localeAbs.startsWith(localeRoot + path.sep) && fs.existsSync(localeAbs)) {
+        sourceAbs = localeAbs;
+      }
+    }
+    const fileContent = fs.readFileSync(sourceAbs, "utf8");
     const { content, data: frontmatter } = matter(fileContent);
     pageTitle = (frontmatter.title as string) || item.title;
     version = (frontmatter.version as string) || null;

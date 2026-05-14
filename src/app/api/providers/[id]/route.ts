@@ -23,6 +23,7 @@ import {
   isClaudeExtraUsageBlockEnabled,
 } from "@/lib/providers/claudeExtraUsage";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 
 function normalizeCodexLimitPolicy(
   incoming: unknown,
@@ -61,9 +62,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Connection not found" }, { status: 404 });
     }
 
-    // Hide sensitive fields
+    const revealKeys = isApiKeyRevealEnabled();
+
+    // Hide or mask sensitive fields
     const result: Record<string, any> = { ...connection };
-    delete result.apiKey;
+    if (!revealKeys) {
+      result.apiKey = result.apiKey ? maskStoredApiKey(result.apiKey) : undefined;
+    }
     delete result.accessToken;
     delete result.refreshToken;
     delete result.idToken;

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   ensureStreamReadiness,
+  hasStreamReadinessSignal,
   hasUsefulStreamContent,
 } from "../../open-sse/utils/streamReadiness.ts";
 
@@ -15,6 +16,46 @@ function streamFromChunks(chunks: string[], delayMs = 0): ReadableStream<Uint8Ar
         if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
         controller.enqueue(encoder.encode(chunk));
       }
+      controller.close();
+    },
+  });
+}
+
+function delayedClaudeStartStream(): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode(
+          [
+            "event: message_start",
+            `data: ${JSON.stringify({
+              message: {
+                id: "msg_1",
+                type: "message",
+                role: "assistant",
+                model: "claude-sonnet-4-6",
+                usage: { input_tokens: 10, output_tokens: 0 },
+              },
+            })}`,
+            "",
+          ].join("\n")
+        )
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      controller.enqueue(
+        encoder.encode(
+          [
+            "event: content_block_delta",
+            `data: ${JSON.stringify({
+              type: "content_block_delta",
+              index: 0,
+              delta: { type: "text_delta", text: "slow hello" },
+            })}`,
+            "",
+          ].join("\n")
+        )
+      );
       controller.close();
     },
   });
@@ -80,6 +121,51 @@ test("hasUsefulStreamContent detects text, reasoning, and tool deltas", () => {
   );
 });
 
+test("hasStreamReadinessSignal accepts Claude stream start events", () => {
+  assert.equal(hasStreamReadinessSignal(": keepalive\n\n"), false);
+  assert.equal(hasStreamReadinessSignal("event: ping\ndata: {}\n\n"), false);
+  assert.equal(
+    hasStreamReadinessSignal(`data: ${JSON.stringify({ type: "response.created" })}\n\n`),
+    false
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `event: message_start\ndata: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_1",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4-6",
+        },
+      })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `event: message_start\ndata: ${JSON.stringify({
+        message: {
+          id: "msg_2",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4-6",
+        },
+      })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `event: content_block_start\ndata: ${JSON.stringify({
+        index: 0,
+        content_block: { type: "text", text: "" },
+      })}\n\n`
+    ),
+    true
+  );
+});
+
 test("ensureStreamReadiness preserves buffered chunks when stream starts", async () => {
   const response = new Response(
     streamFromChunks([
@@ -96,6 +182,23 @@ test("ensureStreamReadiness preserves buffered chunks when stream starts", async
   assert.match(text, /response\.created/);
   assert.match(text, /hello/);
   assert.match(text, / world/);
+});
+
+test("ensureStreamReadiness hands off long Claude streams after message_start", async () => {
+  const response = new Response(delayedClaudeStartStream(), {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+
+  const result = await ensureStreamReadiness(response, {
+    timeoutMs: 10,
+    provider: "anthropic-compatible-cc-test",
+    model: "claude-sonnet-4-6",
+  });
+  assert.equal(result.ok, true);
+  const text = await result.response.text();
+  assert.match(text, /message_start/);
+  assert.match(text, /slow hello/);
 });
 
 test("ensureStreamReadiness returns 504 when no useful content arrives before timeout", async () => {

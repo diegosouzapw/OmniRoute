@@ -1,0 +1,16 @@
+%% Database schema overview (selected core tables)
+%% Reflects: src/lib/db/* (45+ modules, 55 migrations)
+%% v3.8.0
+erDiagram
+  api_keys ||--o{ api_key_usage : tracks
+  api_keys ||--o{ rate_limits : enforces
+  providers ||--o{ provider_connections : holds
+  provider_connections ||--o{ domain_circuit_breakers : protected_by
+  combos ||--o{ combo_targets : contains
+  combos ||--o{ combo_executions : logs
+  spend_buffer ||--o{ usage_aggregations : flushed_to
+  memory_documents ||--o{ memory_chunks : split_into
+  skills_runs ||--o{ skills_logs : produced
+  agent_tasks ||--o{ agent_task_events : streams
+  audit_log }|--|| api_keys : by
+  mcp_audit }|--|| api_keys : by

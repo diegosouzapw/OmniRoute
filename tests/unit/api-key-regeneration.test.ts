@@ -41,15 +41,15 @@ test("regenerateApiKey creates a new key and invalidates the old one", async () 
   const result = await apiKeysDb.regenerateApiKey(oldId);
   assert.ok(result?.key);
   const regenerated = result!.key;
-  
+
   assert.notEqual(regenerated, oldKey);
-  
+
   // New key should be valid
   assert.equal(await apiKeysDb.validateApiKey(regenerated), true);
-  
+
   // Old key should be invalid
   assert.equal(await apiKeysDb.validateApiKey(oldKey), false);
-  
+
   // Name and machineId should persist
   const md = await apiKeysDb.getApiKeyMetadata(regenerated);
   assert.equal(md?.name, "Regen Test");

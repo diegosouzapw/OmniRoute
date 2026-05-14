@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 // We test the standalone (scripts/) version of port resolution since
 // the src/ version uses @/ alias that requires the full Next.js build.
-import { parsePort, resolveRuntimePorts } from "../../scripts/runtime-env.mjs";
+import { parsePort, resolveRuntimePorts } from "../../scripts/build/runtime-env.mjs";
 
 describe("parsePort", () => {
   it("parses a valid port number", () => {

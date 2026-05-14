@@ -428,7 +428,7 @@ export async function handleSetRoutingStrategy(args: {
         ...currentConfig,
         auto: {
           ...currentAutoConfig,
-          routingStrategy: args.autoRoutingStrategy,
+          routerStrategy: args.autoRoutingStrategy,
         },
       };
     }
@@ -447,7 +447,7 @@ export async function handleSetRoutingStrategy(args: {
 
     const updatedConfig = toRecord(updatedCombo.config);
     const resolvedAutoStrategy =
-      toString(toRecord(updatedConfig.auto).routingStrategy) ||
+      toString(toRecord(updatedConfig.auto).routerStrategy) ||
       (normalizedStrategy === "auto" ? (args.autoRoutingStrategy ?? "rules") : "");
 
     const result = {

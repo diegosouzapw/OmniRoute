@@ -21,7 +21,11 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import {
+  getAntigravityModelsDiscoveryUrls,
+  getAntigravityFetchAvailableModelsUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   buildGlmCodingHeaders,
   buildGlmModelsUrl,
@@ -229,8 +233,12 @@ async function fetchAntigravityDiscoveryModelsCached(
 
   const promise = (async () => {
     await resolveAntigravityVersion();
+    await ensureAntigravityProjectAssigned(accessToken);
 
-    for (const discoveryUrl of getAntigravityModelsDiscoveryUrls()) {
+    for (const discoveryUrl of [
+      ...getAntigravityFetchAvailableModelsUrls(),
+      ...getAntigravityModelsDiscoveryUrls(),
+    ]) {
       try {
         const response = await safeOutboundFetch(discoveryUrl, {
           ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -394,14 +402,12 @@ const STATIC_MODEL_PROVIDERS: Record<string, () => Array<{ id: string; name: str
     { id: "sonar-deep-research", name: "Sonar Deep Research (Expert Analysis)" },
   ],
   "bailian-coding-plan": () => [
-    { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
-    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max (2026-01-23)" },
-    { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-    { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
+    { id: "qwen3.6-plus", name: "Qwen3.6 Plus(vision)" },
+    { id: "qwen3.5-plus", name: "Qwen3.5 Plus(vision)" },
+    { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
+    { id: "kimi-k2.5", name: "Kimi K2.5(vision)" },
     { id: "glm-5", name: "GLM 5" },
-    { id: "glm-4.7", name: "GLM 4.7" },
-    { id: "kimi-k2.5", name: "Kimi K2.5" },
+    { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
   ],
   gitlab: () => [{ id: "gitlab-duo-code-suggestions", name: "GitLab Duo Code Suggestions" }],
   nlpcloud: () =>
@@ -854,8 +860,10 @@ export async function GET(
       return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
-        ...(model.apiFormat ? { apiFormat: model.apiFormat } : {}),
-        ...(model.supportedEndpoints ? { supportedEndpoints: model.supportedEndpoints } : {}),
+        ...((model as any).apiFormat ? { apiFormat: (model as any).apiFormat } : {}),
+        ...((model as any).supportedEndpoints
+          ? { supportedEndpoints: (model as any).supportedEndpoints }
+          : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
     };
@@ -902,7 +910,7 @@ export async function GET(
       }
     ) => {
       const status = getSafeOutboundFetchErrorStatus(error);
-      if (status === 400) return null;
+      if (status === 400 || status === 503 || status === 504) return null;
       return buildDiscoveryFallbackResponse(warnings);
     };
 
@@ -1852,8 +1860,10 @@ export async function GET(
         models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
-          ...(m.apiFormat ? { apiFormat: m.apiFormat } : {}),
-          ...(m.supportedEndpoints ? { supportedEndpoints: m.supportedEndpoints } : {}),
+          ...((m as any).apiFormat ? { apiFormat: (m as any).apiFormat } : {}),
+          ...((m as any).supportedEndpoints
+            ? { supportedEndpoints: (m as any).supportedEndpoints }
+            : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),
         source: "local_catalog",

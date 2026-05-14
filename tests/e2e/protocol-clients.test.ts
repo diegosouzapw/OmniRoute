@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
@@ -87,6 +87,14 @@ async function consumeA2AStream(response: Response): Promise<{
 }
 
 describe("Protocol clients E2E", () => {
+  beforeAll(async () => {
+    const response = await apiFetch("/api/settings", {
+      method: "PATCH",
+      body: JSON.stringify({ a2aEnabled: true }),
+    });
+    expect([200, 401]).toContain(response.status);
+  });
+
   it(
     "connects via MCP stdio and invokes required tools",
     async () => {

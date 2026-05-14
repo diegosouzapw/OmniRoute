@@ -32,7 +32,7 @@ function normalizeBaseUrl(baseUrl) {
 function normalizeBailianMessagesUrl(baseUrl) {
   const normalized = normalizeBaseUrl(baseUrl).replace(/\?beta=true$/, "");
   const messagesUrl = normalized.endsWith("/messages") ? normalized : `${normalized}/messages`;
-  return `${messagesUrl}?beta=true`;
+  return messagesUrl;
 }
 
 function normalizeHerokuChatUrl(baseUrl) {

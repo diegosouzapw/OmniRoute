@@ -15,6 +15,10 @@
 
 ### 🐛 Bug Fixes
 
+- **fix(providers):** strip OpenAI-specific fields in Kiro translator to prevent 400 errors (#2037)
+- **fix(ui):** resolve text contrast issues for zero-config warning banner in light mode (#2050)
+- **fix(core):** inject global system prompt correctly into downstream chat completions pipeline (#2080)
+- **fix(routing):** add missing v1beta rewrites to next.config to resolve 404 on Gemini models endpoint (#2102)
 - **fix(cache):** optimize cache_control preservation logic and explicitly align tool schema with upstream Claude Code expectations
 - **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
@@ -1192,7 +1196,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **33 New API Key Providers:** Massive provider expansion adding DeepInfra, Vercel AI Gateway, Lambda AI, SambaNova, nScale, OVHcloud AI, Baseten, PublicAI, Moonshot AI, Meta Llama API, v0 (Vercel), Morph, Featherless AI, FriendliAI, LlamaGate, Galadriel, Weights & Biases Inference, Volcengine, AI21 Labs, Venice.ai, Codestral, Upstage, Maritalk, Xiaomi MiMo, Inference.net, NanoGPT, Predibase, Bytez, Heroku AI, Databricks, Snowflake Cortex, and GigaChat (Sber). OmniRoute now supports **100+ providers** (4 Free + 8 OAuth + 91 API Key + Custom compatible)
 - **Global Email Privacy Toggle:** Added a persistent eye-icon toggle button across all dashboard pages (Providers, Usage Limits, Playground) that reveals or hides masked email addresses. Toggle state is stored in localStorage and synced globally via Zustand store
 - **Documentation Refresh:** Updated README, ARCHITECTURE, FEATURES, AGENTS.md, and API_REFERENCE for v3.6.2 with accurate provider counts (100+), new executor list, and system API documentation
-- **Uninstall Guide:** Created comprehensive `docs/UNINSTALL.md` covering clean uninstallation for all deployment methods (npm, Docker, Electron, source)
+- **Uninstall Guide:** Created comprehensive `docs/guides/UNINSTALL.md` covering clean uninstallation for all deployment methods (npm, Docker, Electron, source)
 
 ### 🐛 Bug Fixes
 

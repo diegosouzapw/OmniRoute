@@ -4,7 +4,7 @@
 
 ---
 
-> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 160+ AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (29 tools), A2A v0.3 protocol, Memory/Skills systems, and an Electron desktop app.
+> OmniRoute is a free, open-source AI Gateway that acts as a universal API proxy for multi-provider LLMs. It provides smart routing, automatic fallback, load balancing, and format translation across 177 AI providers — all through a single OpenAI-compatible endpoint. Includes a built-in MCP Server (37 tools), A2A v0.3 protocol, Memory/Skills systems, Cloud Agents (codex-cloud, devin, jules), Guardrails framework, and an Electron desktop app.
 
 ## Overview
 
@@ -16,9 +16,9 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ## Tech Stack
 
-- **Runtime:** Node.js >= 18 < 24, ES Modules (`"type": "module"`)
+- **Runtime:** Node.js `>=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 <27`, ES Modules (`"type": "module"`)
 - **Framework:** Next.js 16 (App Router) with TypeScript 5.9
-- **Database:** SQLite via better-sqlite3 (local, zero-config, 16 migrations)
+- **Database:** SQLite via better-sqlite3 (local, zero-config, 55 migrations)
 - **State management:** Zustand (client), SQLite (server persistence)
 - **UI:** React 19, Tailwind CSS 4, Recharts for analytics, @lobehub/icons for 130+ provider SVG icons
 - **Auth:** OAuth 2.0 (PKCE) for providers, bcrypt for local user auth
@@ -45,7 +45,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 │   │   │       ├── auto-combo/   # Auto-combo engine dashboard
 │   │   │       ├── cache/        # Cache dashboard (semantic cache stats)
 │   │   │       ├── cli-tools/    # CLI tool configuration (Claude Code, Codex, Gemini CLI, etc.)
-│   │   │       ├── combos/       # Model combo management (13 strategies + 4 templates)
+│   │   │       ├── combos/       # Model combo management (14 strategies + 4 templates)
 │   │   │       ├── costs/        # Cost tracking per provider/model
 │   │   │       ├── endpoint/     # Unified: Endpoint Proxy, MCP, A2A, API Endpoints tabs
 │   │   │       ├── health/       # System health (uptime, circuit breakers, latency)
@@ -186,7 +186,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ├── open-sse/                     # Standalone SSE server (npm workspace)
 │   ├── config/                   # Model registries (providerRegistry, embedding, image, audio, video,
 │   │                             #   music, rerank, moderation, search, CLI fingerprints, Ollama models)
-│   ├── executors/                # Provider-specific request executors (14 executors)
+│   ├── executors/                # Provider-specific request executors (31 executors)
 │   │   ├── base.ts               # Base executor with shared logic
 │   │   ├── default.ts            # Default OpenAI-compatible executor
 │   │   ├── cursor.ts             # Cursor IDE (protobuf + checksum)
@@ -286,24 +286,25 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 ## Key Features (v3.8.0)
 
 ### Core Proxy
-- **160+ AI providers** with automatic format translation
-- **4 provider categories**: Free (4), OAuth (8), API Key (120+), Self-Hosted (8+), Custom (OpenAI/Anthropic-compatible)
-- **13 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay
+- **177 AI providers** with automatic format translation
+- **4 provider categories**: Free (5), OAuth (14), API Key (123+), Self-Hosted (8+), Custom (OpenAI/Anthropic-compatible)
+- **14 routing strategies**: priority, weighted, round-robin, fill-first, p2c, random, least-used, cost-optimized, strict-random, auto, lkgp, context-optimized, context-relay, **reset-aware** (v3.8)
 - **4-tier fallback**: Subscription → API Key → Cheap → Free
 - **Context Relay strategy**: Session handoff summaries on account rotation for continuity
-- **Auto-combo engine**: Self-healing routing optimization with 6-factor scoring, bandit exploration, progressive cooldown
+- **Auto-combo engine**: Self-healing routing optimization with **9-factor scoring** (health/quota/costInv/latencyInv/taskFit/specificityMatch/stability/tierPriority/tierAffinity), bandit exploration, progressive cooldown
 - **Semantic caching** with cache hit/miss headers
 - **Idempotency** with configurable dedup window
-- **Circuit breaker** per provider with configurable thresholds
+- **3-layer resilience**: Provider Circuit Breaker / Connection Cooldown / Model Lockout
 - **Provider Icons**: 130+ provider logos via `@lobehub/icons` (SVG) with PNG fallback
 - **Model Auto-Sync**: 24h scheduler refreshes model lists for 16 providers
 - **Registered Keys API**: Auto-provision API keys via `POST /api/v1/registered-keys` with quota enforcement
 - **Memory System**: Persistent conversational memory with extraction, injection, retrieval, and summarization
 - **Skills System**: Extensible skill framework with registry, executor, sandbox, built-in and custom skills
-- **Prompt Injection Guard**: Middleware-level prompt injection detection
+- **Cloud Agents**: Codex Cloud, Devin, Jules — autonomous coding agents with task lifecycle management
+- **Guardrails Framework**: Hot-reloadable registry with vision-bridge, pii-masker, prompt-injection (priority-ordered)
 - **MITM Proxy**: Certificate management, DNS handling, and target routing
 - **Cloudflare Tunnels**: Managed tunnel creation for remote access
-- **122 unit test files** with comprehensive coverage (55% statements/lines/functions, 60% branches)
+- **Coverage gate**: 75% statements/lines/functions, 70% branches (measured ~82%)
 
 ### Security
 - **Data Loss Prevention**: SQLite migration safety bounds abort startup on dangerous massive schema overrides. Pre-migration `VACUUM INTO` backups isolate rollback snapshots.
@@ -319,7 +320,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 ### Dashboard Pages (23 sections)
 - **Providers** — OAuth, API key, and free provider management with ProviderIcon SVG icons
-- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 13 strategies
+- **Combos** — Multi-model combo builder with 4 templates (Free Stack, High Availability, Cost Saver, Balanced) + 14 strategies
 - **Auto-Combo** — Auto-combo engine dashboard with scoring metrics
 - **Analytics** — Token consumption, cost, heatmaps, distributions
 - **Health** — Uptime, memory, latency percentiles, circuit breakers
@@ -349,25 +350,24 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - **Gemini** — `/v1beta/models`, `/v1beta/models/{...path}`
 - **Ollama** — `/v1/api/chat`, `/api/tags`
 - **Search** — `/v1/search` (Perplexity, Serper, Brave, Exa, Tavily)
-- **MCP** — 29-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
-- **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, smart-routing + quota-management skills)
+- **MCP** — 37-tool MCP server with scope-based auth (3 transports: stdio, SSE, streamable HTTP)
+- **A2A** — Agent-to-Agent v0.3 protocol (JSON-RPC 2.0, 5 skills: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
 - **ACP** — Agent Communication Protocol registry and manager
 
-### MCP Server (29 Tools)
-| Category  | Tools |
-|-----------|-------|
-| Core (20)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing` |
-| Cache (2)  | `cache_stats`, `cache_flush` |
+### MCP Server (37 Tools)
+| Category   | Tools |
+|------------|-------|
+| Core (30)  | `get_health`, `list_combos`, `get_combo_metrics`, `switch_combo`, `check_quota`, `route_request`, `cost_report`, `list_models_catalog`, `web_search`, `simulate_route`, `set_budget_guard`, `set_routing_strategy`, `set_resilience_profile`, `test_combo`, `get_provider_metrics`, `best_combo_for_task`, `explain_route`, `get_session_snapshot`, `db_health_check`, `sync_pricing`, `cache_stats`, `cache_flush`, and advanced routing/diagnostics tools (see `docs/frameworks/MCP-SERVER.md` for full inventory) |
 | Memory (3) | `memory_search`, `memory_add`, `memory_clear` |
 | Skills (4) | `skills_list`, `skills_enable`, `skills_execute`, `skills_executions` |
 
-**MCP Auth Scopes (10):** `read:health`, `read:combos`, `write:combos`, `read:quota`, `read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`, `write:resilience`
+**MCP Auth Scopes (~13):** `read:health`, `read:combos`, `write:combos`, `read:quota`, `read:usage`, `read:models`, `execute:completions`, `execute:search`, `write:budget`, `write:resilience`, plus memory/skills scopes — full list in `docs/frameworks/MCP-SERVER.md`.
 
 ### Provider Categories
 
-**Free Providers (4):** Qoder AI, Qwen Code, Gemini CLI (deprecated), Kiro AI
+**Free Providers (5):** Qoder AI, Qwen Code (deprecated), Gemini CLI, Kiro AI, Windsurf
 
-**OAuth Providers (8):** Claude Code, Antigravity, OpenAI Codex, GitHub Copilot, Cursor IDE, Kimi Coding, Kilo Code, Cline
+**OAuth Providers (14):** Claude Code, Antigravity, OpenAI Codex, GitHub Copilot, Cursor IDE, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
 
 **API Key Providers (48+):** OpenAI, Anthropic, Gemini (Google AI Studio), DeepSeek, Groq, xAI (Grok), Mistral, Perplexity, Together AI, Fireworks AI, Cerebras, Cohere, NVIDIA NIM, Nebius AI, SiliconFlow, Hyperbolic, HuggingFace, OpenRouter, Vertex AI, Cloudflare Workers AI, Scaleway AI, AI/ML API, Pollinations AI, Puter AI, LongCat AI, Alibaba Cloud (DashScope), Alibaba Intl, Alibaba (AliCode), Kimi, Kimi Coding (API Key), Minimax, Minimax (China), Blackbox AI, Synthetic, Kilo Gateway, Z.AI, GLM Coding, Deepgram, AssemblyAI, ElevenLabs, Cartesia, PlayHT, Inworld, NanoBanana, SD WebUI, ComfyUI, Ollama Cloud, Perplexity Search, Serper Search, Brave Search, Exa Search, Tavily Search, OpenCode Zen, OpenCode Go, Bailian Coding Plan
 
@@ -386,7 +386,7 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 3. **Connection-based provider model:** Providers are stored as "connections" in SQLite. Each connection has an `id`, `provider`, `authType` (oauth/apikey/free), `isActive` flag, and credentials. Multiple connections per provider for multi-account rotation.
 
-4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 13 strategies including auto-combo with self-healing and context-relay for session continuity.
+4. **Combo system for fallback:** Users create "combos" — ordered lists of `provider/model` pairs. The proxy tries each in order until one succeeds. Supports 14 strategies including auto-combo with self-healing and context-relay for session continuity.
 
 5. **SSE proxy pipeline:** The proxy pipeline is middleware-based: request → auth resolution → rate limiting → circuit breaker → format translation → upstream call → response translation → SSE streaming back to client.
 
@@ -440,15 +440,15 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 4. **Environment variables:** All configuration is in `.env` (from `.env.example`). Key vars: `PORT`, `NEXT_PUBLIC_BASE_URL`, `API_KEY`, `ADMIN_PASSWORD`.
 
-5. **Database layer:** Operations go through `src/lib/db/` modules (21 domain-specific files). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
+5. **Database layer:** Operations go through `src/lib/db/` modules (45+ domain-specific files, 55 migrations). `localDb.ts` is re-exports only — add new functions to the proper `db/*.ts` module.
 
-6. **Tests use Node.js built-in test runner:** 122 unit test files. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`).
+6. **Tests** use Node.js built-in test runner + Vitest. Run `npm test`. Vitest for MCP/autoCombo (`npm run test:vitest`). Playwright for E2E (`npm run test:e2e`). Coverage gate: 75% statements/lines/functions, 70% branches.
 
 7. **MCP and A2A pages are embedded as tabs inside `/dashboard/endpoint`**, not standalone routes.
 
 8. **ACP agents** are in `src/lib/acp/registry.ts` with detection cache. Custom agents stored via settings DB.
 
-9. **Auto-combo engine** in `open-sse/services/autoCombo/` — 6-factor scoring, 4 mode packs, bandit exploration, progressive cooldown.
+9. **Auto-combo engine** in `open-sse/services/autoCombo/` — **9-factor scoring** (health 0.22, quota 0.17, costInv 0.17, latencyInv 0.13, taskFit 0.08, specificityMatch 0.08, stability 0.05, tierPriority 0.05, tierAffinity 0.05), 4 mode packs, bandit exploration, progressive cooldown.
 
 10. **Docker:** Dockerfile has two targets: `runner-base` and `runner-cli`. `docker-compose.yml` for dev (3 profiles), `docker-compose.prod.yml` for production (port 20130).
 
@@ -468,6 +468,33 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 
 18. **Node.js 24+ compatibility**: The login page (`/api/settings/require-login`) detects the Node.js version and sends `nodeVersion`/`nodeCompatible` fields. The login UI renders a warning banner when `nodeCompatible` is false.
 
+19. **Cloud Agents** in `src/lib/cloudAgent/` — three external autonomous coding agents (Codex Cloud, Devin, Jules) with task lifecycle endpoints under `/api/v1/agents/tasks/`. Require management auth, not client auth.
+
+20. **Guardrails framework** in `src/lib/guardrails/` — hot-reloadable registry. Built-ins (priority-ordered): `vision-bridge` (5) → `pii-masker` (10) → `prompt-injection` (20). Fail-open model: exceptions never block traffic. Per-request opt-out via `x-omniroute-disabled-guardrails` header.
+
+21. **Authz pipeline** (`src/server/authz/`): every request is classified as `PUBLIC`, `CLIENT_API`, or `MANAGEMENT`, then run through policy + enforce stages. See `docs/architecture/AUTHZ_GUIDE.md`.
+
+22. **Three resilience layers** are distinct (do not conflate them):
+    - **Provider Circuit Breaker** (`src/shared/utils/circuitBreaker.ts`) — whole-provider scope.
+    - **Connection Cooldown** (`src/sse/services/auth.ts::markAccountUnavailable`) — one key/account scope.
+    - **Model Lockout** (`open-sse/services/accountFallback.ts`) — provider + connection + model scope.
+
+## v3.8.0 Highlights
+
+- **Cloud Agents** (Codex Cloud, Devin, Jules) with task lifecycle management and management-auth enforcement
+- **Guardrails framework**: hot-reloadable registry with vision-bridge, pii-masker, prompt-injection
+- **9-factor Auto-Combo scoring** (was 6-factor in earlier versions)
+- **`reset-aware` routing strategy** (14th strategy) — picks the account whose quota will reset soonest
+- **A2A protocol expanded to 5 skills**: smart-routing, quota-management, provider-discovery, cost-analysis, health-report
+- **MCP server expanded to 37 tools** (30 base + 3 memory + 4 skills) across ~13 scopes
+- **OAuth providers expanded to 14**: added Qwen, Kiro, Qoder, Gemini, Windsurf, GitLab Duo
+- **Coverage gate raised to 75/75/75/70** (was 60% across the board) — measured ~82%
+- **Reasoning replay** (`docs/routing/REASONING_REPLAY.md`) — capture and inspect provider reasoning streams
+- **Compliance + Evals + Webhooks** documentation introduced
+- **Stealth guide** (`docs/security/STEALTH_GUIDE.md`) — TLS / CLI fingerprint configuration
+- **Tunnels guide** (`docs/ops/TUNNELS_GUIDE.md`) — Cloudflare tunnel management
+- **Electron guide** (`docs/guides/ELECTRON_GUIDE.md`) — desktop app build + signing
+
 ## Links
 
 - Repository: https://github.com/diegosouzapw/OmniRoute
@@ -475,3 +502,14 @@ OmniRoute solves the problem of managing multiple AI provider subscriptions, quo
 - npm: https://www.npmjs.com/package/omniroute
 - Docker Hub: https://hub.docker.com/r/diegosouzapw/omniroute
 - Documentation: See `/docs/` directory
+
+### Documentation Index
+
+- **Architecture & Reference**: `docs/architecture/ARCHITECTURE.md`, `docs/architecture/CODEBASE_DOCUMENTATION.md`, `docs/architecture/REPOSITORY_MAP.md`, `docs/reference/API_REFERENCE.md`, `docs/reference/PROVIDER_REFERENCE.md`, `docs/reference/openapi.yaml`
+- **Operator guides**: `docs/guides/USER_GUIDE.md`, `docs/reference/CLI-TOOLS.md`, `docs/guides/TROUBLESHOOTING.md`, `docs/ops/COVERAGE_PLAN.md`
+- **Protocols**: `docs/frameworks/MCP-SERVER.md`, `docs/frameworks/A2A-SERVER.md`, `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`, `docs/frameworks/CLOUD_AGENT.md`
+- **Routing & resilience**: `docs/routing/AUTO-COMBO.md`, `docs/architecture/RESILIENCE_GUIDE.md`
+- **Security**: `docs/architecture/AUTHZ_GUIDE.md`, `docs/security/GUARDRAILS.md`, `docs/security/COMPLIANCE.md`, `docs/security/STEALTH_GUIDE.md`
+- **Extensibility**: `docs/frameworks/SKILLS.md`, `docs/frameworks/MEMORY.md`, `docs/frameworks/EVALS.md`, `docs/frameworks/WEBHOOKS.md`, `docs/routing/REASONING_REPLAY.md`
+- **Platform**: `docs/guides/ELECTRON_GUIDE.md`, `docs/ops/TUNNELS_GUIDE.md`
+- **AI agents**: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`

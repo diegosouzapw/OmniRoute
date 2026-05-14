@@ -186,17 +186,3 @@ export function getCursorRegistryHeaders(
     "User-Agent": getCursorUserAgent(version),
   };
 }
-
-export function getCursorUsageHeaders(
-  accessToken: string,
-  version = CURSOR_REGISTRY_VERSION
-): Record<string, string> {
-  const userAgent = getCursorUserAgent(version);
-  return {
-    Authorization: `Bearer ${accessToken}`,
-    Accept: "application/json",
-    "User-Agent": userAgent,
-    "x-cursor-client-version": version,
-    "x-cursor-user-agent": userAgent,
-  };
-}

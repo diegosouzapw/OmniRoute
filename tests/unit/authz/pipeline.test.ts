@@ -98,7 +98,7 @@ test("runAuthzPipeline allows onboarding when login is required but no password 
   );
 
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
+  assert.equal(response.headers.get("x-omniroute-route-class"), "PUBLIC");
 });
 
 test("runAuthzPipeline allows first password writes when login is required but no password exists", async () => {
@@ -115,7 +115,7 @@ test("runAuthzPipeline allows first password writes when login is required but n
   );
 
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("x-omniroute-route-class"), "PUBLIC");
+  assert.equal(response.headers.get("x-omniroute-route-class"), "MANAGEMENT");
 });
 
 test("runAuthzPipeline keeps management API rejections as JSON", async () => {

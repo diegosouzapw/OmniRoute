@@ -22,6 +22,12 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // first token, while dead 200 OK streams fail fast enough for combo fallback.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
+// Heartbeat interval for synthetic SSE keepalive emission toward the downstream
+// client (Capy, Claude Code, OpenAI SDK, etc). Keeps strict proxies from
+// dropping the connection during long upstream thinking phases. Set to 0 to
+// disable. Override with SSE_HEARTBEAT_INTERVAL_MS env var.
+export const SSE_HEARTBEAT_INTERVAL_MS = upstreamTimeouts.sseHeartbeatIntervalMs;
+
 // Timeout for reading the full response body after headers arrive (ms).
 // Prevents indefinite hangs when the upstream sends headers but stalls on the body.
 // Defaults to FETCH_TIMEOUT_MS. Override with FETCH_BODY_TIMEOUT_MS env var.
@@ -142,13 +148,23 @@ export const RateLimitReason = {
 
 // ─── Provider Resilience Profiles ───────────────────────────────────────────
 // Separate behavior for OAuth (low-limit, session-based) vs API Key (high-limit, metered)
+// Circuit-breaker thresholds and reset windows are overridable via
+// OMNIROUTE_CIRCUIT_BREAKER_* env vars so operators can dampen or harden
+// behavior without recompiling.
+function envInt(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw === null || raw === "") return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 export const PROVIDER_PROFILES = {
   oauth: {
     transientCooldown: 5000, // 5s (session tokens — short recovery)
     rateLimitCooldown: 60000, // 60s default when no retry-after header
     maxBackoffLevel: 8, // Higher ceiling (sessions may stay bad longer)
-    circuitBreakerThreshold: 8, // Scaled for 500+ connections (was 3)
-    circuitBreakerReset: 60000, // 1min reset
+    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_OAUTH_THRESHOLD", 8),
+    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_OAUTH_RESET_MS", 60000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
     providerFailureWindowMs: 900000, // 15min window (was 10min)
@@ -158,8 +174,8 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 3000, // 3s (API providers recover faster)
     rateLimitCooldown: 0, // 0 = respect retry-after header from provider
     maxBackoffLevel: 5, // Lower ceiling (API quotas reset at known intervals)
-    circuitBreakerThreshold: 12, // Scaled for 500+ connections (was 5)
-    circuitBreakerReset: 30000, // 30s reset
+    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_API_KEY_THRESHOLD", 12),
+    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_API_KEY_RESET_MS", 30000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
     providerFailureWindowMs: 1800000, // 30min window (was 20min)
@@ -172,8 +188,8 @@ export const PROVIDER_PROFILES = {
     transientCooldown: 2000, // 2s (local — very fast recovery)
     rateLimitCooldown: 5000, // 5s (local — no real rate limits)
     maxBackoffLevel: 3, // Low ceiling (local either works or doesn't)
-    circuitBreakerThreshold: 2, // Opens fast (if local is down, it's down)
-    circuitBreakerReset: 15000, // 15s reset (check again quickly)
+    circuitBreakerThreshold: envInt("OMNIROUTE_CIRCUIT_BREAKER_LOCAL_THRESHOLD", 2),
+    circuitBreakerReset: envInt("OMNIROUTE_CIRCUIT_BREAKER_LOCAL_RESET_MS", 15000),
     // Provider-level circuit breaker (entire provider cooldown after repeated failures)
     providerFailureThreshold: 2, // 2 failures trigger provider cooldown
     providerFailureWindowMs: 300000, // 5min window for counting failures

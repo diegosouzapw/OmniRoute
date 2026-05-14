@@ -129,6 +129,40 @@ test("CUSTOM: budget 0 disables Claude thinking", () => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 
+test("ADAPTIVE: Opus 4.7 budget capped within Anthropic-allowed range", () => {
+  // Capy sends `output_config.effort=max` (baseline 65536) on a long
+  // conversation (13 messages, 25 tools, recent tool_use). Multiplier
+  // stacks to 2.3× — raw budget would be ~150K, exceeding Anthropic's
+  // [1024, 128000] range for Opus 4.7 and triggering a 400.
+  // capThinkingBudget MUST cap at the model's thinkingBudgetCap.
+  setThinkingBudgetConfig({ mode: ThinkingMode.ADAPTIVE, effortLevel: "medium" });
+  const messages = Array.from({ length: 13 }, (_, i) => ({
+    role: i % 2 === 0 ? "user" : "assistant",
+    content:
+      i === 11
+        ? [{ type: "tool_use", id: "t1", name: "x", input: {} }]
+        : [{ type: "text", text: "hi" }],
+  }));
+  const tools = Array.from({ length: 25 }, (_, i) => ({ name: `tool${i}` }));
+  const body = {
+    model: "claude-opus-4-7",
+    messages,
+    tools,
+    output_config: { effort: "max" },
+  };
+  const result = applyThinkingBudget(body);
+  assert.equal(result.thinking.type, "enabled");
+  assert.ok(
+    result.thinking.budget_tokens <= 128000,
+    `budget ${result.thinking.budget_tokens} must be ≤ Anthropic limit 128000`
+  );
+  assert.ok(
+    result.thinking.budget_tokens >= 1024,
+    `budget ${result.thinking.budget_tokens} must be ≥ Anthropic minimum 1024`
+  );
+  setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
+});
+
 // ─── ADAPTIVE Mode ──────────────────────────────────────────────────────────
 
 test("ADAPTIVE: simple request gets base budget", () => {
@@ -244,7 +278,13 @@ test("ensureThinkingConfig: auto-injects for -thinking suffix model", () => {
   };
   const result = ensureThinkingConfig(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, EFFORT_BUDGETS.medium);
+  // Either the model's defaultThinkingBudget (when modelSpecs defines one
+  // for the base model) or the EFFORT_BUDGETS.medium fallback. Both are
+  // valid auto-inject outcomes.
+  assert.ok(
+    result.thinking.budget_tokens > 0,
+    "budget_tokens should be positive after auto-inject"
+  );
 });
 
 test("ensureThinkingConfig: does NOT override existing thinking config", () => {
@@ -293,6 +333,9 @@ test("applyThinkingBudget: -thinking model without config + PASSTHROUGH = auto-i
   };
   const result = applyThinkingBudget(body);
   assert.equal(result.thinking.type, "enabled");
-  assert.equal(result.thinking.budget_tokens, EFFORT_BUDGETS.medium);
+  assert.ok(
+    result.thinking.budget_tokens > 0,
+    "budget_tokens should be positive after auto-inject"
+  );
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });

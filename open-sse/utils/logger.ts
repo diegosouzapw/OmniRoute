@@ -185,5 +185,6 @@ export function createLogger(requestId: string | null = null): RequestScopedLogg
  * Module-level default logger (no requestId — for startup/config messages).
  */
 export const defaultLogger = createLogger();
+export const log = defaultLogger;
 
 export default logger;

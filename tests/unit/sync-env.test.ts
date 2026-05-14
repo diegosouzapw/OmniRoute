@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { syncEnv } = (await import("../../scripts/sync-env.mjs")) as {
+const { syncEnv } = (await import("../../scripts/dev/sync-env.mjs")) as {
   syncEnv: (opts?: { rootDir?: string; quiet?: boolean; scope?: string }) => {
     created: boolean;
     added: number;

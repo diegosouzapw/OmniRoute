@@ -154,44 +154,205 @@ function getModelSyncChannelLabel(connection: unknown) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Shared loopback readiness gate — eliminates 17× retry amplification at boot
+// ---------------------------------------------------------------------------
+
+// Module-level shared promise: gates all selfFetchWithRetry callers behind a
+// single readiness probe. The 17 connections that fire ModelSync at boot all
+// await the same promise; the underlying HTTP probe runs exactly once per
+// process. Resolves on first HTTP response (any status — even 4xx confirms the
+// server is up); rejects only if maxWaitMs elapses with consistent network
+// errors.
+let __loopbackReadyPromise: Promise<void> | null = null;
+
+export type EnsureReadyOptions = {
+  fetch?: typeof fetch;
+  maxWaitMs?: number;
+  pollMs?: number;
+};
+
+export async function ensureLoopbackServerReady(opts: EnsureReadyOptions = {}): Promise<void> {
+  if (__loopbackReadyPromise) return __loopbackReadyPromise;
+  __loopbackReadyPromise = (async () => {
+    const f = opts.fetch ?? fetch;
+    const maxWaitMs = opts.maxWaitMs ?? 30_000;
+    const pollMs = opts.pollMs ?? 250;
+    const deadline = Date.now() + maxWaitMs;
+    let lastErr: unknown;
+    while (Date.now() < deadline) {
+      try {
+        // Hit a stable endpoint; any HTTP status (200/404/etc) confirms
+        // readiness — we only care that the dispatcher succeeds (no
+        // ECONNREFUSED). Using a synthetic connection id so no real DB lookup
+        // is needed; the 404 is sufficient proof the server is dispatching.
+        const probePort = process.env.OMNIROUTE_PORT || process.env.PORT || "20128";
+        const res = await f(
+          `http://127.0.0.1:${probePort}/api/providers/__readiness_probe__/models`,
+          {
+            signal: AbortSignal.timeout(2_000),
+          }
+        );
+        if (res.status >= 200 && res.status < 600) return;
+      } catch (err) {
+        lastErr = err;
+      }
+      await new Promise((r) => setTimeout(r, pollMs));
+    }
+    throw new Error(`loopback server not ready within ${maxWaitMs}ms: ${String(lastErr)}`);
+  })();
+  return __loopbackReadyPromise;
+}
+
+/** Test helper: reset the cached promise so tests can re-exercise the probe. */
+export function __resetLoopbackReadinessForTests(): void {
+  __loopbackReadyPromise = null;
+}
+
+// ---------------------------------------------------------------------------
+// selfFetchWithRetry — exported for unit testing
+// ---------------------------------------------------------------------------
+
+export type SelfFetchWithRetryOptions = {
+  /** Injectable fetch implementation; defaults to global fetch. */
+  fetch?: typeof fetch;
+  /** Maximum number of HTTP attempts before falling back. Default: 3. */
+  maxRetries?: number;
+  /**
+   * Base backoff in ms. Each attempt waits backoffMs * (attempt + 1) before
+   * the next try (linear growth: 200 ms, 400 ms, 600 ms, ... at default 200 ms).
+   * Default: 200.
+   */
+  backoffMs?: number;
+  /** Connection ID used only for the warning log message. Optional. */
+  connectionId?: string;
+  /**
+   * Called as last-resort fallback after all retries are exhausted.
+   * Must return a Response. If omitted, returns a synthetic 503.
+   */
+  inProcessFallback?: () => Promise<Response>;
+  /**
+   * Skip the shared readiness gate. Use in tests that exercise the retry
+   * loop in isolation without needing a live loopback server.
+   * Default: false.
+   */
+  skipReadinessGate?: boolean;
+};
+
+/**
+ * Wraps a single loopback self-fetch URL with linear-backoff retry logic.
+ *
+ * Motivation: at container boot, ModelSync fires up to 17 concurrent
+ * self-fetches against http://127.0.0.1:PORT before the in-process HTTP
+ * listener is fully accepting connections. A shared readiness gate
+ * (ensureLoopbackServerReady) now serialises the boot race — all 17 callers
+ * await the same promise, so only one probe sequence runs. Retries here are
+ * a last-resort for transient failures AFTER the server is confirmed up.
+ *
+ * Retry contract:
+ * - Network errors (fetch failed, ECONNREFUSED): retry up to `maxRetries`.
+ * - Any HTTP response (2xx/4xx/5xx): returned as-is — the server is up, so the
+ *   caller (route handler) handles status interpretation. Retries are only
+ *   for network-level failures, not for HTTP errors.
+ */
+export async function selfFetchWithRetry(
+  url: string,
+  opts: SelfFetchWithRetryOptions = {}
+): Promise<Response> {
+  const f = opts.fetch ?? fetch;
+  // Reduced from 5 to 3: the readiness gate now handles the boot race.
+  // Retries here are only for transient failures after server is confirmed up.
+  const maxRetries = opts.maxRetries ?? 3;
+  const backoffMs = opts.backoffMs ?? 200;
+  const connLabel = opts.connectionId ? opts.connectionId.slice(0, 8) : url.slice(-8);
+
+  // Wait for the loopback server to be ready before firing. All concurrent
+  // callers share the same readiness promise — exactly ONE probe runs per
+  // process, eliminating the 17× retry amplification observed at boot.
+  if (opts.skipReadinessGate !== true) {
+    try {
+      await ensureLoopbackServerReady({ fetch: f });
+    } catch (err) {
+      // Readiness probe timed out — fall straight through to in-process fallback.
+      console.warn(
+        `[ModelSync] Loopback server readiness probe failed; falling back to in-process route immediately (${connLabel}): ${String(err)}`
+      );
+      if (opts.inProcessFallback) {
+        return opts.inProcessFallback();
+      }
+      return new Response(JSON.stringify({ error: "self-fetch unavailable" }), { status: 503 });
+    }
+  }
+
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const res = await f(url, { method: "GET" });
+      // Any HTTP response (2xx, 4xx, 5xx) means the server is up — return as-is.
+      // We only retry on network-level failures (ECONNREFUSED, "fetch failed")
+      // which indicate the loopback listener is not yet accepting connections.
+      return res;
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < maxRetries - 1) {
+      await new Promise<void>((r) => setTimeout(r, backoffMs * (attempt + 1)));
+    }
+  }
+
+  // All retries exhausted (network-level failures only) — fall back to in-process route
+  console.warn(
+    `[ModelSync] Internal /models self-fetch failed for ${connLabel} after ${maxRetries} attempt(s); falling back to in-process route (last err: ${String(lastErr)})`
+  );
+
+  if (opts.inProcessFallback) {
+    return opts.inProcessFallback();
+  }
+  return new Response(JSON.stringify({ error: "self-fetch unavailable" }), { status: 503 });
+}
+
+// ---------------------------------------------------------------------------
+// fetchProviderModelsForSync — private orchestrator (uses selfFetchWithRetry)
+// ---------------------------------------------------------------------------
+
 async function fetchProviderModelsForSync(request: Request, connectionId: string) {
   // Construct a safe localhost URL from the incoming request's origin.
   // The route only accepts authenticated or internal-scheduler requests,
   // and the path is hardcoded — no user-controlled URL components reach fetch.
+  // Always use 127.0.0.1 (IPv4) — never "localhost" which may resolve to ::1
+  // (IPv6) in containers, causing TypeError: fetch failed even when the HTTP
+  // server is bound only to 0.0.0.0 (IPv4 only).
   const SAFE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
   const incomingUrl = new URL(request.url);
-  const safeOrigin = SAFE_HOSTS.has(incomingUrl.hostname)
-    ? incomingUrl.origin
-    : `http://127.0.0.1:${process.env.PORT || "20128"}`;
+  const loopbackPort =
+    SAFE_HOSTS.has(incomingUrl.hostname) && incomingUrl.port
+      ? incomingUrl.port
+      : process.env.PORT || "20128";
+  const safeOrigin = `http://127.0.0.1:${loopbackPort}`;
   const modelsPath = `/api/providers/${encodeURIComponent(connectionId)}/models?refresh=true`;
   const headers = {
     cookie: request.headers.get("cookie") || "",
     ...buildModelSyncInternalHeaders(),
   };
 
-  try {
-    return await fetch(new URL(modelsPath, safeOrigin).href, {
-      method: "GET",
-      cache: "no-store",
-      headers,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(
-      `[ModelSync] Internal /models self-fetch failed for ${connectionId.slice(
-        0,
-        8
-      )}; falling back to in-process route: ${message}`
-    );
+  const targetUrl = new URL(modelsPath, safeOrigin).href;
 
-    return getProviderModels(
-      new Request(new URL(modelsPath, "http://localhost").href, {
-        method: "GET",
-        headers,
-      }),
-      { params: { id: connectionId } }
-    );
-  }
+  // Wrap fetch so it forwards the required headers on every retry attempt.
+  const fetchWithHeaders: typeof fetch = (input, init) =>
+    fetch(input as string, { ...init, headers });
+
+  return selfFetchWithRetry(targetUrl, {
+    fetch: fetchWithHeaders,
+    connectionId,
+    inProcessFallback: () =>
+      getProviderModels(
+        new Request(new URL(modelsPath, "http://localhost").href, {
+          method: "GET",
+          headers,
+        }),
+        { params: { id: connectionId } }
+      ),
+  });
 }
 
 /**

@@ -22,9 +22,19 @@ function readSSEEvents(rawSSE) {
     }
 
     try {
+      const data = JSON.parse(payload);
+      if (
+        currentEvent &&
+        data &&
+        typeof data === "object" &&
+        !Array.isArray(data) &&
+        typeof data.type !== "string"
+      ) {
+        data.type = currentEvent;
+      }
       events.push({
         event: currentEvent || undefined,
-        data: JSON.parse(payload),
+        data,
       });
     } catch {
       // Ignore malformed SSE events and continue best-effort parsing.
@@ -41,12 +51,21 @@ function readSSEEvents(rawSSE) {
     }
 
     if (line.startsWith("event:")) {
+      // Some relays omit the blank separator between Claude events. Flush the
+      // previous event before accepting the next event name.
+      if (currentData.length > 0) flush();
       currentEvent = line.slice(6).trim();
       continue;
     }
 
     if (line.startsWith("data:")) {
-      currentData.push(line.slice(5).trimStart());
+      const dataLine = line.slice(5).trimStart();
+      if (dataLine.trim() === "[DONE]") {
+        flush();
+        currentEvent = "";
+        continue;
+      }
+      currentData.push(dataLine);
     }
   }
 

@@ -143,8 +143,10 @@ export class CursorService {
         const decoded = JSON.parse(
           Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString()
         );
+        const email =
+          typeof decoded.email === "string" && decoded.email.includes("@") ? decoded.email : null;
         return {
-          email: decoded.email || decoded.sub,
+          email,
           userId: decoded.sub || decoded.user_id,
         };
       }
@@ -153,6 +155,41 @@ export class CursorService {
     }
 
     return null;
+  }
+
+  /**
+   * Fetch real user profile from cursor.com using the same WorkOS-session cookie
+   * format that powers the dashboard. Returns null on any failure so the import
+   * flow can fall back to whatever it can extract from the JWT.
+   */
+  async fetchUserInfo(
+    accessToken: string,
+    userId: string
+  ): Promise<{ email: string | null; name: string | null; sub: string | null } | null> {
+    if (!accessToken || !userId) return null;
+    try {
+      const response = await fetch("https://cursor.com/api/auth/me", {
+        method: "GET",
+        redirect: "manual",
+        headers: {
+          Cookie: `WorkosCursorSessionToken=${userId}::${accessToken}`,
+          Origin: "https://cursor.com",
+          Referer: "https://cursor.com/dashboard",
+          Accept: "application/json",
+          "User-Agent": getCursorUserAgent(this.config.clientVersion),
+        },
+      });
+
+      if (!response.ok) return null;
+      const data = (await response.json()) as Record<string, unknown>;
+      return {
+        email: typeof data.email === "string" ? data.email : null,
+        name: typeof data.name === "string" ? data.name : null,
+        sub: typeof data.sub === "string" ? data.sub : null,
+      };
+    } catch {
+      return null;
+    }
   }
 
   /**

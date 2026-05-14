@@ -1,0 +1,21 @@
+%% 3-layer resilience model
+%% Reflects: src/shared/utils/circuitBreaker.ts, src/sse/services/auth.ts,
+%%           open-sse/services/accountFallback.ts
+%% v3.8.0
+flowchart TB
+  Req["Request"] --> L1{"Provider Circuit Breaker<br/>(scope: whole provider)"}
+  L1 -->|CLOSED| L2
+  L1 -->|OPEN| Block1["Skip provider<br/>(or 503 retry-after)"]
+  L1 -->|HALF_OPEN| Probe["Allow probe"]
+  Probe --> L2
+
+  L2{"Connection Cooldown<br/>(scope: one account/key)"} -->|available| L3
+  L2 -->|cooling down| Skip2["Skip this connection<br/>fall back to next"]
+
+  L3{"Model Lockout<br/>(scope: provider × conn × model)"} -->|allowed| Exec["Execute upstream"]
+  L3 -->|locked| Skip3["Fall back to next model"]
+
+  Exec -->|success| Clear["Clear cooldowns/lockouts"]
+  Exec -->|"408 / 500 / 502 / 503 / 504"| TripL1["Trip provider breaker"]
+  Exec -->|"401 / 403 (account)"| TripL2["Start connection cooldown"]
+  Exec -->|"429 quota (model)"| TripL3["Start model lockout"]

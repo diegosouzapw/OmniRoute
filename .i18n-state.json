@@ -1,0 +1,24 @@
+{
+  "sources": {
+    "CLAUDE.md": {
+      "source_hash": "ee7af1716a6e22feb93bb160f8b2810fa7dce8f56075b218ced51b04863f1786",
+      "locales": {
+        "pt-BR": {
+          "source_hash": "ee7af1716a6e22feb93bb160f8b2810fa7dce8f56075b218ced51b04863f1786",
+          "target_hash": "7a85c5795d376e8572598f9d963e32ec62f925b952b61b60c78fa42785836014",
+          "updated_at": "2026-05-13T20:02:23.088Z"
+        }
+      }
+    },
+    "docs/architecture/ARCHITECTURE.md": {
+      "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
+      "locales": {
+        "pt-BR": {
+          "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
+          "target_hash": "3e2a58f341f20b29cf245330b094bec40ffeede43526b4d416c660c37abca8db",
+          "updated_at": "2026-05-13T22:58:05.984Z"
+        }
+      }
+    }
+  }
+}

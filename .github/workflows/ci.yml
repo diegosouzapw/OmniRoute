@@ -41,6 +41,32 @@ jobs:
       - run: npm run typecheck:core
       - run: npm run typecheck:noimplicit:core
 
+  docs-sync-strict:
+    name: Docs Sync (Strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check:docs-all
+      - name: i18n translation drift (strict)
+        run: node scripts/i18n/check-translation-drift.mjs
+
+  i18n-ui-coverage:
+    name: i18n UI Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=80
+
   i18n-matrix:
     name: Build language matrix
     runs-on: ubuntu-latest
@@ -71,7 +97,7 @@ jobs:
 
       - name: Validate ${{ matrix.lang }}
         run: |
-          python3 scripts/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
+          python3 scripts/i18n/validate_translation.py quick -l '${{ matrix.lang }}' > result.txt
 
       - name: Upload result
         if: always()
@@ -94,7 +120,7 @@ jobs:
       - name: Fetch base branch
         run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
       - name: Validate source changes include tests
-        run: node scripts/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
+        run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       - name: Publish PR test policy summary
         if: always()
         run: |
@@ -255,7 +281,7 @@ jobs:
         run: |
           mkdir -p coverage
           if [ -f coverage/coverage-summary.json ]; then
-            node scripts/test-report-summary.mjs \
+            node scripts/check/test-report-summary.mjs \
               --input coverage/coverage-summary.json \
               --output coverage/coverage-report.md \
               --threshold 60
@@ -436,7 +462,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx/esm --test --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - run: node --import tsx/esm --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests
@@ -462,6 +488,8 @@ jobs:
     if: always()
     needs:
       - lint
+      - docs-sync-strict
+      - i18n-ui-coverage
       - i18n
       - pr-test-policy
 
@@ -507,6 +535,8 @@ jobs:
           echo "| Job | Status |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Lint | $(status '${{ needs.lint.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Docs Sync (Strict) | $(status '${{ needs.docs-sync-strict.result }}') |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| i18n UI Coverage | $(status '${{ needs.i18n-ui-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Test Policy | $(status '${{ needs.pr-test-policy.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 
           echo "| SonarQube | $(status '${{ needs.sonarqube.result }}') |" >> "$GITHUB_STEP_SUMMARY"

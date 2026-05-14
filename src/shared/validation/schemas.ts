@@ -6,7 +6,7 @@ import {
 import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
-import { isLocalProvider } from "@/shared/constants/providers";
+import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { isForbiddenUpstreamHeaderName } from "@/shared/constants/upstreamHeaders";
 
@@ -259,10 +259,7 @@ export const createProviderSchema = z
   })
   .superRefine((data, ctx) => {
     const apiKey = typeof data.apiKey === "string" ? data.apiKey.trim() : "";
-    const apiKeyOptional =
-      data.provider === "searxng-search" ||
-      data.provider === "petals" ||
-      isLocalProvider(data.provider);
+    const apiKeyOptional = providerAllowsOptionalApiKey(data.provider);
     if (!apiKeyOptional && apiKey.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -775,6 +772,11 @@ const connectionCooldownProfileSchema = z
   .object({
     baseCooldownMs: z.number().int().min(0).optional(),
     useUpstreamRetryHints: z.boolean().optional(),
+    // Issue #2100 follow-up: per-profile toggle for upstream 429 hint trust.
+    // `null` is an explicit unset sentinel — PATCH handler deletes the key
+    // from stored settings so the per-provider default resolves at runtime.
+    // `undefined` (key omitted) means "leave existing value unchanged".
+    useUpstream429BreakerHints: z.boolean().nullable().optional(),
     maxBackoffSteps: z.number().int().min(0).optional(),
   })
   .strict();
@@ -1264,6 +1266,12 @@ export const oauthPollSchema = z.object({
   extraData: z.unknown().optional(),
 });
 
+/** Import a raw API token (e.g. WINDSURF_API_KEY) without going through the browser OAuth flow. */
+export const oauthImportTokenSchema = z.object({
+  token: z.string().trim().min(1, "Token is required"),
+  connectionId: z.string().optional(),
+});
+
 export const cursorImportSchema = z.object({
   accessToken: z.string().trim().min(1, "Access token is required"),
   machineId: z.string().trim().optional(),
@@ -1614,6 +1622,7 @@ export const providersBatchTestSchema = z
       "audio",
       "local",
       "upstream-proxy",
+      "cloud-agent",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),
@@ -1792,9 +1801,11 @@ export const v1SearchSchema = z
         "tavily-search",
         "google-pse-search",
         "linkup-search",
+        "ollama-search",
         "searchapi-search",
         "youcom-search",
         "searxng-search",
+        "zai-search",
       ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),
