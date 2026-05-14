@@ -38,22 +38,29 @@ export const managementPolicy: RoutePolicy = {
     // a browser session. The pieces below already exist and are used by
     // `requireManagementAuth` on individual routes; wiring them here closes
     // the gap so management auth is consistent across the policy layer.
+    //
+    // Error handling mirrors `requireManagementAuth.ts`: a thrown
+    // isValidApiKey / getApiKeyMetadata indicates the auth backend is
+    // unhealthy, which is a 503, not a 403 — masking it as an auth failure
+    // would tell callers their credentials are wrong when the real problem
+    // is that the server cannot validate any credential right now.
     const apiKey = extractApiKey(ctx.request as unknown as Request);
     if (apiKey) {
       try {
         if (await isValidApiKey(apiKey)) {
           const meta = await getApiKeyMetadata(apiKey);
+          // getApiKeyMetadata returns null whenever the row has no id,
+          // so when `meta` is truthy `meta.id` is guaranteed non-empty.
           if (meta && hasManageScope(meta.scopes)) {
             return allow({
               kind: "management_key",
-              id: meta.id ?? "api-key",
+              id: meta.id,
               label: "api-key-manage-scope",
             });
           }
         }
       } catch {
-        // Fall through to the reject below; the policy must not 5xx on a
-        // backend hiccup during the optional API-key probe.
+        return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
       }
     }
 
