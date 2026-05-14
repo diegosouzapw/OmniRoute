@@ -25,7 +25,7 @@
     "pack": "npm run prepare:bundle && electron-builder --dir"
   },
   "dependencies": {
-    "better-sqlite3": "^12.9.0",
+    "better-sqlite3": "^12.10.0",
     "electron-updater": "^6.8.5"
   },
   "devDependencies": {
@@ -33,7 +33,6 @@
     "electron-builder": "^26.10.0"
   },
   "overrides": {
-    "@xmldom/xmldom": "^0.9.10",
     "plist": "^4.0.0"
   },
   "build": {
