@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function OfflinePage() {
+  const t = useTranslations("offlinePage");
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== "undefined" ? navigator.onLine : true
   );
@@ -26,11 +28,8 @@ export default function OfflinePage() {
         <span className="material-symbols-outlined text-5xl text-primary mb-3" aria-hidden="true">
           wifi_off
         </span>
-        <h1 className="text-2xl font-semibold">You&apos;re offline</h1>
-        <p className="mt-3 text-text-muted leading-relaxed">
-          OmniCode can&apos;t reach the network right now. Have a quick look at your internet, VPN,
-          or proxy and we&apos;ll be back in business.
-        </p>
+        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <p className="mt-3 text-text-muted leading-relaxed">{t("description")}</p>
 
         <div
           className={`mt-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm border ${
@@ -43,7 +42,7 @@ export default function OfflinePage() {
           <span className="material-symbols-outlined text-base" aria-hidden="true">
             {isOnline ? "wifi" : "wifi_off"}
           </span>
-          <span>{isOnline ? "You're back online" : "Currently offline"}</span>
+          <span>{isOnline ? t("statusBackOnline") : t("statusOffline")}</span>
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -51,13 +50,13 @@ export default function OfflinePage() {
             onClick={() => window.location.reload()}
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-white text-sm font-semibold bg-gradient-to-br from-primary to-primary-hover hover:shadow-elevated transition-all duration-200 motion-reduce:transition-none"
           >
-            Retry Connection
+            {t("retryConnection")}
           </button>
           <Link
             href="/status"
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg text-sm font-semibold border border-border hover:bg-bg-alt transition-colors duration-200 motion-reduce:transition-none"
           >
-            Open Status Page
+            {t("openStatusPage")}
           </Link>
         </div>
       </section>

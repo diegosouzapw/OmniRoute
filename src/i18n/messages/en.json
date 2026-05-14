@@ -5420,6 +5420,14 @@
     "embeddings": "Embeddings",
     "transcription": "Transcription"
   },
+  "offlinePage": {
+    "title": "You're offline",
+    "description": "OmniCode can't reach the network right now. Have a quick look at your internet, VPN, or proxy and we'll be back in business.",
+    "statusBackOnline": "You're back online",
+    "statusOffline": "Currently offline",
+    "retryConnection": "Retry Connection",
+    "openStatusPage": "Open Status Page"
+  },
   "toolDescriptions": {
     "cline": "Cline",
     "openclaw": "Openclaw",

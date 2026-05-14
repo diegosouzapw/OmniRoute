@@ -6,6 +6,79 @@
 
 ## [Unreleased]
 
+### 🔒 Security (audit waves)
+
+- Rename `src/proxy.ts` → `src/middleware.ts` so the Next.js authz pipeline runs (route classification, CORS, body-size limits, security headers).
+- Enforce `REQUIRE_API_KEY=true` on `/v1/chat/completions`, `/v1/responses`, `/v1/messages`, `/v1/completions` and other v1 routes.
+- Validate OAuth `state` server-side; restrict callback `postMessage` origin; remove hardcoded Gemini/Antigravity `client_secret` fallbacks.
+- Require management auth on `/api/mcp/sse`, `/api/mcp/stream`, `/a2a`, and ~40 other admin routes.
+- Bind MCP memory/skill tool `apiKeyId` to the authenticated caller; drop caller-supplied `_meta.scopes`; `omniroute_cache_flush` rejects empty args.
+- Block SSRF in webhook/favicon/provider-node via `validateOutboundUrl` (rejects loopback/private/link-local/IMDS).
+- JWT `jti` claim + server-side denylist; cookie `Max-Age`; default session TTL 30d → 7d.
+- `INITIAL_PASSWORD` requires rotation on first login.
+- Gate `X-Forwarded-For` trust behind `TRUST_PROXY_HEADERS` / `TRUST_PROXY_FROM`; global brute-force counter; bcrypt 12 → 14.
+- CSRF Origin check on state-changing `/api/*`; explicit CORS `Allow-Headers` allowlist.
+- Baseline security headers (`Vary: Origin`, nosniff, Referrer-Policy, `X-Frame-Options: DENY` on dashboard, optional HSTS).
+- Scrub bcrypt hashes from login-error logs; enforce per-key `ip_allowlist`.
+- Refuse plaintext storage in production when `STORAGE_ENCRYPTION_KEY` is unset; encrypt JWT/API_KEY secrets and version_manager keys.
+
+### 🛠 Routing / Resilience
+
+- Wire actual weighted strategy at the account level.
+- `executeChatWithBreaker` uses explicit `_acquireProbe()` + `_onSuccess`/`_onFailure`.
+- Per-provider account-selection mutex (unrelated providers unblocked).
+- ±15% jitter on exponential cooldown.
+- `markMutexes.delete` compare-and-swap; failure-dedup map evicts half on cap.
+- OAuth refresh fetches honor `AbortSignal.timeout(30s)`.
+- Semantic cache scoped per-apiKey + includes tool_choice, seed, max_tokens, stop, logit_bias, parallel_tool_calls, reasoning_effort.
+- Delete legacy `src/domain/comboResolver.ts`.
+
+### ⚙️ Providers / Executors
+
+- Register `kie` in `getExecutor()`.
+- `opencode` no longer holds `_requestFormat` as singleton state.
+- `vertex` returns new credentials; refuses unknown-project; uses upstream `expires_in`.
+- `petals` estimates `prompt_tokens` separately.
+- `github` reasoning gating on target model.
+- Clear stream-killing timeouts after headers in grok-web/muse-spark-web/blackbox-web/gitlab/cliproxyapi.
+- Add fetch-start timeouts to qoder/kiro/perplexity-web/petals.
+
+### 🗜 Compression
+
+- JSON-aware tool truncation in `lite`.
+- `ultra` and `aggressive` skip tool/function role and structured blocks.
+- RTK raw-output TTL cleanup (default 7d); redaction expanded (GitHub PAT, Stripe, Google API, JWT, private keys, connection URIs).
+- `caveman` sanity-check.
+
+### 💾 Persistence
+
+- Correct table names in `cleanup.ts` (retention was silently failing).
+- Restore re-runs migrations; auto-rollback on failure.
+- Encryption refuses plaintext in production; auth-tag mismatches surface loudly.
+- Implement `sessionAccountAffinity` (was no-op stub).
+- Migration contiguity guard.
+- Retention + usage aggregation schedulers wired from instrumentation.
+
+### 🤖 MCP / A2A / Skills / WS
+
+- A2A JSON-RPC batch rejected; notifications return 204.
+- Skill executor: clear race-timer; per-key concurrency cap.
+- WS `/v1/ws` per-session `activeRequests` cap.
+
+### 🧪 Validation
+
+- Zod on chat/responses/messages/completions/videos/music/audio routes.
+- Prompt-injection guard moved into `handleChat` (covers /v1/responses and /v1/messages).
+
+### 🧰 Developer Experience (QoL)
+
+- New `npm run doctor` / `npm run check:env` — diagnoses Node, env, port, DATA_DIR, Redis reachability.
+- `npm run test:unit` defaults to `--test-concurrency=4`; `test:unit:fast` retains 10 for CI.
+- Error responses include `X-Request-Id` for client/server log correlation.
+- `.editorconfig` and `.vscode/extensions.json` added.
+- Comprehensive `docs/AUDIT_FIXES.md` summary; new "Security & Resilience Tunables" section in `docs/ENVIRONMENT.md`.
+- `.env.example` "Common Deployment Recipes" cheat-sheet at the top (local / LAN / reverse-proxy production / multi-tenant).
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features
