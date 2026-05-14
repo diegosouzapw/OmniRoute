@@ -195,8 +195,11 @@ function watchdogTick() {
     // Do NOT call limiter.stop() — it permanently rejects future .schedule() calls with
     // "This limiter has been stopped". In-flight requests still holding a reference to
     // the old instance cannot be redirected to a new one, causing spurious 502 bursts.
-    // Cache eviction is sufficient: getLimiter() lazily allocates a fresh Bottleneck
-    // on the next call, and the old instance is GC-reclaimed once in-flight jobs finish.
+    // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
+    // without poisoning the queue for any remaining in-flight jobs. This prevents the
+    // heartbeat-timer memory leak observed when many limiters are evicted at runtime.
+    // getLimiter() lazily allocates a fresh Bottleneck on the next call.
+    trackAsyncOperation(limiter.disconnect());
   }
 }
 
@@ -309,16 +312,16 @@ export function disableRateLimitProtection(connectionId) {
   // Evict limiters for this connection from the cache. Do NOT call limiter.stop() —
   // it permanently rejects future .schedule() calls with "This limiter has been stopped",
   // and in-flight requests holding a reference to the old instance would fail with 502.
-  // The old Bottleneck instance is GC-reclaimed once any in-flight jobs complete.
   // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
   // without permanently poisoning the instance for any remaining in-flight jobs.
+  // Eviction-only would leak the heartbeat timer until GC; disconnect() releases it
+  // synchronously so the runtime memory footprint stays flat under heavy connection churn.
   // .stop() is reserved exclusively for SIGTERM/SIGINT shutdown (see shutdownLimiters).
-  for (const [key] of Array.from(limiters)) {
+  for (const [key, limiter] of Array.from(limiters)) {
     if (key.includes(connectionId)) {
       limiters.delete(key);
       lastDispatchAt.delete(key);
-      // Old Bottleneck instance is GC-reclaimed; its heartbeat timer is unref()'d
-      // so it will not prevent process exit. No disconnect() needed here.
+      trackAsyncOperation(limiter.disconnect());
     }
   }
 }
@@ -563,9 +566,10 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
     // requests will get a fresh Bottleneck instance via getLimiter().
     // Call disconnect() (not stop()) to release Bottleneck's internal heartbeat timer
     // without permanently poisoning the instance for any remaining in-flight jobs.
+    // Without disconnect() here, every 429 leaks a heartbeat timer until GC reclaims
+    // the abandoned Bottleneck; under sustained quota pressure that is a real leak.
     limiters.delete(limiterKey);
-    // Old Bottleneck instance is GC-reclaimed; its heartbeat timer is unref()'d
-    // so it will not prevent process exit. No disconnect() needed here.
+    trackAsyncOperation(limiter.disconnect());
     return;
   }
 
