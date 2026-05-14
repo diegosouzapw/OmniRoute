@@ -99,6 +99,18 @@ export default function CursorAuthModal({
   return (
     <Modal isOpen={isOpen} title={t("title")} onClose={onClose}>
       <div className="flex flex-col gap-4">
+        {/* TOS / risk disclaimer for subscription-style logins */}
+        <div
+          role="note"
+          className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200"
+        >
+          <p className="font-semibold mb-1">
+            <span className="material-symbols-outlined text-sm align-middle mr-1">warning</span>
+            {t("subscriptionDisclaimerTitle")}
+          </p>
+          <p className="opacity-90">{t("subscriptionDisclaimerBody")}</p>
+        </div>
+
         {/* Auto-detecting state */}
         {autoDetecting && (
           <div className="text-center py-6">

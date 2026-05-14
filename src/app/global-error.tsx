@@ -21,9 +21,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <div className="text-[64px] mb-4" aria-hidden="true">
             ⚠️
           </div>
-          <h1 className="text-[28px] font-bold mb-2">Something went wrong</h1>
+          <h1 className="text-[28px] font-bold mb-2">Something went sideways</h1>
           <p className="text-[15px] text-text-muted max-w-[400px] leading-relaxed mb-6">
-            An unexpected error occurred. This has been logged and our team will investigate.
+            An unexpected error caught us off guard. We&apos;ve logged it and we&apos;ll take a look —
+            give it another try in a moment.
           </p>
           {process.env.NODE_ENV === "development" && error?.message && (
             <pre

@@ -606,6 +606,16 @@ export default function ProvidersPage() {
 
       {/* OAuth Providers (including providers that expose free tiers via OAuth) */}
       <div className="flex flex-col gap-4">
+        <div
+          role="note"
+          className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200"
+        >
+          <p className="font-semibold mb-1">
+            <span className="material-symbols-outlined text-sm align-middle mr-1">warning</span>
+            {t("oauthSubscriptionDisclaimerTitle")}
+          </p>
+          <p className="opacity-90">{t("oauthSubscriptionDisclaimerBody")}</p>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}

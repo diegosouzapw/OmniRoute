@@ -478,17 +478,17 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               <div>
                 <h3 className="text-lg font-bold">
                   {updatePhase === "done"
-                    ? "Update Complete!"
+                    ? "All updated!"
                     : updatePhase === "failed"
-                      ? "Update Failed"
+                      ? "Update didn't go through"
                       : "Updating OmniCode..."}
                 </h3>
                 <p className="text-xs text-text-muted mt-0.5">
                   {updatePhase === "done"
-                    ? "The page will reload automatically in a few seconds."
+                    ? "We'll reload the page for you in a few seconds."
                     : updatePhase === "failed"
-                      ? "Please try again or update manually via the CLI."
-                      : "Do not close this page. The system will restart automatically."}
+                      ? "Give it another try, or run the update from the CLI if it keeps stalling."
+                      : "Hang tight — keep this page open while we restart."}
                 </p>
               </div>
             </div>

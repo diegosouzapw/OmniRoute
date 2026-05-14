@@ -16,10 +16,10 @@ export default function NotFound() {
         404
       </div>
       <h1 id="not-found-title" className="text-2xl font-semibold mb-2">
-        Page not found
+        We can&apos;t find this page
       </h1>
       <p className="text-[15px] text-text-muted max-w-[400px] leading-relaxed mb-8">
-        The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        Looks like this page moved or never existed. Let&apos;s get you back somewhere useful.
       </p>
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <Link

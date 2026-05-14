@@ -5,12 +5,12 @@ export default function ServiceUnavailablePage() {
     <ErrorPageScaffold
       code="503"
       icon="build_circle"
-      title="Service Unavailable"
-      description="The service is temporarily unavailable due to maintenance or degraded dependencies."
+      title="Just a moment — we're catching up"
+      description="We're temporarily slowed down by maintenance or a degraded dependency. Should be back shortly."
       suggestions={[
-        "Wait a moment and retry.",
-        "Check maintenance notices and system status.",
-        "Use fallback providers if your workflow is latency-sensitive.",
+        "Give it a moment, then try again.",
+        "Check the maintenance notes or system status for the latest.",
+        "Latency-sensitive workflow? Fallback providers can keep things moving.",
       ]}
       primaryAction={{ href: "/maintenance", label: "Maintenance Details" }}
       secondaryAction={{ href: "/status", label: "System Status" }}

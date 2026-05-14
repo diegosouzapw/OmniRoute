@@ -1591,7 +1591,7 @@ const PermissionsModal = memo(function PermissionsModal({
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-text-main">Management Access</p>
             <p className="text-xs text-text-muted">
-              Allow this API key to manage OmniCode configuration.
+              Lets this API key manage OmniCode&apos;s settings, not just call the API.
             </p>
           </div>
           <button

@@ -26,9 +26,10 @@ export default function OfflinePage() {
         <span className="material-symbols-outlined text-5xl text-primary mb-3" aria-hidden="true">
           wifi_off
         </span>
-        <h1 className="text-2xl font-semibold">Connectivity Issue</h1>
+        <h1 className="text-2xl font-semibold">You&apos;re offline</h1>
         <p className="mt-3 text-text-muted leading-relaxed">
-          OmniCode cannot reach the network right now. Check your internet, VPN, or proxy settings.
+          OmniCode can&apos;t reach the network right now. Have a quick look at your internet, VPN,
+          or proxy and we&apos;ll be back in business.
         </p>
 
         <div
@@ -42,7 +43,7 @@ export default function OfflinePage() {
           <span className="material-symbols-outlined text-base" aria-hidden="true">
             {isOnline ? "wifi" : "wifi_off"}
           </span>
-          <span>{isOnline ? "Connection restored" : "Offline mode detected"}</span>
+          <span>{isOnline ? "You're back online" : "Currently offline"}</span>
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3">

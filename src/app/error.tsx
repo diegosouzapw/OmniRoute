@@ -23,11 +23,11 @@ export default function Error({ error, reset }: ErrorProps) {
         🔧
       </div>
       <h1 className="text-[28px] font-bold mb-2 text-[var(--color-text-main)]">
-        Internal Server Error
+        Something went sideways
       </h1>
       <p className="text-[15px] text-[var(--color-text-muted)] max-w-[400px] leading-relaxed mb-2">
-        Something went wrong while processing your request. Our team has been notified and is
-        working on a fix.
+        Not your fault — we hit an unexpected snag while loading this. We&apos;ve been notified and
+        we&apos;re on it. A quick retry usually clears things up.
       </p>
       {error?.digest && (
         <p className="text-xs text-[var(--color-text-muted)] mb-6 font-mono">

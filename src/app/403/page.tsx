@@ -5,12 +5,12 @@ export default function ForbiddenStatusPage() {
     <ErrorPageScaffold
       code="403"
       icon="gpp_bad"
-      title="Forbidden"
-      description="Your request was understood, but access is denied by policy."
+      title="This one's locked"
+      description="We see what you're asking for, but a policy is keeping you out. Here's how to get unblocked."
       suggestions={[
-        "Check IP allowlist/blocklist rules in settings.",
-        "Verify model and budget policies assigned to your API key.",
-        "Ask an administrator to grant the required permission scope.",
+        "Peek at your IP allowlist/blocklist rules in settings.",
+        "Check the model and budget policies tied to your API key.",
+        "If you need broader access, an admin can grant the right permission scope.",
       ]}
       primaryAction={{ href: "/forbidden", label: "Open Access Help" }}
       secondaryAction={{

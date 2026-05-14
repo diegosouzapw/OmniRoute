@@ -5,12 +5,12 @@ export default function BadRequestPage() {
     <ErrorPageScaffold
       code="400"
       icon="rule"
-      title="Bad Request"
-      description="The request payload is invalid or incomplete."
+      title="We couldn't read that request"
+      description="Looks like part of the request is missing or in the wrong shape — let's figure out what."
       suggestions={[
-        "Review required fields and payload format before retrying.",
-        "If you are using the API, validate the JSON schema locally.",
-        "If this keeps happening, open the request in Translator Playground to inspect the payload.",
+        "Double-check the required fields and payload format, then give it another go.",
+        "Using the API? Validating the JSON locally usually surfaces the culprit.",
+        "If this keeps coming up, the Translator Playground is great for inspecting payloads.",
       ]}
       primaryAction={{ href: "/docs", label: "Open Documentation" }}
       secondaryAction={{ href: "/dashboard/translator", label: "Open Translator" }}

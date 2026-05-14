@@ -5,12 +5,12 @@ export default function UnauthorizedPage() {
     <ErrorPageScaffold
       code="401"
       icon="lock"
-      title="Unauthorized"
-      description="Authentication is required to access this resource."
+      title="Let's get you signed in"
+      description="You'll need to be signed in to see this — it only takes a moment."
       suggestions={[
-        "Sign in again and retry the operation.",
-        "For API calls, confirm the Bearer token is present and valid.",
-        "If the token was recently rotated, update your client credentials.",
+        "Sign in again and retry whatever you were doing.",
+        "Calling the API? Make sure your Bearer token is included and still valid.",
+        "If you rotated the token recently, update your client with the new one.",
       ]}
       primaryAction={{ href: "/login", label: "Go to Login" }}
       secondaryAction={{ href: "/dashboard/api-manager", label: "Manage API Keys" }}

@@ -5,12 +5,12 @@ export default function BadGatewayPage() {
     <ErrorPageScaffold
       code="502"
       icon="hub"
-      title="Bad Gateway"
-      description="Upstream provider or gateway integration returned an invalid response."
+      title="An upstream provider tripped up"
+      description="One of your upstream providers sent back something we couldn't use. Let's try a different route."
       suggestions={[
-        "Retry with another provider or active combo route.",
-        "Check provider credentials and model availability.",
-        "Inspect translator output if format conversion is involved.",
+        "Retry with a different provider or combo and see if it clears up.",
+        "Sanity-check provider credentials and that the model is still available.",
+        "If you're translating between formats, the Translator can show you what came back.",
       ]}
       primaryAction={{ href: "/dashboard/providers", label: "Open Providers" }}
       secondaryAction={{ href: "/dashboard/translator", label: "Open Translator" }}

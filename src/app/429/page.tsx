@@ -5,12 +5,12 @@ export default function TooManyRequestsPage() {
     <ErrorPageScaffold
       code="429"
       icon="hourglass_top"
-      title="Too Many Requests"
-      description="Rate limits were exceeded for this client, key, or provider."
+      title="Whoa, slow down a sec"
+      description="You've hit a rate limit on this client, key, or provider. Take a breath — we'll keep your spot."
       suggestions={[
-        "Wait for cooldown and retry after the suggested interval.",
-        "Switch to a combo with fallback providers.",
-        "Tune provider resilience/rate-limit profiles in settings.",
+        "Wait for the cooldown to pass, then give it another try.",
+        "Set up a combo with fallback providers so you're not dependent on just one.",
+        "Tune the resilience and rate-limit profiles in settings to match your traffic.",
       ]}
       primaryAction={{
         href: "/dashboard/settings?tab=resilience",

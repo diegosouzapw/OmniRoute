@@ -25,14 +25,15 @@ export default function BootstrapBanner() {
       <span className="text-amber-500 dark:text-amber-400 text-base shrink-0 mt-0.5">⚠️</span>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-amber-900 dark:text-amber-300">
-          Running in zero-config mode
+          You&apos;re running in zero-config mode
         </p>
         <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
-          OmniCode auto-generated secure encryption keys on first launch. They are persisted to{" "}
+          OmniCode generated secure encryption keys for you on first launch and saved them to{" "}
           <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
             {dataDir}
           </code>
-          . No action is required — your data is encrypted and safe. To use custom keys, add{" "}
+          . You&apos;re all set — your data is encrypted and safe. Want to use your own keys? Just
+          add{" "}
           <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
             JWT_SECRET
           </code>{" "}

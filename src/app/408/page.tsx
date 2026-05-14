@@ -5,12 +5,12 @@ export default function RequestTimeoutPage() {
     <ErrorPageScaffold
       code="408"
       icon="timer_off"
-      title="Request Timeout"
-      description="The server did not receive a complete request in time."
+      title="That took longer than expected"
+      description="The request didn't finish coming through in time. A quick retry usually does the trick."
       suggestions={[
-        "Retry the request with a smaller payload.",
-        "Check your network stability and VPN/proxy latency.",
-        "For long operations, enable streaming or split the request.",
+        "Try again with a slightly smaller payload.",
+        "Check your network — VPN or proxy latency can sneak up on you.",
+        "For long-running calls, streaming or splitting the request keeps things flowing.",
       ]}
       primaryAction={{ href: "/dashboard/endpoint", label: "Open Endpoint Guide" }}
       secondaryAction={{ href: "/status", label: "Check Network Status" }}

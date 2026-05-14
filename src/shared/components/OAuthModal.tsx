@@ -671,6 +671,18 @@ export default function OAuthModal({
       size="lg"
     >
       <div className="flex flex-col gap-4">
+        {/* TOS / risk disclaimer for subscription-style OAuth logins */}
+        <div
+          role="note"
+          className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200"
+        >
+          <p className="font-semibold mb-1">
+            <span className="material-symbols-outlined text-sm align-middle mr-1">warning</span>
+            {t("subscriptionDisclaimerTitle")}
+          </p>
+          <p className="opacity-90">{t("subscriptionDisclaimerBody")}</p>
+        </div>
+
         {/* Paste-token tab toggle (Windsurf / Devin CLI only) */}
         {supportsTokenPaste && step !== "success" && (
           <div className="flex gap-2 border-b border-border pb-3">
@@ -686,6 +698,23 @@ export default function OAuthModal({
             >
               Paste API Key
             </button>
+          </div>
+        )}
+
+        {/* Waiting Step (Localhost - popup mode) */}
+        {step === "waiting" && !isDeviceCode && !showPasteToken && (
+          <div className="text-center py-6">
+            <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl text-primary animate-spin">
+                progress_activity
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">{t("waiting")}</h3>
+            <p className="text-sm text-text-muted mb-2">{t("completeAuthInPopup")}</p>
+            <p className="text-xs text-text-muted mb-4 opacity-70">{t("popupClosedHint")}</p>
+            <Button variant="ghost" onClick={() => setStep("input")}>
+              {t("popupBlocked")}
+            </Button>
           </div>
         )}
 
