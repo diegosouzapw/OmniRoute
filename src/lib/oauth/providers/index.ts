@@ -44,7 +44,7 @@ export const PROVIDERS = {
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
   // "devin-cli": windsurf,
-  nousPortal,
+  "nous-portal": nousPortal,
 };
 
 export default PROVIDERS;
