@@ -2824,6 +2824,36 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "Hermes-4-70B", name: "Hermes 4 70B (Nous Research)" },
     ],
   },
+  "nous-portal": {
+    id: "nous-portal",
+    alias: "nousp",
+    format: "openai",
+    executor: "nous-portal",
+    baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
+    responsesBaseUrl: "https://inference-api.nousresearch.com/v1/responses",
+    authType: "oauth",
+    authHeader: "bearer",
+    headers: {
+      "User-Agent": "OmniRoute/1.0",
+    },
+    oauth: {
+      clientIdEnv: "NOUS_OAUTH_CLIENT_ID",
+      clientIdDefault: "hermes-cli",
+      tokenUrl: "https://portal.nousresearch.com/api/oauth/token",
+      authUrl: "https://portal.nousresearch.com/api/oauth/device/code",
+    },
+    defaultContextLength: 128000,
+    models: [
+      { id: "hermes-4-70b", name: "Hermes 4 70B" },
+      { id: "hermes-4-405b", name: "Hermes 4 405B" },
+      { id: "rema-7b", name: "Rema 7B" },
+      { id: "rema-70b", name: "Rema 70B" },
+      { id: "mistral-7b", name: "Mistral 7B" },
+      { id: "llama-3.1-8b", name: "Llama 3.1 8B" },
+      { id: "llama-3.1-70b", name: "Llama 3.1 70B" },
+      { id: "llama-3.3-70b", name: "Llama 3.3 70B" },
+    ],
+  },
 
   reka: {
     id: "reka",

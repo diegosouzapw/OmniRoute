@@ -25,6 +25,7 @@ import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
 import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
+import { NousPortalExecutor } from "./nous-portal.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -71,6 +72,7 @@ const executors = {
   ws: new WindsurfExecutor(), // Alias
   "devin-cli": new DevinCliExecutor(),
   devin: new DevinCliExecutor(), // Alias
+  "nous-portal": new NousPortalExecutor(),
 };
 
 const defaultCache = new Map();
@@ -113,4 +115,5 @@ export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
+export { NousPortalExecutor } from "./nous-portal.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";

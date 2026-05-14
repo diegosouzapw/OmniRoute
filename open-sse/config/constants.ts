@@ -72,6 +72,10 @@ export const OAUTH_ENDPOINTS = {
     auth: "https://github.com/login/oauth/authorize",
     deviceCode: "https://github.com/login/device/code",
   },
+  "nous-portal": {
+    token: "https://portal.nousresearch.com/api/oauth/token",
+    auth: "https://portal.nousresearch.com/api/oauth/device/code",
+  },
 };
 
 // Cache TTLs (seconds)
