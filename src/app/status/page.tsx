@@ -71,7 +71,7 @@ export default function StatusPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">System Status</h1>
             <p className="text-text-muted mt-1">
-              Live operational snapshot for OmniRoute core services.
+              Live operational snapshot for OmniCode core services.
             </p>
           </div>
           <button

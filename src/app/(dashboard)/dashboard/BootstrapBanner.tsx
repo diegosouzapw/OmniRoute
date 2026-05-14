@@ -28,7 +28,7 @@ export default function BootstrapBanner() {
           Running in zero-config mode
         </p>
         <p className="mt-0.5 text-amber-800/80 dark:text-amber-200/80">
-          OmniRoute auto-generated secure encryption keys on first launch. They are persisted to{" "}
+          OmniCode auto-generated secure encryption keys on first launch. They are persisted to{" "}
           <code className="font-mono bg-amber-200/50 dark:bg-amber-500/20 px-1 rounded text-xs">
             {dataDir}
           </code>

@@ -113,7 +113,7 @@ export default function CavemanContextPageClient() {
     [t("savingsPercent"), `${cavemanStats?.avgSavingsPct ?? analytics?.avgSavingsPct ?? 0}%`],
     [t("avgLatency"), `${analytics?.avgDurationMs ?? 0}ms`],
   ];
-  const previewPrompt = `[OmniRoute Caveman Output Mode]\n${t(`preview.${outputMode.intensity}`)}`;
+  const previewPrompt = `[OmniCode Caveman Output Mode]\n${t(`preview.${outputMode.intensity}`)}`;
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">

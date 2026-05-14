@@ -1970,7 +1970,7 @@ export default function ProviderDetailPage() {
       notify.success(
         enabled
           ? "Requests now route through CLIProxyAPI (deeper emulation)"
-          : "Requests now use native OmniRoute (direct)"
+          : "Requests now use native OmniCode (direct)"
       );
     } catch {
       notify.error("Failed to update CLIProxyAPI routing");

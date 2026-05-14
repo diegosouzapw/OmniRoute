@@ -660,7 +660,7 @@ export default function ApiEndpointsTab() {
                 <div>
                   <h3 className="text-sm font-semibold">Event Webhooks</h3>
                   <p className="text-[11px] text-text-muted">
-                    Receive HTTP callbacks when events occur in OmniRoute
+                    Receive HTTP callbacks when events occur in OmniCode
                   </p>
                 </div>
               </div>

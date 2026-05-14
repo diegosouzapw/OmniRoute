@@ -141,7 +141,7 @@ function generateCSV(analytics: UsageAnalyticsPayload, locale: string): string {
   const currencyFormatter = createCurrencyFormatter(locale);
   const lines: string[] = [];
 
-  lines.push("# OmniRoute Cost Report");
+  lines.push("# OmniCode Cost Report");
   lines.push(`# Generated: ${new Date().toISOString()}`);
   lines.push("");
   lines.push("## Summary");

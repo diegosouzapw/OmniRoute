@@ -44,7 +44,7 @@ export function DocsSidebarClient({ mobileOnly = false }: { mobileOnly?: boolean
       aria-label="Documentation pages"
     >
       <div className="p-4 border-b border-border">
-        <h2 className="font-bold text-text-primary mb-3">OmniRoute Docs</h2>
+        <h2 className="font-bold text-text-primary mb-3">OmniCode Docs</h2>
         <DocsSearchClient />
       </div>
 
@@ -96,7 +96,7 @@ function MobileSidebarContent({
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b border-border flex items-center justify-between">
-        <h2 className="font-bold text-text-primary">OmniRoute Docs</h2>
+        <h2 className="font-bold text-text-primary">OmniCode Docs</h2>
         <button
           onClick={onClose}
           className="p-1 hover:bg-bg-subtle rounded transition-colors"

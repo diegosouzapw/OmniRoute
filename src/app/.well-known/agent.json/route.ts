@@ -21,7 +21,7 @@ const BASE_URL = process.env.OMNIROUTE_BASE_URL || "http://localhost:20128";
  */
 export async function GET() {
   const agentCard = {
-    name: "OmniRoute AI Gateway",
+    name: "OmniCode AI Gateway",
     description:
       "Intelligent AI routing gateway with 36+ providers, smart fallback, " +
       "quota tracking, format translation, and auto-managed combos. " +

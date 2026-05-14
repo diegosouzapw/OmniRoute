@@ -215,7 +215,7 @@ export default function CustomCliCard({
                 <p className="mt-2 text-xs text-text-muted">
                   {translateOrFallback(
                     "customCliDefaultModelHelp",
-                    "Use any OmniRoute model ID or combo. Most OpenAI-compatible CLIs only need the /v1 base URL plus a model string."
+                    "Use any OmniCode model ID or combo. Most OpenAI-compatible CLIs only need the /v1 base URL plus a model string."
                   )}
                 </p>
               </div>
@@ -244,7 +244,7 @@ export default function CustomCliCard({
                 <p className="mt-2 text-xs text-text-muted">
                   {translateOrFallback(
                     "customCliKeyHelper",
-                    "For local installs OmniRoute can use sk_omniroute. In cloud mode, pick one of your management API keys."
+                    "For local installs OmniCode can use sk_omniroute. In cloud mode, pick one of your management API keys."
                   )}
                 </p>
               </div>
@@ -329,7 +329,7 @@ export default function CustomCliCard({
             <p className="mt-1">
               {translateOrFallback(
                 "customCliEndpointHint",
-                "Point any OpenAI-compatible client to the OmniRoute /v1 base URL. The raw chat completions endpoint is {endpoint}. Use the JSON block when the tool wants a provider object, or the env script when it reads OPENAI_* variables.",
+                "Point any OpenAI-compatible client to the OmniCode /v1 base URL. The raw chat completions endpoint is {endpoint}. Use the JSON block when the tool wants a provider object, or the env script when it reads OPENAI_* variables.",
                 { endpoint: chatCompletionsEndpoint }
               )}
             </p>

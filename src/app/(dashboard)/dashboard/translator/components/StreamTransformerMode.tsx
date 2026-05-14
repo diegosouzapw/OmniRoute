@@ -8,7 +8,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 
 const TEXT_SAMPLE = `data: {"id":"chatcmpl_demo","object":"chat.completion.chunk","created":1745366400,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl_demo","object":"chat.completion.chunk","created":1745366400,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"content":" from OmniRoute"},"finish_reason":null}]}
+data: {"id":"chatcmpl_demo","object":"chat.completion.chunk","created":1745366400,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"content":" from OmniCode"},"finish_reason":null}]}
 
 data: {"id":"chatcmpl_demo","object":"chat.completion.chunk","created":1745366400,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":12,"completion_tokens":4,"total_tokens":16}}
 
@@ -150,7 +150,7 @@ export default function StreamTransformerMode() {
           <p>
             {translateOrFallback(
               "streamTransformerDescription",
-              "Paste a chat completions SSE stream, run it through OmniRoute's Responses transformer, and inspect the emitted response.* events before wiring a client."
+              "Paste a chat completions SSE stream, run it through OmniCode's Responses transformer, and inspect the emitted response.* events before wiring a client."
             )}
           </p>
         </div>

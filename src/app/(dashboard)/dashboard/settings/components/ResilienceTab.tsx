@@ -664,7 +664,7 @@ function WaitForCooldownCard({
           <>
             <BooleanField
               label="Ativar espera no servidor"
-              description="Quando ativo, o OmniRoute aguarda o primeiro cooldown expirar e tenta novamente automaticamente."
+              description="Quando ativo, o OmniCode aguarda o primeiro cooldown expirar e tenta novamente automaticamente."
               checked={draft.enabled}
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
             />

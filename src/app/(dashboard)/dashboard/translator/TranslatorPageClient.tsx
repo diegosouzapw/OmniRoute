@@ -67,7 +67,7 @@ export default function TranslatorPageClient() {
     ),
     "live-monitor": translateOrFallback(
       "modeDescriptionLiveMonitor",
-      "Watch translation events in real time as requests flow through OmniRoute."
+      "Watch translation events in real time as requests flow through OmniCode."
     ),
   };
 

@@ -301,7 +301,7 @@ export default function AgentsPage() {
               <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-blue-500">
                 <span>IDE</span>
                 <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>OmniRoute</span>
+                <span>OmniCode</span>
                 <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
                 <span>Provider API</span>
               </div>
@@ -323,7 +323,7 @@ export default function AgentsPage() {
               <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-emerald-500">
                 <span>Client</span>
                 <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                <span>OmniRoute</span>
+                <span>OmniCode</span>
                 <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
                 <span>CLI Binary</span>
               </div>
