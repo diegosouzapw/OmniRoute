@@ -100,7 +100,7 @@ describe("Protocol clients E2E", () => {
     async () => {
       const transport = new StdioClientTransport({
         command: process.execPath,
-        args: ["--import", "tsx/esm", "open-sse/mcp-server/server.ts"],
+        args: ["--import", "tsx", "open-sse/mcp-server/server.ts"],
         env: {
           ...process.env,
           OMNIROUTE_BASE_URL: BASE_URL,

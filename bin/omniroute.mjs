@@ -22,7 +22,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
-import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
+import { isNativeBinaryCompatible } from "../scripts/build/native-binary-compat.mjs";
 import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 
 const __filename = fileURLToPath(import.meta.url);

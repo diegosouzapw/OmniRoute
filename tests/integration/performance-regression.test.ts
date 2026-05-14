@@ -4,7 +4,7 @@
  * Tests bulk data operations against acceptable time thresholds.
  * Thresholds are 2x the expected target to account for slow CI machines.
  *
- * Run: node --import tsx/esm --test tests/integration/performance-regression.test.ts
+ * Run: node --import tsx --test tests/integration/performance-regression.test.ts
  */
 
 import { describe, it, before, after } from "node:test";

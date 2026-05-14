@@ -64,7 +64,7 @@ async function main() {
   };
 
   if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
+    serverProcess = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
       stdio: "inherit",
       env: testEnv,
     });

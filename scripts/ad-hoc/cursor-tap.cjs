@@ -3,13 +3,13 @@
  * cursor-tap — capture cursor agent.v1.AgentService/Run wire bytes for tests.
  *
  * Usage:
- *   CURSOR_TOKEN=... node scripts/cursor-tap.cjs <fixture-name> <prompt>
+ *   CURSOR_TOKEN=... node scripts/ad-hoc/cursor-tap.cjs <fixture-name> <prompt>
  *
  * Examples:
- *   node scripts/cursor-tap.cjs single-turn-chat "say only PING"
- *   node scripts/cursor-tap.cjs system-prompt "be brief|hi"   # split on first '|'
- *   node scripts/cursor-tap.cjs tool-call "weather in Paris" --tools=get_weather
- *   node scripts/cursor-tap.cjs composer-2-fast "hi" --model=composer-2-fast
+ *   node scripts/ad-hoc/cursor-tap.cjs single-turn-chat "say only PING"
+ *   node scripts/ad-hoc/cursor-tap.cjs system-prompt "be brief|hi"   # split on first '|'
+ *   node scripts/ad-hoc/cursor-tap.cjs tool-call "weather in Paris" --tools=get_weather
+ *   node scripts/ad-hoc/cursor-tap.cjs composer-2-fast "hi" --model=composer-2-fast
  *
  * Writes the upstream response bytes to tests/fixtures/cursor/<fixture-name>.bin
  * and prints decoded summary to stdout. Use these fixtures in unit tests to
@@ -27,7 +27,9 @@ const crypto = require("crypto");
 
 const args = process.argv.slice(2);
 if (args.length < 2) {
-  console.error("Usage: cursor-tap.cjs <fixture-name> <prompt> [--model=...] [--tools=name1,name2]");
+  console.error(
+    "Usage: cursor-tap.cjs <fixture-name> <prompt> [--model=...] [--tools=name1,name2]"
+  );
   process.exit(1);
 }
 

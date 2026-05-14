@@ -140,13 +140,16 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
 });
 
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
-  globalThis.fetch = async () =>
-    commandCodeStream([
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([
       { type: "text-delta", text: "Hello" },
       { type: "reasoning-delta", text: "thinking" },
       { type: "tool-call", toolCallId: "call_1", toolName: "search", input: { q: "docs" } },
       { type: "finish", finishReason: "tool-calls" },
     ]);
+  };
 
   const { response } = await getExecutor("command-code").execute({
     model: "gpt-5.4",
@@ -155,6 +158,7 @@ test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () =
     body: { messages: [{ role: "user", content: "Hi" }] },
   });
 
+  assert.equal(calls[0].body.params.stream, true);
   assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   const sse = await response.text();
   assert.match(sse, /data: \[DONE\]/);

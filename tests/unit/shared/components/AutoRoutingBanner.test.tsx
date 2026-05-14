@@ -2,9 +2,27 @@
 import React from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const cleanupCallbacks: Array<() => void> = [];
+
+function createTestStorage(): Storage {
+  const entries = new Map<string, string>();
+  return {
+    get length() {
+      return entries.size;
+    },
+    clear: () => entries.clear(),
+    getItem: (key) => entries.get(key) ?? null,
+    key: (index) => Array.from(entries.keys())[index] ?? null,
+    removeItem: (key) => {
+      entries.delete(key);
+    },
+    setItem: (key, value) => {
+      entries.set(key, value);
+    },
+  };
+}
 
 function makeContainer(): HTMLElement {
   const container = document.createElement("div");
@@ -20,6 +38,7 @@ describe("AutoRoutingBanner", () => {
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
+    vi.stubGlobal("localStorage", createTestStorage());
     localStorage.clear();
   });
 
@@ -29,6 +48,7 @@ describe("AutoRoutingBanner", () => {
     }
     document.body.innerHTML = "";
     localStorage.clear();
+    vi.unstubAllGlobals();
   });
 
   it("renders banner on first mount", async () => {

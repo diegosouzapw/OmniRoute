@@ -13,7 +13,7 @@
  *
  * To run:
  *   CURSOR_E2E_TOKEN=$(cat ~/.cursor/access-token) \
- *     node --import tsx/esm --test tests/integration/cursor-e2e.test.ts
+ *     node --import tsx --test tests/integration/cursor-e2e.test.ts
  *
  * Capturing wire fixtures (separate workflow):
  *   CURSOR_TOKEN=... node scripts/ad-hoc/cursor-tap.cjs single-turn-chat "say PING"

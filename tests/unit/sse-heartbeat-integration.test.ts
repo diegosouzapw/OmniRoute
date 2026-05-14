@@ -10,6 +10,23 @@ function decodeChunk(value) {
   return typeof value === "string" ? value : new TextDecoder().decode(value);
 }
 
+async function readWithTimeout(reader, timeoutMs = 250) {
+  let timeout;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("Timed out waiting for SSE heartbeat")),
+          timeoutMs
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 test("integration: anthropic-ping heartbeat reaches downstream and does NOT trigger stream.ts strip", async () => {
   // Build a fake upstream that emits one chunk then idles indefinitely
   let cancelled = false;
@@ -39,7 +56,7 @@ test("integration: anthropic-ping heartbeat reaches downstream and does NOT trig
   const startedAt = Date.now();
   let sawPing = false;
   while (Date.now() - startedAt < 200) {
-    const { value, done } = await reader.read();
+    const { value, done } = await readWithTimeout(reader);
     if (done) break;
     const chunk = decodeChunk(value);
     if (/^event: ping\b/m.test(chunk)) {
@@ -83,7 +100,7 @@ test("integration: openai-chunk heartbeat is valid JSON parseable by SDKs", asyn
   const startedAt = Date.now();
   let sawValidChunk = false;
   while (Date.now() - startedAt < 200) {
-    const { value, done } = await reader.read();
+    const { value, done } = await readWithTimeout(reader);
     if (done) break;
     const chunk = decodeChunk(value);
     if (chunk.startsWith("data: ") && chunk.includes("omniroute-keepalive")) {
@@ -118,7 +135,7 @@ test("integration: shapeForClientFormat + createSseHeartbeatTransform pipeline (
 
   const reader = upstream.pipeThrough(transform).getReader();
   await reader.read(); // first real
-  const { value } = await reader.read();
+  const { value } = await readWithTimeout(reader);
   assert.match(decodeChunk(value), /^event: ping\ndata: \{\}\n\n$/);
   await reader.cancel();
 });

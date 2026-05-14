@@ -105,19 +105,19 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 3. Network & Ports
 
-| Variable                  | Default                         | Source File                       | Description                                                                                                                                                 |
-| ------------------------- | ------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                    | `20128`                         | `src/lib/runtime/ports.ts`        | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                    |
-| `API_PORT`                | _(unset)_                       | `src/lib/runtime/ports.ts`        | When set, serves the `/v1/*` proxy API on this separate port.                                                                                               |
-| `API_HOST`                | `0.0.0.0`                       | `src/lib/runtime/ports.ts`        | Bind address for the API port.                                                                                                                              |
-| `DASHBOARD_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`        | When set, serves the Dashboard UI on this separate port.                                                                                                    |
-| `PROD_DASHBOARD_PORT`     | `20130`                         | `docker-compose.prod.yml`         | Host-side published port for the Dashboard in Docker production mode.                                                                                       |
-| `PROD_API_PORT`           | `20131`                         | `docker-compose.prod.yml`         | Host-side published port for the API in Docker production mode.                                                                                             |
-| `OMNIROUTE_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`        | Takes precedence over `PORT` when running inside Electron or other wrappers.                                                                                |
-| `NODE_ENV`                | `production`                    | Next.js core                      | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations.                                                                      |
-| `OMNIROUTE_USE_TURBOPACK` | `1` (default in `.env.example`) | `package.json` / Next.js 16       | Toggles the Next.js 16 Turbopack bundler in `npm run dev` and `npm run build`. Set to `0` on Windows or when running into native binding incompatibilities. |
-| `HOST`                    | `0.0.0.0`                       | `scripts/run-next.mjs`            | Bind address for the Next.js dev/start server. Overrides the default `0.0.0.0` when set.                                                                    |
-| `HOSTNAME`                | `127.0.0.1`                     | `scripts/run-next-playwright.mjs` | Bind address used by the Playwright runner when launching Next.js. Defaults to `127.0.0.1` for hermetic tests.                                              |
+| Variable                  | Default                         | Source File                           | Description                                                                                                                                                 |
+| ------------------------- | ------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                    | `20128`                         | `src/lib/runtime/ports.ts`            | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                    |
+| `API_PORT`                | _(unset)_                       | `src/lib/runtime/ports.ts`            | When set, serves the `/v1/*` proxy API on this separate port.                                                                                               |
+| `API_HOST`                | `0.0.0.0`                       | `src/lib/runtime/ports.ts`            | Bind address for the API port.                                                                                                                              |
+| `DASHBOARD_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`            | When set, serves the Dashboard UI on this separate port.                                                                                                    |
+| `PROD_DASHBOARD_PORT`     | `20130`                         | `docker-compose.prod.yml`             | Host-side published port for the Dashboard in Docker production mode.                                                                                       |
+| `PROD_API_PORT`           | `20131`                         | `docker-compose.prod.yml`             | Host-side published port for the API in Docker production mode.                                                                                             |
+| `OMNIROUTE_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`            | Takes precedence over `PORT` when running inside Electron or other wrappers.                                                                                |
+| `NODE_ENV`                | `production`                    | Next.js core                          | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations.                                                                      |
+| `OMNIROUTE_USE_TURBOPACK` | `1` (default in `.env.example`) | `package.json` / Next.js 16           | Toggles the Next.js 16 Turbopack bundler in `npm run dev` and `npm run build`. Set to `0` on Windows or when running into native binding incompatibilities. |
+| `HOST`                    | `0.0.0.0`                       | `scripts/dev/run-next.mjs`            | Bind address for the Next.js dev/start server. Overrides the default `0.0.0.0` when set.                                                                    |
+| `HOSTNAME`                | `127.0.0.1`                     | `scripts/dev/run-next-playwright.mjs` | Bind address used by the Playwright runner when launching Next.js. Defaults to `127.0.0.1` for hermetic tests.                                              |
 
 ### Port Modes
 
@@ -664,7 +664,7 @@ Anthropic-compatible provider instead.
 | `CURSOR_DUMP_FILE`               | _(unset)_           | `open-sse/executors/cursor.ts`             | Optional file path that receives raw decoded Cursor chunks when `CURSOR_DEBUG=1`. |
 | `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`             | Stream idle timeout (ms) for the Cursor executor.                                 |
 | `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor state DB lookup used for version detection.                   |
-| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/cursor-tap.cjs`                   | Direct Cursor bearer token used by developer tooling.                             |
+| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/ad-hoc/cursor-tap.cjs`            | Direct Cursor bearer token used by developer tooling.                             |
 | `OMNIROUTE_LOG_REQUEST_SHAPE`    | enabled (`!== "0"`) | `src/app/api/v1/chat/completions/route.ts` | Log content-type/length markers for large chat payloads. Set `"0"` to silence.    |
 | `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_           | `open-sse/handlers/responseTranslator.ts`  | Set `true` to log Responses API SSE→JSON translation details.                     |
 | `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_           | E2E test harness                           | Set `true` to enable E2E test mode (relaxed auth, test hooks).                    |
@@ -792,28 +792,28 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 
 ## 26. Test & E2E Harness
 
-Used by `scripts/run-next-playwright.mjs`, `scripts/smoke-electron-packaged.mjs`,
-`scripts/run-ecosystem-tests.mjs`, and `scripts/uninstall.mjs`. Leave every
+Used by `scripts/dev/run-next-playwright.mjs`, `scripts/dev/smoke-electron-packaged.mjs`,
+`scripts/dev/run-ecosystem-tests.mjs`, and `scripts/build/uninstall.mjs`. Leave every
 value below unset in production deployments.
 
-| Variable                              | Default                          | Source File                           | Description                                                                              |
-| ------------------------------------- | -------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `OMNIROUTE_E2E_BOOTSTRAP_MODE`        | `auth`                           | `scripts/run-next-playwright.mjs`     | E2E bootstrap mode (`auth`, `fresh`, `reuse`) for the Playwright runner.                 |
-| `OMNIROUTE_E2E_PASSWORD`              | falls back to `INITIAL_PASSWORD` | `scripts/run-next-playwright.mjs`     | Admin password injected into the Playwright environment.                                 |
-| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` | `true`                           | `scripts/run-next-playwright.mjs`     | Disable the local healthcheck poll during Playwright runs.                               |
-| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` | `true`                           | `scripts/run-next-playwright.mjs`     | Disable the OAuth token healthcheck loop during tests.                                   |
-| `OMNIROUTE_HIDE_HEALTHCHECK_LOGS`     | `true`                           | `scripts/run-next-playwright.mjs`     | Silence healthcheck noise in Playwright stdout.                                          |
-| `OMNIROUTE_PLAYWRIGHT_SKIP_BUILD`     | `0`                              | `scripts/run-next-playwright.mjs`     | Skip the Next.js production build before Playwright starts (CI optimization).            |
-| `OMNIROUTE_SKIP_UNINSTALL_HOOK`       | `0`                              | `scripts/uninstall.mjs`               | Skip the OmniRoute uninstall hook (used by CI to keep `node_modules` intact).            |
-| `ECOSYSTEM_SERVER_WAIT_MS`            | `180000`                         | `scripts/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests. |
-| `ELECTRON_SMOKE_URL`                  | `http://127.0.0.1:20128/login`   | `scripts/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                        |
-| `ELECTRON_SMOKE_TIMEOUT_MS`           | `45000`                          | `scripts/smoke-electron-packaged.mjs` | Total timeout (ms) before the smoke harness gives up.                                    |
-| `ELECTRON_SMOKE_SETTLE_MS`            | `2000`                           | `scripts/smoke-electron-packaged.mjs` | Settle window (ms) after the page loads.                                                 |
-| `ELECTRON_SMOKE_APP_EXECUTABLE`       | _(auto)_                         | `scripts/smoke-electron-packaged.mjs` | Explicit path to the packaged Electron executable.                                       |
-| `ELECTRON_SMOKE_DATA_DIR`             | _(tmpdir)_                       | `scripts/smoke-electron-packaged.mjs` | Data directory for the Electron smoke run.                                               |
-| `ELECTRON_SMOKE_KEEP_DATA`            | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to preserve the smoke data directory after the run.                              |
-| `ELECTRON_SMOKE_STREAM_LOGS`          | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to stream Electron logs to stdout during the run.                                |
-| `CLI_DEVIN_BIN`                       | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`     | Override the Devin CLI binary path.                                                      |
+| Variable                              | Default                          | Source File                               | Description                                                                              |
+| ------------------------------------- | -------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_E2E_BOOTSTRAP_MODE`        | `auth`                           | `scripts/dev/run-next-playwright.mjs`     | E2E bootstrap mode (`auth`, `fresh`, `reuse`) for the Playwright runner.                 |
+| `OMNIROUTE_E2E_PASSWORD`              | falls back to `INITIAL_PASSWORD` | `scripts/dev/run-next-playwright.mjs`     | Admin password injected into the Playwright environment.                                 |
+| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Disable the local healthcheck poll during Playwright runs.                               |
+| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Disable the OAuth token healthcheck loop during tests.                                   |
+| `OMNIROUTE_HIDE_HEALTHCHECK_LOGS`     | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Silence healthcheck noise in Playwright stdout.                                          |
+| `OMNIROUTE_PLAYWRIGHT_SKIP_BUILD`     | `0`                              | `scripts/dev/run-next-playwright.mjs`     | Skip the Next.js production build before Playwright starts (CI optimization).            |
+| `OMNIROUTE_SKIP_UNINSTALL_HOOK`       | `0`                              | `scripts/build/uninstall.mjs`             | Skip the OmniRoute uninstall hook (used by CI to keep `node_modules` intact).            |
+| `ECOSYSTEM_SERVER_WAIT_MS`            | `180000`                         | `scripts/dev/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests. |
+| `ELECTRON_SMOKE_URL`                  | `http://127.0.0.1:20128/login`   | `scripts/dev/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                        |
+| `ELECTRON_SMOKE_TIMEOUT_MS`           | `45000`                          | `scripts/dev/smoke-electron-packaged.mjs` | Total timeout (ms) before the smoke harness gives up.                                    |
+| `ELECTRON_SMOKE_SETTLE_MS`            | `2000`                           | `scripts/dev/smoke-electron-packaged.mjs` | Settle window (ms) after the page loads.                                                 |
+| `ELECTRON_SMOKE_APP_EXECUTABLE`       | _(auto)_                         | `scripts/dev/smoke-electron-packaged.mjs` | Explicit path to the packaged Electron executable.                                       |
+| `ELECTRON_SMOKE_DATA_DIR`             | _(tmpdir)_                       | `scripts/dev/smoke-electron-packaged.mjs` | Data directory for the Electron smoke run.                                               |
+| `ELECTRON_SMOKE_KEEP_DATA`            | `0`                              | `scripts/dev/smoke-electron-packaged.mjs` | Set `1` to preserve the smoke data directory after the run.                              |
+| `ELECTRON_SMOKE_STREAM_LOGS`          | `0`                              | `scripts/dev/smoke-electron-packaged.mjs` | Set `1` to stream Electron logs to stdout during the run.                                |
+| `CLI_DEVIN_BIN`                       | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`         | Override the Devin CLI binary path.                                                      |
 
 ### Docs translation pipeline
 

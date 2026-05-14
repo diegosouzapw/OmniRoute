@@ -305,13 +305,14 @@ test.describe("Resilience Plan Alignment", () => {
     await mockResilienceSettings(page);
 
     await gotoDashboardRoute(page, "/dashboard/settings?tab=resilience");
+    const resiliencePanel = page.getByRole("tabpanel", { name: "Resilience" });
     await expect(
-      page.getByRole("heading", { name: "Connection Cooldown", exact: true })
+      resiliencePanel.getByRole("heading", { name: "Connection Cooldown", exact: true })
     ).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Base cooldown", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Use upstream retry hints", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Max backoff steps", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(/Rate-limit fallback/i)).toHaveCount(0);
+    await expect(resiliencePanel.getByText(/Cooldown base\s*60000ms/)).toBeVisible();
+    await expect(resiliencePanel.getByText(/Use upstream retry hints\s*No/)).toBeVisible();
+    await expect(resiliencePanel.getByText(/Max backoff steps\s*8/)).toBeVisible();
+    await expect(resiliencePanel.getByText(/Rate-limit fallback/i)).toHaveCount(0);
   });
 
   test("health page renders provider breaker runtime state for multiple providers", async ({

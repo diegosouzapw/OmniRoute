@@ -360,7 +360,7 @@ async function checkNativeBinary(rootDir) {
 
   try {
     const { isNativeBinaryCompatible } = await import(
-      pathToFileURL(path.join(rootDir, "scripts", "native-binary-compat.mjs")).href
+      pathToFileURL(path.join(rootDir, "scripts", "build", "native-binary-compat.mjs")).href
     );
     const compatible = isNativeBinaryCompatible(binaryPath);
     if (!compatible) {

@@ -357,7 +357,7 @@ function ConnectionCooldownCard({
             />
             <BooleanField
               label="Use upstream retry hints"
-              description="Usa valores de retry-after/reset do upstream quando disponíveis."
+              description="Use upstream retry-after/reset values when available."
               checked={current.useUpstreamRetryHints}
               onChange={(useUpstreamRetryHints) =>
                 setDraft((prev) => ({
@@ -409,7 +409,7 @@ function ConnectionCooldownCard({
               </p>
             </div>
             <NumberField
-              label="Máximo de passos de backoff"
+              label="Max backoff steps"
               value={current.maxBackoffSteps}
               min={0}
               onChange={(maxBackoffSteps) =>
@@ -424,9 +424,9 @@ function ConnectionCooldownCard({
               <span className="font-mono text-text-main">{formatMs(current.baseCooldownMs)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Usar dicas de retry do upstream</span>
+              <span className="text-text-muted">Use upstream retry hints</span>
               <span className="font-mono text-text-main">
-                {current.useUpstreamRetryHints ? "Sim" : "Não"}
+                {current.useUpstreamRetryHints ? "Yes" : "No"}
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -440,7 +440,7 @@ function ConnectionCooldownCard({
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Máximo de passos de backoff</span>
+              <span className="text-text-muted">Max backoff steps</span>
               <span className="font-mono text-text-main">{current.maxBackoffSteps}</span>
             </div>
           </>
@@ -455,12 +455,12 @@ function ConnectionCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">timer_off</span>
-            <h2 className="text-lg font-bold">Cooldown de Conexão</h2>
+            <h2 className="text-lg font-bold">Connection Cooldown</h2>
           </div>
           <SectionDescription
-            scope="Conexão individual"
-            trigger="Quando uma conexão retorna falha transitória no upstream"
-            effect="Pula temporariamente essa conexão e aumenta backoff em falhas repetidas"
+            scope="Individual connection"
+            trigger="When a connection returns a transient upstream failure"
+            effect="Temporarily skips that connection and increases backoff after repeated failures"
           />
         </div>
         <ActionRow
@@ -498,13 +498,13 @@ function ConnectionCooldownCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        O cooldown base cobre falhas transitórias de conexão. Quando as dicas de retry do upstream
-        estão ativas, a janela explícita do provedor sobrescreve o cooldown local.
+        Base cooldown covers transient connection failures. When upstream retry hints are enabled,
+        the provider&apos;s explicit retry window overrides the local cooldown.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {renderProfile("oauth", "Provedores OAuth", "lock")}
-        {renderProfile("apikey", "Provedores API Key", "key")}
+        {renderProfile("oauth", "OAuth Providers", "lock")}
+        {renderProfile("apikey", "API Key Providers", "key")}
       </div>
     </Card>
   );
