@@ -55,7 +55,7 @@ interface AntigravityContent {
 }
 
 type AntigravityCredentials = ProviderCredentials & {
-  projectId?: string;
+  projectId?: string | null;
   expiresIn?: number;
 };
 
