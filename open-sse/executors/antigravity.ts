@@ -462,7 +462,7 @@ export class AntigravityExecutor extends BaseExecutor {
       // (#489) Return a structured error instead of throwing — gives the client a clear signal
       // to show a "Reconnect OAuth" prompt rather than an opaque "Internal Server Error".
       const errorMsg =
-        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers → Antigravity so OmniRoute can fetch your Cloud Code project.";
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers → Antigravity so OmniCode can fetch your Cloud Code project.";
       const errorBody = {
         error: {
           message: errorMsg,

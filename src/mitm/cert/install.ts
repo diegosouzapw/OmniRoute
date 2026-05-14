@@ -92,7 +92,7 @@ async function updateNssDatabases(
         shell: "/bin/bash",
         env: {
           ...process.env,
-          CERT_NAME: "OmniRoute MITM Root CA",
+          CERT_NAME: "OmniCode MITM Root CA",
           CERT_PATH: certPath || "",
           ACTION: action,
         },

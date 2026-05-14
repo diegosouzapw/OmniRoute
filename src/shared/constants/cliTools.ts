@@ -277,7 +277,7 @@ export const CLI_TOOLS = {
   "provider": {
     "omniroute": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "OmniRoute",
+      "name": "OmniCode",
       "options": {
         "baseURL": "{{baseUrl}}",
         "apiKey": "{{apiKey}}"
@@ -314,7 +314,7 @@ export const CLI_TOOLS = {
       {
         step: 5,
         title: "Save Provider Block",
-        desc: "Use the JSON block below as the OpenAI-compatible provider definition for OmniRoute.",
+        desc: "Use the JSON block below as the OpenAI-compatible provider definition for OmniCode.",
       },
     ],
     codeBlock: {
@@ -342,7 +342,7 @@ export const CLI_TOOLS = {
     notes: [
       {
         type: "info",
-        text: "Use OmniRoute model aliases to keep Amp shorthand mappings stable across provider updates.",
+        text: "Use OmniCode model aliases to keep Amp shorthand mappings stable across provider updates.",
       },
       {
         type: "warning",
@@ -361,7 +361,7 @@ export const CLI_TOOLS = {
       {
         step: 5,
         title: "Add Shorthands",
-        desc: "Map Amp shorthand names such as g25p or cs45 to OmniRoute aliases in your local config.",
+        desc: "Map Amp shorthand names such as g25p or cs45 to OmniCode aliases in your local config.",
       },
     ],
     codeBlock: {
@@ -396,18 +396,18 @@ amp --model "{{model}}"
     icon: "psychology",
     color: "#10B981",
     description:
-      "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniRoute",
+      "Alibaba Qwen Code CLI — supports OpenAI, Anthropic & Gemini providers via OmniCode",
     docsUrl: "https://qwenlm.github.io/qwen-code-docs/en/users/configuration/model-providers/",
     configType: "guide",
     defaultCommand: "qwen",
     notes: [
       {
         type: "info",
-        text: "Qwen Code supports multiple provider types (openai, anthropic, gemini) via modelProviders in settings.json. OmniRoute works as an OpenAI-compatible endpoint.",
+        text: "Qwen Code supports multiple provider types (openai, anthropic, gemini) via modelProviders in settings.json. OmniCode works as an OpenAI-compatible endpoint.",
       },
       {
         type: "info",
-        text: "Any model available in OmniRoute can be used — not just Qwen models. Select from Qwen, Claude, Gemini, GPT, and more.",
+        text: "Any model available in OmniCode can be used — not just Qwen models. Select from Qwen, Claude, Gemini, GPT, and more.",
       },
       {
         type: "warning",
@@ -415,7 +415,7 @@ amp --model "{{model}}"
       },
       {
         type: "error",
-        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with alicode/openrouter/anthropic/gemini providers instead.",
+        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniCode with alicode/openrouter/anthropic/gemini providers instead.",
       },
     ],
     modelAliases: [
@@ -500,7 +500,7 @@ amp --model "{{model}}"
     ],
     codeBlock: {
       language: "json",
-      code: `# ~/.qwen/settings.json — OmniRoute via security.auth
+      code: `# ~/.qwen/settings.json — OmniCode via security.auth
 {
   "security": {
     "auth": {

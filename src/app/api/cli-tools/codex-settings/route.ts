@@ -267,7 +267,7 @@ export async function POST(request: Request) {
     // Always create a custom provider to reliably pass wire_api and use OMNIROUTE_API_KEY
     parsed._root.model_provider = "omniroute";
     parsed._sections["model_providers.omniroute"] = {
-      name: "OmniRoute",
+      name: "OmniCode",
       base_url: normalizedBaseUrl,
       wire_api: wireApi || "chat",
       env_key: "OPENAI_API_KEY",
@@ -392,7 +392,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "OmniRoute settings removed successfully",
+      message: "OmniCode settings removed successfully",
     });
   } catch (error) {
     console.log("Error resetting codex settings:", error);

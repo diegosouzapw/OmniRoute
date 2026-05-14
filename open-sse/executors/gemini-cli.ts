@@ -194,12 +194,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
           }
         } else {
           console.warn(
-            `[OmniRoute] onboardUser returned ${response.status} on attempt ${attempt + 1}`
+            `[OmniCode] onboardUser returned ${response.status} on attempt ${attempt + 1}`
           );
         }
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.warn(`[OmniRoute] onboardUser attempt ${attempt + 1} failed (${msg})`);
+        console.warn(`[OmniCode] onboardUser attempt ${attempt + 1} failed (${msg})`);
       }
 
       if (attempt < attempts - 1) {
@@ -257,7 +257,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
 
       if (!response.ok) {
         console.warn(
-          `[OmniRoute] loadCodeAssist returned ${response.status} — falling back to stored projectId`
+          `[OmniCode] loadCodeAssist returned ${response.status} — falling back to stored projectId`
         );
         return null;
       }
@@ -267,7 +267,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
 
       if (!projectId) {
         console.warn(
-          "[OmniRoute] loadCodeAssist returned no project — attempting managed project onboarding"
+          "[OmniCode] loadCodeAssist returned no project — attempting managed project onboarding"
         );
         projectId = await this.onboardManagedProject(
           accessToken,
@@ -279,7 +279,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
 
       if (!projectId) {
         console.warn(
-          "[OmniRoute] managed project onboarding failed — falling back to stored projectId"
+          "[OmniCode] managed project onboarding failed — falling back to stored projectId"
         );
         return null;
       }
@@ -289,7 +289,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
       return projectId;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      console.warn(`[OmniRoute] loadCodeAssist failed (${msg}) — falling back to stored projectId`);
+      console.warn(`[OmniCode] loadCodeAssist failed (${msg}) — falling back to stored projectId`);
       return null;
     }
   }

@@ -29,7 +29,7 @@ export default function HowItWorks() {
             </div>
           </div>
 
-          {/* Step 2: OmniRoute Hub */}
+          {/* Step 2: OmniCode Hub */}
           <div className="flex flex-col gap-6 relative group md:items-center md:text-center">
             <div className="w-24 h-24 rounded-2xl bg-[#0B0E14] border-2 border-[#E54D5E] flex items-center justify-center shadow-[0_0_30px_rgba(229,77,94,0.2)] z-10 mx-auto">
               <span

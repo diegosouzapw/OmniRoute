@@ -377,7 +377,7 @@ export default function KiloToolCard({
                       </select>
                     ) : (
                       <p className="text-sm text-text-muted">
-                        {cloudEnabled ? t("noApiKeysAvailable") : t("usingDefaultOmniroute")}
+                        {cloudEnabled ? t("noApiKeysAvailable") : t("usingDefaultOmniCode")}
                       </p>
                     )}
                   </div>

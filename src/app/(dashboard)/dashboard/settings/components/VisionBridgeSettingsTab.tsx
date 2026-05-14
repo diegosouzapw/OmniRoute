@@ -100,7 +100,7 @@ export default function VisionBridgeSettingsTab() {
               placeholder="openai/gpt-4o-mini"
             />
             <p className="text-xs text-text-muted mt-1">
-              Any OmniRoute model ID that supports vision can be used here.
+              Any OmniCode model ID that supports vision can be used here.
             </p>
           </div>
 

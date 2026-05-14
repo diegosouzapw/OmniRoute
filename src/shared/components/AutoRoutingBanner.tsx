@@ -45,7 +45,7 @@ export default function AutoRoutingBanner() {
           </span>
         </div>
         <div className="text-sm leading-relaxed text-text-muted">
-          OmniRoute is automatically routing requests using combo-based strategies.
+          OmniCode is automatically routing requests using combo-based strategies.
           <span className="block sm:inline sm:ml-1">
             View or change your routing configuration on the{" "}
             <a

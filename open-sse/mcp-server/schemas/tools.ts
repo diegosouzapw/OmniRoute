@@ -84,7 +84,7 @@ export const getHealthOutput = z.object({
 export const getHealthTool: McpToolDefinition<typeof getHealthInput, typeof getHealthOutput> = {
   name: "omniroute_get_health",
   description:
-    "Returns the current health status of OmniRoute including uptime, memory usage, circuit breaker states for all providers, rate limit status, and cache statistics.",
+    "Returns the current health status of OmniCode including uptime, memory usage, circuit breaker states for all providers, rate limit status, and cache statistics.",
   inputSchema: getHealthInput,
   outputSchema: getHealthOutput,
   scopes: ["read:health"],
@@ -296,7 +296,7 @@ export const routeRequestTool: McpToolDefinition<
 > = {
   name: "omniroute_route_request",
   description:
-    "Sends a chat completion request through OmniRoute's intelligent routing pipeline. Supports combo selection, budget limits, and task role hints for optimal provider matching.",
+    "Sends a chat completion request through OmniCode's intelligent routing pipeline. Supports combo selection, budget limits, and task role hints for optimal provider matching.",
   inputSchema: routeRequestInput,
   outputSchema: routeRequestOutput,
   scopes: ["execute:completions"],
@@ -449,7 +449,7 @@ export const webSearchOutput = z.object({
 export const webSearchTool: McpToolDefinition<typeof webSearchInput, typeof webSearchOutput> = {
   name: "omniroute_web_search",
   description:
-    "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily, Google PSE, Linkup, SearchAPI, SearXNG) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
+    "Performs a web search using OmniCode's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily, Google PSE, Linkup, SearchAPI, SearXNG) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
   inputSchema: webSearchInput,
   outputSchema: webSearchOutput,
   scopes: ["execute:search"],
@@ -858,7 +858,7 @@ export const dbHealthCheckTool: McpToolDefinition<
 > = {
   name: "omniroute_db_health_check",
   description:
-    "Diagnoses OmniRoute database drift such as orphan quota/domain rows, invalid JSON state, and broken combo references. Set autoRepair=true to repair those rows before returning the report.",
+    "Diagnoses OmniCode database drift such as orphan quota/domain rows, invalid JSON state, and broken combo references. Set autoRepair=true to repair those rows before returning the report.",
   inputSchema: dbHealthCheckInput,
   outputSchema: dbHealthCheckOutput,
   scopes: ["read:health", "write:resilience"],
@@ -894,7 +894,7 @@ export const syncPricingTool: McpToolDefinition<typeof syncPricingInput, typeof 
   {
     name: "omniroute_sync_pricing",
     description:
-      "Syncs pricing data from external sources (LiteLLM) into OmniRoute. Synced pricing fills gaps not covered by hardcoded defaults without overwriting user-set prices. Use dryRun=true to preview.",
+      "Syncs pricing data from external sources (LiteLLM) into OmniCode. Synced pricing fills gaps not covered by hardcoded defaults without overwriting user-set prices. Use dryRun=true to preview.",
     inputSchema: syncPricingInput,
     outputSchema: syncPricingOutput,
     scopes: ["pricing:write"],

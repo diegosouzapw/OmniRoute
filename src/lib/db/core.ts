@@ -110,7 +110,7 @@ function createNativeSqliteLoadError(error: unknown): Error {
   const detail =
     `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
     "This usually happens after switching Node.js versions without rebuilding native modules. " +
-    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
+    "Run `npm rebuild better-sqlite3` in the OmniCode project and start again. " +
     `Original error: ${message}`;
   const wrapped = new Error(detail) as Error & { cause?: unknown; code?: string };
   wrapped.name = "NativeSqliteLoadError";

@@ -26,7 +26,7 @@ export async function collectCliToolChecks(): Promise<DoctorCheckResult[]> {
       return {
         name: `CLI: ${tool.name}`,
         status: "warn" as const,
-        message: `${tool.name} not configured for OmniRoute`,
+        message: `${tool.name} not configured for OmniCode`,
         details: { id: tool.id, configured: false },
       };
     }

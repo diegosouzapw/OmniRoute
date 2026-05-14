@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     "",
     details ? "### Details\n```json\n" + JSON.stringify(details, null, 2) + "\n```" : null,
     "",
-    "_Auto-reported by OmniRoute Registered Key Issuer_",
+    "_Auto-reported by OmniCode Registered Key Issuer_",
   ]
     .filter(Boolean)
     .join("\n");

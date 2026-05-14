@@ -204,7 +204,7 @@ export default function RequestLoggerDetail({
               </div>
               {hasStatusDiscrepancy && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
-                  OmniRoute returned {log.status} even though provider returned {providerStatus}
+                  OmniCode returned {log.status} even though provider returned {providerStatus}
                 </span>
               )}
             </div>

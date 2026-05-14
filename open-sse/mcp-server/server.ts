@@ -170,7 +170,7 @@ async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
+    throw new Error(`OmniCode API error [${response.status}]: ${errorText}`);
   }
 
   return response.json();
@@ -624,7 +624,7 @@ export function createMcpServer(): McpServer {
     "omniroute_get_health",
     {
       description:
-        "Returns OmniRoute health status including uptime, memory, circuit breakers, rate limits, and cache stats",
+        "Returns OmniCode health status including uptime, memory, circuit breakers, rate limits, and cache stats",
       inputSchema: getHealthInput,
     },
     withScopeEnforcement("omniroute_get_health", async (args) => {
@@ -681,7 +681,7 @@ export function createMcpServer(): McpServer {
   server.registerTool(
     "omniroute_route_request",
     {
-      description: "Sends a chat completion request through OmniRoute intelligent routing",
+      description: "Sends a chat completion request through OmniCode intelligent routing",
       inputSchema: routeRequestInput,
     },
     withScopeEnforcement("omniroute_route_request", (args) =>
@@ -825,7 +825,7 @@ export function createMcpServer(): McpServer {
     "omniroute_db_health_check",
     {
       description:
-        "Diagnoses or repairs OmniRoute database drift, including broken combo references and orphan quota/domain rows",
+        "Diagnoses or repairs OmniCode database drift, including broken combo references and orphan quota/domain rows",
       inputSchema: dbHealthCheckInput,
     },
     withScopeEnforcement("omniroute_db_health_check", (args) =>
@@ -837,7 +837,7 @@ export function createMcpServer(): McpServer {
     "omniroute_sync_pricing",
     {
       description:
-        "Syncs pricing data from external sources (LiteLLM) into OmniRoute without overwriting user-set prices",
+        "Syncs pricing data from external sources (LiteLLM) into OmniCode without overwriting user-set prices",
       inputSchema: syncPricingInput,
     },
     withScopeEnforcement("omniroute_sync_pricing", (args) =>
@@ -849,7 +849,7 @@ export function createMcpServer(): McpServer {
     "omniroute_web_search",
     {
       description:
-        "Performs a web search using OmniRoute's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
+        "Performs a web search using OmniCode's search gateway. Supports multiple providers (Serper, Brave, Perplexity, Exa, Tavily) with automatic failover. Returns search results with titles, URLs, snippets, and position data.",
       inputSchema: webSearchInput,
     },
     withScopeEnforcement("omniroute_web_search", (args) =>
@@ -1012,10 +1012,10 @@ export async function startMcpStdio(): Promise<void> {
   process.once("SIGINT", stopHeartbeatOnce);
   process.once("SIGTERM", stopHeartbeatOnce);
 
-  console.error("[MCP] OmniRoute MCP Server starting (stdio transport)...");
+  console.error("[MCP] OmniCode MCP Server starting (stdio transport)...");
   try {
     await server.connect(transport);
-    console.error("[MCP] OmniRoute MCP Server connected and ready.");
+    console.error("[MCP] OmniCode MCP Server connected and ready.");
   } finally {
     if (closeAuditDb()) {
       console.error("[MCP] Audit database checkpointed and closed.");

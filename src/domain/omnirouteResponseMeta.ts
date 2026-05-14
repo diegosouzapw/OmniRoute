@@ -16,7 +16,7 @@ function toNonNegativeInteger(value: unknown): number {
   return Math.max(0, Math.round(toFiniteNumber(value)));
 }
 
-export function getOmniRouteTokenCounts(usage: UsageLike): { input: number; output: number } {
+export function getOmniCodeTokenCounts(usage: UsageLike): { input: number; output: number } {
   if (!usage || typeof usage !== "object") {
     return { input: 0, output: 0 };
   }
@@ -39,12 +39,12 @@ export function getOmniRouteTokenCounts(usage: UsageLike): { input: number; outp
   };
 }
 
-export function formatOmniRouteCost(costUsd: unknown): string {
+export function formatOmniCodeCost(costUsd: unknown): string {
   const normalized = toFiniteNumber(costUsd);
   return normalized > 0 ? normalized.toFixed(10) : "0.0000000000";
 }
 
-export function buildOmniRouteResponseMetaHeaders({
+export function buildOmniCodeResponseMetaHeaders({
   cacheHit = false,
   costUsd = 0,
   latencyMs = 0,
@@ -59,7 +59,7 @@ export function buildOmniRouteResponseMetaHeaders({
   provider?: string | null;
   usage?: UsageLike;
 }): Record<string, string> {
-  const tokens = getOmniRouteTokenCounts(usage);
+  const tokens = getOmniCodeTokenCounts(usage);
   const headers: Record<string, string> = {
     [OMNIROUTE_RESPONSE_HEADERS.cacheHit]: String(cacheHit),
     [OMNIROUTE_RESPONSE_HEADERS.latencyMs]: String(toNonNegativeInteger(latencyMs)),
@@ -79,10 +79,10 @@ export function buildOmniRouteResponseMetaHeaders({
   return headers;
 }
 
-export function buildOmniRouteSseMetadataComment(
-  options: Parameters<typeof buildOmniRouteResponseMetaHeaders>[0]
+export function buildOmniCodeSseMetadataComment(
+  options: Parameters<typeof buildOmniCodeResponseMetaHeaders>[0]
 ): string {
-  const headers = buildOmniRouteResponseMetaHeaders(options);
+  const headers = buildOmniCodeResponseMetaHeaders(options);
   const lines = Object.entries(headers)
     .filter(([, value]) => typeof value === "string" && value.trim().length > 0)
     .map(([name, value]) => `: ${name.toLowerCase()}=${value}`);

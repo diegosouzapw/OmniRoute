@@ -49,7 +49,7 @@ const hasOmniRouteConfig = (settings: any) => {
   const openai = settings.modelProviders.openai;
   if (!Array.isArray(openai)) return false;
   return openai.some((p: any) => {
-    if (p.name?.includes("OmniRoute") || p.id === "omniroute") return true;
+    if (p.name?.includes("OmniCode") || p.id === "omniroute") return true;
     if (!p.baseUrl) return false;
     try {
       const urlObj = new URL(p.baseUrl);
@@ -199,7 +199,7 @@ export async function POST(request: Request) {
     // openai provider — primary, supports all models via OmniRoute
     const openaiEntry = {
       id: resolvedModel,
-      name: `${resolvedModel} (OmniRoute)`,
+      name: `${resolvedModel} (OmniCode)`,
       envKey: "OPENAI_API_KEY",
       baseUrl: normalizedBaseUrl,
       generationConfig: {
@@ -221,7 +221,7 @@ export async function POST(request: Request) {
     // anthropic provider — for Claude models via OmniRoute
     const anthropicEntry = {
       id: "claude-sonnet-4-6",
-      name: "Claude Sonnet 4.6 (OmniRoute)",
+      name: "Claude Sonnet 4.6 (OmniCode)",
       envKey: "ANTHROPIC_API_KEY",
       baseUrl: normalizedBaseUrl,
       generationConfig: {
@@ -243,7 +243,7 @@ export async function POST(request: Request) {
     // gemini provider — for Gemini models via OmniRoute
     const geminiEntry = {
       id: "gemini-3-flash",
-      name: "Gemini 3 Flash (OmniRoute)",
+      name: "Gemini 3 Flash (OmniCode)",
       envKey: "GEMINI_API_KEY",
       baseUrl: normalizedBaseUrl,
     };
@@ -315,7 +315,7 @@ export async function DELETE(request: Request) {
     for (const type of providerTypes) {
       if (Array.isArray(existingConfig.modelProviders?.[type])) {
         existingConfig.modelProviders[type] = existingConfig.modelProviders[type].filter(
-          (p: any) => !p.name?.includes("OmniRoute") && p.id !== "omniroute"
+          (p: any) => !p.name?.includes("OmniCode") && p.id !== "omniroute"
         );
         // Remove empty provider arrays
         if (existingConfig.modelProviders[type].length === 0) {
@@ -354,7 +354,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "OmniRoute settings removed from Qwen Code",
+      message: "OmniCode settings removed from Qwen Code",
     });
   } catch (error) {
     console.log("Error resetting qwen settings:", error);

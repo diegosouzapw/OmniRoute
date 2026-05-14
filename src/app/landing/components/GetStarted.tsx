@@ -33,7 +33,7 @@ export default function GetStarted() {
                   1
                 </div>
                 <div>
-                  <h4 className="font-bold text-lg">{t("installOmniRoute")}</h4>
+                  <h4 className="font-bold text-lg">{t("installOmniCode")}</h4>
                   <p className="text-sm text-gray-500 mt-1">{t("installStepDescription")}</p>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export default function GetStarted() {
                 </div>
 
                 <div className="text-gray-400 mb-6">
-                  <span className="text-[#E54D5E]">&gt;</span> {t("startingOmniRoute")}
+                  <span className="text-[#E54D5E]">&gt;</span> {t("startingOmniCode")}
                   <br />
                   <span className="text-[#E54D5E]">&gt;</span> {t("serverRunningOnLabel")}{" "}
                   <span className="text-blue-400 break-all">{endpoint}</span>

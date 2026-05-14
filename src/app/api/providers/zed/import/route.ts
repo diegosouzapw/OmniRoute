@@ -57,7 +57,7 @@ export async function POST(request: Request): Promise<NextResponse<ImportRespons
     if (importable.length === 0) {
       if (credentials.length > 0) {
         console.warn(
-          `[Zed Import] Found ${credentials.length} keychain credential(s), but none mapped to supported OmniRoute providers`
+          `[Zed Import] Found ${credentials.length} keychain credential(s), but none mapped to supported OmniCode providers`
         );
       }
       return NextResponse.json({

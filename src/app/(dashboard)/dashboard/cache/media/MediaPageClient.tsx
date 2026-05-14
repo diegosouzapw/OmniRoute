@@ -106,7 +106,7 @@ const MODALITY_CONFIG: Record<
     icon: "record_voice_over",
     endpoint: "/api/v1/audio/speech",
     label: "Text to Speech",
-    placeholder: "Hello! Welcome to OmniRoute, your intelligent AI gateway...",
+    placeholder: "Hello! Welcome to OmniCode, your intelligent AI gateway...",
     color: "from-green-500 to-teal-500",
     textLabel: "Text",
     needsCredentials: SPEECH_PROVIDERS_REQUIRING_CREDENTIALS,

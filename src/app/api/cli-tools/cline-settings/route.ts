@@ -259,7 +259,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "OmniRoute settings removed from Cline",
+      message: "OmniCode settings removed from Cline",
     });
   } catch (error) {
     console.log("Error resetting cline settings:", error);

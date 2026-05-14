@@ -461,7 +461,7 @@ function wrapInCloudCodeEnvelope(model, geminiCLI, credentials = null, isAntigra
 
   if (!projectId) {
     console.warn(
-      `[OmniRoute] ${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. ` +
+      `[OmniCode] ${isAntigravity ? "Antigravity" : "GeminiCLI"} account is missing projectId. ` +
         `Attempting request with empty project — reconnect OAuth to resolve.`
     );
     projectId = "";

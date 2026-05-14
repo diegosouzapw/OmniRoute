@@ -36,7 +36,7 @@ export const KIRO_MITM_PROFILE: MitmTarget = {
   id: "kiro",
   name: "Kiro IDE",
   description:
-    "Intercepts Kiro IDE requests to api.anthropic.com and routes them through OmniRoute.",
+    "Intercepts Kiro IDE requests to api.anthropic.com and routes them through OmniCode.",
   targetHost: "api.anthropic.com",
   targetPort: 443,
   localPort: 20130,
@@ -47,8 +47,8 @@ export const KIRO_MITM_PROFILE: MitmTarget = {
     "1. Install OmniRoute's root certificate: run `omniroute cert install` or go to Settings → MITM Certificates",
     "2. Start the MITM proxy: `omniroute mitm start --target kiro`",
     "3. Set your system HTTP proxy to 127.0.0.1:20130 (or use transparent MITM via DNS override)",
-    "4. Open Kiro IDE — API calls will be automatically routed through OmniRoute.",
-    "5. Verify: check the Proxy Logs in OmniRoute dashboard and look for provider=anthropic source=mitm",
+    "4. Open Kiro IDE — API calls will be automatically routed through OmniCode.",
+    "5. Verify: check the Proxy Logs in OmniCode dashboard and look for provider=anthropic source=mitm",
   ],
   referenceIde: "antigravity", // Same MITM infrastructure as Antigravity
 };

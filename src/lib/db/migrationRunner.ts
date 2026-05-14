@@ -736,7 +736,7 @@ export function runMigrations(db: Database.Database, options?: { isNewDb?: boole
     );
     console.error(
       `[Migration] The version-only tracking will skip these (version already applied), ` +
-        `but please report this to the OmniRoute maintainers.`
+        `but please report this to the OmniCode maintainers.`
     );
   }
 

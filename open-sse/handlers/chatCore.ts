@@ -67,7 +67,7 @@ import {
 import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
-import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
+import { buildOmniCodeResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { CLAUDE_OAUTH_TOOL_PREFIX } from "../translator/request/openai-to-claude.ts";
 import {
   getModelNormalizeToolCallId,
@@ -1318,7 +1318,7 @@ export async function handleChatCore({
         headers: {
           "Content-Type": "application/json",
           "X-OmniRoute-Idempotent": "true",
-          ...buildOmniRouteResponseMetaHeaders({
+          ...buildOmniCodeResponseMetaHeaders({
             provider,
             model,
             cacheHit: false,
@@ -1425,7 +1425,7 @@ export async function handleChatCore({
     body = bodyWithWebSearchFallback as typeof body;
     log?.info?.(
       "TOOLS",
-      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniRoute fallback for ${provider}`
+      `Converted ${webSearchFallbackPlan.convertedToolCount} web_search tool(s) to OmniCode fallback for ${provider}`
     );
   }
   const noLogEnabled = apiKeyInfo?.noLog === true;
@@ -1688,7 +1688,7 @@ export async function handleChatCore({
           headers: {
             "Content-Type": "application/json",
             [OMNIROUTE_RESPONSE_HEADERS.cache]: "HIT",
-            ...buildOmniRouteResponseMetaHeaders({
+            ...buildOmniCodeResponseMetaHeaders({
               provider,
               model,
               cacheHit: true,
@@ -4302,7 +4302,7 @@ export async function handleChatCore({
         headers: {
           "Content-Type": "application/json",
           [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-          ...buildOmniRouteResponseMetaHeaders({
+          ...buildOmniCodeResponseMetaHeaders({
             provider,
             model,
             cacheHit: false,
@@ -4377,7 +4377,7 @@ export async function handleChatCore({
     Connection: "keep-alive",
     "X-Accel-Buffering": "no",
     [OMNIROUTE_RESPONSE_HEADERS.cache]: "MISS",
-    ...buildOmniRouteResponseMetaHeaders({
+    ...buildOmniCodeResponseMetaHeaders({
       provider,
       model,
       cacheHit: false,

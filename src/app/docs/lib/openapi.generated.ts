@@ -26,7 +26,7 @@ export interface OpenApiEndpoint {
 }
 
 export const OPENAPI_VERSION = "3.8.0";
-export const OPENAPI_TITLE = "OmniRoute API";
+export const OPENAPI_TITLE = "OmniCode API";
 
 export const OPENAPI_ENDPOINTS: OpenApiEndpoint[] = [
   {

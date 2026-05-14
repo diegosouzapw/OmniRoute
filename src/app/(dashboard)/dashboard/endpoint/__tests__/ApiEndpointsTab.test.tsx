@@ -78,7 +78,7 @@ describe("ApiEndpointsTab", () => {
   it("renders catalog content when the OpenAPI catalog loads", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
-        info: { title: "OmniRoute API", version: "3.7.6" },
+        info: { title: "OmniCode API", version: "3.7.6" },
         servers: [],
         tags: [{ name: "Chat" }],
         endpoints: [
@@ -100,7 +100,7 @@ describe("ApiEndpointsTab", () => {
 
     renderApiEndpointsTab();
 
-    await waitForText("OmniRoute API");
+    await waitForText("OmniCode API");
     expect(document.body.textContent).toContain("1 endpoints across 1 categories");
     expect(document.body.textContent).toContain("/api/v1/chat/completions");
   });
@@ -108,7 +108,7 @@ describe("ApiEndpointsTab", () => {
   it("renders curl example using window.location.origin when NEXT_PUBLIC_BASE_URL is unset", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({
-        info: { title: "OmniRoute API", version: "3.7.6" },
+        info: { title: "OmniCode API", version: "3.7.6" },
         servers: [],
         tags: [{ name: "Chat" }],
         endpoints: [
@@ -130,7 +130,7 @@ describe("ApiEndpointsTab", () => {
 
     renderApiEndpointsTab();
 
-    await waitForText("OmniRoute API");
+    await waitForText("OmniCode API");
 
     // Expand the endpoint to reveal the curl example
     const endpointRow = document.body.querySelector("code.font-mono.flex-1");
