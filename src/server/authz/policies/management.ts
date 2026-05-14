@@ -2,6 +2,9 @@ import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncSc
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
+import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
+import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
+import { hasManageScope } from "../../../lib/api/requireManagementAuth";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
@@ -28,6 +31,30 @@ export const managementPolicy: RoutePolicy = {
 
     if (await isDashboardSessionAuthenticated(ctx.request)) {
       return allow({ kind: "dashboard_session", id: "dashboard" });
+    }
+
+    // Allow API keys with the `manage` scope — enables headless / programmatic
+    // management (e.g. provisioning providers, setting rate limits) without
+    // a browser session. The pieces below already exist and are used by
+    // `requireManagementAuth` on individual routes; wiring them here closes
+    // the gap so management auth is consistent across the policy layer.
+    const apiKey = extractApiKey(ctx.request as unknown as Request);
+    if (apiKey) {
+      try {
+        if (await isValidApiKey(apiKey)) {
+          const meta = await getApiKeyMetadata(apiKey);
+          if (meta && hasManageScope(meta.scopes)) {
+            return allow({
+              kind: "management_key",
+              id: meta.id ?? "api-key",
+              label: "api-key-manage-scope",
+            });
+          }
+        }
+      } catch {
+        // Fall through to the reject below; the policy must not 5xx on a
+        // backend hiccup during the optional API-key probe.
+      }
     }
 
     const bearerPresent = hasBearerToken(ctx.request.headers);
