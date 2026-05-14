@@ -367,6 +367,7 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                                                                                                                                                                                       |
 | `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                                                                                                                                                                                     |
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                                                                                                                                                                                |
+| `BLACKBOX_WEB_VALIDATED_TOKEN`    | Blackbox Web            | Frontend `tk` token to send as `validated` on `/api/chat`. Required when Blackbox enforces token matching; otherwise OmniRoute falls back to a random UUID. See issue #2252.                                                                    |
 
 > [!WARNING]
 > **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:

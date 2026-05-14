@@ -4,11 +4,17 @@ import {
   addCustomModel,
   removeCustomModel,
   replaceCustomModels,
+  deleteSyncedAvailableModelsForProvider,
   updateCustomModel,
   getModelCompatOverrides,
   mergeModelCompatOverride,
   type ModelCompatPatch,
 } from "@/lib/localDb";
+import {
+  deleteManagedAvailableModelAliases,
+  deleteManagedAvailableModelAliasesForProvider,
+  syncManagedAvailableModelAliases,
+} from "@/lib/providerModels/managedAvailableModels";
 import {
   AI_PROVIDERS,
   isOpenAICompatibleProvider,
@@ -305,9 +311,20 @@ export async function PATCH(request) {
       }
     }
 
+    const aliasChanges =
+      body.isHidden === true
+        ? { removed: await deleteManagedAvailableModelAliases(provider, modelIds), assigned: [] }
+        : {
+            removed: [],
+            assigned: (
+              await syncManagedAvailableModelAliases(provider, modelIds, { pruneMissing: false })
+            ).assignedAliases,
+          };
+
     return Response.json({
       ok: true,
       updated: modelIds.length,
+      aliasChanges,
       models: await getCustomModels(provider),
       modelCompatOverrides: getModelCompatOverrides(provider),
     });
@@ -353,7 +370,14 @@ export async function DELETE(request) {
     const all = searchParams.get("all");
     if (all === "true") {
       await replaceCustomModels(provider, [], { allowEmpty: true });
-      return Response.json({ cleared: true });
+      const syncedAvailableModelListsRemoved =
+        await deleteSyncedAvailableModelsForProvider(provider);
+      const removedAliases = await deleteManagedAvailableModelAliasesForProvider(provider);
+      return Response.json({
+        cleared: true,
+        syncedAvailableModelListsRemoved,
+        aliasChanges: { removed: removedAliases, assigned: [] },
+      });
     }
 
     if (!modelId) {
@@ -369,7 +393,8 @@ export async function DELETE(request) {
     }
 
     const removed = await removeCustomModel(provider, modelId);
-    return Response.json({ removed });
+    const removedAliases = await deleteManagedAvailableModelAliases(provider, [modelId]);
+    return Response.json({ removed, aliasChanges: { removed: removedAliases, assigned: [] } });
   } catch (error) {
     console.error("Error removing provider model:", error);
     return Response.json(

@@ -14,6 +14,45 @@ const BLACKBOX_USER_AGENT =
 
 const SESSION_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
+/**
+ * Resolve the `validated` token for Blackbox `/api/chat` requests.
+ *
+ * Blackbox's web frontend ships a real validation token (exported as `tk` from
+ * its Next.js JavaScript chunks). If the value sent in `transformedBody.validated`
+ * does not match that token, the upstream returns HTTP 403 even when the session
+ * cookie and subscription are valid — see issue #2252.
+ *
+ * Resolution priority:
+ *   1. `BLACKBOX_WEB_VALIDATED_TOKEN` env var (operator-supplied, preferred)
+ *   2. Random UUID fallback (the original behavior; works only as long as
+ *      Blackbox doesn't enforce a specific frontend `tk` value)
+ *
+ * We do NOT scrape Blackbox's Next.js chunks at runtime to extract `tk` — that
+ * coupling to their bundle hash is fragile and would silently break on every
+ * frontend deploy. The env-var override gives operators who have figured out
+ * the token a stable way to use it without patching code.
+ */
+export function resolveBlackboxValidatedToken(): string {
+  const explicit = (process.env.BLACKBOX_WEB_VALIDATED_TOKEN || "").trim();
+  if (explicit) return explicit;
+  return crypto.randomUUID();
+}
+
+/**
+ * Detect whether a Blackbox 403 response body indicates that the `validated`
+ * token is the problem (as opposed to a missing cookie or expired subscription).
+ * Surfaces the BLACKBOX_WEB_VALIDATED_TOKEN env var as the next step.
+ */
+function isBlackboxValidatedTokenError(responseText: string): boolean {
+  const lower = (responseText || "").toLowerCase();
+  return (
+    lower.includes("invalid validated token") ||
+    lower.includes("invalid validated") ||
+    lower.includes("validation token") ||
+    lower.includes("invalid token")
+  );
+}
+
 type CachedSession = {
   sessionData: Record<string, unknown> | null;
   subscriptionCache: Record<string, unknown> | null;
@@ -406,7 +445,9 @@ export class BlackboxWebExecutor extends BaseExecutor {
       mobileClient: false,
       userSelectedModel: model || null,
       userSelectedAgent: "VscodeAgent",
-      validated: crypto.randomUUID(),
+      // Issue #2252: prefer operator-supplied BLACKBOX_WEB_VALIDATED_TOKEN over
+      // a random UUID — Blackbox's `/api/chat` rejects mismatched tokens with 403.
+      validated: resolveBlackboxValidatedToken(),
       imageGenerationMode: false,
       imageGenMode: "autoMode",
       webSearchModePrompt: false,
@@ -477,7 +518,15 @@ export class BlackboxWebExecutor extends BaseExecutor {
     if (!upstreamResponse.ok) {
       const status = upstreamResponse.status;
       let message = `Blackbox Web returned HTTP ${status}`;
-      if (status === 401 || status === 403) {
+      // Issue #2252: distinguish "wrong validated token" from "expired cookie"
+      // when 403 carries a token-specific body — the fix is different in each case.
+      const errorBody = await upstreamResponse.text().catch(() => "");
+      if (status === 403 && isBlackboxValidatedTokenError(errorBody)) {
+        message =
+          "Blackbox Web rejected the request with an invalid `validated` token. " +
+          "If you have a valid frontend token (the `tk` value from app.blackbox.ai's " +
+          "Next.js bundle), set BLACKBOX_WEB_VALIDATED_TOKEN in your environment and restart.";
+      } else if (status === 401 || status === 403) {
         message =
           "Blackbox Web auth failed — your app.blackbox.ai session cookie may be missing or expired.";
       } else if (status === 429) {

@@ -239,3 +239,15 @@ test("buildErrorBody never exposes stack traces in its message", async () => {
   assert.equal(body.error.message, "Internal error");
   assert.ok(!body.error.message.includes("at /opt"));
 });
+
+test("GET /token-health response never leaks stack frames or absolute paths", async () => {
+  const tokenHealthRoute = await import("../../src/app/api/token-health/route.ts");
+  const res = await tokenHealthRoute.GET();
+  const body = (await res.json()) as any;
+  assert.ok(!("stack" in body), "response must not contain stack trace");
+  if (typeof body.error === "string") {
+    assert.ok(!body.error.includes("    at "), "stack frame must not leak in error");
+    assert.ok(!/^\//.test(body.error), "absolute POSIX path must not leak");
+    assert.ok(!/^[A-Za-z]:[\\/]/.test(body.error), "absolute Windows path must not leak");
+  }
+});

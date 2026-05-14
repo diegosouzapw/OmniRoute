@@ -291,6 +291,63 @@ OmniRoute works seamlessly with **16+ AI coding tools** — one config, all tool
 
 📖 Full setup for each tool: [`docs/CLI-TOOLS.md`](docs/CLI-TOOLS.md)
 
+### 🧩 OpenCode integration — `@omniroute/opencode-provider`
+
+[![npm version](https://img.shields.io/npm/v/@omniroute/opencode-provider.svg?logo=npm&label=%40omniroute%2Fopencode-provider)](https://www.npmjs.com/package/@omniroute/opencode-provider)
+[![npm downloads](https://img.shields.io/npm/dm/@omniroute/opencode-provider.svg?logo=npm)](https://www.npmjs.com/package/@omniroute/opencode-provider)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@omniroute/opencode-provider?label=minzip)](https://bundlephobia.com/package/@omniroute/opencode-provider)
+[![license](https://img.shields.io/npm/l/@omniroute/opencode-provider.svg)](./@omniroute/opencode-provider/LICENSE)
+
+Schema-valid generator for [`opencode.json`](https://opencode.ai/config.json). Emits a `provider.omniroute` entry that delegates the runtime to [`@ai-sdk/openai-compatible`](https://www.npmjs.com/package/@ai-sdk/openai-compatible) — every OpenCode request flows through OmniRoute's `/v1` surface and benefits from Auto-Combo routing, circuit breakers, key policies, and observability.
+
+**Two integration paths:**
+
+```bash
+# Path 1 — CLI generator (ships with OmniRoute)
+omniroute config opencode \
+  --baseUrl http://localhost:20128 \
+  --apiKey "$OMNIROUTE_API_KEY"
+```
+
+```bash
+# Path 2 — npm package (for scripted / programmatic setups)
+npm install --save-dev @omniroute/opencode-provider
+```
+
+```ts
+import { writeFileSync } from "node:fs";
+import { buildOmniRouteOpenCodeConfig } from "@omniroute/opencode-provider";
+
+const config = buildOmniRouteOpenCodeConfig({
+  baseURL: "http://localhost:20128",
+  apiKey: process.env.OMNIROUTE_API_KEY ?? "sk_omniroute",
+});
+
+writeFileSync("opencode.json", JSON.stringify(config, null, 2));
+```
+
+Resulting `opencode.json` (excerpt):
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OmniRoute",
+      "options": { "baseURL": "http://localhost:20128/v1", "apiKey": "sk_omniroute" },
+      "models": {
+        "claude-opus-4-5-thinking": { "name": "claude-opus-4-5-thinking" },
+        "gemini-3.1-pro-high": { "name": "gemini-3.1-pro-high" },
+        // …
+      },
+    },
+  },
+}
+```
+
+📦 Package: [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider) · 📖 Full guide: [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md) · 🛠 Source: [`@omniroute/opencode-provider/`](./@omniroute/opencode-provider)
+
 ---
 
 ## 🌐 Supported Providers — 160+
