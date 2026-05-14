@@ -169,7 +169,7 @@ function buildCommandCodeBody(model: string, body: unknown): JsonRecord {
       tools: convertTools(input.tools),
       system,
       max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
-      stream: true,
+      stream: false,
     },
   };
 }
@@ -504,7 +504,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       "x-command-code-version": COMMAND_CODE_VERSION,
-      "x-cli-environment": "production",
+      "x-cli-environment": "external",
       "x-project-slug": "pi-cc",
       "x-taste-learning": "false",
       "x-co-flag": "false",

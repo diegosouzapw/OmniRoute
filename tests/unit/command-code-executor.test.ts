@@ -118,7 +118,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
   assert.equal(calls[0].init.method, "POST");
   assert.equal(headers.Authorization, "Bearer cc_test_key");
   assert.equal(headers["x-command-code-version"], "0.24.1");
-  assert.equal(headers["x-cli-environment"], "production");
+  assert.equal(headers["x-cli-environment"], "external");
   assert.equal(headers["x-project-slug"], "pi-cc");
   assert.equal(headers["x-taste-learning"], "false");
   assert.equal(headers["x-co-flag"], "false");
@@ -130,7 +130,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
     assert.ok(key in posted, `missing ${key}`);
   }
   assert.equal(posted.params.model, "gpt-5.4-mini");
-  assert.equal(posted.params.stream, true);
+  assert.equal(posted.params.stream, false);
   assert.equal(posted.params.system, "You are concise.");
   assert.equal(posted.params.messages[0].role, "user");
   assert.equal(posted.params.tools[0].name, "lookup");
