@@ -681,20 +681,26 @@ function readStreamChunkWithTimeout(
  * `readNonStreamingResponseBody` reads (and, for compressed responses, also
  * decompresses via fetch's auto-decoder) the full upstream body into a JS
  * string before we re-emit it to the client. Once that happens, the original
- * `Content-Encoding` is no longer accurate and — more importantly —
- * `Content-Length` describes the compressed byte count, not the bytes we are
- * about to forward. Clients that honor `Content-Length` over a chunked or
- * fully buffered body then read only the first N bytes and fail to parse the
- * truncated JSON (we saw this on gzipped Gemini responses surfacing as
- * "Unterminated string in JSON at position …").
+ * `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` all describe
+ * a payload that no longer exists:
  *
- * Deleting both headers lets the response framework set a fresh, correct
- * `Content-Length` (or `Transfer-Encoding: chunked`) for the decompressed
- * payload.
+ *   - `Content-Length` is the *compressed* byte count, so clients honoring it
+ *     read only the first N bytes of the decompressed JSON and surface
+ *     "Unterminated string in JSON at position …" parse failures (observed
+ *     on gzipped Gemini responses).
+ *   - `Content-Encoding` advertises a compression we have already undone.
+ *   - `Transfer-Encoding` is hop-by-hop per RFC 7230 §6.1 and must not be
+ *     forwarded across a buffering proxy — its presence alongside a
+ *     re-emitted body is undefined behavior.
+ *
+ * Deleting all three lets the response framework set a fresh, correct
+ * `Content-Length` (or fall back to `Transfer-Encoding: chunked`) for the
+ * payload we are actually sending.
  */
 export function stripStaleForwardingHeaders(headers: Headers): void {
   headers.delete("content-encoding");
   headers.delete("content-length");
+  headers.delete("transfer-encoding");
 }
 
 async function readNonStreamingResponseBody(
