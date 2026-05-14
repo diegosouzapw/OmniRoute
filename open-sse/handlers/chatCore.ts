@@ -675,6 +675,28 @@ function readStreamChunkWithTimeout(
   });
 }
 
+/**
+ * Strip hop-by-hop headers that describe the upstream wire encoding.
+ *
+ * `readNonStreamingResponseBody` reads (and, for compressed responses, also
+ * decompresses via fetch's auto-decoder) the full upstream body into a JS
+ * string before we re-emit it to the client. Once that happens, the original
+ * `Content-Encoding` is no longer accurate and — more importantly —
+ * `Content-Length` describes the compressed byte count, not the bytes we are
+ * about to forward. Clients that honor `Content-Length` over a chunked or
+ * fully buffered body then read only the first N bytes and fail to parse the
+ * truncated JSON (we saw this on gzipped Gemini responses surfacing as
+ * "Unterminated string in JSON at position …").
+ *
+ * Deleting both headers lets the response framework set a fresh, correct
+ * `Content-Length` (or `Transfer-Encoding: chunked`) for the decompressed
+ * payload.
+ */
+export function stripStaleForwardingHeaders(headers: Headers): void {
+  headers.delete("content-encoding");
+  headers.delete("content-length");
+}
+
 async function readNonStreamingResponseBody(
   response: Response,
   contentType: string,
@@ -3209,6 +3231,7 @@ export async function handleChatCore({
         const status = rawResult.response.status;
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
+        stripStaleForwardingHeaders(headers);
         const contentType = (headers.get("content-type") || "").toLowerCase();
         const payload = await readNonStreamingResponseBody(
           rawResult.response,
@@ -4134,7 +4157,10 @@ export async function handleChatCore({
     try {
       const firstChoice = translatedResponse?.choices?.[0];
       const msg = firstChoice?.message;
-      cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+      cacheReasoningFromAssistantMessage(msg, provider, model, {
+        requestId: skillRequestId,
+        messageIndex: 0,
+      });
     } catch {
       // Cache capture is non-critical — never block the response
     }
@@ -4421,7 +4447,10 @@ export async function handleChatCore({
         const body = streamResponseBody as Record<string, unknown>;
         const choices = body.choices as { message?: Record<string, unknown> }[] | undefined;
         const msg = choices?.[0]?.message;
-        cacheReasoningFromAssistantMessage(msg, provider, model, { requestId: skillRequestId, messageIndex: 0 });
+        cacheReasoningFromAssistantMessage(msg, provider, model, {
+          requestId: skillRequestId,
+          messageIndex: 0,
+        });
       } catch {
         // Cache capture is non-critical — never block the stream
       }
