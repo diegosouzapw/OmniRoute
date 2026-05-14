@@ -96,9 +96,13 @@ const DOC_TO_SUBFOLDER = {
 };
 
 // Build alternation regex (longest-first) of file basenames we know about.
+// Escape regex metacharacters (including backslash) defensively, even though
+// the source list is internal — keeps CodeQL happy and future-proofs against
+// names like "FOO\BAR.md".
+const RE_META = /[\\^$.*+?()[\]{}|]/g;
 const FILES_ALT = Object.keys(DOC_TO_SUBFOLDER)
   .sort((a, b) => b.length - a.length)
-  .map((s) => s.replace(/\./g, "\\."))
+  .map((s) => s.replace(RE_META, "\\$&"))
   .join("|");
 
 // ----------------------------------------------------------------------

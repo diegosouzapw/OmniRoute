@@ -43,15 +43,19 @@ async function updateNssDatabases(
   certPath: string | null,
   action: "add" | "delete" = "add"
 ): Promise<void> {
-  const certName = "OmniRoute MITM Root CA";
-
+  // Pass the runtime values via environment variables instead of string
+  // interpolation. The shell receives them through its env and dereferences
+  // with "$CERT_PATH" / "$CERT_NAME" / "$ACTION", so any shell metacharacters
+  // they may contain stay inside the quoted argument — eliminating the
+  // command-injection surface flagged by CodeQL js/shell-command-injection.
   const script = `
+    set -u
     if ! command -v certutil &> /dev/null; then
       exit 0
     fi
-    
+
     DIRS="$HOME/.pki/nssdb $HOME/snap/chromium/current/.pki/nssdb"
-    
+
     if [ -d "$HOME/.mozilla/firefox" ]; then
       for profile in "$HOME"/.mozilla/firefox/*/; do
         if [ -f "\${profile}cert9.db" ] || [ -f "\${profile}cert8.db" ]; then
@@ -70,19 +74,31 @@ async function updateNssDatabases(
 
     for db in $DIRS; do
       if [ -d "$db" ]; then
-        if [ "${action}" = "add" ]; then
-          certutil -d sql:"$db" -A -t "C,," -n "${certName}" -i "${certPath}" 2>/dev/null || \\
-          certutil -d "$db" -A -t "C,," -n "${certName}" -i "${certPath}" 2>/dev/null || true
+        if [ "$ACTION" = "add" ]; then
+          certutil -d sql:"$db" -A -t "C,," -n "$CERT_NAME" -i "$CERT_PATH" 2>/dev/null || \\
+          certutil -d "$db" -A -t "C,," -n "$CERT_NAME" -i "$CERT_PATH" 2>/dev/null || true
         else
-          certutil -d sql:"$db" -D -n "${certName}" 2>/dev/null || \\
-          certutil -d "$db" -D -n "${certName}" 2>/dev/null || true
+          certutil -d sql:"$db" -D -n "$CERT_NAME" 2>/dev/null || \\
+          certutil -d "$db" -D -n "$CERT_NAME" 2>/dev/null || true
         fi
       fi
     done
   `;
 
   return new Promise((resolve) => {
-    exec(script, { shell: "/bin/bash" }, () => resolve());
+    exec(
+      script,
+      {
+        shell: "/bin/bash",
+        env: {
+          ...process.env,
+          CERT_NAME: "OmniRoute MITM Root CA",
+          CERT_PATH: certPath || "",
+          ACTION: action,
+        },
+      },
+      () => resolve()
+    );
   });
 }
 

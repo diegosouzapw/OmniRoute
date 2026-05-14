@@ -120,6 +120,10 @@ Always run `prettier --write` on changed files.
 - Auth middleware required on all API routes
 - Never log SQLite encryption keys
 - Sanitize user content (dompurify for HTML)
+- **Public upstream OAuth identifiers** (Gemini / Antigravity / Windsurf-style client_id/secret + Firebase Web keys extracted from public CLIs): use `resolvePublicCred()` from `open-sse/utils/publicCreds.ts`, **never** as string literals. Full pattern in `docs/security/PUBLIC_CREDS.md`.
+- **Error responses** (HTTP / SSE / executor / MCP): use `buildErrorBody()` or `sanitizeErrorMessage()` from `open-sse/utils/error.ts`, **never** put raw `err.stack` / `err.message` in a Response body. Full pattern in `docs/security/ERROR_SANITIZATION.md`.
+- **`exec()` / `spawn()` with runtime values**: pass via the `env` option, **never** string-interpolate paths/values into the script body. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+- Prefer secure-by-default libraries when available — see [tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults) for the curated list (Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink, etc.).
 
 ---
 

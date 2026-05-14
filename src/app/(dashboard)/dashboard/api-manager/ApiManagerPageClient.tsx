@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
+import { getProviderDisplayName } from "@/lib/display/names";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -434,16 +435,19 @@ export default function ApiManagerPageClient() {
   // Debounced search for performance
   const debouncedSearchModel = useDebouncedValue(searchModel, 150);
 
-  // Group models by provider
+  // Group models by provider (issue #2021 — use centralized display helper so
+  // custom OpenAI-/Anthropic-compatible providers don't leak raw synthetic
+  // ids like "openai-compatible-chat-<uuid>" into the grouping label)
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
     for (const model of allModels) {
-      const provider = model.owned_by || t("unknownProvider");
+      const provider =
+        getProviderDisplayName(model.owned_by) || model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
     return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [allModels]);
+  }, [allModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {

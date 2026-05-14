@@ -16,8 +16,19 @@
  * Registration: call registerCodexQuotaFetcher() once at server startup.
  */
 
-import { registerQuotaFetcher, type QuotaInfo } from "./quotaPreflight.ts";
+import { registerQuotaFetcher, registerQuotaWindows, type QuotaInfo } from "./quotaPreflight.ts";
 import { registerMonitorFetcher } from "./quotaMonitor.ts";
+
+/**
+ * Stable identifiers for Codex's quota windows. These match the quota keys
+ * surfaced by `getCodexUsage` (in usage.ts) and rendered by the dashboard,
+ * so per-window thresholds set in the UI line up with the keys persisted
+ * in `provider_connections.quota_window_thresholds_json`. The dedicated
+ * Codex fetcher exposes only session + weekly today; the plan-dependent
+ * code_review window is surfaced by the generic path when present.
+ */
+export const CODEX_WINDOW_SESSION = "session"; // primary 5-hour window
+export const CODEX_WINDOW_WEEKLY = "weekly"; //  secondary 7-day window
 
 // Codex usage endpoint (same as usage.ts CODEX_CONFIG)
 const CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
@@ -249,16 +260,26 @@ function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
 
   const limitReached = Boolean(rateLimit["limit_reached"] ?? rateLimit["limitReached"]);
 
+  const window5h = { percentUsed: usedPercent5h / 100, resetAt: resetAt5h };
+  const window7d = { percentUsed: usedPercent7d / 100, resetAt: resetAt7d };
+
   return {
     used: worstPercentUsed,
     total: 100,
     percentUsed: percentUsedNormalized,
-    resetAt: getDominantResetAt({
-      window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
-      window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
-    }),
-    window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
-    window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
+    resetAt: getDominantResetAt({ window5h, window7d }),
+    // Per-window breakdown for the preflight evaluator. Keys match what the
+    // dashboard renders (session = 5h, weekly = 7d) so user-set cutoffs and
+    // displayed quotas refer to the same windows.
+    windows: {
+      ...(hasPrimary ? { [CODEX_WINDOW_SESSION]: window5h } : {}),
+      ...(hasSecondary ? { [CODEX_WINDOW_WEEKLY]: window7d } : {}),
+    },
+    // Legacy fields preserved for existing consumers (quotaMonitor, cooldown
+    // computation in accountFallback). These mirror the new windows entries
+    // but keep the historical names — do not remove without checking callers.
+    window5h,
+    window7d,
     limitReached,
   };
 }
@@ -314,4 +335,5 @@ export function invalidateCodexQuotaCache(connectionId: string): void {
 export function registerCodexQuotaFetcher(): void {
   registerQuotaFetcher("codex", fetchCodexQuota);
   registerMonitorFetcher("codex", fetchCodexQuota);
+  registerQuotaWindows("codex", [CODEX_WINDOW_SESSION, CODEX_WINDOW_WEEKLY]);
 }

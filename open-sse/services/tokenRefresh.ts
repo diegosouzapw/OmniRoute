@@ -3,6 +3,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -148,12 +149,14 @@ export async function refreshWindsurfToken(
   }
 
   // Firebase STS refresh for browser-flow tokens.
-  // Key is read from WINDSURF_FIREBASE_API_KEY env var (set in .env.example).
-  const firebaseApiKey = process.env.WINDSURF_FIREBASE_API_KEY || "";
+  // Resolves via WINDSURF_CONFIG.firebaseApiKey, which honors the
+  // WINDSURF_FIREBASE_API_KEY env override and falls back to the embedded
+  // public default in publicCreds.ts. See docs/security/PUBLIC_CREDS.md.
+  const firebaseApiKey = WINDSURF_CONFIG.firebaseApiKey || "";
   if (!firebaseApiKey) {
     log?.warn?.(
       "TOKEN_REFRESH",
-      "WINDSURF_FIREBASE_API_KEY not set — skipping Windsurf Firebase token refresh"
+      "Windsurf Firebase API key unavailable — skipping Firebase token refresh"
     );
     return null;
   }

@@ -179,7 +179,7 @@ test("Claude stream: tool_use start reverses prefixed tool names and streams arg
   assert.equal(delta2[0].choices[0].delta.tool_calls[0].function.arguments, '"/tmp/a"}');
 });
 
-test("Claude stream: message_delta maps stop reason and usage including cache tokens", () => {
+test("Claude stream: message_delta maps stop reason and usage including cache tokens (#1426, #2215)", () => {
   const state = createState();
   claudeToOpenAIResponse(
     { type: "message_start", message: { id: "msg1", model: "claude-3-7-sonnet" } },
@@ -201,11 +201,105 @@ test("Claude stream: message_delta maps stop reason and usage including cache to
   );
 
   assert.equal(result[0].choices[0].finish_reason, "tool_calls");
-  assert.equal(result[0].usage.prompt_tokens, 13);
+  // #2215: prompt_tokens = input + cache_read (excludes cache_creation overhead)
+  assert.equal(result[0].usage.prompt_tokens, 12);
   assert.equal(result[0].usage.completion_tokens, 4);
-  assert.equal(result[0].usage.total_tokens, 17);
+  assert.equal(result[0].usage.total_tokens, 16);
+  // cache_read continues to be visible in prompt_tokens_details (preserves #1426 intent)
   assert.equal(result[0].usage.prompt_tokens_details.cached_tokens, 2);
+  // cache_creation is exposed for auditing but does NOT inflate prompt_tokens
   assert.equal(result[0].usage.prompt_tokens_details.cache_creation_tokens, 1);
+});
+
+test("Claude stream: #2215 — short prompt with large cache_creation does not inflate prompt_tokens", () => {
+  const state = createState();
+  claudeToOpenAIResponse(
+    { type: "message_start", message: { id: "msg1", model: "claude-sonnet-4-6" } },
+    state
+  );
+
+  // Reproduces the scenario in the bug report: user sends "hi" with a long
+  // system prompt that triggers cache_control. Anthropic returns:
+  //   input_tokens: 8 (just "hi")
+  //   cache_creation_input_tokens: 2000 (system prompt being cached)
+  //   cache_read_input_tokens: 0 (first turn, no cache hit yet)
+  // Before the fix: prompt_tokens = 2008 (8 + 0 + 2000). Now: prompt_tokens = 8.
+  const result = claudeToOpenAIResponse(
+    {
+      type: "message_delta",
+      delta: { stop_reason: "end_turn" },
+      usage: {
+        input_tokens: 8,
+        output_tokens: 11,
+        cache_read_input_tokens: 0,
+        cache_creation_input_tokens: 2000,
+      },
+    },
+    state
+  );
+
+  assert.equal(result[0].usage.prompt_tokens, 8);
+  assert.equal(result[0].usage.completion_tokens, 11);
+  assert.equal(result[0].usage.total_tokens, 19);
+  // cache_creation is auditable but not in prompt_tokens
+  assert.equal(result[0].usage.prompt_tokens_details.cache_creation_tokens, 2000);
+  // No cache_read so cached_tokens should not be set
+  assert.equal(result[0].usage.prompt_tokens_details.cached_tokens, undefined);
+});
+
+test("Claude stream: #2215 — cache_read alone is billable input (cache hit path)", () => {
+  const state = createState();
+  claudeToOpenAIResponse(
+    { type: "message_start", message: { id: "msg1", model: "claude-sonnet-4-6" } },
+    state
+  );
+
+  // Second turn: user sends another "hi". This time the system prompt is in
+  // cache (cache_read=2000), and only "hi" is fresh input (input=8).
+  // prompt_tokens should reflect everything the user effectively paid for: 8 + 2000 = 2008.
+  // cached_tokens reports how many were a hit.
+  const result = claudeToOpenAIResponse(
+    {
+      type: "message_delta",
+      delta: { stop_reason: "end_turn" },
+      usage: {
+        input_tokens: 8,
+        output_tokens: 5,
+        cache_read_input_tokens: 2000,
+        cache_creation_input_tokens: 0,
+      },
+    },
+    state
+  );
+
+  assert.equal(result[0].usage.prompt_tokens, 2008);
+  assert.equal(result[0].usage.prompt_tokens_details.cached_tokens, 2000);
+  assert.equal(result[0].usage.prompt_tokens_details.cache_creation_tokens, undefined);
+});
+
+test("Claude stream: #2215 — no cache fields means no prompt_tokens_details", () => {
+  const state = createState();
+  claudeToOpenAIResponse(
+    { type: "message_start", message: { id: "msg1", model: "claude-sonnet-4-6" } },
+    state
+  );
+
+  const result = claudeToOpenAIResponse(
+    {
+      type: "message_delta",
+      delta: { stop_reason: "end_turn" },
+      usage: {
+        input_tokens: 50,
+        output_tokens: 20,
+      },
+    },
+    state
+  );
+
+  assert.equal(result[0].usage.prompt_tokens, 50);
+  assert.equal(result[0].usage.completion_tokens, 20);
+  assert.equal(result[0].usage.total_tokens, 70);
+  assert.equal(result[0].usage.prompt_tokens_details, undefined);
 });
 
 test("Claude stream: message_stop falls back to tool_calls when tool use already happened", () => {

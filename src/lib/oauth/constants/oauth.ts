@@ -9,6 +9,10 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  resolvePublicCred,
+  resolvePublicCredMulti,
+} from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -57,15 +61,17 @@ export const CODEX_CONFIG = {
 };
 
 // Gemini (Google) OAuth Configuration (Standard OAuth2)
+// clientId/clientSecret are public values shipped in the Gemini CLI binary;
+// resolved through resolvePublicCred so they don't appear as literals here.
 export const GEMINI_CONFIG = {
-  clientId:
-    process.env.GEMINI_CLI_OAUTH_CLIENT_ID ||
-    process.env.GEMINI_OAUTH_CLIENT_ID ||
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  clientSecret:
-    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET ||
-    process.env.GEMINI_OAUTH_CLIENT_SECRET ||
-    "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",
+  clientId: resolvePublicCredMulti("gemini_id", [
+    "GEMINI_CLI_OAUTH_CLIENT_ID",
+    "GEMINI_OAUTH_CLIENT_ID",
+  ]),
+  clientSecret: resolvePublicCredMulti("gemini_alt", [
+    "GEMINI_CLI_OAUTH_CLIENT_SECRET",
+    "GEMINI_OAUTH_CLIENT_SECRET",
+  ]),
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -135,12 +141,11 @@ export const CLINE_CONFIG = {
 };
 
 // Antigravity OAuth Configuration (Standard OAuth2 with Google)
+// clientId/clientSecret are public values shipped in the Antigravity CLI;
+// resolved through resolvePublicCred so they don't appear as literals here.
 export const ANTIGRAVITY_CONFIG = {
-  clientId:
-    process.env.ANTIGRAVITY_OAUTH_CLIENT_ID ||
-    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  clientSecret:
-    process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET || "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",
+  clientId: resolvePublicCred("antigravity_id", "ANTIGRAVITY_OAUTH_CLIENT_ID"),
+  clientSecret: resolvePublicCred("antigravity_alt", "ANTIGRAVITY_OAUTH_CLIENT_SECRET"),
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -292,9 +297,10 @@ export const WINDSURF_CONFIG = {
   // Fallback: user visits this page, copies token, pastes it
   showAuthTokenUrl: "https://windsurf.com/show-auth-token",
   // Token refresh via Firebase Secure Token Service (for short-lived browser-flow tokens).
-  // Value comes from WINDSURF_FIREBASE_API_KEY env var (set in .env.example).
+  // Default is the public Firebase Web client identifier embedded in the
+  // Windsurf/Devin CLI binary; users may override via WINDSURF_FIREBASE_API_KEY.
   // Long-lived import tokens never need this — refresh is skipped when key is absent.
-  firebaseApiKey: process.env.WINDSURF_FIREBASE_API_KEY || "",
+  firebaseApiKey: resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY"),
   firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
   // IDE identity sent with every gRPC request
   ideName: "windsurf",

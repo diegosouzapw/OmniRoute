@@ -201,3 +201,53 @@ test("hashSyncToken output is never the plain token (not stored in clear text)",
   assert.notEqual(hash, token, "hash must differ from plaintext token");
   assert.ok(!hash.startsWith("osync_"), "hash must not start with the token prefix");
 });
+
+test("sanitizeErrorMessage strips multi-line stack traces", async () => {
+  const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
+  const input =
+    "Cannot read property 'foo' of undefined\n    at handler (/srv/app/src/lib/x.ts:42:11)\n    at next (internal)";
+  const out = sanitizeErrorMessage(input);
+  assert.equal(out, "Cannot read property 'foo' of undefined");
+  assert.ok(!out.includes("at handler"));
+});
+
+test("sanitizeErrorMessage replaces absolute paths with <path>", async () => {
+  const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
+  const out1 = sanitizeErrorMessage("Failed to open /home/user/secret-project/src/config.ts:10");
+  assert.ok(!out1.includes("/home/user/secret-project"));
+  assert.ok(out1.includes("<path>"));
+
+  const out2 = sanitizeErrorMessage("Module not found: C:\\Users\\admin\\app\\index.js:1:1");
+  assert.ok(!out2.includes("C:\\Users\\admin"));
+  assert.ok(out2.includes("<path>"));
+});
+
+test("sanitizeErrorMessage handles non-string inputs safely", async () => {
+  const { sanitizeErrorMessage } = await import("../../open-sse/utils/error.ts");
+  assert.equal(sanitizeErrorMessage(undefined), "");
+  assert.equal(sanitizeErrorMessage(null), "");
+  assert.equal(sanitizeErrorMessage(42), "42");
+  assert.equal(sanitizeErrorMessage(new Error("boom")), "Error: boom");
+});
+
+test("buildErrorBody never exposes stack traces in its message", async () => {
+  const { buildErrorBody } = await import("../../open-sse/utils/error.ts");
+  const body = buildErrorBody(
+    500,
+    "Internal error\n    at /opt/app/src/server.ts:99:7\n    at next (internal)"
+  );
+  assert.equal(body.error.message, "Internal error");
+  assert.ok(!body.error.message.includes("at /opt"));
+});
+
+test("GET /token-health response never leaks stack frames or absolute paths", async () => {
+  const tokenHealthRoute = await import("../../src/app/api/token-health/route.ts");
+  const res = await tokenHealthRoute.GET();
+  const body = (await res.json()) as any;
+  assert.ok(!("stack" in body), "response must not contain stack trace");
+  if (typeof body.error === "string") {
+    assert.ok(!body.error.includes("    at "), "stack frame must not leak in error");
+    assert.ok(!/^\//.test(body.error), "absolute POSIX path must not leak");
+    assert.ok(!/^[A-Za-z]:[\\/]/.test(body.error), "absolute Windows path must not leak");
+  }
+});

@@ -94,8 +94,8 @@ function humanizeBasename(filePath) {
 }
 
 function buildFrontmatter(title) {
-  // Quote title with double quotes; escape internal double quotes.
-  const safe = title.replace(/"/g, '\\"');
+  // Quote title with double quotes; escape backslashes first, then double quotes.
+  const safe = title.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   return [
     `---`,
     `title: "${safe}"`,

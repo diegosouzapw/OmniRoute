@@ -244,6 +244,10 @@ connection continue serving other models.
 - Validate all inputs with Zod schemas
 - Encrypt credentials at rest (AES-256-GCM)
 - Upstream header denylist: `src/shared/constants/upstreamHeaders.ts` — keep sanitize, Zod schemas, and unit tests aligned when editing
+- **Public upstream credentials** (Gemini/Antigravity/Windsurf-style OAuth client_id/secret + Firebase Web keys extracted from public CLIs): **MUST** be embedded via `resolvePublicCred()` from `open-sse/utils/publicCreds.ts` — **never** as string literals. See `docs/security/PUBLIC_CREDS.md` for the mandatory pattern.
+- **Error responses** (HTTP / SSE / executor / MCP handler): **MUST** route through `buildErrorBody()` or `sanitizeErrorMessage()` from `open-sse/utils/error.ts` — **never** put raw `err.stack` or `err.message` in a response body. See `docs/security/ERROR_SANITIZATION.md`.
+- **Shell commands built from variables**: when calling `exec()`/`spawn()` with a script that needs runtime values, pass them via the `env` option (shell-escaped automatically) — **never** string-interpolate untrusted/external paths into the script body. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Secure-by-default libraries** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): prefer Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink over custom implementations whenever adding new security-sensitive surfaces.
 
 ---
 
@@ -254,9 +258,9 @@ connection continue serving other models.
 1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
 2. Add executor in `open-sse/executors/` if custom logic needed (extend `BaseExecutor`)
 3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
+4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based — if the upstream CLI ships a public client_id/secret, embed via `resolvePublicCred()` (see `docs/security/PUBLIC_CREDS.md`), **never** as a literal
 5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/`
+6. Write tests in `tests/unit/` (include the publicCreds shape assertion if you added a new embedded default)
 
 ### Adding a New API Route
 
@@ -264,7 +268,8 @@ connection continue serving other models.
 2. Create `route.ts` with `GET`/`POST` handlers
 3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
 4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+5. Error responses use `buildErrorBody()` / `errorResponse()` from `open-sse/utils/error.ts` (auto-sanitized — never put `err.stack` or `err.message` raw in the body). See `docs/security/ERROR_SANITIZATION.md`.
+6. Add tests — including at least one assertion that error responses do not leak stack traces (`!body.error.message.includes("at /")`)
 
 ### Adding a New DB Module
 
@@ -323,6 +328,8 @@ For any non-trivial change, read the matching deep-dive first:
 | Memory system (FTS5 + Qdrant)                | `docs/frameworks/MEMORY.md`                                       |
 | Cloud agents                                 | `docs/frameworks/CLOUD_AGENT.md`                                  |
 | Guardrails (PII / injection / vision)        | `docs/security/GUARDRAILS.md`                                     |
+| Public upstream credentials (Gemini/etc.)    | `docs/security/PUBLIC_CREDS.md`                                   |
+| Error message sanitization                   | `docs/security/ERROR_SANITIZATION.md`                             |
 | Evals                                        | `docs/frameworks/EVALS.md`                                        |
 | Compliance / audit                           | `docs/security/COMPLIANCE.md`                                     |
 | Webhooks                                     | `docs/frameworks/WEBHOOKS.md`                                     |
@@ -402,3 +409,7 @@ git push -u origin feat/your-feature
 8. Always include tests when changing production code
 9. Coverage must stay ≥75% (statements, lines, functions) / ≥70% (branches). Current measured: ~82%.
 10. Never bypass Husky hooks (`--no-verify`, `--no-gpg-sign`) without explicit operator approval.
+11. Never embed public upstream OAuth client_id/secret or Firebase Web keys as string literals — always go through `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). See `docs/security/PUBLIC_CREDS.md`.
+12. Never return raw `err.stack` / `err.message` in HTTP / SSE / executor responses — always route through `buildErrorBody()` or `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). See `docs/security/ERROR_SANITIZATION.md`.
+13. Never string-interpolate external paths or runtime values into shell scripts passed to `exec()`/`spawn()` — pass via the `env` option instead. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Never dismiss a CodeQL / Secret-Scanning alert without (a) first checking the pattern docs above to see if the helper applies, and (b) recording the technical justification in the dismissal comment. Precedent: `js/stack-trace-exposure` raised on callsites that already route through `sanitizeErrorMessage()` is a known CodeQL limitation (custom sanitizers not recognized) — dismiss as `false positive` referencing `docs/security/ERROR_SANITIZATION.md`.

@@ -37,6 +37,7 @@ import {
   getRuntimeArch,
 } from "./providerHeaderProfiles.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
+import { resolvePublicCred } from "../utils/publicCreds.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -578,9 +579,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_OAUTH_CLIENT_ID",
-      clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
+      clientIdDefault: resolvePublicCred("gemini_id"),
       clientSecretEnv: "GEMINI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "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",
+      clientSecretDefault: resolvePublicCred("gemini_alt"),
     },
     models: [],
     // Models are populated from Google's API via sync-models (per API key).
@@ -602,9 +603,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
-      clientIdDefault: "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
+      clientIdDefault: resolvePublicCred("gemini_id"),
       clientSecretEnv: "GEMINI_CLI_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "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",
+      clientSecretDefault: resolvePublicCred("gemini_alt"),
     },
     models: [
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
@@ -752,9 +753,9 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     headers: getAntigravityProviderHeaders(),
     oauth: {
       clientIdEnv: "ANTIGRAVITY_OAUTH_CLIENT_ID",
-      clientIdDefault: "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
+      clientIdDefault: resolvePublicCred("antigravity_id"),
       clientSecretEnv: "ANTIGRAVITY_OAUTH_CLIENT_SECRET",
-      clientSecretDefault: "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",
+      clientSecretDefault: resolvePublicCred("antigravity_alt"),
     },
     models: [...ANTIGRAVITY_PUBLIC_MODELS],
     passthroughModels: true,

@@ -50,7 +50,8 @@ function asRecords(map: Record<string, ProviderRecord>): ProviderRecord[] {
 
 function escapeCell(value: string | undefined): string {
   if (!value) return "—";
-  return value.replace(/\|/g, "\\|").replace(/\n/g, " ");
+  // Escape backslash first so the subsequent escapes don't double-escape it.
+  return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
 function row(p: ProviderRecord, category: string): string {

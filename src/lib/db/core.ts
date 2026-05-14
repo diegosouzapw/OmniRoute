@@ -443,6 +443,16 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
+    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+      // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
+      // Surface the parsed object under the friendlier name (key minus the
+      // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      const baseKey = camelKey.slice(0, -"Json".length);
+      try {
+        result[baseKey] = JSON.parse(v);
+      } catch {
+        result[baseKey] = null;
+      }
     } else {
       result[camelKey] = v;
     }

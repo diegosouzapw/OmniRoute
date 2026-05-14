@@ -8,6 +8,7 @@
  * @module shared/utils/apiKeyPolicy
  */
 
+import { z } from "zod";
 import { extractApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata, isModelAllowedForKey } from "@/lib/localDb";
 import { checkBudget } from "@/domain/costRules";
@@ -16,11 +17,68 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 
-const DEFAULT_RATE_LIMITS: RateLimitRule[] = [
-  { limit: 1000, window: 86400 }, // 1000 per day
-  { limit: 5000, window: 604800 }, // 5000 per week
-  { limit: 20000, window: 2592000 }, // 20000 per month
-];
+/**
+ * Legacy default applied to API keys whose `rate_limits` column is null.
+ * Kept as the secure-by-default fallback when DEFAULT_RATE_LIMIT_PER_DAY is
+ * unset or malformed — going unlimited silently on an upgrade would expose
+ * existing deployments to runaway cost / abuse from old, unconfigured keys.
+ */
+const LEGACY_DEFAULT_PER_DAY = 1000;
+
+/**
+ * Per Repository Style Guide rule 8, env input is validated through Zod
+ * rather than `parseInt`. `parseInt("1000 requests", 10)` returns `1000`,
+ * silently turning a config typo into a partial value — Zod rejects it.
+ */
+const DEFAULT_RATE_LIMIT_PER_DAY_SCHEMA = z.coerce.number().int().min(0);
+
+/**
+ * Build the fallback rate-limit rules applied to API keys whose
+ * `rate_limits` column is null. Configurable via DEFAULT_RATE_LIMIT_PER_DAY:
+ *
+ * - unset / empty / malformed → 1000/day, 5000/week, 20000/month
+ *   (the legacy default; preserves existing behavior on upgrade).
+ * - `0` (explicit opt-out) → empty rule set; `checkRateLimit()` short-
+ *   circuits empty input as allowed, so keys without an explicit limit
+ *   become effectively unlimited.
+ * - any positive integer N → N/day, 5N/week, 20N/month.
+ *
+ * Exported for unit testing; production code should reference the
+ * `DEFAULT_RATE_LIMITS` constant below.
+ */
+export function buildDefaultRateLimits(
+  envValue = process.env.DEFAULT_RATE_LIMIT_PER_DAY
+): RateLimitRule[] {
+  const trimmed = (envValue ?? "").trim();
+  let perDay: number;
+  if (trimmed === "") {
+    perDay = LEGACY_DEFAULT_PER_DAY;
+  } else {
+    const parsed = DEFAULT_RATE_LIMIT_PER_DAY_SCHEMA.safeParse(trimmed);
+    if (!parsed.success) {
+      // Malformed value — fall back to the legacy default rather than
+      // silently going unlimited from a typo. The runtime cost of the
+      // warning is paid once at module load.
+      log.warn(
+        "API_POLICY",
+        `Invalid DEFAULT_RATE_LIMIT_PER_DAY=${JSON.stringify(envValue)}; ` +
+          `falling back to ${LEGACY_DEFAULT_PER_DAY}/day. ` +
+          `Set to "0" to explicitly disable the fallback.`
+      );
+      perDay = LEGACY_DEFAULT_PER_DAY;
+    } else {
+      perDay = parsed.data;
+    }
+  }
+  if (perDay === 0) return [];
+  return [
+    { limit: perDay, window: 86400 },
+    { limit: perDay * 5, window: 604800 },
+    { limit: perDay * 20, window: 2592000 },
+  ];
+}
+
+const DEFAULT_RATE_LIMITS: RateLimitRule[] = buildDefaultRateLimits();
 
 interface AccessSchedule {
   enabled: boolean;
