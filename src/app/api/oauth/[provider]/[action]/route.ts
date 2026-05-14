@@ -134,7 +134,9 @@ export async function GET(
             (requestDeviceCode as any)(provider, null, providerOverrideConfig)
           );
         } else {
-          deviceData = await runWithProxyContext(proxy, () => (requestDeviceCode as any)(provider));
+          deviceData = await runWithProxyContext(proxy, () =>
+            (requestDeviceCode as any)(provider, authData.codeChallenge)
+          );
         }
       } else {
         // Qwen and other providers use PKCE
@@ -146,6 +148,7 @@ export async function GET(
       return NextResponse.json({
         ...deviceData,
         codeVerifier: authData.codeVerifier,
+        codeChallenge: authData.codeChallenge,
       });
     }
 
@@ -595,7 +598,10 @@ export async function POST(
         });
       } catch (exchangeErr: any) {
         console.error("OAuth exchange error:", exchangeErr);
-        return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+        return NextResponse.json(
+          { success: false, error: "Internal server error" },
+          { status: 500 }
+        );
       }
     }
 

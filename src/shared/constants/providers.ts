@@ -112,6 +112,17 @@ export const OAUTH_PROVIDERS = {
       "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
     website: "https://cli.devin.ai",
   },
+  "nous-portal": {
+    id: "nous-portal",
+    alias: "nous",
+    name: "Nous Portal",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "NP",
+    authHint:
+      "Uses Nous Portal OAuth device code flow. Authenticate at portal.nousresearch.com to get an agent API key.",
+    website: "https://portal.nousresearch.com",
+  },
 };
 
 // Web / Cookie Providers
