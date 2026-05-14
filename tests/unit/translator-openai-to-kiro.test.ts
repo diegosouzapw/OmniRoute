@@ -80,7 +80,11 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
 
   assert.equal(result.conversationState.history.length, 2);
   assert.deepEqual(result.conversationState.history[0], {
-    userInputMessage: { content: "Rules\n\nHello", modelId: "claude-sonnet-4" },
+    userInputMessage: {
+      content: "Rules\n\nHello",
+      modelId: "claude-sonnet-4",
+      origin: "AI_EDITOR",
+    },
   });
   assert.deepEqual(result.conversationState.history[1], {
     assistantResponseMessage: {
@@ -111,7 +115,6 @@ test("OpenAI -> Kiro preserves prior history, tool uses and accumulated tool res
   assert.deepEqual(context.tools[0].toolSpecification.inputSchema.json, {
     type: "object",
     properties: { path: { type: "string" } },
-    required: [],
   });
 });
 
@@ -217,7 +220,9 @@ test("OpenAI -> Kiro uses Continue currentMessage when the request ends with ass
     /^\[Context: Current time is .*Z\]\n\nContinue$/
   );
   assert.deepEqual(result.conversationState.history, [
-    { userInputMessage: { content: "First user", modelId: "claude-sonnet-4" } },
+    {
+      userInputMessage: { content: "First user", modelId: "claude-sonnet-4", origin: "AI_EDITOR" },
+    },
     { assistantResponseMessage: { content: "Assistant answer" } },
   ]);
 });
@@ -438,4 +443,144 @@ test("OpenAI -> Kiro attaches tools to currentMessage when history has no user t
   assert.ok(ctx?.tools, "tools should be attached to currentMessage fallback");
   assert.equal(ctx.tools!.length, 1);
   assert.equal(ctx.tools![0].toolSpecification.name, "edit");
+});
+
+test("OpenAI -> Kiro strips additionalProperties and empty required from tool schemas", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [{ role: "user", content: "Hi" }],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "test_tool",
+            description: "Test",
+            parameters: {
+              type: "object",
+              properties: {
+                path: { type: "string", additionalProperties: false },
+                nested: {
+                  type: "object",
+                  properties: { id: { type: "string" } },
+                  additionalProperties: true,
+                },
+              },
+              required: [],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+    },
+    false,
+    null
+  );
+
+  const schema = result.conversationState.currentMessage.userInputMessage.userInputMessageContext
+    ?.tools?.[0]?.toolSpecification?.inputSchema?.json as any;
+
+  assert.ok(schema, "schema should exist");
+  assert.equal(
+    schema.additionalProperties,
+    undefined,
+    "top-level additionalProperties should be stripped"
+  );
+  assert.equal(schema.required, undefined, "empty required should be omitted");
+  assert.equal(
+    schema.properties.path.additionalProperties,
+    undefined,
+    "nested additionalProperties should be stripped"
+  );
+  assert.equal(
+    schema.properties.nested.additionalProperties,
+    undefined,
+    "deep nested additionalProperties should be stripped"
+  );
+});
+
+test("OpenAI -> Kiro merges consecutive assistant messages", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "Hello" },
+        { role: "assistant", content: "Part 1" },
+        { role: "assistant", content: "Part 2" },
+        { role: "user", content: "Continue" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const history = result.conversationState.history as any[];
+  assert.equal(history.length, 2, "consecutive assistants should be merged into one");
+  assert.equal(history[0].userInputMessage.content, "Hello");
+  assert.equal(history[1].assistantResponseMessage.content, "Part 1\n\nPart 2");
+});
+
+test("OpenAI -> Kiro prepends synthetic user when conversation starts with assistant", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "assistant", content: "Greeting" },
+        { role: "user", content: "Hello" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const history = result.conversationState.history as any[];
+  assert.equal(history.length, 2);
+  assert.equal(history[0].userInputMessage.content, "(empty)");
+  assert.equal(history[0].userInputMessage.origin, "AI_EDITOR");
+  assert.equal(history[1].assistantResponseMessage.content, "Greeting");
+});
+
+test("OpenAI -> Kiro converts orphaned tool results to text", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "First" },
+        { role: "assistant", content: "Answer" },
+        { role: "tool", tool_call_id: "orphan_1", content: "result data" },
+        { role: "user", content: "Follow-up" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const currentMsg = result.conversationState.currentMessage.userInputMessage;
+  assert.match(currentMsg.content, /Follow-up\n\n\[Tool Result \(orphan_1\)\]\nresult data$/);
+  assert.equal(
+    currentMsg.userInputMessageContext,
+    undefined,
+    "orphaned toolResults should be removed from context"
+  );
+});
+
+test("OpenAI -> Kiro includes origin on all history user messages", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "A" },
+        { role: "assistant", content: "B" },
+        { role: "user", content: "C" },
+      ],
+    },
+    false,
+    null
+  );
+
+  const history = result.conversationState.history as any[];
+  assert.equal(history[0].userInputMessage.origin, "AI_EDITOR");
+  assert.equal(history[1].assistantResponseMessage.content, "B");
+  // Note: last user message becomes currentMessage, not history
+  assert.equal(history.length, 2);
 });

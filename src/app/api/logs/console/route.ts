@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync } from "fs";
 import { getAppLogFilePath } from "@/lib/logEnv";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 const LEVEL_ORDER: Record<string, number> = {
   trace: 5,
@@ -114,6 +115,9 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to read logs" }, { status: 500 });
+    return NextResponse.json(
+      { error: sanitizeErrorMessage(err?.message) || "Failed to read logs" },
+      { status: 500 }
+    );
   }
 }

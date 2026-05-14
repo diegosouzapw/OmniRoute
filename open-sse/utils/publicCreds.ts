@@ -50,22 +50,53 @@ function maskBytes(plain: string): number[] {
   return arr;
 }
 
+// A valid base64-encoded masked value uses only the base64 alphabet plus
+// optional padding. Anything outside that alphabet is definitely a raw
+// credential the user supplied (a token format we don't yet recognize in
+// RAW_VALUE_PATTERN) — never try to base64-decode it.
+const STRICT_BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
+
+// Plaintext credentials never contain control characters. If unmasking
+// produces non-printable bytes, the input wasn't actually masked and we
+// must return it untouched to avoid silently mangling raw overrides.
+function looksLikePrintablePlain(s: string): boolean {
+  if (!s) return false;
+  for (let i = 0; i < s.length; i++) {
+    const code = s.charCodeAt(i);
+    // Allow printable ASCII (0x20–0x7E). Everything outside that is suspect.
+    if (code < 0x20 || code > 0x7e) return false;
+  }
+  return true;
+}
+
 /**
  * Decode a public credential. Accepts either a raw literal (well-known prefix)
  * or a base64 string produced by `encodePublicCred()`. Returns the plaintext.
  * Empty / nullish input returns "".
+ *
+ * When the input doesn't match a known raw-credential prefix, we tentatively
+ * base64-decode + XOR-unmask, but only adopt the result if it looks like a
+ * printable plaintext. Otherwise we return the original value unchanged —
+ * `Buffer.from(value, "base64")` is lenient (it silently drops invalid chars
+ * instead of throwing) so a raw secret with a unknown format would otherwise
+ * be silently mangled. See docs/security/PUBLIC_CREDS.md.
  */
 export function decodePublicCred(value: string | null | undefined): string {
   if (!value || typeof value !== "string") return "";
 
   if (RAW_VALUE_PATTERN.test(value)) return value;
 
+  // Reject anything that isn't strict base64 — saves us from feeding raw
+  // ASCII overrides into the lenient Buffer.from(...,"base64") path.
+  if (!STRICT_BASE64.test(value)) return value;
+
   try {
     const buf = Buffer.from(value, "base64");
     if (buf.length === 0) return value;
     const arr: number[] = [];
     for (let i = 0; i < buf.length; i++) arr.push(buf[i]);
-    return unmaskBytes(arr);
+    const decoded = unmaskBytes(arr);
+    return looksLikePrintablePlain(decoded) ? decoded : value;
   } catch {
     return value;
   }

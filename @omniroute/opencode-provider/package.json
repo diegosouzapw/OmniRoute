@@ -1,20 +1,59 @@
 {
   "name": "@omniroute/opencode-provider",
-  "version": "1.0.0",
-  "description": "OpenCode provider plugin for OmniRoute AI Gateway",
+  "version": "0.1.0",
+  "description": "OpenCode provider helper for the OmniRoute AI Gateway. Generates a schema-valid provider entry for opencode.json that delegates the runtime to @ai-sdk/openai-compatible.",
   "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
-    "index.js",
-    "index.d.ts",
-    "README.md"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "test": "node --import tsx/esm --test tests/**/*.test.ts",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
   "keywords": [
     "omniroute",
     "opencode",
-    "provider"
+    "opencode-ai",
+    "ai-sdk",
+    "openai-compatible",
+    "provider",
+    "ai-gateway",
+    "llm-router"
   ],
+  "author": "OmniRoute contributors",
   "license": "MIT",
-  "peerDependencies": {}
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diegosouzapw/OmniRoute.git",
+    "directory": "@omniroute/opencode-provider"
+  },
+  "bugs": {
+    "url": "https://github.com/diegosouzapw/OmniRoute/issues"
+  },
+  "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-provider#readme",
+  "engines": {
+    "node": ">=20.20.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
 }

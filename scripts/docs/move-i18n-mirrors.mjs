@@ -18,7 +18,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..");
@@ -116,19 +116,23 @@ for (const locale of fs.readdirSync(I18N_DIR)) {
     }
 
     if (!fs.existsSync(subDir)) fs.mkdirSync(subDir, { recursive: true });
+    const relSrc = path.relative(ROOT, src);
+    const relDst = path.relative(ROOT, dst);
     try {
-      execSync(`git mv -k -- "${path.relative(ROOT, src)}" "${path.relative(ROOT, dst)}"`, {
+      execFileSync("git", ["mv", "-k", "--", relSrc, relDst], {
         cwd: ROOT,
         stdio: "pipe",
       });
       moved++;
-    } catch (e) {
-      // fallback: copy + delete
+    } catch {
+      // fallback: copy + delete; emulate `|| true` for the rm by ignoring its failure
       fs.renameSync(src, dst);
-      execSync(
-        `git rm --cached -- "${path.relative(ROOT, src)}" 2>/dev/null || true; git add -- "${path.relative(ROOT, dst)}"`,
-        { cwd: ROOT, stdio: "pipe", shell: "/bin/bash" }
-      );
+      try {
+        execFileSync("git", ["rm", "--cached", "--", relSrc], { cwd: ROOT, stdio: "pipe" });
+      } catch {
+        // file may not be tracked yet — safe to ignore
+      }
+      execFileSync("git", ["add", "--", relDst], { cwd: ROOT, stdio: "pipe" });
       moved++;
     }
   }
