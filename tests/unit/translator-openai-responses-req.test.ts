@@ -110,7 +110,7 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
   });
 });
 
-test("Responses -> Chat rejects unsupported built-in tools and background mode", () => {
+test("Responses -> Chat rejects unsupported built-in tools", () => {
   assert.throws(
     () =>
       openaiResponsesToOpenAIRequest(
@@ -124,20 +124,77 @@ test("Responses -> Chat rejects unsupported built-in tools and background mode",
       ),
     (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
+});
 
-  assert.throws(
-    () =>
-      openaiResponsesToOpenAIRequest(
-        "gpt-4o",
-        {
-          input: [],
-          background: true,
-        },
-        false,
-        null
-      ),
-    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
-  );
+test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
+  // Previously this threw 400 unsupported_feature. OmniRoute is a forward proxy
+  // and cannot host the deferred run + poll contract, so background=true is
+  // silently dropped and the request runs synchronously. Clients that set the
+  // flag opportunistically (Capy Captain Pro, Codex agents) work unchanged.
+  const warnLog: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (msg: unknown) => warnLog.push(String(msg));
+  try {
+    const result = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        background: true,
+      },
+      true,
+      { provider: "codex" }
+    );
+    const r = result as Record<string, unknown>;
+    assert.equal(r.background, undefined, "background flag must be stripped from output");
+    assert.ok(Array.isArray(r.messages), "translation must complete and produce messages");
+    assert.equal((r.messages as unknown[]).length, 1, "user message must be preserved");
+    assert.ok(
+      warnLog.some((m) => m.startsWith("BACKGROUND_DEGRADE provider=codex model=gpt-5.5")),
+      "BACKGROUND_DEGRADE warning log must be emitted when background=true"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("Responses -> Chat passes through when background flag is unset or false (no degrade log)", () => {
+  // Verifies the inverse of the degradation case: when background is absent or
+  // explicitly false, no warning should be emitted and the request body should
+  // not carry a residual background field. Guards against accidental log spam
+  // and confirms the degradation logic is conditional on background === true.
+  const warnLog: string[] = [];
+  const originalWarn = console.warn;
+  console.warn = (msg: unknown) => warnLog.push(String(msg));
+  try {
+    // Case 1: background unset
+    const r1 = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      { input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }] },
+      true,
+      { provider: "codex" }
+    ) as Record<string, unknown>;
+    assert.equal(r1.background, undefined, "background must be absent on output (unset case)");
+
+    // Case 2: background explicitly false
+    const r2 = openaiResponsesToOpenAIRequest(
+      "gpt-5.5",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+        background: false,
+      },
+      true,
+      { provider: "codex" }
+    ) as Record<string, unknown>;
+    assert.equal(r2.background, undefined, "background must be stripped on output (false case)");
+
+    assert.equal(
+      warnLog.filter((m) => m.startsWith("BACKGROUND_DEGRADE")).length,
+      0,
+      "BACKGROUND_DEGRADE must NOT be emitted for unset or false values"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
 });
 
 test("Chat -> Responses converts messages, tool calls, tool outputs, tools and pass-through params", () => {
@@ -295,6 +352,35 @@ test("Chat -> Responses preserves explicit reasoning objects", () => {
 
   assert.deepEqual((result as any).reasoning, { effort: "low" });
   assert.equal((result as any).store, false);
+});
+
+test("Chat -> Responses propagates include so upstream streams the reasoning summary", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning: { effort: "high", summary: "auto" },
+      include: ["reasoning.encrypted_content"],
+    },
+    false,
+    null
+  );
+
+  assert.deepEqual((result as any).include, ["reasoning.encrypted_content"]);
+});
+
+test("Chat -> Responses does not inject include when caller did not set one", () => {
+  const result = openaiToOpenAIResponsesRequest(
+    "gpt-5.3-codex-spark",
+    {
+      messages: [{ role: "user", content: "Hello" }],
+      reasoning: { effort: "high" },
+    },
+    false,
+    null
+  );
+
+  assert.equal((result as any).include, undefined);
 });
 
 test("Chat -> Responses maps reasoning_effort into Responses reasoning", () => {

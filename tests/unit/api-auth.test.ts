@@ -278,11 +278,13 @@ test("requireManagementAuth returns 401 with no credentials", async () => {
   assert.equal(res.status, 401);
 });
 
-test("requireManagementAuth returns 401 for an invalid API key", async () => {
+test("requireManagementAuth returns 403 for an invalid management token", async () => {
   await setupAuth();
   const res = await requireManagementAuth(managementRequest("sk-not-a-real-key"));
   assert.ok(res);
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  const body = await res.json();
+  assert.equal(body.error?.message, "Invalid management token");
 });
 
 test("requireManagementAuth returns 403 for valid key without manage scope", async () => {
@@ -314,13 +316,15 @@ test("requireManagementAuth returns null for OMNIROUTE_API_KEY env passthrough",
   }
 });
 
-test("requireManagementAuth returns 401 for revoked key with manage scope", async () => {
+test("requireManagementAuth returns 403 for revoked key with manage scope", async () => {
   await setupAuth();
   const key = await apiKeysDb.createApiKey("revoked-admin", "machine-test", ["manage"]);
   await apiKeysDb.revokeApiKey(key.id);
   const res = await requireManagementAuth(managementRequest(key.key));
   assert.ok(res);
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  const body = await res.json();
+  assert.equal(body.error?.message, "Invalid management token");
 });
 
 test("requireManagementAuth returns null for valid JWT cookie", async () => {

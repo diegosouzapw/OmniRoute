@@ -24,8 +24,8 @@ export async function requireManagementAuth(request: Request): Promise<Response 
     try {
       if (!(await isValidApiKey(apiKey))) {
         return createErrorResponse({
-          status: 401,
-          message: "Invalid API key",
+          status: 403,
+          message: "Invalid management token",
           type: "invalid_request",
         });
       }

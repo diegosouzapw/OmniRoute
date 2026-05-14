@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
 import { DocsSidebarClient } from "./components/DocsSidebarClient";
-import { DocsLocaleSwitcher } from "./components/DocsI18n";
+import LanguageSelector from "@/shared/components/LanguageSelector";
 
 export const metadata = {
   title: {
@@ -56,7 +56,7 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
             <Suspense fallback={<div className="w-24 h-8" />}>
-              <DocsLocaleSwitcher />
+              <LanguageSelector />
             </Suspense>
           </nav>
 

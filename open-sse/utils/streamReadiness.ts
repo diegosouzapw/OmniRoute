@@ -66,6 +66,20 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
+function hasAcceptedStreamStartPayload(payload: unknown, eventType = ""): boolean {
+  if (!isRecord(payload)) return false;
+
+  // Anthropic/Claude streams can legitimately start with lifecycle frames and
+  // then spend a long time thinking before the first text/tool delta arrives.
+  // Treating the start frame as readiness prevents false 504s while ping-only
+  // zombie streams still fail below.
+  const type = typeof payload.type === "string" ? payload.type : eventType;
+  if (type === "message_start" && isRecord(payload.message)) return true;
+  if (type === "content_block_start" && isRecord(payload.content_block)) return true;
+
+  return false;
+}
+
 export function hasUsefulStreamContent(text: string): boolean {
   const lines = text.split(/\r?\n/);
 
@@ -85,6 +99,60 @@ export function hasUsefulStreamContent(text: string): boolean {
     }
   }
 
+  return false;
+}
+
+type StreamReadinessSignalState = {
+  currentEvent: string;
+  pendingLine: string;
+};
+
+function processStreamReadinessLine(state: StreamReadinessSignalState, line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith(":")) {
+    if (!trimmed) state.currentEvent = "";
+    return false;
+  }
+
+  if (trimmed.startsWith("event:")) {
+    state.currentEvent = trimmed.slice(6).trim();
+    return false;
+  }
+
+  if (/^(?:ping|keepalive)$/i.test(state.currentEvent)) return false;
+  if (!trimmed.startsWith("data:")) return false;
+
+  const data = trimmed.slice(5).trim();
+  if (!data || data === "[DONE]") return false;
+
+  try {
+    const parsed = JSON.parse(data);
+    return (
+      hasUsefulJsonPayload(parsed) || hasAcceptedStreamStartPayload(parsed, state.currentEvent)
+    );
+  } catch {
+    return data.length > 0;
+  }
+}
+
+function appendStreamReadinessSignal(state: StreamReadinessSignalState, chunk: string): boolean {
+  const lines = `${state.pendingLine}${chunk}`.split(/\r?\n/);
+  state.pendingLine = lines.pop() ?? "";
+
+  for (const line of lines) {
+    if (processStreamReadinessLine(state, line)) return true;
+  }
+
+  return false;
+}
+
+export function hasStreamReadinessSignal(text: string): boolean {
+  const state: StreamReadinessSignalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
+  if (appendStreamReadinessSignal(state, text)) return true;
+  if (state.pendingLine) return processStreamReadinessLine(state, state.pendingLine);
   return false;
 }
 
@@ -170,7 +238,10 @@ export async function ensureStreamReadiness(
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   const decoder = new TextDecoder();
-  let bufferedText = "";
+  const readinessState: StreamReadinessSignalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
   const startedAt = Date.now();
   const deadline = startedAt + options.timeoutMs;
   let handedOffReader = false;
@@ -245,9 +316,9 @@ export async function ensureStreamReadiness(
 
       if (!readResult.value) continue;
       chunks.push(readResult.value);
-      bufferedText += decoder.decode(readResult.value, { stream: true });
+      const decodedChunk = decoder.decode(readResult.value, { stream: true });
 
-      if (hasUsefulStreamContent(bufferedText)) {
+      if (appendStreamReadinessSignal(readinessState, decodedChunk)) {
         options.log?.debug?.(
           "STREAM",
           `Stream readiness confirmed in ${Date.now() - startedAt}ms (${options.provider || "provider"}/${options.model || "unknown"})`

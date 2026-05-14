@@ -254,7 +254,7 @@ test("auto update script builders generate npm, source, and docker-compose scrip
   const sourceScript = autoUpdate.buildSourceUpdateScript("3.6.0", "upstream");
   assert.match(sourceScript, /git fetch --tags 'upstream'/);
   assert.match(sourceScript, /git stash --include-untracked/);
-  assert.match(sourceScript, /node scripts\/sync-env\.mjs 2>\/dev\/null \|\| true/);
+  assert.match(sourceScript, /node scripts\/dev\/sync-env\.mjs 2>\/dev\/null \|\| true/);
   assert.match(sourceScript, /Successfully updated to v3\.6\.0/);
 
   const dockerScript = autoUpdate.buildDockerComposeUpdateScript({

@@ -561,6 +561,62 @@ test("createSSEStream passthrough injects a synthetic Claude text block for empt
   );
 });
 
+test("createSSEStream passthrough does not emit [DONE] for Claude SSE clients", async () => {
+  const text = await readTransformed(
+    [
+      `event: message_start\ndata: ${JSON.stringify({
+        type: "message_start",
+        message: {
+          id: "msg_claude_done_gate",
+          type: "message",
+          role: "assistant",
+          model: "claude-sonnet-4",
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 3, output_tokens: 0 },
+        },
+      })}\n\n`,
+      `event: content_block_start\ndata: ${JSON.stringify({
+        type: "content_block_start",
+        index: 0,
+        content_block: { type: "text", text: "" },
+      })}\n\n`,
+      `event: content_block_delta\ndata: ${JSON.stringify({
+        type: "content_block_delta",
+        index: 0,
+        delta: { type: "text_delta", text: "Claude client stream" },
+      })}\n\n`,
+      `event: content_block_stop\ndata: ${JSON.stringify({
+        type: "content_block_stop",
+        index: 0,
+      })}\n\n`,
+      `event: message_delta\ndata: ${JSON.stringify({
+        type: "message_delta",
+        delta: { stop_reason: "end_turn", stop_sequence: null },
+        usage: { output_tokens: 3 },
+      })}\n\n`,
+      `event: message_stop\ndata: ${JSON.stringify({
+        type: "message_stop",
+      })}\n\n`,
+    ],
+    {
+      mode: "passthrough",
+      sourceFormat: FORMATS.CLAUDE,
+      clientResponseFormat: FORMATS.CLAUDE,
+      provider: "claude",
+      model: "claude-sonnet-4",
+      body: {
+        messages: [{ role: "user", content: "hello" }],
+      },
+    }
+  );
+
+  assert.match(text, /event: message_stop/);
+  assert.match(text, /Claude client stream/);
+  assert.doesNotMatch(text, /\[DONE\]/);
+});
+
 test("createSSEStream translate mode injects a synthetic Claude text block when OpenAI finishes empty", async () => {
   let onCompletePayload = null;
   const text = await readTransformed(

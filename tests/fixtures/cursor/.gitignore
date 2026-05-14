@@ -1,4 +1,4 @@
-# Captured cursor wire bytes from scripts/cursor-tap.cjs.
+# Captured cursor wire bytes from scripts/ad-hoc/cursor-tap.cjs.
 # By default these are local-only — uncomment a specific fixture to
 # include it in the repo as a regression baseline.
 *.bin

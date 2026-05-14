@@ -295,6 +295,21 @@ test("shouldMarkAccountExhaustedFrom429 skips connection poisoning for compatibl
   assert.equal(shouldMarkAccountExhaustedFrom429("claude", "claude-sonnet-4-6"), true);
 });
 
+test("shouldMarkAccountExhaustedFrom429 does not poison quota cache for transient 429s", () => {
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "rate_limit"),
+    false
+  );
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "transient"),
+    false
+  );
+  assert.equal(
+    shouldMarkAccountExhaustedFrom429("kiro", "claude-opus-4.7", undefined, "quota_exhausted"),
+    true
+  );
+});
+
 test("hasPerModelQuota returns true for GitHub Copilot provider (#1624)", () => {
   assert.equal(hasPerModelQuota("github"), true);
   assert.equal(hasPerModelQuota("github", "gpt-5.1-codex-max"), true);
@@ -758,4 +773,59 @@ test("recordModelLockoutFailure uses regular backoff for non-quota reasons", () 
     Date.now = originalNow;
     clearModelLock("modelscope", "test-conn-modelscope-2", "qwen/Qwen2.5-Coder-32B-Instruct");
   }
+});
+
+// Test for hour quota related error messages
+test("checkFallbackError classifies hour quota errors correctly", () => {
+  // For OAuth providers (e.g., codex), hour quota errors should be QUOTA_EXHAUSTED
+  const result1 = checkFallbackError(
+    429,
+    "Coding Plan hour quota has been exceeded",
+    0,
+    null,
+    "codex"
+  );
+  assert.equal(result1.shouldFallback, true);
+  assert.equal(result1.reason, RateLimitReason.QUOTA_EXHAUSTED);
+
+  const result2 = checkFallbackError(429, "hour quota exceeded", 0, null, "codex");
+  assert.equal(result2.shouldFallback, true);
+  assert.equal(result2.reason, RateLimitReason.QUOTA_EXHAUSTED);
+
+  const result3 = checkFallbackError(429, "Your hour quota is exceeded", 0, null, "codex");
+  assert.equal(result3.shouldFallback, true);
+  assert.equal(result3.reason, RateLimitReason.QUOTA_EXHAUSTED);
+
+  const result4 = checkFallbackError(429, "hour quota depleted", 0, null, "codex");
+  assert.equal(result4.shouldFallback, true);
+  assert.equal(result4.reason, RateLimitReason.QUOTA_EXHAUSTED);
+
+  // For API-key providers with 402 status, hour quota errors should be QUOTA_EXHAUSTED
+  const result5 = checkFallbackError(402, "hour quota has been exceeded", 0, null, "openai");
+  assert.equal(result5.shouldFallback, true);
+  assert.equal(result5.reason, RateLimitReason.QUOTA_EXHAUSTED);
+
+  const result6 = checkFallbackError(
+    403,
+    "Coding Plan hour quota has been exceeded",
+    0,
+    null,
+    "openai"
+  );
+  assert.equal(result6.shouldFallback, true);
+  assert.equal(result6.reason, RateLimitReason.QUOTA_EXHAUSTED);
+});
+
+// Test for classifyErrorText function with hour quota
+test("classifyErrorText handles hour quota messages", () => {
+  const { classifyErrorText } = accountFallback;
+
+  assert.equal(
+    classifyErrorText("Coding Plan hour quota has been exceeded"),
+    RateLimitReason.QUOTA_EXHAUSTED
+  );
+  assert.equal(classifyErrorText("hour quota exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(classifyErrorText("Your hour quota is exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(classifyErrorText("hour quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(classifyErrorText("quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
 });

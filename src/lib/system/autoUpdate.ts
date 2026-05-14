@@ -235,7 +235,7 @@ export function buildSourceUpdateScript(latest: string, gitRemote = "origin"): s
     'git branch "$backup_branch" 2>/dev/null || true',
     `git checkout "${targetTag}"`,
     "npm install --legacy-peer-deps",
-    "node scripts/sync-env.mjs 2>/dev/null || true",
+    "node scripts/dev/sync-env.mjs 2>/dev/null || true",
     "npm run build",
     "if command -v pm2 >/dev/null 2>&1; then",
     "  pm2 restart omniroute --update-env || true",

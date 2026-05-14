@@ -1,0 +1,23 @@
+%% Auto-Combo 9-factor scoring
+%% Reflects: open-sse/services/autoCombo/scoring.ts (DEFAULT_WEIGHTS, sum = 1.0)
+%% v3.8.0
+flowchart TB
+  Request["Incoming request"] --> Candidates["Eligible candidates<br/>(provider × model × account)"]
+  Candidates --> Score["Compute composite score<br/>per candidate"]
+
+  subgraph Factors["9-factor scoring weights (sum = 1.0)"]
+    f1["health (0.22)"]
+    f2["quota (0.17)"]
+    f3["costInv (0.17)"]
+    f4["latencyInv (0.13)"]
+    f5["taskFit (0.08)"]
+    f6["specificityMatch (0.08)"]
+    f7["stability (0.05)"]
+    f8["tierPriority (0.05)"]
+    f9["tierAffinity (0.05)"]
+  end
+
+  Score --> Factors
+  Factors --> Final["Sort by score<br/>(desc)"]
+  Final --> Top["Pick top-N targets"]
+  Top --> Dispatch["Dispatch sequentially<br/>(short-circuit on success)"]
