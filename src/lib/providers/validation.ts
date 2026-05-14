@@ -422,7 +422,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       config: {
         workingDir: "/workspace",
         date: new Date().toISOString().slice(0, 10),
-        environment: "omniroute-validation",
+        environment: "external",
         structure: [],
         isGitRepo: false,
         currentBranch: "",
@@ -432,10 +432,12 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       },
       memory: "",
       taste: "",
-      skills: null,
       permissionMode: "standard",
       params: {
-        model: providerSpecificData?.validationModelId || entry?.models?.[0]?.id || "gpt-5.4-mini",
+        model:
+          providerSpecificData?.validationModelId ||
+          entry?.models?.[0]?.id ||
+          "deepseek/deepseek-v4-flash",
         messages: [{ role: "user", content: "test" }],
         tools: [],
         system: "",

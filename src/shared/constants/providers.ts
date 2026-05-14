@@ -114,7 +114,7 @@ export const OAUTH_PROVIDERS = {
   },
   "nous-portal": {
     id: "nous-portal",
-    alias: "nous",
+    alias: "nous-oauth",
     name: "Nous Portal",
     icon: "hub",
     color: "#2563EB",

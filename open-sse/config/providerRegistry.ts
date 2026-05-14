@@ -2826,7 +2826,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
   },
   "nous-portal": {
     id: "nous-portal",
-    alias: "nousp",
+    alias: "nous-oauth",
     format: "openai",
     executor: "nous-portal",
     baseUrl: "https://inference-api.nousresearch.com/v1/chat/completions",
