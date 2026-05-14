@@ -252,14 +252,15 @@ export default function OAuthModal({
     try {
       setError(null);
 
-      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode)
+      // Device code flow (GitHub, Qwen, Kiro, Kimi Coding, KiloCode, Nous Portal)
       if (
         provider === "github" ||
         provider === "qwen" ||
         provider === "kiro" ||
         provider === "amazon-q" ||
         provider === "kimi-coding" ||
-        provider === "kilocode"
+        provider === "kilocode" ||
+        provider === "nous-portal"
       ) {
         setIsDeviceCode(true);
         setStep("waiting");
