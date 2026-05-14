@@ -24,6 +24,7 @@ import { cursor } from "./cursor";
 import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 import { windsurf } from "./windsurf";
+import { nousPortal } from "./nous-portal";
 
 export const PROVIDERS = {
   claude,
@@ -42,7 +43,8 @@ export const PROVIDERS = {
   cline,
   windsurf,
   // devin-cli shares the same token format as windsurf (WINDSURF_API_KEY / devin auth login)
-  "devin-cli": windsurf,
+  // "devin-cli": windsurf,
+  nousPortal,
 };
 
 export default PROVIDERS;

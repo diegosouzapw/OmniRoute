@@ -13,3 +13,4 @@ export { OpenAIService } from "./openai";
 export { GitHubService } from "./github";
 export { KiroService } from "./kiro";
 export { CursorService } from "./cursor";
+export { NousPortalService } from "./nous-portal";

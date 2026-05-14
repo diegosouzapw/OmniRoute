@@ -302,6 +302,17 @@ export const WINDSURF_CONFIG = {
   extensionVersion: "3.14.0",
 };
 
+// Nous Portal OAuth Configuration (Device Code Flow)
+export const NOUS_PORTAL_CONFIG = {
+  clientId: process.env.NOUS_OAUTH_CLIENT_ID || "hermes-cli",
+  authorizeUrl: "https://portal.nousresearch.com/api/oauth/device/code",
+  tokenUrl: "https://portal.nousresearch.com/api/oauth/token",
+  agentKeyUrl: "https://portal.nousresearch.com/api/oauth/agent-key",
+  scope: "inference:mint_agent_key",
+  codeChallengeMethod: "S256" as const,
+  minKeyTtlSeconds: 1800,
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -324,4 +335,5 @@ export const PROVIDERS = {
   CLINE: "cline",
   WINDSURF: "windsurf",
   DEVIN_CLI: "devin-cli",
+  NOUS_PORTAL: "nous-portal",
 };
