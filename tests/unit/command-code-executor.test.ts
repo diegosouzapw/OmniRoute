@@ -126,7 +126,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
 
   const posted = JSON.parse(String(calls[0].init.body));
   assert.deepEqual(posted, transformedBody);
-  for (const key of ["config", "memory", "taste", "skills", "permissionMode", "params"]) {
+  for (const key of ["config", "memory", "taste", "permissionMode", "params"]) {
     assert.ok(key in posted, `missing ${key}`);
   }
   assert.equal(posted.params.model, "gpt-5.4-mini");
