@@ -27,8 +27,10 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+const DEEPSEEK_V4_SANITIZER_MODEL_PATTERN = /deepseek[-/]v4/i;
+
 function isDeepSeekV4Model(model: unknown): boolean {
-  return typeof model === "string" && /deepseek[-/]v4/i.test(model);
+  return typeof model === "string" && DEEPSEEK_V4_SANITIZER_MODEL_PATTERN.test(model);
 }
 
 function toRecord(value: unknown): JsonRecord | null {

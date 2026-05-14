@@ -111,7 +111,7 @@ function isDeepSeekReplayTarget(provider: unknown, model: unknown): boolean {
   const normalizedModel = String(model ?? "")
     .trim()
     .toLowerCase();
-  return normalizedProvider === "deepseek" || normalizedModel.includes("deepseek");
+  return normalizedProvider === "deepseek" || /(^|\/)deepseek/i.test(normalizedModel);
 }
 
 /** @param options.normalizeToolCallId - When true, use 9-char tool call ids (e.g. Mistral); when false, leave ids as-is */
