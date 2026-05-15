@@ -129,7 +129,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
   for (const key of ["config", "memory", "taste", "skills", "permissionMode", "params"]) {
     assert.ok(key in posted, `missing ${key}`);
   }
-  assert.deepEqual(posted.skills, []);
+  assert.equal(posted.skills, "");
   assert.equal(posted.params.model, "gpt-5.4-mini");
   assert.equal(posted.params.stream, true);
   assert.equal(posted.params.system, "You are concise.");

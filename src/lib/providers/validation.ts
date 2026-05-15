@@ -432,7 +432,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       },
       memory: "",
       taste: "",
-      skills: [],
+      skills: "",
       permissionMode: "standard",
       params: {
         model:
