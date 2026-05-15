@@ -162,6 +162,7 @@ function buildCommandCodeBody(model: string, body: unknown): JsonRecord {
     },
     memory: "",
     taste: "",
+    skills: [],
     permissionMode: "standard",
     params: {
       model,
