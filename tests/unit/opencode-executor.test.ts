@@ -232,5 +232,50 @@ describe("OpencodeExecutor", () => {
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
+
+    it("retries unknown models with claude format on 500", async () => {
+      let callIndex = 0;
+      globalThis.fetch = async (url, options) => {
+        fetchCalls.push({ url, options });
+        const status = callIndex++ === 0 ? 500 : 200;
+        return new Response(JSON.stringify({ ok: true }), {
+          status,
+          headers: { "Content-Type": "application/json" },
+        });
+      };
+
+      const result = await zenExecutor.execute(createInput("qwen3.6-plus-free"));
+
+      assert.equal(fetchCalls.length, 2);
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[1].url, "https://opencode.ai/zen/v1/messages");
+      assert.equal(result.url, "https://opencode.ai/zen/v1/messages");
+      assert.equal(result.headers["x-api-key"], "test-key");
+      assert.equal(result.headers["anthropic-version"], "2023-06-01");
+    });
+
+    it("does not retry static models on 500", async () => {
+      globalThis.fetch = async (url, options) => {
+        fetchCalls.push({ url, options });
+        return new Response(JSON.stringify({ error: "fail" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      };
+
+      const result = await zenExecutor.execute(createInput("big-pickle"));
+
+      assert.equal(fetchCalls.length, 1);
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(result.response.status, 500);
+    });
+
+    it("does not retry when openai format succeeds for unknown model", async () => {
+      const result = await zenExecutor.execute(createInput("new-model"));
+
+      assert.equal(fetchCalls.length, 1);
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(result.response.status, 200);
+    });
   });
 });
