@@ -1,4 +1,4 @@
--- 056_provider_connection_quota_window_thresholds.sql
+-- 057_provider_connection_quota_window_thresholds.sql
 -- Per-window quota cutoffs on provider connections.
 --
 -- Shape of quota_window_thresholds_json (when set):

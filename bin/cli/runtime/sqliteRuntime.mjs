@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { execSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { validateBinaryMagic, platformBinaryLabel } from "./magicBytes.mjs";
 
 const RUNTIME_DIR = join(homedir(), ".omniroute", "runtime");
@@ -92,11 +93,15 @@ async function tryLoadRuntimeInstalled() {
   }
 
   try {
-    const mod = await import(pkgRoot);
+    const mod = requireFromRuntimeDir("better-sqlite3");
     return { kind: "better-sqlite3", Database: mod.default ?? mod };
   } catch {
     return null;
   }
+}
+
+function requireFromRuntimeDir(specifier) {
+  return createRequire(join(RUNTIME_DIR, "package.json"))(specifier);
 }
 
 function ensureRuntimeDir() {

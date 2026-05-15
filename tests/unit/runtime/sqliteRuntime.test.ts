@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { loadSqliteRuntime, clearRuntimeCache } from "../../../bin/cli/runtime/sqliteRuntime.mjs";
@@ -45,4 +46,10 @@ test("clearRuntimeCache allows fresh resolution", async () => {
   const second = await loadSqliteRuntime();
   // Both should resolve to the same kind, but are different call results
   assert.equal(first.driver.kind, second.driver.kind, "same driver kind after cache clear");
+});
+
+test("runtime-installed better-sqlite3 loader avoids variable dynamic import", async () => {
+  const source = await readFile("bin/cli/runtime/sqliteRuntime.mjs", "utf-8");
+  assert.equal(source.includes("import(pkgRoot)"), false);
+  assert.equal(source.includes("requireRuntime(pkgRoot)"), false);
 });

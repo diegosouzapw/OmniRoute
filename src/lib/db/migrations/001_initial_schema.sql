@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS provider_connections (
   token_type TEXT,
   consecutive_use_count INTEGER DEFAULT 0,
   rate_limit_protection INTEGER DEFAULT 0,
+  quota_window_thresholds_json TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

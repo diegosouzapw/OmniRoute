@@ -128,6 +128,30 @@ test("migration infrastructure avoids cwd-based repo tracing fallbacks", () => {
   assert.match(runnerSource, /fileURLToPath\(import\.meta\.url\)/);
 });
 
+test("real migration files use unique numeric version slots", () => {
+  const migrationsDir = path.resolve("src/lib/db/migrations");
+  const seen = new Map<string, string>();
+  const duplicates: string[] = [];
+  const allowedDuplicateSlots = new Set(["041"]);
+
+  for (const fileName of fs.readdirSync(migrationsDir)) {
+    const match = fileName.match(/^(\d+)_(.+)\.sql$/);
+    if (!match) continue;
+
+    const version = match[1];
+    const existing = seen.get(version);
+    if (existing) {
+      if (!allowedDuplicateSlots.has(version)) {
+        duplicates.push(`${version}: ${existing}, ${fileName}`);
+      }
+      continue;
+    }
+    seen.set(version, fileName);
+  }
+
+  assert.deepEqual(duplicates, []);
+});
+
 test("runMigrations applies pending files sequentially in version order", serial, async () => {
   const runner = await importFresh("src/lib/db/migrationRunner.ts");
   const db = createDb();
@@ -986,6 +1010,76 @@ test(
       } finally {
         console.error = originalError;
       }
+    } finally {
+      db.close();
+    }
+  }
+);
+
+test(
+  "runMigrations rehomes legacy 056 provider quota marker so mcp accessibility can apply",
+  serial,
+  async () => {
+    const runner = await importFresh("src/lib/db/migrationRunner.ts");
+    const db = createDb();
+
+    try {
+      db.exec(`
+        CREATE TABLE _omniroute_migrations (
+          version TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE key_value (
+          namespace TEXT NOT NULL,
+          key TEXT NOT NULL,
+          value TEXT,
+          PRIMARY KEY (namespace, key)
+        );
+        CREATE TABLE provider_connections (
+          id TEXT PRIMARY KEY,
+          quota_window_thresholds_json TEXT
+        );
+      `);
+      db.prepare("INSERT INTO _omniroute_migrations (version, name) VALUES (?, ?)").run(
+        "056",
+        "provider_connection_quota_window_thresholds"
+      );
+
+      const count = withMockedMigrationFs(
+        {
+          "056_mcp_accessibility_compression.sql": `
+            INSERT INTO key_value (namespace, key, value)
+            VALUES ('compression', 'mcpAccessibility', '{"enabled":true}')
+            ON CONFLICT(namespace, key) DO NOTHING;
+          `,
+          "057_provider_connection_quota_window_thresholds.sql":
+            "ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT;",
+        },
+        () => runner.runMigrations(db)
+      );
+
+      assert.equal(count, 2);
+      assert.equal(
+        db
+          .prepare("SELECT name FROM _omniroute_migrations WHERE version = ?")
+          .get("legacy-056-provider_connection_quota_window_thresholds")?.name,
+        "provider_connection_quota_window_thresholds"
+      );
+      assert.equal(
+        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("056")?.name,
+        "mcp_accessibility_compression"
+      );
+      assert.equal(
+        db.prepare("SELECT name FROM _omniroute_migrations WHERE version = ?").get("057")?.name,
+        "provider_connection_quota_window_thresholds"
+      );
+      assert.equal(
+        db
+          .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+          .get("compression", "mcpAccessibility")?.value,
+        '{"enabled":true}'
+      );
     } finally {
       db.close();
     }

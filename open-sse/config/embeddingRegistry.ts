@@ -46,6 +46,20 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
 }
 
 export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
+  cohere: {
+    id: "cohere",
+    baseUrl: "https://api.cohere.com/v2/embed",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "embed-v4.0", name: "Embed v4.0 Pro" },
+      { id: "embed-multilingual-v3.0", name: "Embed Multilingual v3.0" },
+      { id: "embed-multilingual-v3.0-images", name: "Embed Multilingual v3.0 Image" },
+      { id: "embed-multilingual-light-v3.0", name: "Embed Multilingual Light v3.0" },
+      { id: "embed-multilingual-light-v3.0-images", name: "Embed Multilingual Light v3.0 Image" },
+    ],
+  },
+
   nebius: {
     id: "nebius",
     baseUrl: "https://api.tokenfactory.nebius.com/v1/embeddings",

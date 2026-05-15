@@ -600,7 +600,7 @@ test(
 );
 
 test(
-  "provider connection max_concurrent column is healed even if migration 029 was already recorded",
+  "provider connection quota columns are healed even if old migrations were already recorded",
   serial,
   async () => {
     const dataDir = makeTempDir("omniroute-db-missing-max-concurrent-");
@@ -628,6 +628,7 @@ test(
 
       INSERT INTO _omniroute_migrations (version, name) VALUES ('001', 'initial_schema');
       INSERT INTO _omniroute_migrations (version, name) VALUES ('029', 'webhooks_templates');
+      INSERT INTO _omniroute_migrations (version, name) VALUES ('057', 'provider_connection_quota_window_thresholds');
     `);
     seedDb
       .prepare(
@@ -651,18 +652,23 @@ test(
             .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
             .get("idx_pc_max_concurrent")
         );
+        assert.ok(
+          db
+            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
+            .get("quota_window_thresholds_json")
+        );
 
         db.prepare(
-          "INSERT INTO provider_connections (id, provider, auth_type, name, priority, is_active, max_concurrent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ).run("healed-openai", "openai", "apikey", "Healed", 0, 1, 2, now, now);
+          "INSERT INTO provider_connections (id, provider, auth_type, name, priority, is_active, max_concurrent, quota_window_thresholds_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).run("healed-openai", "openai", "apikey", "Healed", 0, 1, 2, '{"5h":80}', now, now);
 
         assert.deepEqual(
           db
             .prepare(
-              "SELECT max_concurrent AS maxConcurrent FROM provider_connections WHERE id = ?"
+              "SELECT max_concurrent AS maxConcurrent, quota_window_thresholds_json AS quotaWindowThresholdsJson FROM provider_connections WHERE id = ?"
             )
             .get("healed-openai"),
-          { maxConcurrent: 2 }
+          { maxConcurrent: 2, quotaWindowThresholdsJson: '{"5h":80}' }
         );
 
         core.resetDbInstance();

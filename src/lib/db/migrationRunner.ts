@@ -148,6 +148,7 @@ const LEGACY_VERSION_SLOT_MIGRATIONS = [
   { version: "031", name: "api_keys_expires" },
   { version: "032", name: "detailed_logs_warnings" },
   { version: "033", name: "provider_connections_block_extra_usage" },
+  { version: "056", name: "provider_connection_quota_window_thresholds" },
 ] as const;
 
 const SUPERSEDED_DUPLICATE_MIGRATIONS = [
@@ -353,6 +354,8 @@ function isSchemaAlreadyApplied(
       return !hasColumn(db, "files", "status");
     case "054":
       return hasColumn(db, "usage_history", "service_tier");
+    case "057":
+      return hasColumn(db, "provider_connections", "quota_window_thresholds_json");
     default:
       return false;
   }

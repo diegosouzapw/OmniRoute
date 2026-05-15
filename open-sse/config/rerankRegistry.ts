@@ -15,8 +15,9 @@ export const RERANK_PROVIDERS = {
     authType: "apikey",
     authHeader: "bearer",
     models: [
+      { id: "rerank-v4.0-pro", name: "Rerank v4.0 Pro" },
+      { id: "rerank-v4.0-fast", name: "Rerank v4.0 Fast" },
       { id: "rerank-v3.5", name: "Rerank v3.5" },
-      { id: "rerank-english-v3.0", name: "Rerank English v3.0" },
       { id: "rerank-multilingual-v3.0", name: "Rerank Multilingual v3.0" },
     ],
   },

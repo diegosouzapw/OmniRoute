@@ -37,6 +37,7 @@ const REQUIRED_PROVIDER_COLUMNS = [
   ["last_used_at", "TEXT"],
   ['"group"', "TEXT"],
   ["max_concurrent", "INTEGER"],
+  ["quota_window_thresholds_json", "TEXT"],
   ["created_at", "TEXT"],
   ["updated_at", "TEXT"],
 ];
@@ -103,6 +104,7 @@ export function ensureProviderSchema(db) {
       last_used_at TEXT,
       "group" TEXT,
       max_concurrent INTEGER,
+      quota_window_thresholds_json TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     )`
