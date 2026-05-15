@@ -1373,7 +1373,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "swe-1.6", name: "SWE-1.6" },
       { id: "swe-1.5-fast", name: "SWE-1.5 Fast" },
       { id: "swe-1.5", name: "SWE-1.5" },
-      { id: "swe-check", name: "SWE Check" },
       // ── Claude Opus 4.7 — effort-tiered ─────────────────────────────────
       { id: "claude-opus-4.7-max", name: "Claude Opus 4.7 Max", contextLength: 200000 },
       { id: "claude-opus-4.7-xhigh", name: "Claude Opus 4.7 XHigh", contextLength: 200000 },
@@ -1406,21 +1405,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       },
       { id: "claude-sonnet-4.5", name: "Claude Sonnet 4.5", contextLength: 200000 },
       { id: "claude-haiku-4.5", name: "Claude Haiku 4.5", contextLength: 200000 },
-      // ── Claude 4.1 / 4 ──────────────────────────────────────────────────
-      { id: "claude-4.1-opus-thinking", name: "Claude 4.1 Opus Thinking", contextLength: 200000 },
-      { id: "claude-4.1-opus", name: "Claude 4.1 Opus", contextLength: 200000 },
-      { id: "claude-4-opus-thinking", name: "Claude 4 Opus Thinking", contextLength: 200000 },
-      { id: "claude-4-opus", name: "Claude 4 Opus", contextLength: 200000 },
-      { id: "claude-4-sonnet-thinking", name: "Claude 4 Sonnet Thinking", contextLength: 200000 },
-      { id: "claude-4-sonnet", name: "Claude 4 Sonnet", contextLength: 200000 },
-      // ── Claude 3.x ──────────────────────────────────────────────────────
-      {
-        id: "claude-3.7-sonnet-thinking",
-        name: "Claude 3.7 Sonnet Thinking",
-        contextLength: 200000,
-      },
-      { id: "claude-3.7-sonnet", name: "Claude 3.7 Sonnet", contextLength: 200000 },
-      { id: "claude-3.5-sonnet", name: "Claude 3.5 Sonnet", contextLength: 200000 },
       // ── GPT-5.5 — effort-tiered (+ fast/priority variants) ──────────────
       { id: "gpt-5.5-xhigh-fast", name: "GPT-5.5 XHigh Fast", contextLength: 200000 },
       { id: "gpt-5.5-xhigh", name: "GPT-5.5 XHigh", contextLength: 200000 },
@@ -1432,7 +1416,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.5-low", name: "GPT-5.5 Low", contextLength: 200000 },
       { id: "gpt-5.5-none-fast", name: "GPT-5.5 None Fast", contextLength: 200000 },
       { id: "gpt-5.5-none", name: "GPT-5.5 None", contextLength: 200000 },
-      { id: "gpt-5.5-review", name: "GPT-5.5 Review", contextLength: 200000 },
       // ── GPT-5.4 — effort-tiered (+ mini + fast variants) ────────────────
       { id: "gpt-5.4-xhigh-fast", name: "GPT-5.4 XHigh Fast", contextLength: 200000 },
       { id: "gpt-5.4-xhigh", name: "GPT-5.4 XHigh", contextLength: 200000 },
@@ -1464,7 +1447,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.2-low", name: "GPT-5.2 Low", contextLength: 200000 },
       { id: "gpt-5.2-none", name: "GPT-5.2 None", contextLength: 200000 },
       // ── GPT-5 ────────────────────────────────────────────────────────────
-      { id: "gpt-5-codex", name: "GPT-5 Codex", contextLength: 200000 },
       { id: "gpt-5", name: "GPT-5", contextLength: 200000 },
       // ── GPT-4.1 / 4o ────────────────────────────────────────────────────
       { id: "gpt-4.1", name: "GPT-4.1", contextLength: 200000 },
@@ -1475,28 +1457,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       // ── Gemini ───────────────────────────────────────────────────────────
       { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", contextLength: 1000000 },
       { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low", contextLength: 1000000 },
-      { id: "gemini-3.0-pro", name: "Gemini 3.0 Pro", contextLength: 1000000 },
-      { id: "gemini-3.0-flash-high", name: "Gemini 3.0 Flash High", contextLength: 1000000 },
-      { id: "gemini-3.0-flash-medium", name: "Gemini 3.0 Flash Medium", contextLength: 1000000 },
-      { id: "gemini-3.0-flash-low", name: "Gemini 3.0 Flash Low", contextLength: 1000000 },
-      { id: "gemini-3.0-flash-minimal", name: "Gemini 3.0 Flash Minimal", contextLength: 1000000 },
+      { id: "gemini-3.0-flash-high", name: "Gemini 3 Flash High", contextLength: 1000000 },
+      { id: "gemini-3.0-flash-medium", name: "Gemini 3 Flash Medium", contextLength: 1000000 },
+      { id: "gemini-3.0-flash-low", name: "Gemini 3 Flash Low", contextLength: 1000000 },
+      { id: "gemini-3.0-flash-minimal", name: "Gemini 3 Flash Minimal", contextLength: 1000000 },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", contextLength: 1000000 },
-      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", contextLength: 1000000 },
       // ── Others ───────────────────────────────────────────────────────────
       { id: "deepseek-v4", name: "DeepSeek V4", contextLength: 64000 },
-      { id: "deepseek-r1", name: "DeepSeek R1", contextLength: 64000 },
-      { id: "deepseek-v3-2", name: "DeepSeek V3-2", contextLength: 64000 },
-      { id: "deepseek-v3", name: "DeepSeek V3", contextLength: 64000 },
-      { id: "grok-3-mini-thinking", name: "Grok 3 Mini Thinking", contextLength: 131000 },
-      { id: "grok-3-mini", name: "Grok 3 Mini", contextLength: 131000 },
-      { id: "grok-3", name: "Grok 3", contextLength: 131000 },
-      { id: "grok-code-fast-1", name: "Grok Code Fast 1", contextLength: 131000 },
       { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 131000 },
       { id: "kimi-k2.5", name: "Kimi K2.5", contextLength: 131000 },
-      { id: "kimi-k2", name: "Kimi K2", contextLength: 131000 },
       { id: "glm-5.1", name: "GLM-5.1", contextLength: 128000 },
-      { id: "glm-5", name: "GLM-5", contextLength: 128000 },
-      { id: "glm-4.7", name: "GLM-4.7", contextLength: 128000 },
     ],
   },
 
@@ -1521,7 +1491,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "swe-1.6", name: "SWE-1.6" },
       { id: "swe-1.5-fast", name: "SWE-1.5 Fast" },
       { id: "swe-1.5", name: "SWE-1.5" },
-      { id: "swe-check", name: "SWE Check" },
       // Claude Opus 4.7
       { id: "claude-opus-4.7-max", name: "Claude Opus 4.7 Max", contextLength: 200000 },
       { id: "claude-opus-4.7-high", name: "Claude Opus 4.7 High", contextLength: 200000 },
@@ -1563,8 +1532,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.2-low", name: "GPT-5.2 Low", contextLength: 200000 },
       // Gemini
       { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro High", contextLength: 1000000 },
-      { id: "gemini-3.0-pro", name: "Gemini 3.0 Pro", contextLength: 1000000 },
-      { id: "gemini-3.0-flash-high", name: "Gemini 3.0 Flash High", contextLength: 1000000 },
+      { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro Low", contextLength: 1000000 },
+      { id: "gemini-3.0-flash-high", name: "Gemini 3 Flash High", contextLength: 1000000 },
       { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", contextLength: 1000000 },
       // Others
       { id: "deepseek-v4", name: "DeepSeek V4", contextLength: 64000 },
