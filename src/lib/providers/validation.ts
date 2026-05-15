@@ -412,7 +412,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       "x-command-code-version": "0.24.1",
-      "x-cli-environment": "external",
+      "x-cli-environment": "production",
       "x-project-slug": "pi-cc",
       "x-taste-learning": "false",
       "x-co-flag": "false",
@@ -422,7 +422,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       config: {
         workingDir: "/workspace",
         date: new Date().toISOString().slice(0, 10),
-        environment: "external",
+        environment: "omniroute-validation",
         structure: [],
         isGitRepo: false,
         currentBranch: "",
@@ -432,6 +432,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       },
       memory: "",
       taste: "",
+      skills: [],
       permissionMode: "standard",
       params: {
         model:
@@ -442,7 +443,7 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
         tools: [],
         system: "",
         max_tokens: 1,
-        stream: false,
+        stream: true,
       },
     },
   });

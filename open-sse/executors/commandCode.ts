@@ -162,6 +162,7 @@ function buildCommandCodeBody(model: string, body: unknown, stream: boolean): Js
     },
     memory: "",
     taste: "",
+    skills: [],
     permissionMode: "standard",
     params: {
       model,
