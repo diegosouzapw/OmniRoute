@@ -105,6 +105,18 @@ test("validateCommandCodeProvider ignores caller baseUrl and chatPath overrides"
   assert.equal(result.valid, true);
 });
 
+test("validateCommandCodeProvider defaults probe model to DeepSeek flash", async () => {
+  globalThis.fetch = async (_url, init = {}) => {
+    const body = JSON.parse(String(init.body));
+    assert.equal(body.params.model, "deepseek/deepseek-v4-flash");
+    return new Response("", { status: 400 });
+  };
+
+  const result = await validateCommandCodeProvider({ apiKey: "cc-key" });
+
+  assert.deepEqual(result, { valid: true, error: null });
+});
+
 test("specialty providers surface network failures and non-auth upstream failures", async () => {
   globalThis.fetch = async (url) => {
     const target = String(url);
