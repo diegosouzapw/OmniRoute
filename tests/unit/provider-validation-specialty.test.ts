@@ -1940,8 +1940,9 @@ test("validateCommandCodeProvider sends Command Code probe URL, headers, and wra
   assert.equal(typeof calls[0].headers["x-session-id"], "string");
   assert.equal(calls[0].body.config.environment, "external");
   assert.equal(calls[0].body.permissionMode, "standard");
+  assert.deepEqual(calls[0].body.skills, []);
   assert.equal(calls[0].body.params.model, "gpt-5.4-mini");
-  assert.equal(calls[0].body.params.stream, false);
+  assert.equal(calls[0].body.params.stream, true);
   assert.equal(calls[0].body.params.max_tokens, 1);
 });
 
