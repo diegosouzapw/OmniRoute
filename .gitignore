@@ -76,6 +76,7 @@ open-sse/test/*
 .github/instructions/codacy.instructions.md
 
 # Playwright
+.playwright-mcp/
 test-results/
 playwright-report/
 blob-report/
