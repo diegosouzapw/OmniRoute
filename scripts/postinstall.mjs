@@ -146,9 +146,8 @@ async function fixBetterSqliteBinary() {
       env.GYP_DEFINES = "android_ndk_path=''";
     }
 
-    // app/ may not exist when running from source (before `npm run build`)
     const appDir = join(ROOT, "app");
-    const rebuildCwd = existsSync(appDir) ? appDir : ROOT;
+    const rebuildCwd = appDir;
 
     execSync(rebuildCmd, {
       cwd: rebuildCwd,

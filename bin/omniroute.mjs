@@ -259,7 +259,7 @@ console.log(`
 
 if (isAndroid) {
   console.log(`\x1b[33m[OmniRoute] Running on Android/Termux — headless mode enabled automatically\x1b[0m`);
-  console.log(`\x1b[33m[OmniRoute] Platform: android/arm64 — unsupported features:\x1b[0m
+  console.log(`\x1b[33m[OmniRoute] Platform: android/${process.arch} — unsupported features:\x1b[0m
   - Codex Responses WebSocket (wreq-js unavailable)
   - ChatGPT Web TLS impersonation (tls-client-node unavailable)
   - Electron desktop app
