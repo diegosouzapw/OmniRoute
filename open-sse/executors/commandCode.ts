@@ -142,7 +142,7 @@ function clampMaxTokens(value: unknown): number {
   return Math.max(1, Math.min(Math.floor(numeric), MAX_COMMAND_CODE_TOKENS));
 }
 
-function buildCommandCodeBody(model: string, body: unknown, stream: boolean): JsonRecord {
+function buildCommandCodeBody(model: string, body: unknown): JsonRecord {
   const input = isRecord(body) ? body : {};
   const converted = convertMessages(input.messages);
   const explicitSystem = typeof input.system === "string" ? input.system : "";
@@ -170,7 +170,7 @@ function buildCommandCodeBody(model: string, body: unknown, stream: boolean): Js
       tools: convertTools(input.tools),
       system,
       max_tokens: clampMaxTokens(input.max_tokens ?? input.max_completion_tokens),
-      stream,
+      stream: true,
     },
   };
 }
@@ -513,7 +513,7 @@ export class CommandCodeExecutor extends BaseExecutor {
     };
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
-    const transformedBody = buildCommandCodeBody(model, body, stream);
+    const transformedBody = buildCommandCodeBody(model, body);
     const url = this.buildUrl();
     const upstream = await fetch(url, {
       method: "POST",
