@@ -526,6 +526,22 @@ amp --model "{{model}}"
   },
 };
 
+// ─── Registry helpers ────────────────────────────────────────────────────────
+
+export type CliToolEntry = (typeof CLI_TOOLS)[keyof typeof CLI_TOOLS];
+
+/** Returns an ordered list of all registered CLI tools. */
+export function listCliTools(): CliToolEntry[] {
+  return Object.values(CLI_TOOLS) as CliToolEntry[];
+}
+
+/** Returns a single tool by id, or undefined if not found. */
+export function getCliTool(id: string): CliToolEntry | undefined {
+  return (CLI_TOOLS as Record<string, CliToolEntry>)[id];
+}
+
+// ─── Provider model mapping helper ───────────────────────────────────────────
+
 // Get all provider models for mapping dropdown
 export const getProviderModelsForMapping = (providers) => {
   const result = [];

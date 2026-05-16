@@ -105,6 +105,24 @@ Cursor, Cline, and compatible MCP client setup.
 descriptions (`tools`, `prompts`, `resources`, and `resourceTemplates`); they are not provider usage
 receipts and are marked with `source: "mcp_metadata_estimate"`.
 
+### MCP Accessibility Tree Filter (v3.8.0)
+
+Separate from the 5 compression tools above, OmniRoute includes a post-execution filter that
+compresses the **tool results** of MCP browser/accessibility tools before they are returned to the
+agent. This filter is not itself a tool — it runs transparently on any tool result that contains
+verbose accessibility-tree or browser-snapshot text (≥2000 chars).
+
+Key behaviors:
+
+- Collapses ≥30 consecutive repeated sibling lines into head + tail summary
+- Preserves `[ref=eXX]` anchors required by Playwright/computer-use
+- Hard-truncates oversized text (>50,000 chars) with a navigation hint
+- Expected savings: **60–80%** on browser snapshot payloads
+
+Configuration: `compression.mcpAccessibility` in global settings (migration 056).
+Implementation: `open-sse/services/compression/engines/mcpAccessibility/`.
+Full docs: [Compression Engines — MCP Accessibility Tree Filter](../compression/COMPRESSION_ENGINES.md#mcp-accessibility-tree-filter).
+
 See [Compression Engines](../compression/COMPRESSION_ENGINES.md) and [RTK Compression](../compression/RTK_COMPRESSION.md) for
 the runtime compression model behind these tools.
 

@@ -1,4 +1,5 @@
-import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import { createPrompt, printHeading, printInfo, printSuccess } from "../io.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
 import { getSettings, hashManagementPassword, updateSettings } from "../settings-store.mjs";
@@ -9,18 +10,21 @@ import {
   getProviderDisplayName,
   resolveProviderChoice,
 } from "../provider-catalog.mjs";
+import { t } from "../i18n.mjs";
 
-function wantsProviderSetup(flags) {
-  return (
-    hasFlag(flags, "add-provider") ||
-    Boolean(getStringFlag(flags, "provider", "OMNIROUTE_PROVIDER")) ||
-    Boolean(getStringFlag(flags, "api-key", "OMNIROUTE_API_KEY"))
-  );
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+
+async function getListCliTools() {
+  const { listCliTools } = await import(`${PROJECT_ROOT}/src/shared/constants/cliTools.ts`);
+  return listCliTools;
 }
 
-async function resolvePassword(flags, prompt, nonInteractive) {
-  const flagPassword = getStringFlag(flags, "password", "OMNIROUTE_SETUP_PASSWORD");
-  if (flagPassword) return flagPassword;
+function wantsProviderSetup(opts) {
+  return opts.addProvider || Boolean(opts.provider) || Boolean(opts.apiKey);
+}
+
+async function resolvePassword(opts, prompt, nonInteractive) {
+  if (opts.password) return opts.password;
   if (nonInteractive) return "";
 
   const answer = await prompt.ask("Set an admin password now? [y/N]", "N");
@@ -34,8 +38,8 @@ async function resolvePassword(flags, prompt, nonInteractive) {
   return password;
 }
 
-async function setupPassword(db, flags, prompt, nonInteractive) {
-  const password = await resolvePassword(flags, prompt, nonInteractive);
+async function setupPassword(db, opts, prompt, nonInteractive) {
+  const password = await resolvePassword(opts, prompt, nonInteractive);
   if (!password) {
     const settings = getSettings(db);
     if (!settings.password) {
@@ -60,12 +64,12 @@ async function setupPassword(db, flags, prompt, nonInteractive) {
   return true;
 }
 
-async function resolveProviderInput(flags, prompt, nonInteractive) {
-  let provider = getStringFlag(flags, "provider", "OMNIROUTE_PROVIDER");
-  let apiKey = getStringFlag(flags, "api-key", "OMNIROUTE_API_KEY");
-  let name = getStringFlag(flags, "provider-name", "OMNIROUTE_PROVIDER_NAME");
-  const defaultModel = getStringFlag(flags, "default-model", "OMNIROUTE_DEFAULT_MODEL");
-  const baseUrl = getStringFlag(flags, "provider-base-url", "OMNIROUTE_PROVIDER_BASE_URL");
+async function resolveProviderInput(opts, prompt, nonInteractive) {
+  let provider = opts.provider;
+  let apiKey = opts.apiKey;
+  let name = opts.providerName;
+  const defaultModel = opts.defaultModel;
+  const baseUrl = opts.providerBaseUrl;
 
   if (!provider && !nonInteractive) {
     console.log("Choose a provider:");
@@ -95,19 +99,19 @@ async function resolveProviderInput(flags, prompt, nonInteractive) {
   };
 }
 
-async function setupProvider(db, flags, prompt, nonInteractive) {
-  if (!wantsProviderSetup(flags) && nonInteractive) return null;
+async function setupProvider(db, opts, prompt, nonInteractive) {
+  if (!wantsProviderSetup(opts) && nonInteractive) return null;
 
-  if (!wantsProviderSetup(flags)) {
+  if (!wantsProviderSetup(opts)) {
     const answer = await prompt.ask("Add your first provider now? [Y/n]", "Y");
     if (/^n(o)?$/i.test(answer)) return null;
   }
 
-  const input = await resolveProviderInput(flags, prompt, nonInteractive);
+  const input = await resolveProviderInput(opts, prompt, nonInteractive);
   const connection = upsertApiKeyProviderConnection(db, input);
   printSuccess(`Provider configured: ${connection.name}`);
 
-  if (hasFlag(flags, "test-provider")) {
+  if (opts.testProvider) {
     printInfo(`Testing provider connection: ${connection.provider}`);
     const result = await testProviderApiKey({
       provider: input.provider,
@@ -127,44 +131,45 @@ async function setupProvider(db, flags, prompt, nonInteractive) {
   return connection;
 }
 
-function printSetupHelp() {
-  console.log(`
-Usage:
-  omniroute setup
-  omniroute setup --password <password>
-  omniroute setup --add-provider --provider openai --api-key <key>
-  omniroute setup --non-interactive
-
-Options:
-  --password <value>        Set admin password
-  --add-provider            Add an API-key provider connection
-  --provider <id>           Provider id, for example openai or anthropic
-  --provider-name <name>    Display name for the connection
-  --api-key <value>         Provider API key
-  --default-model <model>   Optional default model
-  --provider-base-url <url> Optional OpenAI-compatible base URL override
-  --test-provider           Test the provider after saving it
-  --non-interactive         Read all inputs from flags/env and do not prompt
-
-Environment:
-  OMNIROUTE_SETUP_PASSWORD
-  OMNIROUTE_PROVIDER
-  OMNIROUTE_PROVIDER_NAME
-  OMNIROUTE_PROVIDER_BASE_URL
-  OMNIROUTE_API_KEY
-  OMNIROUTE_DEFAULT_MODEL
-  DATA_DIR
-`);
+export function registerSetup(program) {
+  program
+    .command("setup")
+    .description(t("setup.title"))
+    .option("--password <value>", "Set admin password")
+    .option("--add-provider", "Add an API-key provider connection")
+    .option("--provider <id>", "Provider id, for example openai or anthropic")
+    .option("--provider-name <name>", "Display name for the connection")
+    .option("--api-key <value>", "Provider API key")
+    .option("--default-model <model>", "Optional default model")
+    .option("--provider-base-url <url>", "Optional OpenAI-compatible base URL override")
+    .option("--test-provider", "Test the provider after saving it")
+    .option("--non-interactive", "Read all inputs from flags/env and do not prompt")
+    .option("--list", "List all supported CLI tools")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      const exitCode = await runSetupCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
 }
 
-export async function runSetupCommand(argv) {
-  const { flags } = parseArgs(argv);
-  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
-    printSetupHelp();
+export async function runSetupCommand(opts = {}) {
+  if (opts.list) {
+    const listCliTools = await getListCliTools();
+    const tools = listCliTools();
+    if (opts.json || opts.output === "json") {
+      console.log(JSON.stringify(tools, null, 2));
+    } else {
+      printHeading("Supported CLI Tools");
+      for (const tool of tools) {
+        const cmd = tool.defaultCommand || tool.defaultCommands?.[0] || "";
+        const cmdStr = cmd ? `  \x1b[2m(${cmd})\x1b[0m` : "";
+        console.log(`  • ${tool.name}${cmdStr}`);
+      }
+    }
     return 0;
   }
 
-  const nonInteractive = hasFlag(flags, "non-interactive");
+  const nonInteractive = opts.nonInteractive ?? false;
   const prompt = createPrompt();
 
   try {
@@ -173,8 +178,8 @@ export async function runSetupCommand(argv) {
     printInfo(`Database: ${dbPath}`);
 
     const before = getSettings(db);
-    const passwordChanged = await setupPassword(db, flags, prompt, nonInteractive);
-    const providerConnection = await setupProvider(db, flags, prompt, nonInteractive);
+    const passwordChanged = await setupPassword(db, opts, prompt, nonInteractive);
+    const providerConnection = await setupProvider(db, opts, prompt, nonInteractive);
 
     updateSettings(db, { setupComplete: true });
     const after = getSettings(db);

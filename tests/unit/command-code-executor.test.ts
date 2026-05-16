@@ -126,11 +126,12 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
 
   const posted = JSON.parse(String(calls[0].init.body));
   assert.deepEqual(posted, transformedBody);
-  for (const key of ["config", "memory", "taste", "permissionMode", "params"]) {
+  for (const key of ["config", "memory", "taste", "skills", "permissionMode", "params"]) {
     assert.ok(key in posted, `missing ${key}`);
   }
+  assert.equal(posted.skills, "");
   assert.equal(posted.params.model, "gpt-5.4-mini");
-  assert.equal(posted.params.stream, false);
+  assert.equal(posted.params.stream, true);
   assert.equal(posted.params.system, "You are concise.");
   assert.equal(posted.params.messages[0].role, "user");
   assert.equal(posted.params.tools[0].name, "lookup");
@@ -140,13 +141,16 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
 });
 
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
-  globalThis.fetch = async () =>
-    commandCodeStream([
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([
       { type: "text-delta", text: "Hello" },
       { type: "reasoning-delta", text: "thinking" },
       { type: "tool-call", toolCallId: "call_1", toolName: "search", input: { q: "docs" } },
       { type: "finish", finishReason: "tool-calls" },
     ]);
+  };
 
   const { response } = await getExecutor("command-code").execute({
     model: "gpt-5.4",
@@ -155,6 +159,7 @@ test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () =
     body: { messages: [{ role: "user", content: "Hi" }] },
   });
 
+  assert.equal(calls[0].body.params.stream, true);
   assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   const sse = await response.text();
   assert.match(sse, /data: \[DONE\]/);

@@ -278,7 +278,21 @@ open-sse/
 | `cli/commands/doctor.mjs`                                                                                   | System health diagnostics (8+ checks)                                                                                      |
 | `cli/commands/providers.mjs`                                                                                | Provider list/test/validate                                                                                                |
 | `cli/{args,data-dir,encryption,io,provider-catalog,provider-store,provider-test,settings-store,sqlite}.mjs` | CLI helper modules                                                                                                         |
+| `cli/tray/tray.ts`                                                                                          | System tray integration (cross-platform: NotifyIcon on Windows, systray2 on macOS/Linux)                                   |
+| `cli/tray/tray.ps1`                                                                                         | PowerShell NotifyIcon backend (Windows, zero new binaries)                                                                 |
+| `cli/tray/autostart.ts`                                                                                     | Cross-platform autostart (LaunchAgent / .desktop / registry)                                                               |
+| `cli/runtime/sqliteRuntime.mjs`                                                                             | 5-step SQLite driver resolution chain (bundled → runtime → lazy-install → node:sqlite → sql.js)                            |
+| `cli/runtime/magicBytes.mjs`                                                                                | Binary magic-byte validation (ELF / Mach-O / Mach-O fat / PE)                                                              |
+| `cli/runtime/index.mjs`                                                                                     | `warmUpRuntimes()` — pre-resolves drivers at postinstall / first startup                                                   |
 | `nodeRuntimeSupport.mjs`                                                                                    | Validate supported Node.js version on install                                                                              |
+
+---
+
+## `skills/` — Public Agent Skills
+
+| File                         | Purpose                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `skills/omniroute*/SKILL.md` | 10 skill manifests for external AI agents (Claude Desktop, ChatGPT, Cursor, Cline) |
 
 ---
 

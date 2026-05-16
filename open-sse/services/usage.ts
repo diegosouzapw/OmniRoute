@@ -1022,6 +1022,39 @@ async function getCursorUsage(accessToken: string, providerSpecificData?: unknow
 }
 
 /**
+ * Single source of truth for which providers have a `getUsageForProvider`
+ * implementation. Consumers like `genericQuotaFetcher.ts` reference this so
+ * the registration list can't drift from the switch statement below.
+ *
+ * If you add a new provider to the switch, add it here too.
+ */
+export const USAGE_FETCHER_PROVIDERS = [
+  "github",
+  "gemini-cli",
+  "antigravity",
+  "claude",
+  "codex",
+  "cursor",
+  "kiro",
+  "amazon-q",
+  "kimi-coding",
+  "qwen",
+  "qoder",
+  "glm",
+  "glm-cn",
+  "zai",
+  "glmt",
+  "minimax",
+  "minimax-cn",
+  "crof",
+  "bailian-coding-plan",
+  "nanogpt",
+  "deepseek",
+] as const;
+
+export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas

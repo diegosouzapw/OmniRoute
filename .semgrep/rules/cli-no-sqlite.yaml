@@ -1,0 +1,31 @@
+rules:
+  - id: cli-no-sqlite-direct
+    patterns:
+      - pattern: new Database(...)
+    paths:
+      include:
+        - "bin/**"
+      exclude:
+        - "bin/cli/sqlite.mjs"
+    message: >
+      Direct SQLite access in bin/ is banned. Use src/lib/db/* helpers or
+      withRuntime() from bin/cli/runtime.mjs. See CLAUDE.md hard rule #5 and
+      bin/cli/CONVENTIONS.md.
+    languages: [js]
+    severity: ERROR
+
+  - id: cli-no-raw-sql
+    patterns:
+      - pattern: $DB.prepare("INSERT INTO ...")
+      - pattern: $DB.prepare("DELETE FROM ...")
+      - pattern: $DB.prepare("UPDATE $TABLE SET ...")
+    paths:
+      include:
+        - "bin/**"
+      exclude:
+        - "bin/cli/sqlite.mjs"
+    message: >
+      Raw SQL in bin/ is banned. Use src/lib/db/* helpers. See CLAUDE.md
+      hard rule #5 and bin/cli/CONVENTIONS.md.
+    languages: [js]
+    severity: ERROR

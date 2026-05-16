@@ -2,22 +2,117 @@
 
 ## [Unreleased]
 
+### Added
+
+- **feat(i18n):** add Azerbaijani (az / 🇦🇿) language support — new locale in `config/i18n.json` (source of truth), `src/i18n/messages/az.json` (UI strings), `docs/i18n/az/` (full documentation set), README language bar, docs i18n index, and both translation pipeline scripts (`generate-multilang.mjs`, `i18n_autotranslate.py`). Total supported languages: **42**.
+- **feat(limits):** per-window quota cutoffs across all providers with usage data — operators can set per-quota-window thresholds (e.g. `session=95%, weekly=80%`) with cascading resolver (connection → provider default → global 98%) and zero-latency gate when nothing is configured. New migration 056, new `GET /api/providers/quota-windows` endpoint, and Dashboard › Limits cutoff modal. ([#2267](https://github.com/diegosouzapw/OmniRoute/pull/2267) — thanks @payne0420)
+- **feat(api-keys):** configurable default rate limits via `DEFAULT_RATE_LIMIT_PER_DAY` env var — replaces hardcoded 1000/day fallback with Zod-validated configuration while preserving secure defaults for existing deployments. ([#2266](https://github.com/diegosouzapw/OmniRoute/pull/2266) — thanks @gleber)
+- **feat(authz):** `managementPolicy` accepts API keys with `manage` scope — enables headless/programmatic management (provisioning providers, setting rate limits) without a browser session. ([#2265](https://github.com/diegosouzapw/OmniRoute/pull/2265) — thanks @gleber)
+- **feat(termux):** Android/Termux headless support — auto-detect Android platform for headless mode (no browser open), move `wreq-js` and `tls-client-node` to `optionalDependencies` for ARM compatibility, lazy-load WS proxy with graceful 503 when unavailable, set `GYP_DEFINES` for `better-sqlite3` ARM build, extended build timeout to 600s. ([#2273](https://github.com/diegosouzapw/OmniRoute/pull/2273) — thanks @t-way666)
+- **feat(deepseek-web):** full DeepSeek web API executor with Keccak PoW solver (`DeepSeekHashV1`), SSE streaming, and auto-refresh session management via `ds_session_id`. ([#2295](https://github.com/diegosouzapw/OmniRoute/pull/2295) — thanks @oyi77)
+- **feat(cc-bridge):** config-driven per-provider system-block transform DSL — operators can now configure system prompt transformations per-provider via Dashboard settings UI. ([#2286](https://github.com/diegosouzapw/OmniRoute/pull/2286), closes #2260 — thanks @mrmm)
+- **feat(batch):** global rate-limit header cache with 60s TTL + 24h time-based retry window — shares rate-limit throttle state across sequential batches and uses time-based retry limits for robust large-batch processing. ([#2299](https://github.com/diegosouzapw/OmniRoute/pull/2299) — thanks @hartmark)
+
 ### Changed
 
+- **CLI**: Refatorada arquitetura para usar Commander.js como framework. Monolito `bin/cli-commands.mjs` (2853 linhas) removido — comandos agora vivem individualmente em `bin/cli/commands/`. Sem breaking changes em uso normal; todos os subcomandos previamente listados continuam funcionando.
+
+### Removed
+
+- `bin/cli-commands.mjs` — substituído por estrutura modular em `bin/cli/commands/`.
+- `bin/cli/index.mjs` — substituído por `bin/cli/program.mjs` + `bin/cli/commands/registry.mjs`.
+- `bin/cli/args.mjs` — substituído pelo suporte nativo de parsing do Commander.js.
+
+---
+
+- **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
+- **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
 - **BREAKING**: dropped Node 20.x support. Minimum Node version is now 22.22.2 (or 24.0.0+). Required because http-proxy-middleware 4.x requires `node >=22.15.0`. Users on Node 20 must upgrade — see [`package.json` engines field](package.json) and the README Node badge.
-- **Platform overhaul (FASES 1-9):** scripts cleanup, `.env` audit, `/docs` restructure, diagrams folder, i18n pipelines (docs + UI), `/src/app/docs` sync, CI gates.
-  - **Scripts:** `scripts/` reorganized into 6 subfolders (`build/`, `dev/`, `check/`, `docs/`, `i18n/`, `ad-hoc/`); 23 one-shot scripts archived to the `archive/scripts-scratch-pre-3.8` branch.
-  - **Environment:** `.env.example` cleaned (-11 orphan vars, +63 missing vars, 11 hardcoded URLs/timeouts promoted to env); new strict `scripts/check/check-env-doc-sync.mjs` validates code ↔ `.env.example` ↔ `docs/reference/ENVIRONMENT.md` parity.
-  - **Docs:** `/docs` restructured into 8 functional subfolders (`architecture/`, `guides/`, `reference/`, `frameworks/`, `routing/`, `security/`, `compression/`, `ops/`); ~899 cross-references rewritten.
-  - **Diagrams:** new `docs/diagrams/` with 8 canonical Mermaid sources + SVG exports, linked into 9 docs.
-  - **i18n (docs):** hash-based incremental pipeline (`config/i18n.json`, `scripts/i18n/run-translation.mjs`, `.i18n-state.json`); old `i18n_autotranslate.py` and `generate-multilang.mjs` deprecated.
-  - **i18n (UI):** `scripts/i18n/sync-ui-keys.mjs` propagates `en.json` keys to all 40 locales (no missing keys; coverage ≥ 85.8%); cosmetic `DocsI18n.tsx` removed (locale handling unified via `next-intl`).
-  - **`/src/app/docs`:** drift fixes (179 → 177 providers, 13 → 14 strategies, 36 → 37 MCP tools); YAML frontmatter added to all docs; `ApiExplorer` consumes `docs/reference/openapi.yaml` (19 endpoints); `content.ts` updated (37 MCP tool groups, 7 internal deployment guide hrefs).
-  - **CI gates:** strict env-doc-sync in pre-commit; `check:doc-links` validates internal markdown refs; new `docs-sync-strict` and `i18n-ui-coverage` jobs in `.github/workflows/ci.yml`.
+
+### Security
+
+- **fix(oauth/windsurf):** Windsurf Firebase token refresh now reads `WINDSURF_CONFIG.firebaseApiKey` instead of `process.env.WINDSURF_FIREBASE_API_KEY` directly.
+- **fix(kiro/translator):** assistant-first conversations no longer collide on a single `conversationId`.
+- **fix(utils/publicCreds):** `decodePublicCred()` no longer silently mangles raw credential overrides that don't match `RAW_VALUE_PATTERN`.
+- **fix(auth/extractApiKey):** `x-api-key` fallback now only triggers when the request also carries an `anthropic-version` header.
+- **fix(providers/qoder):** the OAuth+PAT disambiguation message now actually surfaces.
+- **fix(authz/clientApi):** when `REQUIRE_API_KEY=false`, an invalid Bearer no longer 401s the whole request — falls through to anonymous (matching the "no auth required" semantics of the flag) with a single warning log carrying the masked key id. Fixes the surprise 401s that hit CLI integrations (Codex Desktop auto-config, Hermes Agent) that ship a stale Bearer in their saved config. (#2257)
 
 ### Fixed
 
-- **Docs:** 270 broken internal markdown links repaired (consequence of `/docs` subfolder restructure not relativizing all paths). Categories: 241 `i18n-relative`, 14 `parent-relative`, 9 `screenshots`, 2 deleted-RFC, 4 misc. Now `npm run check:doc-links` PASS with 0 broken links.
+- **fix(sse):** strip stale `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` headers on non-streaming forward — fixes JSON truncation on gzipped Gemini responses where clients honoring `Content-Length` read only the compressed byte count of the decompressed payload, causing `"Unterminated string in JSON"` parse failures. RFC 7230 §6.1 compliant. ([#2264](https://github.com/diegosouzapw/OmniRoute/pull/2264) — thanks @gleber)
+- **fix(executor/claude-code):** store tool-name round-trip metadata in non-enumerable `_toolNameMap` so it survives in-memory but is stripped by `JSON.stringify()` — prevents internal OmniRoute metadata from leaking to upstream providers. ([#2254](https://github.com/diegosouzapw/OmniRoute/pull/2254) — thanks @Rikonorus)
+- **fix(streaming):** strip upstream `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` headers from SSE responses — prevents client-side decompression corruption when the proxy serves plain-text event streams through nginx/caddy. ([#2253](https://github.com/diegosouzapw/OmniRoute/pull/2253) — thanks @Rikonorus)
+- **fix(kiro):** harden OpenAI-to-Kiro translator for API compliance: recursively strip `additionalProperties` and empty `required: []` from tool schemas; merge consecutive assistant messages; prepend synthetic user for assistant-first conversations; convert orphaned tool results to inline text; enforce `origin: "AI_EDITOR"` on all history user messages; deterministic `uuidv5` session caching. Closes #2213. ([#2251](https://github.com/diegosouzapw/OmniRoute/pull/2251) — thanks @8mbe)
+- **fix(models):** sync managed model aliases with provider model visibility — remove aliases when models are hidden/deleted, skip alias creation for hidden models during sync, restore aliases when unhidden, cross-connection safety guard prevents pruning aliases still valid from another connection. ([#2250](https://github.com/diegosouzapw/OmniRoute/pull/2250) — thanks @InkshadeWoods)
+- **fix(models/cleanup):** align managed model cleanup for imported models — provider-level "Delete All" now also removes synced available model storage; delete-alias button only shown for alias-source rows; compatible models section uses proper 3-way source-aware delete logic. ([#2261](https://github.com/diegosouzapw/OmniRoute/pull/2261) — thanks @InkshadeWoods)
+- **fix(auth):** accept `x-api-key` header in `extractApiKey` so Anthropic-native clients (Claude Code, `@anthropic-ai/sdk`) hit the same per-key policy enforcement as Bearer clients. Previously these requests were treated as anonymous, bypassing model/budget/rate-limit policies and showing up as `NULL` in `usage_history.api_key_id` (~50% of traffic invisible in Costs/Analytics). `Authorization: Bearer` still wins when both are present (back-compat). (#2225)
+- **fix(translator/claude-to-openai):** stop including `cache_creation_input_tokens` in `prompt_tokens`. Anthropic pads short prompts up to a 1024-token minimum on cache creation, so a 2-token `"hi"` could be reported as ~2008 `prompt_tokens` and inflate downstream billing (Sub2API/NewAPI/OneAPI) ~250x. `prompt_tokens` now matches the dashboard "Total In" (`input + cache_read`); `cache_creation_tokens` is exposed separately in `prompt_tokens_details.cache_creation_tokens` for auditing. (#2215)
+- **fix(ui/claude-extra-usage):** clarify the toggle-success notification text to spell out the toggle→effect relationship ("Claude extra-usage blocking enabled/disabled" instead of the ambiguous "blocked/allowed"). (#2157)
+- **fix(providers/qoder):** disambiguate the "Local CLI runtime is not installed" error when a user pastes a Personal Access Token but the connection is in OAuth/CLI-flavored mode. The test route now surfaces a single actionable message ("switch this connection to API Key auth") instead of cascading CLI + 401 errors. (#2247)
+- **fix(dashboard/api-manager):** route custom OpenAI-/Anthropic-compatible provider IDs through `getProviderDisplayName` so the model grouping label shows `Compatible (openai)` instead of leaking the raw synthetic `openai-compatible-chat-<uuid>` value. (#2021)
+- **fix(providers/blackbox-web):** add `BLACKBOX_WEB_VALIDATED_TOKEN` env override and 403 token-error disambiguation. Blackbox `/api/chat` started rejecting requests whose `validated` field didn't match the frontend `tk` token, even with a valid cookie + active subscription. Operators with the real token can now set the env var; otherwise the previous random-UUID fallback still ships, and a 403 with a token-specific body now surfaces a one-line "set BLACKBOX_WEB_VALIDATED_TOKEN" hint instead of the generic "cookie expired" message. (#2252)
+- **fix(guardrails/vision-bridge):** add `VISION_BRIDGE_BASE_URL` + `VISION_BRIDGE_API_KEY` env overrides so non-Anthropic vision-bridge calls can be routed through OmniRoute's own `/v1` self-loop, Google's Gemini OpenAI-compat endpoint, OpenRouter, or any other OpenAI-compatible URL — instead of being hardcoded to `https://api.openai.com/v1` (which failed with 401 for users without an OpenAI key, even when they configured `visionBridgeModel: "google/gemini-2.0-flash"`). Anthropic models keep their dedicated path. (#2232)
+- **docs(security):** document the ToS-violation hot spot of `ANTIGRAVITY_CREDITS=always` in `STEALTH_GUIDE.md`, including why it draws Google abuse detection more aggressively than free-tier-only usage and the recommended posture (`=retry`, Auto-Combo spread, per-connection RPM caps). (#2246)
+- **fix(translator/developer-role):** convert OpenAI `developer` role → `system` by default for non-OpenAI-family providers. Codex/Responses API clients hitting DeepSeek (and other OpenAI-compatible gateways: MiniMax, Mimo, GLM, Fireworks, Together, etc.) were getting `400: unknown variant 'developer'` because the previous default preserved `developer` for any `targetFormat=openai` upstream. New default: preserve only for `openai`/`azure-openai`/`azure`/`github` (and any id containing `"openai"`); convert everywhere else. Operators can still force preservation per-model via the dashboard "Compatibility → preserveOpenAIDeveloperRole = true" toggle. (#2281)
+- **fix(api/combos):** add API-key-safe `GET /v1/combos` endpoint that mirrors the `/v1/models` auth model. Previously `/api/combos` was management-gated, blocking read-only integrations (e.g. `opencode-omniroute-auth` plugin) that need to enrich combo capabilities from a normal Bearer API key. The new endpoint projects only public metadata (name, strategy, model ids, providerId, description) — internal routing details like `connectionId`, weights, and labels are stripped. `/api/combos` (management) is unchanged. (#2300)
+- **fix(embeddings/registry):** add DeepInfra to the embedding provider registry. Custom embedding models on the DeepInfra provider (e.g. `Qwen/Qwen3-Embedding-8B`, `BAAI/bge-large-en-v1.5`) were failing with `Unknown embedding provider: deepinfra` because the registry only included Nebius/OpenAI/Together/Fireworks/NVIDIA/etc. Now ships 8 popular DeepInfra embedding models out of the box and routes through `https://api.deepinfra.com/v1/openai/embeddings`. (#2298)
+- **fix(opencode-zen):** flag `qwen3.6-plus` and `qwen3.6-plus-free` with `targetFormat: "claude"`. The opencode-zen upstream returns Claude-format SSE bodies (`type: "message_start"`, no `choices` array) for these Qwen3.6 models even when the request hits the OpenAI-compatible `/chat/completions` endpoint, causing client-side Zod failures (`expected "choices" (array), received undefined`). Routing them through the Claude `/messages` endpoint + translator fixes the format mismatch. (#2292)
+- **fix(settings):** default `debugMode` to `true` on fresh installations — the Debug sidebar section (Translator, Playground, Search Tools) was hidden on new installs because `debugMode` was not in the settings defaults object, making `data?.debugMode === true` evaluate to `false`. The toggle in System & Storage appeared active but had no effect until manually set. Now all sidebar sections are visible out of the box.
+- **fix(providers/command-code):** send required `skills` and `stream` payload fields — Command Code upstream wrapper now includes `skills: ""` and forces `params.stream: true` to align with upstream API requirements. Validation probe defaults to `deepseek/deepseek-v4-flash`. ([#2271](https://github.com/diegosouzapw/OmniRoute/pull/2271) — thanks @ddarkr)
+- **fix(sse):** strip stale `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` from upstream responses — prevents JSON truncation and `ZlibError` on gzipped provider responses forwarded through the proxy. ([#2291](https://github.com/diegosouzapw/OmniRoute/pull/2291) — thanks @thepigdestroyer)
+- **fix(sse):** remove dead-code flag leak in `claudeCodeToolRemapper` — eliminates a stale boolean flag that could cause incorrect tool remapping behavior on subsequent requests. ([#2290](https://github.com/diegosouzapw/OmniRoute/pull/2290) — thanks @thepigdestroyer)
+- **fix(ui):** v3.8.0 polish — connections border, sticky tabs, EN translations, save toasts, auto-combo catalog. ([#2305](https://github.com/diegosouzapw/OmniRoute/pull/2305) — thanks @mrmm)
+- **fix:** remove implicit API key request caps — removes the default daily/weekly/monthly rate caps (1K/5K/20K) that silently applied 429s to API keys without explicit limits configured, causing unexpected throttling for operators who hadn't set custom rate policies. ([#2289](https://github.com/diegosouzapw/OmniRoute/pull/2289) — thanks @josephvoxone)
+- **fix(migrations):** resolve version collision at migration slot 056 by renaming the quota thresholds migration to 057, and add batch deletion API with bulk cleanup support and batch/file management UI. ([#2294](https://github.com/diegosouzapw/OmniRoute/pull/2294) — thanks @hartmark)
+- **chore:** ignore `.playwright-mcp/` generated artifacts (CSP error logs, accessibility tree snapshots) — removes tracked test artifacts and adds the directory to `.gitignore`. ([#2269](https://github.com/diegosouzapw/OmniRoute/pull/2269) — thanks @backryun)
+- **build(deps):** bump `actions/checkout` from 4 to 6 in CI workflows. ([#2288](https://github.com/diegosouzapw/OmniRoute/pull/2288))
+- **Docs:** 270 broken internal markdown links repaired.
+
+---
+
+## [3.8.0] - 2026-05-15
+
+### Added
+
+- `feat(mcp): MCP accessibility-tree smart filter engine` — collapses ≥30 repeated sibling lines, preserves `[ref=eXX]` anchors, 60-80% savings on browser snapshot outputs (Task 1)
+- `docs(skills): publish 10 SKILL.md manifests for external AI agents` — zero-friction onboarding for Claude Desktop, ChatGPT, Cursor, Cline (Task 2)
+- `feat(cli): standalone system tray with PowerShell fallback on Windows` — no Electron required; `omniroute --tray`; autostart via LaunchAgent/.desktop/registry (Task 3)
+- `feat(auth): CLI machine-ID HMAC-SHA256 token` — zero-friction local auth without JWT/password; loopback-only; constant-time compare (Task 4)
+- `feat(security): route protection tiers` — 5 tiers: public/read-only/protected/always/local-only; spawn-capable routes enforce loopback even with valid JWT (Task 5)
+- `feat(compression): Caveman SHARED_BOUNDARIES` — all 6 languages × 3 intensities embed boundary clause; `alreadyApplied` check order fixed (Task 6)
+- `feat(runtime): dynamic SQLite 5-step fallback chain` — bundled → runtime-installed → lazy-install → node:sqlite → sql.js; magic-byte validation (ELF/Mach-O/PE) (Task 7)
+- `docs/ux: tier 1/2/3 marketing, onboarding tour, dashboard widget` — README tier diagram, `docs/marketing/TIERS.md`, TierTour onboarding step, Tier Coverage widget (Task 8)
+- `docs(comparison): OMNIROUTE_VS_ALTERNATIVES.md` — objective comparison vs LiteLLM, OpenRouter, Portkey
+
+### Changed
+
+- `getDbInstance()` requires prior `ensureDbInitialized()` call — server startup awaits it automatically (see release notes for migration)
+- Caveman prompts embed `SHARED_BOUNDARIES` verbatim (LITE/FULL/ULTRA × 6 languages)
+- README "Why OmniRoute?" enhanced with 3-tier ASCII diagram and comparison table
+- Onboarding wizard gains "How It Works" tier tour step (after Welcome, before Security)
+- Home dashboard shows "Tier coverage" widget (configured + active counts per tier)
+
+### Security
+
+- Hard Rule #15: spawn-capable routes must call `assertRouteAllowed(req)` (CLAUDE.md)
+- CLI token rejected on non-loopback hosts even when the HMAC is correct
+- `always`-protected routes (shutdown, db export) reject CLI tokens unconditionally
+
+### Documentation
+
+- `docs/security/CLI_TOKEN.md`
+- `docs/security/ROUTE_GUARD_TIERS.md`
+- `docs/ops/SQLITE_RUNTIME.md`
+- `docs/marketing/TIERS.md`
+- `docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`
+- `docs/releases/v3.8.0.md`
+
+---
+
+### Dependencies
+
+- **chore(deps):** node dependency updates — bump multiple runtime and dev dependencies to latest patch/minor versions. ([#2259](https://github.com/diegosouzapw/OmniRoute/pull/2259) — thanks @backryun)
 
 ## [3.8.0] — 2026-05-06
 
@@ -28,33 +123,33 @@
 - **feat(providers):** update Gemini CLI provider models catalog (#2196 — thanks @nickwizard)
 - **feat(antigravity):** integrate Antigravity provider with dynamic `maxOutputTokens` calculation, identity fingerprinting overhaul, and Cloud Code envelope payload sanitization (#2055, #2063)
 - **feat(gemini-cli):** add custom projectId support for Gemini CLI transport (UI, DB, executor) (#1991)
-- **feat(providers):** add KIE media provider support with dynamic polling, text models, and expanded video models catalog
-- **feat(providers):** add Z.AI provider support with GLM quota handling and new quota labels
-- **feat(providers):** add 9 new free AI providers — LLM7, Lepton, Kluster, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi (#2096)
-- **feat(providers):** batch delete provider connections via checkbox multi-select (#2094)
-- **feat(cursor):** full OpenAI parity — tool calls, streaming, and session management (#2082)
+- **feat(providers):** add KIE media provider support with dynamic polling, text models, and expanded video models catalog (#2009 — thanks @wauputr4)
+- **feat(providers):** add Z.AI provider support with GLM quota handling and new quota labels — thanks @JxnLexn
+- **feat(providers):** add 9 new free AI providers — LLM7, Lepton, Kluster, UncloseAI, BazaarLink, Completions, Enally, FreeTheAi (#2096 — thanks @oyi77)
+- **feat(providers):** batch delete provider connections via checkbox multi-select (#2094 — thanks @oyi77)
+- **feat(cursor):** full OpenAI parity — tool calls, streaming, and session management (#2082 — thanks @payne0420)
 - **feat(cursor):** surface Cursor Pro plan usage on provider-limits dashboard (#2128 — thanks @payne0420)
-- **feat(cli):** comprehensive CLI enhancement suite with 20+ new commands including `omniroute providers`, `omniroute combos`, `omniroute doctor` (#2074)
-- **feat(cli):** add modular CLI setup and provider management commands (#2046)
-- **feat(mcp):** add DeepSeek quota and limit monitoring feature (#2089)
-- **feat(circuit-breaker):** classify 429 errors and apply per-kind cooldowns (#2116)
-- **feat(multi):** manifest-aware tier routing — W1-W4 complete (#2014)
-- **feat(combos):** add reset-aware routing strategy for quota-based providers
-- **feat(combo):** add context_length input field to combo edit form (#2047)
-- **feat(combo):** add `fallbackDelayMs` to combo configuration and related settings
-- **feat(chat):** dynamic tool limit detection with proactive truncation (#2061)
-- **feat(chat):** add `STREAM_READINESS_TIMEOUT_MS` and integrate into chat handling
-- **feat(chat):** enhance error handling for semaphore capacity with fallback logic
-- **feat(sse):** refresh Claude OAuth wire image to claude-cli/2.1.131 (#2011)
-- **feat(github):** add `targetFormat: openai-responses` to all GitHub models (#2122)
-- **feat(api):** allow configuration via API calls — open management routes to Bearer keys with manage scope (#2103)
-- **feat(api):** update API bridge proxy timeout to 600,000ms (#2019)
+- **feat(cli):** comprehensive CLI enhancement suite with 20+ new commands including `omniroute providers`, `omniroute combos`, `omniroute doctor` (#2074 — thanks @oyi77)
+- **feat(cli):** add modular CLI setup and provider management commands (#2046 — thanks @wauputr4)
+- **feat(mcp):** add DeepSeek quota and limit monitoring feature (#2089 — thanks @HoaPham98)
+- **feat(circuit-breaker):** classify 429 errors and apply per-kind cooldowns (#2116 — thanks @eleata)
+- **feat(multi):** manifest-aware tier routing — W1-W4 complete (#2014 — thanks @oyi77)
+- **feat(combos):** add reset-aware routing strategy for quota-based providers — thanks @JxnLexn
+- **feat(combo):** add context_length input field to combo edit form (#2047 — thanks @ddarkr)
+- **feat(combo):** add `fallbackDelayMs` to combo configuration and related settings — thanks @JxnLexn
+- **feat(chat):** dynamic tool limit detection with proactive truncation (#2061 — thanks @oyi77)
+- **feat(chat):** add `STREAM_READINESS_TIMEOUT_MS` and integrate into chat handling — thanks @JxnLexn
+- **feat(chat):** enhance error handling for semaphore capacity with fallback logic — thanks @JxnLexn
+- **feat(sse):** refresh Claude OAuth wire image to claude-cli/2.1.131 (#2011 — thanks @Tentoxa)
+- **feat(github):** add `targetFormat: openai-responses` to all GitHub models (#2122 — thanks @abhinavjnu)
+- **feat(api):** allow configuration via API calls — open management routes to Bearer keys with manage scope (#2103 — thanks @gleber)
+- **feat(api):** update API bridge proxy timeout to 600,000ms (#2019 — thanks @JxnLexn)
 - **feat(api):** aggregate combo model metadata in catalog endpoint — `buildComboCatalogMetadata()` inlines contextLength, strategy, and target count for combo entries (#2166 — thanks @faisalill)
-- **feat(usage):** add service tier breakdown, codex fast service tier analytics, and account for fast tier
-- **feat(qdrant):** embedding model discovery (#2086)
+- **feat(usage):** add service tier breakdown, codex fast service tier analytics, and account for fast tier — thanks @JxnLexn
+- **feat(qdrant):** embedding model discovery (#2086 — thanks @rafacpti23)
 - **feat(auth):** per-session sticky routing for Codex (#1887)
 - **feat(oauth):** complete Windsurf and Devin CLI OAuth + API-token flows — WindsurfExecutor (gRPC-web/protobuf), DevinCliExecutor (ACP JSON-RPC 2.0 over stdio), model alias map, OAuth provider config (#2168 — thanks @Zhaba1337228)
-- **feat(inworld):** enhance Inworld TTS support (#2123)
+- **feat(inworld):** enhance Inworld TTS support (#2123 — thanks @backryun)
 - **feat(kiro):** headless auth via kiro-cli SQLite, image support, tool overflow handling, and model list sync (#2129 — thanks @christlau)
 - **feat(auto):** zero-config auto-routing with `auto/` prefix — dynamic virtual combo from connected providers with 6 variant profiles (coding, fast, cheap, offline, smart, lkgp), analytics tab, and settings UI (#2131 — thanks @oyi77)
 - **feat(resilience):** add model cooldowns dashboard card with real-time list, individual/bulk re-enable, and auto-refresh (#2146 — thanks @rafacpti23)
@@ -74,45 +169,45 @@
 - **fix(gemini):** prevent `functionDeclarations` from being dropped by the sanitizer when `googleSearch` tool is present (#2077)
 - **fix(pollinations):** add `jsonMode: true` flag in the request transformation to enforce correct JSON structure from Pollinations API (#2109)
 - **fix(docker):** update Dockerfile to copy `/docs` directory during build ensuring API catalog availability at runtime (#2083)
-- **fix(docker):** include OpenAPI spec in runtime image (#2007)
+- **fix(docker):** include OpenAPI spec in runtime image (#2007 — thanks @tatsster)
 - **fix(providers):** strip OpenAI-specific fields in Kiro translator to prevent 400 errors (#2037)
-- **fix(kiro):** normalize tool-use payloads to prevent 400 errors from agents (#2104)
-- **fix(kiro):** merge adjacent user history turns after role normalization (#2105)
+- **fix(kiro):** normalize tool-use payloads to prevent 400 errors from agents (#2104 — thanks @rilham97)
+- **fix(kiro):** merge adjacent user history turns after role normalization (#2105 — thanks @Gioxaa)
 - **fix(ui):** resolve text contrast issues for zero-config warning banner in light mode (#2050)
 - **fix(core):** inject global system prompt correctly into downstream chat completions pipeline (#2080)
 - **fix(core):** restore Claude Code adaptive thinking defaults and resolve audio transcription CORS regression
 - **fix(routing):** add missing v1beta rewrites to next.config to resolve 404 on Gemini models endpoint (#2102)
-- **fix(routing):** fix bare GPT-5.5 routing for Codex-only installations (#2054)
-- **fix(routing):** add fuzzy auto-combo routing for `auto/*` model prefix (#2010)
+- **fix(routing):** fix bare GPT-5.5 routing for Codex-only installations (#2054 — thanks @guanbear)
+- **fix(routing):** add fuzzy auto-combo routing for `auto/*` model prefix (#2010 — thanks @oyi77)
 - **fix(cache):** optimize cache_control preservation logic and explicitly align tool schema with upstream Claude Code expectations
 - **fix(db):** preserve legacy SQLite database path on Windows to prevent data loss (#1973)
-- **fix(db):** reduce hot-path persistence overhead (#2039)
-- **fix(db):** resolve migration conflict by renumbering overlapping migration entries (#2041)
+- **fix(db):** reduce hot-path persistence overhead (#2039 — thanks @dhaern)
+- **fix(db):** resolve migration conflict by renumbering overlapping migration entries (#2041 — thanks @oyi77)
 - **fix(settings):** resolve model alias persistence double stringification preventing UI updates (#2018)
 - **fix(routing):** dynamically filter bare model auto-resolution by active provider connections to prevent dead-routing (#2029)
 - **fix(embeddings):** add Google Gemini embeddings compatibility via OpenAI-compatible endpoint mapping (#2006)
-- **fix(sse):** prevent Claude OAuth multi-account correlation via metadata.user_id (#2053)
-- **fix(sse):** prevent Claude Code identity cloak overrides and fix fallback resilience (#2053)
-- **fix(sse):** classify hour quota errors as QUOTA_EXHAUSTED (#2119)
-- **fix(sse):** fix CC-compatible streaming bridge (#2118)
-- **fix(antigravity):** sanitize Claude Cloud Code payloads (#2090)
-- **fix(antigravity):** add duplex half for streaming bodies
-- **fix(antigravity):** align identity protocol and behavior with official AM
-- **fix(chatgpt-web):** plumb proxy through to native tls-client (#2022, #2023)
-- **fix(codex):** expose native model IDs in catalog (#2012)
-- **fix(glm):** add dedicated coding transport (#2087)
-- **fix(compression):** support Responses input and expand Spanish compression rules (#2028)
-- **fix(catalog):** auto-calculate combo context_length from target model limits (#2030)
-- **fix(api):** fix usage analytics and API key identity (#2008, #2092)
-- **fix(api-key):** allow Unicode letters in API key name validation (#1996)
-- **fix(auth):** allow bootstrap without password (#2048)
-- **fix(proxy):** clean up proxy page redundancy and fix 1proxy sync empty body error (#2052)
-- **fix(dashboard):** resolve Unknown plan display in Provider Limits
+- **fix(sse):** prevent Claude OAuth multi-account correlation via metadata.user_id (#2053 — thanks @Tentoxa)
+- **fix(sse):** prevent Claude Code identity cloak overrides and fix fallback resilience (#2053 — thanks @Tentoxa)
+- **fix(sse):** classify hour quota errors as QUOTA_EXHAUSTED (#2119 — thanks @clousky2020)
+- **fix(sse):** fix CC-compatible streaming bridge (#2118 — thanks @rdself)
+- **fix(antigravity):** sanitize Claude Cloud Code payloads (#2090 — thanks @dhaern)
+- **fix(antigravity):** add duplex half for streaming bodies — thanks @Gi99lin
+- **fix(antigravity):** align identity protocol and behavior with official AM — thanks @Gi99lin
+- **fix(chatgpt-web):** plumb proxy through to native tls-client (#2022, #2023 — thanks @xssdem)
+- **fix(codex):** expose native model IDs in catalog (#2012 — thanks @Tr0sT)
+- **fix(glm):** add dedicated coding transport (#2087 — thanks @dhaern)
+- **fix(compression):** support Responses input and expand Spanish compression rules (#2028 — thanks @dhaern)
+- **fix(catalog):** auto-calculate combo context_length from target model limits (#2030 — thanks @herjarsa)
+- **fix(api):** fix usage analytics and API key identity (#2008, #2092 — thanks @AveryanAlex, @yoviarpauzi)
+- **fix(api-key):** allow Unicode letters in API key name validation (#1996 — thanks @rodrigogbbr-stack)
+- **fix(auth):** allow bootstrap without password (#2048 — thanks @tces1)
+- **fix(proxy):** clean up proxy page redundancy and fix 1proxy sync empty body error (#2052 — thanks @oyi77)
+- **fix(dashboard):** resolve Unknown plan display in Provider Limits — thanks @congvc-dev
 - **fix(usage):** add extensible CURRENCY_SYMBOLS mapping for deepseek currencies
 - **fix(runtime):** harden timer handling and model pricing fallback
-- **fix(i18n):** complete Simplified Chinese translations (#2115)
-- **fix(mitm):** add Linux cert install and skip sudo password when root (#1999)
-- **fix(mitm):** prevent stub from loading at runtime via bypass module
+- **fix(i18n):** complete Simplified Chinese translations (#2115 — thanks @boa-z)
+- **fix(mitm):** add Linux cert install and skip sudo password when root (#1999 — thanks @NekoMonci12)
+- **fix(mitm):** prevent stub from loading at runtime via bypass module — thanks @NekoMonci12
 - **fix:** remove Anthropic-Beta header from non-Anthropic providers to fix identity contamination (#1989)
 - **fix(cli):** resolve .env loading failure for global npm installations
 - **fix(authz):** classify `/dashboard/onboarding` as PUBLIC to unblock setup wizard (#2127)
@@ -201,59 +296,62 @@
 
 Thank you to all **55+ community contributors** who made v3.8.0 possible! 🎉
 
-| Contributor                                                | PRs | Contributions                                                                      |
-| :--------------------------------------------------------- | :-: | :--------------------------------------------------------------------------------- |
-| [@NomenAK](https://github.com/NomenAK)                     | 12  | #2217, #2218, #2219, #2221, #2222, #2223, #2224, #2228, #2233, #2234, #2242, #2192 |
-| [@oyi77](https://github.com/oyi77)                         | 12  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131, #2135, #2240 |
-| [@backryun](https://github.com/backryun)                   |  8  | #1992, #2033, #2088, #2123, #2138, #2141, #2150, #2177                             |
-| [@Brkic-Nikola](https://github.com/Brkic-Nikola)           |  6  | #2165, #2189, #2190, #2191, #2192, #2197                                           |
-| [@Gioxaa](https://github.com/Gioxaa)                       |  5  | #2105, #2149, #2153, #2154, #2159                                                  |
-| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                                         |
-| [@andrewmunsell](https://github.com/andrewmunsell)         |  3  | #2169, #2176, #2238                                                                |
-| [@ddarkr](https://github.com/ddarkr)                       |  3  | #2047, #2199, #2243                                                                |
-| [@nickwizard](https://github.com/nickwizard)               |  3  | #1991, #2196, #2227                                                                |
-| [@herjarsa](https://github.com/herjarsa)                   |  3  | #2030, #2136, #2152                                                                |
-| [@rafacpti23](https://github.com/rafacpti23)               |  3  | #2086, #2146, #2201                                                                |
-| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                                       |
-| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                                       |
-| [@hartmark](https://github.com/hartmark)                   |  2  | #2045, #2137                                                                       |
-| [@payne0420](https://github.com/payne0420)                 |  2  | #2082, #2128                                                                       |
-| [@bypanghu](https://github.com/bypanghu)                   |  2  | #2027, #2156                                                                       |
-| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                                       |
-| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                                              |
-| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                                              |
-| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                                              |
-| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                                              |
-| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                                              |
-| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                                              |
-| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                                              |
-| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                                              |
-| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                                              |
-| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                                              |
-| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                                              |
-| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                                              |
-| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                                              |
-| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                                              |
-| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                                              |
-| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                                              |
-| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                                              |
-| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                                              |
-| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                                              |
-| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                                              |
-| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                                              |
-| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                                              |
-| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                                              |
-| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                                              |
-| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                                              |
-| [@Zhaba1337228](https://github.com/Zhaba1337228)           |  1  | #2168                                                                              |
-| [@faisalill](https://github.com/faisalill)                 |  1  | #2166                                                                              |
-| [@Yosee11](https://github.com/Yosee11)                     |  1  | #2164                                                                              |
-| [@hachimed](https://github.com/hachimed)                   |  1  | #2162                                                                              |
-| [@JohnDoe-oss](https://github.com/JohnDoe-oss)             |  1  | #2161                                                                              |
-| [@brucevoin](https://github.com/brucevoin)                 |  1  | #2163                                                                              |
-| [@InkshadeWoods](https://github.com/InkshadeWoods)         |  1  | #2202                                                                              |
-| [@kang-heewon](https://github.com/kang-heewon)             |  1  | #2231                                                                              |
-| [@one-vs](https://github.com/one-vs)                       |  1  | #2236                                                                              |
+| Contributor                                                | PRs | Contributions                                                                                    |
+| :--------------------------------------------------------- | :-: | :----------------------------------------------------------------------------------------------- |
+| [@NomenAK](https://github.com/NomenAK)                     | 12  | #2217, #2218, #2219, #2221, #2222, #2223, #2224, #2228, #2233, #2234, #2242, #2192               |
+| [@oyi77](https://github.com/oyi77)                         | 14  | #2010, #2014, #2041, #2052, #2061, #2074, #2091, #2094, #2096, #2131, #2135, #2240, #2283, #2295 |
+| [@backryun](https://github.com/backryun)                   |  9  | #1992, #2033, #2088, #2123, #2138, #2141, #2150, #2177, #2279                                    |
+| [@Brkic-Nikola](https://github.com/Brkic-Nikola)           |  6  | #2165, #2189, #2190, #2191, #2192, #2197                                                         |
+| [@Gioxaa](https://github.com/Gioxaa)                       |  5  | #2105, #2149, #2153, #2154, #2159                                                                |
+| [@dhaern](https://github.com/dhaern)                       |  4  | #2028, #2039, #2087, #2090                                                                       |
+| [@andrewmunsell](https://github.com/andrewmunsell)         |  3  | #2169, #2176, #2238                                                                              |
+| [@ddarkr](https://github.com/ddarkr)                       |  4  | #2047, #2199, #2243, #2271                                                                       |
+| [@nickwizard](https://github.com/nickwizard)               |  3  | #1991, #2196, #2227                                                                              |
+| [@herjarsa](https://github.com/herjarsa)                   |  3  | #2030, #2136, #2152                                                                              |
+| [@rafacpti23](https://github.com/rafacpti23)               |  3  | #2086, #2146, #2201                                                                              |
+| [@Tentoxa](https://github.com/Tentoxa)                     |  2  | #2011, #2053                                                                                     |
+| [@wauputr4](https://github.com/wauputr4)                   |  2  | #2009, #2046                                                                                     |
+| [@hartmark](https://github.com/hartmark)                   |  4  | #2045, #2137, #2294, #2299                                                                       |
+| [@payne0420](https://github.com/payne0420)                 |  2  | #2082, #2128                                                                                     |
+| [@bypanghu](https://github.com/bypanghu)                   |  2  | #2027, #2156                                                                                     |
+| [@eleata](https://github.com/eleata)                       |  2  | #2116, #2133                                                                                     |
+| [@Tr0sT](https://github.com/Tr0sT)                         |  1  | #2012                                                                                            |
+| [@AveryanAlex](https://github.com/AveryanAlex)             |  1  | #2008                                                                                            |
+| [@rodrigogbbr-stack](https://github.com/rodrigogbbr-stack) |  1  | #1996                                                                                            |
+| [@NekoMonci12](https://github.com/NekoMonci12)             |  1  | #1999                                                                                            |
+| [@congvc-dev](https://github.com/congvc-dev)               |  1  | #2004                                                                                            |
+| [@tatsster](https://github.com/tatsster)                   |  1  | #2007                                                                                            |
+| [@xssdem](https://github.com/xssdem)                       |  1  | #2023                                                                                            |
+| [@wucm667](https://github.com/wucm667)                     |  1  | #2031                                                                                            |
+| [@tces1](https://github.com/tces1)                         |  1  | #2048                                                                                            |
+| [@guanbear](https://github.com/guanbear)                   |  1  | #2054                                                                                            |
+| [@Gi99lin](https://github.com/Gi99lin)                     |  1  | #2055                                                                                            |
+| [@ivan-mezentsev](https://github.com/ivan-mezentsev)       |  1  | #2063                                                                                            |
+| [@JxnLexn](https://github.com/JxnLexn)                     |  1  | #2019                                                                                            |
+| [@yoviarpauzi](https://github.com/yoviarpauzi)             |  1  | #2092                                                                                            |
+| [@gleber](https://github.com/gleber)                       |  1  | #2103                                                                                            |
+| [@rilham97](https://github.com/rilham97)                   |  1  | #2104                                                                                            |
+| [@boa-z](https://github.com/boa-z)                         |  1  | #2115                                                                                            |
+| [@rdself](https://github.com/rdself)                       |  1  | #2118                                                                                            |
+| [@clousky2020](https://github.com/clousky2020)             |  1  | #2119                                                                                            |
+| [@abhinavjnu](https://github.com/abhinavjnu)               |  1  | #2122                                                                                            |
+| [@HoaPham98](https://github.com/HoaPham98)                 |  1  | #2089                                                                                            |
+| [@christlau](https://github.com/christlau)                 |  1  | #2129                                                                                            |
+| [@flyingmongoose](https://github.com/flyingmongoose)       |  1  | #2134                                                                                            |
+| [@05dunski](https://github.com/05dunski)                   |  1  | #1978 (cherry-picked)                                                                            |
+| [@DavyMassoneto](https://github.com/DavyMassoneto)         |  1  | #2140                                                                                            |
+| [@Zhaba1337228](https://github.com/Zhaba1337228)           |  1  | #2168                                                                                            |
+| [@faisalill](https://github.com/faisalill)                 |  1  | #2166                                                                                            |
+| [@Yosee11](https://github.com/Yosee11)                     |  1  | #2164                                                                                            |
+| [@hachimed](https://github.com/hachimed)                   |  1  | #2162                                                                                            |
+| [@JohnDoe-oss](https://github.com/JohnDoe-oss)             |  1  | #2161                                                                                            |
+| [@brucevoin](https://github.com/brucevoin)                 |  1  | #2163                                                                                            |
+| [@InkshadeWoods](https://github.com/InkshadeWoods)         |  1  | #2202                                                                                            |
+| [@kang-heewon](https://github.com/kang-heewon)             |  1  | #2231                                                                                            |
+| [@one-vs](https://github.com/one-vs)                       |  1  | #2236                                                                                            |
+| [@thepigdestroyer](https://github.com/thepigdestroyer)     |  2  | #2290, #2291                                                                                     |
+| [@josephvoxone](https://github.com/josephvoxone)           |  1  | #2289                                                                                            |
+| [@mrmm](https://github.com/mrmm)                           |  2  | #2286, #2305                                                                                     |
 
 ## [3.7.9] — 2026-05-03
 
@@ -1729,7 +1827,7 @@ We identified that **155 community PRs** across the entire project history (from
 - **feat(ui):** Implement on-demand per-model testing in the provider dashboard, allowing single-token diagnostic checks without triggering rate-limits (Issue #1532).
 
 - **Detailed Token Tracking:** Added granular token breakdown columns (cache read, cache write, reasoning) to call logs with proper null vs zero distinction. Includes DB migration 018 and 5-label UI display per provider capability (#1017 — thanks @rdself).
-- **Legacy JSON Config Import/Export:** Restored JSON-based settings export and import for migration from legacy 9router configurations. Security-hardened with Zero-Trust redaction of passwords and `requireLogin` fields, and automatic pre-import database backups (#1012 — thanks @luandiasrj).
+- **Legacy JSON Config Import/Export:** Restored JSON-based settings export and import for migration from legacy configurations. Security-hardened with Zero-Trust redaction of passwords and `requireLogin` fields, and automatic pre-import database backups (#1012 — thanks @luandiasrj).
 - **Non-Stream Aliases:** Added API support for explicit non-streaming aliases (`non_stream`, `disable_stream`, `disable_streaming`, `streaming=false`), normalized at the boundary before provider translation (#1036 — thanks @wlfonseca).
 - **Russian Dashboard Localization:** Comprehensive Russian translation for the dashboard UI, including fixes for 2 Ukrainian locale keys (#1003 — thanks @mercs2910).
 

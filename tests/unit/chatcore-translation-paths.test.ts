@@ -39,6 +39,7 @@ const {
   shouldUseNativeCodexPassthrough,
   isTokenExpiringSoon,
   clearUpstreamProxyConfigCache,
+  buildStreamingResponseHeaders,
 } = await import("../../open-sse/handlers/chatCore.ts");
 const { resetPayloadRulesConfigForTests, setPayloadRulesConfig } =
   await import("../../open-sse/services/payloadRules.ts");
@@ -2061,6 +2062,70 @@ test("chatCore emits final SSE metadata comments before [DONE] on streaming resp
   assert.ok(
     streamText.indexOf(": x-omniroute-response-cost=") < streamText.indexOf("data: [DONE]")
   );
+});
+
+test("buildStreamingResponseHeaders drops upstream compression and framing headers", () => {
+  const headers = new Headers(
+    buildStreamingResponseHeaders(
+      new Headers({
+        "Content-Type": "text/event-stream",
+        "Content-Encoding": "gzip",
+        "Content-Length": "999",
+        "Transfer-Encoding": "chunked",
+        "X-Upstream-Trace": "trace-1",
+      }),
+      {
+        provider: "openai",
+        model: "gpt-4o-mini",
+        cacheHit: false,
+        latencyMs: 0,
+        usage: null,
+        costUsd: 0,
+      }
+    )
+  );
+
+  assert.equal(headers.get("Content-Type"), "text/event-stream");
+  assert.equal(headers.get("Content-Encoding"), null);
+  assert.equal(headers.get("Content-Length"), null);
+  assert.equal(headers.get("Transfer-Encoding"), null);
+  assert.equal(headers.get("X-Upstream-Trace"), "trace-1");
+  assert.equal(headers.get("X-OmniRoute-Cache"), "MISS");
+});
+
+test("chatCore strips upstream compression and length headers from streaming responses", async () => {
+  const upstreamPayload = `data: ${JSON.stringify({
+    id: "chatcmpl-stream-headers",
+    object: "chat.completion.chunk",
+    choices: [{ index: 0, delta: { role: "assistant", content: "streamed" } }],
+  })}\n\ndata: [DONE]\n\n`;
+  const { result } = await invokeChatCore({
+    provider: "openai",
+    model: "gpt-4o-mini",
+    accept: "text/event-stream",
+    body: {
+      model: "gpt-4o-mini",
+      stream: true,
+      messages: [{ role: "user", content: "stream header sanitization" }],
+    },
+    responseFactory() {
+      return new Response(upstreamPayload, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Content-Length": String(Buffer.byteLength(upstreamPayload)),
+          "X-Upstream-Trace": "trace-1",
+        },
+      });
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(result.response.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(result.response.headers.get("Content-Length"), null);
+  assert.equal(result.response.headers.get("X-Upstream-Trace"), "trace-1");
+  assert.equal(result.response.headers.get("X-OmniRoute-Cache"), "MISS");
+  await result.response.text();
 });
 
 test("chatCore maps upstream aborts to request-aborted errors", async () => {

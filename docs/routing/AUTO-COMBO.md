@@ -205,6 +205,37 @@ Including the bare `auto` (default) plus the 6 `AutoVariant` values declared in 
 
 (`AutoVariant` itself enumerates 6 values; the 7th option is "no variant" — bare `auto` — handled by `parseAutoPrefix()` as `variant: undefined`.)
 
+## How tiers fit Auto-Combo
+
+The 9-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
+membership as one signal via the `tierPriority` weight. Default weights (from `DEFAULT_WEIGHTS`):
+
+| Factor                   | Default weight | Notes                             |
+| ------------------------ | -------------- | --------------------------------- |
+| Tier priority            | 0.05           | Tier 1 premium → higher score     |
+| Latency (p50 inverse)    | 0.35           | Fastest wins                      |
+| Cost ($/1M inverse)      | 0.20           | Cheapest wins                     |
+| Recent health/error rate | 0.15           | Unhealthy deprioritized           |
+| Quota remaining          | 0.10           | Near-exhausted deprioritized      |
+| Context window match     | 0.08           | Penalizes short windows           |
+| Task fitness             | 0.10           | Coding → coding-specialist models |
+| Stability                | 0.00           | Disabled by default               |
+
+Tier alone does **not** force Tier 1 first — if Tier 1 latency is bad or
+cost-vs-quality is suboptimal, Tier 2 wins. To force tier ordering, use combo
+strategy `priority` and arrange providers by tier.
+
+To strongly favor Tier 1 (subscription), increase `tierPriority` weight:
+
+```json
+{
+  "strategy": "auto",
+  "config": { "auto": { "weights": { "tierPriority": 0.3, "costInv": 0.05 } } }
+}
+```
+
+See `docs/marketing/TIERS.md` for tier definitions and provider classification.
+
 ## Files
 
 | File                                                      | Purpose                                                                    |

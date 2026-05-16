@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#9ca3af"/>
+    </marker>
+    <marker id="arrow-fallback-dark" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f87171"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="420" fill="#111827" rx="12"/>
+
+  <!-- Title -->
+  <text x="400" y="32" text-anchor="middle" font-size="18" font-weight="700" fill="#f9fafb">OmniRoute 3-tier fallback</text>
+  <text x="400" y="52" text-anchor="middle" font-size="12" fill="#6b7280">Never stop building — automatic zero-config failover across 207+ providers</text>
+
+  <!-- Client box -->
+  <rect x="275" y="70" width="250" height="52" rx="8" fill="#1f2937" stroke="#374151" stroke-width="1.5"/>
+  <text x="400" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#f3f4f6">Your IDE / CLI / App</text>
+  <text x="400" y="114" text-anchor="middle" font-size="10" fill="#6b7280">Claude Code · Cursor · Cline · Copilot · JetBrains AI</text>
+
+  <!-- Arrow down to router -->
+  <line x1="400" y1="122" x2="400" y2="150" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
+  <text x="420" y="140" font-size="9" fill="#6b7280">localhost:20128/v1</text>
+
+  <!-- Router box -->
+  <rect x="200" y="152" width="400" height="72" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="400" y="177" text-anchor="middle" font-size="14" font-weight="700" fill="#93c5fd">OmniRoute Smart Router</text>
+  <text x="400" y="196" text-anchor="middle" font-size="10" fill="#60a5fa">RTK compression · Caveman terse-mode · Auto-Combo (14 strategies)</text>
+  <text x="400" y="213" text-anchor="middle" font-size="10" fill="#60a5fa">Circuit breaker · MCP server (37 tools) · A2A · Memory · Guardrails</text>
+
+  <!-- Arrows from router to tiers -->
+  <line x1="310" y1="224" x2="150" y2="285" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
+  <line x1="400" y1="224" x2="400" y2="285" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
+  <line x1="490" y1="224" x2="650" y2="285" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-dark)"/>
+
+  <!-- Tier 1: Subscription -->
+  <rect x="30" y="287" width="220" height="110" rx="8" fill="#1c1a00" stroke="#d97706" stroke-width="1.5"/>
+  <text x="140" y="310" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">Tier 1 — SUBSCRIPTION</text>
+  <text x="140" y="328" text-anchor="middle" font-size="10" fill="#d97706">Pay flat-rate, use every drop</text>
+  <text x="140" y="346" text-anchor="middle" font-size="9.5" fill="#fbbf24">Claude Code · Codex · Copilot</text>
+  <text x="140" y="362" text-anchor="middle" font-size="9.5" fill="#fbbf24">Cursor · Antigravity · Windsurf</text>
+  <text x="140" y="387" text-anchor="middle" font-size="9" fill="#f59e0b">quota exhausted → Tier 2</text>
+  <line x1="140" y1="378" x2="300" y2="378" stroke="#f87171" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-fallback-dark)"/>
+
+  <!-- Tier 2: Cheap -->
+  <rect x="290" y="287" width="220" height="110" rx="8" fill="#052e16" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="400" y="310" text-anchor="middle" font-size="11" font-weight="700" fill="#4ade80">Tier 2 — CHEAP</text>
+  <text x="400" y="328" text-anchor="middle" font-size="10" fill="#22c55e">Pay-per-token, under $1/1M</text>
+  <text x="400" y="346" text-anchor="middle" font-size="9.5" fill="#4ade80">DeepSeek $0.27 · GLM $0.60</text>
+  <text x="400" y="362" text-anchor="middle" font-size="9.5" fill="#4ade80">MiniMax $0.20 · Qwen $0.30</text>
+  <text x="400" y="387" text-anchor="middle" font-size="9" fill="#16a34a">budget hit → Tier 3</text>
+  <line x1="400" y1="378" x2="560" y2="378" stroke="#f87171" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arrow-fallback-dark)"/>
+
+  <!-- Tier 3: Free -->
+  <rect x="550" y="287" width="220" height="110" rx="8" fill="#1e1b4b" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="660" y="310" text-anchor="middle" font-size="11" font-weight="700" fill="#a5b4fc">Tier 3 — FREE</text>
+  <text x="660" y="328" text-anchor="middle" font-size="10" fill="#818cf8">Free tiers &amp; credit programs</text>
+  <text x="660" y="346" text-anchor="middle" font-size="9.5" fill="#a5b4fc">Kiro · OpenCode · Qoder</text>
+  <text x="660" y="362" text-anchor="middle" font-size="9.5" fill="#a5b4fc">Gemini CLI · Vertex $300cr</text>
+  <text x="660" y="387" text-anchor="middle" font-size="9" fill="#6366f1">always available</text>
+
+  <!-- Footer note -->
+  <text x="400" y="413" text-anchor="middle" font-size="9" fill="#4b5563">Fallback happens in milliseconds — transparent to the calling tool</text>
+</svg>

@@ -4,9 +4,9 @@ import os from "node:os";
 import path from "node:path";
 import { createDecipheriv, scryptSync } from "node:crypto";
 import { pathToFileURL } from "node:url";
-import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
 import { resolveDataDir, resolveStoragePath } from "../data-dir.mjs";
 import { printHeading } from "../io.mjs";
+import { t } from "../i18n.mjs";
 
 const STATIC_SALT = "omniroute-field-encryption-v1";
 const KEY_LENGTH = 32;
@@ -181,8 +181,11 @@ function decryptCredentialSample(value, key) {
   const [ivHex, encryptedHex, authTagHex] = body.split(":");
   if (!ivHex || !encryptedHex || !authTagHex) throw new Error("Malformed encrypted value");
 
-  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
-  decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+  const authTagBuf = Buffer.from(authTagHex, "hex");
+  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"), {
+    authTagLength: authTagBuf.length,
+  });
+  decipher.setAuthTag(authTagBuf);
   let decrypted = decipher.update(encryptedHex, "hex", "utf8");
   decrypted += decipher.final("utf8");
   return decrypted;
@@ -360,7 +363,7 @@ async function checkNativeBinary(rootDir) {
 
   try {
     const { isNativeBinaryCompatible } = await import(
-      pathToFileURL(path.join(rootDir, "scripts", "native-binary-compat.mjs")).href
+      pathToFileURL(path.join(rootDir, "scripts", "build", "native-binary-compat.mjs")).href
     );
     const compatible = isNativeBinaryCompatible(binaryPath);
     if (!compatible) {
@@ -487,25 +490,6 @@ export async function collectDoctorChecks(context = {}, options = {}) {
   };
 }
 
-function printDoctorHelp() {
-  console.log(`
-Usage:
-  omniroute doctor
-  omniroute doctor --json
-  omniroute doctor --no-liveness
-  omniroute doctor --host 0.0.0.0
-
-Options:
-  --json                 Print machine-readable JSON
-  --no-liveness          Skip HTTP health endpoint probing
-  --host <host>          Host for server liveness probing (default: 127.0.0.1)
-  --liveness-url <url>   Full health endpoint URL override
-
-Checks:
-  config, database, storage/encryption, ports, Node runtime, native binary, memory, server liveness, CLI tools
-`);
-}
-
 function printCheck(check) {
   const label = check.status.toUpperCase().padEnd(4);
   const color =
@@ -513,20 +497,31 @@ function printCheck(check) {
   console.log(`${color}${label}\x1b[0m ${check.name}: ${check.message}`);
 }
 
-export async function runDoctorCommand(argv, context = {}) {
-  const { flags } = parseArgs(argv);
-  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
-    printDoctorHelp();
-    return 0;
-  }
+export function registerDoctor(program) {
+  program
+    .command("doctor")
+    .description(t("doctor.title"))
+    .option("--no-liveness", "Skip HTTP health endpoint probing")
+    .option("--host <host>", "Host for server liveness probing", "127.0.0.1")
+    .option("--liveness-url <url>", "Full health endpoint URL override")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.optsWithGlobals();
+      const exitCode = await runDoctorCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+}
+
+export async function runDoctorCommand(opts = {}, context = {}) {
+  const isJson = (opts.output ?? "table") === "json";
+  const skipLiveness = !(opts.liveness ?? true);
 
   const result = await collectDoctorChecks(context, {
-    skipLiveness: hasFlag(flags, "no-liveness"),
-    livenessHost: getStringFlag(flags, "host"),
-    livenessUrl: getStringFlag(flags, "liveness-url"),
+    skipLiveness,
+    livenessHost: opts.host,
+    livenessUrl: opts.livenessUrl,
   });
 
-  if (hasFlag(flags, "json")) {
+  if (isJson) {
     console.log(JSON.stringify(result, null, 2));
   } else {
     printHeading("OmniRoute Doctor");

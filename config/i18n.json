@@ -14,6 +14,14 @@
       "flag": "🇸🇦"
     },
     {
+      "code": "az",
+      "label": "AZ",
+      "name": "Azərbaycan dili",
+      "native": "Azərbaycan dili",
+      "english": "Azerbaijani",
+      "flag": "🇦🇿"
+    },
+    {
       "code": "bg",
       "label": "BG",
       "name": "Български",

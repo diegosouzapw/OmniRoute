@@ -1,34 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * OmniRoute CLI — Smart AI Router with Auto Fallback
+ * OmniRoute CLI entry point.
  *
- * Usage:
- *   omniroute                          Start the server (default port 20128)
- *   omniroute --port 3000              Start on custom port
- *   omniroute --no-open                Start without opening browser
- *   omniroute --mcp                    Start MCP server (stdio transport for IDEs)
- *   omniroute setup                    Interactive guided setup
- *   omniroute doctor                   Run local health checks
- *   omniroute providers available      List supported providers
- *   omniroute providers list           List configured providers
- *   omniroute reset-encrypted-columns  Reset broken encrypted credentials
- *   omniroute --help                   Show help
- *   omniroute --version                Show version
+ * Special bypasses (handled before Commander):
+ *   --mcp                     Start MCP server over stdio
+ *   reset-encrypted-columns   Recovery tool for broken encrypted credentials
+ *
+ * All other commands are routed through Commander (bin/cli/program.mjs).
  */
 
-import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
-import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
-import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
+import updateNotifier from "update-notifier";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
-const APP_DIR = join(ROOT, "app");
 
 function loadEnvFile() {
   const envPaths = [];
@@ -77,287 +67,43 @@ function loadEnvFile() {
 
 loadEnvFile();
 
-const args = process.argv.slice(2);
-const command = args[0];
-const CLI_COMMANDS = new Set([
-  "doctor",
-  "providers",
-  "setup",
-  "config",
-  "status",
-  "logs",
-  "update",
-  "provider",
-]);
-
-if (CLI_COMMANDS.has(command)) {
-  try {
-    const { runCliCommand } = await import(pathToFileURL(join(ROOT, "bin", "cli", "index.mjs")).href);
-    const exitCode = await runCliCommand(command, args.slice(1), { rootDir: ROOT });
-    process.exit(exitCode ?? 0);
-  } catch (err) {
-    console.error("\x1b[31m✖ CLI command failed:\x1b[0m", err.message || err);
-    process.exit(1);
-  }
-}
-
-if (args.includes("--help") || args.includes("-h")) {
-  console.log(`
-  \x1b[1m\x1b[36m⚡ OmniRoute\x1b[0m — Smart AI Router with Auto Fallback
-
-  \x1b[1mUsage:\x1b[0m
-    omniroute                 Start the server
-    omniroute setup           Interactive guided setup
-    omniroute doctor          Run local health checks
-    omniroute providers available  List supported providers
-    omniroute providers list  List configured providers
-    omniroute --port <port>   Use custom API port (default: 20128)
-    omniroute --no-open       Don't open browser automatically
-    omniroute --mcp           Start MCP server (stdio transport for IDEs)
-    omniroute reset-encrypted-columns  Reset encrypted credentials (recovery)
-
-  \x1b[1mServer Management:\x1b[0m
-    omniroute serve           Start the OmniRoute server
-    omniroute stop            Stop the running server
-    omniroute restart         Restart the server
-    omniroute dashboard       Open dashboard in browser
-    omniroute open            Alias for dashboard (same as dashboard)
-
-  \x1b[1mCLI Integration Suite:\x1b[0m
-    omniroute setup           Interactive wizard to configure CLI tools
-    omniroute doctor         Run health diagnostics
-    omniroute status         Show comprehensive status
-    omniroute logs           Stream request logs (--json, --search, --follow)
-    omniroute config show    Display current configuration
-
-  \x1b[1mProvider & Keys:\x1b[0m
-    omniroute provider list  List available providers
-    omniroute provider add   Add OmniRoute as provider
-    omniroute keys add       Add API key for provider
-    omniroute keys list      List configured API keys
-    omniroute keys remove   Remove API key
-
-  \x1b[1mModels & Combos:\x1b[0m
-    omniroute models         List available models (--json, --search)
-    omniroute models <prov>  Filter models by provider
-    omniroute combo list     List routing combos
-    omniroute combo switch   Switch active combo
-    omniroute combo create  Create new combo
-    omniroute combo delete  Delete a combo
-
-  \x1b[1mBackup & Restore:\x1b[0m
-    omniroute backup         Create backup of config & DB
-    omniroute restore        Restore from backup (list or specify timestamp)
-
-  \x1b[1mMonitoring:\x1b[0m
-    omniroute health         Detailed health (breakers, cache, memory)
-    omniroute quota          Show provider quota usage
-    omniroute cache          Show cache status
-    omniroute cache clear    Clear semantic/signature cache
-
-  \x1b[1mProtocols:\x1b[0m
-    omniroute mcp status     MCP server status
-    omniroute mcp restart   Restart MCP server
-    omniroute a2a status    A2A server status
-    omniroute a2a card      Show A2A agent card
-
-  \x1b[1mTunnels & Network:\x1b[0m
-    omniroute tunnel list    List active tunnels
-    omniroute tunnel create  Create tunnel (cloudflare/tailscale/ngrok)
-    omniroute tunnel stop    Stop a tunnel
-
-  \x1b[1mEnvironment:\x1b[0m
-    omniroute env show       Show environment variables
-    omniroute env get <key>  Get specific env var
-    omniroute env set <k> <v> Set env var (temporary)
-
-  \x1b[1mTools & Utils:\x1b[0m
-    omniroute test           Test provider connectivity
-    omniroute update         Check for updates
-    omniroute completion     Generate shell completion
-
-    omniroute --help          Show this help
-    omniroute --version       Show version
-
-  \x1b[1mMCP Integration:\x1b[0m
-    The --mcp flag starts an MCP server over stdio, exposing OmniRoute
-    tools for AI agents in VS Code, Cursor, Claude Desktop, and Copilot.
-
-    Available tools: omniroute_get_health, omniroute_list_combos,
-    omniroute_check_quota, omniroute_route_request, and more.
-
-  \x1b[1mConfig:\x1b[0m
-    Loads .env from: ~/.omniroute/.env or ./.env
-    Memory limit: OMNIROUTE_MEMORY_MB (default: 512)
-
-  \x1b[1mSetup:\x1b[0m
-    omniroute setup --password <password>
-    omniroute setup --add-provider --provider openai --api-key <key>
-    omniroute setup --non-interactive
-
-  \x1b[1mDoctor:\x1b[0m
-    omniroute doctor
-    omniroute doctor --json
-    omniroute doctor --no-liveness
-
-  \x1b[1mProviders:\x1b[0m
-    omniroute providers available
-    omniroute providers available --search openai
-    omniroute providers available --category api-key
-    omniroute providers list
-    omniroute providers test <id|name>
-    omniroute providers test-all
-    omniroute providers validate
-
-  \x1b[1mCLI Tools:\x1b[0m
-    omniroute config list                  List CLI tool configuration status
-    omniroute config get <tool>            Show config for a specific tool
-    omniroute config set <tool>            Write config for a tool
-    omniroute config validate <tool>       Validate config without writing
-    omniroute status                       Offline status dashboard
-    omniroute logs [--follow] [--filter]   Stream usage logs
-    omniroute update [--check] [--dry-run] Check or apply OmniRoute update
-    omniroute provider add <name>          Add a provider connection
-    omniroute provider list                List configured providers
-    omniroute provider test <name|id>      Test a provider connection
-
-  \x1b[1mAfter starting:\x1b[0m
-    Dashboard:  http://localhost:<dashboard-port>
-    API:        http://localhost:<api-port>/v1
-
-  \x1b[1mConnect your tools:\x1b[0m
-    Set your CLI tool (Cursor, Cline, Codex, etc.) to use:
-    \x1b[33mhttp://localhost:<api-port>/v1\x1b[0m
-  `);
-  process.exit(0);
-}
-
-if (args.includes("--version") || args.includes("-v")) {
-  try {
-    const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
-    console.log(version);
-  } catch {
-    console.log("unknown");
-  }
-  process.exit(0);
-}
-
-// ── CLI Integration Suite subcommands ───────────────────────────────────────
-const subcommands = [
-  "setup", "doctor", "status", "logs", "provider", "config", "test", "update",
-  "serve", "stop", "restart",
-  "keys", "models", "combo",
-  "completion", "dashboard",
-  "backup", "restore", "quota", "health",
-  "cache", "mcp", "a2a", "tunnel",
-  "env", "open"
-];
-const subcommand = args[0];
-
-if (subcommands.includes(subcommand)) {
-  const { runSubcommand } = await import("./cli-commands.mjs");
-  await runSubcommand(subcommand, args.slice(1));
-  process.exit(0);
-}
-
-// ── reset-encrypted-columns subcommand ──────────────────────────────────────
-// Recovery tool for users who lost STORAGE_ENCRYPTION_KEY after upgrade (#1622)
-if (args.includes("reset-encrypted-columns")) {
-  const dataDir = (() => {
-    const configured = process.env.DATA_DIR?.trim();
-    if (configured) return configured;
-    if (platform() === "win32") {
-      const appData = process.env.APPDATA || join(homedir(), "AppData", "Roaming");
-      return join(appData, "omniroute");
-    }
-    const xdg = process.env.XDG_CONFIG_HOME?.trim();
-    if (xdg) return join(xdg, "omniroute");
-    return join(homedir(), ".omniroute");
-  })();
-
-  const dbPath = join(dataDir, "storage.sqlite");
-
-  if (!existsSync(dbPath)) {
-    console.log(`\x1b[33m⚠ No database found at ${dbPath}\x1b[0m`);
-    process.exit(0);
-  }
-
-  const force = args.includes("--force");
-  if (!force) {
-    console.log(`
-  \x1b[1m\x1b[33m⚠ WARNING: This will erase all encrypted credentials\x1b[0m
-
-  This command will NULL out the following columns in provider_connections:
-    • api_key
-    • access_token
-    • refresh_token
-    • id_token
-
-  Provider metadata (name, provider_id, settings) will be preserved.
-  You will need to re-authenticate all providers after this operation.
-
-  Database: ${dbPath}
-
-  \x1b[1mTo confirm, run:\x1b[0m
-    omniroute reset-encrypted-columns --force
-    `);
-    process.exit(0);
-  }
-
-  try {
-    const { createRequire } = await import("node:module");
-    const require = createRequire(import.meta.url);
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath);
-
-    const countResult = db
-      .prepare(
-        `SELECT COUNT(*) as cnt FROM provider_connections
-         WHERE api_key LIKE 'enc:v1:%'
-            OR access_token LIKE 'enc:v1:%'
-            OR refresh_token LIKE 'enc:v1:%'
-            OR id_token LIKE 'enc:v1:%'`
-      )
-      .get();
-
-    const affected = countResult?.cnt ?? 0;
-
-    if (affected === 0) {
-      console.log("\x1b[32m✔ No encrypted credentials found — nothing to reset.\x1b[0m");
-      db.close();
-      process.exit(0);
-    }
-
-    const result = db
-      .prepare(
-        `UPDATE provider_connections
-            SET api_key = NULL,
-                access_token = NULL,
-                refresh_token = NULL,
-                id_token = NULL
-          WHERE api_key LIKE 'enc:v1:%'
-             OR access_token LIKE 'enc:v1:%'
-             OR refresh_token LIKE 'enc:v1:%'
-             OR id_token LIKE 'enc:v1:%'`
-      )
-      .run();
-
-    db.close();
-
-    console.log(
-      `\x1b[32m✔ Reset ${result.changes} provider connection(s).\x1b[0m\n` +
-        `  Re-authenticate your providers in the dashboard or re-add API keys.\n`
+// Apply --lang before Commander parses (program descriptions call t() during setup)
+{
+  const langIdx = process.argv.findIndex((a) => a === "--lang");
+  const langArg = langIdx >= 0 ? process.argv[langIdx + 1] : null;
+  const langEnv = process.env.OMNIROUTE_LANG;
+  const chosen = langArg || langEnv;
+  if (chosen) {
+    const { setLocale } = await import(
+      pathToFileURL(join(ROOT, "bin", "cli", "i18n.mjs")).href
     );
-  } catch (err) {
-    console.error(
-      `\x1b[31m✖ Failed to reset encrypted columns:\x1b[0m ${err.message || err}`
-    );
-    process.exit(1);
+    setLocale(chosen);
   }
-  process.exit(0);
 }
 
-if (args.includes("--mcp")) {
+// Register update notifier — checks npm once per 24h, notifies on exit via stderr.
+const _pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+const _notifier = updateNotifier({ pkg: _pkg, updateCheckInterval: 1000 * 60 * 60 * 24 });
+process.on("exit", () => {
+  if (process.env.OMNIROUTE_NO_UPDATE_NOTIFIER) return;
+  if (process.env.CI) return;
+  if (process.argv.includes("--quiet") || process.argv.includes("-q")) return;
+  const outputIdx = process.argv.indexOf("--output");
+  const outputVal = outputIdx >= 0 ? process.argv[outputIdx + 1] : null;
+  if (outputVal === "json" || outputVal === "jsonl" || outputVal === "csv") return;
+  if (process.argv.some((a) => a.startsWith("--output=json") || a.startsWith("--output=jsonl") || a.startsWith("--output=csv"))) return;
+  if (_notifier.update) {
+    _notifier.notify({
+      defer: false,
+      isGlobal: true,
+      message:
+        `Update available: ${_notifier.update.current} → ${_notifier.update.latest}\n` +
+        "Run `npm install -g omniroute` or `omniroute update --apply`",
+    });
+  }
+});
+
+if (process.argv.includes("--mcp")) {
   try {
     const { startMcpCli } = await import(pathToFileURL(join(ROOT, "bin", "mcp-server.mjs")).href);
     await startMcpCli(ROOT);
@@ -368,189 +114,22 @@ if (args.includes("--mcp")) {
   process.exit(0);
 }
 
-function parsePort(value, fallback) {
-  const parsed = parseInt(String(value), 10);
-  return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
-}
-
-let port = parsePort(process.env.PORT || "20128", 20128);
-const portIdx = args.indexOf("--port");
-if (portIdx !== -1 && args[portIdx + 1]) {
-  const cliPort = parsePort(args[portIdx + 1], null);
-  if (cliPort === null) {
-    console.error("\x1b[31m✖ Invalid port number\x1b[0m");
-    process.exit(1);
-  }
-  port = cliPort;
-}
-
-const apiPort = parsePort(process.env.API_PORT || String(port), port);
-const dashboardPort = parsePort(process.env.DASHBOARD_PORT || String(port), port);
-const noOpen = args.includes("--no-open");
-
-console.log(`
-\x1b[36m   ____                  _ ____              _
-   / __ \\\\                (_) __ \\\\            | |
-  | |  | |_ __ ___  _ __ _| |__) |___  _   _| |_ ___
-  | |  | | '_ \` _ \\\\| '_ \\\\ |  _  // _ \\\\| | | | __/ _ \\\\
-  | |__| | | | | | | | | | | | \\\\ \\\\ (_) | |_| | ||  __/
-   \\\\____/|_| |_| |_|_| |_|_|_|  \\\\_\\\\___/ \\\\__,_|\\\\__\\\\___|
-\x1b[0m`);
-
-const nodeSupport = getNodeRuntimeSupport();
-if (!nodeSupport.nodeCompatible) {
-  const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
-  console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
-     ${runtimeWarning}
-
-     Supported secure runtimes: ${nodeSupport.supportedDisplay}
-     Recommended: use Node.js ${nodeSupport.recommendedVersion} or newer on the 22.x LTS line.
-     Workaround:  npm rebuild better-sqlite3\x1b[0m
-`);
-}
-
-const serverWsJs = join(APP_DIR, "server-ws.mjs");
-const serverJs = existsSync(serverWsJs) ? serverWsJs : join(APP_DIR, "server.js");
-
-if (!existsSync(serverJs)) {
-  console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
-  console.error("  The package may not have been built correctly.");
-  console.error("");
-  const nodeExec = process.execPath || "";
-  const isMise = nodeExec.includes("mise") || nodeExec.includes(".local/share/mise");
-  const isNvm = nodeExec.includes(".nvm") || nodeExec.includes("nvm");
-  if (isMise) {
-    console.error(
-      "  \x1b[33m⚠ mise detected:\x1b[0m If you installed via `npm install -g omniroute`,"
-    );
-    console.error("    try: \x1b[36mnpx omniroute@latest\x1b[0m  (downloads a fresh copy)");
-    console.error("    or:  \x1b[36mmise exec -- npx omniroute\x1b[0m");
-  } else if (isNvm) {
-    console.error(
-      "  \x1b[33m⚠ nvm detected:\x1b[0m Try reinstalling after loading the correct Node version:"
-    );
-    console.error("    \x1b[36mnvm use --lts && npm install -g omniroute\x1b[0m");
-  } else {
-    console.error("  Try: \x1b[36mnpm install -g omniroute\x1b[0m  (reinstall)");
-    console.error("  Or:  \x1b[36mnpx omniroute@latest\x1b[0m");
-  }
-  process.exit(1);
-}
-
-const sqliteBinary = join(
-  APP_DIR,
-  "node_modules",
-  "better-sqlite3",
-  "build",
-  "Release",
-  "better_sqlite3.node"
-);
-if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
-  console.error(
-    "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
+if (process.argv.includes("reset-encrypted-columns")) {
+  const { runResetEncryptedColumns } = await import(
+    pathToFileURL(join(ROOT, "bin", "cli", "commands", "reset-encrypted-columns.mjs")).href
   );
-  console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
-  if (platform() === "darwin") {
-    console.error("  If build tools are missing: xcode-select --install");
-  }
+  const exitCode = await runResetEncryptedColumns(process.argv.slice(2));
+  process.exit(exitCode ?? 0);
+}
+
+try {
+  const { createProgram } = await import(
+    pathToFileURL(join(ROOT, "bin", "cli", "program.mjs")).href
+  );
+  const program = createProgram();
+  await program.parseAsync(process.argv);
+} catch (err) {
+  if (err.exitCode !== undefined) process.exit(err.exitCode);
+  console.error("\x1b[31m✖", err.message, "\x1b[0m");
   process.exit(1);
 }
-
-console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
-
-const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
-const memoryLimit =
-  Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
-
-const env = {
-  ...process.env,
-  OMNIROUTE_PORT: String(port),
-  PORT: String(dashboardPort),
-  DASHBOARD_PORT: String(dashboardPort),
-  API_PORT: String(apiPort),
-  HOSTNAME: "0.0.0.0",
-  NODE_ENV: "production",
-  NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
-};
-
-const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
-  cwd: APP_DIR,
-  env,
-  stdio: "pipe",
-});
-
-let started = false;
-
-server.stdout.on("data", (data) => {
-  const text = data.toString();
-  process.stdout.write(text);
-
-  if (
-    !started &&
-    (text.includes("Ready") || text.includes("started") || text.includes("listening"))
-  ) {
-    started = true;
-    onReady();
-  }
-});
-
-server.stderr.on("data", (data) => {
-  process.stderr.write(data);
-});
-
-server.on("error", (err) => {
-  console.error("\x1b[31m✖ Failed to start server:\x1b[0m", err.message);
-  process.exit(1);
-});
-
-server.on("exit", (code) => {
-  if (code !== 0 && code !== null) {
-    console.error(`\x1b[31m✖ Server exited with code ${code}\x1b[0m`);
-  }
-  process.exit(code ?? 0);
-});
-
-function shutdown() {
-  console.log("\n\x1b[33m⏹ Shutting down OmniRoute...\x1b[0m");
-  server.kill("SIGTERM");
-  setTimeout(() => {
-    server.kill("SIGKILL");
-    process.exit(0);
-  }, 5000);
-}
-
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
-
-async function onReady() {
-  const dashboardUrl = `http://localhost:${dashboardPort}`;
-  const apiUrl = `http://localhost:${apiPort}`;
-
-  console.log(`
-  \x1b[32m✔ OmniRoute is running!\x1b[0m
-
-  \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
-  \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
-
-  \x1b[2m  Point your CLI tool (Cursor, Cline, Codex) to:\x1b[0m
-  \x1b[33m  ${apiUrl}/v1\x1b[0m
-
-  \x1b[2m  Press Ctrl+C to stop\x1b[0m
-  `);
-
-  if (!noOpen) {
-    try {
-      const open = await import("open");
-      await open.default(dashboardUrl);
-    } catch {
-      // open is optional — if not available, just skip.
-    }
-  }
-}
-
-setTimeout(() => {
-  if (!started) {
-    started = true;
-    onReady();
-  }
-}, 15000);

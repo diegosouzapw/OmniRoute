@@ -133,7 +133,7 @@ npm run test:protocols:e2e
 # Ecosystem compatibility tests
 npm run test:ecosystem
 
-# Coverage (60% min statements/lines/functions/branches)
+# Coverage gate: 75% statements/lines/functions, 70% branches
 npm run test:coverage
 npm run coverage:report
 
@@ -145,7 +145,7 @@ npm run check
 Coverage notes:
 
 - `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
-- Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
+- Pull requests must keep the coverage gate at **75%+** statements/lines/functions and **70%+** branches
 - If a PR changes production code in `src/`, `open-sse/`, `electron/`, or `bin/`, it must add or update automated tests in the same PR
 - `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
 - `npm run test:coverage:legacy` preserves the older metric for historical comparison
@@ -157,7 +157,7 @@ Before opening or merging a PR:
 
 - Run `npm run test:unit`
 - Run `npm run test:coverage`
-- Ensure the coverage gate stays at **60%+** for all metrics
+- Ensure the coverage gate stays at **75%+** statements/lines/functions, **70%+** branches
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
 
@@ -298,6 +298,8 @@ Write unit tests in `tests/unit/` covering at minimum:
 - [ ] CHANGELOG updated (if user-facing change)
 - [ ] Documentation updated (if applicable)
 - [ ] No new CodeQL / Secret-Scanning alerts opened, or each one dismissed with technical justification referencing the relevant `docs/security/` doc
+- [ ] Routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) classified as `isLocalOnlyPath()` in `src/server/authz/routeGuard.ts` — see [Hard Rule #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No `Co-Authored-By` trailers in commit messages — commits must appear solely under the repository owner's Git identity (Hard Rule #16)
 
 ---
 
@@ -311,5 +313,7 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 - **Architecture**: See [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **API Reference**: See [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
+- **Security docs**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
+- **Ops docs**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **ADRs**: See `docs/adr/` for architectural decision records

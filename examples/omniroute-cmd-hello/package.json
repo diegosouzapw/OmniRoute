@@ -1,0 +1,14 @@
+{
+  "name": "omniroute-cmd-hello",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.mjs",
+  "description": "Example OmniRoute CLI plugin",
+  "engines": {
+    "omniroute": ">=4.0.0"
+  },
+  "keywords": [
+    "omniroute-plugin",
+    "omniroute-cmd"
+  ]
+}

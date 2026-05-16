@@ -24,7 +24,7 @@ const backupDir = resolvePlaywrightAppBackupDir({
   appDirExists: existsSync(appDir),
 });
 const usingAlternativeBackupDir = backupDir !== defaultBackupDir;
-const buildScript = join(cwd, "scripts", "build-next-isolated.mjs");
+const buildScript = join(cwd, "scripts", "build", "build-next-isolated.mjs");
 const standaloneServer = join(cwd, testDistDir(), "standalone", "server.js");
 const rootStaticDir = join(cwd, testDistDir(), "static");
 const rootPublicDir = join(cwd, "public");

@@ -89,7 +89,7 @@ flyctl version
 ### 4.1 获取代码并进入目录
 
 ```powershell
-git clone https://github.com/xiaoge1688/OmniRoute.git
+git clone https://github.com/diegosouzapw/OmniRoute.git
 cd OmniRoute
 ```
 

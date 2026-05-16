@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generates docs/reference/PROVIDER_REFERENCE.md from src/shared/constants/providers.ts.
-// Run: node --import tsx/esm scripts/docs/gen-provider-reference.ts
+// Run: node --import tsx scripts/docs/gen-provider-reference.ts
 
 import fs from "node:fs";
 import path from "node:path";

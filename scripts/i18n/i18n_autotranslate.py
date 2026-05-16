@@ -39,7 +39,7 @@ def get_language_name(lang_code):
         "pt-BR": "Portuguese (Brazil)", "es": "Spanish", "fr": "French", 
         "it": "Italian", "ru": "Russian", "zh-CN": "Simplified Chinese", 
         "de": "German", "in": "Hindi", "th": "Thai", "uk-UA": "Ukrainian", 
-        "ar": "Arabic", "ja": "Japanese", "vi": "Vietnamese", "bg": "Bulgarian", 
+        "ar": "Arabic", "az": "Azerbaijani", "ja": "Japanese", "vi": "Vietnamese", "bg": "Bulgarian", 
         "da": "Danish", "fi": "Finnish", "he": "Hebrew", "hu": "Hungarian", 
         "id": "Indonesian", "ko": "Korean", "ms": "Malay", "nl": "Dutch", 
         "no": "Norwegian", "pt": "Portuguese (Portugal)", "ro": "Romanian", 

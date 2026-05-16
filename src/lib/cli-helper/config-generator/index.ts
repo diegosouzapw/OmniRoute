@@ -1,6 +1,13 @@
 import path from "node:path";
 import os from "node:os";
 
+import { generateClaudeConfig } from "./claude";
+import { generateClineConfig } from "./cline";
+import { generateCodexConfig } from "./codex";
+import { generateContinueConfig } from "./continue";
+import { generateKilocodeConfig } from "./kilocode";
+import { generateOpencodeConfig } from "./opencode";
+
 export interface GenerateOptions {
   baseUrl: string;
   apiKey: string;
@@ -37,21 +44,16 @@ const TOOL_CONFIG_PATHS: Record<string, string> = {
   continue: path.join(os.homedir(), ".continue", "config.yaml"),
 };
 
-async function importGenerator(toolId: string) {
-  const generators: Record<string, { module: string; export: string }> = {
-    claude: { module: "./claude.js", export: "generateClaudeConfig" },
-    codex: { module: "./codex.js", export: "generateCodexConfig" },
-    opencode: { module: "./opencode.js", export: "generateOpencodeConfig" },
-    cline: { module: "./cline.js", export: "generateClineConfig" },
-    kilocode: { module: "./kilocode.js", export: "generateKilocodeConfig" },
-    continue: { module: "./continue.js", export: "generateContinueConfig" },
-  };
+type ConfigGenerator = (options: GenerateOptions) => string | Promise<string>;
 
-  const gen = generators[toolId];
-  if (!gen) return null;
-  const mod = await import(gen.module);
-  return { generate: mod[gen.export] };
-}
+const GENERATORS: Record<string, ConfigGenerator> = {
+  claude: generateClaudeConfig,
+  codex: generateCodexConfig,
+  opencode: generateOpencodeConfig,
+  cline: generateClineConfig,
+  kilocode: generateKilocodeConfig,
+  continue: generateContinueConfig,
+};
 
 export async function generateConfig(
   toolId: string,
@@ -70,11 +72,11 @@ export async function generateConfig(
   }
 
   try {
-    const mod = await importGenerator(toolId);
-    if (!mod) {
+    const generate = GENERATORS[toolId];
+    if (!generate) {
       return { success: false, configPath: "", error: `Unknown tool: ${toolId}` };
     }
-    const content = await mod.generate(options);
+    const content = await generate(options);
     const configPath = TOOL_CONFIG_PATHS[toolId] || "";
     return { success: true, configPath, content };
   } catch (err) {

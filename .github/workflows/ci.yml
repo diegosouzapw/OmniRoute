@@ -207,7 +207,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - run: node --import tsx --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -231,7 +231,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - run: node --import tsx --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   node-26-compat:
     name: Node 26 Compatibility (${{ matrix.shard }}/2)
@@ -255,7 +255,7 @@ jobs:
       - run: npm ci
       - run: npm run check:node-runtime
       - run: npm run build
-      - run: node --import tsx/esm --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
+      - run: node --import tsx --test --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   test-coverage:
     name: Coverage
@@ -462,7 +462,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx/esm --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
+      - run: node --import tsx --test --test-force-exit --test-concurrency=1 --test-shard=${{ matrix.shard }}/2 tests/integration/*.test.ts
 
   test-security:
     name: Security Tests

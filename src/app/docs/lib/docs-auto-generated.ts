@@ -191,6 +191,11 @@ export const autoNavSections: AutoGenNavSection[] = [
         fileName: "routing/AUTO-COMBO.md",
       },
       {
+        slug: "cli-tools",
+        title: "CLI Tools Setup Guide",
+        fileName: "routing/CLI-TOOLS.md",
+      },
+      {
         slug: "reasoning-replay",
         title: "Reasoning Replay Cache",
         fileName: "routing/REASONING_REPLAY.md",
@@ -864,6 +869,26 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     ],
   },
   {
+    slug: "cli-tools",
+    title: "CLI Tools Setup Guide",
+    fileName: "routing/CLI-TOOLS.md",
+    section: "Routing",
+    content:
+      "This guide explains how to install and configure all supported AI coding CLI tools to use OmniRoute as the unified backend, giving you centralized key management, cost tracking, model switching, and request logging across every tool. The dashboard cards in /dashboard/cli-tools are generated from src",
+    headings: [
+      "How It Works",
+      "Supported Tools (Dashboard Source of Truth)",
+      "CLI fingerprint sync (Agents + Settings)",
+      "Step 1 — Get an OmniRoute API Key",
+      "Step 2 — Install CLI Tools",
+      "Step 3 — Set Global Environment Variables",
+      "Step 4 — Configure Each Tool",
+      "Claude Code",
+      "OpenAI Codex",
+      "OpenCode",
+    ],
+  },
+  {
     slug: "reasoning-replay",
     title: "Reasoning Replay Cache",
     fileName: "routing/REASONING_REPLAY.md",
@@ -1191,6 +1216,7 @@ export const autoAllSlugs: string[] = [
   "skills",
   "webhooks",
   "auto-combo",
+  "cli-tools",
   "reasoning-replay",
   "compliance",
   "guardrails",

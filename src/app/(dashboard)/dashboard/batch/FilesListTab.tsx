@@ -39,10 +39,21 @@ interface FileRecord {
   expiresAt?: number | null;
 }
 
+interface BatchRecord {
+  id: string;
+  endpoint: string;
+  status: string;
+  inputFileId: string;
+  outputFileId?: string | null;
+  errorFileId?: string | null;
+  model?: string | null;
+}
+
 interface FilesListTabProps {
   files: FileRecord[];
   loading: boolean;
   onRefresh?: () => void;
+  batches?: BatchRecord[];
 }
 
 const PURPOSE_STYLES_MAP: Record<string, string> = {
@@ -67,13 +78,17 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
-export default function FilesListTab({ files, loading, onRefresh }: Readonly<FilesListTabProps>) {
+export default function FilesListTab({
+  files,
+  loading,
+  onRefresh,
+  batches,
+}: Readonly<FilesListTabProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [purposeFilter, setPurposeFilter] = useState("all");
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [fileContents, setFileContents] = useState<string | null>(null);
   const [contentsLoading, setContentsLoading] = useState(false);
-  const [deleteInProgress, setDeleteInProgress] = useState<string | null>(null);
 
   const purposes = ["all", ...Array.from(new Set(files.map((f) => f.purpose)))];
 
@@ -105,31 +120,6 @@ export default function FilesListTab({ files, loading, onRefresh }: Readonly<Fil
       setFileContents("Error loading file contents");
     } finally {
       setContentsLoading(false);
-    }
-  };
-
-  const handleDeleteFile = async (e: React.MouseEvent, fileId: string) => {
-    e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this file?")) return;
-
-    setDeleteInProgress(fileId);
-    try {
-      const response = await fetch(`/api/v1/files/${fileId}`, { method: "DELETE" });
-      if (response.ok) {
-        // File deleted successfully - refresh list
-        if (selectedFileId === fileId) {
-          setSelectedFileId(null);
-          setFileContents(null);
-        }
-        if (onRefresh) onRefresh();
-      } else {
-        alert("Failed to delete file");
-      }
-    } catch (error) {
-      console.error("Failed to delete file:", error);
-      alert("Error deleting file");
-    } finally {
-      setDeleteInProgress(null);
     }
   };
 
@@ -180,13 +170,12 @@ export default function FilesListTab({ files, loading, onRefresh }: Readonly<Fil
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 Expires
               </th>
-              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {loading && filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={6} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
                     Loading…
@@ -195,7 +184,7 @@ export default function FilesListTab({ files, loading, onRefresh }: Readonly<Fil
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={6} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   No files found
                 </td>
               </tr>
@@ -235,18 +224,6 @@ export default function FilesListTab({ files, loading, onRefresh }: Readonly<Fil
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {fileExpiresAt ? relativeExpiration(fileExpiresAt) : "Never"}
                     </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={(e) => handleDeleteFile(e, file.id)}
-                        disabled={deleteInProgress === file.id}
-                        className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors whitespace-nowrap disabled:opacity-50"
-                        title="Delete file"
-                      >
-                        <span className="material-symbols-outlined text-[13px]">
-                          {deleteInProgress === file.id ? "hourglass_empty" : "delete"}
-                        </span>
-                      </button>
-                    </td>
                   </tr>
                 );
               })
@@ -261,6 +238,7 @@ export default function FilesListTab({ files, loading, onRefresh }: Readonly<Fil
           file={selectedFile}
           contents={fileContents}
           loading={contentsLoading}
+          batches={batches}
           onClose={() => setSelectedFileId(null)}
         />
       )}

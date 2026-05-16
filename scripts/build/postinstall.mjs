@@ -141,10 +141,16 @@ async function fixBetterSqliteBinary() {
       ? "npm install better-sqlite3 --build-from-source --force"
       : "npm rebuild better-sqlite3";
 
+    const env = { ...process.env };
+    if (isAndroid) {
+      env.GYP_DEFINES = "android_ndk_path=''";
+    }
+
     execSync(rebuildCmd, {
       cwd: join(ROOT, "app"),
       stdio: "inherit",
-      timeout: 300_000, // 5 minutes for source builds
+      timeout: isAndroid ? 600_000 : 300_000, // ARM compilation is slower
+      env,
     });
 
     process.dlopen({ exports: {} }, appBinary);
@@ -153,7 +159,8 @@ async function fixBetterSqliteBinary() {
   } catch (err) {
     const isTimeout = err.killed || err.signal === "SIGTERM";
     if (isTimeout) {
-      console.warn("  ⚠️  npm rebuild timed out after 300s.");
+      const secs = isAndroid ? 600 : 300;
+      console.warn(`  ⚠️  npm rebuild timed out after ${secs}s.`);
     } else {
       console.warn(`  ⚠️  npm rebuild failed: ${err.message}`);
     }
@@ -189,6 +196,11 @@ async function fixBetterSqliteBinary() {
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
  */
 async function fixWreqJsBinary() {
+  if (process.platform === "android") {
+    console.log("  [postinstall] wreq-js: skipped on android (unsupported platform)");
+    return;
+  }
+
   const appWreqDir = join(ROOT, "app", "node_modules", "wreq-js", "rust");
   const rootWreqDir = join(ROOT, "node_modules", "wreq-js", "rust");
 
@@ -314,3 +326,11 @@ await fixBetterSqliteBinary();
 await fixWreqJsBinary();
 await ensureSwcHelpers();
 await syncProjectEnv();
+
+// Warm up native runtimes (better-sqlite3 in ~/.omniroute/runtime/).
+// Non-fatal: errors are caught inside postinstall.mjs.
+try {
+  await import("../postinstall.mjs");
+} catch {
+  // Silently skip — runtime warm-up is best-effort.
+}

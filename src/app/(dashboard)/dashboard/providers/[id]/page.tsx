@@ -363,7 +363,7 @@ interface PassthroughModelRowProps {
   isHidden?: boolean;
   copied?: string;
   onCopy: (text: string, key: string) => void;
-  onDeleteAlias: () => void;
+  onDeleteAlias?: () => void;
   t: (key: string, values?: Record<string, unknown>) => string;
   showDeveloperToggle?: boolean;
   effectiveModelNormalize: (modelId: string, protocol?: string) => boolean;
@@ -381,6 +381,7 @@ interface PassthroughModelRowProps {
 interface PassthroughModelsSectionProps {
   providerAlias: string;
   modelAliases: Record<string, string>;
+  availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
   copied?: string;
   onCopy: (text: string, key: string) => void;
@@ -421,6 +422,7 @@ interface CompatibleModelsSectionProps {
   providerStorageAlias: string;
   providerDisplayAlias: string;
   modelAliases: Record<string, string>;
+  availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
   fallbackModels?: CompatModelRow[];
   allowImport: boolean;
@@ -1914,7 +1916,11 @@ export default function ProviderDetailPage() {
             : connection
         )
       );
-      notify.success(enabled ? "Claude extra-usage blocked" : "Claude extra-usage allowed");
+      notify.success(
+        enabled
+          ? "Claude extra-usage blocking enabled (extra usage will be blocked)"
+          : "Claude extra-usage blocking disabled (extra usage is allowed)"
+      );
     } catch (error) {
       console.error("Error toggling Claude extra-usage policy:", error);
       notify.error("Failed to update Claude extra-usage policy");
@@ -2729,8 +2735,7 @@ export default function ProviderDetailPage() {
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
-      // Optimistic update: refresh model meta
-      await fetchProviderModelMeta().catch(() => {});
+      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
     } finally {
@@ -2756,7 +2761,7 @@ export default function ProviderDetailPage() {
         notify.error(detail || t("failedSaveCustomModel"));
         return;
       }
-      await fetchProviderModelMeta().catch(() => {});
+      await Promise.all([fetchProviderModelMeta().catch(() => {}), fetchAliases().catch(() => {})]);
     } catch {
       notify.error(t("failedSaveCustomModel"));
     } finally {
@@ -2824,6 +2829,7 @@ export default function ProviderDetailPage() {
             providerStorageAlias={providerStorageAlias}
             providerDisplayAlias={providerDisplayAlias}
             modelAliases={modelAliases}
+            availableModels={syncedAvailableModels}
             customModels={modelMeta.customModels}
             fallbackModels={compatibleFallbackModels}
             description={description}
@@ -2883,6 +2889,7 @@ export default function ProviderDetailPage() {
           <PassthroughModelsSection
             providerAlias={providerAlias}
             modelAliases={modelAliases}
+            availableModels={syncedAvailableModels}
             customModels={modelMeta.customModels}
             copied={copied}
             onCopy={copy}
@@ -3373,7 +3380,7 @@ export default function ProviderDetailPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                    <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] border border-t-0 border-border rounded-b-lg overflow-hidden">
                       {sorted.map((conn, index) => (
                         <ConnectionRow
                           key={conn.id}
@@ -3504,7 +3511,7 @@ export default function ProviderDetailPage() {
                       )}
                     </div>
                   ) : null}
-                  <div className="flex flex-col gap-0">
+                  <div className="flex flex-col gap-0 border border-t-0 border-border rounded-b-lg overflow-hidden">
                     {groupKeys.map((tag, gi) => {
                       const groupConns = groupMap.get(tag)!;
                       return (
@@ -4171,6 +4178,7 @@ function ModelVisibilityToolbar({
 function PassthroughModelsSection({
   providerAlias,
   modelAliases,
+  availableModels = [],
   customModels = [],
   copied,
   onCopy,
@@ -4196,24 +4204,85 @@ function PassthroughModelsSection({
   const [modelFilter, setModelFilter] = useState("");
   const customModelMap = useMemo(() => buildCompatMap(customModels), [customModels]);
 
-  const providerAliases = Object.entries(modelAliases).filter(([, model]: [string, any]) =>
-    (model as string).startsWith(`${providerAlias}/`)
+  const providerAliases = useMemo(
+    () =>
+      Object.entries(modelAliases).filter(([, model]: [string, any]) =>
+        (model as string).startsWith(`${providerAlias}/`)
+      ),
+    [modelAliases, providerAlias]
   );
 
-  const allModels = providerAliases.map(([alias, fullModel]: [string, any]) => {
-    const fmStr = fullModel as string;
+  const allModels = useMemo(() => {
     const prefix = `${providerAlias}/`;
-    const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
-    const customModel = customModelMap.get(modelId);
-    return {
-      modelId,
-      fullModel,
-      alias,
-      displayName: alias,
-      source: customModel ? customModel.source || "custom" : "alias",
-      isHidden: isModelHidden(modelId),
+    const aliasByModelId = new Map<string, string>();
+    const fullModelByModelId = new Map<string, string>();
+    const rows: Array<{
+      modelId: string;
+      fullModel: string;
+      alias: string | null;
+      displayName: string;
+      source: string;
+      isHidden: boolean;
+    }> = [];
+    const seenModelIds = new Set<string>();
+
+    for (const [alias, fullModel] of providerAliases) {
+      const fmStr = fullModel as string;
+      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+      aliasByModelId.set(modelId, alias as string);
+      fullModelByModelId.set(modelId, fmStr);
+    }
+
+    const addModel = (model: CompatModelRow, source: string) => {
+      if (!model?.id || seenModelIds.has(model.id)) return;
+      const fullModel = fullModelByModelId.get(model.id) || `${providerAlias}/${model.id}`;
+      rows.push({
+        modelId: model.id,
+        fullModel,
+        alias: aliasByModelId.get(model.id) || null,
+        displayName: model.name || model.id,
+        source,
+        isHidden: isModelHidden(model.id),
+      });
+      seenModelIds.add(model.id);
     };
-  });
+
+    for (const model of availableModels) {
+      addModel(model, "imported");
+    }
+
+    for (const model of customModels) {
+      addModel(
+        model,
+        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom"
+      );
+    }
+
+    for (const [alias, fullModel] of providerAliases) {
+      const fmStr = fullModel as string;
+      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+      if (!modelId || seenModelIds.has(modelId)) continue;
+      const customModel = customModelMap.get(modelId);
+      rows.push({
+        modelId,
+        fullModel: fmStr,
+        alias: alias as string,
+        displayName: alias as string,
+        source: customModel ? customModel.source || "custom" : "alias",
+        isHidden: isModelHidden(modelId),
+      });
+      seenModelIds.add(modelId);
+    }
+
+    return rows;
+  }, [
+    availableModels,
+    customModelMap,
+    customModels,
+    isModelHidden,
+    providerAlias,
+    providerAliases,
+  ]);
   const filteredModels = allModels.filter((model) =>
     matchesModelCatalogQuery(modelFilter, {
       modelId: model.modelId,
@@ -4312,7 +4381,7 @@ function PassthroughModelsSection({
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={() => onDeleteAlias(alias)}
+              onDeleteAlias={source === "alias" && alias ? () => onDeleteAlias(alias) : undefined}
               t={t}
               showDeveloperToggle
               effectiveModelNormalize={effectiveModelNormalize}
@@ -4446,13 +4515,15 @@ function PassthroughModelRow({
           showDeveloperToggle={showDeveloperToggle}
           disabled={compatDisabled}
         />
-        <button
-          onClick={onDeleteAlias}
-          className="rounded p-1 text-red-500 hover:bg-red-50"
-          title={t("removeModel")}
-        >
-          <span className="material-symbols-outlined text-sm">delete</span>
-        </button>
+        {onDeleteAlias && (
+          <button
+            onClick={onDeleteAlias}
+            className="rounded p-1 text-red-500 hover:bg-red-50"
+            title={t("removeModel")}
+          >
+            <span className="material-symbols-outlined text-sm">delete</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -4981,6 +5052,7 @@ function CompatibleModelsSection({
   providerStorageAlias,
   providerDisplayAlias,
   modelAliases,
+  availableModels = [],
   customModels = [],
   fallbackModels = [],
   description,
@@ -5026,35 +5098,75 @@ function CompatibleModelsSection({
   );
 
   const allModels = useMemo(() => {
-    const rows = providerAliases.map(([alias, fullModel]: [string, any]) => {
-      const fmStr = fullModel as string;
-      const prefix = `${providerStorageAlias}/`;
-      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
-      const customModel = customModelMap.get(modelId);
-      return {
-        modelId,
-        alias,
-        displayName: alias,
-        source: customModel ? customModel.source || "custom" : "alias",
-        isHidden: isModelHidden(modelId),
-      };
-    });
+    const prefix = `${providerStorageAlias}/`;
+    const aliasByModelId = new Map<string, string>();
+    const rows: Array<{
+      modelId: string;
+      alias: string | null;
+      displayName: string;
+      source: string;
+      isHidden: boolean;
+    }> = [];
+    const seenModelIds = new Set<string>();
 
-    const seenModelIds = new Set(rows.map((row) => row.modelId));
-    for (const model of fallbackModels) {
-      if (!model?.id || seenModelIds.has(model.id)) continue;
+    for (const [alias, fullModel] of providerAliases) {
+      const fmStr = fullModel as string;
+      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+      aliasByModelId.set(modelId, alias as string);
+    }
+
+    const addModel = (model: CompatModelRow, source: string) => {
+      if (!model?.id || seenModelIds.has(model.id)) return;
       rows.push({
         modelId: model.id,
-        alias: null,
+        alias: aliasByModelId.get(model.id) || null,
         displayName: model.name || model.id,
-        source: "fallback",
+        source,
         isHidden: isModelHidden(model.id),
       });
       seenModelIds.add(model.id);
+    };
+
+    for (const model of availableModels) {
+      addModel(model, "imported");
+    }
+
+    for (const model of customModels) {
+      addModel(
+        model,
+        normalizeModelCatalogSource(model.source) === "imported" ? "imported" : "custom"
+      );
+    }
+
+    for (const model of fallbackModels) {
+      addModel(model, "fallback");
+    }
+
+    for (const [alias, fullModel] of providerAliases) {
+      const fmStr = fullModel as string;
+      const modelId = fmStr.startsWith(prefix) ? fmStr.slice(prefix.length) : fmStr;
+      if (!modelId || seenModelIds.has(modelId)) continue;
+      const customModel = customModelMap.get(modelId);
+      rows.push({
+        modelId,
+        alias: alias as string,
+        displayName: alias as string,
+        source: customModel ? customModel.source || "custom" : "alias",
+        isHidden: isModelHidden(modelId),
+      });
+      seenModelIds.add(modelId);
     }
 
     return rows;
-  }, [customModelMap, fallbackModels, isModelHidden, providerAliases, providerStorageAlias]);
+  }, [
+    availableModels,
+    customModelMap,
+    customModels,
+    fallbackModels,
+    isModelHidden,
+    providerAliases,
+    providerStorageAlias,
+  ]);
   const filteredModels = allModels.filter((model) =>
     matchesModelCatalogQuery(modelFilter, {
       modelId: model.modelId,
@@ -5239,7 +5351,13 @@ function CompatibleModelsSection({
               isHidden={isHidden}
               copied={copied}
               onCopy={onCopy}
-              onDeleteAlias={() => handleDeleteModel(modelId, alias)}
+              onDeleteAlias={
+                source === "custom" || source === "manual"
+                  ? () => handleDeleteModel(modelId, alias)
+                  : source === "alias" && alias
+                    ? () => onDeleteAlias(alias)
+                    : undefined
+              }
               t={t}
               showDeveloperToggle={!isAnthropic}
               effectiveModelNormalize={effectiveModelNormalize}

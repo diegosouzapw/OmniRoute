@@ -15,7 +15,7 @@ const core = await import("@/lib/db/core.ts");
 const localDb = await import("@/lib/localDb");
 const { dispatch } = await import("@/lib/batches/dispatch");
 const batchProcessor = await import("../../open-sse/services/batchProcessor.ts");
-const { waitForAllBatches } = batchProcessor;
+const { waitForAllBatches, getCachedHeaders, resetCachedHeaders } = batchProcessor;
 
 const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
@@ -41,6 +41,8 @@ async function reset() {
 
   delete process.env.OMNIROUTE_API_KEY;
   delete process.env.ROUTER_API_KEY;
+
+  resetCachedHeaders();
 }
 
 test.beforeEach(async () => {
@@ -225,4 +227,94 @@ test("processPendingBatches should fail a batch with mismatched endpoint", async
   assert.strictEqual(updatedBatch?.status, "failed");
   assert.ok(updatedBatch?.errors?.length === 1);
   assert.ok(updatedBatch?.errors![0].message.includes("does not match batch endpoint"));
+});
+
+test("processPendingBatches caches rate-limit headers across sequential batches", async () => {
+  // Helper to create a 1-item batch with a given id prefix
+  async function createOneItemBatch(prefix: string) {
+    const content =
+      JSON.stringify({
+        custom_id: `${prefix}-req`,
+        method: "POST",
+        url: "/v1/chat/completions",
+        body: { model: "gpt-4", messages: [{ role: "user", content: prefix }] },
+      }) + "\n";
+
+    const file = await localDb.createFile({
+      bytes: Buffer.byteLength(content),
+      filename: `${prefix}_input.jsonl`,
+      purpose: "batch_input",
+      content: Buffer.from(content),
+    });
+
+    const batch = await localDb.createBatch({
+      endpoint: "/v1/chat/completions",
+      status: "validating",
+      inputFileId: file.id,
+      completionWindow: "24h",
+    });
+    return batch;
+  }
+
+  // Initial cache state
+  const initial = getCachedHeaders();
+  assert.strictEqual(initial.headers, null);
+  assert.strictEqual(initial.timestamp, 0);
+
+  // Create first batch
+  const batchA = await createOneItemBatch("cache-test-a");
+
+  // Mock to return rate-limit headers (triggers cache)
+  let callCount = 0;
+  mock.method(dispatch, "dispatchBatchApiRequest", async () => {
+    callCount++;
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-cache-a",
+        choices: [{ message: { content: "from a" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5 },
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "x-ratelimit-remaining-req-minute": "5",
+          "x-ratelimit-limit-req-minute": "100",
+          "x-ratelimit-remaining-tokens-minute": "5000",
+          "x-ratelimit-tokens-query-cost": "50",
+        },
+      }
+    );
+  });
+
+  await batchProcessor.processPendingBatches();
+
+  // Wait for batch A to complete
+  const waitForStatusA = async () => {
+    for (let i = 0; i < 40; i++) {
+      const b = await localDb.getBatch(batchA.id);
+      if (b?.status === "completed" || b?.status === "failed") return b;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    throw new Error(`Batch A did not finish within timeout`);
+  };
+  const resultA = await waitForStatusA();
+  assert.strictEqual(resultA?.status, "completed");
+  assert.ok(callCount >= 1, "dispatch should have been called at least once");
+
+  // After batch A, cache should be populated
+  const afterA = getCachedHeaders();
+  assert.notStrictEqual(afterA.headers, null, "headers should be cached after first batch");
+  assert.strictEqual(
+    afterA.headers!.get("x-ratelimit-remaining-req-minute"),
+    "5",
+    "cached header value should match response"
+  );
+  assert.ok(Date.now() - afterA.timestamp < 60_000, "cached timestamp should be within TTL");
+
+  // Verify cache survives a resetCachedHeaders call
+  resetCachedHeaders();
+  const afterReset = getCachedHeaders();
+  assert.strictEqual(afterReset.headers, null, "reset should clear cached headers");
+  assert.strictEqual(afterReset.timestamp, 0, "reset should clear cached timestamp");
 });

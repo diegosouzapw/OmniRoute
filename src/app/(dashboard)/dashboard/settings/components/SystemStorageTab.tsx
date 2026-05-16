@@ -73,7 +73,7 @@ export default function SystemStorageTab() {
   const [dbSettingsLoading, setDbSettingsLoading] = useState(true);
   const [dbSettingsSaving, setDbSettingsSaving] = useState(false);
   const [dbStatsRefreshing, setDbStatsRefreshing] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(true);
   const [usageTokenBuffer, setUsageTokenBuffer] = useState<number | null>(null);
   const [bufferInput, setBufferInput] = useState("");
   const [bufferSaving, setBufferSaving] = useState(false);

@@ -350,7 +350,7 @@ export const DEFAULT_PRICING = {
       reasoning: 6.0,
       cache_creation: 1.0,
     },
-    // Next-generation Qwen Coder tier (added Mar 2026 from decolua/9router catalog)
+    // Next-generation Qwen Coder tier (added Mar 2026)
     "qwen3-coder-next": {
       input: 2.0,
       output: 8.0,
@@ -425,7 +425,7 @@ export const DEFAULT_PRICING = {
       reasoning: 2.19,
       cache_creation: 0.55,
     },
-    // Short-form aliases used by decolua/9router catalog (Mar 2026)
+    // Short-form aliases (Mar 2026)
     "deepseek-3.1": {
       input: 0.27,
       output: 1.1,

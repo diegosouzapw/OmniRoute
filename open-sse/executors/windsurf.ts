@@ -53,7 +53,6 @@ const MODEL_ALIAS_MAP: Record<string, string> = {
   "swe-1.6": "swe-1-6",
   "swe-1.5-fast": "swe-1p5", // fast variant
   "swe-1.5": "swe-1p5",
-  "swe-check": "swe-check",
   // ── Claude Opus 4.7 ──────────────────────────────────────────────────────
   "claude-opus-4.7-max": "claude-opus-4-7-max",
   "claude-opus-4.7-xhigh": "claude-opus-4-7-xhigh",
@@ -80,17 +79,6 @@ const MODEL_ALIAS_MAP: Record<string, string> = {
   "claude-4.5-sonnet-thinking": "MODEL_PRIVATE_3",
   "claude-4.5-sonnet": "MODEL_PRIVATE_2",
   "claude-4.5-haiku": "MODEL_PRIVATE_11",
-  // ── Claude 4 ─────────────────────────────────────────────────────────────
-  "claude-4-opus-thinking": "MODEL_CLAUDE_4_OPUS_THINKING",
-  "claude-4-opus": "MODEL_CLAUDE_4_OPUS",
-  "claude-4-sonnet-thinking": "MODEL_CLAUDE_4_SONNET_THINKING",
-  "claude-4-sonnet": "MODEL_CLAUDE_4_SONNET",
-  "claude-4.1-opus-thinking": "MODEL_CLAUDE_4_1_OPUS_THINKING",
-  "claude-4.1-opus": "MODEL_CLAUDE_4_1_OPUS",
-  // ── Claude 3.x ───────────────────────────────────────────────────────────
-  "claude-3.7-sonnet-thinking": "CLAUDE_3_7_SONNET_20250219_THINKING",
-  "claude-3.7-sonnet": "CLAUDE_3_7_SONNET_20250219",
-  "claude-3.5-sonnet": "CLAUDE_3_5_SONNET_20241022",
   // ── GPT-5.5 ──────────────────────────────────────────────────────────────
   "gpt-5.5-xhigh-fast": "gpt-5-5-xhigh-priority",
   "gpt-5.5-high-fast": "gpt-5-5-high-priority",
@@ -138,41 +126,26 @@ const MODEL_ALIAS_MAP: Record<string, string> = {
   "gpt-5.2-none": "MODEL_GPT_5_2_NONE",
   "gpt-5.2": "MODEL_GPT_5_2_MEDIUM",
   // ── GPT-5 ────────────────────────────────────────────────────────────────
-  "gpt-5-codex": "gpt-5-codex",
   "gpt-5": "gpt-5",
   // ── GPT-4.1 / 4o ─────────────────────────────────────────────────────────
   "gpt-4.1": "MODEL_CHAT_GPT_4_1_2025_04_14",
   "gpt-4.1-mini": "gpt-4.1-mini",
-  "gpt-4.1-nano": "gpt-4.1-nano",
   "gpt-4o": "MODEL_CHAT_GPT_4O_2024_08_06",
-  "gpt-4o-mini": "gpt-4o-mini",
   // ── Gemini ────────────────────────────────────────────────────────────────
   "gemini-3.1-pro-high": "gemini-3-1-pro-high",
   "gemini-3.1-pro-low": "gemini-3-1-pro-low",
   "gemini-3.1-pro": "gemini-3-1-pro-high",
-  "gemini-3.0-pro": "gemini-3-pro",
   "gemini-3.0-flash-high": "MODEL_GOOGLE_GEMINI_3_0_FLASH_HIGH",
   "gemini-3.0-flash-medium": "MODEL_GOOGLE_GEMINI_3_0_FLASH_MEDIUM",
   "gemini-3.0-flash-low": "MODEL_GOOGLE_GEMINI_3_0_FLASH_LOW",
   "gemini-3.0-flash-minimal": "MODEL_GOOGLE_GEMINI_3_0_FLASH_MINIMAL",
   "gemini-3.0-flash": "MODEL_GOOGLE_GEMINI_3_0_FLASH_HIGH",
   "gemini-2.5-pro": "MODEL_GOOGLE_GEMINI_2_5_PRO",
-  "gemini-2.5-flash": "gemini-2.5-flash",
   // ── Others ───────────────────────────────────────────────────────────────
   "deepseek-v4": "deepseek-v4",
-  "deepseek-r1": "deepseek-r1",
-  "deepseek-v3-2": "deepseek-v3-2",
-  "deepseek-v3": "deepseek-v3",
-  "grok-3-mini-thinking": "MODEL_XAI_GROK_3_MINI_REASONING",
-  "grok-3-mini": "grok-3-mini",
-  "grok-3": "MODEL_XAI_GROK_3",
-  "grok-code-fast-1": "grok-code-fast-1",
   "kimi-k2.6": "kimi-k2-6",
   "kimi-k2.5": "kimi-k2-5",
-  "kimi-k2": "MODEL_KIMI_K2",
   "glm-5.1": "glm-5-1",
-  "glm-5": "glm-5",
-  "glm-4.7": "MODEL_GLM_4_7",
 };
 
 function resolveWsModelId(model: string): string {

@@ -568,23 +568,22 @@ bin/
 ├── omniroute.mjs           Main CLI entry (Node ESM)
 ├── reset-password.mjs      Reset the management password from CLI
 ├── mcp-server.mjs          MCP server launcher (stdio)
-├── cli-commands.mjs        Command dispatcher
 ├── nodeRuntimeSupport.mjs  Node version guard
 └── cli/
-    ├── index.mjs
-    ├── args.mjs
+    ├── program.mjs         Commander program builder
+    ├── runtime.mjs         withRuntime helper (server-first/db-fallback)
+    ├── output.mjs          Output formatters (json/jsonl/table/csv)
+    ├── i18n.mjs            t() helper with locales
+    ├── api.mjs             API fetch helper
     ├── data-dir.mjs
     ├── encryption.mjs
-    ├── io.mjs
-    ├── provider-catalog.mjs
-    ├── provider-store.mjs
-    ├── provider-test.mjs
-    ├── settings-store.mjs
     ├── sqlite.mjs
     └── commands/
+        ├── registry.mjs    Command registration
         ├── setup.mjs
         ├── doctor.mjs
-        └── providers.mjs
+        ├── providers.mjs
+        └── ...             (one file per command/group)
 ```
 
 Two binaries are exposed in `package.json` → `bin`:

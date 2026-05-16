@@ -12,6 +12,7 @@ import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constant
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
+import { TierCoverageWidget } from "./TierCoverageWidget";
 
 type UpdateStep = {
   step: string;
@@ -747,6 +748,9 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </div>
         </div>
       </Card>
+
+      {/* Tier Coverage */}
+      <TierCoverageWidget />
 
       {/* Providers Overview */}
       <Card>

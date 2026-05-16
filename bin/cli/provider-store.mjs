@@ -241,6 +241,16 @@ export function upsertApiKeyProviderConnection(db, input) {
   return connection;
 }
 
+export function removeProviderConnectionByProvider(db, provider) {
+  ensureProviderSchema(db);
+  const result = db
+    .prepare(
+      "DELETE FROM provider_connections WHERE provider = ? AND (auth_type = 'apikey' OR (api_key IS NOT NULL AND api_key != ''))"
+    )
+    .run(provider);
+  return result.changes;
+}
+
 export function updateProviderTestResult(db, connectionId, result) {
   ensureProviderSchema(db);
   const now = new Date().toISOString();

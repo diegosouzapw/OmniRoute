@@ -244,6 +244,18 @@ try {
   checkI18nMirrorFile("llm.txt", llmPath);
   // CHANGELOG.md mirrors are translations — check version sections and size, not exact content
   checkI18nChangelogFile(changelogPath);
+
+  // Anti-regression: legacy duplicate docs that have been superseded must not return.
+  // Use docs/reference/* as the source of truth.
+  const supersededDocs = [{ legacy: "docs/CLI-TOOLS.md", current: "docs/reference/CLI-TOOLS.md" }];
+  for (const { legacy, current } of supersededDocs) {
+    const legacyAbs = path.resolve(cwd, legacy);
+    if (fs.existsSync(legacyAbs)) {
+      fail(
+        `legacy duplicate ${legacy} reappeared — use ${current} instead (single source of truth)`
+      );
+    }
+  }
 } catch (error) {
   fail(error instanceof Error ? error.message : String(error));
 }

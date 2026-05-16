@@ -1,0 +1,1236 @@
+{
+  "common": {
+    "error": "Erro: {message}",
+    "serverOffline": "Servidor OmniRoute offline. Inicie com: omniroute serve",
+    "authRequired": "Autenticação necessária. Configure OMNIROUTE_API_KEY ou execute: omniroute setup",
+    "rateLimited": "Limite de requisições atingido. Tente novamente em {seconds}s.",
+    "timeout": "Requisição expirou após {ms}ms.",
+    "success": "Concluído.",
+    "yes": "sim",
+    "no": "não",
+    "confirm": "Tem certeza? (sim/não)",
+    "dryRun": "[simulação] faria: {action}",
+    "cancelled": "Cancelado.",
+    "jsonOpt": "Saída em JSON",
+    "yesOpt": "Pular confirmação"
+  },
+  "setup": {
+    "title": "Configuração do OmniRoute",
+    "passwordPrompt": "Senha de administrador",
+    "providerPrompt": "Provedor padrão (deixe em branco para pular)",
+    "done": "Configuração concluída",
+    "passwordSet": "Senha de administrador configurada",
+    "providerSet": "Provedor configurado: {name}",
+    "testingProvider": "Testando conexão com provedor: {name}",
+    "testPassed": "Teste do provedor aprovado",
+    "testFailed": "Teste do provedor falhou: {error}",
+    "loginEnabled": "Login: habilitado (senha atualizada)",
+    "loginDisabled": "Login: desabilitado",
+    "providerInfo": "Provedor: {info}"
+  },
+  "doctor": {
+    "title": "OmniRoute Doctor",
+    "dbOk": "Banco de dados: OK ({path})",
+    "dbMissing": "Banco de dados: não inicializado — execute `omniroute setup`",
+    "portOk": "Porta {port}: disponível",
+    "portConflict": "Porta {port}: em uso por outro processo",
+    "encryptionOk": "Chave de criptografia: configurada",
+    "encryptionMissing": "Chave de criptografia ausente — execute `omniroute setup`",
+    "allGood": "Todas as verificações passaram.",
+    "warnings": "{count} aviso(s) — veja acima."
+  },
+  "providers": {
+    "title": "Provedores",
+    "noProviders": "Nenhum provedor configurado. Execute: omniroute setup",
+    "testing": "Testando {name}...",
+    "available": "{count} provedor(es) disponível(is)",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "validationFailed": "Validação falhou: {error}",
+    "metrics": {
+      "description": "Exibir métricas de performance dos provedores (latência, taxa de sucesso, custo)",
+      "provider": "Filtrar por ID de provedor",
+      "connection_id": "Filtrar por ID de conexão",
+      "period": "Período: 1h|6h|24h|7d|30d (padrão: 24h)",
+      "metric": "Focar em um campo de métrica específico",
+      "sort": "Ordenar por campo (decrescente)",
+      "limit": "Máximo de linhas (padrão: 50)",
+      "watch": "Atualizar a cada 5s (modo live)",
+      "compare": "IDs de provedores separados por vírgula para comparar"
+    },
+    "metric_single": {
+      "description": "Obter um único valor de métrica para uma conexão específica"
+    }
+  },
+  "keys": {
+    "title": "Chaves de API",
+    "addDescription": "Adicionar ou atualizar uma chave de API para um provedor",
+    "listDescription": "Listar todas as chaves de API configuradas",
+    "removeDescription": "Remover uma chave de API de um provedor",
+    "regenerateDescription": "Regenerar uma chave de API do OmniRoute",
+    "revokeDescription": "Revogar uma chave de API do OmniRoute",
+    "revealDescription": "Revelar o valor completo da chave (sem máscara)",
+    "usageDescription": "Exibir uso recente de uma chave de API",
+    "usageLimitOpt": "Número de requisições recentes",
+    "rotateDescription": "Gerar nova chave e invalidar a antiga",
+    "graceOpt": "Período de carência (ms) antes de invalidar a chave antiga",
+    "stdinOpt": "Ler chave de API via stdin",
+    "added": "Chave adicionada para {provider}.",
+    "removed": "Chave removida.",
+    "listed": "{count} chave(s).",
+    "noKeys": "Nenhuma chave configurada.",
+    "noUsage": "Nenhum dado de uso encontrado.",
+    "confirmRemove": "Remover chave {id}?",
+    "confirmRegenerate": "Regenerar chave {id}?",
+    "confirmRevoke": "Revogar chave {id}?",
+    "confirmRotate": "Rotacionar chave {id}? (a chave antiga será invalidada após o período de carência)",
+    "regenerated": "Chave regenerada. Nova chave: {key}",
+    "revoked": "Chave {id} revogada.",
+    "rotated": "Chave {id} rotacionada. Novo ID: {newId}",
+    "revealWarning": "⚠  Isso exibirá a chave completa sem máscara. Certifique-se de que sua tela está privada.",
+    "providerRequired": "Provedor é obrigatório.",
+    "keyRequired": "Chave de API é obrigatória.",
+    "stdinEmpty": "Nenhuma chave fornecida via stdin.",
+    "unknownProvider": "Provedor desconhecido: {provider}",
+    "policy": {
+      "title": "Política da Chave",
+      "showDescription": "Exibir política de taxa/custo de uma chave",
+      "setDescription": "Definir política de taxa/custo de uma chave",
+      "rateLimitOpt": "Máximo de requisições por minuto",
+      "maxCostOpt": "Custo máximo por dia (USD)",
+      "allowedModelsOpt": "Lista de modelos permitidos (separados por vírgula)",
+      "nothingToSet": "Nenhum campo de política fornecido. Use --rate-limit, --max-cost ou --allowed-models.",
+      "updated": "Política atualizada."
+    },
+    "expiration": {
+      "title": "Expiração de Chaves",
+      "listDescription": "Listar chaves prestes a expirar",
+      "daysOpt": "Exibir chaves que expiram em N dias",
+      "none": "Nenhuma chave expirando nos próximos {days} dias.",
+      "listTitle": "Chaves que expiram nos próximos {days} dias:"
+    }
+  },
+  "stream": {
+    "description": "Transmitir resposta de chat com modos de inspeção SSE",
+    "file": "Ler prompt de arquivo",
+    "stdin": "Ler prompt da entrada padrão",
+    "model": "ID do modelo (padrão: auto)",
+    "system": "Prompt de sistema",
+    "combo": "Forçar um combo específico pelo nome",
+    "max_tokens": "Máximo de tokens na resposta",
+    "responses_api": "Usar /v1/responses em vez de /v1/chat/completions",
+    "raw": "Imprimir linhas SSE brutas como recebidas",
+    "debug": "Imprimir informações de timing por chunk no stderr",
+    "save": "Salvar todos os eventos SSE em arquivo .jsonl",
+    "error": {
+      "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
+    }
+  },
+  "usage": {
+    "description": "Analytics de uso, budgets, quotas e logs",
+    "analytics": {
+      "description": "Exibir analytics de uso agregados",
+      "period": "Período: 1d|7d|30d|90d|ytd|all (padrão: 30d)",
+      "provider": "Filtrar por ID de provedor"
+    },
+    "budget": {
+      "description": "Gerenciar budgets de custo",
+      "set": {
+        "scope": "Escopo do budget (padrão: global)",
+        "period": "Período do budget: daily|weekly|monthly (padrão: monthly)"
+      }
+    },
+    "quota": {
+      "description": "Exibir uso de quota dos provedores",
+      "provider": "Filtrar por ID de provedor",
+      "check": "Mostrar se há quota disponível para uma nova requisição"
+    },
+    "logs": {
+      "description": "Exibir logs de chamadas",
+      "limit": "Número de entradas de log a retornar (padrão: 100)",
+      "search": "Filtro de busca",
+      "since": "Retornar logs a partir deste timestamp",
+      "follow": "Fazer tail contínuo de novos logs",
+      "api_key": "Filtrar logs por chave de API"
+    },
+    "utilization": {
+      "description": "Exibir métricas de utilização por chave de API",
+      "api_key": "Filtrar por chave de API"
+    },
+    "history": {
+      "description": "Exibir histórico de requisições",
+      "limit": "Número de entradas de histórico (padrão: 100)"
+    },
+    "proxy_logs": {
+      "description": "Exibir logs de requisições em nível de proxy",
+      "limit": "Número de entradas de proxy log (padrão: 100)"
+    }
+  },
+  "cost": {
+    "description": "Exibir relatório de custos com breakdown por provedor, modelo, combo ou chave de API",
+    "period": "Período: 1d|7d|30d|90d|ytd|all (padrão: 30d)",
+    "since": "Data de início (formato ISO, ex: 2026-01-01) — substitui --period",
+    "until": "Data de fim (formato ISO)",
+    "group_by": "Agrupar por: provider|model|api-key|combo|day (padrão: provider)",
+    "api_key_filter": "Filtrar por uma chave de API específica",
+    "limit": "Número máximo de linhas (padrão: 100)"
+  },
+  "simulate": {
+    "description": "Simulação de routing em dry-run — mostra quais provedores seriam selecionados sem chamar o upstream",
+    "file": "Carregar body completo da requisição de arquivo JSON",
+    "model": "ID do modelo (padrão: auto)",
+    "combo": "Forçar um combo específico pelo nome",
+    "reasoning": "Nível de esforço de raciocínio (low|medium|high)",
+    "thinking": "Budget de tokens para raciocínio estendido",
+    "explain": "Imprimir árvore de fallback e faixa de custo no stderr",
+    "noCombo": "Nenhum combo correspondente encontrado. Configure um com: omniroute combo create"
+  },
+  "chat": {
+    "description": "Enviar um prompt único ao OmniRoute",
+    "file": "Ler prompt de arquivo",
+    "stdin": "Ler prompt da entrada padrão",
+    "system": "Prompt de sistema",
+    "model": "ID do modelo (padrão: auto)",
+    "max_tokens": "Máximo de tokens na resposta",
+    "temperature": "Temperatura de amostragem (0–2)",
+    "top_p": "Amostragem nucleus top-p",
+    "reasoning_effort": "Nível de esforço de raciocínio (low|medium|high)",
+    "thinking_budget": "Budget de tokens para raciocínio estendido",
+    "combo": "Forçar um combo específico pelo nome",
+    "responses_api": "Usar /v1/responses em vez de /v1/chat/completions",
+    "stream": "Transmitir resposta incrementalmente",
+    "no_history": "Não salvar em ~/.omniroute/cli-history.jsonl",
+    "error": {
+      "empty_prompt": "Erro: prompt obrigatório (argumento posicional, --file ou --stdin)"
+    }
+  },
+  "serve": {
+    "description": "Iniciar o servidor OmniRoute (ação padrão)",
+    "starting": "Iniciando servidor OmniRoute na porta {port}...",
+    "ready": "Pronto em http://localhost:{port}",
+    "stopping": "Parando servidor (PID {pid})...",
+    "stopped": "Servidor parado.",
+    "notRunning": "Servidor não está em execução.",
+    "port": "Porta de escuta (padrão: 20128)",
+    "no_open": "Não abrir navegador automaticamente",
+    "daemon": "Executar servidor em segundo plano",
+    "log": "Exibir logs do servidor inline",
+    "no_recovery": "Desabilitar reinício automático em crash (modo debug)",
+    "max_restarts": "Máximo de reinícios em 30s antes de desistir (padrão: 2)",
+    "tray": "Mostrar ícone na bandeja do sistema (apenas desktop, opt-in)",
+    "no_tray": "Desabilitar ícone na bandeja do sistema"
+  },
+  "backup": {
+    "title": "Backup",
+    "description": "Criar backup dos dados do OmniRoute",
+    "creating": "Criando backup...",
+    "done": "Backup salvo em {path}",
+    "noFiles": "Nenhum arquivo para backup (banco não inicializado)",
+    "failed": "Backup falhou: {error}",
+    "restoring": "Restaurando de {path}...",
+    "restored": "Restauração concluída.",
+    "restoreDescription": "Restaurar a partir de um backup",
+    "listTitle": "Backups Disponíveis",
+    "noBackups": "Nenhum backup encontrado.",
+    "notFound": "Backup não encontrado: {name}",
+    "confirmRestore": "Substituir dados atuais pelo backup de {ts}?",
+    "createDescription": "Criar backup dos dados do OmniRoute",
+    "nameOpt": "Nome personalizado para o backup",
+    "cloudOpt": "Fazer upload do backup para armazenamento na nuvem",
+    "encryptOpt": "Criptografar backup com AES-256-GCM",
+    "keyFileOpt": "Caminho para arquivo com a senha de criptografia",
+    "excludeOpt": "Excluir arquivo que corresponde ao padrão (repetível)",
+    "retentionOpt": "Manter apenas os últimos N backups",
+    "passphrasePrompt": "Senha de criptografia: ",
+    "noPassphrase": "Senha é obrigatória para backup criptografado.",
+    "cloudFailed": "Aviso: upload para nuvem falhou. Backup local foi salvo.",
+    "cloudUploaded": "Backup enviado para nuvem: {url}",
+    "auto": {
+      "title": "Agendamento de Backup",
+      "enableDescription": "Ativar backups automáticos agendados",
+      "disableDescription": "Desativar backups automáticos agendados",
+      "statusDescription": "Exibir status do agendamento de backup",
+      "cronOpt": "Expressão cron para o agendamento (padrão: diário às 3h)",
+      "enabled": "Backup automático ativado (cron: {cron}).",
+      "hint": "  O agendamento é lido pelo omniroute serve ao iniciar.",
+      "disabled": "Backup automático desativado.",
+      "notConfigured": "Nenhum agendamento de backup configurado."
+    }
+  },
+  "health": {
+    "description": "Verificar saúde do servidor e status dos componentes",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "title": "Saúde",
+    "status": "Status: {status}",
+    "uptime": "Uptime: {uptime}",
+    "requests": "Requisições (24h): {count}",
+    "cost": "Custo (24h): ${cost}"
+  },
+  "quota": {
+    "description": "Exibir uso de cota dos provedores",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "noData": "Nenhuma informação de cota disponível."
+  },
+  "cache": {
+    "description": "Gerenciar cache de respostas",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "cleared": "Cache limpo.",
+    "clearFailed": "Falha ao limpar cache."
+  },
+  "test": {
+    "description": "Testar conexão com um provedor",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "testing": "Testando {provider} / {model}...",
+    "passed": "Conexão bem-sucedida!",
+    "failed": "Conexão falhou: {error}",
+    "allProvidersOpt": "Testar todos os provedores configurados",
+    "latencyOpt": "Exibir medições de latência (avg/min/max ms)",
+    "repeatOpt": "Repetir o teste N vezes e agregar os resultados",
+    "compareOpt": "Modelos separados por vírgula para comparar (ex: gpt-4o,claude-3-5-sonnet)",
+    "saveOpt": "Salvar resultados em arquivo JSON",
+    "saved": "Resultados salvos em {path}",
+    "compareTitle": "Comparação de Modelos",
+    "compareMinTwo": "São necessários pelo menos dois modelos para --compare (separados por vírgula)",
+    "noProviders": "Nenhum provedor configurado. Adicione um com: omniroute keys add"
+  },
+  "update": {
+    "checking": "Verificando atualizações...",
+    "upToDate": "Já está atualizado ({version}).",
+    "available": "Atualização disponível: {current} → {latest}",
+    "installing": "Instalando {latest}...",
+    "done": "Atualizado para {latest}. Reinicie o servidor para aplicar."
+  },
+  "mcp": {
+    "title": "Servidor MCP",
+    "call": {
+      "description": "Invocar uma ferramenta MCP diretamente",
+      "args": "Objeto JSON de argumentos (inline)",
+      "args_file": "Caminho para arquivo JSON de argumentos",
+      "stream": "Usar endpoint de streaming (/api/mcp/stream)",
+      "scope": "Escopo requerido (repetível, ex: read:health)"
+    },
+    "scopes": {
+      "description": "Listar escopos MCP disponíveis",
+      "tool": "Mostrar escopos requeridos por uma ferramenta específica"
+    },
+    "tools": {
+      "description": "Inspecionar ferramentas MCP",
+      "list": {
+        "description": "Listar todas as ferramentas MCP",
+        "scope": "Filtrar por escopo"
+      },
+      "info": {
+        "description": "Exibir metadados de uma ferramenta MCP"
+      },
+      "schema": {
+        "description": "Exibir schema JSON de entrada/saída de uma ferramenta MCP",
+        "io": "Tipo de schema: input|output (padrão: input)"
+      }
+    },
+    "audit": {
+      "description": "Log de auditoria MCP (alias para audit --source mcp)"
+    },
+    "running": "Servidor MCP em execução ({transport})",
+    "stopped": "Servidor MCP parado.",
+    "restarted": "Servidor MCP reiniciado."
+  },
+  "a2a": {
+    "skills": {
+      "description": "Listar skills A2A disponíveis na agent card"
+    },
+    "invoke": {
+      "description": "Invocar uma skill A2A e retornar o ID da task",
+      "input": "Objeto JSON de entrada",
+      "input_file": "Caminho para arquivo JSON de entrada",
+      "wait": "Aguardar conclusão da task antes de retornar",
+      "timeout": "Timeout aguardando conclusão em ms (padrão: 60000)"
+    },
+    "tasks": {
+      "description": "Gerenciar tasks A2A",
+      "list": {
+        "status": "Filtrar por status",
+        "skill": "Filtrar por ID de skill"
+      },
+      "watch": {
+        "description": "Monitorar status da task até conclusão"
+      },
+      "stream": {
+        "description": "Transmitir eventos de execução da task via SSE"
+      },
+      "logs": {
+        "description": "Exibir mensagens e artefatos da task"
+      }
+    }
+  },
+  "policy": {
+    "description": "Gerenciar políticas de autorização do OmniRoute",
+    "list": {
+      "description": "Listar políticas",
+      "kind": "Filtrar por tipo (allow|deny|rate-limit|cost-cap)",
+      "scope": "Filtrar por escopo (global|api-key|provider)"
+    },
+    "get": {
+      "description": "Obter detalhes de política por ID"
+    },
+    "create": {
+      "description": "Criar política a partir de arquivo JSON",
+      "file": "Caminho para arquivo JSON de política"
+    },
+    "update": {
+      "description": "Atualizar política a partir de arquivo JSON",
+      "file": "Caminho para arquivo JSON de política"
+    },
+    "delete": {
+      "description": "Deletar política por ID",
+      "yes": "Pular confirmação"
+    },
+    "evaluate": {
+      "description": "Dry-run de avaliação de política (saída 0=permitido, 4=negado)",
+      "api_key": "Chave de API a avaliar",
+      "action": "Ação a verificar (ex: chat, embed, admin)",
+      "resource": "Caminho ou identificador do recurso",
+      "context": "Contexto adicional como objeto JSON"
+    },
+    "export": {
+      "description": "Exportar todas as políticas para arquivo JSON"
+    },
+    "import": {
+      "description": "Importar políticas de arquivo JSON",
+      "overwrite": "Sobrescrever políticas existentes com mesmo ID"
+    }
+  },
+  "compression": {
+    "description": "Configurar e inspecionar o pipeline de compressão do OmniRoute",
+    "status": {
+      "description": "Exibir status atual de compressão e configurações"
+    },
+    "configure": {
+      "description": "Configurar as definições de compressão",
+      "engine": "Engine de compressão (caveman|rtk|hybrid|none)",
+      "caveman_agg": "Agressividade do Caveman 0.0–1.0",
+      "rtk_budget": "Budget de tokens RTK",
+      "language_pack": "Language pack a ativar"
+    },
+    "engine": {
+      "description": "Obter ou definir o engine de compressão ativo"
+    },
+    "combos": {
+      "description": "Gerenciar estatísticas de combos de compressão"
+    },
+    "rules": {
+      "description": "Gerenciar regras de compressão",
+      "add": {
+        "pattern": "Padrão para corresponder (regex ou campo:padrão)",
+        "action": "Ação: drop|shrink|replace"
+      }
+    },
+    "language_packs": {
+      "description": "Listar language packs de compressão disponíveis"
+    },
+    "preview": {
+      "description": "Visualizar efeito de compressão em uma requisição",
+      "file": "Caminho para arquivo JSON da requisição"
+    }
+  },
+  "tunnel": {
+    "title": "Túneis",
+    "listDescription": "Listar túneis ativos",
+    "createDescription": "Criar um túnel",
+    "created": "Túnel criado: {url}",
+    "stopped": "Túnel parado.",
+    "confirmStop": "Parar túnel {id}?",
+    "stopDescription": "Parar um túnel",
+    "statusDescription": "Exibir status detalhado de um túnel",
+    "logsDescription": "Exibir logs de um túnel",
+    "infoDescription": "Exibir configuração detalhada de um túnel",
+    "rotateDescription": "Gerar nova URL para o túnel",
+    "tailOpt": "Número de linhas de log a exibir",
+    "typeRequired": "Tipo de túnel é obrigatório.",
+    "noLogs": "Nenhum log disponível.",
+    "notAvailable": "Informações do túnel não disponíveis.",
+    "noTunnels": "Nenhum túnel ativo.",
+    "infoTitle": "Info do túnel: {type}",
+    "rotated": "URL do túnel rotacionada: {url}",
+    "confirmRotate": "Rotacionar túnel {type}? (uma nova URL será gerada)"
+  },
+  "stop": {
+    "description": "Parar o servidor OmniRoute",
+    "stopping": "Parando servidor (PID {pid})...",
+    "stopped": "Servidor parado.",
+    "notRunning": "Nenhum servidor está em execução.",
+    "portFallback": "Arquivo PID não encontrado, tentando parar pela porta..."
+  },
+  "restart": {
+    "description": "Reiniciar o servidor OmniRoute",
+    "restarting": "Reiniciando servidor OmniRoute..."
+  },
+  "dashboard": {
+    "description": "Abrir o painel OmniRoute no navegador",
+    "opening": "Abrindo painel em {url}",
+    "urlOnly": "Exibir URL do painel sem abrir o navegador",
+    "tui": "Abrir painel TUI interativo (terminal UI, 7 abas)"
+  },
+  "models": {
+    "description": "Listar modelos disponíveis (requer servidor)",
+    "search": "Filtrar modelos por id, nome, provedor ou descrição",
+    "noServer": "Servidor não está em execução. Inicie com: omniroute serve",
+    "noModels": "Nenhum modelo encontrado."
+  },
+  "audit": {
+    "description": "Acessar logs de auditoria de compliance e MCP",
+    "source": "Fonte do log: all|compliance|mcp (padrão: all)",
+    "since": "Retornar entradas desde este timestamp (ISO 8601)",
+    "until": "Retornar entradas até este timestamp (ISO 8601)",
+    "tail": {
+      "description": "Exibir entradas recentes do log de auditoria",
+      "follow": "Fazer tail contínuo de novas entradas (poll 2s)",
+      "limit": "Máximo de entradas (padrão: 100)"
+    },
+    "search": {
+      "description": "Buscar entradas do log de auditoria por palavra-chave",
+      "limit": "Máximo de resultados (padrão: 200)",
+      "actor": "Filtrar por ID de ator",
+      "action": "Filtrar por nome de ação"
+    },
+    "export": {
+      "description": "Exportar log de auditoria para arquivo",
+      "format": "Formato de saída: jsonl|csv (padrão: jsonl)"
+    },
+    "stats": {
+      "description": "Exibir estatísticas do log de auditoria",
+      "period": "Período: 1d|7d|30d (padrão: 7d)"
+    },
+    "get": {
+      "description": "Obter uma entrada do log de auditoria por ID"
+    }
+  },
+  "skills": {
+    "description": "Gerenciar skills do OmniRoute (sandbox, builtin, custom, hybrid, skillssh)",
+    "list": {
+      "description": "Listar skills instaladas",
+      "type": "Filtrar por tipo (sandbox|custom|builtin|hybrid|skillssh)",
+      "enabled": "Mostrar apenas skills habilitadas",
+      "disabled": "Mostrar apenas skills desabilitadas",
+      "api_key": "Filtrar por chave de API"
+    },
+    "get": {
+      "description": "Obter detalhes de uma skill por ID"
+    },
+    "install": {
+      "description": "Instalar uma skill a partir de arquivo ou URL",
+      "from_file": "Caminho para o arquivo JSON de definição da skill",
+      "from_url": "URL da definição remota da skill",
+      "type": "Tipo de skill (sandbox|custom|hybrid)",
+      "enable": "Habilitar skill após instalar"
+    },
+    "enable": {
+      "description": "Habilitar uma skill por ID"
+    },
+    "disable": {
+      "description": "Desabilitar uma skill por ID",
+      "yes": "Pular confirmação"
+    },
+    "delete": {
+      "description": "Deletar uma skill por ID",
+      "yes": "Pular confirmação"
+    },
+    "execute": {
+      "description": "Executar uma skill por ID",
+      "input": "Objeto JSON de entrada",
+      "input_file": "Caminho para arquivo JSON de entrada",
+      "timeout": "Timeout de execução em ms (padrão: 30000)"
+    },
+    "executions": {
+      "description": "Listar histórico de execuções de skills",
+      "skill": "Filtrar por ID de skill",
+      "limit": "Máximo de resultados (padrão: 50)",
+      "status": "Filtrar por status (running|completed|failed)"
+    },
+    "skillssh": {
+      "description": "Gerenciar skills instaladas via SSH"
+    },
+    "marketplace": {
+      "description": "Explorar e instalar skills do marketplace"
+    },
+    "mp": {
+      "search": {
+        "description": "Buscar pacotes no marketplace",
+        "category": "Filtrar por categoria",
+        "tag": "Filtrar por tag",
+        "limit": "Máximo de resultados (padrão: 30)",
+        "sort": "Ordenar por: downloads|rating|recent"
+      },
+      "info": {
+        "description": "Exibir detalhes e readme do pacote"
+      },
+      "install": {
+        "description": "Instalar um pacote do marketplace",
+        "version": "Versão do pacote (padrão: latest)",
+        "enable": "Habilitar após instalar",
+        "yes": "Pular confirmação"
+      },
+      "categories": {
+        "description": "Listar categorias do marketplace"
+      },
+      "featured": {
+        "description": "Exibir pacotes em destaque do marketplace"
+      }
+    }
+  },
+  "memory": {
+    "description": "Gerenciar memória conversacional do OmniRoute (FTS5 + vetorial)",
+    "search": {
+      "description": "Buscar entradas de memória por query semântica",
+      "type": "Filtrar por tipo (user|feedback|project|reference)",
+      "limit": "Máximo de resultados (padrão: 20)",
+      "api_key": "Filtrar por chave de API",
+      "token_budget": "Limitar total de tokens nos resultados"
+    },
+    "add": {
+      "description": "Adicionar nova entrada de memória",
+      "content": "Conteúdo textual da memória",
+      "file": "Ler conteúdo de arquivo",
+      "type": "Tipo de memória (padrão: user)",
+      "metadata": "Objeto JSON de metadados",
+      "api_key": "Associar a chave de API"
+    },
+    "clear": {
+      "description": "Deletar entradas de memória que correspondem aos filtros",
+      "type": "Filtrar por tipo",
+      "older": "Deletar entradas mais antigas que a duração (30d, 6m, 1y)",
+      "api_key": "Filtrar por chave de API",
+      "yes": "Pular confirmação"
+    },
+    "list": {
+      "description": "Listar entradas de memória sem ranking de busca",
+      "type": "Filtrar por tipo",
+      "limit": "Máximo de resultados (padrão: 100)",
+      "api_key": "Filtrar por chave de API"
+    },
+    "get": {
+      "description": "Obter entrada de memória por ID"
+    },
+    "delete": {
+      "description": "Deletar entrada de memória por ID",
+      "yes": "Pular confirmação"
+    },
+    "health": {
+      "description": "Exibir saúde do subsistema de memória (FTS5 + Qdrant)"
+    }
+  },
+  "oauth": {
+    "description": "Gerenciar conexões OAuth de provedores",
+    "providers": {
+      "description": "Listar provedores com suporte OAuth e seus tipos de fluxo"
+    },
+    "start": {
+      "description": "Iniciar fluxo de autorização OAuth para um provedor",
+      "provider": "ID do provedor (gemini, copilot, cursor, …)",
+      "no_browser": "Apenas exibir URL — não abrir navegador",
+      "import_system": "Auto-importar credenciais da configuração local do sistema",
+      "social": "Provedor de login social (google|github) — obrigatório para kiro",
+      "timeout": "Timeout aguardando autorização em ms (padrão: 300000)"
+    },
+    "status": {
+      "description": "Listar conexões OAuth ativas",
+      "provider": "Filtrar por ID do provedor"
+    },
+    "revoke": {
+      "description": "Revogar uma conexão OAuth",
+      "provider": "ID do provedor a revogar",
+      "connection_id": "Revogar uma conexão específica por ID",
+      "yes": "Pular confirmação"
+    }
+  },
+  "cloud": {
+    "description": "Gerenciar tarefas de agentes cloud de IA (codex, devin, jules)",
+    "agents": {
+      "description": "Listar agentes cloud disponíveis"
+    },
+    "agent": {
+      "description": "Gerenciar tarefas do agente cloud {agent}",
+      "auth": {
+        "description": "Autorizar {agent} via OAuth"
+      }
+    },
+    "task": {
+      "description": "Gerenciar tarefas de agentes cloud",
+      "create": {
+        "description": "Criar nova tarefa de agente",
+        "title": "Título da tarefa (padrão: primeiros 80 chars do prompt)",
+        "prompt": "Texto do prompt da tarefa",
+        "prompt_file": "Ler prompt de arquivo",
+        "repo": "URL do repositório para clonar na tarefa",
+        "branch": "Nome do branch a usar",
+        "metadata": "Objeto JSON de metadados"
+      },
+      "list": {
+        "description": "Listar tarefas de agentes",
+        "status": "Filtrar por status (running|completed|failed|cancelled)",
+        "limit": "Máximo de resultados (padrão: 50)"
+      },
+      "get": {
+        "description": "Obter detalhes da tarefa por ID"
+      },
+      "status": {
+        "description": "Exibir status da tarefa (running|completed|failed|cancelled)"
+      },
+      "cancel": {
+        "description": "Cancelar uma tarefa em execução",
+        "yes": "Pular confirmação"
+      },
+      "approve": {
+        "description": "Aprovar o plano do agente para iniciar execução"
+      },
+      "message": {
+        "description": "Enviar mensagem para uma tarefa em execução"
+      }
+    },
+    "sources": {
+      "description": "Listar arquivos de origem produzidos por uma tarefa"
+    }
+  },
+  "eval": {
+    "description": "Gerenciar suites e execuções de avaliação",
+    "suites": {
+      "description": "Gerenciar suites de avaliação",
+      "list": {
+        "description": "Listar suites de avaliação"
+      },
+      "get": {
+        "description": "Obter detalhes de suite por ID"
+      },
+      "create": {
+        "description": "Criar suite de avaliação a partir de arquivo JSON",
+        "file": "Caminho para arquivo JSON de definição da suite"
+      }
+    },
+    "run": {
+      "description": "Iniciar execução de avaliação para uma suite",
+      "model": "ID do modelo a avaliar (padrão: auto)",
+      "combo": "Forçar combo específico por nome",
+      "concurrency": "Número de amostras concorrentes (padrão: 4)",
+      "tag": "Tag para esta execução",
+      "watch": "Monitorar progresso até conclusão"
+    },
+    "list": {
+      "description": "Listar execuções de avaliação",
+      "suite": "Filtrar por ID de suite",
+      "status": "Filtrar por status",
+      "since": "Retornar execuções desde este timestamp",
+      "limit": "Máximo de resultados (padrão: 50)"
+    },
+    "get": {
+      "description": "Obter detalhes de execução por ID"
+    },
+    "results": {
+      "description": "Exibir resultados de amostras de uma execução",
+      "failed": "Exibir apenas amostras que falharam"
+    },
+    "cancel": {
+      "description": "Cancelar uma avaliação em execução",
+      "yes": "Pular confirmação"
+    },
+    "scorecard": {
+      "description": "Exibir scorecard de uma execução concluída"
+    }
+  },
+  "webhooks": {
+    "description": "Gerenciar webhooks do OmniRoute",
+    "events": {
+      "description": "Listar todos os tipos de evento disponíveis para webhooks"
+    },
+    "list": {
+      "description": "Listar webhooks configurados"
+    },
+    "get": {
+      "description": "Obter detalhes de webhook por ID"
+    },
+    "add": {
+      "description": "Registrar novo webhook",
+      "url": "URL de destino",
+      "events": "Lista de tipos de evento separados por vírgula",
+      "secret": "Segredo HMAC de assinatura",
+      "header": "Header extra no formato chave=valor (repetível)",
+      "no_enabled": "Criar webhook em estado desabilitado"
+    },
+    "update": {
+      "description": "Atualizar webhook existente",
+      "enabled": "Definir estado habilitado (true|false)"
+    },
+    "remove": {
+      "description": "Deletar webhook",
+      "yes": "Pular confirmação"
+    },
+    "test": {
+      "description": "Enviar evento de teste para um webhook",
+      "event": "Tipo de evento a simular (padrão: request.completed)"
+    }
+  },
+  "program": {
+    "description": "OmniRoute — Roteador de IA com Fallback Automático",
+    "version": "Exibir versão e sair",
+    "output": "Formato de saída (table, json, jsonl, csv)",
+    "quiet": "Suprimir saída não essencial",
+    "no_color": "Desativar saída colorida",
+    "timeout": "Timeout de requisições HTTP em milissegundos",
+    "api_key": "Chave de API para o servidor OmniRoute",
+    "base_url": "URL base do servidor OmniRoute",
+    "context": "Contexto/perfil do servidor a usar neste comando",
+    "lang": "Definir idioma de exibição do CLI (substitui OMNIROUTE_LANG)"
+  },
+  "files": {
+    "description": "Gerenciar arquivos (upload, listar, obter, baixar, deletar)",
+    "list": {
+      "purpose": "Filtrar por propósito",
+      "limit": "Máximo de resultados"
+    },
+    "get": {
+      "description": "Obter metadados do arquivo"
+    },
+    "upload": {
+      "description": "Fazer upload de um arquivo",
+      "purpose": "Propósito do arquivo (batch, assistants, fine-tune)"
+    },
+    "content": {
+      "description": "Baixar conteúdo do arquivo",
+      "out": "Salvar no caminho (padrão: stdout)"
+    },
+    "delete": {
+      "yes": "Pular confirmação"
+    }
+  },
+  "batches": {
+    "description": "Gerenciar jobs em batch (compatível com OpenAI)",
+    "list": {
+      "status": "Filtrar por status",
+      "limit": "Máximo de resultados"
+    },
+    "create": {
+      "description": "Criar um job em batch",
+      "inputFile": "ID do arquivo de entrada",
+      "endpoint": "Endpoint destino",
+      "window": "Janela de conclusão",
+      "metadata": "Adicionar metadado key=value"
+    },
+    "submit": {
+      "description": "Fazer upload do JSONL e criar batch",
+      "jsonl": "Caminho para o arquivo JSONL",
+      "endpoint": "Endpoint destino",
+      "wait": "Aguardar conclusão"
+    },
+    "cancel": {
+      "yes": "Pular confirmação"
+    },
+    "wait": {
+      "timeout": "Timeout em ms"
+    },
+    "output": {
+      "out": "Salvar output no caminho"
+    },
+    "errors": {
+      "out": "Salvar erros no caminho"
+    }
+  },
+  "translator": {
+    "description": "Traduzir payloads entre formatos LLM",
+    "detect": {
+      "description": "Detectar formato do body"
+    },
+    "translate": {
+      "description": "Converter body de um formato para outro"
+    },
+    "send": {
+      "description": "Traduzir e despachar para upstream"
+    },
+    "stream": {
+      "description": "Tradução de request em stream"
+    },
+    "from": "Formato de origem (openai|anthropic|gemini|cohere)",
+    "to": "Formato de destino (openai|anthropic|gemini|cohere)",
+    "file": "Caminho para o arquivo JSON do request",
+    "out": "Salvar output em arquivo",
+    "model": "Sobrescrever model",
+    "history": {
+      "limit": "Máximo de resultados"
+    }
+  },
+  "pricing": {
+    "description": "Gerenciar dados de precificação dos modelos",
+    "sync": {
+      "description": "Sincronizar preços com fontes upstream",
+      "provider": "Filtrar por provider",
+      "force": "Forçar re-sincronização"
+    },
+    "list": {
+      "provider": "Filtrar por provider",
+      "model": "Filtrar por model",
+      "limit": "Máximo de resultados"
+    },
+    "defaults": {
+      "description": "Gerenciar preços padrão",
+      "input": "Custo de entrada por 1M tokens (USD)",
+      "output": "Custo de saída por 1M tokens (USD)",
+      "cacheRead": "Custo de leitura de cache por 1M tokens (USD)",
+      "cacheWrite": "Custo de escrita de cache por 1M tokens (USD)"
+    },
+    "diff": {
+      "description": "Mostrar divergências em relação ao upstream",
+      "model": "Filtrar por model"
+    }
+  },
+  "resilience": {
+    "description": "Inspecionar e gerenciar mecanismos de resiliência",
+    "status": {
+      "provider": "Filtrar por provider"
+    },
+    "breakers": {
+      "provider": "Filtrar por provider"
+    },
+    "cooldowns": {
+      "provider": "Filtrar por provider",
+      "connectionId": "Filtrar por ID de conexão"
+    },
+    "lockouts": {
+      "provider": "Filtrar por provider",
+      "model": "Filtrar por model"
+    },
+    "reset": {
+      "description": "Resetar estado de breaker/cooldown",
+      "provider": "Provider para resetar",
+      "connectionId": "ID de conexão para resetar",
+      "model": "Model para liberar lockout",
+      "allCooldowns": "Resetar todos os cooldowns do provider",
+      "yes": "Pular confirmação"
+    },
+    "profile": {
+      "description": "Gerenciar perfil de resiliência",
+      "name": "Nome do perfil"
+    },
+    "config": {
+      "description": "Gerenciar configuração de resiliência",
+      "threshold": "Limiar de falhas",
+      "resetTimeout": "Timeout de reset em ms",
+      "baseCooldown": "Cooldown base em ms"
+    }
+  },
+  "nodes": {
+    "description": "Gerenciar nodes de provider (endpoints)",
+    "list": {
+      "provider": "Filtrar por provider",
+      "enabled": "Exibir apenas nodes ativos"
+    },
+    "add": {
+      "provider": "Nome do provider",
+      "baseUrl": "URL base do node",
+      "name": "Nome do node",
+      "weight": "Peso para balanceamento de carga",
+      "region": "Tag de região",
+      "authHeader": "Header de autenticação customizado (key=value)"
+    },
+    "update": {
+      "baseUrl": "Nova URL base",
+      "name": "Novo nome",
+      "weight": "Novo peso",
+      "region": "Nova região",
+      "enabled": "Habilitar ou desabilitar (true|false)"
+    },
+    "remove": {
+      "yes": "Pular confirmação"
+    },
+    "validate": {
+      "baseUrl": "URL para validar",
+      "provider": "Provider para validar"
+    },
+    "test": {
+      "description": "Enviar requisição de teste ao node"
+    },
+    "metrics": {
+      "description": "Exibir métricas do node",
+      "period": "Período de tempo (ex: 24h, 7d)"
+    }
+  },
+  "context": {
+    "description": "Configurar pipeline de context engineering (Caveman, RTK)",
+    "analytics": {
+      "period": "Período de tempo (ex: 7d, 30d)"
+    },
+    "caveman": {
+      "description": "Gerenciar compressor de contexto Caveman",
+      "config": {
+        "description": "Exibir ou atualizar configuração do Caveman",
+        "aggressiveness": "Agressividade 0.0–1.0",
+        "maxShrinkPct": "Percentual máximo de redução",
+        "preserveTags": "Tags a preservar (separadas por vírgula)"
+      }
+    },
+    "rtk": {
+      "description": "Gerenciar otimizador de contexto RTK",
+      "config": {
+        "description": "Exibir ou atualizar configuração RTK",
+        "tokenBudget": "Orçamento de tokens RTK",
+        "reservePct": "Percentual de reserva"
+      },
+      "filters": {
+        "description": "Gerenciar filtros RTK",
+        "pattern": "Padrão do filtro (regex)",
+        "priority": "Prioridade do filtro (padrão: 100)",
+        "action": "Ação: drop|shrink|replace",
+        "yes": "Pular confirmação"
+      },
+      "test": {
+        "file": "Caminho para arquivo JSON de requisição"
+      }
+    },
+    "combos": {
+      "description": "Gerenciamento de combos com context-awareness"
+    }
+  },
+  "sessions": {
+    "description": "Inspecionar e encerrar sessões ativas",
+    "list": {
+      "user": "Filtrar por usuário",
+      "kind": "Filtrar por tipo (dashboard|api-key|mcp|a2a)",
+      "active": "Exibir apenas sessões ativas",
+      "limit": "Máximo de resultados (padrão: 100)"
+    },
+    "expire": {
+      "yes": "Pular confirmação"
+    },
+    "expireAll": {
+      "user": "Usuário cujas sessões serão encerradas",
+      "yes": "Pular confirmação"
+    }
+  },
+  "tags": {
+    "description": "Gerenciar tags de recursos",
+    "add": {
+      "color": "Cor da tag (hex ou nome)",
+      "description": "Descrição da tag"
+    },
+    "remove": {
+      "yes": "Pular confirmação"
+    },
+    "assign": {
+      "tag": "Nome da tag",
+      "to": "Recurso de destino como tipo:id (ex: provider:openai)"
+    },
+    "unassign": {
+      "tag": "Nome da tag",
+      "from": "Recurso de origem como tipo:id"
+    }
+  },
+  "openapi": {
+    "description": "Acessar e testar o spec OpenAPI do OmniRoute",
+    "dump": {
+      "description": "Exportar spec OpenAPI para stdout ou arquivo",
+      "format": "Formato de saída: yaml|json (padrão: yaml)",
+      "out": "Salvar em caminho de arquivo"
+    },
+    "validate": {
+      "description": "Validar o spec OpenAPI"
+    },
+    "try": {
+      "description": "Testar um endpoint da API via spec",
+      "method": "Método HTTP (padrão: GET)",
+      "body": "Caminho para arquivo JSON do corpo da requisição",
+      "query": "Parâmetro de query como key=value (repetível)",
+      "header": "Header como key=value (repetível)"
+    },
+    "endpoints": {
+      "description": "Listar todos os endpoints da API",
+      "search": "Filtrar por caminho ou summary"
+    },
+    "paths": {
+      "description": "Listar todos os caminhos da API"
+    }
+  },
+  "combo": {
+    "title": "Combos",
+    "switched": "Combo ativo: {name}",
+    "created": "Combo criado: {name}",
+    "deleted": "Combo removido: {name}",
+    "noCombos": "Nenhum combo configurado.",
+    "confirmDelete": "Remover combo {name}?",
+    "suggest": {
+      "description": "Sugerir o melhor combo para uma tarefa usando scoring de IA",
+      "task": "Descrição da tarefa",
+      "maxCost": "Custo máximo por requisição em USD",
+      "maxLatencyMs": "Latência máxima em milissegundos",
+      "weights": "Pesos JSON ex: {\"latency\":0.7,\"cost\":0.3}",
+      "top": "Número de candidatos a exibir (padrão: 5)",
+      "explain": "Imprimir justificativa no stderr",
+      "switch": "Ativar o combo mais bem classificado"
+    }
+  },
+  "oneproxy": {
+    "description": "Gerenciar o pool de proxies OneProxy",
+    "stats": {
+      "provider": "Filtrar por provider",
+      "period": "Período de tempo (padrão: 24h)"
+    },
+    "fetch": {
+      "description": "Buscar proxies do pool",
+      "count": "Número de proxies a buscar (padrão: 1)",
+      "type": "Tipo de proxy: http|socks5 (padrão: http)"
+    },
+    "rotate": {
+      "description": "Forçar rotação de proxy",
+      "provider": "Provider para rotacionar",
+      "connectionId": "ID de conexão específica para rotacionar"
+    },
+    "config": {
+      "description": "Exibir ou atualizar configuração do OneProxy",
+      "enabled": "Habilitar pool de proxies (true|false)",
+      "poolSize": "Tamanho do pool",
+      "providerSource": "URL do provedor de proxies",
+      "rotationPolicy": "Política de rotação: sticky|per-request|periodic"
+    },
+    "pool": {
+      "description": "Listar pool de proxies atual com métricas"
+    }
+  },
+  "open": {
+    "description": "Abrir uma página específica do dashboard OmniRoute no navegador",
+    "url": "Apenas imprime a URL, sem abrir o navegador"
+  },
+  "telemetry": {
+    "description": "Acessar dados de telemetria agregados",
+    "summary": {
+      "description": "Exibir resumo de telemetria agregado",
+      "period": "Período: 24h|7d|30d (padrão: 24h)",
+      "compareTo": "Comparar com período anterior"
+    },
+    "export": {
+      "description": "Exportar eventos de telemetria para JSONL",
+      "out": "Caminho do arquivo de saída (padrão: telemetry.jsonl)",
+      "period": "Período para exportação (padrão: 7d)"
+    }
+  },
+  "sync": {
+    "description": "Sincronizar configuração entre instâncias OmniRoute",
+    "push": {
+      "description": "Enviar config para cloud ou instância remota",
+      "target": "Destino (cloud ou context:nome)",
+      "bundle": "Partes do bundle para sincronizar",
+      "dryRun": "Visualizar sem aplicar"
+    },
+    "pull": {
+      "description": "Baixar config da cloud ou remoto",
+      "source": "Origem (cloud ou context:nome)",
+      "merge": "Mesclar com config existente",
+      "replace": "Substituir config existente",
+      "dryRun": "Visualizar sem aplicar"
+    },
+    "diff": {
+      "source": "Contexto de origem",
+      "target": "Contexto de destino"
+    },
+    "bundle": {
+      "description": "Exportar config como arquivo bundle",
+      "include": "Partes a incluir (separadas por vírgula)"
+    },
+    "import": {
+      "description": "Importar arquivo bundle",
+      "dryRun": "Validar sem aplicar"
+    },
+    "initialize": {
+      "fromCloud": "Inicializar a partir de backup na cloud"
+    },
+    "tokens": {
+      "description": "Gerenciar tokens de sincronização",
+      "create": {
+        "name": "Nome do token",
+        "scope": "Escopo do token",
+        "ttl": "TTL do token (ex: 30d)"
+      },
+      "revoke": {
+        "yes": "Pular confirmação"
+      }
+    },
+    "resolve": {
+      "description": "Resolver conflitos de sincronização interativamente"
+    }
+  },
+  "config": {
+    "contexts": {
+      "description": "Gerenciar contextos/perfis de servidor (add, use, list, show, remove, rename, export, import)"
+    },
+    "lang": {
+      "description": "Gerenciar idioma de exibição do CLI",
+      "getDescription": "Exibir o código de idioma atualmente ativo",
+      "setDescription": "Definir o idioma de exibição e salvar na configuração",
+      "listDescription": "Listar todos os idiomas disponíveis",
+      "listTitle": "Idiomas Disponíveis",
+      "current": "Idioma: {code} ({name})",
+      "saved": "Idioma definido como {code} ({name}).",
+      "noCode": "Código de idioma obrigatório. Execute 'omniroute config lang list' para ver os códigos disponíveis.",
+      "unknown": "Código de idioma desconhecido: {code}. Execute 'omniroute config lang list' para ver os códigos disponíveis.",
+      "alreadySet": "O idioma já está definido como {code}.",
+      "envHint": "Dica: você também pode definir OMNIROUTE_LANG={code} no seu ambiente."
+    }
+  },
+  "completion": {
+    "description": "Gerar ou instalar scripts de completion do shell",
+    "zsh": "Imprimir script de completion para zsh",
+    "bash": "Imprimir script de completion para bash",
+    "fish": "Imprimir script de completion para fish",
+    "install": "Instalar completion globalmente para o shell detectado",
+    "refresh": "Atualizar cache de combos/providers/models"
+  },
+  "logs": {
+    "description": "Streaming ou exportação de logs de request",
+    "follow": "Transmitir logs em tempo real",
+    "filter": "Filtrar por nível (error,warn,info) — separados por vírgula",
+    "lines": "Número de linhas a buscar",
+    "timeout": "Timeout de conexão em ms",
+    "baseUrl": "URL base da API do OmniRoute",
+    "requestId": "Filtrar por ID do request",
+    "apiKey": "Filtrar por chave de API",
+    "combo": "Filtrar por nome do combo",
+    "status": "Filtrar por código HTTP",
+    "durationMin": "Duração mínima do request em ms",
+    "durationMax": "Duração máxima do request em ms",
+    "export": "Salvar logs em arquivo (json/jsonl/csv)",
+    "exported": "Logs salvos em {path}",
+    "stopped": "Stream de logs interrompido.",
+    "streamError": "Erro no stream de logs: {message}"
+  },
+  "tray": {
+    "description": "Controlar o ícone na bandeja do sistema",
+    "show": "Mostrar o ícone na bandeja (se o servidor estiver rodando com --tray)",
+    "hide": "Ocultar o ícone na bandeja",
+    "quit": "Encerrar OmniRoute via bandeja"
+  },
+  "autostart": {
+    "description": "Gerenciar inicialização automática do OmniRoute no login",
+    "enable": "Habilitar inicialização automática no login",
+    "disable": "Desabilitar inicialização automática no login",
+    "status": "Mostrar status de inicialização automática"
+  },
+  "runtime": {
+    "description": "Gerenciar dependências nativas do runtime",
+    "check": "Verificar status das deps nativas no diretório de runtime",
+    "repair": "Reinstalar deps nativas no diretório de runtime",
+    "repair_force": "Forçar reinstalação mesmo se estiver válido",
+    "clean": "Remover diretório de runtime (libera espaço em disco)",
+    "clean_yes": "Pular confirmação"
+  },
+  "repl": {
+    "description": "REPL interativo multi-turn com LLM",
+    "model": "Modelo a usar (padrão: auto)",
+    "combo": "Nome do combo a usar",
+    "system": "System prompt",
+    "resume": "Retomar sessão salva pelo nome"
+  },
+  "plugin": {
+    "description": "Gerenciar plugins CLI (omniroute-cmd-*)",
+    "list": "Listar plugins instalados",
+    "install": "Instalar plugin do npm ou caminho local",
+    "remove": "Remover plugin instalado",
+    "info": "Mostrar detalhes de um plugin instalado",
+    "search": "Buscar plugins disponíveis no npm",
+    "update": "Atualizar plugin(s) instalado(s)",
+    "scaffold": "Gerar boilerplate de novo plugin"
+  }
+}

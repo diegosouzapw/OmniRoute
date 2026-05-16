@@ -167,6 +167,16 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
+  "deepseek-web": {
+    id: "deepseek-web",
+    alias: "ds-web",
+    name: "DeepSeek Web",
+    icon: "auto_awesome",
+    color: "#4D6BFE",
+    textIcon: "DS",
+    website: "https://chat.deepseek.com",
+    authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
+  },
 };
 
 // API Key Providers
@@ -1797,16 +1807,6 @@ export const SEARCH_PROVIDERS = {
     textIcon: "OS",
     website: "https://ollama.com/settings/api-keys",
     authHint: "Same API key as Ollama Cloud (from ollama.com/settings/api-keys)",
-  },
-  "zai-search": {
-    id: "zai-search",
-    alias: "zai-search",
-    name: "Z.AI Coding Plan Search",
-    icon: "search",
-    color: "#2563EB",
-    textIcon: "ZS",
-    website: "https://docs.z.ai/devpack/mcp/search-mcp-server",
-    authHint: "Same API key as Z.AI Coding Plan (from open.bigmodel.cn or z.ai)",
   },
 };
 

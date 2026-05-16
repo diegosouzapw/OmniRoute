@@ -188,6 +188,7 @@ const SCHEMA_SQL = `
     last_used_at TEXT,
     "group" TEXT,
     max_concurrent INTEGER,
+    quota_window_thresholds_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -443,6 +444,16 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
+    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+      // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
+      // Surface the parsed object under the friendlier name (key minus the
+      // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      const baseKey = camelKey.slice(0, -"Json".length);
+      try {
+        result[baseKey] = JSON.parse(v);
+      } catch {
+        result[baseKey] = null;
+      }
     } else {
       result[camelKey] = v;
     }
@@ -509,6 +520,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     if (!columnNames.has("max_concurrent")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
       console.log("[DB] Added provider_connections.max_concurrent column");
+    }
+    if (!columnNames.has("quota_window_thresholds_json")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
+      console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
     }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
@@ -1122,6 +1137,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
     ensureCallLogsColumns(memoryDb);
+    ensureProviderConnectionsColumns(memoryDb);
     setDb(memoryDb);
     return memoryDb;
   }
@@ -1396,6 +1412,49 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
  */
 export function resetDbInstance() {
   closeDbInstance();
+}
+
+// ──────────────── Runtime Driver Info ────────────────
+
+type DbDriverInfo = { source: string; kind: string };
+let driverInfoCached: DbDriverInfo | null = null;
+
+function setDriverInfo(info: DbDriverInfo) {
+  driverInfoCached = info;
+}
+
+/** Returns how better-sqlite3 was resolved (bundled / runtime / etc.). Null if not yet init. */
+export function getDriverInfo(): DbDriverInfo | null {
+  return driverInfoCached;
+}
+
+/**
+ * Async initializer that pre-resolves the SQLite runtime before first DB access.
+ *
+ * Call this at process startup (before any call to getDbInstance()) so that
+ * if the bundled better-sqlite3 binary is unavailable, the runtime installer
+ * can place it in ~/.omniroute/runtime/ without blocking a synchronous caller.
+ *
+ * Idempotent — safe to call multiple times.
+ */
+export async function ensureDbInitialized(): Promise<void> {
+  if (getDb()) return;
+
+  try {
+    const runtimeModule = await import("../../../bin/cli/runtime/sqliteRuntime.mjs" as any);
+    const { driver, source } = await runtimeModule.loadSqliteRuntime();
+    setDriverInfo({ source, kind: driver.kind as string });
+    if ((driver.kind as string) !== "better-sqlite3") {
+      console.warn(
+        `[DB] better-sqlite3 unavailable (resolved via ${source}/${driver.kind}). ` +
+          `OmniRoute may fall back to read-only or limited functionality.`
+      );
+    }
+  } catch {
+    // Runtime loader unavailable (CLI context only) — DB init falls through to normal path.
+  }
+
+  getDbInstance();
 }
 
 // ──────────────── JSON → SQLite Migration ────────────────

@@ -45,6 +45,7 @@ const IGNORE_FROM_CODE = new Set([
   "TZ",
   "LANG",
   "LC_ALL",
+  "LC_MESSAGES",
   "CI",
   "GITHUB_ACTIONS",
   "RUNNER_OS",
@@ -54,6 +55,8 @@ const IGNORE_FROM_CODE = new Set([
   "XDG_CONFIG_HOME",
   "USERPROFILE",
   "PREFIX",
+  // X11 display server — set by the OS/session manager, not OmniRoute config.
+  "DISPLAY",
   // Next.js / Node test runners — these are framework-managed.
   "NEXT_DIST_DIR",
   "NEXT_PHASE",
@@ -62,6 +65,25 @@ const IGNORE_FROM_CODE = new Set([
   // CI providers (set by the runner).
   "GITHUB_BASE_REF",
   "GITHUB_BASE_SHA",
+  // CLI machine-id token opt-out (server-side flag; not user-configurable via .env).
+  "OMNIROUTE_DISABLE_CLI_TOKEN",
+  // update-notifier opt-out for the CLI binary.
+  "OMNIROUTE_NO_UPDATE_NOTIFIER",
+  // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
+  // These are external signals set by the host OS or cloud provider — not OmniRoute config.
+  "CODESPACES",
+  "GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN",
+  "GITPOD_WORKSPACE_ID",
+  "NO_COLOR",
+  "REPL_ID",
+  "REPL_SLUG",
+  "WSL_DISTRO_NAME",
+  "WSL_INTEROP",
+  // X11/Wayland display server vars used by tray heuristic (isTraySupported).
+  "DISPLAY",
+  "WAYLAND_DISPLAY",
+  // Build-time override for OpenAPI spec path used by generate-api-commands.mjs.
+  "OPENAPI_SPEC",
   // Aliases for documented vars handled via fallback ordering.
   "API_KEY",
   "APP_URL",

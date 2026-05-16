@@ -41,20 +41,15 @@ test("setup command writes password, setup state, and provider in non-interactiv
   await withTempEnv(async (dataDir) => {
     const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
 
-    const exitCode = await runSetupCommand([
-      "--non-interactive",
-      "--password",
-      "super-secret",
-      "--add-provider",
-      "--provider",
-      "openai",
-      "--provider-name",
-      "OpenAI CLI",
-      "--api-key",
-      "sk-test",
-      "--default-model",
-      "gpt-4o-mini",
-    ]);
+    const exitCode = await runSetupCommand({
+      nonInteractive: true,
+      password: "super-secret",
+      addProvider: true,
+      provider: "openai",
+      providerName: "OpenAI CLI",
+      apiKey: "sk-test",
+      defaultModel: "gpt-4o-mini",
+    });
 
     assert.equal(exitCode, 0);
 
@@ -91,7 +86,7 @@ test("setup command can mark onboarding complete without provider in non-interac
   await withTempEnv(async (dataDir) => {
     const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
 
-    const exitCode = await runSetupCommand(["--non-interactive", "--password", "super-secret"]);
+    const exitCode = await runSetupCommand({ nonInteractive: true, password: "super-secret" });
 
     assert.equal(exitCode, 0);
 
@@ -113,14 +108,12 @@ test("setup command disables login when no password is configured", async () => 
   await withTempEnv(async (dataDir) => {
     const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
 
-    const exitCode = await runSetupCommand([
-      "--non-interactive",
-      "--add-provider",
-      "--provider",
-      "openai",
-      "--api-key",
-      "sk-test",
-    ]);
+    const exitCode = await runSetupCommand({
+      nonInteractive: true,
+      addProvider: true,
+      provider: "openai",
+      apiKey: "sk-test",
+    });
 
     assert.equal(exitCode, 0);
 
@@ -147,15 +140,13 @@ test("setup command can test provider and persist active status", async () => {
 
     const { runSetupCommand } = await import("../../bin/cli/commands/setup.mjs");
 
-    const exitCode = await runSetupCommand([
-      "--non-interactive",
-      "--add-provider",
-      "--provider",
-      "openai",
-      "--api-key",
-      "sk-test",
-      "--test-provider",
-    ]);
+    const exitCode = await runSetupCommand({
+      nonInteractive: true,
+      addProvider: true,
+      provider: "openai",
+      apiKey: "sk-test",
+      testProvider: true,
+    });
 
     assert.equal(exitCode, 0);
     assert.equal(calls.length, 1);

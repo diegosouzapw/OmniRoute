@@ -314,7 +314,7 @@ export default function SkillsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
+          <h1 className="text-2xl font-bold">OmniSkills</h1>
           <p className="text-text-muted mt-1">{t("description")}</p>
         </div>
         <button

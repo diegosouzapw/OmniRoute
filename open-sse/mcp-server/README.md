@@ -62,7 +62,7 @@ Add to your MCP client configuration:
   "mcpServers": {
     "omniroute": {
       "command": "node",
-      "args": ["path/to/9router/open-sse/mcp-server/server.ts"],
+      "args": ["path/to/omniroute/open-sse/mcp-server/server.ts"],
       "env": {
         "OMNIROUTE_BASE_URL": "http://localhost:20128",
         "OMNIROUTE_API_KEY": "your-key"

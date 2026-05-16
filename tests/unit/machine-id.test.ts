@@ -85,6 +85,9 @@ test("machineId: falls back to Linux machine-id files before hostname", async ()
 
   fs.existsSync = () => false;
   fs.readFileSync = (filePath, encoding) => {
+    if (filePath !== "/etc/machine-id") {
+      return originalReadFileSync(filePath, encoding);
+    }
     assert.equal(filePath, "/etc/machine-id");
     assert.equal(encoding, "utf8");
     return "LINUX-MACHINE-ID\n";

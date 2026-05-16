@@ -98,6 +98,53 @@ curl -X POST http://localhost:20128/api/compression/preview \
   }'
 ```
 
+## SHARED_BOUNDARIES (v3.8.0)
+
+All 6 language packs received a `SHARED_BOUNDARIES` clause in v3.8.0 that is applied at every
+Caveman intensity (LITE, FULL, ULTRA). It instructs the engine to preserve these patterns verbatim,
+regardless of surrounding filler removal:
+
+| Pattern type                     | Example                                |
+| -------------------------------- | -------------------------------------- |
+| Fenced code blocks               | ` ```python\n...\n``` `                |
+| Inline code                      | `` `my_var` ``                         |
+| URLs                             | `https://example.com/path`             |
+| File paths (absolute + relative) | `/etc/hosts`, `./src/index.ts`         |
+| Error headers                    | `Error:`, `TypeError:`, `SyntaxError:` |
+| Stack trace lines                | `  at functionName (file.ts:12:3)`     |
+
+These patterns are populated in `DEFAULT_CAVEMAN_CONFIG.preservePatterns` (previously `[]`). The
+constant lives in `open-sse/services/compression/types.ts`.
+
+### Why this matters
+
+Without SHARED_BOUNDARIES, aggressive Caveman modes could strip content that looked like repetitive
+prose but was actually a code snippet, file path, or error stack. SHARED_BOUNDARIES acts as a
+language-agnostic safety net applied before filler rules run.
+
+### Customizing preservePatterns
+
+Additional patterns can be added at runtime via compression settings:
+
+````json
+{
+  "cavemanConfig": {
+    "preservePatterns": [
+      "```[\\s\\S]*?```",
+      "`[^`]+`",
+      "https?://\\S+",
+      "(?:/|\\./)[^\\s]+",
+      "\\b(?:Error|TypeError|SyntaxError|RangeError):",
+      "\\s+at\\s+\\S+\\s+\\(\\S+:\\d+:\\d+\\)"
+    ]
+  }
+}
+````
+
+Custom patterns extend (not replace) the 6 defaults.
+
+---
+
 ## Operational Notes
 
 - English built-in rules remain the fallback when a language pack is missing.

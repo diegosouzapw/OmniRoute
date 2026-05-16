@@ -41,9 +41,8 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Cursor / Windsurf / He
 ### Source of Truth
 
 The dashboard cards in `/dashboard/cli-tools` are generated from
-`src/shared/constants/cliTools.ts`. The internal helper `bin/cli-commands.mjs`
-keeps the small set of "fully scriptable" tools that `omniroute setup` can write
-config files for automatically.
+`src/shared/constants/cliTools.ts`. The `omniroute setup` command can write
+config files automatically for the scriptable tools.
 
 ### Current Catalog (v3.8.0)
 
@@ -450,15 +449,12 @@ The `omniroute` binary (installed via `npm install -g omniroute` or bundled
 with the desktop app) provides commands beyond running the server. The full
 matrix is implemented in:
 
-- `bin/omniroute.mjs` — entry point and `--help` text
-- `bin/cli/index.mjs` — dispatcher for the supported subcommands
-- `bin/cli/commands/setup.mjs`, `bin/cli/commands/doctor.mjs`,
-  `bin/cli/commands/providers.mjs` — the three core subcommands
-
-Other subcommands listed in `--help` (status, logs, combo, keys, mcp, a2a,
-tunnel, backup, restore, quota, health, cache, env, completion, dashboard,
-serve, stop, restart, open, update, test) are wired through
-`bin/cli-commands.mjs` and require a running server for most of them.
+- `bin/omniroute.mjs` — entry point, env loading, special-case dispatch (`--mcp`)
+- `bin/cli/program.mjs` — Commander program builder
+- `bin/cli/commands/<cmd>.mjs` — one file per command/group, registered in `registry.mjs`
+- `bin/cli/output.mjs` — output formatters (json/jsonl/table/csv)
+- `bin/cli/runtime.mjs` — withRuntime helper (server-first/db-fallback)
+- `bin/cli/i18n.mjs` — t() helper with locales
 
 ### Server Lifecycle
 
@@ -541,10 +537,9 @@ omniroute reset-encrypted-columns       # Show warning + dry-run for encrypted c
 omniroute reset-encrypted-columns --force  # Actually null out encrypted credentials in SQLite
 ```
 
-### Other subcommands (via `cli-commands.mjs`)
+### Other subcommands
 
-These are dispatched in `bin/cli-commands.mjs` and assume a running OmniRoute
-server, unless noted otherwise:
+These assume a running OmniRoute server, unless noted otherwise:
 
 ```bash
 omniroute status                       # Comprehensive runtime status

@@ -206,7 +206,12 @@ export default function BatchPage() {
       <div ref={listContainerRef} className="flex flex-col gap-6">
         {activeTab === "batches" ? (
           <>
-            <BatchListTab batches={batches} files={files} loading={loading} />
+            <BatchListTab
+              batches={batches}
+              files={files}
+              loading={loading}
+              onRefresh={() => fetchData(false)}
+            />
             {loadingMore && batchesCount > 0 && (
               <div className="text-center text-sm">Loading more…</div>
             )}
@@ -214,7 +219,12 @@ export default function BatchPage() {
           </>
         ) : (
           <>
-            <FilesListTab files={files} loading={loading} onRefresh={() => fetchData(false)} />
+            <FilesListTab
+              files={files}
+              loading={loading}
+              onRefresh={() => fetchData(false)}
+              batches={batches}
+            />
             {loadingMore && filesCount > 0 && (
               <div className="text-center text-sm">Loading more…</div>
             )}

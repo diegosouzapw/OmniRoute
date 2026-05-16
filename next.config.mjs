@@ -111,6 +111,8 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    "sql.js",
+    "node-machine-id",
     "keytar",
     "wreq-js",
     "zod",

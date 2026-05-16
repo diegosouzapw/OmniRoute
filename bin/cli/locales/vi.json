@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Lỗi: {message}",
+    "serverOffline": "Máy chủ OmniRoute đang offline. Khởi động với: omniroute serve",
+    "authRequired": "Cần xác thực. Đặt OMNIROUTE_API_KEY hoặc chạy: omniroute setup",
+    "rateLimited": "Đã vượt giới hạn yêu cầu. Thử lại sau {seconds}s.",
+    "timeout": "Yêu cầu hết thời gian sau {ms}ms.",
+    "success": "Xong.",
+    "yes": "có",
+    "no": "không",
+    "confirm": "Bạn có chắc không? (có/không)",
+    "dryRun": "[mô phỏng] sẽ: {action}",
+    "cancelled": "Đã hủy.",
+    "jsonOpt": "Xuất dưới dạng JSON",
+    "yesOpt": "Bỏ qua xác nhận"
+  },
+  "program": {
+    "description": "OmniRoute — Bộ định tuyến AI thông minh với tự động chuyển đổi dự phòng",
+    "version": "In phiên bản và thoát",
+    "output": "Định dạng đầu ra (table, json, jsonl, csv)",
+    "quiet": "Ẩn đầu ra không cần thiết",
+    "no_color": "Tắt đầu ra màu sắc",
+    "timeout": "Thời gian chờ yêu cầu HTTP tính bằng mili giây",
+    "api_key": "Khóa API cho máy chủ OmniRoute",
+    "base_url": "URL cơ sở của máy chủ OmniRoute",
+    "context": "Bối cảnh/hồ sơ máy chủ cho lệnh này",
+    "lang": "Đặt ngôn ngữ hiển thị CLI (ghi đè OMNIROUTE_LANG)"
+  }
+}

@@ -188,6 +188,27 @@ If `electron/` changed:
 - [ ] Open milestone for next version
 - [ ] If critical: pin discussion or post in `news.json` for in-app banner
 
+## v3.8.0+ checks
+
+Before shipping any v3.8.x release, verify these additional items:
+
+- [ ] `omniroute --tray` boots on macOS (systray2 installed into `~/.omniroute/runtime/`)
+- [ ] `omniroute --tray` boots on Linux (requires DISPLAY; graceful error if not set)
+- [ ] `omniroute --tray` boots on Windows (PowerShell NotifyIcon, no extra binaries)
+- [ ] `omniroute config tray enable` creates autostart entry; disable removes it
+- [ ] `npm install -g omniroute@<this-version>` runs postinstall without fatal exit
+- [ ] `omniroute status` works with no `.env` (CLI token path, loopback only)
+- [ ] `curl http://localhost:20128/api/shutdown` returns 401 (always-protected route)
+- [ ] `curl -H "host: evil.com" http://localhost:20128/api/mcp/sse` returns 401 (loopback guard)
+- [ ] SQLite runtime resolves to `bundled` on first run (bundled binary valid for platform)
+- [ ] SQLite runtime falls back to `runtime` when `node_modules/better-sqlite3` is deleted
+- [ ] Smart MCP filter compresses real `playwright-mcp browser_snapshot` output (≥50% reduction)
+- [ ] All 10 `skills/omniroute*/SKILL.md` files are publicly fetchable via raw GitHub URL
+- [ ] Onboarding wizard shows "How It Works" tier tour step on fresh setup
+- [ ] Home dashboard tier coverage widget shows configured/active counts
+
+---
+
 ## Rollback
 
 If release has critical issue:

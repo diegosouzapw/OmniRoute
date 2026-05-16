@@ -13,6 +13,7 @@ import {
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import { randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_VERSION,
@@ -619,6 +620,15 @@ export class BaseExecutor {
           remapToolNamesInRequest(tb);
           obfuscateInBody(tb);
 
+          // NOTE (issue #2260): This is the native `claude` provider OAuth path.
+          // It is intentionally NOT routed through applyCcBridgeTransformPipeline.
+          // The native OAuth path already prepends its own billing line + sentinel
+          // (see lines ~744-773 below, dayStamp-based, cc_entrypoint=cli, cch=00000
+          // placeholder, signed at body level). The CC bridge transforms DSL is
+          // wired into buildAndSignClaudeCodeRequest (claudeCodeCompatible.ts step 5b)
+          // which is the anthropic-compatible-cc-* relay path — a different,
+          // separately classified surface. Do not double-prepend here.
+
           // Real CLI never sets cache_control on tools.
           if (Array.isArray(tb.tools)) {
             for (const t of tb.tools as Array<Record<string, unknown>>) {
@@ -772,6 +782,22 @@ export class BaseExecutor {
           sysBlocks.unshift({ type: "text", text: billingLine }, { type: "text", text: SENTINEL });
           tb.system = sysBlocks;
 
+          // Run the configurable system-transforms pipeline for the native
+          // `claude` provider (issue #2260 / comment 4459544580). The default
+          // claude pipeline runs cosmetic ops only (Open WebUI paragraph
+          // anchors, identity-prefix paragraph drop, ZWJ obfuscation of
+          // sensitive words). It deliberately does NOT include
+          // `inject_billing_header` — billing + sentinel are already
+          // prepended above. Users can extend the pipeline via Settings UI.
+          {
+            const transformResult = applySystemTransformPipeline(PROVIDER_CLAUDE, tb);
+            if (transformResult.appliedOpKinds.length > 0) {
+              console.log(
+                `[SystemTransforms] claude-native: ${transformResult.appliedOpKinds.join(", ")}`
+              );
+            }
+          }
+
           if (!tb.metadata || typeof tb.metadata !== "object") tb.metadata = {};
           (tb.metadata as Record<string, unknown>).user_id = buildUserIdJson({
             deviceId,
@@ -830,6 +856,11 @@ export class BaseExecutor {
         // CLI fingerprint ordering — always-on for native Claude OAuth, opt-in
         // for other providers. Header + body field order is itself a fingerprint.
         let finalHeaders = headers;
+        // Strip internal sentinel fields set by remapToolNamesInRequest before
+        // serializing — Anthropic rejects unknown top-level fields (issue #2260).
+        delete (transformedBody as Record<string, unknown>)[
+          "_claudeCodeRequiresLowercaseToolNames"
+        ];
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =

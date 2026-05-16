@@ -78,19 +78,20 @@ echo "OMNIROUTE_WS_BRIDGE_SECRET=$(openssl rand -base64 32)"
 
 OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These variables control data location, encryption, and lifecycle.
 
-| Variable                               | Default              | Source File                                           | Description                                                                                                                      |
-| -------------------------------------- | -------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `DATA_DIR`                             | `~/.omniroute/`      | `src/lib/db/core.ts`                                  | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                              |
-| `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                            | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                       |
-| `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/build/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.               |
-| `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                                | When `true`, skips the automatic database backup that runs before migrations on every startup.                                   |
-| `OMNIROUTE_CRYPT_KEY`                  | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.                       |
-| `OMNIROUTE_API_KEY_BASE64`             | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                                 |
-| `OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS` | _(unset)_            | `src/lib/db/core.ts`                                  | Override the periodic SQLite healthcheck interval (ms). When unset, defaults are derived from `NODE_ENV`.                        |
-| `OMNIROUTE_FORCE_DB_HEALTHCHECK`       | `0`                  | `src/lib/db/core.ts`                                  | Set to `1` to force the DB healthcheck loop on, even when it would normally be skipped (e.g., short-lived tasks).                |
-| `OMNIROUTE_MIGRATIONS_DIR`             | _(auto-detect)_      | `src/lib/db/migrationRunner.ts`                       | Override the directory that the migration runner scans. Useful when shipping bundled migrations in custom builds.                |
-| `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS`    | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Flush interval (ms) for the batched spend/cost writer. Lower values reduce write coalescing; higher values reduce DB contention. |
-| `OMNIROUTE_SPEND_MAX_BUFFER_SIZE`      | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Max buffered spend entries before a forced flush. Raise on high-QPS deployments; lower when bounded memory matters more.         |
+| Variable                               | Default              | Source File                                           | Description                                                                                                                       |
+| -------------------------------------- | -------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `DATA_DIR`                             | `~/.omniroute/`      | `src/lib/db/core.ts`                                  | Root directory for SQLite DB, backups, and data files. Override for Docker volumes or custom paths.                               |
+| `STORAGE_ENCRYPTION_KEY`               | _(empty = disabled)_ | `src/lib/db/encryption.ts`                            | AES key for full SQLite database encryption at rest. Generate with `openssl rand -hex 32`.                                        |
+| `STORAGE_ENCRYPTION_KEY_VERSION`       | `v1`                 | `scripts/build/bootstrap-env.mjs`, `electron/main.js` | Version label for the encryption key. Increment when performing key rotation to support decryption of old backups.                |
+| `DISABLE_SQLITE_AUTO_BACKUP`           | `false`              | `src/lib/db/backup.ts`                                | When `true`, skips the automatic database backup that runs before migrations on every startup.                                    |
+| `OMNIROUTE_CRYPT_KEY`                  | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.                        |
+| `OMNIROUTE_API_KEY_BASE64`             | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                                  |
+| `OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS` | _(unset)_            | `src/lib/db/core.ts`                                  | Override the periodic SQLite healthcheck interval (ms). When unset, defaults are derived from `NODE_ENV`.                         |
+| `OMNIROUTE_FORCE_DB_HEALTHCHECK`       | `0`                  | `src/lib/db/core.ts`                                  | Set to `1` to force the DB healthcheck loop on, even when it would normally be skipped (e.g., short-lived tasks).                 |
+| `OMNIROUTE_SKIP_POSTINSTALL`           | `0`                  | `scripts/postinstall.mjs`                             | Set to `1` to skip the native-runtime warm-up during `npm install`. Useful in CI/headless installs where sqlite is already built. |
+| `OMNIROUTE_MIGRATIONS_DIR`             | _(auto-detect)_      | `src/lib/db/migrationRunner.ts`                       | Override the directory that the migration runner scans. Useful when shipping bundled migrations in custom builds.                 |
+| `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS`    | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Flush interval (ms) for the batched spend/cost writer. Lower values reduce write coalescing; higher values reduce DB contention.  |
+| `OMNIROUTE_SPEND_MAX_BUFFER_SIZE`      | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Max buffered spend entries before a forced flush. Raise on high-QPS deployments; lower when bounded memory matters more.          |
 
 ### Scenarios
 
@@ -105,19 +106,19 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 3. Network & Ports
 
-| Variable                  | Default                         | Source File                       | Description                                                                                                                                                 |
-| ------------------------- | ------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PORT`                    | `20128`                         | `src/lib/runtime/ports.ts`        | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                    |
-| `API_PORT`                | _(unset)_                       | `src/lib/runtime/ports.ts`        | When set, serves the `/v1/*` proxy API on this separate port.                                                                                               |
-| `API_HOST`                | `0.0.0.0`                       | `src/lib/runtime/ports.ts`        | Bind address for the API port.                                                                                                                              |
-| `DASHBOARD_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`        | When set, serves the Dashboard UI on this separate port.                                                                                                    |
-| `PROD_DASHBOARD_PORT`     | `20130`                         | `docker-compose.prod.yml`         | Host-side published port for the Dashboard in Docker production mode.                                                                                       |
-| `PROD_API_PORT`           | `20131`                         | `docker-compose.prod.yml`         | Host-side published port for the API in Docker production mode.                                                                                             |
-| `OMNIROUTE_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`        | Takes precedence over `PORT` when running inside Electron or other wrappers.                                                                                |
-| `NODE_ENV`                | `production`                    | Next.js core                      | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations.                                                                      |
-| `OMNIROUTE_USE_TURBOPACK` | `1` (default in `.env.example`) | `package.json` / Next.js 16       | Toggles the Next.js 16 Turbopack bundler in `npm run dev` and `npm run build`. Set to `0` on Windows or when running into native binding incompatibilities. |
-| `HOST`                    | `0.0.0.0`                       | `scripts/run-next.mjs`            | Bind address for the Next.js dev/start server. Overrides the default `0.0.0.0` when set.                                                                    |
-| `HOSTNAME`                | `127.0.0.1`                     | `scripts/run-next-playwright.mjs` | Bind address used by the Playwright runner when launching Next.js. Defaults to `127.0.0.1` for hermetic tests.                                              |
+| Variable                  | Default                         | Source File                           | Description                                                                                                                                                 |
+| ------------------------- | ------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                    | `20128`                         | `src/lib/runtime/ports.ts`            | Primary port for both Dashboard UI and API endpoints (single-port mode).                                                                                    |
+| `API_PORT`                | _(unset)_                       | `src/lib/runtime/ports.ts`            | When set, serves the `/v1/*` proxy API on this separate port.                                                                                               |
+| `API_HOST`                | `0.0.0.0`                       | `src/lib/runtime/ports.ts`            | Bind address for the API port.                                                                                                                              |
+| `DASHBOARD_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`            | When set, serves the Dashboard UI on this separate port.                                                                                                    |
+| `PROD_DASHBOARD_PORT`     | `20130`                         | `docker-compose.prod.yml`             | Host-side published port for the Dashboard in Docker production mode.                                                                                       |
+| `PROD_API_PORT`           | `20131`                         | `docker-compose.prod.yml`             | Host-side published port for the API in Docker production mode.                                                                                             |
+| `OMNIROUTE_PORT`          | _(unset)_                       | `src/lib/runtime/ports.ts`            | Takes precedence over `PORT` when running inside Electron or other wrappers.                                                                                |
+| `NODE_ENV`                | `production`                    | Next.js core                          | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations.                                                                      |
+| `OMNIROUTE_USE_TURBOPACK` | `1` (default in `.env.example`) | `package.json` / Next.js 16           | Toggles the Next.js 16 Turbopack bundler in `npm run dev` and `npm run build`. Set to `0` on Windows or when running into native binding incompatibilities. |
+| `HOST`                    | `0.0.0.0`                       | `scripts/dev/run-next.mjs`            | Bind address for the Next.js dev/start server. Overrides the default `0.0.0.0` when set.                                                                    |
+| `HOSTNAME`                | `127.0.0.1`                     | `scripts/dev/run-next-playwright.mjs` | Bind address used by the Playwright runner when launching Next.js. Defaults to `127.0.0.1` for hermetic tests.                                              |
 
 ### Port Modes
 
@@ -147,17 +148,19 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 
 ## 4. Security & Authentication
 
-| Variable                                | Default               | Source File                              | Description                                                                                                                                                                                                                                                  |
-| --------------------------------------- | --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `MACHINE_ID_SALT`                       | `endpoint-proxy-salt` | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.                                                                                                                                                     |
-| `AUTH_COOKIE_SECURE`                    | `false`               | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                                                                                                                                                                     |
-| `REQUIRE_API_KEY`                       | `false`               | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                                                                                                                                                                        |
-| `ALLOW_API_KEY_REVEAL`                  | `false`               | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.                                                                                                                                                                 |
-| `NO_LOG_API_KEY_IDS`                    | _(empty)_             | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                                                                                                                                                                   |
-| `MAX_BODY_SIZE_BYTES`                   | `10485760` (10 MB)    | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                                                                                                                                                                    |
-| `CORS_ORIGIN`                           | `*`                   | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                                                                                                                                                                           |
-| `OUTBOUND_SSRF_GUARD_ENABLED`           | `true`                | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs.                                                                                                                                                    |
-| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` | `false`               | `src/shared/network/outboundUrlGuard.ts` | Allow provider URLs pointing to private/local networks (localhost, 192.168.x.x, 10.x.x.x, etc.). **REQUIRED for self-hosted providers** (LM Studio, Ollama, vLLM, Llamafile, Triton, SearXNG). When `false`, the dashboard rejects validation of local URLs. |
+| Variable                                | Default                 | Source File                              | Description                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------------------------- | ----------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `MACHINE_ID_SALT`                       | `endpoint-proxy-salt`   | `src/lib/auth`                           | Salt combined with hardware identifiers for machine fingerprinting. Change per-deployment for isolation.                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_CLI_SALT`                    | `omniroute-cli-auth-v1` | `src/lib/machineToken.ts`                | HMAC salt for deriving the local CLI auth token. Changing this value rotates all CLI tokens on the machine. See `docs/security/CLI_TOKEN.md`.                                                                                                                                                                                                                      |
+| `AUTH_COOKIE_SECURE`                    | `false`                 | `src/lib/auth`                           | Sets the `Secure` flag on session cookies. **Must be `true`** when running behind HTTPS.                                                                                                                                                                                                                                                                           |
+| `REQUIRE_API_KEY`                       | `false`                 | API middleware                           | When `true`, all `/v1/*` proxy requests must include a valid API key.                                                                                                                                                                                                                                                                                              |
+| `ALLOW_API_KEY_REVEAL`                  | `false`                 | Dashboard providers page                 | Allows revealing full API key values in the Dashboard UI. Security risk on shared instances.                                                                                                                                                                                                                                                                       |
+| `NO_LOG_API_KEY_IDS`                    | _(empty)_               | `src/lib/compliance/index.ts`            | Comma-separated API key IDs that bypass request logging (GDPR compliance).                                                                                                                                                                                                                                                                                         |
+| `DEFAULT_RATE_LIMIT_PER_DAY`            | `1000`                  | `src/shared/utils/apiKeyPolicy.ts`       | Fallback per-day request budget applied to API keys whose `rate_limits` column is null. Default (unset/empty/malformed) keeps the legacy 1000/day, 5000/week, 20000/month windows. Set explicitly to `0` to opt out (unlimited). Any positive integer N enables N/day, 5N/week, 20N/month. Zod-validated; invalid values log a warning and use the legacy default. |
+| `MAX_BODY_SIZE_BYTES`                   | `10485760` (10 MB)      | `src/shared/middleware/bodySizeGuard.ts` | Maximum allowed request body size. Rejects payloads exceeding this limit.                                                                                                                                                                                                                                                                                          |
+| `CORS_ORIGIN`                           | `*`                     | Next.js middleware                       | CORS `Access-Control-Allow-Origin` value. Restrict for production.                                                                                                                                                                                                                                                                                                 |
+| `OUTBOUND_SSRF_GUARD_ENABLED`           | `true`                  | `src/shared/network/outboundUrlGuard.ts` | Block provider calls targeting private/loopback/link-local IP ranges. Disable only in isolated test envs.                                                                                                                                                                                                                                                          |
+| `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` | `false`                 | `src/shared/network/outboundUrlGuard.ts` | Allow provider URLs pointing to private/local networks (localhost, 192.168.x.x, 10.x.x.x, etc.). **REQUIRED for self-hosted providers** (LM Studio, Ollama, vLLM, Llamafile, Triton, SearXNG). When `false`, the dashboard rejects validation of local URLs.                                                                                                       |
 
 ### Hardening Checklist
 
@@ -292,6 +295,20 @@ CLI_ALLOW_CONFIG_WRITES=true
 CLI_CLAUDE_BIN=/host-cli/bin/claude
 ```
 
+### CLI Binary (`omniroute`) helpers
+
+These variables tune the `omniroute` CLI binary's own behavior (not the sidecar
+detection above).
+
+| Variable                    | Default    | Source File                             | Description                                                                                                                     |
+| --------------------------- | ---------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_LANG`            | _(system)_ | `bin/cli/i18n.mjs`                      | Force CLI output language. BCP-47 locale (e.g. `en`, `pt-BR`). Overrides system locale env vars (LC_ALL, LC_MESSAGES).          |
+| `OMNIROUTE_SHOW_LOG`        | _(unset)_  | `bin/cli/runtime/processSupervisor.mjs` | Set to `1` to forward server stdout/stderr to the terminal in supervised mode. Equivalent to `--log` flag on `omniroute serve`. |
+| `OMNIROUTE_CLI_TOKEN`       | _(unset)_  | `bin/cli/api.mjs`                       | Machine-auth token injected as `x-omniroute-cli-token` header. Auto-generated in task 8.12.                                     |
+| `OMNIROUTE_HTTP_TIMEOUT_MS` | `30000`    | `bin/cli/api.mjs`                       | Per-attempt HTTP timeout (ms) for CLI → server requests.                                                                        |
+| `OMNIROUTE_VERBOSE`         | `0`        | `bin/cli/api.mjs`                       | Set to `1` to print retry/backoff diagnostics to stderr during CLI commands.                                                    |
+| `OMNIROUTE_PLUGIN_PATH`     | _(unset)_  | `bin/cli/plugins.mjs`                   | Custom directory for CLI plugin discovery (`omniroute-cmd-*` packages). Defaults to `~/.omniroute/plugins/` when unset.         |
+
 ---
 
 ## 10. Internal Agent & MCP Integrations
@@ -367,6 +384,9 @@ Built-in credentials for **localhost development**. For remote deployments, regi
 | `QODER_PERSONAL_ACCESS_TOKEN`     | Qoder                   | Direct API key fallback (bypasses OAuth).                                                                                                                                                                                                       |
 | `QODER_CLI_WORKSPACE`             | Qoder                   | Workspace ID for Qoder CLI.                                                                                                                                                                                                                     |
 | `OMNIROUTE_QODER_WORKSPACE`       | Qoder                   | Alias for `QODER_CLI_WORKSPACE`.                                                                                                                                                                                                                |
+| `BLACKBOX_WEB_VALIDATED_TOKEN`    | Blackbox Web            | Frontend `tk` token to send as `validated` on `/api/chat`. Required when Blackbox enforces token matching; otherwise OmniRoute falls back to a random UUID. See issue #2252.                                                                    |
+| `VISION_BRIDGE_BASE_URL`          | Vision Bridge guardrail | OpenAI-compatible base URL for non-Anthropic vision-bridge calls. Defaults to the legacy OpenAI URL env or api.openai.com. Point at OmniRoute's `/v1` self-loop or any OpenAI-compat endpoint (Gemini OpenAI-compat, OpenRouter). Issue #2232.  |
+| `VISION_BRIDGE_API_KEY`           | Vision Bridge guardrail | API key for the URL above. Overrides per-provider OpenAI / Google env vars for non-Anthropic vision-bridge calls. Anthropic models keep their dedicated Anthropic key path. Issue #2232.                                                        |
 
 > [!WARNING]
 > **Google OAuth** (Antigravity, Gemini CLI) credentials **only work on localhost**. For remote servers:
@@ -506,6 +526,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_DEFAULT_FETCH_TIMEOUT_MS`     | `120000`             | Fallback used by `src/shared/utils/fetchTimeout.ts` when `FETCH_TIMEOUT_MS` is unset.       |
 | `OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS`       | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`chatgptTlsClient.ts`).     |
 | `OMNIROUTE_CHATGPT_TLS_GRACE_MS`         | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
+| `OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS`        | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`claudeTlsClient.ts`).      |
+| `OMNIROUTE_CLAUDE_TLS_GRACE_MS`          | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 
 ### Circuit Breaker Thresholds
 
@@ -664,7 +686,7 @@ Anthropic-compatible provider instead.
 | `CURSOR_DUMP_FILE`               | _(unset)_           | `open-sse/executors/cursor.ts`             | Optional file path that receives raw decoded Cursor chunks when `CURSOR_DEBUG=1`. |
 | `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`             | Stream idle timeout (ms) for the Cursor executor.                                 |
 | `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor state DB lookup used for version detection.                   |
-| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/cursor-tap.cjs`                   | Direct Cursor bearer token used by developer tooling.                             |
+| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/ad-hoc/cursor-tap.cjs`            | Direct Cursor bearer token used by developer tooling.                             |
 | `OMNIROUTE_LOG_REQUEST_SHAPE`    | enabled (`!== "0"`) | `src/app/api/v1/chat/completions/route.ts` | Log content-type/length markers for large chat payloads. Set `"0"` to silence.    |
 | `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_           | `open-sse/handlers/responseTranslator.ts`  | Set `true` to log Responses API SSE→JSON translation details.                     |
 | `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_           | E2E test harness                           | Set `true` to enable E2E test mode (relaxed auth, test hooks).                    |
@@ -792,28 +814,28 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 
 ## 26. Test & E2E Harness
 
-Used by `scripts/run-next-playwright.mjs`, `scripts/smoke-electron-packaged.mjs`,
-`scripts/run-ecosystem-tests.mjs`, and `scripts/uninstall.mjs`. Leave every
+Used by `scripts/dev/run-next-playwright.mjs`, `scripts/dev/smoke-electron-packaged.mjs`,
+`scripts/dev/run-ecosystem-tests.mjs`, and `scripts/build/uninstall.mjs`. Leave every
 value below unset in production deployments.
 
-| Variable                              | Default                          | Source File                           | Description                                                                              |
-| ------------------------------------- | -------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `OMNIROUTE_E2E_BOOTSTRAP_MODE`        | `auth`                           | `scripts/run-next-playwright.mjs`     | E2E bootstrap mode (`auth`, `fresh`, `reuse`) for the Playwright runner.                 |
-| `OMNIROUTE_E2E_PASSWORD`              | falls back to `INITIAL_PASSWORD` | `scripts/run-next-playwright.mjs`     | Admin password injected into the Playwright environment.                                 |
-| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` | `true`                           | `scripts/run-next-playwright.mjs`     | Disable the local healthcheck poll during Playwright runs.                               |
-| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` | `true`                           | `scripts/run-next-playwright.mjs`     | Disable the OAuth token healthcheck loop during tests.                                   |
-| `OMNIROUTE_HIDE_HEALTHCHECK_LOGS`     | `true`                           | `scripts/run-next-playwright.mjs`     | Silence healthcheck noise in Playwright stdout.                                          |
-| `OMNIROUTE_PLAYWRIGHT_SKIP_BUILD`     | `0`                              | `scripts/run-next-playwright.mjs`     | Skip the Next.js production build before Playwright starts (CI optimization).            |
-| `OMNIROUTE_SKIP_UNINSTALL_HOOK`       | `0`                              | `scripts/uninstall.mjs`               | Skip the OmniRoute uninstall hook (used by CI to keep `node_modules` intact).            |
-| `ECOSYSTEM_SERVER_WAIT_MS`            | `180000`                         | `scripts/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests. |
-| `ELECTRON_SMOKE_URL`                  | `http://127.0.0.1:20128/login`   | `scripts/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                        |
-| `ELECTRON_SMOKE_TIMEOUT_MS`           | `45000`                          | `scripts/smoke-electron-packaged.mjs` | Total timeout (ms) before the smoke harness gives up.                                    |
-| `ELECTRON_SMOKE_SETTLE_MS`            | `2000`                           | `scripts/smoke-electron-packaged.mjs` | Settle window (ms) after the page loads.                                                 |
-| `ELECTRON_SMOKE_APP_EXECUTABLE`       | _(auto)_                         | `scripts/smoke-electron-packaged.mjs` | Explicit path to the packaged Electron executable.                                       |
-| `ELECTRON_SMOKE_DATA_DIR`             | _(tmpdir)_                       | `scripts/smoke-electron-packaged.mjs` | Data directory for the Electron smoke run.                                               |
-| `ELECTRON_SMOKE_KEEP_DATA`            | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to preserve the smoke data directory after the run.                              |
-| `ELECTRON_SMOKE_STREAM_LOGS`          | `0`                              | `scripts/smoke-electron-packaged.mjs` | Set `1` to stream Electron logs to stdout during the run.                                |
-| `CLI_DEVIN_BIN`                       | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`     | Override the Devin CLI binary path.                                                      |
+| Variable                              | Default                          | Source File                               | Description                                                                              |
+| ------------------------------------- | -------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `OMNIROUTE_E2E_BOOTSTRAP_MODE`        | `auth`                           | `scripts/dev/run-next-playwright.mjs`     | E2E bootstrap mode (`auth`, `fresh`, `reuse`) for the Playwright runner.                 |
+| `OMNIROUTE_E2E_PASSWORD`              | falls back to `INITIAL_PASSWORD` | `scripts/dev/run-next-playwright.mjs`     | Admin password injected into the Playwright environment.                                 |
+| `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Disable the local healthcheck poll during Playwright runs.                               |
+| `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Disable the OAuth token healthcheck loop during tests.                                   |
+| `OMNIROUTE_HIDE_HEALTHCHECK_LOGS`     | `true`                           | `scripts/dev/run-next-playwright.mjs`     | Silence healthcheck noise in Playwright stdout.                                          |
+| `OMNIROUTE_PLAYWRIGHT_SKIP_BUILD`     | `0`                              | `scripts/dev/run-next-playwright.mjs`     | Skip the Next.js production build before Playwright starts (CI optimization).            |
+| `OMNIROUTE_SKIP_UNINSTALL_HOOK`       | `0`                              | `scripts/build/uninstall.mjs`             | Skip the OmniRoute uninstall hook (used by CI to keep `node_modules` intact).            |
+| `ECOSYSTEM_SERVER_WAIT_MS`            | `180000`                         | `scripts/dev/run-ecosystem-tests.mjs`     | Wait time (ms) for the server to become healthy before running ecosystem/protocol tests. |
+| `ELECTRON_SMOKE_URL`                  | `http://127.0.0.1:20128/login`   | `scripts/dev/smoke-electron-packaged.mjs` | URL the Electron smoke harness expects the packaged app to serve.                        |
+| `ELECTRON_SMOKE_TIMEOUT_MS`           | `45000`                          | `scripts/dev/smoke-electron-packaged.mjs` | Total timeout (ms) before the smoke harness gives up.                                    |
+| `ELECTRON_SMOKE_SETTLE_MS`            | `2000`                           | `scripts/dev/smoke-electron-packaged.mjs` | Settle window (ms) after the page loads.                                                 |
+| `ELECTRON_SMOKE_APP_EXECUTABLE`       | _(auto)_                         | `scripts/dev/smoke-electron-packaged.mjs` | Explicit path to the packaged Electron executable.                                       |
+| `ELECTRON_SMOKE_DATA_DIR`             | _(tmpdir)_                       | `scripts/dev/smoke-electron-packaged.mjs` | Data directory for the Electron smoke run.                                               |
+| `ELECTRON_SMOKE_KEEP_DATA`            | `0`                              | `scripts/dev/smoke-electron-packaged.mjs` | Set `1` to preserve the smoke data directory after the run.                              |
+| `ELECTRON_SMOKE_STREAM_LOGS`          | `0`                              | `scripts/dev/smoke-electron-packaged.mjs` | Set `1` to stream Electron logs to stdout during the run.                                |
+| `CLI_DEVIN_BIN`                       | _(PATH lookup)_                  | `open-sse/executors/devin-cli.ts`         | Override the Devin CLI binary path.                                                      |
 
 ### Docs translation pipeline
 

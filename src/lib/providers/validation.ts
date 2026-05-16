@@ -404,6 +404,10 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
   const baseUrl = normalizeBaseUrl(entry?.baseUrl || "https://api.commandcode.ai");
   const chatPath = entry?.chatPath || "/alpha/generate";
   const url = `${baseUrl}${chatPath.startsWith("/") ? chatPath : `/${chatPath}`}`;
+  const validationModelId =
+    providerSpecificData?.validationModelId ||
+    entry?.models?.find((model) => model.id === "deepseek/deepseek-v4-flash")?.id ||
+    "deepseek/deepseek-v4-flash";
 
   return validateDirectChatProvider({
     url,
@@ -432,17 +436,15 @@ export async function validateCommandCodeProvider({ apiKey, providerSpecificData
       },
       memory: "",
       taste: "",
+      skills: "",
       permissionMode: "standard",
       params: {
-        model:
-          providerSpecificData?.validationModelId ||
-          entry?.models?.[0]?.id ||
-          "deepseek/deepseek-v4-flash",
+        model: validationModelId,
         messages: [{ role: "user", content: "test" }],
         tools: [],
         system: "",
         max_tokens: 1,
-        stream: false,
+        stream: true,
       },
     },
   });

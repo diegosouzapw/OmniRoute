@@ -108,6 +108,66 @@ average  = 1 - (1 - 0.80) * (1 - 0.46) = 89.2%
 range    = 1 - (1 - 0.60..0.90) * (1 - 0.46) = 78.4-94.6%
 ```
 
+## MCP Accessibility Tree Filter
+
+The MCP accessibility-tree smart filter is a post-execution compression layer that runs on MCP
+**tool results**, not on prompts or context. It targets the verbose accessibility-tree and browser
+snapshot payloads returned by tools like Playwright, computer-use, and browser-automation MCP
+servers.
+
+### What it does
+
+1. **Noise stripping** — removes empty generic/text entries (`- generic:`, `- text: ""`)
+2. **Sibling collapse** — when ≥ `collapseThreshold` (default 30) consecutive lines are structural
+   repeats, collapses them into the first `collapseKeepHead` (default 10) lines + a count summary +
+   the last `collapseKeepTail` (default 5) lines
+3. **Ref preservation** — `[ref=eXX]` anchors required by Playwright/computer-use are never touched
+4. **Hard truncation** — if the text after collapse still exceeds `maxTextChars` (default 50,000),
+   truncates with a navigation hint so the agent can continue working
+
+### Engine location
+
+```txt
+open-sse/services/compression/engines/mcpAccessibility/
+  index.ts            ← smartFilterText() entry point
+  collapseRepeated.ts ← sibling-collapse algorithm
+  constants.ts        ← DEFAULT_MCP_ACCESSIBILITY_CONFIG
+```
+
+### Configuration
+
+Controlled by `compression.mcpAccessibility` in global settings (migration 056). Default config:
+
+```json
+{
+  "enabled": true,
+  "maxTextChars": 50000,
+  "collapseThreshold": 30,
+  "collapseKeepHead": 10,
+  "collapseKeepTail": 5,
+  "minLengthToProcess": 2000
+}
+```
+
+The filter is only applied to tool-result payloads whose `type` is `"text"` and whose length
+exceeds `minLengthToProcess`. It does not affect prompt compression or request payloads.
+
+### Expected savings
+
+60–80% on browser snapshot tool results, depending on page complexity. The collapse algorithm
+is O(n) in line count and adds negligible latency.
+
+### This filter vs the compression engines above
+
+| Aspect      | Caveman / RTK / Stacked   | MCP accessibility filter               |
+| ----------- | ------------------------- | -------------------------------------- |
+| Target      | Request prompts / context | MCP tool results                       |
+| Trigger     | Compression mode setting  | `compression.mcpAccessibility.enabled` |
+| Scope       | All SSE messages          | Tool results only                      |
+| Ref anchors | N/A                       | Preserved unconditionally              |
+
+---
+
 ## Compression Combos
 
 Compression combos are named compression profiles that can be assigned to routing combos:
@@ -121,19 +181,19 @@ Dashboard surface: `Dashboard -> Context & Cache -> Compression Combos`.
 
 ## API Surface
 
-| Route                                  | Purpose                                    |
-| -------------------------------------- | ------------------------------------------ |
-| `/api/settings/compression`            | Global compression settings                |
-| `/api/compression/preview`             | Preview any compression mode               |
-| `/api/compression/language-packs`      | List available Caveman language packs      |
-| `/api/context/caveman/config`          | Caveman settings alias                     |
-| `/api/context/rtk/config`              | RTK defaults and settings                  |
-| `/api/context/rtk/filters`             | RTK filter catalog                         |
-| `/api/context/rtk/test`                | RTK preview/test endpoint                  |
-| `/api/context/rtk/raw-output/[id]`     | Authenticated redacted raw-output recovery |
-| `/api/context/combos`                  | Compression combo CRUD                     |
-| `/api/context/combos/[id]/assignments` | Routing-combo assignment CRUD              |
-| `/api/context/analytics`               | Compression analytics alias                |
+| Route                                  | Purpose                                                          |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `/api/settings/compression`            | Global compression settings (includes `mcpAccessibility` config) |
+| `/api/compression/preview`             | Preview any compression mode                                     |
+| `/api/compression/language-packs`      | List available Caveman language packs                            |
+| `/api/context/caveman/config`          | Caveman settings alias                                           |
+| `/api/context/rtk/config`              | RTK defaults and settings                                        |
+| `/api/context/rtk/filters`             | RTK filter catalog                                               |
+| `/api/context/rtk/test`                | RTK preview/test endpoint                                        |
+| `/api/context/rtk/raw-output/[id]`     | Authenticated redacted raw-output recovery                       |
+| `/api/context/combos`                  | Compression combo CRUD                                           |
+| `/api/context/combos/[id]/assignments` | Routing-combo assignment CRUD                                    |
+| `/api/context/analytics`               | Compression analytics alias                                      |
 
 Management routes require management authentication or API-key policy checks.
 
@@ -156,5 +216,6 @@ The focused gates for this area are:
 ```bash
 node --import tsx/esm --test tests/unit/compression/rtk-*.test.ts tests/unit/compression/pipeline-integration.test.ts tests/unit/compression/context-compression-api.test.ts
 node --import tsx/esm --test tests/unit/compression/*.test.ts tests/golden-set/*.test.ts tests/integration/compression-pipeline.test.ts tests/unit/api/compression/compression-api.test.ts
+node --import tsx/esm --test tests/unit/compression/mcpAccessibility*.test.ts
 npm run typecheck:core
 ```

@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "ข้อผิดพลาด: {message}",
+    "serverOffline": "เซิร์ฟเวอร์ OmniRoute ออฟไลน์ เริ่มด้วย: omniroute serve",
+    "authRequired": "ต้องการการยืนยันตัวตน ตั้งค่า OMNIROUTE_API_KEY หรือรัน: omniroute setup",
+    "rateLimited": "เกินขีดจำกัดคำขอ ลองใหม่หลังจาก {seconds}วินาที",
+    "timeout": "คำขอหมดเวลาหลังจาก {ms}ms",
+    "success": "เสร็จสิ้น",
+    "yes": "ใช่",
+    "no": "ไม่",
+    "confirm": "คุณแน่ใจหรือไม่? (ใช่/ไม่)",
+    "dryRun": "[จำลอง] จะทำ: {action}",
+    "cancelled": "ยกเลิกแล้ว",
+    "jsonOpt": "ส่งออกเป็น JSON",
+    "yesOpt": "ข้ามการยืนยัน"
+  },
+  "program": {
+    "description": "OmniRoute — AI Router อัจฉริยะพร้อม Auto Fallback",
+    "version": "แสดงเวอร์ชันและออก",
+    "output": "รูปแบบเอาต์พุต (table, json, jsonl, csv)",
+    "quiet": "ซ่อนเอาต์พุตที่ไม่จำเป็น",
+    "no_color": "ปิดใช้งานเอาต์พุตสี",
+    "timeout": "หมดเวลา HTTP request ในมิลลิวินาที",
+    "api_key": "API Key สำหรับ OmniRoute server",
+    "base_url": "Base URL ของ OmniRoute server",
+    "context": "บริบท/โปรไฟล์ของเซิร์ฟเวอร์สำหรับคำสั่งนี้",
+    "lang": "ตั้งค่าภาษาแสดงผล CLI (แทนที่ OMNIROUTE_LANG)"
+  }
+}

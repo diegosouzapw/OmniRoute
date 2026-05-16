@@ -2,6 +2,7 @@ import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
+import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
 
 export const MANAGE_SCOPE = "manage";
 
@@ -15,6 +16,11 @@ export async function requireManagementAuth(request: Request): Promise<Response 
   }
 
   if (await isDashboardSessionAuthenticated(request)) {
+    return null;
+  }
+
+  // CLI machine-id token allows localhost CLI access without an explicit API key.
+  if (await isCliTokenAuthValid(request)) {
     return null;
   }
 

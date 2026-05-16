@@ -1,4 +1,5 @@
 import { getDbInstance, rowToCamel, objToSnake } from "./core";
+import { deleteFile } from "./files";
 import { v4 as uuidv4 } from "uuid";
 
 function parseBatchRow(row: any): BatchRecord {
@@ -211,4 +212,70 @@ export function getTerminalBatches(): BatchRecord[] {
     )
     .all();
   return rows.map((row) => parseBatchRow(row));
+}
+
+export function deleteBatch(id: string): boolean {
+  const db = getDbInstance();
+  const batch = getBatch(id);
+  if (!batch) return false;
+
+  // Soft-delete associated files (input, output, error)
+  if (batch.inputFileId) {
+    try {
+      deleteFile(batch.inputFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (batch.outputFileId) {
+    try {
+      deleteFile(batch.outputFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (batch.errorFileId) {
+    try {
+      deleteFile(batch.errorFileId);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const result = db.prepare("DELETE FROM batches WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
+export function deleteCompletedBatches(): { deletedBatches: number; deletedFiles: number } {
+  const db = getDbInstance();
+
+  // Collect unique file IDs from all completed batches
+  const rows = db
+    .prepare(
+      "SELECT input_file_id, output_file_id, error_file_id FROM batches WHERE status = 'completed'"
+    )
+    .all() as Array<{
+    input_file_id: string | null;
+    output_file_id: string | null;
+    error_file_id: string | null;
+  }>;
+
+  const fileIds = new Set<string>();
+  for (const row of rows) {
+    if (row.input_file_id) fileIds.add(row.input_file_id);
+    if (row.output_file_id) fileIds.add(row.output_file_id);
+    if (row.error_file_id) fileIds.add(row.error_file_id);
+  }
+
+  let deletedFiles = 0;
+  for (const fid of fileIds) {
+    try {
+      if (deleteFile(fid)) deletedFiles++;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const result = db.prepare("DELETE FROM batches WHERE status = 'completed'").run();
+  return { deletedBatches: result.changes, deletedFiles };
 }

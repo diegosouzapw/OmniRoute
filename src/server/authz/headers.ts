@@ -21,6 +21,9 @@ export const AUTHZ_HEADER_AUTH_ID = "x-omniroute-auth-id";
 export const AUTHZ_HEADER_AUTH_LABEL = "x-omniroute-auth-label";
 export const AUTHZ_HEADER_AUTH_SCOPES = "x-omniroute-auth-scopes";
 
+/** CLI sends this header so the local process can call management APIs without login. */
+export const CLI_TOKEN_HEADER = "x-omniroute-cli-token";
+
 /**
  * Headers the pipeline must NEVER trust on incoming requests. They are
  * stripped before route classification to prevent header-spoofing attacks.

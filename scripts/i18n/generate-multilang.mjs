@@ -151,6 +151,15 @@ const LOCALE_SPECS = [
     docsName: "العربية",
   },
   {
+    code: "az",
+    googleTl: "az",
+    label: "AZ",
+    flag: "🇦🇿",
+    languageName: "Azərbaycan dili",
+    readmeName: "Azərbaycan dili",
+    docsName: "Azərbaycan dili",
+  },
+  {
     code: "ja",
     googleTl: "ja",
     label: "JA",

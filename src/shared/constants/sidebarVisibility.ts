@@ -17,6 +17,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "cloud-agents",
   "memory",
   "skills",
+  "agent-skills",
   "translator",
   "playground",
   "media",
@@ -72,7 +73,8 @@ const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
   { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
   { id: "cloud-agents", href: "/dashboard/cloud-agents", i18nKey: "cloudAgents", icon: "cloud" },
   { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
-  { id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_fix_high" },
+  { id: "skills", href: "/dashboard/skills", i18nKey: "omniSkills", icon: "auto_fix_high" },
+  { id: "agent-skills", href: "/dashboard/agent-skills", i18nKey: "agentSkills", icon: "share" },
 ];
 
 const CONTEXT_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [

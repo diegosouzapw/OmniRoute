@@ -220,9 +220,39 @@ function classifyFailure({
   );
 }
 
+function hasQoderToken(connection: any): boolean {
+  if (typeof connection?.apiKey === "string" && connection.apiKey.trim().length > 0) return true;
+  const psd = connection?.providerSpecificData;
+  if (psd && typeof psd === "object") {
+    const pat = (psd as any).personalAccessToken ?? (psd as any).pat ?? (psd as any).accessToken;
+    if (typeof pat === "string" && pat.trim().length > 0) return true;
+  }
+  return false;
+}
+
 async function getProviderRuntimeStatus(connection: any) {
   const provider = typeof connection?.provider === "string" ? connection.provider : "";
   let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
+
+  // Issue #2247: detect Qoder in OAuth/CLI-flavored mode with a PAT pasted
+  // BEFORE the CLI-runtime early-return below, otherwise the disambiguation
+  // message never reaches the user (they keep seeing the generic "CLI not
+  // installed" + 401 cascade). For Qoder, this short-circuits the runtime
+  // check entirely with an actionable diagnosis.
+  const isQoderOauthWithToken =
+    provider === "qoder" && connection?.authType !== "apikey" && hasQoderToken(connection);
+  if (isQoderOauthWithToken) {
+    const message =
+      "Qoder OAuth/Local CLI mode is selected but a Personal Access Token is stored on this connection. Switch this connection to API Key auth to use the PAT directly.";
+    return {
+      installed: false,
+      runnable: false,
+      reason: "qoder_oauth_with_token",
+      diagnosis: makeDiagnosis("runtime_error", "local", message, "qoder_oauth_with_token"),
+      error: message,
+    };
+  }
+
   if (provider === "qoder" && connection?.authType !== "apikey") {
     toolId = null;
   }

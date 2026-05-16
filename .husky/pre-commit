@@ -12,6 +12,9 @@ npm run check:any-budget:t11
 # Strict env-doc sync (FASE 2)
 node scripts/check/check-env-doc-sync.mjs
 
+# CLI i18n consistency check — all t() keys must exist in en.json (FASE 8.3)
+node scripts/check/check-cli-i18n.mjs
+
 # i18n docs drift advisory (FASE 5) — warn-only on pre-commit; CI enforces strict.
 node scripts/i18n/check-translation-drift.mjs --warn || \
   echo "⚠️  i18n drift detected. Run 'npm run i18n:run' to update locale mirrors."

@@ -1,6 +1,23 @@
 import { createHash, randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
 import { STATUS_CODES } from "node:http";
-import { websocket } from "wreq-js";
+
+const _wreqRequire = createRequire(import.meta.url);
+
+let _websocketFn = null;
+let _wreqChecked = false;
+
+function getWebSocketTransport() {
+  if (_wreqChecked) return _websocketFn;
+  _wreqChecked = true;
+  try {
+    const mod = _wreqRequire("wreq-js");
+    _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
+  } catch {
+    _websocketFn = null;
+  }
+  return _websocketFn;
+}
 
 export const RESPONSES_WS_PUBLIC_PATHS = new Set([
   "/responses",
@@ -562,7 +579,7 @@ export function createResponsesWsProxy({
   baseUrl,
   bridgeSecret,
   fetchImpl = fetch,
-  wsFactory = websocket,
+  wsFactory = getWebSocketTransport(),
   pingIntervalMs = 25000,
   idleTimeoutMs = 90000,
   maxBufferBytes = DEFAULT_MAX_WS_BUFFER_BYTES,
@@ -581,6 +598,21 @@ export function createResponsesWsProxy({
       const pathname = new URL(req.url || "/", baseUrl).pathname;
       if (!isResponsesWsPath(pathname)) {
         return false;
+      }
+
+      if (!wsFactory) {
+        writeHttpError(
+          socket,
+          503,
+          JSON.stringify({
+            error: {
+              message:
+                "Responses WebSocket proxy unavailable: wreq-js is not installed on this platform",
+              code: "wreq_js_unavailable",
+            },
+          })
+        );
+        return true;
       }
 
       const upgradeHeader = String(req.headers.upgrade || "").toLowerCase();

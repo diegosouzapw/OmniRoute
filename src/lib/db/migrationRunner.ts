@@ -148,6 +148,9 @@ const LEGACY_VERSION_SLOT_MIGRATIONS = [
   { version: "031", name: "api_keys_expires" },
   { version: "032", name: "detailed_logs_warnings" },
   { version: "033", name: "provider_connections_block_extra_usage" },
+  { version: "033", name: "add_batch_id_to_call_logs" },
+  { version: "046", name: "remove_status_from_files" },
+  { version: "051", name: "remove_status_from_files" },
 ] as const;
 
 const SUPERSEDED_DUPLICATE_MIGRATIONS = [

@@ -1589,6 +1589,23 @@ export const updateProviderConnectionSchema = z
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
+    // Per-window quota cutoffs. Map keys are window names (e.g. "window5h",
+    // "window7d"); values are 0-100 integers, or null to clear that window's
+    // override (the API route merges this into the existing map and prunes
+    // null entries before persisting). The whole field set to null clears
+    // every override on the connection.
+    quotaWindowThresholds: z
+      .union([
+        z.null(),
+        z.record(
+          // Window keys mirror the quota names from getUsageForProvider —
+          // bound for defense-in-depth so a malicious payload can't ship
+          // megabyte-long keys that would bloat the DB row.
+          z.string().min(1).max(64),
+          z.union([z.null(), z.coerce.number().int().min(0).max(100)])
+        ),
+      ])
+      .optional(),
     projectId: z.union([z.string(), z.null()]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z

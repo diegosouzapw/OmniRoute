@@ -129,12 +129,18 @@ export function claudeToOpenAIResponse(chunk, state) {
             : 0;
 
         // Use OpenAI format keys for consistent logging in stream.js
-        // Issue #1426: Include cached tokens in prompt_tokens and input_tokens
-        const totalInputTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
+        // Issue #1426: Include cache_read tokens in prompt_tokens so cached input
+        // is visible to downstream billing systems.
+        // Issue #2215: Exclude cache_creation_input_tokens from prompt_tokens —
+        // Anthropic's cache-creation pads short prompts up to a 1024-token
+        // minimum, so a 2-token "hi" can be reported as ~2008 prompt_tokens and
+        // inflate downstream billing ~250x. cache_creation is still exposed
+        // separately via prompt_tokens_details.cache_creation_tokens below.
+        const billableInputTokens = inputTokens + cacheReadTokens;
         state.usage = {
-          prompt_tokens: totalInputTokens,
+          prompt_tokens: billableInputTokens,
           completion_tokens: outputTokens,
-          input_tokens: totalInputTokens,
+          input_tokens: billableInputTokens,
           output_tokens: outputTokens,
         };
 
@@ -181,7 +187,8 @@ export function claudeToOpenAIResponse(chunk, state) {
           const cachedTokens = state.usage.cache_read_input_tokens || 0;
           const cacheCreationTokens = state.usage.cache_creation_input_tokens || 0;
 
-          // prompt_tokens = input_tokens (which now includes cache_read + cache_creation)
+          // prompt_tokens = input_tokens (input + cache_read, per #2215 —
+          // cache_creation is exposed separately in prompt_tokens_details below).
           // completion_tokens = output_tokens
           // total_tokens = prompt_tokens + completion_tokens
           const promptTokens = inputTokens;
