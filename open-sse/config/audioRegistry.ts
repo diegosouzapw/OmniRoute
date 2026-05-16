@@ -34,6 +34,14 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  cohere: {
+    id: "cohere",
+    baseUrl: "https://api.cohere.com/v2/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "cohere-transcribe-03-2026", name: "Cohere Transcribe 2026-03" }],
+  },
+
   groq: {
     id: "groq",
     baseUrl: "https://api.groq.com/openai/v1/audio/transcriptions",
