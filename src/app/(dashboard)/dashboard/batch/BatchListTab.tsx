@@ -224,7 +224,7 @@ export default function BatchListTab({
           <span className="material-symbols-outlined text-[16px]">
             {removingCompleted ? "hourglass_empty" : "delete_sweep"}
           </span>
-          {removingCompleted ? "Removing…" : `Remove completed`}
+          {removingCompleted ? "Removing…" : "Remove completed"}
         </button>
       </div>
 
