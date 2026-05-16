@@ -10,19 +10,38 @@ export function isLoopback(ip: string): boolean {
 }
 
 /**
+ * Read a header value preferring the Request's own headers (works in any
+ * context — App Router request handlers, unit tests, raw fetch) and falling
+ * back to `next/headers` only when the request object isn't carrying them.
+ *
+ * Calling `headers()` outside a request scope throws (see Next.js
+ * `next-dynamic-api-wrong-context`), so we guard the import.
+ */
+async function readHeader(request: Request, name: string): Promise<string | null> {
+  const fromRequest = request.headers?.get(name);
+  if (fromRequest != null) return fromRequest;
+  try {
+    const hdrs = await headers();
+    return hdrs.get(name);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Validates the CLI machine-id token sent by the local omniroute CLI.
  * Only accepted from loopback IPs. Disabled via OMNIROUTE_DISABLE_CLI_TOKEN=true.
  */
 export async function isCliTokenAuthValid(request: Request): Promise<boolean> {
   if (process.env.OMNIROUTE_DISABLE_CLI_TOKEN === "true") return false;
 
-  const hdrs = await headers();
-  const token = hdrs.get(HEADER_NAME);
+  const token = await readHeader(request, HEADER_NAME);
   if (!token || token.length !== 32) return false;
 
   // Only allow loopback origin — check forwarded-for, real-ip, then host header.
-  const ip =
-    (hdrs.get("x-forwarded-for") ?? "").split(",")[0].trim() || hdrs.get("x-real-ip") || "";
+  const forwardedFor = (await readHeader(request, "x-forwarded-for")) ?? "";
+  const realIp = (await readHeader(request, "x-real-ip")) ?? "";
+  const ip = forwardedFor.split(",")[0].trim() || realIp;
   if (ip && !isLoopback(ip)) return false;
 
   let expected: string;
