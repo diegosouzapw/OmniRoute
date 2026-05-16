@@ -161,33 +161,29 @@ async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
 }
 
 /**
- * Scopes that permit a Bearer API key to authenticate against management API
- * routes. Must stay in sync with `src/lib/api/requireManagementAuth.ts`
- * (`hasManageScope`) so the two auth helpers behave identically.
- */
-const MANAGEMENT_API_KEY_SCOPES = new Set(["manage", "admin"]);
-
-/**
  * Check whether a Bearer API key is valid AND carries a scope that authorizes
  * it on management API routes (`/api/*` excluding `/api/v1/*` and the public
  * allowlist). Returns `false` for unscoped keys so that the existing
  * default-deny posture on management routes is preserved.
+ *
+ * Scope set is sourced from `@/shared/constants/managementScopes` so this
+ * helper stays in lockstep with `requireManagementAuth.hasManageScope`.
  */
 async function validateBearerApiKeyForManagement(apiKey: string | null): Promise<boolean> {
   if (!apiKey) return false;
 
   try {
-    const { validateApiKey, getApiKeyMetadata } = await import("@/lib/db/apiKeys");
+    const [{ validateApiKey, getApiKeyMetadata }, { hasManageScope }] = await Promise.all([
+      import("@/lib/db/apiKeys"),
+      import("@/shared/constants/managementScopes"),
+    ]);
     const valid = await validateApiKey(apiKey);
     if (!valid) return false;
 
     const metadata = await getApiKeyMetadata(apiKey);
     if (!metadata) return false;
 
-    for (const scope of metadata.scopes) {
-      if (MANAGEMENT_API_KEY_SCOPES.has(scope)) return true;
-    }
-    return false;
+    return hasManageScope(metadata.scopes);
   } catch {
     return false;
   }

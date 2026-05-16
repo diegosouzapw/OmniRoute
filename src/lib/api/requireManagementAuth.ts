@@ -3,11 +3,21 @@ import { createErrorResponse } from "@/lib/api/errorResponse";
 import { extractApiKey, isValidApiKey } from "@/sse/services/auth";
 import { getApiKeyMetadata } from "@/lib/db/apiKeys";
 import { isCliTokenAuthValid } from "@/lib/middleware/cliTokenAuth";
+import {
+  MANAGE_SCOPE,
+  hasManageScope as hasManageScopeShared,
+} from "@/shared/constants/managementScopes";
 
-export const MANAGE_SCOPE = "manage";
+export { MANAGE_SCOPE };
 
+/**
+ * Check whether any of the supplied scopes authorizes management API access.
+ *
+ * Re-exported here for backwards compatibility with existing callers. The
+ * canonical definition lives in `@/shared/constants/managementScopes`.
+ */
 export function hasManageScope(scopes: string[] = []): boolean {
-  return scopes.includes("manage") || scopes.includes("admin");
+  return hasManageScopeShared(scopes);
 }
 
 export async function requireManagementAuth(request: Request): Promise<Response | null> {
