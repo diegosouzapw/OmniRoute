@@ -155,6 +155,65 @@ test("isAuthenticated rejects bearer API keys on management routes", async () =>
   assert.equal(result, false);
 });
 
+test("verifyAuth accepts bearer API keys with manage scope on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("mcp-management", "machine1234567890", ["manage"]);
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/providers",
+  });
+
+  assert.equal(result, null);
+});
+
+test("verifyAuth accepts bearer API keys with admin scope on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("mcp-admin", "machine1234567890", ["admin"]);
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/settings",
+  });
+
+  assert.equal(result, null);
+});
+
+test("verifyAuth still rejects unscoped bearer API keys on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("integration-no-scope", "machine1234567890");
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/providers",
+  });
+
+  assert.equal(result, "Invalid management token");
+});
+
+test("isAuthenticated accepts bearer API keys with manage scope on management routes", async () => {
+  process.env.INITIAL_PASSWORD = "bootstrap-password";
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  const key = await apiKeysDb.createApiKey("mcp-management", "machine1234567890", ["manage"]);
+  const request = new Request("https://example.com/api/providers", {
+    headers: { authorization: `Bearer ${key.key}` },
+  });
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
 test("monitoring health reset route requires dashboard authentication", async () => {
   process.env.INITIAL_PASSWORD = "bootstrap-password";
   await localDb.updateSettings({ requireLogin: true, password: "" });
