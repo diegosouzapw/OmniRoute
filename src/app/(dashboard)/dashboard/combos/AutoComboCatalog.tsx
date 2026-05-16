@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { AUTO_COMBO_TEMPLATES } from "@/domain/assessment/types";
 
@@ -11,6 +12,7 @@ import { AUTO_COMBO_TEMPLATES } from "@/domain/assessment/types";
 // the static catalog (name, intent, categories, tiers, strategy) so users
 // can discover the auto/ prefix without reading source.
 export default function AutoComboCatalog() {
+  const t = useTranslations("combos");
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,21 +22,17 @@ export default function AutoComboCatalog() {
         onClick={() => setOpen((prev) => !prev)}
         className="flex w-full items-start justify-between gap-3 text-left"
         aria-expanded={open}
+        aria-label={open ? t("autoCatalogCollapse") : t("autoCatalogExpand")}
       >
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">auto_awesome</span>
-            <h2 className="text-base font-bold text-text-main">Auto-routing catalog</h2>
+            <h2 className="text-base font-bold text-text-main">{t("autoCatalogTitle")}</h2>
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              {AUTO_COMBO_TEMPLATES.length} templates
+              {t("autoCatalogTemplateCount", { count: AUTO_COMBO_TEMPLATES.length })}
             </span>
           </div>
-          <p className="mt-1 text-xs text-text-muted">
-            Built-in <code className="font-mono">auto/*</code> combos resolved dynamically from
-            connected providers. Use any of these IDs as the{" "}
-            <code className="font-mono">model</code>
-            field — no setup needed.
-          </p>
+          <p className="mt-1 text-xs text-text-muted">{t("autoCatalogDescription")}</p>
         </div>
         <span className="material-symbols-outlined text-base text-text-muted">
           {open ? "expand_less" : "expand_more"}

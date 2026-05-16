@@ -672,15 +672,15 @@ export default function RoutingTab() {
         } catch {
           // body wasn't JSON — keep the HTTP status fallback
         }
-        notify.error("Failed to save settings", serverMsg);
+        notify.error(t("saveFailed"), serverMsg);
         if (onError) onError(serverMsg);
         else console.error("Failed to update settings:", serverMsg);
       } else {
-        notify.success("Settings saved");
+        notify.success(t("savedSuccessfully"));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      notify.error("Failed to save settings", msg);
+      notify.error(t("saveFailed"), msg);
       if (onError) onError(msg);
       else console.error("Failed to update settings:", msg);
     }

@@ -1460,6 +1460,11 @@
   "combos": {
     "title": "Combos",
     "description": "Create model combos with weighted routing and fallback support",
+    "autoCatalogTitle": "Auto-routing catalog",
+    "autoCatalogTemplateCount": "{count} templates",
+    "autoCatalogDescription": "Built-in auto/* combos resolved dynamically from connected providers. Use any of these IDs as the model field — no setup needed.",
+    "autoCatalogExpand": "Expand auto-routing catalog",
+    "autoCatalogCollapse": "Collapse auto-routing catalog",
     "createCombo": "Create Combo",
     "editCombo": "Edit Combo",
     "deleteCombo": "Delete Combo",
