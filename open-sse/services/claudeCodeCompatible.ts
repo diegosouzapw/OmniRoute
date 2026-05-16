@@ -13,7 +13,7 @@ import {
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
-import { fixToolPairs } from "./contextManager.ts";
+import { fixToolPairs, stripTrailingAssistantOrphanToolUse } from "./contextManager.ts";
 
 /**
  * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
@@ -354,12 +354,18 @@ export async function buildAndSignClaudeCodeRequest(
   // Anthropic rejects requests where a tool_use has no matching tool_result
   // in the next user message (e.g. `messages.N: tool_use ids were found
   // without tool_result blocks immediately after: toolu_...`). Clients can
-  // ship truncated histories mid-tool-call; fixToolPairs strips orphans and
-  // drops messages that become empty. Idempotent on clean histories.
-  if (Array.isArray((body as Record<string, unknown>).messages)) {
-    (body as Record<string, unknown>).messages = fixToolPairs(
-      (body as Record<string, unknown>).messages as Record<string, unknown>[]
-    );
+  // ship truncated histories mid-tool-call; fixToolPairs strips orphans
+  // (preserving final-message tool_use for in-flight rounds), then
+  // stripTrailingAssistantOrphanToolUse catches the case where the request
+  // body itself ends on an unmatched assistant(tool_use) — invalid for an
+  // upstream-send turn since the body must end on a user message.
+  // Both are idempotent on clean histories.
+  {
+    const b = body as Record<string, unknown>;
+    if (Array.isArray(b.messages)) {
+      const fixed = fixToolPairs(b.messages as Record<string, unknown>[]);
+      b.messages = stripTrailingAssistantOrphanToolUse(fixed);
+    }
   }
 
   // Step 6: Obfuscation (optional, per-provider setting)
