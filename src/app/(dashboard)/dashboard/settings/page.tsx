@@ -45,7 +45,7 @@ export default function SettingsPage() {
     <div className="max-w-6xl mx-auto min-w-0">
       <div className="flex flex-col gap-6">
         {/* Tab navigation */}
-        <div className="w-full overflow-x-auto pb-1">
+        <div className="sticky top-0 z-20 w-full overflow-x-auto pb-1 pt-1 bg-bg-primary/95 supports-[backdrop-filter]:bg-bg-primary/80 backdrop-blur">
           <div
             role="tablist"
             aria-label={t("settingsSectionsAria")}
