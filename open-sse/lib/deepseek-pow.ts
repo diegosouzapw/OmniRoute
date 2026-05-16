@@ -9,9 +9,17 @@ import { dirname, join } from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load the exact solver extracted from DeepSeek's worker chunk
+// Load the exact solver extracted from DeepSeek's worker chunk.
+// Lazy-loaded inside the function so the standalone Next build can collect
+// page data without executing a dynamic require() at module-load time.
 const require = createRequire(import.meta.url);
-const { U } = require(join(__dirname, "deepseek-pow-solver.cjs"));
+let _U: any | undefined;
+function loadU(): any {
+  if (_U === undefined) {
+    _U = require(join(__dirname, "deepseek-pow-solver.cjs")).U;
+  }
+  return _U;
+}
 
 export function solveDeepSeekPow(
   algorithm: string,
@@ -23,6 +31,7 @@ export function solveDeepSeekPow(
   if (algorithm !== "DeepSeekHashV1") throw new Error(`Unsupported: ${algorithm}`);
   const prefix = `${salt}_${expireAt}_`;
 
+  const U = loadU();
   const createHash = () => {
     const self: any = {};
     self._sponge = new U({ capacity: 256, padding: 6 });
