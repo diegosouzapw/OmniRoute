@@ -65,13 +65,13 @@ function SectionDescription({
   return (
     <div className="grid grid-cols-1 gap-2 text-xs text-text-muted sm:grid-cols-3">
       <div>
-        <span className="font-semibold text-text-main">Escopo:</span> {scope}
+        <span className="font-semibold text-text-main">Scope:</span> {scope}
       </div>
       <div>
-        <span className="font-semibold text-text-main">Gatilho:</span> {trigger}
+        <span className="font-semibold text-text-main">Trigger:</span> {trigger}
       </div>
       <div>
-        <span className="font-semibold text-text-main">Efeito:</span> {effect}
+        <span className="font-semibold text-text-main">Effect:</span> {effect}
       </div>
     </div>
   );
@@ -216,12 +216,12 @@ function RequestQueueCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">speed</span>
-            <h2 className="text-lg font-bold">Fila de Requisições e Ritmo</h2>
+            <h2 className="text-lg font-bold">Request Queue & Rate</h2>
           </div>
           <SectionDescription
-            scope="Por fila de requisição"
-            trigger="Antes de enviar para o upstream"
-            effect="Enfileira requisições, limita concorrência e espaça as chamadas"
+            scope="Per request queue"
+            trigger="Before sending to upstream"
+            effect="Queues requests, limits concurrency, and spaces calls"
           />
         </div>
         <ActionRow
@@ -240,29 +240,29 @@ function RequestQueueCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Esta camada controla apenas enfileiramento e ritmo. Ela não grava cooldown nem abre circuit
-        breaker.
+        This layer only controls queueing and pacing. It does not write cooldown state nor open the
+        circuit breaker.
       </p>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {editing ? (
           <>
             <BooleanField
-              label="Autoativar para provedores com API key"
-              description="Ativa proteção de fila por padrão para conexões de API key ativas."
+              label="Auto-enable for API-key providers"
+              description="Enable queue protection by default for active API-key connections."
               checked={draft.autoEnableApiKeyProviders}
               onChange={(autoEnableApiKeyProviders) =>
                 setDraft((prev) => ({ ...prev, autoEnableApiKeyProviders }))
               }
             />
             <NumberField
-              label="Requisições por minuto"
+              label="Requests per minute"
               value={draft.requestsPerMinute}
               min={1}
               onChange={(requestsPerMinute) => setDraft((prev) => ({ ...prev, requestsPerMinute }))}
             />
             <NumberField
-              label="Tempo mínimo entre requisições"
+              label="Minimum time between requests"
               value={draft.minTimeBetweenRequestsMs}
               suffix="ms"
               onChange={(minTimeBetweenRequestsMs) =>
@@ -270,7 +270,7 @@ function RequestQueueCard({
               }
             />
             <NumberField
-              label="Requisições concorrentes"
+              label="Concurrent requests"
               value={draft.concurrentRequests}
               min={1}
               onChange={(concurrentRequests) =>
@@ -278,7 +278,7 @@ function RequestQueueCard({
               }
             />
             <NumberField
-              label="Tempo máximo de espera em fila"
+              label="Maximum queue wait time"
               value={draft.maxWaitMs}
               min={1}
               suffix="ms"
@@ -288,31 +288,31 @@ function RequestQueueCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Autoativar para provedores com API key</div>
+              <div className="text-xs text-text-muted">Auto-enable for API-key providers</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
-                {value.autoEnableApiKeyProviders ? "Ativado" : "Desativado"}
+                {value.autoEnableApiKeyProviders ? "Enabled" : "Disabled"}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Requisições por minuto</div>
+              <div className="text-xs text-text-muted">Requests per minute</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.requestsPerMinute}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Tempo mínimo entre requisições</div>
+              <div className="text-xs text-text-muted">Minimum time between requests</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.minTimeBetweenRequestsMs)}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Requisições concorrentes</div>
+              <div className="text-xs text-text-muted">Concurrent requests</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.concurrentRequests}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Tempo máximo de espera em fila</div>
+              <div className="text-xs text-text-muted">Maximum queue wait time</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.maxWaitMs)}
               </div>
@@ -347,7 +347,7 @@ function ConnectionCooldownCard({
         {editing ? (
           <>
             <NumberField
-              label="Cooldown base"
+              label="Base cooldown"
               value={current.baseCooldownMs}
               min={0}
               suffix="ms"
@@ -420,7 +420,7 @@ function ConnectionCooldownCard({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Cooldown base</span>
+              <span className="text-text-muted">Base cooldown</span>
               <span className="font-mono text-text-main">{formatMs(current.baseCooldownMs)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -533,7 +533,7 @@ function ProviderBreakerCard({
         {editing ? (
           <>
             <NumberField
-              label="Limite de falhas"
+              label="Failure threshold"
               value={current.failureThreshold}
               min={1}
               onChange={(failureThreshold) =>
@@ -541,7 +541,7 @@ function ProviderBreakerCard({
               }
             />
             <NumberField
-              label="Tempo para reset"
+              label="Reset timeout"
               value={current.resetTimeoutMs}
               min={1000}
               suffix="ms"
@@ -553,11 +553,11 @@ function ProviderBreakerCard({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Limite de falhas</span>
+              <span className="text-text-muted">Failure threshold</span>
               <span className="font-mono text-text-main">{current.failureThreshold}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">Tempo para reset</span>
+              <span className="text-text-muted">Reset timeout</span>
               <span className="font-mono text-text-main">{formatMs(current.resetTimeoutMs)}</span>
             </div>
           </>
@@ -574,12 +574,12 @@ function ProviderBreakerCard({
             <span className="material-symbols-outlined text-xl text-primary">
               electrical_services
             </span>
-            <h2 className="text-lg font-bold">Circuit Breaker por Provedor</h2>
+            <h2 className="text-lg font-bold">Circuit Breaker per Provider</h2>
           </div>
           <SectionDescription
-            scope="Provedor inteiro"
-            trigger="Falhas finais de transporte/servidor após esgotar fallback de conexão"
-            effect="Bloqueia temporariamente esse provedor até o tempo de reset expirar"
+            scope="Entire provider"
+            trigger="Final transport/server failures after exhausting connection fallback"
+            effect="Temporarily blocks this provider until the reset timeout expires"
           />
         </div>
         <ActionRow
@@ -598,13 +598,13 @@ function ProviderBreakerCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        O estado em tempo real do breaker aparece apenas na página Saúde. Rate limits 429 no escopo
-        de conexão ficam no Cooldown de Conexão e não disparam o breaker de provedor.
+        The live breaker state is shown only on the Health page. 429 rate limits at the connection
+        scope stay in Connection Cooldown and do not trip the provider breaker.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {renderProfile("oauth", "Provedores OAuth", "lock")}
-        {renderProfile("apikey", "Provedores API Key", "key")}
+        {renderProfile("oauth", "OAuth Providers", "lock")}
+        {renderProfile("apikey", "API Key Providers", "key")}
       </div>
     </Card>
   );
@@ -632,12 +632,12 @@ function WaitForCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">hourglass_top</span>
-            <h2 className="text-lg font-bold">Aguardar Cooldown</h2>
+            <h2 className="text-lg font-bold">Wait for Cooldown</h2>
           </div>
           <SectionDescription
-            scope="Requisição atual do cliente"
-            trigger="Quando todas as conexões candidatas já estão em cooldown"
-            effect="Aguarda no servidor e tenta novamente quando o primeiro cooldown expira"
+            scope="Current client request"
+            trigger="When all candidate connections are already in cooldown"
+            effect="Waits on the server and retries when the first cooldown expires"
           />
         </div>
         <ActionRow
@@ -656,26 +656,26 @@ function WaitForCooldownCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Isso afeta apenas a requisição atual. Não grava estado de conexão nem de provedor.
+        This only affects the current request. No connection or provider state is written.
       </p>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {editing ? (
           <>
             <BooleanField
-              label="Ativar espera no servidor"
-              description="Quando ativo, o OmniRoute aguarda o primeiro cooldown expirar e tenta novamente automaticamente."
+              label="Enable server-side wait"
+              description="When enabled, OmniRoute waits for the first cooldown to expire and retries automatically."
               checked={draft.enabled}
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
             />
             <NumberField
-              label="Máximo de tentativas"
+              label="Maximum retries"
               value={draft.maxRetries}
               min={0}
               onChange={(maxRetries) => setDraft((prev) => ({ ...prev, maxRetries }))}
             />
             <NumberField
-              label="Tempo máximo de espera por tentativa"
+              label="Maximum wait per retry"
               value={draft.maxRetryWaitSec}
               min={0}
               suffix="sec"
@@ -685,17 +685,17 @@ function WaitForCooldownCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Ativar espera no servidor</div>
+              <div className="text-xs text-text-muted">Enable server-side wait</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
-                {value.enabled ? "Ativado" : "Desativado"}
+                {value.enabled ? "Enabled" : "Disabled"}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Máximo de tentativas</div>
+              <div className="text-xs text-text-muted">Maximum retries</div>
               <div className="mt-1 text-sm font-semibold text-text-main">{value.maxRetries}</div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Tempo máximo de espera por tentativa</div>
+              <div className="text-xs text-text-muted">Maximum wait per retry</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.maxRetryWaitSec}s
               </div>
