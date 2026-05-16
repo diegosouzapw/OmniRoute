@@ -3380,7 +3380,7 @@ export default function ProviderDetailPage() {
                         </Button>
                       )}
                     </div>
-                    <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03]">
+                    <div className="flex flex-col divide-y divide-black/[0.03] dark:divide-white/[0.03] border border-t-0 border-border rounded-b-lg overflow-hidden">
                       {sorted.map((conn, index) => (
                         <ConnectionRow
                           key={conn.id}
@@ -3511,7 +3511,7 @@ export default function ProviderDetailPage() {
                       )}
                     </div>
                   ) : null}
-                  <div className="flex flex-col gap-0">
+                  <div className="flex flex-col gap-0 border border-t-0 border-border rounded-b-lg overflow-hidden">
                     {groupKeys.map((tag, gi) => {
                       const groupConns = groupMap.get(tag)!;
                       return (
