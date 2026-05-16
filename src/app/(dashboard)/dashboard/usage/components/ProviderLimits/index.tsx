@@ -19,6 +19,7 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import QuotaCutoffModal from "./QuotaCutoffModal";
+import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
@@ -27,34 +28,6 @@ const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
 const LIMITS_GRID_TEMPLATE_COLUMNS = "minmax(220px,260px) minmax(240px,1fr) 104px 76px 56px";
-
-function formatFallbackMessage(fallback: string, values?: Record<string, unknown>): string {
-  if (!values) return fallback;
-  return Object.entries(values).reduce(
-    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
-    fallback
-  );
-}
-
-function translateUsageOrFallback(
-  t: any,
-  key: string,
-  fallback: string,
-  values?: Record<string, unknown>
-): string {
-  try {
-    if (typeof t.has === "function" && !t.has(key)) {
-      return formatFallbackMessage(fallback, values);
-    }
-    const translated = values ? t(key, values as never) : t(key);
-    if (!translated || translated === key || translated === `usage.${key}`) {
-      return formatFallbackMessage(fallback, values);
-    }
-    return translated;
-  } catch {
-    return formatFallbackMessage(fallback, values);
-  }
-}
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -143,7 +116,7 @@ function formatCountdown(resetAt) {
 export default function ProviderLimits() {
   const t = useTranslations("usage");
   const tr = useCallback(
-    (key: string, fallback: string, values?: Record<string, unknown>) =>
+    (key: string, fallback: string, values?: UsageTranslationValues) =>
       translateUsageOrFallback(t, key, fallback, values),
     [t]
   );

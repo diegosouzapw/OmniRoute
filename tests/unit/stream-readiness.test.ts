@@ -327,6 +327,24 @@ test("hasStreamReadinessSignal accepts structural chat completion chunk starts",
     ),
     false
   );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `data: ${JSON.stringify({
+        object: "chat.completion.chunk",
+        choices: [{ index: 0, delta: { tool_calls: [{ index: 0 }] } }],
+      })}\n\n`
+    ),
+    false
+  );
+  assert.equal(
+    hasStreamReadinessSignal(
+      `data: ${JSON.stringify({
+        object: "chat.completion.chunk",
+        choices: [{ index: 0, delta: { function_call: {} } }],
+      })}\n\n`
+    ),
+    false
+  );
 });
 
 test("ensureStreamReadiness preserves buffered chunks when stream starts", async () => {

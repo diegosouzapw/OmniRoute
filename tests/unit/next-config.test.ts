@@ -121,8 +121,18 @@ test("next-intl webpack hook preserves caller config and filters known extractor
     config.ignoreWarnings[0]({
       message:
         "Parsing of /repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.",
+      module: {
+        resource: "/repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js",
+      },
     }),
     true
+  );
+  assert.equal(
+    config.ignoreWarnings[0]({
+      message:
+        "Parsing of /repo/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.",
+    }),
+    false
   );
   assert.equal(
     config.ignoreWarnings[0]({

@@ -99,12 +99,13 @@ function hasOpenAIResponseLifecyclePayload(
 }
 
 function hasChatCompletionToolCallStart(value: unknown): boolean {
-  if (Array.isArray(value)) return value.some((item) => isRecord(item));
-  return isRecord(value);
+  const hasToolCallId = (item: unknown) => isRecord(item) && hasNonEmptyString(item.id);
+  if (Array.isArray(value)) return value.some(hasToolCallId);
+  return hasToolCallId(value);
 }
 
 function hasChatCompletionFunctionCallStart(value: unknown): boolean {
-  return isRecord(value);
+  return isRecord(value) && hasNonEmptyString(value.name);
 }
 
 function hasChatCompletionChunkStartPayload(payload: Record<string, unknown>): boolean {

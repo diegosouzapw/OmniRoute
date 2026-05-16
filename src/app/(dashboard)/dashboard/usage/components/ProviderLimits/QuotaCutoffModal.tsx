@@ -4,34 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
-
-function formatFallbackMessage(fallback: string, values?: Record<string, unknown>): string {
-  if (!values) return fallback;
-  return Object.entries(values).reduce(
-    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
-    fallback
-  );
-}
-
-function translateUsageOrFallback(
-  t: any,
-  key: string,
-  fallback: string,
-  values?: Record<string, unknown>
-): string {
-  try {
-    if (typeof t.has === "function" && !t.has(key)) {
-      return formatFallbackMessage(fallback, values);
-    }
-    const translated = values ? t(key, values as never) : t(key);
-    if (!translated || translated === key || translated === `usage.${key}`) {
-      return formatFallbackMessage(fallback, values);
-    }
-    return translated;
-  } catch {
-    return formatFallbackMessage(fallback, values);
-  }
-}
+import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
 export interface QuotaCutoffModalWindow {
   /** Stable key — must match the quota name surfaced by the usage fetcher. */
@@ -80,7 +53,7 @@ export default function QuotaCutoffModal({
   onSave,
 }: QuotaCutoffModalProps) {
   const t = useTranslations("usage");
-  const tr = (key: string, fallback: string, values?: Record<string, unknown>) =>
+  const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
     translateUsageOrFallback(t, key, fallback, values);
   // Local draft: string per window so empty-string means "inherit".
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -163,7 +136,7 @@ export default function QuotaCutoffModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={tr("quotaCutoffsTitle", "Quota cutoffs for {name} ({provider})", {
+      title={tr("quotaCutoffsTitle", `Quota cutoffs for ${connectionName} (${provider})`, {
         name: connectionName,
         provider,
       })}
@@ -207,7 +180,7 @@ export default function QuotaCutoffModal({
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-text-main">{w.displayName}</div>
                 <div className="text-[11px] text-text-muted">
-                  {tr("quotaCutoffsDefaultHint", "Default min remaining: {default}%", {
+                  {tr("quotaCutoffsDefaultHint", `Default min remaining: ${resolvedDefault}%`, {
                     default: resolvedDefault,
                   })}
                 </div>

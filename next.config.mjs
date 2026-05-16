@@ -56,8 +56,8 @@ function isNextIntlExtractorDynamicImportWarning(warning) {
   const resource = warning?.module?.resource || warning?.file || "";
   const target = "next-intl/dist/esm/production/extractor/format/index.js";
   return (
-    (message.includes("import(t)") || message.includes("dependency is an expression")) &&
-    (message.includes(target) || resource.includes(target))
+    resource.includes(target) &&
+    (message.includes("import(t)") || message.includes("dependency is an expression"))
   );
 }
 
