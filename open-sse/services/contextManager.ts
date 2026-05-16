@@ -297,7 +297,7 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
  *   - OpenAI: "Invalid message format"
  *   - Gemini: "Function response without function call"
  */
-function fixToolPairs(messages: Record<string, unknown>[]) {
+export function fixToolPairs(messages: Record<string, unknown>[]) {
   // Pass 1: Collect all tool_result IDs from user/tool messages
   const toolResultIds = new Set();
   for (const msg of messages) {

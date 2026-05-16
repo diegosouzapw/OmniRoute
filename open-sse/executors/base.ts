@@ -14,6 +14,7 @@ import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestD
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
+import { fixToolPairs } from "../services/contextManager.ts";
 import { randomUUID } from "node:crypto";
 import {
   CLAUDE_CODE_VERSION,
@@ -861,6 +862,16 @@ export class BaseExecutor {
         delete (transformedBody as Record<string, unknown>)[
           "_claudeCodeRequiresLowercaseToolNames"
         ];
+        // Guard against orphan tool_use / tool_result pairs. Clients can ship
+        // truncated histories mid-tool-call which Anthropic rejects with
+        // `messages.N: tool_use ids were found without tool_result blocks
+        // immediately after: toolu_...`. fixToolPairs is idempotent on clean
+        // histories.
+        if (Array.isArray((transformedBody as Record<string, unknown>).messages)) {
+          (transformedBody as Record<string, unknown>).messages = fixToolPairs(
+            (transformedBody as Record<string, unknown>).messages as Record<string, unknown>[]
+          );
+        }
         let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
