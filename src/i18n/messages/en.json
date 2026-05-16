@@ -672,6 +672,8 @@
     "cloudAgents": "Cloud Agents",
     "memory": "Memory",
     "skills": "Skills",
+    "omniSkills": "Omni Skills",
+    "agentSkills": "Agent Skills",
     "docs": "Docs",
     "issues": "Issues",
     "endpoints": "Endpoints",
@@ -3993,7 +3995,9 @@
       "multi-turn": "Multi-turn",
       "thinking": "Thinking",
       "system-prompt": "System Prompt",
-      "streaming": "Streaming"
+      "streaming": "Streaming",
+      "vision": "Vision",
+      "schema-coercion": "Schema Coercion"
     },
     "templateDescriptions": {
       "simple-chat": "Basic text message",
@@ -4001,7 +4005,9 @@
       "multi-turn": "Conversation with history",
       "thinking": "Extended thinking / reasoning",
       "system-prompt": "Complex system instructions",
-      "streaming": "SSE streaming request"
+      "streaming": "SSE streaming request",
+      "vision": "Multimodal request with image input",
+      "schema-coercion": "Structured-output / JSON schema enforcement"
     },
     "templatePayloads": {
       "simpleChat": {
@@ -4929,7 +4935,9 @@
     "system-prompt": "System Prompt",
     "thinking": "Thinking",
     "tool-calling": "Tool Calling",
-    "multi-turn": "Multi-turn"
+    "multi-turn": "Multi-turn",
+    "vision": "Vision",
+    "schema-coercion": "Schema Coercion"
   },
   "templateDescriptions": {
     "simple-chat": "Basic chat template with system message",
@@ -4937,7 +4945,9 @@
     "system-prompt": "Template with custom system prompt",
     "thinking": "Template with reasoning/thinking budget",
     "tool-calling": "Template for tool/function calling",
-    "multi-turn": "Template for multi-turn conversations"
+    "multi-turn": "Template for multi-turn conversations",
+    "vision": "Multimodal template with image input",
+    "schema-coercion": "Structured-output / JSON schema enforcement"
   },
   "templatePayloads": {
     "simpleChat": {
