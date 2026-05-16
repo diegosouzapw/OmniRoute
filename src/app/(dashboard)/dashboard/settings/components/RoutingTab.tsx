@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Collapsible, Input, Select, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
+import { useNotificationStore } from "@/store/notificationStore";
 import FallbackChainsEditor from "./FallbackChainsEditor";
 import {
   CLI_COMPAT_PROVIDER_DISPLAY,
@@ -629,6 +630,7 @@ export default function RoutingTab() {
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
   const t = useTranslations("settings");
+  const notify = useNotificationStore();
 
   useEffect(() => {
     fetch("/api/settings")
@@ -670,11 +672,15 @@ export default function RoutingTab() {
         } catch {
           // body wasn't JSON — keep the HTTP status fallback
         }
+        notify.error(t("saveFailed"), serverMsg);
         if (onError) onError(serverMsg);
         else console.error("Failed to update settings:", serverMsg);
+      } else {
+        notify.success(t("savedSuccessfully"));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      notify.error(t("saveFailed"), msg);
       if (onError) onError(msg);
       else console.error("Failed to update settings:", msg);
     }

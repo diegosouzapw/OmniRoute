@@ -58,7 +58,7 @@ export default function ModelCooldownsCard() {
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
-        notify.success(`Modelo reativado: ${provider}/${model}`);
+        notify.success(`Model reactivated: ${provider}/${model}`);
         await load();
       } catch (error) {
         notify.error(error instanceof Error ? error.message : "Failed to clear cooldown");
@@ -79,7 +79,7 @@ export default function ModelCooldownsCard() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
-      notify.success("Todos os modelos em cooldown foram reativados.");
+      notify.success("All models in cooldown have been reactivated.");
       await load();
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "Failed to clear cooldowns");
@@ -95,15 +95,15 @@ export default function ModelCooldownsCard() {
     <Card className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-text-main">Modelos em cooldown</h2>
+          <h2 className="text-lg font-bold text-text-main">Models in cooldown</h2>
           <p className="mt-1 text-sm text-text-muted">
-            Lista de modelos temporariamente isolados por falha. Quando o cooldown expira, eles
-            voltam automaticamente.
+            Models temporarily isolated after a failure. When the cooldown expires they come back
+            automatically.
           </p>
         </div>
         <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => void load()} disabled={loading}>
-            Atualizar
+            Refresh
           </Button>
           <Button
             size="sm"
@@ -111,16 +111,16 @@ export default function ModelCooldownsCard() {
             onClick={() => void clearAll()}
             disabled={!hasItems || busyKey === "ALL"}
           >
-            Reativar todos
+            Reactivate all
           </Button>
         </div>
       </div>
 
       <div className="mt-4 space-y-2">
         {loading ? (
-          <p className="text-sm text-text-muted">Carregando...</p>
+          <p className="text-sm text-text-muted">Loading...</p>
         ) : !hasItems ? (
-          <p className="text-sm text-text-muted">Nenhum modelo em cooldown no momento.</p>
+          <p className="text-sm text-text-muted">No models in cooldown right now.</p>
         ) : (
           sorted.map((item) => {
             const rowKey = `${item.provider}::${item.model}`;
@@ -134,7 +134,7 @@ export default function ModelCooldownsCard() {
                     {item.provider}/{item.model}
                   </p>
                   <p className="text-xs text-text-muted">
-                    motivo: {item.reason} • restante: {formatRemaining(item.remainingMs)}
+                    reason: {item.reason} • remaining: {formatRemaining(item.remainingMs)}
                   </p>
                 </div>
                 <Button
@@ -143,7 +143,7 @@ export default function ModelCooldownsCard() {
                   onClick={() => void clearOne(item.provider, item.model)}
                   disabled={busyKey === rowKey}
                 >
-                  Reativar
+                  Reactivate
                 </Button>
               </div>
             );

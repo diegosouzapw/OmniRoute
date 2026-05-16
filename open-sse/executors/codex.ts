@@ -398,7 +398,10 @@ function stripStoredItemReferences(body: Record<string, unknown>): void {
       .map((functionCall) => ({
         type: "function_call",
         call_id: functionCall.call_id,
-        name: functionCall.name,
+        name:
+          typeof functionCall.name === "string"
+            ? functionCall.name.slice(0, 128)
+            : functionCall.name,
         arguments: functionCall.arguments,
       }));
 
@@ -579,7 +582,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
         for (const st of tool.tools as unknown[]) {
           if (st && typeof st === "object" && !Array.isArray(st)) {
             const subTool = st as Record<string, unknown>;
-            const name = typeof subTool.name === "string" ? subTool.name.trim() : "";
+            const name = typeof subTool.name === "string" ? subTool.name.trim().slice(0, 128) : "";
             if (name) validToolNames.add(name);
           }
         }
@@ -644,7 +647,7 @@ function normalizeCodexTools(body: Record<string, unknown>): void {
       delete tool[key];
     }
     tool.type = "function";
-    tool.name = name;
+    tool.name = name.slice(0, 128);
     if (description) tool.description = description;
     tool.parameters = parameters;
 

@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 let machineIdSync: (original?: boolean) => string;
 try {
   // Use require() to bypass webpack static analysis that breaks the default export

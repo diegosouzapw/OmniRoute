@@ -114,6 +114,26 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     models: [{ id: "nvidia/nv-embedqa-e5-v5", name: "NV EmbedQA E5 v5", dimensions: 1024 }],
   },
 
+  // Issue #2298: Adding DeepInfra to the embedding registry so custom
+  // embedding models on the DeepInfra provider don't fail with "Unknown
+  // embedding provider" when the user adds them via the dashboard.
+  deepinfra: {
+    id: "deepinfra",
+    baseUrl: "https://api.deepinfra.com/v1/openai/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Qwen/Qwen3-Embedding-8B", name: "Qwen3 Embedding 8B", dimensions: 4096 },
+      { id: "Qwen/Qwen3-Embedding-4B", name: "Qwen3 Embedding 4B", dimensions: 2560 },
+      { id: "Qwen/Qwen3-Embedding-0.6B", name: "Qwen3 Embedding 0.6B", dimensions: 1024 },
+      { id: "BAAI/bge-large-en-v1.5", name: "BGE Large EN v1.5", dimensions: 1024 },
+      { id: "BAAI/bge-base-en-v1.5", name: "BGE Base EN v1.5", dimensions: 768 },
+      { id: "BAAI/bge-m3", name: "BGE-M3", dimensions: 1024 },
+      { id: "intfloat/e5-large-v2", name: "E5 Large v2", dimensions: 1024 },
+      { id: "thenlper/gte-large", name: "GTE Large", dimensions: 1024 },
+    ],
+  },
+
   openrouter: {
     id: "openrouter",
     baseUrl: "https://openrouter.ai/api/v1/embeddings",

@@ -79,6 +79,23 @@ test("CLI fingerprint toggles only expose implemented fingerprints and functiona
   assert.equal((CLI_COMPAT_TOGGLE_IDS as readonly string[]).includes("github"), false);
 });
 
+test("CLI fingerprint strips OmniRoute internal body fields before upstream serialization", () => {
+  const claude = applyFingerprint(
+    "claude",
+    { Authorization: "Bearer token" },
+    {
+      model: "claude-sonnet-4-6",
+      messages: [],
+      stream: true,
+      _claudeCodeRequiresLowercaseToolNames: true,
+    }
+  );
+
+  const body = JSON.parse(claude.bodyString);
+  assert.equal(body._claudeCodeRequiresLowercaseToolNames, undefined);
+  assert.deepEqual(Object.keys(body), ["model", "messages", "stream"]);
+});
+
 test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilot alias", () => {
   const codex = applyFingerprint(
     "codex",

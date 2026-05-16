@@ -1084,6 +1084,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         contextLength: 131000,
       },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
+      // Issue #2292: opencode-zen returns Claude-format SSE bodies for these
+      // Qwen3.6 models even when the request hits the OpenAI-compatible
+      // /chat/completions endpoint. Flagging targetFormat: "claude" routes
+      // the request to /messages and parses the response with the Claude
+      // translator, fixing "expected choices (array), received undefined".
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", contextLength: 200000 },
+      {
+        id: "qwen3.6-plus-free",
+        name: "Qwen3.6 Plus Free",
+        targetFormat: "claude",
+        contextLength: 200000,
+      },
     ],
   },
 

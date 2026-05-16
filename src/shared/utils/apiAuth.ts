@@ -160,6 +160,35 @@ async function validateBearerApiKey(apiKey: string | null): Promise<boolean> {
   }
 }
 
+/**
+ * Check whether a Bearer API key is valid AND carries a scope that authorizes
+ * it on management API routes (`/api/*` excluding `/api/v1/*` and the public
+ * allowlist). Returns `false` for unscoped keys so that the existing
+ * default-deny posture on management routes is preserved.
+ *
+ * Scope set is sourced from `@/shared/constants/managementScopes` so this
+ * helper stays in lockstep with `requireManagementAuth.hasManageScope`.
+ */
+async function validateBearerApiKeyForManagement(apiKey: string | null): Promise<boolean> {
+  if (!apiKey) return false;
+
+  try {
+    const [{ validateApiKey, getApiKeyMetadata }, { hasManageScope }] = await Promise.all([
+      import("@/lib/db/apiKeys"),
+      import("@/shared/constants/managementScopes"),
+    ]);
+    const valid = await validateApiKey(apiKey);
+    if (!valid) return false;
+
+    const metadata = await getApiKeyMetadata(apiKey);
+    if (!metadata) return false;
+
+    return hasManageScope(metadata.scopes);
+  } catch {
+    return false;
+  }
+}
+
 export function isManagementApiRequest(request: RequestLike | Request): boolean {
   const pathname = getRequestPathname(request);
   if (!pathname?.startsWith("/api/")) return false;
@@ -221,6 +250,9 @@ export async function verifyAuth(request: any): Promise<string | null> {
 
   const bearerToken = getBearerToken(request);
   if (isManagementApiRequest(request)) {
+    if (await validateBearerApiKeyForManagement(bearerToken)) {
+      return null;
+    }
     return bearerToken ? "Invalid management token" : "Authentication required";
   }
 
@@ -250,11 +282,12 @@ export async function isAuthenticated(request: Request): Promise<boolean> {
     return true;
   }
 
+  const bearerToken = getBearerToken(request);
   if (isManagementApiRequest(request)) {
-    return false;
+    return validateBearerApiKeyForManagement(bearerToken);
   }
 
-  return validateBearerApiKey(getBearerToken(request));
+  return validateBearerApiKey(bearerToken);
 }
 
 /**
