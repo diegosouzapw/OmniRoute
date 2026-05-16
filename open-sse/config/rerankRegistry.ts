@@ -55,10 +55,6 @@ export const RERANK_PROVIDERS = {
     models: [
       { id: "rerank-2.5", name: "Rerank 2.5" },
       { id: "rerank-2.5-lite", name: "Rerank 2.5 Lite" },
-      { id: "rerank-2", name: "Rerank 2" },
-      { id: "rerank-2-lite", name: "Rerank 2 Lite" },
-      { id: "rerank-1", name: "Rerank 1" },
-      { id: "rerank-lite-1", name: "Rerank Lite 1" },
     ],
   },
 

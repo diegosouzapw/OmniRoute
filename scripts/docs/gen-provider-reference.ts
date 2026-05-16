@@ -94,7 +94,16 @@ function buildSection(title: string, rows: ProviderRecord[], category: string): 
 
 function buildHeader(total: number): string {
   const date = new Date().toISOString().slice(0, 10);
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")) as {
+    version?: string;
+  };
   return [
+    "---",
+    'title: "Provider Reference"',
+    `version: ${pkg.version || "unknown"}`,
+    `lastUpdated: ${date}`,
+    "---",
+    "",
     "# Provider Reference",
     "",
     `> **Auto-generated** from \`src/shared/constants/providers.ts\` — do not edit by hand.`,
@@ -166,16 +175,16 @@ function main() {
   const footer = [
     "## Sources of truth",
     "",
-    "- Catalog: [`src/shared/constants/providers.ts`](../src/shared/constants/providers.ts)",
-    "- Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../open-sse/config/providerRegistry.ts)",
-    "- Executors: [`open-sse/executors/`](../open-sse/executors/) (31 files)",
-    "- Translators: [`open-sse/translator/`](../open-sse/translator/)",
+    "- Catalog: [`src/shared/constants/providers.ts`](../../src/shared/constants/providers.ts)",
+    "- Registry (per-model details): [`open-sse/config/providerRegistry.ts`](../../open-sse/config/providerRegistry.ts)",
+    "- Executors: [`open-sse/executors/`](../../open-sse/executors/) (31 files)",
+    "- Translators: [`open-sse/translator/`](../../open-sse/translator/)",
     "",
     "## See Also",
     "",
     "- [FREE_TIERS.md](./FREE_TIERS.md) — curated free-tier guide",
-    "- [USER_GUIDE.md](./USER_GUIDE.md) — provider setup walkthrough",
-    "- [ARCHITECTURE.md](./ARCHITECTURE.md) — overall architecture",
+    "- [USER_GUIDE.md](../guides/USER_GUIDE.md) — provider setup walkthrough",
+    "- [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) — overall architecture",
     "",
   ].join("\n");
 

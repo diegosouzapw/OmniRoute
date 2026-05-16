@@ -28,6 +28,22 @@ type GetProviderStats = (
   authType: "oauth" | "free" | "apikey"
 ) => ProviderStatsSnapshot;
 
+function getProviderSortLabel<TProvider>(entry: ProviderEntry<TProvider>): string {
+  const provider = entry.provider as Record<string, unknown>;
+  const name = typeof provider.name === "string" ? provider.name : "";
+  return (name || entry.providerId).toLowerCase();
+}
+
+export function sortProviderEntriesByName<TProvider>(
+  entries: ProviderEntry<TProvider>[]
+): ProviderEntry<TProvider>[] {
+  return [...entries].sort((a, b) => {
+    const nameCompare = getProviderSortLabel(a).localeCompare(getProviderSortLabel(b));
+    if (nameCompare !== 0) return nameCompare;
+    return a.providerId.localeCompare(b.providerId);
+  });
+}
+
 export function buildProviderEntries<TProvider = Record<string, unknown>>(
   providers: ProviderRecord<TProvider>,
   displayAuthType: ProviderEntry["displayAuthType"],
@@ -88,7 +104,7 @@ export function filterConfiguredProviderEntries<TProvider>(
     });
   }
 
-  return filtered;
+  return sortProviderEntriesByName(filtered);
 }
 
 export function resolveDashboardProviderInfo(
