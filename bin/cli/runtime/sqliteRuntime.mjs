@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { execSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { validateBinaryMagic, platformBinaryLabel } from "./magicBytes.mjs";
 
 const RUNTIME_DIR = join(homedir(), ".omniroute", "runtime");
@@ -92,7 +93,7 @@ async function tryLoadRuntimeInstalled() {
   }
 
   try {
-    const mod = await import(pkgRoot);
+    const mod = await import(/* webpackIgnore: true */ pathToFileURL(pkgRoot).href);
     return { kind: "better-sqlite3", Database: mod.default ?? mod };
   } catch {
     return null;

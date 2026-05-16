@@ -28,6 +28,7 @@
     "bin/cli/runtime/",
     "scripts/postinstall.mjs",
     "scripts/build/postinstallSupport.mjs",
+    "scripts/build/sync-env.mjs",
     "scripts/dev/responses-ws-proxy.mjs",
     "scripts/check/check-supported-node-runtime.ts",
     "scripts/dev/sync-env.mjs",

@@ -26,6 +26,35 @@ const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
+const LIMITS_GRID_TEMPLATE_COLUMNS = "minmax(220px,260px) minmax(240px,1fr) 104px 76px 56px";
+
+function formatFallbackMessage(fallback: string, values?: Record<string, unknown>): string {
+  if (!values) return fallback;
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
+    fallback
+  );
+}
+
+function translateUsageOrFallback(
+  t: any,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  try {
+    if (typeof t.has === "function" && !t.has(key)) {
+      return formatFallbackMessage(fallback, values);
+    }
+    const translated = values ? t(key, values as never) : t(key);
+    if (!translated || translated === key || translated === `usage.${key}`) {
+      return formatFallbackMessage(fallback, values);
+    }
+    return translated;
+  } catch {
+    return formatFallbackMessage(fallback, values);
+  }
+}
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -113,6 +142,11 @@ function formatCountdown(resetAt) {
 
 export default function ProviderLimits() {
   const t = useTranslations("usage");
+  const tr = useCallback(
+    (key: string, fallback: string, values?: Record<string, unknown>) =>
+      translateUsageOrFallback(t, key, fallback, values),
+    [t]
+  );
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const [connections, setConnections] = useState([]);
   const [quotaData, setQuotaData] = useState({});
@@ -597,13 +631,19 @@ export default function ProviderLimits() {
         {/* Table header */}
         <div
           className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
-          style={{ display: "grid", gridTemplateColumns: "280px 1fr 128px 96px 48px" }}
+          style={{ display: "grid", gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS }}
         >
           <div>{t("account")}</div>
           <div>{t("modelQuotas")}</div>
           <div className="text-center">{t("lastUsed")}</div>
-          <div className="text-center" title={t("quotaCutoffsColumnHelp")}>
-            {t("quotaThresholdLabel")}
+          <div
+            className="text-center truncate"
+            title={tr(
+              "quotaCutoffsColumnHelp",
+              "Stop requests when remaining quota falls to this percentage or below."
+            )}
+          >
+            {tr("quotaThresholdLabel", "Min left")}
           </div>
           <div className="text-center">{t("actions")}</div>
         </div>
@@ -627,7 +667,7 @@ export default function ProviderLimits() {
                 className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "280px 1fr 128px 96px 48px",
+                  gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS,
                   borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
                 }}
               >
@@ -838,7 +878,7 @@ export default function ProviderLimits() {
                     );
                     const connectionHasWindows = connectionWindows.length > 0;
                     // Summary: up to 2 entries with short labels; "+N" for the rest.
-                    let label: string = t("quotaCutoffsButtonDefault");
+                    let label: string = tr("quotaCutoffsButtonDefault", "Default");
                     if (hasOverrides && overrides) {
                       const entries = Object.entries(overrides);
                       const visible = entries
@@ -857,10 +897,16 @@ export default function ProviderLimits() {
                         disabled={!connectionHasWindows}
                         title={
                           connectionHasWindows
-                            ? t("quotaCutoffsButtonHelp")
-                            : t("quotaCutoffsButtonDisabled")
+                            ? tr(
+                                "quotaCutoffsButtonHelp",
+                                "Edit minimum remaining quota cutoffs for this account."
+                              )
+                            : tr(
+                                "quotaCutoffsButtonDisabled",
+                                "No quota windows are available for this account yet."
+                              )
                         }
-                        className={`px-2 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                        className={`block w-full max-w-[70px] truncate px-1.5 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                           hasOverrides
                             ? "border-primary/40 text-primary bg-primary/5"
                             : "border-border text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"

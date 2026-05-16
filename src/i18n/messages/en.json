@@ -4350,7 +4350,18 @@
     "suiteBuilderDescriptionLabel": "Description",
     "targetComparisonHint": "Side-by-side comparison of evaluation results between targets.",
     "compareCompletedWithScore": "Comparison completed — {score}% pass rate",
-    "staleQuotaTooltip": "Last refresh failed — showing cached data"
+    "staleQuotaTooltip": "Last refresh failed — showing cached data",
+    "quotaThresholdLabel": "Min left",
+    "quotaCutoffsColumnHelp": "Stop requests when remaining quota falls to this percentage or below.",
+    "quotaCutoffsButtonDefault": "Default",
+    "quotaCutoffsButtonHelp": "Edit minimum remaining quota cutoffs for this account.",
+    "quotaCutoffsButtonDisabled": "No quota windows are available for this account yet.",
+    "quotaCutoffsTitle": "Quota cutoffs for {name} ({provider})",
+    "quotaCutoffsExplainer": "Override the minimum remaining quota percentage where this account stops being selected for each quota window. Leave blank to inherit the provider default.",
+    "quotaCutoffsDefaultHint": "Default min remaining: {default}%",
+    "quotaCutoffsResetAll": "Reset all",
+    "quotaCutoffsNoWindows": "No quota windows are available for this account yet.",
+    "quotaThresholdInvalid": "Enter a whole number from 0 to 100."
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",

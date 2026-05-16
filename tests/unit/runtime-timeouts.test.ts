@@ -13,7 +13,7 @@ test("upstream timeout config derives hidden fetch timeouts from FETCH_TIMEOUT_M
     fetchTimeoutMs: 600000,
     streamIdleTimeoutMs: 600000,
     sseHeartbeatIntervalMs: 15000,
-    streamReadinessTimeoutMs: 30000,
+    streamReadinessTimeoutMs: 80000,
     fetchHeadersTimeoutMs: 600000,
     fetchBodyTimeoutMs: 600000,
     fetchConnectTimeoutMs: 30000,
