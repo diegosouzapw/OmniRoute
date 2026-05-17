@@ -207,11 +207,22 @@ export class CopilotWebExecutor extends BaseExecutor {
 
           const timeout = setTimeout(() => abort("Copilot WebSocket timeout"), FETCH_TIMEOUT_MS);
 
-          // Wait for challenge before sending chat message
-          let challengeSolved = false;
+          let chatSent = false;
+          const sendChat = () => {
+            if (chatSent) return;
+            chatSent = true;
+            ws!.send(
+              JSON.stringify({
+                event: "send",
+                conversationId,
+                content: [{ type: "text", text: prompt }],
+                mode,
+              })
+            );
+          };
 
           ws.onopen = () => {
-            // Don't send chat yet — wait for challenge
+            sendChat();
           };
 
           ws.onmessage = (ev: MessageEvent) => {
@@ -233,18 +244,9 @@ export class CopilotWebExecutor extends BaseExecutor {
                         method: "hashcash",
                       })
                     );
-                    // Send chat message after solving challenge
-                    if (!challengeSolved) {
-                      challengeSolved = true;
-                      ws!.send(
-                        JSON.stringify({
-                          event: "send",
-                          conversationId,
-                          content: [{ type: "text", text: prompt }],
-                          mode,
-                        })
-                      );
-                    }
+                    // Re-send chat after solving challenge
+                    chatSent = false;
+                    sendChat();
                   } else if (event.method === "cloudflare") {
                     abort(
                       "Copilot requires Cloudflare Turnstile verification. Use an authenticated session (access_token) instead."
