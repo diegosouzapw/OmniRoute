@@ -117,6 +117,7 @@ export default function ProvidersPage() {
   const [expirations, setExpirations] = useState<any>(null);
   const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAllProviders, setShowAllProviders] = useState(false);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
@@ -623,20 +624,18 @@ export default function ProvidersPage() {
     webCookieProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
     localProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length;
 
-  if (totalConfigured === 0 && !searchQuery) {
+  if (totalConfigured === 0 && !searchQuery && !showAllProviders) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
           <span className="material-symbols-outlined text-[32px] text-primary">dns</span>
         </div>
-        <h2 className="text-xl font-semibold text-text-main">
-          {t("addFirstProvider") || "Add your first provider"}
-        </h2>
-        <p className="text-sm text-text-muted mt-2 max-w-md">
-          {t("addFirstProviderDesc") ||
-            "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
-        </p>
+        <h2 className="text-xl font-semibold text-text-main">{t("addFirstProvider")}</h2>
+        <p className="text-sm text-text-muted mt-2 max-w-md">{t("addFirstProviderDesc")}</p>
         <div className="flex items-center gap-3 mt-4">
+          <Button icon="add" onClick={() => setShowAllProviders(true)}>
+            {t("addProvider")}
+          </Button>
           <a
             href="https://docs.omniroute.io/providers"
             target="_blank"
@@ -644,7 +643,7 @@ export default function ProvidersPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">help</span>
-            {t("learnMore") || "Learn more"}
+            {t("learnMore")}
           </a>
         </div>
       </div>

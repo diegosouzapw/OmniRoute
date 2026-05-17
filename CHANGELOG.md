@@ -15,6 +15,10 @@
 - **feat(providers):** improve Cohere provider support, expanding models and accurately updating OpenAI context limits. ([#2313](https://github.com/diegosouzapw/OmniRoute/pull/2313) — thanks @backryun)
 - **feat(claude-web):** implement session-based Claude Web executor with auto-refresh authentication — enables direct Claude Web API access without an API key. ([#2283](https://github.com/diegosouzapw/OmniRoute/pull/2283) — thanks @oyi77)
 - **feat(skills):** add 5 CLI skill manifests + AgentSkills / OmniSkills dashboard pages — enables external AI agents to discover and invoke OmniRoute capabilities. ([#2284](https://github.com/diegosouzapw/OmniRoute/pull/2284))
+- **feat(providers):** bulk add API keys with Single/Bulk tabs.
+- **feat(provider):** add Gitlawb Opengateway provider (xiaomi-mimo + gmi-cloud) with hasFree flag support. ([#2314](https://github.com/diegosouzapw/OmniRoute/pull/2314) — thanks @oyi77)
+- **feat(ui):** comprehensive dashboard UX rework including simple/advanced modes for RTK/Caveman, human-readable error badges, InfoTooltip/PresetSlider shared components, sidebar subtitles, and provider category filters. ([#2315](https://github.com/diegosouzapw/OmniRoute/pull/2315), [#2316](https://github.com/diegosouzapw/OmniRoute/pull/2316) — thanks @dhaern, @oyi77)
+- **feat(i18n):** add simple/advanced mode keys and missing provider filter keys (`allProviders`, `audioProviders`, `showFreeOnly`).
 - **feat(cli):** full i18n support — 42 locales, `--lang` flag, `config lang get/set/list` commands for CLI language selection. ([#2285](https://github.com/diegosouzapw/OmniRoute/pull/2285))
 
 ### Changed
@@ -42,6 +46,10 @@
 
 ### Fixed
 
+- **fix(security):** resolve CodeQL ReDoS + URL sanitization alerts.
+- **fix(auth):** stop retrying unrecoverable token refresh failures and include connection id in token health check credentials.
+- **fix(auth):** return synthetic credentials for noAuth free providers and show no-auth card in dashboard instead of OAuth modal.
+- **fix(endpoint):** replace nested `<button>` with `<div role=button>` in tunnel toggle rows to fix hydration warnings.
 - **fix(claude):** guard orphan tool_use/tool_result pairs before upstream send, resolving a critical Anthropic 400 error on truncated histories. ([#2312](https://github.com/diegosouzapw/OmniRoute/pull/2312) — thanks @mrmm)
 - **fix(ui):** remove count from batch removal button for cleaner interface. ([#2309](https://github.com/diegosouzapw/OmniRoute/pull/2309) — thanks @hartmark)
 - **fix(sse):** strip stale `Content-Encoding`, `Content-Length`, and `Transfer-Encoding` headers on non-streaming forward — fixes JSON truncation on gzipped Gemini responses where clients honoring `Content-Length` read only the compressed byte count of the decompressed payload, causing `"Unterminated string in JSON"` parse failures. RFC 7230 §6.1 compliant. ([#2264](https://github.com/diegosouzapw/OmniRoute/pull/2264) — thanks @gleber)
@@ -77,6 +85,7 @@
 - **fix(streaming):** harden stream readiness detection — recognize OpenAI Responses API lifecycle events (`response.created`, `response.in_progress`, `response.output_item.added`) and Chat Completions start chunks as readiness signals; switch GLM from idle timeout to readiness timeout; compact Provider Limits cutoff UI with i18n fallback labels; fix DeepSeek PoW dynamic import warning; static locale for docs prerender. ([#2317](https://github.com/diegosouzapw/OmniRoute/pull/2317) — thanks @dhaern)
 - **chore(providers):** refresh provider model metadata, sort dashboard entries by display name, fix docs generator relative links and frontmatter. ([#2318](https://github.com/diegosouzapw/OmniRoute/pull/2318) — thanks @backryun)
 - **chore(providers):** consolidate Alibaba provider entries — merge `alicode`/`alicode-intl` into shared `ALIBABA_DASHSCOPE_MODELS` array, update 42 i18n llm.txt files. ([#2319](https://github.com/diegosouzapw/OmniRoute/pull/2319) — thanks @backryun)
+- **chore:** narrow `.claude/` gitignore to runtime files only and untrack `scheduled_tasks.lock`.
 - **Docs:** 270 broken internal markdown links repaired.
 
 ---

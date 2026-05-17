@@ -45,7 +45,9 @@ export function getBaseUrl(opts = {}) {
 }
 
 function stripTrailingSlash(value) {
-  return String(value).replace(/\/+$/, "");
+  let s = String(value);
+  while (s.endsWith("/")) s = s.slice(0, -1);
+  return s;
 }
 
 function resolveUrl(path, opts) {
