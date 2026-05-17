@@ -25,7 +25,11 @@ if (!process.env.DEEPSEEK_WEB_SESSION_COOKIE) {
     });
 
     assert.ok(result.response, "Should return a response");
-    assert.ok(result.url.includes("chat.deepseek.com"), "Should target chat.deepseek.com");
+    assert.equal(
+      new URL(result.url).hostname,
+      "chat.deepseek.com",
+      "Should target chat.deepseek.com"
+    );
 
     if (result.response.ok) {
       const ct = result.response.headers.get("content-type") || "";
