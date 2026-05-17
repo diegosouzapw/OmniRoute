@@ -876,6 +876,18 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
   },
+  "github-models": {
+    id: "github-models",
+    alias: "ghm",
+    name: "GitHub Models",
+    icon: "code",
+    color: "#238636",
+    textIcon: "GH",
+    website: "https://github.com/marketplace/models",
+    hasFree: true,
+    freeNote: "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3 — GitHub account only.",
+    authHint: "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
+  },
   "cloudflare-ai": {
     id: "cloudflare-ai",
     alias: "cf",
@@ -2016,6 +2028,35 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     isOpenAICompatibleProvider(providerId) ||
     isAnthropicCompatibleProvider(providerId)
   );
+}
+
+/**
+ * Providers explicitly excluded from bulk API key add — auth is heterogeneous,
+ * OAuth-based, multi-field, or requires manual setup per connection.
+ */
+const BULK_API_KEY_EXCLUDED = new Set([
+  "vertex",
+  "vertex-partner",
+  "ollama-local",
+  "grok-web",
+  "perplexity-web",
+  "blackbox-web",
+  "muse-spark-web",
+  "deepseek-web",
+  "qoder",
+  "google-pse-search",
+  "command-code",
+  "azure",
+  "cloudflare-ai",
+]);
+
+export function supportsBulkApiKey(providerId: unknown): boolean {
+  if (typeof providerId !== "string" || !providerId) return false;
+  if (BULK_API_KEY_EXCLUDED.has(providerId)) return false;
+  if (isLocalProvider(providerId)) return false;
+  if (isSelfHostedChatProvider(providerId)) return false;
+  if (isClaudeCodeCompatibleProvider(providerId)) return false;
+  return true;
 }
 
 // ── System Providers (virtual, not user-connectable) ──────────────────────────

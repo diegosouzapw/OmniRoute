@@ -1683,10 +1683,13 @@ export async function handleChatCore({
 
   // Codex /responses/compact is JSON-only: Codex CLI does not send stream=false,
   // so route shape must override the usual Accept/header fallback.
+  // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
+  // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
+  // clients send Accept: */* without an explicit stream flag.
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
   const settings = cachedSettings ?? (await getCachedSettings());
   credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
   effectiveServiceTier = resolveEffectiveServiceTier(body);

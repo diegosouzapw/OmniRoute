@@ -8,7 +8,9 @@ export function generateOpencodeConfig(options: {
   apiKey: string;
   model?: string;
 }): string {
-  const base = options.baseUrl.replace(/\/+$/, "").replace(/\/v1$/, "");
+  let base = options.baseUrl;
+  while (base.endsWith("/")) base = base.slice(0, -1);
+  if (base.endsWith("/v1")) base = base.slice(0, -3);
 
   const config = {
     provider: "omniroute",

@@ -5,6 +5,12 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Claude Code local state — runtime files only; shared commands at .claude/commands/ are tracked
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks/
+.claude/sessions/
+.claude/state.json
+
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
 

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { ensureCliConfigWriteAllowed } from "@/shared/services/cliRuntime";
 import { CodexAuthFileError, writeCodexAuthFileToLocalCli } from "@/lib/oauth/utils/codexAuthFile";
+import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function toErrorResponse(error: unknown) {
   if (error instanceof CodexAuthFileError) {
@@ -14,13 +16,15 @@ function toErrorResponse(error: unknown) {
     );
   }
 
-  const message = error instanceof Error ? error.message : "Failed to apply Codex auth file";
+  const message = sanitizeErrorMessage(error) || "Failed to apply Codex auth file";
   return NextResponse.json({ error: message }, { status: 500 });
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
+
+  const auditContext = getAuditRequestContext(request);
 
   try {
     const writeGuard = ensureCliConfigWriteAllowed();
@@ -31,11 +35,28 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const result = await writeCodexAuthFileToLocalCli(id);
 
+    logAuditEvent({
+      action: "provider.credentials.applied",
+      actor: "admin",
+      target: id,
+      resourceType: "provider_credentials",
+      status: "success",
+      ipAddress: auditContext.ipAddress || undefined,
+      requestId: auditContext.requestId,
+      metadata: {
+        provider: "codex",
+        authPath: result.authPath,
+        savedBakPath: result.savedBakPath,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       connectionId: id,
       connectionLabel: result.connectionLabel,
       authPath: result.authPath,
+      savedBakPath: result.savedBakPath,
+      centralizedBackupPath: result.centralizedBackupPath,
       writtenAt: new Date().toISOString(),
     });
   } catch (error) {

@@ -31,7 +31,9 @@ import {
   isSelfHostedChatProvider,
   providerAllowsOptionalApiKey,
   supportsApiKeyOnFreeProvider,
+  supportsBulkApiKey,
 } from "@/shared/constants/providers";
+import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
   compatibleProviderSupportsModelImport,
@@ -1056,7 +1058,11 @@ export default function ProviderDetailPage() {
     null
   );
   const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
+  const [applyCodexModalConnectionId, setApplyCodexModalConnectionId] = useState<string | null>(
+    null
+  );
   const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
+  const [importCodexModalOpen, setImportCodexModalOpen] = useState(false);
   const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -2212,6 +2218,7 @@ export default function ProviderDetailPage() {
       }
 
       notify.success(defaultSuccess);
+      setApplyCodexModalConnectionId(null);
     } catch (error) {
       console.error("Error applying Codex auth locally:", error);
       notify.error(defaultError);
@@ -3337,6 +3344,17 @@ export default function ProviderDetailPage() {
                           Experimental OAuth
                         </Button>
                       )}
+                      {providerId === "codex" && (
+                        <Button
+                          variant="secondary"
+                          icon="upload_file"
+                          onClick={() => setImportCodexModalOpen(true)}
+                        >
+                          {typeof t.has === "function" && t.has("importCodexAuth")
+                            ? t("importCodexAuth")
+                            : "Import auth"}
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>
@@ -3437,7 +3455,7 @@ export default function ProviderDetailPage() {
                           isRefreshing={refreshingId === conn.id}
                           onApplyCodexAuthLocal={
                             providerId === "codex"
-                              ? () => handleApplyCodexAuthLocal(conn.id)
+                              ? () => setApplyCodexModalConnectionId(conn.id)
                               : undefined
                           }
                           isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
@@ -3599,7 +3617,7 @@ export default function ProviderDetailPage() {
                                 isRefreshing={refreshingId === conn.id}
                                 onApplyCodexAuthLocal={
                                   providerId === "codex"
-                                    ? () => handleApplyCodexAuthLocal(conn.id)
+                                    ? () => setApplyCodexModalConnectionId(conn.id)
                                     : undefined
                                 }
                                 isApplyingCodexAuthLocal={applyingCodexAuthId === conn.id}
@@ -3767,6 +3785,15 @@ export default function ProviderDetailPage() {
           onClose={handleCloseAddApiKeyModal}
         />
       )}
+      {providerId === "codex" && applyCodexModalConnectionId && (
+        <ApplyCodexAuthModal
+          key={applyCodexModalConnectionId}
+          connectionId={applyCodexModalConnectionId}
+          inProgress={!!applyingCodexAuthId}
+          onConfirm={handleApplyCodexAuthLocal}
+          onClose={() => setApplyCodexModalConnectionId(null)}
+        />
+      )}
       {!isUpstreamProxyProvider && (
         <EditConnectionModal
           isOpen={showEditModal}
@@ -3783,6 +3810,17 @@ export default function ProviderDetailPage() {
           onClose={() => setShowEditNodeModal(false)}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
+        />
+      )}
+      {/* Codex Import Auth Modal */}
+      {providerId === "codex" && importCodexModalOpen && (
+        <ImportCodexAuthModal
+          key="import-codex-modal"
+          onClose={() => setImportCodexModalOpen(false)}
+          onSuccess={() => {
+            setImportCodexModalOpen(false);
+            fetchData();
+          }}
         />
       )}
       {/* Batch Test Results Modal */}
@@ -6294,6 +6332,18 @@ function AddApiKeyModal({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [copiedCommandCodeField, setCopiedCommandCodeField] = useState<string | null>(null);
+
+  const bulkSupported = supportsBulkApiKey(provider);
+  const [mode, setMode] = useState<"single" | "bulk">("single");
+  const [bulkText, setBulkText] = useState("");
+  const [bulkValidateKeys, setBulkValidateKeys] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{
+    success: number;
+    failed: number;
+    total: number;
+    errors: Array<{ index: number; name: string; message: string }>;
+  } | null>(null);
+  const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
     : isWebSessionProvider
@@ -6486,6 +6536,45 @@ function AddApiKeyModal({
     }
   };
 
+  const handleBulkSubmit = async () => {
+    if (!provider) return;
+    const parsed = parseBulkApiKeys(bulkText);
+    setBulkWarnings(parsed.warnings);
+    if (parsed.entries.length === 0) return;
+
+    setSaving(true);
+    setBulkResult(null);
+    setSaveError(null);
+
+    try {
+      const res = await fetch("/api/providers/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          entries: parsed.entries.map((e) => ({ name: e.name, apiKey: e.apiKey })),
+          priority: formData.priority || 1,
+          validateKeys: bulkValidateKeys,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(typeof data?.error === "string" ? data.error : t("failedSaveConnection"));
+        return;
+      }
+      setBulkResult({
+        success: data.success || 0,
+        failed: data.failed || 0,
+        total: data.total || 0,
+        errors: Array.isArray(data.errors) ? data.errors : [],
+      });
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : t("failedSaveConnection"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!provider) return null;
 
   return (
@@ -6495,298 +6584,1157 @@ function AddApiKeyModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
-        {isCcCompatible && (
-          <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
-            <div className="flex items-start gap-2">
-              <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
-                warning
-              </span>
-              <p>{t("ccCompatibleValidationHint")}</p>
-            </div>
+        {bulkSupported && (
+          <div className="flex gap-1 border-b border-border">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("single");
+                setBulkResult(null);
+                setBulkWarnings([]);
+              }}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                mode === "single"
+                  ? "border-b-2 border-primary text-text-main"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {t("bulkTabSingle")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("bulk");
+                setSaveError(null);
+              }}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                mode === "bulk"
+                  ? "border-b-2 border-primary text-text-main"
+                  : "text-text-muted hover:text-text-main"
+              }`}
+            >
+              {t("bulkTabBulkAdd")}
+            </button>
           </div>
         )}
-        {isCommandCode && onStartCommandCodeAuth && (
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-sm">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined mt-0.5 text-[18px] text-sky-500">
-                open_in_new
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-text-main">Browser/manual connect</p>
-                <p className="mt-1 text-xs text-text-muted">
-                  Open Command Code Studio, then paste the returned key/JSON/URL into the API key
-                  field below.
-                </p>
-                {commandCodeAuthState?.message && (
-                  <p className="mt-2 text-xs text-text-muted">
-                    {commandCodeAuthPhaseLabel}: {commandCodeAuthState.message}
-                  </p>
+
+        {bulkSupported && mode === "bulk" && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs text-text-muted">{t("bulkAddFormatHint")}</p>
+            <textarea
+              className="w-full rounded border border-border bg-background p-2 text-sm font-mono resize-y min-h-[140px] focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder={"name1|sk-key1\nname2|sk-key2\nsk-key-only-auto-named"}
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+            />
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-text-muted">{t("priorityLabel")}</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={formData.priority}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      priority: Number.parseInt(e.target.value) || 1,
+                    })
+                  }
+                  className="w-20 px-2 py-1 text-sm border border-border rounded bg-background"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={bulkValidateKeys}
+                  onChange={(e) => setBulkValidateKeys(e.target.checked)}
+                  className="rounded border-border"
+                />
+                {t("bulkValidateKeys")}
+              </label>
+            </div>
+            {bulkWarnings.length > 0 && (
+              <div className="rounded border border-amber-500/25 bg-amber-500/10 p-2 text-xs text-amber-200 space-y-1">
+                {bulkWarnings.map((w, i) => (
+                  <div key={i}>{w}</div>
+                ))}
+              </div>
+            )}
+            {bulkResult && (
+              <div
+                className={`text-sm font-medium ${
+                  bulkResult.failed > 0 ? "text-amber-300" : "text-emerald-400"
+                }`}
+              >
+                {t("bulkAddedCount", { count: bulkResult.success })}
+                {bulkResult.failed > 0 && (
+                  <>, {t("bulkFailedCount", { count: bulkResult.failed })}</>
                 )}
-                {commandCodeAuthState?.authUrl && (
-                  <div className="mt-3 space-y-2">
-                    <div>
-                      <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
-                      <div className="flex gap-2">
-                        <Input
-                          value={commandCodeAuthState.authUrl}
-                          readOnly
-                          className="flex-1 font-mono text-xs"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={copiedCommandCodeField === "authUrl" ? "check" : "content_copy"}
-                          onClick={() =>
-                            copyCommandCodeValue(commandCodeAuthState.authUrl, "authUrl")
-                          }
-                        />
-                      </div>
-                    </div>
-                    {commandCodeAuthState.callbackUrl && (
-                      <div>
-                        <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
-                        <div className="flex gap-2">
-                          <Input
-                            value={commandCodeAuthState.callbackUrl}
-                            readOnly
-                            className="flex-1 font-mono text-xs"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={
-                              copiedCommandCodeField === "callbackUrl" ? "check" : "content_copy"
-                            }
-                            onClick={() =>
-                              copyCommandCodeValue(commandCodeAuthState.callbackUrl, "callbackUrl")
-                            }
-                          />
-                        </div>
-                      </div>
+                {bulkResult.errors.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-xs text-text-muted font-normal space-y-0.5">
+                    {bulkResult.errors.slice(0, 10).map((err, i) => (
+                      <li key={i}>
+                        {err.name}: {err.message}
+                      </li>
+                    ))}
+                    {bulkResult.errors.length > 10 && (
+                      <li>… {bulkResult.errors.length - 10} more</li>
                     )}
-                  </div>
+                  </ul>
                 )}
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon="open_in_new"
-                loading={
-                  commandCodeAuthState?.phase === "starting" ||
-                  commandCodeAuthState?.phase === "polling" ||
-                  commandCodeAuthState?.phase === "applying"
-                }
-                onClick={onStartCommandCodeAuth}
-              >
-                Connect in browser
+            )}
+            {saveError && <div className="text-sm text-rose-400">{saveError}</div>}
+            <div className="flex gap-2">
+              <Button onClick={handleBulkSubmit} fullWidth disabled={saving || !bulkText.trim()}>
+                {saving ? t("adding") : t("bulkAddAllKeys")}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
               </Button>
             </div>
           </div>
         )}
-        <Input
-          label={t("nameLabel")}
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
-        />
-        <div className="flex gap-2">
-          <Input
-            label={apiCredentialLabel}
-            type="password"
-            value={formData.apiKey}
-            onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-            className="flex-1"
-            placeholder={apiCredentialPlaceholder}
-            hint={apiCredentialHint}
-          />
-          <div className="pt-6">
-            <Button
-              onClick={handleValidate}
-              disabled={
-                (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                (isGooglePse && !formData.cx.trim()) ||
-                validating ||
-                saving
-              }
-              variant="secondary"
-            >
-              {validating ? t("checking") : t("check")}
-            </Button>
-          </div>
-        </div>
-        {isGooglePse && (
-          <Input
-            label={t("searchEngineIdLabel")}
-            value={formData.cx}
-            onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
-            placeholder="012345678901234567890:abc123xyz"
-            hint={t("searchEngineIdHint")}
-          />
-        )}
-        {validationResult && (
-          <Badge variant={validationResult === "success" ? "success" : "error"}>
-            {validationResult === "success" ? t("valid") : t("invalid")}
-          </Badge>
-        )}
-        {saveError && (
-          <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-            {saveError}
-          </div>
-        )}
-        {isCcCompatible && (
-          <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
-            <Toggle
-              checked={formData.ccCompatibleContext1m}
-              onChange={(checked) => setFormData({ ...formData, ccCompatibleContext1m: checked })}
-              label={t("ccCompatibleContext1mLabel")}
-              description={t("ccCompatibleContext1mDescription")}
-            />
-          </div>
-        )}
-        {isCompatible && !isCcCompatible && (
-          <p className="text-xs text-text-muted">
-            {isAnthropic
-              ? t("validationChecksAnthropicCompatible", {
-                  provider: providerName || t("anthropicCompatibleName"),
-                })
-              : t("validationChecksOpenAiCompatible", {
-                  provider: providerName || t("openaiCompatibleName"),
-                })}
-          </p>
-        )}
-        <button
-          type="button"
-          className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          aria-expanded={showAdvanced}
-          aria-controls="add-api-key-advanced-settings"
-        >
-          <span
-            className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
-            aria-hidden="true"
-          >
-            ▶
-          </span>
-          {t("advancedSettings")}
-        </button>
-        {showAdvanced && (
-          <div
-            id="add-api-key-advanced-settings"
-            className="flex flex-col gap-3 pl-2 border-l-2 border-border"
-          >
+
+        {(!bulkSupported || mode === "single") && (
+          <>
+            {isCcCompatible && (
+              <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-text-muted">
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+                    warning
+                  </span>
+                  <p>{t("ccCompatibleValidationHint")}</p>
+                </div>
+              </div>
+            )}
+            {isCommandCode && onStartCommandCodeAuth && (
+              <div className="rounded-lg border border-sky-500/20 bg-sky-500/10 px-3 py-3 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined mt-0.5 text-[18px] text-sky-500">
+                    open_in_new
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-text-main">Browser/manual connect</p>
+                    <p className="mt-1 text-xs text-text-muted">
+                      Open Command Code Studio, then paste the returned key/JSON/URL into the API
+                      key field below.
+                    </p>
+                    {commandCodeAuthState?.message && (
+                      <p className="mt-2 text-xs text-text-muted">
+                        {commandCodeAuthPhaseLabel}: {commandCodeAuthState.message}
+                      </p>
+                    )}
+                    {commandCodeAuthState?.authUrl && (
+                      <div className="mt-3 space-y-2">
+                        <div>
+                          <p className="mb-1 text-xs font-medium text-text-main">Auth URL</p>
+                          <div className="flex gap-2">
+                            <Input
+                              value={commandCodeAuthState.authUrl}
+                              readOnly
+                              className="flex-1 font-mono text-xs"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={copiedCommandCodeField === "authUrl" ? "check" : "content_copy"}
+                              onClick={() =>
+                                copyCommandCodeValue(commandCodeAuthState.authUrl, "authUrl")
+                              }
+                            />
+                          </div>
+                        </div>
+                        {commandCodeAuthState.callbackUrl && (
+                          <div>
+                            <p className="mb-1 text-xs font-medium text-text-main">Callback URL</p>
+                            <div className="flex gap-2">
+                              <Input
+                                value={commandCodeAuthState.callbackUrl}
+                                readOnly
+                                className="flex-1 font-mono text-xs"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                icon={
+                                  copiedCommandCodeField === "callbackUrl"
+                                    ? "check"
+                                    : "content_copy"
+                                }
+                                onClick={() =>
+                                  copyCommandCodeValue(
+                                    commandCodeAuthState.callbackUrl,
+                                    "callbackUrl"
+                                  )
+                                }
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon="open_in_new"
+                    loading={
+                      commandCodeAuthState?.phase === "starting" ||
+                      commandCodeAuthState?.phase === "polling" ||
+                      commandCodeAuthState?.phase === "applying"
+                    }
+                    onClick={onStartCommandCodeAuth}
+                  >
+                    Connect in browser
+                  </Button>
+                </div>
+              </div>
+            )}
             <Input
-              label={t("customUserAgentLabel")}
-              value={formData.customUserAgent}
-              onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
-              placeholder="my-app/1.0"
-              hint={t("customUserAgentHint")}
+              label={t("nameLabel")}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
             />
-            <Input
-              label={t("routingTagsLabel")}
-              value={formData.routingTags}
-              onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
-              placeholder={t("routingTagsPlaceholder")}
-              hint={t("routingTagsHint")}
-            />
-            <Input
-              label={t("excludedModelsLabel")}
-              value={formData.excludedModels}
-              onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
-              placeholder={t("excludedModelsPlaceholder")}
-              hint={t("excludedModelsHint")}
-            />
-            <Toggle
-              size="sm"
-              checked={formData.passthroughModels}
-              onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
-              label={t("perModelQuotaLabel")}
-              description={t("perModelQuotaDescription")}
-            />
-            {provider === "bailian-coding-plan" && (
+            <div className="flex gap-2">
               <Input
-                label={t("consoleApiKeyOracleLabel")}
-                value={formData.consoleApiKey}
-                onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
-                placeholder={t("consoleApiKeyOraclePlaceholder")}
-                hint={t("consoleApiKeyOracleHint")}
+                label={apiCredentialLabel}
                 type="password"
+                value={formData.apiKey}
+                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                className="flex-1"
+                placeholder={apiCredentialPlaceholder}
+                hint={apiCredentialHint}
+              />
+              <div className="pt-6">
+                <Button
+                  onClick={handleValidate}
+                  disabled={
+                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                    (isGooglePse && !formData.cx.trim()) ||
+                    validating ||
+                    saving
+                  }
+                  variant="secondary"
+                >
+                  {validating ? t("checking") : t("check")}
+                </Button>
+              </div>
+            </div>
+            {isGooglePse && (
+              <Input
+                label={t("searchEngineIdLabel")}
+                value={formData.cx}
+                onChange={(e) => setFormData({ ...formData, cx: e.target.value })}
+                placeholder="012345678901234567890:abc123xyz"
+                hint={t("searchEngineIdHint")}
               />
             )}
-          </div>
-        )}
-        <Input
-          label={t("validationModelIdLabel")}
-          placeholder={t("validationModelIdPlaceholder")}
-          value={formData.validationModelId}
-          onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
-          hint={t("validationModelIdHint")}
-        />
-        <Input
-          label={t("priorityLabel")}
-          type="number"
-          value={formData.priority}
-          onChange={(e) =>
-            setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
-          }
-        />
-        {usesBaseUrl && (
-          <Input
-            label={t("baseUrlLabel")}
-            value={formData.baseUrl}
-            onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
-            placeholder={getProviderBaseUrlPlaceholder(provider)}
-            hint={getProviderBaseUrlHint(provider, t)}
-          />
-        )}
-        {isVertex && (
-          <Input
-            label={t("regionLabel")}
-            value={formData.region}
-            onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-            placeholder={defaultRegion}
-            hint={t("regionHint")}
-          />
-        )}
-        {isCloudflare && (
-          <Input
-            label={t("accountIdLabel")}
-            value={formData.accountId}
-            onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-            placeholder={t("accountIdPlaceholder")}
-            hint={t("accountIdHint")}
-          />
-        )}
-        {isGlm && (
-          <div>
-            <label className="text-sm font-medium text-text-main mb-1 block">
-              {t("apiRegionLabel")}
-            </label>
-            <select
-              value={formData.apiRegion}
-              onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            {validationResult && (
+              <Badge variant={validationResult === "success" ? "success" : "error"}>
+                {validationResult === "success" ? t("valid") : t("invalid")}
+              </Badge>
+            )}
+            {saveError && (
+              <div className="text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                {saveError}
+              </div>
+            )}
+            {isCcCompatible && (
+              <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+                <Toggle
+                  checked={formData.ccCompatibleContext1m}
+                  onChange={(checked) =>
+                    setFormData({ ...formData, ccCompatibleContext1m: checked })
+                  }
+                  label={t("ccCompatibleContext1mLabel")}
+                  description={t("ccCompatibleContext1mDescription")}
+                />
+              </div>
+            )}
+            {isCompatible && !isCcCompatible && (
+              <p className="text-xs text-text-muted">
+                {isAnthropic
+                  ? t("validationChecksAnthropicCompatible", {
+                      provider: providerName || t("anthropicCompatibleName"),
+                    })
+                  : t("validationChecksOpenAiCompatible", {
+                      provider: providerName || t("openaiCompatibleName"),
+                    })}
+              </p>
+            )}
+            <button
+              type="button"
+              className="text-sm text-text-muted hover:text-text-primary flex items-center gap-1"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              aria-expanded={showAdvanced}
+              aria-controls="add-api-key-advanced-settings"
             >
-              <option value="international">{t("apiRegionInternational")}</option>
-              <option value="china">{t("apiRegionChina")}</option>
-            </select>
-            <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
-          </div>
+              <span
+                className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+                aria-hidden="true"
+              >
+                ▶
+              </span>
+              {t("advancedSettings")}
+            </button>
+            {showAdvanced && (
+              <div
+                id="add-api-key-advanced-settings"
+                className="flex flex-col gap-3 pl-2 border-l-2 border-border"
+              >
+                <Input
+                  label={t("customUserAgentLabel")}
+                  value={formData.customUserAgent}
+                  onChange={(e) => setFormData({ ...formData, customUserAgent: e.target.value })}
+                  placeholder="my-app/1.0"
+                  hint={t("customUserAgentHint")}
+                />
+                <Input
+                  label={t("routingTagsLabel")}
+                  value={formData.routingTags}
+                  onChange={(e) => setFormData({ ...formData, routingTags: e.target.value })}
+                  placeholder={t("routingTagsPlaceholder")}
+                  hint={t("routingTagsHint")}
+                />
+                <Input
+                  label={t("excludedModelsLabel")}
+                  value={formData.excludedModels}
+                  onChange={(e) => setFormData({ ...formData, excludedModels: e.target.value })}
+                  placeholder={t("excludedModelsPlaceholder")}
+                  hint={t("excludedModelsHint")}
+                />
+                <Toggle
+                  size="sm"
+                  checked={formData.passthroughModels}
+                  onChange={(checked) => setFormData({ ...formData, passthroughModels: checked })}
+                  label={t("perModelQuotaLabel")}
+                  description={t("perModelQuotaDescription")}
+                />
+                {provider === "bailian-coding-plan" && (
+                  <Input
+                    label={t("consoleApiKeyOracleLabel")}
+                    value={formData.consoleApiKey}
+                    onChange={(e) => setFormData({ ...formData, consoleApiKey: e.target.value })}
+                    placeholder={t("consoleApiKeyOraclePlaceholder")}
+                    hint={t("consoleApiKeyOracleHint")}
+                    type="password"
+                  />
+                )}
+              </div>
+            )}
+            <Input
+              label={t("validationModelIdLabel")}
+              placeholder={t("validationModelIdPlaceholder")}
+              value={formData.validationModelId}
+              onChange={(e) => setFormData({ ...formData, validationModelId: e.target.value })}
+              hint={t("validationModelIdHint")}
+            />
+            <Input
+              label={t("priorityLabel")}
+              type="number"
+              value={formData.priority}
+              onChange={(e) =>
+                setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
+              }
+            />
+            {usesBaseUrl && (
+              <Input
+                label={t("baseUrlLabel")}
+                value={formData.baseUrl}
+                onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
+                placeholder={getProviderBaseUrlPlaceholder(provider)}
+                hint={getProviderBaseUrlHint(provider, t)}
+              />
+            )}
+            {isVertex && (
+              <Input
+                label={t("regionLabel")}
+                value={formData.region}
+                onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                placeholder={defaultRegion}
+                hint={t("regionHint")}
+              />
+            )}
+            {isCloudflare && (
+              <Input
+                label={t("accountIdLabel")}
+                value={formData.accountId}
+                onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                placeholder={t("accountIdPlaceholder")}
+                hint={t("accountIdHint")}
+              />
+            )}
+            {isGlm && (
+              <div>
+                <label className="text-sm font-medium text-text-main mb-1 block">
+                  {t("apiRegionLabel")}
+                </label>
+                <select
+                  value={formData.apiRegion}
+                  onChange={(e) => setFormData({ ...formData, apiRegion: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+                >
+                  <option value="international">{t("apiRegionInternational")}</option>
+                  <option value="china">{t("apiRegionChina")}</option>
+                </select>
+                <p className="text-xs text-text-muted mt-1">{t("apiRegionHint")}</p>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSubmit}
+                fullWidth
+                disabled={
+                  !formData.name ||
+                  (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                  (isGooglePse && !formData.cx.trim()) ||
+                  saving ||
+                  (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
+                }
+              >
+                {saving ? t("saving") : t("save")}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
+              </Button>
+            </div>
+          </>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+// ──── ImportCodexAuthModal ────────────────────────────────────────────────────
+
+interface ImportCodexAuthModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+type ImportTopTab = "single" | "bulk";
+type BulkSubMode = "upload" | "paste" | "zip";
+
+interface BulkEntry {
+  name: string;
+  json: unknown;
+  parseError: string | null;
+  email: string | null;
+}
+
+function extractEmailFromJwtLocal(idToken: string): string | null {
+  try {
+    const parts = idToken.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    return typeof payload.email === "string" ? payload.email : null;
+  } catch {
+    return null;
+  }
+}
+
+function previewCodexJson(json: unknown): { valid: boolean; email: string | null } {
+  try {
+    const doc = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
+    if (!doc || doc.auth_mode !== "chatgpt") return { valid: false, email: null };
+    const tokens =
+      doc.tokens && typeof doc.tokens === "object" ? (doc.tokens as Record<string, unknown>) : null;
+    if (!tokens?.id_token || typeof tokens.id_token !== "string")
+      return { valid: false, email: null };
+    return { valid: true, email: extractEmailFromJwtLocal(tokens.id_token as string) };
+  } catch {
+    return { valid: false, email: null };
+  }
+}
+
+function parseBulkPasteText(text: string): BulkEntry[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+
+  const tryParse = (s: string): BulkEntry => {
+    try {
+      const json = JSON.parse(s);
+      const { email } = previewCodexJson(json);
+      return { name: email || "unknown", json, parseError: null, email };
+    } catch {
+      return { name: "parse error", json: null, parseError: "Invalid JSON", email: null };
+    }
+  };
+
+  try {
+    const arr = JSON.parse(trimmed);
+    if (Array.isArray(arr))
+      return arr.map((item) => {
+        const { email } = previewCodexJson(item);
+        return { name: email || "unknown", json: item, parseError: null, email };
+      });
+    const { email } = previewCodexJson(arr);
+    return [{ name: email || "unknown", json: arr, parseError: null, email }];
+  } catch {
+    return trimmed
+      .split(/^---$/m)
+      .map((s) => tryParse(s.trim()))
+      .filter((e) => e.json !== null || e.parseError !== null);
+  }
+}
+
+function ImportCodexAuthModal({ onClose, onSuccess }: ImportCodexAuthModalProps) {
+  const t = useTranslations("providers");
+  const notify = useNotificationStore();
+
+  // Top-level tab: Single / Bulk
+  const [topTab, setTopTab] = useState<ImportTopTab>("single");
+
+  // ── Single mode state ──
+  const [singleTab, setSingleTab] = useState<"upload" | "paste">("upload");
+  const [singleParsedJson, setSingleParsedJson] = useState<unknown>(null);
+  const [singleParseError, setSingleParseError] = useState<string | null>(null);
+  const [singleDetectedEmail, setSingleDetectedEmail] = useState<string | null>(null);
+  const [singlePasteText, setSinglePasteText] = useState("");
+  const [singleName, setSingleName] = useState("");
+  const [singleEmail, setSingleEmail] = useState("");
+  const [singleOverwrite, setSingleOverwrite] = useState(false);
+  const [singleLoading, setSingleLoading] = useState(false);
+  const [singleError, setSingleError] = useState<string | null>(null);
+
+  // ── Bulk mode state ──
+  const [bulkMode, setBulkMode] = useState<BulkSubMode>("upload");
+  const [bulkEntries, setBulkEntries] = useState<BulkEntry[]>([]);
+  const [bulkPasteText, setBulkPasteText] = useState("");
+  const [bulkZipExtracting, setBulkZipExtracting] = useState(false);
+  const [bulkZipError, setBulkZipError] = useState<string | null>(null);
+  const [bulkOverwrite, setBulkOverwrite] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{
+    success: number;
+    failed: number;
+    errors: { index: number; name: string; message: string }[];
+  } | null>(null);
+
+  // ── Single helpers ──
+
+  function handleSinglePreview(json: unknown) {
+    setSingleParseError(null);
+    setSingleDetectedEmail(null);
+    setSingleParsedJson(null);
+    const { valid, email } = previewCodexJson(json);
+    if (!valid) {
+      setSingleParseError(t("codexImportInvalidShape") || "Not a valid Codex auth.json");
+      return;
+    }
+    setSingleDetectedEmail(email);
+    if (email && !singleEmail) setSingleEmail(email);
+    setSingleParsedJson(json);
+  }
+
+  function handleSingleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        handleSinglePreview(JSON.parse(ev.target?.result as string));
+      } catch {
+        setSingleParseError(t("codexImportInvalidJson") || "Could not parse JSON");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function handleSinglePasteChange(text: string) {
+    setSinglePasteText(text);
+    if (!text.trim()) {
+      setSingleParsedJson(null);
+      setSingleParseError(null);
+      setSingleDetectedEmail(null);
+      return;
+    }
+    try {
+      handleSinglePreview(JSON.parse(text));
+    } catch {
+      setSingleParseError(t("codexImportInvalidJson") || "Could not parse JSON");
+      setSingleParsedJson(null);
+    }
+  }
+
+  async function handleSingleSubmit() {
+    if (!singleParsedJson) return;
+    setSingleLoading(true);
+    setSingleError(null);
+    try {
+      const res = await fetch("/api/providers/codex-auth/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: { kind: "json", json: singleParsedJson },
+          name: singleName.trim() || undefined,
+          email: singleEmail.trim() || undefined,
+          overwriteExisting: singleOverwrite,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSingleError(
+          data.code === "duplicate_account"
+            ? t("codexImportDuplicate") ||
+                "Account already exists — enable Replace existing to overwrite"
+            : data.error || t("codexImportFailed") || "Failed to import"
+        );
+        return;
+      }
+      notify.success(t("codexImportSuccess") || "Codex connection imported successfully");
+      onSuccess();
+    } catch {
+      setSingleError(t("codexImportFailed") || "Failed to import Codex auth");
+    } finally {
+      setSingleLoading(false);
+    }
+  }
+
+  // ── Bulk helpers ──
+
+  function handleBulkFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    const entries: BulkEntry[] = [];
+    let pending = files.length;
+    if (pending === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const json = JSON.parse(ev.target?.result as string);
+          const { email } = previewCodexJson(json);
+          entries.push({
+            name: email || file.name.replace(".json", ""),
+            json,
+            parseError: null,
+            email,
+          });
+        } catch {
+          entries.push({ name: file.name, json: null, parseError: "Invalid JSON", email: null });
+        }
+        if (--pending === 0) setBulkEntries([...entries]);
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  function handleBulkPasteChange(text: string) {
+    setBulkPasteText(text);
+    if (!text.trim()) {
+      setBulkEntries([]);
+      return;
+    }
+    setBulkEntries(parseBulkPasteText(text));
+  }
+
+  async function handleZipUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBulkZipExtracting(true);
+    setBulkZipError(null);
+    setBulkEntries([]);
+    try {
+      const res = await fetch("/api/providers/codex-auth/zip-extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/octet-stream" },
+        body: file,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setBulkZipError(data.error || t("codexImportBulkZipError") || "Failed to extract ZIP");
+        return;
+      }
+      const extracted: BulkEntry[] = (data.entries || []).map(
+        (entry: { name: string; json: unknown; parseError: string | null }) => {
+          if (entry.parseError)
+            return { name: entry.name, json: null, parseError: entry.parseError, email: null };
+          const { email } = previewCodexJson(entry.json);
+          return {
+            name: email || entry.name.replace(".json", ""),
+            json: entry.json,
+            parseError: null,
+            email,
+          };
+        }
+      );
+      setBulkEntries(extracted);
+    } catch {
+      setBulkZipError(t("codexImportBulkZipError") || "Failed to extract ZIP");
+    } finally {
+      setBulkZipExtracting(false);
+    }
+  }
+
+  async function handleBulkSubmit() {
+    const validEntries = bulkEntries.filter((e) => !e.parseError && e.json !== null);
+    if (validEntries.length === 0) return;
+    setBulkLoading(true);
+    setBulkResult(null);
+    try {
+      const res = await fetch("/api/providers/codex-auth/import-bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entries: validEntries.map((e) => ({
+            json: e.json,
+            name: e.name || undefined,
+            email: e.email || undefined,
+          })),
+          overwriteExisting: bulkOverwrite,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        notify.error(data.error || t("codexImportFailed") || "Failed to import");
+        return;
+      }
+      setBulkResult({ success: data.success, failed: data.failed, errors: data.errors || [] });
+      if (data.success > 0) onSuccess();
+    } catch {
+      notify.error(t("codexImportFailed") || "Failed to import Codex auth");
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  const singleCanSubmit = !!singleParsedJson && !singleParseError && !singleLoading;
+  const validBulkCount = bulkEntries.filter((e) => !e.parseError && e.json !== null).length;
+  const bulkCanSubmit = validBulkCount > 0 && !bulkLoading && !bulkZipExtracting;
+
+  const TOP_TABS: { id: ImportTopTab; label: string }[] = [
+    { id: "single", label: t("codexImportTabSingle") || "Single" },
+    { id: "bulk", label: t("codexImportTabBulk") || "Bulk" },
+  ];
+
+  const BULK_MODES: { id: BulkSubMode; label: string }[] = [
+    { id: "upload", label: t("codexImportBulkModeUpload") || "Upload files" },
+    { id: "paste", label: t("codexImportBulkModePaste") || "Paste list" },
+    { id: "zip", label: t("codexImportBulkModeZip") || "ZIP archive" },
+  ];
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title={t("codexImportModalTitle") || "Import Codex Auth"}
+      maxWidth="max-w-lg"
+    >
+      <div className="flex flex-col gap-4">
+        {/* Top-level Single / Bulk tabs */}
+        <div className="flex border-b border-border">
+          {TOP_TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setTopTab(id);
+                setBulkResult(null);
+                setSingleError(null);
+              }}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                topTab === id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-text-muted hover:text-text-main"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Single tab ── */}
+        {topTab === "single" && (
+          <>
+            {/* Source sub-tabs */}
+            <div className="flex border-b border-border">
+              {(["upload", "paste"] as const).map((id) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setSingleTab(id);
+                    setSingleParsedJson(null);
+                    setSingleParseError(null);
+                    setSingleDetectedEmail(null);
+                  }}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    singleTab === id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-text-muted hover:text-text-main"
+                  }`}
+                >
+                  {id === "upload"
+                    ? t("codexImportTabUpload") || "Upload file"
+                    : t("codexImportTabPaste") || "Paste JSON"}
+                </button>
+              ))}
+            </div>
+
+            {singleTab === "upload" && (
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-text-main">
+                  {t("codexImportFileLabel") || "Choose auth.json"}
+                </label>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleSingleFileChange}
+                  className="text-sm text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-xs file:bg-bg-subtle file:text-text-main hover:file:bg-bg-hover cursor-pointer"
+                />
+                <p className="text-xs text-text-muted">
+                  {t("codexImportFileHint") ||
+                    "Select the auth.json file exported from Codex or OmniRoute."}
+                </p>
+              </div>
+            )}
+
+            {singleTab === "paste" && (
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-text-main">
+                  {t("codexImportPasteLabel") || "Paste the JSON content"}
+                </label>
+                <textarea
+                  value={singlePasteText}
+                  onChange={(e) => handleSinglePasteChange(e.target.value)}
+                  rows={7}
+                  placeholder='{ "auth_mode": "chatgpt", ... }'
+                  className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-xs font-mono text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                />
+              </div>
+            )}
+
+            {singleParseError && <p className="text-sm text-red-500">{singleParseError}</p>}
+            {singleDetectedEmail && !singleParseError && (
+              <p className="text-xs text-text-muted">
+                {t("codexImportDetectedEmail", { email: singleDetectedEmail }) ||
+                  `Detected: ${singleDetectedEmail}`}
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-text-main">
+                  {t("codexImportEmailLabel") || "Account email"}
+                </label>
+                <input
+                  type="email"
+                  value={singleEmail}
+                  onChange={(e) => setSingleEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  className="rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+                <p className="text-xs text-text-muted">
+                  {t("codexImportEmailHint") || "Auto-detected from the file; edit if needed."}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-text-main">
+                  {t("codexImportNameLabel") || "Connection name (optional)"}
+                </label>
+                <input
+                  type="text"
+                  value={singleName}
+                  onChange={(e) => setSingleName(e.target.value)}
+                  placeholder={singleEmail || "Codex (imported)"}
+                  className="rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={singleOverwrite}
+                  onChange={(e) => setSingleOverwrite(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <span className="text-sm text-text-main">
+                  {t("codexImportOverwriteLabel") ||
+                    "Replace existing connection if account already exists"}
+                </span>
+              </label>
+            </div>
+
+            {singleError && (
+              <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+                {singleError}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                onClick={handleSingleSubmit}
+                disabled={!singleCanSubmit}
+                loading={singleLoading}
+                fullWidth
+              >
+                {t("codexImportSubmit") || "Import"}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* ── Bulk tab ── */}
+        {topTab === "bulk" && (
+          <>
+            {/* Sub-mode selector */}
+            <div className="flex gap-1 p-1 bg-bg-subtle rounded-lg">
+              {BULK_MODES.map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setBulkMode(id);
+                    setBulkEntries([]);
+                    setBulkZipError(null);
+                    setBulkPasteText("");
+                    setBulkResult(null);
+                  }}
+                  className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    bulkMode === id
+                      ? "bg-bg-primary text-text-main shadow-sm"
+                      : "text-text-muted hover:text-text-main"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Upload mode */}
+            {bulkMode === "upload" && (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept=".json"
+                  multiple
+                  onChange={handleBulkFilesChange}
+                  className="text-sm text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-xs file:bg-bg-subtle file:text-text-main hover:file:bg-bg-hover cursor-pointer"
+                />
+                <p className="text-xs text-text-muted">
+                  {t("codexImportBulkUploadHint") || "Select multiple .json files"}
+                </p>
+              </div>
+            )}
+
+            {/* Paste mode */}
+            {bulkMode === "paste" && (
+              <div className="flex flex-col gap-2">
+                <textarea
+                  value={bulkPasteText}
+                  onChange={(e) => handleBulkPasteChange(e.target.value)}
+                  rows={7}
+                  placeholder={'[{ "auth_mode": "chatgpt", ... }, ...]'}
+                  className="w-full rounded-lg border border-border bg-bg-subtle px-3 py-2 text-xs font-mono text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+                />
+                <p className="text-xs text-text-muted">
+                  {t("codexImportBulkPasteHint") || "JSON array or multiple JSONs separated by ---"}
+                </p>
+              </div>
+            )}
+
+            {/* ZIP mode */}
+            {bulkMode === "zip" && (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept=".zip"
+                  onChange={handleZipUpload}
+                  disabled={bulkZipExtracting}
+                  className="text-sm text-text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-border file:text-xs file:bg-bg-subtle file:text-text-main hover:file:bg-bg-hover cursor-pointer disabled:opacity-50"
+                />
+                {bulkZipExtracting && (
+                  <p className="text-xs text-text-muted animate-pulse">
+                    {t("codexImportBulkZipExtracting") || "Extracting ZIP…"}
+                  </p>
+                )}
+                {bulkZipError && <p className="text-sm text-red-500">{bulkZipError}</p>}
+                <p className="text-xs text-text-muted">
+                  {t("codexImportBulkZipHint") ||
+                    "Upload a .zip containing auth.json files (max 50 files, 10 MB)"}
+                </p>
+              </div>
+            )}
+
+            {/* Entry preview list */}
+            {bulkEntries.length > 0 && !bulkResult && (
+              <div className="flex flex-col gap-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-bg-subtle p-2">
+                <p className="text-xs font-medium text-text-muted px-1">
+                  {validBulkCount} / {bulkEntries.length} valid
+                </p>
+                {bulkEntries.map((entry, i) => (
+                  <div key={i} className="flex items-center gap-2 px-2 py-1 rounded">
+                    <span
+                      className={`material-symbols-outlined text-[14px] ${entry.parseError ? "text-red-500" : "text-emerald-500"}`}
+                    >
+                      {entry.parseError ? "error" : "check_circle"}
+                    </span>
+                    <span className="text-xs text-text-main flex-1 truncate">{entry.name}</span>
+                    {entry.parseError && (
+                      <span className="text-xs text-red-400">{entry.parseError}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Overwrite checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bulkOverwrite}
+                onChange={(e) => setBulkOverwrite(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm text-text-main">
+                {t("codexImportOverwriteLabel") ||
+                  "Replace existing connections if accounts already exist"}
+              </span>
+            </label>
+
+            {/* Result panel */}
+            {bulkResult && (
+              <div
+                className={`rounded-lg border px-4 py-3 text-sm ${
+                  bulkResult.failed === 0
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                }`}
+              >
+                <p className="font-medium">
+                  {bulkResult.success}{" "}
+                  {t("codexImportBulkSuccess", { count: bulkResult.success }) || "imported"} ·{" "}
+                  {bulkResult.failed}{" "}
+                  {t("codexImportBulkFailed", { count: bulkResult.failed }) || "failed"}
+                </p>
+                {bulkResult.errors.length > 0 && (
+                  <ul className="mt-2 space-y-0.5 text-xs">
+                    {bulkResult.errors.map((e, i) => (
+                      <li key={i}>
+                        <span className="font-medium">{e.name}:</span> {e.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                onClick={handleBulkSubmit}
+                disabled={!bulkCanSubmit}
+                loading={bulkLoading}
+                fullWidth
+              >
+                {bulkLoading
+                  ? t("saving") || "Importing…"
+                  : typeof t.has === "function" && t.has("codexImportBulkSubmit")
+                    ? t("codexImportBulkSubmit", { count: validBulkCount })
+                    : `Import ${validBulkCount} accounts`}
+              </Button>
+              <Button onClick={onClose} variant="ghost" fullWidth>
+                {t("cancel")}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function ApplyCodexAuthModal({
+  connectionId,
+  inProgress,
+  onConfirm,
+  onClose,
+}: {
+  connectionId: string | null;
+  inProgress: boolean;
+  onConfirm: (id: string) => Promise<void>;
+  onClose: () => void;
+}) {
+  const t = useTranslations("providers");
+  // `key`-reset pattern: caller re-mounts the modal each open (different
+  // connectionId triggers a new instance), so local confirmation state is
+  // naturally fresh without any post-render bookkeeping.
+  const [confirmed, setConfirmed] = useState(false);
+  const isOpen = !!connectionId;
+
+  if (!connectionId) return null;
+
+  const title =
+    typeof t.has === "function" && t.has("codexApplyModalTitle")
+      ? t("codexApplyModalTitle")
+      : "Apply to Local Codex";
+  const targetLabel =
+    typeof t.has === "function" && t.has("codexApplyTargetLabel")
+      ? t("codexApplyTargetLabel")
+      : "Target path";
+  const backupLabel =
+    typeof t.has === "function" && t.has("codexApplyBackupLabel")
+      ? t("codexApplyBackupLabel")
+      : "Backups";
+  const warning =
+    typeof t.has === "function" && t.has("codexApplyWarning")
+      ? t("codexApplyWarning")
+      : "This will replace the existing auth.json. Continue?";
+  const confirmText =
+    typeof t.has === "function" && t.has("codexApplyConfirmCheckbox")
+      ? t("codexApplyConfirmCheckbox")
+      : "I confirm I want to replace the existing auth.json";
+  const applyText = typeof t.has === "function" && t.has("codexApply") ? t("codexApply") : "Apply";
+
+  return (
+    <Modal isOpen={isOpen} title={title} onClose={onClose}>
+      <div className="flex flex-col gap-4">
+        <div>
+          <div className="text-xs uppercase text-text-muted mb-1">{targetLabel}</div>
+          <code className="block rounded bg-sidebar px-2 py-1.5 text-xs font-mono text-text-main">
+            ~/.codex/auth.json
+          </code>
+          <p className="mt-1 text-xs text-text-muted">
+            Path is auto-detected per OS (Linux/Mac/Windows).
+          </p>
+        </div>
+        <div>
+          <div className="text-xs uppercase text-text-muted mb-1">{backupLabel}</div>
+          <ul className="text-xs text-text-muted space-y-0.5 list-disc pl-4">
+            <li>
+              <code className="text-text-main">~/.codex/auth-&lt;timestamp&gt;.bak</code> — quick
+              local rollback
+            </li>
+            <li>Centralized backup history (audit trail)</li>
+          </ul>
+        </div>
+        <div className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+          <div className="flex items-start gap-2">
+            <span className="material-symbols-outlined mt-0.5 text-[18px] text-amber-500">
+              warning
+            </span>
+            <span>{warning}</span>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={confirmed}
+            onChange={(e) => setConfirmed(e.target.checked)}
+            className="rounded border-border"
+          />
+          {confirmText}
+        </label>
         <div className="flex gap-2">
           <Button
-            onClick={handleSubmit}
+            onClick={() => void onConfirm(connectionId)}
             fullWidth
-            disabled={
-              !formData.name ||
-              (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-              (isGooglePse && !formData.cx.trim()) ||
-              saving ||
-              (usesBaseUrl && !formData.baseUrl.trim() && !defaultBaseUrl)
-            }
+            disabled={!confirmed || inProgress}
           >
-            {saving ? t("saving") : t("save")}
+            {inProgress ? t("saving") : applyText}
           </Button>
-          <Button onClick={onClose} variant="ghost" fullWidth>
+          <Button onClick={onClose} variant="ghost" fullWidth disabled={inProgress}>
             {t("cancel")}
           </Button>
         </div>
