@@ -51,6 +51,16 @@ const securityHeaders = [
   },
 ];
 
+function isNextIntlExtractorDynamicImportWarning(warning) {
+  const message = typeof warning === "string" ? warning : warning?.message || "";
+  const resource = warning?.module?.resource || warning?.file || "";
+  const target = "next-intl/dist/esm/production/extractor/format/index.js";
+  return (
+    resource.includes(target) &&
+    (message.includes("import(t)") || message.includes("dependency is an expression"))
+  );
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   distDir,
@@ -139,6 +149,13 @@ const nextConfig = {
   typescript: {
     // TODO: Re-enable after fixing all sub-component useTranslations scope issues
     ignoreBuildErrors: true,
+  },
+  webpack(config) {
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      isNextIntlExtractorDynamicImportWarning,
+    ];
+    return config;
   },
   images: {
     unoptimized: true,

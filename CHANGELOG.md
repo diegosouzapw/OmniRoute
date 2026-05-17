@@ -13,18 +13,19 @@
 - **feat(cc-bridge):** config-driven per-provider system-block transform DSL — operators can now configure system prompt transformations per-provider via Dashboard settings UI. ([#2286](https://github.com/diegosouzapw/OmniRoute/pull/2286), closes #2260 — thanks @mrmm)
 - **feat(batch):** global rate-limit header cache with 60s TTL + 24h time-based retry window — shares rate-limit throttle state across sequential batches and uses time-based retry limits for robust large-batch processing. ([#2299](https://github.com/diegosouzapw/OmniRoute/pull/2299) — thanks @hartmark)
 - **feat(providers):** improve Cohere provider support, expanding models and accurately updating OpenAI context limits. ([#2313](https://github.com/diegosouzapw/OmniRoute/pull/2313) — thanks @backryun)
+- **feat(claude-web):** implement session-based Claude Web executor with auto-refresh authentication — enables direct Claude Web API access without an API key. ([#2283](https://github.com/diegosouzapw/OmniRoute/pull/2283) — thanks @oyi77)
+- **feat(skills):** add 5 CLI skill manifests + AgentSkills / OmniSkills dashboard pages — enables external AI agents to discover and invoke OmniRoute capabilities. ([#2284](https://github.com/diegosouzapw/OmniRoute/pull/2284))
+- **feat(cli):** full i18n support — 42 locales, `--lang` flag, `config lang get/set/list` commands for CLI language selection. ([#2285](https://github.com/diegosouzapw/OmniRoute/pull/2285))
 
 ### Changed
 
-- **CLI**: Refatorada arquitetura para usar Commander.js como framework. Monolito `bin/cli-commands.mjs` (2853 linhas) removido — comandos agora vivem individualmente em `bin/cli/commands/`. Sem breaking changes em uso normal; todos os subcomandos previamente listados continuam funcionando.
+- **CLI**: Refactored architecture to use Commander.js as framework. Monolith `bin/cli-commands.mjs` (2853 lines) removed — commands now live individually in `bin/cli/commands/`. No breaking changes in normal usage; all previously listed subcommands continue working.
 
 ### Removed
 
-- `bin/cli-commands.mjs` — substituído por estrutura modular em `bin/cli/commands/`.
-- `bin/cli/index.mjs` — substituído por `bin/cli/program.mjs` + `bin/cli/commands/registry.mjs`.
-- `bin/cli/args.mjs` — substituído pelo suporte nativo de parsing do Commander.js.
-
----
+- `bin/cli-commands.mjs` — replaced by modular structure in `bin/cli/commands/`.
+- `bin/cli/index.mjs` — replaced by `bin/cli/program.mjs` + `bin/cli/commands/registry.mjs`.
+- `bin/cli/args.mjs` — replaced by Commander.js native parsing support.
 
 - **refactor(@omniroute/opencode-provider):** complete rewrite of the npm helper. The `1.0.0` artifact was non-functional — `index.js` re-exported from `.ts` (unrunnable at install time) and the emitted shape didn't match the OpenCode `https://opencode.ai/config.json` schema. The new release ships a real `tsup` build (CJS + ESM + `.d.ts`), schema-correct output (`npm: "@ai-sdk/openai-compatible"`, with `models` catalog), `baseURL` deduplication (no more `/v1/v1`), input validation, 13 unit tests, and full documentation in [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md). Versioned as `0.1.0` to signal the pre-1.0 reset.
 - **chore(npm):** [`@omniroute/opencode-provider@0.1.0`](https://www.npmjs.com/package/@omniroute/opencode-provider) published to npmjs.com under the new `@omniroute` org. Install with `npm install --save-dev @omniroute/opencode-provider`.
@@ -70,7 +71,9 @@
 - **fix(auth+build):** Bearer manage scope on management routes + lazy-load deepseek PoW solver — unblocks MCP remote usage and Docker Next.js standalone builds. ([#2308](https://github.com/diegosouzapw/OmniRoute/pull/2308) — thanks @mrmm)
 - **fix(migrations):** resolve version collision at migration slot 056 by renaming the quota thresholds migration to 057, and add batch deletion API with bulk cleanup support and batch/file management UI. ([#2294](https://github.com/diegosouzapw/OmniRoute/pull/2294) — thanks @hartmark)
 - **chore:** ignore `.playwright-mcp/` generated artifacts (CSP error logs, accessibility tree snapshots) — removes tracked test artifacts and adds the directory to `.gitignore`. ([#2269](https://github.com/diegosouzapw/OmniRoute/pull/2269) — thanks @backryun)
+- **chore:** tidy up deprecated models from Windsurf provider registry. ([#2279](https://github.com/diegosouzapw/OmniRoute/pull/2279) — thanks @backryun)
 - **build(deps):** bump `actions/checkout` from 4 to 6 in CI workflows. ([#2288](https://github.com/diegosouzapw/OmniRoute/pull/2288))
+- **build(deps):** regenerate `package-lock.json` to match `http-proxy-middleware` 4.x bump. ([#2228](https://github.com/diegosouzapw/OmniRoute/pull/2228) — thanks @NomenAK)
 - **Docs:** 270 broken internal markdown links repaired.
 
 ---

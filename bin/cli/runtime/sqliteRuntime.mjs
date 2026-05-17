@@ -1,7 +1,8 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { homedir } from "node:os";
 import { execSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { validateBinaryMagic, platformBinaryLabel } from "./magicBytes.mjs";
 
 const RUNTIME_DIR = join(homedir(), ".omniroute", "runtime");
@@ -73,7 +74,9 @@ async function tryLoadBundled() {
 }
 
 async function tryLoadRuntimeInstalled() {
-  const pkgRoot = join(RUNTIME_DIR, "node_modules", "better-sqlite3");
+  const runtimeNodeModules = resolve(RUNTIME_DIR, "node_modules");
+  const pkgRoot = resolve(runtimeNodeModules, "better-sqlite3");
+  if (!pkgRoot.startsWith(`${runtimeNodeModules}/`)) return null;
   if (!existsSync(join(pkgRoot, "package.json"))) return null;
 
   const buildDir = join(pkgRoot, "build", "Release");
@@ -92,7 +95,7 @@ async function tryLoadRuntimeInstalled() {
   }
 
   try {
-    const mod = await import(pkgRoot);
+    const mod = await import(/* webpackIgnore: true */ pathToFileURL(pkgRoot).href);
     return { kind: "better-sqlite3", Database: mod.default ?? mod };
   } catch {
     return null;

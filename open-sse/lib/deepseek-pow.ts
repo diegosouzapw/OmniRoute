@@ -3,11 +3,6 @@
 // so we use the verified extracted module.
 
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Load the exact solver extracted from DeepSeek's worker chunk.
 // Lazy-loaded inside the function so the standalone Next build can collect
@@ -16,7 +11,7 @@ const require = createRequire(import.meta.url);
 let _U: any | undefined;
 function loadU(): any {
   if (_U === undefined) {
-    _U = require(join(__dirname, "deepseek-pow-solver.cjs")).U;
+    _U = require("./deepseek-pow-solver.cjs").U;
   }
   return _U;
 }

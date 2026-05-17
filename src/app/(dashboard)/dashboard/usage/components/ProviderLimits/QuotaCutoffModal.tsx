@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
+import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
 export interface QuotaCutoffModalWindow {
   /** Stable key — must match the quota name surfaced by the usage fetcher. */
@@ -52,6 +53,8 @@ export default function QuotaCutoffModal({
   onSave,
 }: QuotaCutoffModalProps) {
   const t = useTranslations("usage");
+  const tr = (key: string, fallback: string, values?: UsageTranslationValues) =>
+    translateUsageOrFallback(t, key, fallback, values);
   // Local draft: string per window so empty-string means "inherit".
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -94,7 +97,7 @@ export default function QuotaCutoffModal({
   const handleSave = async () => {
     const patch = buildPatch();
     if (patch === "invalid") {
-      setError(t("quotaThresholdInvalid"));
+      setError(tr("quotaThresholdInvalid", "Enter a whole number from 0 to 100."));
       return;
     }
     if (Object.keys(patch).length === 0) {
@@ -133,28 +136,38 @@ export default function QuotaCutoffModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t("quotaCutoffsTitle", { name: connectionName, provider })}
+      title={tr("quotaCutoffsTitle", `Quota cutoffs for ${connectionName} (${provider})`, {
+        name: connectionName,
+        provider,
+      })}
       size="md"
       footer={
         <>
           {hasAnyOverride && (
             <Button variant="ghost" onClick={handleResetAll} disabled={saving}>
-              {t("quotaCutoffsResetAll")}
+              {tr("quotaCutoffsResetAll", "Reset all")}
             </Button>
           )}
           <Button variant="ghost" onClick={onClose} disabled={saving}>
-            {t("cancel")}
+            {tr("cancel", "Cancel")}
           </Button>
           <Button onClick={handleSave} loading={saving}>
-            {t("save")}
+            {tr("save", "Save")}
           </Button>
         </>
       }
     >
-      <p className="text-sm text-text-muted mb-4">{t("quotaCutoffsExplainer")}</p>
+      <p className="text-sm text-text-muted mb-4">
+        {tr(
+          "quotaCutoffsExplainer",
+          "Override the minimum remaining quota percentage where this account stops being selected for each quota window. Leave blank to inherit the provider default."
+        )}
+      </p>
       <div className="space-y-3">
         {windows.length === 0 && (
-          <div className="text-sm text-text-muted italic">{t("quotaCutoffsNoWindows")}</div>
+          <div className="text-sm text-text-muted italic">
+            {tr("quotaCutoffsNoWindows", "No quota windows are available for this account yet.")}
+          </div>
         )}
         {windows.map((w) => {
           const persisted = current?.[w.key];
@@ -167,7 +180,9 @@ export default function QuotaCutoffModal({
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-text-main">{w.displayName}</div>
                 <div className="text-[11px] text-text-muted">
-                  {t("quotaCutoffsDefaultHint", { default: resolvedDefault })}
+                  {tr("quotaCutoffsDefaultHint", `Default min remaining: ${resolvedDefault}%`, {
+                    default: resolvedDefault,
+                  })}
                 </div>
               </div>
               <div className="flex items-center gap-1">
