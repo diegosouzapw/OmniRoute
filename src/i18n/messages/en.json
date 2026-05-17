@@ -2771,6 +2771,9 @@
   "providers": {
     "title": "Providers",
     "addProvider": "Add Provider",
+    "addFirstProvider": "Add your first provider",
+    "addFirstProviderDesc": "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts.",
+    "learnMore": "Learn more",
     "editProvider": "Edit Provider",
     "deleteProvider": "Delete Provider",
     "noProviders": "No providers configured",
