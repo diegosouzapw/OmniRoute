@@ -10,6 +10,7 @@ import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingS
 // Can be disabled per-request via body._disableToolPrefix = true
 export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
+const MIN_CLAUDE_THINKING_BUDGET = 1024;
 
 type ClaudeContentBlock = Record<string, unknown>;
 type ClaudeMessage = {
@@ -28,6 +29,25 @@ type ClaudeTool = {
   cache_control?: { type: string; ttl?: string };
   defer_loading?: boolean;
 };
+
+function fitThinkingToMaxTokens(
+  maxTokens: number,
+  thinking?: Record<string, unknown>
+): Record<string, unknown> | undefined {
+  const budgetTokens = Number(thinking?.budget_tokens) || 0;
+  if (budgetTokens <= 0) return thinking;
+  if (maxTokens > budgetTokens) return thinking;
+
+  const fittedBudget = maxTokens - 1;
+  if (fittedBudget < MIN_CLAUDE_THINKING_BUDGET) {
+    return { type: "disabled" };
+  }
+
+  return {
+    ...thinking,
+    budget_tokens: fittedBudget,
+  };
+}
 
 /**
  * T02: Recursively strips empty text blocks from content arrays.
@@ -374,19 +394,12 @@ export function openaiToClaudeRequest(model, body, stream) {
           type: "enabled",
           budget_tokens: budget,
         };
-        // Claude requires max_tokens > budget_tokens
-        if (result.max_tokens <= budget) {
-          result.max_tokens = budget + 8192;
-        }
       }
     }
   }
 
-  // Ensure max_tokens > budget_tokens for all thinking configurations (#627)
-  const budgetTokens = Number(result.thinking?.budget_tokens) || 0;
-  if (budgetTokens > 0 && result.max_tokens <= budgetTokens) {
-    result.max_tokens = budgetTokens + 8192;
-  }
+  // Preserve the caller's max_tokens and fit Claude thinking under it.
+  result.thinking = fitThinkingToMaxTokens(result.max_tokens, result.thinking);
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {
