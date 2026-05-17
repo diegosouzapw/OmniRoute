@@ -1388,15 +1388,13 @@ export class CodexExecutor extends BaseExecutor {
     const fallbackReasoningEffort = allowConnectionReasoningDefaults
       ? requestDefaults.reasoningEffort || "medium"
       : undefined;
+    // Issue #2331: model suffix aliases (for example gpt-5.5-xhigh) represent an
+    // explicit model selection, so they must override client-injected defaults such
+    // as OpenCode's automatic reasoning.effort=medium for GPT-5-family requests.
     const rawEffort =
-      explicitReasoning || requestReasoningEffort || modelEffort || fallbackReasoningEffort;
+      modelEffort || explicitReasoning || requestReasoningEffort || fallbackReasoningEffort;
 
-    if (explicitReasoning) {
-      body.reasoning = {
-        ...(reasoningRecord || {}),
-        effort: clampEffort(cleanModel, explicitReasoning),
-      };
-    } else if (rawEffort) {
+    if (rawEffort) {
       body.reasoning = {
         ...(reasoningRecord || {}),
         effort: clampEffort(cleanModel, rawEffort),
