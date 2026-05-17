@@ -401,12 +401,18 @@ const comboRuntimeConfigSchema = z
   })
   .strict();
 
+const comboNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Name is required")
+  .max(100)
+  .regex(
+    /^[a-zA-Z0-9_/.\-\[\] ]+$/,
+    "Name can only contain letters, numbers, spaces, -, _, /, ., [ and ]."
+  );
+
 export const createComboSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(100)
-    .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and ."),
+  name: comboNameSchema,
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -1326,12 +1332,7 @@ export const cloudSyncActionSchema = z.object({
 
 export const updateComboSchema = z
   .object({
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .max(100)
-      .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and .")
-      .optional(),
+    name: comboNameSchema.optional(),
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
