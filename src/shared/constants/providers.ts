@@ -193,6 +193,17 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://chat.deepseek.com",
     authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
   },
+  "copilot-web": {
+    id: "copilot-web",
+    alias: "copilot",
+    name: "Microsoft Copilot Web",
+    icon: "auto_awesome",
+    color: "#0078D4",
+    textIcon: "CP",
+    website: "https://copilot.microsoft.com",
+    authHint:
+      "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
+  },
 };
 
 // API Key Providers
@@ -2011,6 +2022,7 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "searxng-search" ||
     providerId === "petals" ||
     providerId === "pollinations" ||
+    providerId === "copilot-web" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
