@@ -96,6 +96,22 @@ function extractAccessToken(credential: string): string | null {
   return credential;
 }
 
+// ─── Session Management ─────────────────────────────────────────────────────
+
+interface CopilotSession {
+  conversationId: string;
+  cookies: string;
+  remainingTurns: number;
+  isBlocked: boolean;
+  createdAt: number;
+}
+
+// Shared session pool across all executor instances (singleton)
+const sessionPool = new Map<string, CopilotSession>();
+let sessionRotationCount = 0;
+const MIN_REMAINING_TURNS = 5;
+const MAX_ROTATIONS = 1000;
+
 // ─── Executor ───────────────────────────────────────────────────────────────
 
 export class CopilotWebExecutor extends BaseExecutor {
@@ -104,17 +120,36 @@ export class CopilotWebExecutor extends BaseExecutor {
   }
 
   /**
-   * Start a new Copilot conversation to get a conversationId.
+   * Get or create a session. Rotates when remainingTurns is low or blocked.
    */
-  private async startConversation(
-    accessToken?: string,
-    signal?: AbortSignal
-  ): Promise<{
-    conversationId: string;
-    remainingTurns: number;
-    isBlocked: boolean;
-    banExpiresAt?: string;
-  }> {
+  private async getSession(accessToken?: string, signal?: AbortSignal): Promise<CopilotSession> {
+    // Check existing session
+    const existing = sessionPool.get("default");
+    if (
+      existing &&
+      !existing.isBlocked &&
+      existing.remainingTurns > MIN_REMAINING_TURNS &&
+      Date.now() - existing.createdAt < 3_600_000 // 1 hour max session age
+    ) {
+      return existing;
+    }
+
+    // Create new session (rotate)
+    if (sessionRotationCount >= MAX_ROTATIONS) {
+      // Reset counter after max rotations (prevent memory leak)
+      sessionRotationCount = 0;
+    }
+
+    const session = await this.createSession(accessToken, signal);
+    sessionPool.set("default", session);
+    sessionRotationCount++;
+    return session;
+  }
+
+  /**
+   * Create a fresh session with new cookies and conversationId.
+   */
+  private async createSession(accessToken?: string, signal?: AbortSignal): Promise<CopilotSession> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "User-Agent": COPILOT_USER_AGENT,
@@ -125,16 +160,14 @@ export class CopilotWebExecutor extends BaseExecutor {
       headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    const body = JSON.stringify({
-      timeZone: "America/New_York",
-      startNewConversation: true,
-      teenSupportEnabled: false,
-    });
-
     const res = await fetch(COPILOT_START_URL, {
       method: "POST",
       headers,
-      body,
+      body: JSON.stringify({
+        timeZone: "America/New_York",
+        startNewConversation: true,
+        teenSupportEnabled: false,
+      }),
       signal,
     });
 
@@ -148,11 +181,17 @@ export class CopilotWebExecutor extends BaseExecutor {
     if (!convId) {
       throw new Error("Copilot /c/api/start returned no conversationId");
     }
+
+    // Extract cookies from response
+    const setCookies = res.headers.getSetCookie();
+    const cookies = setCookies.map((c) => c.split(";")[0]).join("; ");
+
     return {
       conversationId: convId,
-      remainingTurns: data.remainingTurns ?? 0,
+      cookies,
+      remainingTurns: data.remainingTurns ?? 1000,
       isBlocked: data.isBlocked ?? false,
-      banExpiresAt: data.banExpiresAt,
+      createdAt: Date.now(),
     };
   }
 
@@ -503,46 +542,13 @@ export class CopilotWebExecutor extends BaseExecutor {
     }
     fullPrompt += typeof prompt === "string" ? prompt : JSON.stringify(prompt);
 
-    // Start conversation
-    const mergedSignal = signal;
+    // Get or create session (auto-rotates when turns exhausted)
     let conversationId: string;
-    let remainingTurns = 0;
+    let sessionCookies = "";
     try {
-      const session = await this.startConversation(accessToken || undefined, mergedSignal);
+      const session = await this.getSession(accessToken || undefined, signal);
       conversationId = session.conversationId;
-      remainingTurns = session.remainingTurns;
-
-      // Rate limit check
-      if (session.isBlocked) {
-        const banMsg = session.banExpiresAt
-          ? `Copilot account blocked until ${session.banExpiresAt}`
-          : "Copilot account blocked";
-        return {
-          response: new Response(JSON.stringify({ error: { message: banMsg, type: "blocked" } }), {
-            status: 403,
-            headers: { "Content-Type": "application/json" },
-          }),
-          url: COPILOT_START_URL,
-          headers: {},
-          transformedBody: null,
-        };
-      }
-      if (remainingTurns <= 0) {
-        return {
-          response: new Response(
-            JSON.stringify({
-              error: {
-                message: "Copilot rate limit exceeded — no remaining turns. Try again later.",
-                type: "rate_limit",
-              },
-            }),
-            { status: 429, headers: { "Content-Type": "application/json", "Retry-After": "3600" } }
-          ),
-          url: COPILOT_START_URL,
-          headers: {},
-          transformedBody: null,
-        };
-      }
+      sessionCookies = session.cookies;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to start Copilot conversation";
       return {
@@ -564,7 +570,7 @@ export class CopilotWebExecutor extends BaseExecutor {
           fullPrompt,
           mode,
           accessToken || undefined,
-          mergedSignal
+          signal
         );
         const reader = wsStream.getReader();
         const decoder = new TextDecoder();
@@ -634,7 +640,7 @@ export class CopilotWebExecutor extends BaseExecutor {
         fullPrompt,
         mode,
         accessToken || undefined,
-        mergedSignal
+        signal
       );
 
       return {
