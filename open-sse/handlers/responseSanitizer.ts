@@ -285,7 +285,12 @@ function sanitizeMessage(msg: unknown): unknown {
   // Non-streaming responses should not expose both visible content and reasoning_content.
   // Some clients drop the visible assistant text or render duplicated panels when both fields
   // are present in the final payload. Keep reasoning_content only for reasoning-only messages.
-  if (sanitized.reasoning_content !== undefined && hasVisibleMessageContent(sanitized.content)) {
+  if (
+    sanitized.reasoning_content !== undefined &&
+    hasVisibleMessageContent(sanitized.content) &&
+    !msgRecord.tool_calls &&
+    !msgRecord.function_call
+  ) {
     delete sanitized.reasoning_content;
   }
 

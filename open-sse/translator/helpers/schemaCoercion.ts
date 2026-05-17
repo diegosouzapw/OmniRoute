@@ -3,6 +3,8 @@
  * JSON Schema numeric constraints encoded as strings or invalid descriptions.
  */
 
+import { lookupReasoning } from "../../services/reasoningCache.ts";
+
 type JsonRecord = Record<string, unknown>;
 
 const NUMERIC_SCHEMA_FIELDS = [
@@ -213,6 +215,24 @@ export function injectEmptyReasoningContentForToolCalls(
       return message;
     }
 
-    return { ...message, reasoning_content: "" };
+    // Try to replay cached reasoning_content for this tool_call before falling back to empty string.
+    // This prevents DeepSeek 400 errors when the assistant message has tool_calls but the
+    // reasoning_content was stripped by the client or a previous sanitizer pass.
+    let cachedReasoning: string | null = null;
+    for (const toolCall of message.tool_calls) {
+      if (isPlainObject(toolCall) && typeof toolCall.id === "string" && toolCall.id) {
+        try {
+          const reasoning = lookupReasoning(toolCall.id);
+          if (reasoning && reasoning.length > 0) {
+            cachedReasoning = reasoning;
+            break;
+          }
+        } catch {
+          // Cache lookup failure is non-critical; continue to next tool_call or fallback.
+        }
+      }
+    }
+
+    return { ...message, reasoning_content: cachedReasoning ?? "" };
   });
 }
