@@ -129,6 +129,33 @@ test("KiroExecutor.transformRequest removes the top-level model field", () => {
   );
 });
 
+test("KiroExecutor.transformRequest strips unsupported fields in fallback mode", () => {
+  const executor = new KiroExecutor();
+  const body = {
+    model: "kiro-model",
+    thinking: { type: "enabled" },
+    context_management: { clear_function_results: true },
+    output_config: { format: "json" },
+    tools: [{ type: "function" }],
+    tool_choice: "auto",
+    system: "rules",
+    stream: true,
+    prompt: "fallback body",
+  };
+
+  const result = executor.transformRequest("kiro-model", body, true, {});
+
+  assert.equal("model" in result, false);
+  assert.equal("thinking" in result, false);
+  assert.equal("context_management" in result, false);
+  assert.equal("output_config" in result, false);
+  assert.equal("tools" in result, false);
+  assert.equal("tool_choice" in result, false);
+  assert.equal("system" in result, false);
+  assert.equal("stream" in result, false);
+  assert.equal((result as any).prompt, "fallback body");
+});
+
 test("KiroExecutor.transformEventStreamToSSE converts text, tool calls, usage and DONE", async () => {
   const executor = new KiroExecutor();
   const invalidPreludeFrame = buildEventFrame("assistantResponseEvent", { content: "skip me" });

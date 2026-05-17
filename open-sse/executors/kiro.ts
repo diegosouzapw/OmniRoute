@@ -179,7 +179,7 @@ export class KiroExecutor extends BaseExecutor {
 
   buildHeaders(credentials: ProviderCredentials, stream = true) {
     void stream;
-    const headers = {
+    const headers: Record<string, string> = {
       ...this.config.headers,
       "Amz-Sdk-Request": "attempt=1; max=3",
       "Amz-Sdk-Invocation-Id": uuidv4(),
@@ -210,6 +210,13 @@ export class KiroExecutor extends BaseExecutor {
     // (for backward compatibility if something else bypasses the translator)
     if (!kiroPayload.conversationState) {
       const { model: _model, ...rest } = b;
+      delete rest.thinking;
+      delete rest.context_management;
+      delete rest.output_config;
+      delete rest.tools;
+      delete rest.tool_choice;
+      delete rest.system;
+      delete rest.stream;
       return rest;
     }
 
@@ -510,7 +517,12 @@ export class KiroExecutor extends BaseExecutor {
     });
 
     // Pipe response body through transform stream
-    const transformedStream = response.body.pipeThrough(transformStream);
+    const responseBody = response.body;
+    if (!responseBody) {
+      return response;
+    }
+
+    const transformedStream = responseBody.pipeThrough(transformStream);
 
     return new Response(transformedStream, {
       status: response.status,

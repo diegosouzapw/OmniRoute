@@ -78,6 +78,52 @@ function normalizeKiroToolSchema(schema: unknown): Record<string, unknown> {
   return result;
 }
 
+type KiroToolFunction = {
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+};
+
+type KiroToolDefinition = {
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+  input_schema?: unknown;
+  function?: KiroToolFunction;
+};
+
+function buildKiroToolSpecification(
+  tool: KiroToolDefinition,
+  descriptionOverride?: string
+): Record<string, unknown> {
+  const name = tool.function?.name || tool.name || "tool";
+  const description =
+    descriptionOverride || tool.function?.description || tool.description || `Tool: ${name}`;
+
+  return {
+    toolSpecification: {
+      name,
+      description,
+      inputSchema: {
+        json: normalizeKiroToolSchema(
+          tool.function?.parameters || tool.parameters || tool.input_schema || {}
+        ),
+      },
+    },
+  };
+}
+
+function stripUnsupportedKiroTopLevelFields(payload: Record<string, unknown>): void {
+  delete payload.model;
+  delete payload.stream;
+  delete payload.tools;
+  delete payload.tool_choice;
+  delete payload.thinking;
+  delete payload.context_management;
+  delete payload.output_config;
+  delete payload.system;
+}
+
 /**
  * Convert OpenAI messages to Kiro format
  * Rules: system/tool/user -> user role, merge consecutive same roles
@@ -140,31 +186,23 @@ function convertMessages(messages, tools, model) {
         // Move long descriptions to system prompt (same approach as kiro-gateway).
         const TOOL_DESC_MAX = 10000;
         const toolDocs: string[] = [];
-        userMsg.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-          const name = t.function?.name || t.name;
-          let description = t.function?.description || t.description || "";
+        userMsg.userInputMessage.userInputMessageContext.tools = tools.map(
+          (tool: KiroToolDefinition) => {
+            const name = tool.function?.name || tool.name;
+            let description = tool.function?.description || tool.description || "";
 
-          if (!description.trim()) {
-            description = `Tool: ${name}`;
+            if (!description.trim()) {
+              description = `Tool: ${name}`;
+            }
+
+            if (description.length > TOOL_DESC_MAX) {
+              toolDocs.push(`## Tool: ${name}\n\n${description}`);
+              description = `[Full documentation in system prompt under '## Tool: ${name}']`;
+            }
+
+            return buildKiroToolSpecification(tool, description);
           }
-
-          if (description.length > TOOL_DESC_MAX) {
-            toolDocs.push(`## Tool: ${name}\n\n${description}`);
-            description = `[Full documentation in system prompt under '## Tool: ${name}']`;
-          }
-
-          return {
-            toolSpecification: {
-              name,
-              description,
-              inputSchema: {
-                json: normalizeKiroToolSchema(
-                  t.function?.parameters || t.parameters || t.input_schema || {}
-                ),
-              },
-            },
-          };
-        });
+        );
         // Attach tool docs to message so buildKiroPayload can prepend to content
         if (toolDocs.length > 0) {
           userMsg._toolDocs = toolDocs.join("\n\n---\n\n");
@@ -371,21 +409,13 @@ function convertMessages(messages, tools, model) {
     if (!currentMessage.userInputMessage.userInputMessageContext) {
       currentMessage.userInputMessage.userInputMessageContext = {};
     }
-    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map((t) => {
-      const name = t.function?.name || t.name;
-      const description = t.function?.description || t.description || `Tool: ${name}`;
-      return {
-        toolSpecification: {
-          name,
-          description,
-          inputSchema: {
-            json: normalizeKiroToolSchema(
-              t.function?.parameters || t.parameters || t.input_schema || {}
-            ),
-          },
-        },
-      };
-    });
+    currentMessage.userInputMessage.userInputMessageContext.tools = tools.map(
+      (tool: KiroToolDefinition) => {
+        const name = tool.function?.name || tool.name || "tool";
+        const description = tool.function?.description || tool.description || `Tool: ${name}`;
+        return buildKiroToolSpecification(tool, description);
+      }
+    );
     toolsAttached = true;
   }
 
@@ -728,7 +758,9 @@ export function buildKiroPayload(model, body, stream, credentials) {
     if (topP !== undefined) payload.inferenceConfig.topP = topP;
   }
 
+  stripUnsupportedKiroTopLevelFields(payload as Record<string, unknown>);
+
   return payload;
 }
 
-register(FORMATS.OPENAI, FORMATS.KIRO, buildKiroPayload, null);
+register(FORMATS.OPENAI, FORMATS.KIRO, buildKiroPayload);

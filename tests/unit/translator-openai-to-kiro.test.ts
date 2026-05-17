@@ -34,6 +34,10 @@ function buildSamplePayload() {
           ],
         },
       ],
+      thinking: { type: "enabled", budget_tokens: 1024 },
+      context_management: {
+        clear_function_results: true,
+      },
       tools: [
         {
           type: "function",
@@ -60,6 +64,8 @@ test("OpenAI -> Kiro builds a conversation payload with deterministic structure"
   const result = buildSamplePayload();
 
   assert.equal(result.profileArn, "arn:aws:demo");
+  assert.equal("thinking" in result, false);
+  assert.equal("context_management" in result, false);
   assert.deepEqual(result.inferenceConfig, {
     maxTokens: 2048,
     temperature: 0.2,
