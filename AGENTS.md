@@ -507,6 +507,24 @@ For any non-trivial change, read the matching deep-dive first:
 
 ---
 
+## Fork / Upstream Workflow
+
+This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
+changes (for example GHCR image publishing, personal deployment workflows, or local
+automation) out of upstream contribution PRs.
+
+When preparing a PR for upstream, always start the work branch from `upstream/main`,
+not from this fork's `main`:
+
+```bash
+git fetch upstream
+git switch -c <branch-name> upstream/main
+```
+
+Only cherry-pick or reapply the changes intended for the upstream PR.
+
+---
+
 ## Review Focus
 
 - **DB ops** go through `src/lib/db/` modules, never raw SQL in routes
