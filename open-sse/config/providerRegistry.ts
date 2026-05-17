@@ -157,6 +157,21 @@ const KIMI_CODING_SHARED = {
 const buildModels = (ids: readonly string[]): RegistryModel[] =>
   ids.map((id) => ({ id, name: id }));
 
+const ALIBABA_DASHSCOPE_MODELS: RegistryModel[] = [
+  { id: "qwen-max", name: "Qwen Max" },
+  { id: "qwen-max-2025-01-25", name: "Qwen Max (2025-01-25)" },
+  { id: "qwen-plus", name: "Qwen Plus" },
+  { id: "qwen-plus-2025-07-14", name: "Qwen Plus (2025-07-14)" },
+  { id: "qwen-turbo", name: "Qwen Turbo" },
+  { id: "qwen-turbo-2025-11-01", name: "Qwen Turbo (2025-11-01)" },
+  { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
+  { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
+  { id: "qwq-plus", name: "QwQ Plus (Reasoning)" },
+  { id: "qwq-32b", name: "QwQ 32B" },
+  { id: "qwen3-32b", name: "Qwen3 32B" },
+  { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
+];
+
 const GPT_5_5_CONTEXT_LENGTH = 1050000;
 const GPT_5_5_CODEX_CAPABILITIES = {
   targetFormat: "openai-responses",
@@ -1630,46 +1645,6 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
-  alicode: {
-    id: "alicode",
-    alias: "alicode",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://coding.dashscope.aliyuncs.com/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
-      { id: "kimi-k2.5", name: "Kimi K2.5" },
-      { id: "glm-5", name: "GLM 5" },
-      { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-      { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "glm-4.7", name: "GLM 4.7" },
-    ],
-  },
-
-  "alicode-intl": {
-    id: "alicode-intl",
-    alias: "alicode-intl",
-    format: "openai",
-    executor: "default",
-    baseUrl: "https://coding-intl.dashscope.aliyuncs.com/v1/chat/completions",
-    authType: "apikey",
-    authHeader: "bearer",
-    models: [
-      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
-      { id: "kimi-k2.5", name: "Kimi K2.5" },
-      { id: "glm-5", name: "GLM 5" },
-      { id: "MiniMax-M2.5", name: "MiniMax M2.5" },
-      { id: "qwen3-max-2026-01-23", name: "Qwen3 Max" },
-      { id: "qwen3-coder-next", name: "Qwen3 Coder Next" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "glm-4.7", name: "GLM 4.7" },
-    ],
-  },
-
   deepseek: {
     id: "deepseek",
     alias: "ds",
@@ -2220,27 +2195,24 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "ali",
     format: "openai",
     executor: "default",
-    // DashScope international OpenAI-compatible endpoint.
-    // China users should set providerSpecificData.baseUrl to:
-    //   https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
     baseUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
     modelsUrl: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
     authType: "apikey",
     authHeader: "bearer",
-    models: [
-      { id: "qwen-max", name: "Qwen Max" },
-      { id: "qwen-max-2025-01-25", name: "Qwen Max (2025-01-25)" },
-      { id: "qwen-plus", name: "Qwen Plus" },
-      { id: "qwen-plus-2025-07-14", name: "Qwen Plus (2025-07-14)" },
-      { id: "qwen-turbo", name: "Qwen Turbo" },
-      { id: "qwen-turbo-2025-11-01", name: "Qwen Turbo (2025-11-01)" },
-      { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
-      { id: "qwen3-coder-flash", name: "Qwen3 Coder Flash" },
-      { id: "qwq-plus", name: "QwQ Plus (Reasoning)" },
-      { id: "qwq-32b", name: "QwQ 32B" },
-      { id: "qwen3-32b", name: "Qwen3 32B" },
-      { id: "qwen3-235b-a22b", name: "Qwen3 235B A22B" },
-    ],
+    models: ALIBABA_DASHSCOPE_MODELS,
+    passthroughModels: true,
+  },
+
+  "alibaba-cn": {
+    id: "alibaba-cn",
+    alias: "ali-cn",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    modelsUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: ALIBABA_DASHSCOPE_MODELS,
     passthroughModels: true,
   },
 

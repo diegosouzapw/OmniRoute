@@ -316,7 +316,8 @@ under `/dashboard/cli-tools → Kiro`.
 Qwen Code supports OpenAI-compatible API endpoints via environment variables or `settings.json`.
 
 > Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with
-> `alicode` / `openrouter` / `anthropic` / `gemini` providers instead.
+> `bailian-coding-plan` / `alibaba` / `alibaba-cn` / `openrouter` / `anthropic` /
+> `gemini` providers instead.
 
 **Option 1: Environment variables (`~/.qwen/.env`)**
 

@@ -267,8 +267,7 @@ const LOBE_ICON_COMPONENTS = {
 const LOBE_PROVIDER_ALIASES = {
   ai21: "Ai21",
   alibaba: "Alibaba",
-  alicode: "Alibaba",
-  "alicode-intl": "Alibaba",
+  "alibaba-cn": "Alibaba",
   "amazon-q": "Aws",
   anthropic: "Anthropic",
   antigravity: "Antigravity",

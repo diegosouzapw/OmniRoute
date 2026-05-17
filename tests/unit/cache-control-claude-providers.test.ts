@@ -21,7 +21,6 @@ describe("Cache Control Policy - Claude Protocol Providers", () => {
     assert.equal(providerSupportsCaching("minimax", "claude"), true);
     assert.equal(providerSupportsCaching("minimax-cn", "claude"), true);
     assert.equal(providerSupportsCaching("kimi-coding", "claude"), true);
-    assert.equal(providerSupportsCaching("alicode", "claude"), true);
 
     // Non-Claude providers without caching support
     assert.equal(providerSupportsCaching("openai", "openai"), false);

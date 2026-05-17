@@ -131,12 +131,13 @@ The free-tier surface here depends entirely on each vendor's account plan, not o
 
 Marked `deprecated: true` in `FREE_PROVIDERS`. Discontinued **2026-04-15**.
 
-> Qwen OAuth free tier was discontinued on 2026-04-15. Use `alicode`, `alicode-intl`, or `openrouter` providers with an API key instead.
+> Qwen OAuth free tier was discontinued on 2026-04-15. Use `bailian-coding-plan`, `alibaba`, `alibaba-cn`, or `openrouter` providers with an API key instead.
 
 Connections of type `qwen` will keep working until their tokens expire, but no new OAuth sign-ins are accepted upstream. Migrate to:
 
-- `alicode` (Alibaba Cloud Bailian — DashScope)
-- `alicode-intl` (Alibaba Cloud International)
+- `bailian-coding-plan` (Alibaba Coding Plan — Claude-compatible)
+- `alibaba` (Alibaba — DashScope international)
+- `alibaba-cn` (Alibaba (China) — DashScope China)
 - `openrouter` (Qwen models exposed via OpenRouter)
 
 ---

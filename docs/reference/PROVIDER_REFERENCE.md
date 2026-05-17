@@ -1,14 +1,14 @@
 ---
 title: "Provider Reference"
 version: 3.8.0
-lastUpdated: 2026-05-13
+lastUpdated: 2026-05-17
 ---
 
 # Provider Reference
 
 > **Auto-generated** from `src/shared/constants/providers.ts` — do not edit by hand.
 > Regenerate with: `npm run gen:provider-reference`
-> **Last generated:** 2026-05-13
+> **Last generated:** 2026-05-17
 
 Total providers: **177**. See category breakdown below.
 
@@ -33,13 +33,13 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 
 ## Free Tier (OAuth-first or no-key) (5)
 
-| ID           | Alias        | Name       | Tags | Website                                     | Notes                                                                                                                                                 |
-| ------------ | ------------ | ---------- | ---- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `amazon-q`   | `aq`         | Amazon Q   | Free | [link](https://aws.amazon.com/q/developer/) | Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.                                         |
-| `gemini-cli` | `gemini-cli` | Gemini CLI | Free | —                                           | Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.                                           |
-| `kiro`       | `kr`         | Kiro AI    | Free | —                                           | —                                                                                                                                                     |
-| `qoder`      | `if`         | Qoder AI   | Free | —                                           | —                                                                                                                                                     |
-| `qwen`       | `qw`         | Qwen Code  | Free | —                                           | ⚠️ **DEPRECATED.** Qwen OAuth free tier was discontinued on 2026-04-15. Use 'alicode', 'alicode-intl', or 'openrouter' provider with API key instead. |
+| ID           | Alias        | Name       | Tags | Website                                     | Notes                                                                                                                                                                      |
+| ------------ | ------------ | ---------- | ---- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `amazon-q`   | `aq`         | Amazon Q   | Free | [link](https://aws.amazon.com/q/developer/) | Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.                                                              |
+| `gemini-cli` | `gemini-cli` | Gemini CLI | Free | —                                           | Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.                                                                |
+| `kiro`       | `kr`         | Kiro AI    | Free | —                                           | —                                                                                                                                                                          |
+| `qoder`      | `if`         | Qoder AI   | Free | —                                           | —                                                                                                                                                                          |
+| `qwen`       | `qw`         | Qwen Code  | Free | —                                           | ⚠️ **DEPRECATED.** Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead. |
 
 ## OAuth Providers (11)
 
@@ -57,26 +57,26 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `kimi-coding` | `kmc`        | Kimi Coding          | OAuth | —                                                                         | —                                                                                                                                                                     |
 | `windsurf`    | `ws`         | Windsurf (Devin CLI) | OAuth | [link](https://windsurf.com)                                              | Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.                  |
 
-## Web Cookie Providers (5)
+## Web Cookie Providers (6)
 
 | ID               | Alias      | Name                        | Tags       | Website                           | Notes                                                                                       |
 | ---------------- | ---------- | --------------------------- | ---------- | --------------------------------- | ------------------------------------------------------------------------------------------- |
 | `blackbox-web`   | `bb-web`   | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai)   | Paste your \_\_Secure-authjs.session-token value or full cookie header from app.blackbox.ai |
 | `chatgpt-web`    | `cgpt-web` | ChatGPT Web (Plus/Pro)      | Web cookie | [link](https://chatgpt.com)       | Paste your \_\_Secure-next-auth.session-token cookie value from chatgpt.com                 |
+| `deepseek-web`   | `ds-web`   | DeepSeek Web                | Web cookie | [link](https://chat.deepseek.com) | Paste your ds_session_id cookie from chat.deepseek.com                                      |
 | `grok-web`       | `gw`       | Grok Web (Subscription)     | Web cookie | [link](https://grok.com)          | Paste your sso= cookie value from grok.com                                                  |
 | `muse-spark-web` | `ms-web`   | Muse Spark Web (Meta AI)    | Web cookie | [link](https://www.meta.ai)       | Paste your abra_sess value or full cookie header from meta.ai                               |
 | `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max)    | Web cookie | [link](https://www.perplexity.ai) | Paste your \_\_Secure-next-auth.session-token cookie value from perplexity.ai               |
 
-## API Key Providers (paid / paid-with-free-credits) (123)
+## API Key Providers (paid / paid-with-free-credits) (122)
 
 | ID                    | Alias          | Name                       | Tags                  | Website                                                                                                  | Notes                                                                                                                                                                                                                                                 |
 | --------------------- | -------------- | -------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `agentrouter`         | `agentrouter`  | AgentRouter                | API key, aggregator   | [link](https://agentrouter.org)                                                                          | $200 free credits on signup - multi-model routing gateway                                                                                                                                                                                             |
 | `ai21`                | `ai21`         | AI21 Labs                  | API key               | [link](https://www.ai21.com)                                                                             | $10 trial credits on signup (valid 3 months), no credit card required                                                                                                                                                                                 |
 | `aimlapi`             | `aiml`         | AI/ML API                  | API key, aggregator   | [link](https://aimlapi.com)                                                                              | $0.025/day free credits — 200+ models (GPT-4o, Claude, Gemini, Llama) via single endpoint                                                                                                                                                             |
-| `alibaba`             | `ali`          | Alibaba Cloud (DashScope)  | API key               | [link](https://dashscope-intl.aliyuncs.com)                                                              | —                                                                                                                                                                                                                                                     |
-| `alicode`             | `alicode`      | Alibaba                    | API key               | [link](https://bailian.console.aliyun.com)                                                               | —                                                                                                                                                                                                                                                     |
-| `alicode-intl`        | `alicode-intl` | Alibaba Intl               | API key               | [link](https://modelstudio.console.alibabacloud.com)                                                     | —                                                                                                                                                                                                                                                     |
+| `alibaba`             | `ali`          | Alibaba                    | API key               | [link](https://dashscope-intl.aliyuncs.com)                                                              | —                                                                                                                                                                                                                                                     |
+| `alibaba-cn`          | `ali-cn`       | Alibaba (China)            | API key               | [link](https://dashscope.aliyuncs.com)                                                                   | —                                                                                                                                                                                                                                                     |
 | `anthropic`           | `anthropic`    | Anthropic                  | API key               | [link](https://platform.claude.com)                                                                      | —                                                                                                                                                                                                                                                     |
 | `azure-ai`            | `azure-ai`     | Azure AI Foundry           | API key, enterprise   | [link](https://learn.microsoft.com/azure/ai-foundry)                                                     | Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.                                                                                                 |
 | `azure-openai`        | `azure`        | Azure OpenAI               | API key, enterprise   | [link](https://azure.microsoft.com/products/ai-services/openai-service)                                  | Use your Azure OpenAI API key. Base URL should be your resource endpoint, for example https://my-resource.openai.azure.com.                                                                                                                           |
