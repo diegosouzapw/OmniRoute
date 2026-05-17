@@ -189,6 +189,19 @@ test("configured-only preference parser only enables explicit true values", () =
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference(undefined), false);
 });
 
+test("configured-only filter is ignored before the first provider is connected", () => {
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 0), false);
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(false, 0), false);
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 1), true);
+});
+
+test("first-provider hint is shown only when no providers are connected and search is empty", () => {
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, ""), true);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, "   "), true);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, "codex"), false);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(1, ""), false);
+});
+
 test("configured-only preference storage round-trips correctly", () => {
   const storage = new Map();
   const mockStorage = {

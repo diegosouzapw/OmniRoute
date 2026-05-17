@@ -68,7 +68,7 @@ interface CopilotWsEvent {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function getCopilotMode(model?: string): string {
+export function getCopilotMode(model?: string): string {
   if (!model) return DEFAULT_MODE;
   const lower = model.toLowerCase();
   return MODEL_MODE_MAP[lower] || DEFAULT_MODE;
@@ -83,7 +83,7 @@ function solveHashcash(parameter: string, difficulty: number): number | null {
   return null;
 }
 
-function extractAccessToken(credential: string): string | null {
+export function extractAccessToken(credential: string): string | null {
   if (!credential) return null;
   // Direct token
   if (credential.startsWith("ey") || credential.length > 100) return credential;
@@ -94,6 +94,12 @@ function extractAccessToken(credential: string): string | null {
   const bearerMatch = credential.match(/[Bb]earer\s+(.+)/);
   if (bearerMatch) return bearerMatch[1];
   return credential;
+}
+
+export function sessionPoolKey(accessToken?: string): string {
+  return accessToken
+    ? createHash("sha256").update(accessToken).digest("hex").slice(0, 16)
+    : "anonymous";
 }
 
 // ─── Session Management ─────────────────────────────────────────────────────
@@ -123,8 +129,11 @@ export class CopilotWebExecutor extends BaseExecutor {
    * Get or create a session. Rotates when remainingTurns is low or blocked.
    */
   private async getSession(accessToken?: string, signal?: AbortSignal): Promise<CopilotSession> {
-    // Check existing session
-    const existing = sessionPool.get("default");
+    const poolKey = accessToken
+      ? createHash("sha256").update(accessToken).digest("hex").slice(0, 16)
+      : "anonymous";
+
+    const existing = sessionPool.get(poolKey);
     if (
       existing &&
       !existing.isBlocked &&
@@ -141,7 +150,7 @@ export class CopilotWebExecutor extends BaseExecutor {
     }
 
     const session = await this.createSession(accessToken, signal);
-    sessionPool.set("default", session);
+    sessionPool.set(poolKey, session);
     sessionRotationCount++;
     return session;
   }

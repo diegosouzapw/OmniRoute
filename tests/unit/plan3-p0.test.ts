@@ -317,6 +317,25 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.ok(!("_nativeCodexPassthrough" in transformed));
 });
 
+test("CodexExecutor gives model reasoning suffix precedence over client defaults", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      model: "gpt-5.5-xhigh",
+      input: [],
+      reasoning: { effort: "medium", summary: "auto" },
+      reasoning_effort: "low",
+    },
+    true,
+    {}
+  );
+
+  assert.equal(transformed.model, "gpt-5.5");
+  assert.deepEqual(transformed.reasoning, { effort: "xhigh", summary: "auto" });
+  assert.equal(transformed.reasoning_effort, undefined);
+});
+
 test("CodexExecutor strips streaming fields for compact passthrough", () => {
   const executor = new CodexExecutor();
   const transformed = executor.transformRequest(
