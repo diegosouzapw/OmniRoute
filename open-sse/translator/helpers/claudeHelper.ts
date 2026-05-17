@@ -1,5 +1,15 @@
 // Claude helper functions for translator
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
+import { lookupReasoning, recordReplay } from "../../services/reasoningCache.ts";
+
+// Placeholder thinking text used as last-resort fallback when:
+//   - Target upstream is a non-Anthropic Claude-shape provider
+//     (kimi-coding, glmt, zai, …) that rejects redacted_thinking blobs
+//   - Client (e.g. Capy) sent only redacted_thinking on replay
+//   - reasoningCache has no entry for the corresponding tool_use.id
+// Must be non-empty: kimi-coding treats empty `thinking.thinking` as
+// `reasoning_content missing` and 400s.
+export const NON_ANTHROPIC_THINKING_PLACEHOLDER = "(prior reasoning summary unavailable)";
 
 type ClaudeContentBlock = {
   type?: string;
@@ -151,6 +161,17 @@ export function prepareClaudeRequest(
   const supportsPromptCaching =
     provider === "claude" || provider?.startsWith?.("anthropic-compatible-");
 
+  // Non-Anthropic Claude-shape providers (kimi-coding, glmt, zai, …) cannot
+  // validate the synthetic redacted_thinking.data blob — they're not Anthropic
+  // and don't speak its signature scheme. They expect plain `thinking { text }`
+  // blocks with the original reasoning text, or fail with:
+  //   "thinking is enabled but reasoning_content is missing in assistant
+  //    tool call message at index N"
+  // We use the same allowlist as prompt-caching: only Anthropic-native
+  // upstreams get redacted_thinking. Everything else gets plain thinking blocks
+  // backed by reasoningCache (real text) or a placeholder (cache miss).
+  const supportsRedactedThinking = supportsPromptCaching;
+
   const systemBlocks = body.system;
   if (systemBlocks && Array.isArray(systemBlocks) && !preserveCacheControl) {
     body.system = systemBlocks.map((block, i) => {
@@ -233,6 +254,19 @@ export function prepareClaudeRequest(
     }
 
     // Pass 2 (reverse): add cache_control to last assistant + handle thinking for Anthropic
+
+    // Index of the LAST assistant message in the filtered array. Anthropic
+    // enforces the latest assistant message's thinking blocks cannot be
+    // modified — preserve them verbatim. Older assistant messages can be
+    // rewritten to redacted_thinking { data } as before.
+    let latestAssistantIndex = -1;
+    for (let k = filtered.length - 1; k >= 0; k--) {
+      if (filtered[k]?.role === "assistant") {
+        latestAssistantIndex = k;
+        break;
+      }
+    }
+
     let lastAssistantProcessed = false;
     for (let i = filtered.length - 1; i >= 0; i--) {
       const msg = filtered[i];
@@ -250,32 +284,144 @@ export function prepareClaudeRequest(
           lastAssistantProcessed = true;
         }
 
-        // Handle thinking blocks for Anthropic endpoints (native + compatible)
-        if (provider === "claude" || provider?.startsWith?.("anthropic-compatible-")) {
-          let hasToolUse = false;
-          let hasThinking = false;
+        // Handle thinking blocks for Anthropic-shape endpoints.
+        // prepareClaudeRequest is only invoked when targetFormat === claude
+        // (translator/index.ts:165-168), so any provider that lands here has
+        // a Claude-format upstream: claude native, anthropic-compatible-*,
+        // kimi-coding (api.kimi.com/coding/v1/messages), glmt, zai, etc.
+        // All of these enforce the same body-shape contract for thinking mode:
+        // when body.thinking.type === "enabled" and an assistant turn contains
+        // a tool_use, the same content[] must include a thinking (or
+        // redacted_thinking) block emitted before the tool_use. Without it,
+        // the upstream rejects with errors like:
+        //   "thinking is enabled but reasoning_content is missing in
+        //    assistant tool call message at index N"  (kimi-coding)
+        //   "Invalid signature in thinking block"     (claude native, on
+        //                                              cross-provider replay)
+        // Guard: never modify EXISTING thinking blocks in the latest assistant
+        // message when sending to an Anthropic-native upstream. Anthropic returns
+        // 400 "blocks in the latest assistant message cannot be modified" if any
+        // field changes. Injecting a NEW thinking block (when none exists) is fine.
+        // Older assistant messages can still be rewritten.
+        // For non-Anthropic providers: only the text replacement is skipped
+        // for the latest assistant (if it already has non-empty thinking text);
+        // field cleanup (signature strip, type normalization) still runs.
+        const isLatestAssistant = i === latestAssistantIndex;
+        const latestHasExistingThinking =
+          isLatestAssistant &&
+          content.some((b: any) => b.type === "thinking" || b.type === "redacted_thinking");
+        if (latestHasExistingThinking && supportsRedactedThinking) {
+          // Anthropic: skip all thinking-block rewrites entirely — the
+          // blocks must remain verbatim (type, thinking, signature, data).
+          continue;
+        }
 
-          // Convert thinking blocks to redacted_thinking and replace signature.
-          // When requests cross provider boundaries (e.g., combo fallback), the
-          // original thinking signature is invalid for the new provider, causing
-          // "Invalid signature in thinking block" 400 errors. redacted_thinking
-          // blocks are accepted without signature validation.
+        let hasToolUse = false;
+        let hasThinking = false;
+
+        // Pre-collect tool_use ids in this content[] for reasoningCache
+        // lookups when the upstream is a non-Anthropic Claude-shape provider.
+        // The cache is keyed by tool_call_id which equals tool_use.id for
+        // Anthropic-shape (the same value is reused across formats — see
+        // claude-to-openai.ts:63 where openai tool_call.id = claude tool_use.id).
+        const toolUseIds: string[] = [];
+        if (!supportsRedactedThinking) {
           for (const block of content) {
-            if (block.type === "thinking" || block.type === "redacted_thinking") {
-              block.type = "redacted_thinking";
-              block.signature = DEFAULT_THINKING_CLAUDE_SIGNATURE;
-              delete block.thinking;
-              hasThinking = true;
+            if (block.type === "tool_use" && typeof block.id === "string") {
+              toolUseIds.push(block.id);
             }
-            if (block.type === "tool_use") hasToolUse = true;
           }
+        }
 
-          // Add thinking block if thinking enabled + has tool_use but no thinking
-          if (thinkingEnabled && !hasThinking && hasToolUse) {
+        // Convert thinking blocks per provider type:
+        //
+        // Anthropic-native (claude, anthropic-compatible-*):
+        //   Emit redacted_thinking { data } with synthetic blob. Anthropic
+        //   accepts this as a valid placeholder for replay context without
+        //   re-validating the original signature. Previous behavior — keep.
+        //
+        //   When requests cross provider boundaries (e.g., combo fallback) or
+        //   when client-stored signatures (Capy) replay back to Anthropic, the
+        //   original `thinking.signature` no longer validates: "Invalid
+        //   signature in thinking block" 400. redacted_thinking accepts without
+        //   signature validation — but Anthropic REQUIRES a `data` field.
+        //   Field rules: redacted_thinking={type,data} ; thinking={type,thinking,signature}.
+        //
+        // Non-Anthropic Claude-shape (kimi-coding, glmt, zai, …):
+        //   Emit plain thinking { thinking: <text> } using the real reasoning
+        //   text from reasoningCache (captured on the prior assistant
+        //   response). Falls back to NON_ANTHROPIC_THINKING_PLACEHOLDER if the
+        //   cache misses (rare but possible after a process restart or TTL
+        //   eviction). Empty text is treated as "missing" by kimi-coding so
+        //   never emit an empty thinking field.
+        let thinkingBlockIdx = 0;
+        for (const block of content) {
+          if (block.type === "thinking" || block.type === "redacted_thinking") {
+            if (supportsRedactedThinking) {
+              block.type = "redacted_thinking";
+              block.data = DEFAULT_THINKING_CLAUDE_SIGNATURE;
+              delete block.thinking;
+              delete block.signature;
+            } else {
+              const existing =
+                typeof block.thinking === "string" && block.thinking.length > 0
+                  ? block.thinking
+                  : "";
+              let text = existing;
+              // For the latest assistant message on non-Anthropic upstreams,
+              // preserve the thinking text verbatim when it is already present.
+              // Cache lookups and the placeholder fallback only apply to older
+              // messages (or to the latest if the client sent empty text).
+              if (!text || !latestHasExistingThinking) {
+                if (!text) {
+                  const pairedToolUseId = toolUseIds[thinkingBlockIdx];
+                  if (pairedToolUseId) {
+                    const cached = lookupReasoning(pairedToolUseId);
+                    if (cached) {
+                      text = cached;
+                      recordReplay();
+                    }
+                  }
+                }
+                block.type = "thinking";
+                block.thinking = text || NON_ANTHROPIC_THINKING_PLACEHOLDER;
+              } else {
+                // latestHasExistingThinking + non-empty text: preserve text, still clean up fields
+                block.type = "thinking";
+              }
+              delete block.data;
+              delete block.signature;
+            }
+            hasThinking = true;
+            thinkingBlockIdx++;
+          }
+          if (block.type === "tool_use") hasToolUse = true;
+        }
+
+        // Add precursor thinking block if thinking enabled + has tool_use but
+        // no existing thinking-ish block. Required for Anthropic-shape
+        // thinking-mode upstreams (claude, kimi-coding, glm, …) when the
+        // assistant turn's content[] needs a thinking block in front of any
+        // tool_use. Use the same provider-aware shape selection as above.
+        if (thinkingEnabled && !hasThinking && hasToolUse) {
+          if (supportsRedactedThinking) {
+            content.unshift({
+              type: "redacted_thinking",
+              data: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+            });
+          } else {
+            let text = "";
+            const firstToolUseId = toolUseIds[0];
+            if (firstToolUseId) {
+              const cached = lookupReasoning(firstToolUseId);
+              if (cached) {
+                text = cached;
+                recordReplay();
+              }
+            }
             content.unshift({
               type: "thinking",
-              thinking: ".",
-              signature: DEFAULT_THINKING_CLAUDE_SIGNATURE,
+              thinking: text || NON_ANTHROPIC_THINKING_PLACEHOLDER,
             });
           }
         }

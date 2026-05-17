@@ -82,7 +82,7 @@ test("GeminiCLIExecutor.buildHeaders derives the User-Agent from the request mod
   assert.notEqual(flashHeaders["User-Agent"], proHeaders["User-Agent"]);
 });
 
-test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transformRequest updates body.project", async () => {
+test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transformRequest refreshes stale body.project", async () => {
   const executor = new GeminiCLIExecutor();
   const originalFetch = globalThis.fetch;
   let calls = 0;
@@ -337,10 +337,10 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
       });
     }
 
-    return new Response(
-      'data: {"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}\n\n',
-      { status: 200, headers: { "Content-Type": "text/event-stream" } }
-    );
+    return new Response('data: {"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}\n\n', {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    });
   };
 
   try {
@@ -371,10 +371,7 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
     assert.equal(finalBody.project, "project-live");
     assert.match(finalBody.user_prompt_id, /^agent-/);
     assert.match(finalBody.request.session_id, /^-\d+$/);
-    assert.match(
-      finalCall.headers["User-Agent"],
-      /^GeminiCLI\/0\.40\.1\/gemini-3\.1-pro-preview /
-    );
+    assert.match(finalCall.headers["User-Agent"], /^GeminiCLI\/0\.41\.2\/gemini-3\.1-pro-preview /);
     assert.equal(finalCall.headers.Accept, "*/*");
   } finally {
     setCliCompatProviders([]);

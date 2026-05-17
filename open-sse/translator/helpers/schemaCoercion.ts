@@ -1,9 +1,9 @@
+import { isDeepSeekReasoningModel } from "../../services/reasoningCache.ts";
+
 /**
  * Shared sanitizers for tool payloads that arrive from IDEs/SDKs with
  * JSON Schema numeric constraints encoded as strings or invalid descriptions.
  */
-
-import { lookupReasoning } from "../../services/reasoningCache.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -198,9 +198,17 @@ export function sanitizeToolId(id: string | undefined): string {
 
 export function injectEmptyReasoningContentForToolCalls(
   messages: unknown,
-  provider: unknown
+  provider: unknown,
+  model: unknown
 ): unknown {
-  if (!Array.isArray(messages) || String(provider || "").toLowerCase() !== "deepseek") {
+  if (
+    !Array.isArray(messages) ||
+    !isDeepSeekReasoningModel({
+      provider: String(provider ?? ""),
+      model: String(model ?? ""),
+      thinkingEnabled: true,
+    })
+  ) {
     return messages;
   }
 
@@ -215,24 +223,6 @@ export function injectEmptyReasoningContentForToolCalls(
       return message;
     }
 
-    // Try to replay cached reasoning_content for this tool_call before falling back to empty string.
-    // This prevents DeepSeek 400 errors when the assistant message has tool_calls but the
-    // reasoning_content was stripped by the client or a previous sanitizer pass.
-    let cachedReasoning: string | null = null;
-    for (const toolCall of message.tool_calls) {
-      if (isPlainObject(toolCall) && typeof toolCall.id === "string" && toolCall.id) {
-        try {
-          const reasoning = lookupReasoning(toolCall.id);
-          if (reasoning && reasoning.length > 0) {
-            cachedReasoning = reasoning;
-            break;
-          }
-        } catch {
-          // Cache lookup failure is non-critical; continue to next tool_call or fallback.
-        }
-      }
-    }
-
-    return { ...message, reasoning_content: cachedReasoning ?? "" };
+    return { ...message, reasoning_content: "" };
   });
 }

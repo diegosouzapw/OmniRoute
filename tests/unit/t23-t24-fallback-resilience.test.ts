@@ -60,6 +60,7 @@ test("T24: combo awaits short 503 cooldown before falling through to next model"
         { model: "groq/model-a", weight: 0 },
         { model: "groq/model-b", weight: 0 },
       ],
+      config: { fallbackDelayMs: 2000, maxRetries: 1 },
     },
     // Two transient failures on first model, then success on fallback model.
     handleSingleModel: createStatusSequenceHandler([
@@ -90,6 +91,7 @@ test("T24: combo skips wait when 503 cooldown is long (>5s)", async () => {
         { model: "groq/model-a", weight: 0 },
         { model: "groq/model-b", weight: 0 },
       ],
+      config: { fallbackDelayMs: 2000, maxRetries: 1 },
     },
     handleSingleModel: createStatusSequenceHandler([
       {

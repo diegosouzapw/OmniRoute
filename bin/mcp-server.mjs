@@ -37,7 +37,7 @@ export async function startMcpCli(rootDir = ROOT) {
   }
 
   // `tsx` loader is only required for local `.ts` fallback; JS entry works without it.
-  const loaderArgs = mcpEntry.endsWith(".ts") ? ["--import", "tsx/esm"] : [];
+  const loaderArgs = mcpEntry.endsWith(".ts") ? ["--import", "tsx"] : [];
 
   await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [...loaderArgs, mcpEntry], {

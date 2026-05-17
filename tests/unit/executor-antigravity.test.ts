@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
@@ -9,7 +9,37 @@ import {
   seedAntigravityVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
 
-async function withEnv(name, value, fn) {
+type AntigravityTransformResult = Exclude<
+  Awaited<ReturnType<AntigravityExecutor["transformRequest"]>>,
+  Response
+>;
+
+type ErrorPayload = {
+  error: {
+    code?: string;
+    message: string;
+  };
+  retryAfterMs?: number;
+};
+
+type ChatCompletionPayload = {
+  object?: string;
+  choices: Array<{
+    message: { content: string };
+    finish_reason: string;
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+};
+
+async function withEnv<T>(
+  name: string,
+  value: string | undefined,
+  fn: () => T | Promise<T>
+): Promise<T> {
   const previous = process.env[name];
   if (value === undefined) {
     delete process.env[name];
@@ -50,6 +80,7 @@ test("AntigravityExecutor.buildHeaders includes native headers without OmniRoute
 
   assert.equal(headers.Authorization, "Bearer ag-token");
   assert.equal(headers.Accept, "text/event-stream");
+  assert.match(headers["User-Agent"], /^Antigravity\/4\.1\.33 /);
   assert.equal(headers["X-OmniRoute-Source"], undefined);
 });
 
@@ -94,18 +125,26 @@ test("AntigravityExecutor.transformRequest normalizes model, project and content
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
   assert.deepEqual(Object.keys(result), [
     "project",
+    "requestId",
+    "request",
     "model",
     "userAgent",
     "requestType",
-    "requestId",
-    "request",
+    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
   assert.ok(result.request.sessionId);
+  const request = result.request as { generationConfig?: { topK?: number; topP?: number } };
+  const generationConfig = request.generationConfig || {};
+  assert.equal(generationConfig.topK, 40);
+  assert.equal(generationConfig.topP, 1.0);
   assert.deepEqual(result.request.toolConfig, {
     functionCallingConfig: { mode: "VALIDATED" },
   });
@@ -132,8 +171,12 @@ test("AntigravityExecutor.transformRequest strips thinking config for Cloud Code
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  const generationConfig = result.request.generationConfig as {
+    thinkingConfig?: { thinkingBudget?: number; includeThoughts?: boolean };
+  };
   assert.equal(result.reasoning_effort, undefined);
-  assert.equal(result.request.generationConfig.thinkingConfig, undefined);
+  assert.equal(generationConfig.thinkingConfig, undefined);
 });
 
 test("AntigravityExecutor.transformRequest preserves thinking config for supported Gemini models", async () => {
@@ -154,8 +197,12 @@ test("AntigravityExecutor.transformRequest preserves thinking config for support
     projectId: "project-1",
   });
 
-  assert.equal(result.request.generationConfig.thinkingConfig.thinkingBudget, 8192);
-  assert.equal(result.request.generationConfig.thinkingConfig.includeThoughts, true);
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  const generationConfig = result.request.generationConfig as {
+    thinkingConfig: { thinkingBudget?: number; includeThoughts?: boolean };
+  };
+  assert.equal(generationConfig.thinkingConfig.thinkingBudget, 8192);
+  assert.equal(generationConfig.thinkingConfig.includeThoughts, true);
 });
 
 test("AntigravityExecutor.transformRequest tolerates a missing body when projectId is present", async () => {
@@ -165,6 +212,7 @@ test("AntigravityExecutor.transformRequest tolerates a missing body when project
     projectId: "project-1",
   });
 
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "gemini-3.1-pro-low");
   assert.ok(result.request.sessionId);
@@ -178,11 +226,94 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
     true,
     {}
   );
-  const payload = (await result.json()) as any;
+  if (!(result instanceof Response)) throw new Error("Expected Response from transformRequest");
+  const payload = (await result.json()) as ErrorPayload;
 
   assert.equal(result.status, 422);
   assert.equal(payload.error.code, "missing_project_id");
   assert.match(payload.error.message, /Missing Google projectId/);
+});
+
+test("AntigravityExecutor.transformRequest prefers top-level credentials projectId over nested providerSpecificData", async () => {
+  const executor = new AntigravityExecutor();
+  const result = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: "body-project",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "credential-project",
+      providerSpecificData: { projectId: "nested-project" },
+    }
+  );
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.equal(result.project, "credential-project");
+});
+
+test("AntigravityExecutor.transformRequest uses nested providerSpecificData projectId when top-level is absent", async () => {
+  const executor = new AntigravityExecutor();
+  const result = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      providerSpecificData: { projectId: "nested-project" },
+    }
+  );
+
+  if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
+  assert.equal(result.project, "nested-project");
+});
+
+test("AntigravityExecutor.transformRequest treats whitespace-only project values as missing", async () => {
+  const executor = new AntigravityExecutor();
+
+  const nestedFallback = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: "   ",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "   ",
+      providerSpecificData: { projectId: " nested-project " },
+    }
+  );
+
+  if (nestedFallback instanceof Response)
+    throw new Error("Unexpected Response from transformRequest");
+  assert.equal(nestedFallback.project, "nested-project");
+
+  const bodyFallback = await executor.transformRequest(
+    "antigravity/gemini-2.5-pro",
+    {
+      project: " body-project ",
+      request: {
+        contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      },
+    },
+    true,
+    {
+      projectId: "   ",
+      providerSpecificData: { projectId: "   " },
+    }
+  );
+
+  if (bodyFallback instanceof Response)
+    throw new Error("Unexpected Response from transformRequest");
+  assert.equal(bodyFallback.project, "body-project");
 });
 
 test("AntigravityExecutor.transformRequest allows body project overrides when the env flag is enabled", async () => {
@@ -202,6 +333,7 @@ test("AntigravityExecutor.transformRequest allows body project overrides when th
       { projectId: "credential-project" }
     );
 
+    if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
     assert.equal(result.project, "body-project");
     assert.equal(result.request.sessionId, "session-fixed");
     assert.equal(result.model, "gemini-2.5-pro");
@@ -256,7 +388,7 @@ test("AntigravityExecutor.collectStreamToResponse turns SSE Gemini chunks into a
     { Authorization: "Bearer ag-token" },
     { request: {} }
   );
-  const payload = (await result.response.json()) as any;
+  const payload = (await result.response.json()) as ChatCompletionPayload;
 
   assert.equal(result.response.status, 200);
   assert.equal(payload.object, "chat.completion");
@@ -322,7 +454,7 @@ test("AntigravityExecutor.collectStreamToResponse parses fragmented SSE lines in
     { Authorization: "Bearer ag-token" },
     { request: {} }
   );
-  const payload = (await result.response.json()) as any;
+  const payload = (await result.response.json()) as ChatCompletionPayload;
 
   assert.equal(payload.choices[0].message.content, "Fragmented");
   assert.equal(payload.choices[0].finish_reason, "stop");
@@ -393,7 +525,7 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
     );
   };
   globalThis.setTimeout = ((callback) => {
-    callback();
+    (callback as () => void)();
     return 0;
   }) as typeof setTimeout;
 
@@ -402,10 +534,10 @@ test("AntigravityExecutor.execute auto-retries short 429 responses and collects 
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: false,
-      credentials: { accessToken: "token", projectId: "project-1" } as any,
+      credentials: { accessToken: "token", projectId: "project-1" },
       log: { debug() {}, warn() {} },
     });
-    const payload = (await result.response.json()) as any;
+    const payload = (await result.response.json()) as ChatCompletionPayload;
 
     assert.equal(calls.length, 2);
     assert.equal(result.response.status, 200);
@@ -444,10 +576,10 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
       model: "antigravity/gemini-2.5-flash",
       body: { request: { contents: [] } },
       stream: true,
-      credentials: { accessToken: "token", projectId: "project-1" } as any,
+      credentials: { accessToken: "token", projectId: "project-1" },
       log: { debug() {}, warn() {} },
     });
-    const payload = (await result.response.json()) as any;
+    const payload = (await result.response.json()) as ErrorPayload;
 
     assert.equal(result.response.status, 429);
     assert.equal(payload.retryAfterMs, 7_200_000);
@@ -466,15 +598,21 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.equal(headers["User-Agent"], "antigravity/2026.04.17-test darwin/arm64");
+    assert.equal(
+      headers["User-Agent"],
+      "Antigravity/2026.04.17-test (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+    );
+    assert.equal(headers["x-client-name"], "antigravity");
+    assert.equal(headers["x-client-version"], "2026.04.17-test");
+    assert.equal(headers["x-goog-user-project"], "project-1");
     assert.deepEqual(Object.keys(parsedBody), [
       "project",
+      "requestId",
+      "request",
       "model",
       "userAgent",
       "requestType",
-      "requestId",
       "enabledCreditTypes",
-      "request",
     ]);
 
     return new Response(
@@ -492,7 +630,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
         model: "antigravity/gemini-2.5-flash",
         body: { request: { contents: [] } },
         stream: false,
-        credentials: { accessToken: "token", projectId: "project-1" } as any,
+        credentials: { accessToken: "token", projectId: "project-1" },
         log: { debug() {}, warn() {}, info() {} },
       })
     );
@@ -504,7 +642,7 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
   }
 });
 
-test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for claude models", async () => {
+test("AntigravityExecutor.transformRequest maps Claude models through Gemini contents schema", async () => {
   const executor = new AntigravityExecutor();
   const body = {
     project: "project-1",
@@ -513,27 +651,44 @@ test("AntigravityExecutor.transformRequest bypasses Gemini contents mapping for 
     requestId: "agent-123",
     requestType: "agent",
     request: {
-      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-      system: [{ type: "text", text: "System prompt" }],
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      systemInstruction: { role: "system", parts: [{ text: "System prompt" }] },
       generationConfig: {
         temperature: 1,
         maxOutputTokens: 16384,
       },
+      messages: [{ role: "user", content: [{ type: "text", text: "Legacy Anthropic field" }] }],
+      system: [{ type: "text", text: "Legacy system field" }],
+      max_tokens: 16384,
+      stream: true,
+      temperature: 1,
     },
   };
 
   const result = (await executor.transformRequest("antigravity/claude-sonnet-4-6", body, true, {
     projectId: "project-1",
-  })) as any;
+  })) as AntigravityTransformResult;
 
   assert.equal(result.project, "project-1");
   assert.equal(result.model, "claude-sonnet-4-6");
   assert.equal(result.requestType, "agent");
   assert.ok(result.request.sessionId);
-  assert.deepEqual(result.request.messages, [
-    { role: "user", content: [{ type: "text", text: "Hello" }] },
-  ]);
-  assert.deepEqual(result.request.system, [{ type: "text", text: "System prompt" }]);
-  assert.equal(result.request.contents, undefined);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.deepEqual(result.request.contents, [{ role: "user", parts: [{ text: "Hello" }] }]);
+  assert.deepEqual(result.request.systemInstruction, {
+    role: "system",
+    parts: [{ text: "System prompt" }],
+  });
+  assert.deepEqual(result.request.generationConfig, {
+    temperature: 1,
+    maxOutputTokens: 16384,
+    topK: 40,
+    topP: 1.0,
+  });
+  assert.equal(result.request.messages, undefined);
+  assert.equal(result.request.system, undefined);
+  assert.equal(result.request.max_tokens, undefined);
+  assert.equal(result.request.stream, undefined);
+  assert.equal(result.request.temperature, undefined);
   assert.equal(result.request.toolConfig, undefined);
 });

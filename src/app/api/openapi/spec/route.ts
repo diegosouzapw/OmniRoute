@@ -10,6 +10,9 @@ import yaml from "js-yaml";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
 const OPENAPI_SPEC_CANDIDATES = [
+  path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "reference", "openapi.yaml"),
+  path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "reference", "openapi.yaml"),
+  // Legacy locations kept as fallback for old standalone bundles.
   path.join(/* turbopackIgnore: true */ process.cwd(), "docs", "openapi.yaml"),
   path.join(/* turbopackIgnore: true */ process.cwd(), "app", "docs", "openapi.yaml"),
 ];

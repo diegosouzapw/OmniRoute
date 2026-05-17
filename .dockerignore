@@ -38,7 +38,9 @@ playwright-report
 blob-report
 
 # Documentation (not needed in container)
-docs
+# Keep the docs directory itself in context so openapi.yaml can be re-included.
+docs/*
+!docs/openapi.yaml
 *.md
 !README.md
 

@@ -295,15 +295,11 @@ export default function A2ADashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="text-sm text-text-muted">{t("loading")}</div>
-      </div>
-    );
+    return <div className="text-sm text-text-muted">{t("loading")}</div>;
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label={t("health")} value={status?.status === "ok" ? t("ok") : "—"} />
         <StatCard label={t("totalTasks")} value={status?.tasks?.total || 0} />

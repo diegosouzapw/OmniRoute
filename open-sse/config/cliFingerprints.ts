@@ -63,30 +63,32 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
     // executor-provided version or user override.
   },
   claude: {
+    // Header order matching real claude-cli: Title-Case (Stainless) keys
+    // alphabetically, then lowercase Anthropic keys alphabetically, then
+    // transport headers added by Node fetch.
     headerOrder: [
-      "Host",
+      "Accept",
+      "Authorization",
       "Content-Type",
-      "x-api-key",
-      "anthropic-version",
-      "anthropic-beta",
-      "anthropic-dangerous-direct-browser-access",
-      "x-app",
       "User-Agent",
       "X-Claude-Code-Session-Id",
-      "x-client-request-id",
-      "X-Stainless-Retry-Count",
-      "X-Stainless-Timeout",
-      "X-Stainless-Lang",
-      "X-Stainless-Package-Version",
-      "X-Stainless-OS",
       "X-Stainless-Arch",
+      "X-Stainless-Lang",
+      "X-Stainless-OS",
+      "X-Stainless-Package-Version",
+      "X-Stainless-Retry-Count",
       "X-Stainless-Runtime",
       "X-Stainless-Runtime-Version",
-      "Accept",
-      "accept-language",
-      "accept-encoding",
-      "sec-fetch-mode",
+      "X-Stainless-Timeout",
+      "anthropic-beta",
+      "anthropic-dangerous-direct-browser-access",
+      "anthropic-version",
+      "x-app",
+      "x-client-request-id",
       "Connection",
+      "Host",
+      "Accept-Encoding",
+      "Content-Length",
     ],
     bodyFieldOrder: [
       "model",
@@ -96,6 +98,7 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "tool_choice",
       "metadata",
       "max_tokens",
+      "temperature",
       "thinking",
       "context_management",
       "output_config",
@@ -175,17 +178,22 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
       "Content-Type",
       "Authorization",
       "User-Agent",
+      "x-client-name",
+      "x-client-version",
+      "x-machine-id",
+      "x-vscode-sessionid",
+      "x-goog-user-project",
       "Accept",
       "Accept-Encoding",
     ],
     bodyFieldOrder: [
       "project",
+      "requestId",
+      "request",
       "model",
       "userAgent",
       "requestType",
-      "requestId",
       "enabledCreditTypes",
-      "request",
     ],
     userAgent: getAntigravityUserAgent,
   },
@@ -308,11 +316,22 @@ export function orderHeaders(
  * Apply a CLI fingerprint to headers and body.
  * Returns { headers, bodyString } with the correct ordering.
  */
+function stripInternalBodyFields(body: unknown): unknown {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+
+  const record = body as Record<string, unknown>;
+  delete record._claudeCodeRequiresLowercaseToolNames;
+  delete record._nativeCodexPassthrough;
+  delete record._omnirouteResponsesStore;
+  return body;
+}
+
 export function applyFingerprint(
   provider: string,
   headers: Record<string, string>,
   body: unknown
 ): { headers: Record<string, string>; bodyString: string } {
+  body = stripInternalBodyFields(body);
   const normalizedProvider = normalizeCliCompatProviderId(provider || "");
   const fingerprintKey = isClaudeCodeCompatible(provider)
     ? "claude-code-compatible"

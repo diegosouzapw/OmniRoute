@@ -16,6 +16,12 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function parseNonNegativeInt(value: string | undefined, fallback: number): number {
+  if (value === undefined || value === "") return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (!value) return fallback;
   const normalized = value.trim().toLowerCase();
@@ -100,4 +106,27 @@ export function getAppLogLevel(defaultLevel: string): string {
 
 export function getAppLogFormat(defaultFormat: string): string {
   return process.env.APP_LOG_FORMAT || defaultFormat;
+}
+
+// ─── Chat log truncation limits ─────────────────────────────────────────────
+
+export function getChatLogTextLimit(): number {
+  return parsePositiveInt(process.env.CHAT_LOG_TEXT_LIMIT, 64 * 1024);
+}
+
+export function getChatLogArrayTailItems(): number {
+  return parsePositiveInt(process.env.CHAT_LOG_ARRAY_TAIL_ITEMS, 24);
+}
+
+export function getChatLogMaxDepth(): number {
+  return parsePositiveInt(process.env.CHAT_LOG_MAX_DEPTH, 6);
+}
+
+export function getChatLogMaxObjectKeys(): number {
+  return parseNonNegativeInt(process.env.CHAT_LOG_MAX_OBJECT_KEYS, 80);
+}
+
+export function isChatDebugFileEnabled(): boolean {
+  if (parseBoolean(process.env.CHAT_DEBUG_FILE, false)) return true;
+  return process.env.APP_LOG_LEVEL?.trim().toLowerCase() === "debug";
 }

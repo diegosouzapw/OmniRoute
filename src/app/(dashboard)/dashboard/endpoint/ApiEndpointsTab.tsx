@@ -25,19 +25,6 @@ interface CatalogData {
   schemas: string[];
 }
 
-interface WebhookItem {
-  id: string;
-  url: string;
-  events: string[];
-  secret: string | null;
-  enabled: boolean;
-  description: string;
-  created_at: string;
-  last_triggered_at: string | null;
-  last_status: number | null;
-  failure_count: number;
-}
-
 interface TryItResult {
   status: number;
   statusText: string;
@@ -55,22 +42,12 @@ const METHOD_COLORS: Record<string, string> = {
   DELETE: "bg-red-500/15 text-red-500 border-red-500/30",
 };
 
-const WEBHOOK_EVENTS = [
-  "request.completed",
-  "request.failed",
-  "provider.error",
-  "provider.recovered",
-  "quota.exceeded",
-  "combo.switched",
-];
-
 /* ─── Main Component ─────────────────────────────────── */
 export default function ApiEndpointsTab() {
   const baseUrl = useDisplayBaseUrl();
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [section, setSection] = useState<"catalog" | "webhooks">("catalog");
   const [search, setSearch] = useState("");
   const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -81,16 +58,6 @@ export default function ApiEndpointsTab() {
   const [tryResult, setTryResult] = useState<TryItResult | null>(null);
   const [trying, setTrying] = useState(false);
 
-  // Webhooks state
-  const [webhooks, setWebhooks] = useState<WebhookItem[]>([]);
-  const [webhooksLoading, setWebhooksLoading] = useState(false);
-  const [showAddWebhook, setShowAddWebhook] = useState(false);
-  const [whUrl, setWhUrl] = useState("");
-  const [whEvents, setWhEvents] = useState<string[]>(["*"]);
-  const [whDesc, setWhDesc] = useState("");
-  const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
-
-  // Load catalog
   const loadCatalog = async () => {
     try {
       const res = await fetch("/api/openapi/spec");
@@ -123,39 +90,6 @@ export default function ApiEndpointsTab() {
       cancelled = true;
     };
   }, []);
-
-  // Load webhooks
-  const fetchWebhooksData = async (): Promise<WebhookItem[]> => {
-    try {
-      const res = await fetch("/api/webhooks");
-      if (res.ok) {
-        const data = await res.json();
-        return data.webhooks || [];
-      }
-    } catch {}
-    return [];
-  };
-
-  const loadWebhooks = async () => {
-    setWebhooksLoading(true);
-    const data = await fetchWebhooksData();
-    setWebhooks(data);
-    setWebhooksLoading(false);
-  };
-
-  useEffect(() => {
-    if (section !== "webhooks") return;
-    let cancelled = false;
-    fetchWebhooksData().then((data) => {
-      if (!cancelled) {
-        setWebhooks(data);
-        setWebhooksLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [section]);
 
   // Filter endpoints
   const filteredEndpoints = useMemo(() => {
@@ -226,64 +160,17 @@ export default function ApiEndpointsTab() {
     setTrying(false);
   };
 
-  // Webhook handlers
-  const addWebhook = async () => {
-    if (!whUrl.trim()) return;
-    try {
-      await fetch("/api/webhooks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: whUrl, events: whEvents, description: whDesc }),
-      });
-      setWhUrl("");
-      setWhEvents(["*"]);
-      setWhDesc("");
-      setShowAddWebhook(false);
-      await loadWebhooks();
-    } catch {}
-  };
-
-  const toggleWebhook = async (wh: WebhookItem) => {
-    try {
-      await fetch(`/api/webhooks/${wh.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !wh.enabled }),
-      });
-      setWebhooks((prev) => prev.map((w) => (w.id === wh.id ? { ...w, enabled: !w.enabled } : w)));
-    } catch {}
-  };
-
-  const deleteWebhook = async (id: string) => {
-    if (!confirm("Delete this webhook?")) return;
-    try {
-      await fetch(`/api/webhooks/${id}`, { method: "DELETE" });
-      setWebhooks((prev) => prev.filter((w) => w.id !== id));
-    } catch {}
-  };
-
-  const testWebhook = async (id: string) => {
-    setTestingWebhookId(id);
-    try {
-      await fetch(`/api/webhooks/${id}/test`, { method: "POST" });
-      await loadWebhooks();
-    } catch {}
-    setTestingWebhookId(null);
-  };
-
   if (loading) {
     return (
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-white/5 rounded-lg w-1/3" />
-          <div className="h-64 bg-white/5 rounded-xl" />
-        </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 bg-white/5 rounded-lg w-1/3" />
+        <div className="h-64 bg-white/5 rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-5">
+    <div className="space-y-5">
       {/* Header with spec info */}
       {catalog && (
         <Card className="p-5">
@@ -329,30 +216,8 @@ export default function ApiEndpointsTab() {
         </Card>
       )}
 
-      {/* Section tabs */}
-      <div className="flex gap-1 p-1 rounded-xl bg-black/5 dark:bg-white/[0.03] w-fit">
-        {[
-          { id: "catalog" as const, label: "API Catalog", icon: "menu_book" },
-          { id: "webhooks" as const, label: "Webhooks", icon: "webhook" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSection(tab.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all
-              ${
-                section === tab.id
-                  ? "bg-white dark:bg-white/10 text-text-main shadow-sm"
-                  : "text-text-muted hover:text-text-main"
-              }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* ═══ API CATALOG ═══ */}
-      {section === "catalog" && !catalog && (
+      {!catalog && (
         <Card className="p-6">
           <div className="flex items-start gap-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
@@ -378,7 +243,7 @@ export default function ApiEndpointsTab() {
         </Card>
       )}
 
-      {section === "catalog" && catalog && (
+      {catalog && (
         <>
           {/* Search & filter */}
           <div className="flex items-center gap-2">
@@ -647,232 +512,6 @@ export default function ApiEndpointsTab() {
               </div>
             </Card>
           )}
-        </>
-      )}
-
-      {/* ═══ WEBHOOKS ═══ */}
-      {section === "webhooks" && (
-        <>
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[18px]">webhook</span>
-                <div>
-                  <h3 className="text-sm font-semibold">Event Webhooks</h3>
-                  <p className="text-[11px] text-text-muted">
-                    Receive HTTP callbacks when events occur in OmniRoute
-                  </p>
-                </div>
-              </div>
-              {!showAddWebhook && (
-                <button
-                  onClick={() => setShowAddWebhook(true)}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg
-                             bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[14px]">add</span>
-                  Add Webhook
-                </button>
-              )}
-            </div>
-
-            {/* Add webhook form */}
-            {showAddWebhook && (
-              <div className="mb-4 p-3 rounded-lg border border-primary/20 bg-primary/[0.03] space-y-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                      Webhook URL
-                    </label>
-                    <input
-                      value={whUrl}
-                      onChange={(e) => setWhUrl(e.target.value)}
-                      placeholder="https://example.com/webhook"
-                      className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
-                                 bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                      Description
-                    </label>
-                    <input
-                      value={whDesc}
-                      onChange={(e) => setWhDesc(e.target.value)}
-                      placeholder="Production monitoring"
-                      className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
-                                 bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
-                    Events
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 mt-1">
-                    <button
-                      onClick={() => setWhEvents(["*"])}
-                      className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors
-                        ${
-                          whEvents.includes("*")
-                            ? "bg-primary/10 text-primary"
-                            : "bg-black/5 dark:bg-white/5 text-text-muted"
-                        }`}
-                    >
-                      All events
-                    </button>
-                    {WEBHOOK_EVENTS.map((ev) => (
-                      <button
-                        key={ev}
-                        onClick={() => {
-                          if (whEvents.includes("*")) {
-                            setWhEvents([ev]);
-                          } else if (whEvents.includes(ev)) {
-                            setWhEvents(whEvents.filter((e) => e !== ev));
-                          } else {
-                            setWhEvents([...whEvents, ev]);
-                          }
-                        }}
-                        className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors
-                          ${
-                            whEvents.includes(ev) || whEvents.includes("*")
-                              ? "bg-primary/10 text-primary"
-                              : "bg-black/5 dark:bg-white/5 text-text-muted"
-                          }`}
-                      >
-                        {ev}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={addWebhook}
-                    disabled={!whUrl.trim()}
-                    className="px-3 py-1 text-xs font-medium rounded-lg bg-primary text-white
-                               hover:bg-primary/90 disabled:opacity-40 transition-colors"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setShowAddWebhook(false)}
-                    className="px-3 py-1 text-xs font-medium rounded-lg
-                               bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Webhooks list */}
-            {webhooksLoading ? (
-              <div className="text-xs text-text-muted py-4 text-center">Loading...</div>
-            ) : webhooks.length === 0 ? (
-              <div className="text-center py-6">
-                <span className="material-symbols-outlined text-[32px] text-text-muted">
-                  webhook
-                </span>
-                <p className="text-xs text-text-muted mt-2">
-                  No webhooks configured. Add one to receive event notifications.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {webhooks.map((wh) => (
-                  <div
-                    key={wh.id}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-colors
-                      ${
-                        wh.enabled
-                          ? "border-black/10 dark:border-white/10 bg-white/50 dark:bg-white/[0.02]"
-                          : "border-black/5 dark:border-white/5 opacity-50"
-                      }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono text-text-main truncate">{wh.url}</code>
-                        {wh.failure_count > 0 && (
-                          <span className="text-[9px] px-1 py-0.5 rounded bg-red-500/10 text-red-500">
-                            {wh.failure_count} failures
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {wh.description && (
-                          <span className="text-[10px] text-text-muted">{wh.description}</span>
-                        )}
-                        <span className="text-[9px] text-text-muted">
-                          Events: {wh.events.join(", ")}
-                        </span>
-                        {wh.last_triggered_at && (
-                          <span className="text-[9px] text-text-muted">
-                            Last: {new Date(wh.last_triggered_at).toLocaleString()}
-                            {wh.last_status ? ` (${wh.last_status})` : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0 ml-2">
-                      <button
-                        onClick={() => testWebhook(wh.id)}
-                        disabled={testingWebhookId === wh.id}
-                        className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                        title="Send test event"
-                      >
-                        <span
-                          className={`material-symbols-outlined text-[14px] ${testingWebhookId === wh.id ? "animate-spin text-primary" : "text-text-muted"}`}
-                        >
-                          {testingWebhookId === wh.id ? "sync" : "send"}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => toggleWebhook(wh)}
-                        className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                        title={wh.enabled ? "Disable" : "Enable"}
-                      >
-                        <span
-                          className={`material-symbols-outlined text-[14px] ${wh.enabled ? "text-emerald-500" : "text-text-muted"}`}
-                        >
-                          {wh.enabled ? "toggle_on" : "toggle_off"}
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => deleteWebhook(wh.id)}
-                        className="p-1 rounded hover:bg-red-500/10 transition-colors"
-                        title="Delete"
-                      >
-                        <span className="material-symbols-outlined text-[14px] text-red-500">
-                          delete
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-
-          {/* Webhook signature info */}
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-[14px] text-amber-500">vpn_key</span>
-              <h3 className="text-xs font-semibold">Webhook Signatures</h3>
-            </div>
-            <p className="text-[11px] text-text-muted mb-2">
-              Each webhook delivery includes an{" "}
-              <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5">
-                X-Webhook-Signature
-              </code>{" "}
-              header signed with HMAC-SHA256 using the webhook secret. Verify the signature to
-              ensure the payload is authentic.
-            </p>
-            <div className="rounded-lg bg-black/5 dark:bg-black/30 p-3">
-              <code className="text-[10px] font-mono text-text-main">
-                {`const crypto = require('crypto');\nconst sig = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');\nif (sig !== req.headers['x-webhook-signature']) throw new Error('Invalid signature');`}
-              </code>
-            </div>
-          </Card>
         </>
       )}
     </div>

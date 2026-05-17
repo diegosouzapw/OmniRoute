@@ -1,4 +1,4 @@
-FROM node:24.15.0-trixie-slim AS builder
+FROM node:26.1.0-trixie-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
@@ -6,16 +6,20 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
-COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
+COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
+COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
+COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+RUN if [ -f package-lock.json ]; then \
+    npm ci --no-audit --no-fund --legacy-peer-deps; \
+    else \
+    npm install --no-audit --no-fund --legacy-peer-deps; \
+    fi
 
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
-FROM node:24.15.0-trixie-slim AS runner-base
+FROM node:26.1.0-trixie-slim AS runner-base
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="omniroute" \
@@ -50,18 +54,23 @@ COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 # traced by Next.js standalone output — copy them explicitly.
 COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
+# MITM server.cjs is spawned at runtime via child_process — not traced by nft
+COPY --from=builder /app/src/mitm/server.cjs ./src/mitm/server.cjs
+# Documentation files and OpenAPI spec are read from disk at runtime.
+# Next.js standalone tracing does not include them.
+COPY --from=builder /app/docs ./docs
 
-COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
-COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
-COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
-COPY --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs
+COPY --from=builder /app/scripts/dev/run-standalone.mjs ./dev/run-standalone.mjs
+COPY --from=builder /app/scripts/build/runtime-env.mjs ./build/runtime-env.mjs
+COPY --from=builder /app/scripts/build/bootstrap-env.mjs ./build/bootstrap-env.mjs
+COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
 
 EXPOSE 20128
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["node", "healthcheck.mjs"]
 
-CMD ["node", "run-standalone.mjs"]
+CMD ["node", "dev/run-standalone.mjs"]
 
 FROM runner-base AS runner-cli
 

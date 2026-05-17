@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { SegmentedControl, Collapsible } from "@/shared/components";
 
 type RtkFilter = {
   id: string;
@@ -66,6 +67,7 @@ export default function RtkContextPageClient() {
   const [sample, setSample] = useState(SAMPLE_OUTPUT);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"simple" | "advanced">("simple");
 
   useEffect(() => {
     fetch("/api/context/rtk/filters")
@@ -140,12 +142,22 @@ export default function RtkContextPageClient() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-[30px] text-primary">filter_alt</span>
-          <div>
-            <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
-            <p className="text-sm text-text-muted">{t("description")}</p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-[30px] text-primary">filter_alt</span>
+            <div>
+              <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
+              <p className="text-sm text-text-muted">{t("description")}</p>
+            </div>
           </div>
+          <SegmentedControl
+            value={viewMode}
+            onChange={(v) => setViewMode(v as "simple" | "advanced")}
+            options={[
+              { value: "simple", label: t("simpleMode") || "Simple" },
+              { value: "advanced", label: t("advancedMode") || "Advanced" },
+            ]}
+          />
         </div>
       </header>
 
@@ -278,72 +290,84 @@ export default function RtkContextPageClient() {
         </section>
       )}
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
-        <div className="rounded-lg border border-border bg-surface p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-main">{t("filterTesting")}</h2>
-            <button
-              onClick={runPreview}
-              className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
-            >
-              {t("run")}
-            </button>
-          </div>
-          <textarea
-            value={sample}
-            onChange={(event) => setSample(event.target.value)}
-            placeholder={t("pasteOutput")}
-            className="h-72 w-full rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-main"
-          />
-        </div>
-        <div className="rounded-lg border border-border bg-surface p-4">
-          <h2 className="mb-3 text-sm font-semibold text-text-main">{t("result")}</h2>
-          {preview?.detection && (
-            <p className="mb-2 text-xs text-text-muted">
-              {t("detected")}: {preview.detection.type} (
-              {Math.round(preview.detection.confidence * 100)}%)
-            </p>
-          )}
-          <pre className="h-72 overflow-auto rounded-lg border border-border bg-bg p-3 text-xs text-text-main">
-            {preview ? JSON.stringify(preview, null, 2) : t("previewEmpty")}
-          </pre>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {Object.entries(groupedFilters).map(([category, items]) => (
-          <div key={category} className="rounded-lg border border-border bg-surface p-4">
-            <h2 className="text-sm font-semibold capitalize text-text-main">{category}</h2>
-            <div className="mt-3 space-y-3">
-              {items.map((filter) => {
-                const enabled = config ? !config.disabledFilters.includes(filter.id) : true;
-                return (
-                  <div
-                    key={filter.id}
-                    className="border-t border-border pt-3 first:border-t-0 first:pt-0"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-text-main">{filter.name}</p>
-                        <p className="mt-1 text-xs text-text-muted">{filter.description}</p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={enabled}
-                        disabled={!config || saving}
-                        onChange={(event) => toggleFilter(filter.id, event.target.checked)}
-                      />
-                    </div>
-                    <p className="mt-2 font-mono text-[11px] text-text-muted">
-                      {filter.commandTypes.join(", ")}
-                    </p>
-                  </div>
-                );
-              })}
+      {viewMode === "advanced" && (
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr]">
+          <div className="rounded-lg border border-border bg-surface p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-text-main">{t("filterTesting")}</h2>
+              <button
+                onClick={runPreview}
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white"
+              >
+                {t("run")}
+              </button>
             </div>
+            <textarea
+              value={sample}
+              onChange={(event) => setSample(event.target.value)}
+              placeholder={t("pasteOutput")}
+              className="h-72 w-full rounded-lg border border-border bg-bg p-3 font-mono text-xs text-text-main"
+            />
           </div>
-        ))}
-      </section>
+          <div className="rounded-lg border border-border bg-surface p-4">
+            <h2 className="mb-3 text-sm font-semibold text-text-main">{t("result")}</h2>
+            {preview?.detection && (
+              <p className="mb-2 text-xs text-text-muted">
+                {t("detected")}: {preview.detection.type} (
+                {Math.round(preview.detection.confidence * 100)}%)
+              </p>
+            )}
+            <pre className="h-72 overflow-auto rounded-lg border border-border bg-bg p-3 text-xs text-text-main">
+              {preview ? JSON.stringify(preview, null, 2) : t("previewEmpty")}
+            </pre>
+          </div>
+        </section>
+      )}
+
+      <Collapsible
+        title={t("filterCatalog") || "Filter Catalog"}
+        subtitle={t("filterCatalogDesc") || "Available output filters by category"}
+        icon="filter_list"
+        trailing={
+          <span className="text-xs text-text-muted">
+            {Object.values(groupedFilters).flat().length} {t("filtersActive") || "filters"}
+          </span>
+        }
+        defaultOpen={viewMode === "advanced"}
+      >
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {Object.entries(groupedFilters).map(([category, items]) => (
+            <div key={category} className="rounded-lg border border-border bg-bg p-3">
+              <h3 className="text-xs font-semibold capitalize text-text-main">{category}</h3>
+              <div className="mt-2 space-y-2">
+                {items.map((filter) => {
+                  const enabled = config ? !config.disabledFilters.includes(filter.id) : true;
+                  return (
+                    <div
+                      key={filter.id}
+                      className="border-t border-border pt-2 first:border-t-0 first:pt-0"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-text-main">{filter.name}</p>
+                          <p className="mt-0.5 text-[11px] text-text-muted">{filter.description}</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={enabled}
+                          disabled={!config || saving}
+                          onChange={(event) => toggleFilter(filter.id, event.target.checked)}
+                          className="mt-0.5"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Collapsible>
     </div>
   );
 }

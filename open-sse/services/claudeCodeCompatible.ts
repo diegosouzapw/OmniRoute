@@ -12,6 +12,8 @@ import {
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
 import { obfuscateInBody } from "./claudeCodeObfuscation.ts";
+import { applySystemTransformPipeline, PROVIDER_CC_BRIDGE } from "./systemTransforms.ts";
+import { fixToolPairs, stripTrailingAssistantOrphanToolUse } from "./contextManager.ts";
 
 /**
  * `anthropic-compatible-cc-*` targets Anthropic relay gateways that only accept
@@ -33,8 +35,8 @@ export const CLAUDE_CODE_COMPATIBLE_ANTHROPIC_BETA = [
   "interleaved-thinking-2025-05-14",
   "effort-2025-11-24",
 ].join(",");
-export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.121";
-export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.121 (external, sdk-cli)";
+export const CLAUDE_CODE_COMPATIBLE_VERSION = "2.1.137";
+export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.137 (external, sdk-cli)";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.81.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
@@ -332,12 +334,47 @@ export async function buildAndSignClaudeCodeRequest(
   // Step 5: Cache control
   enforceCacheControlLimit(body);
 
+  // Step 5b: Config-driven system transforms (issue #2260, v2)
+  // Normalizes system blocks to classifier-correct structure regardless of
+  // source client (OpenCode, Cline, Cursor, Continue, Open WebUI, raw API).
+  // Routed via the generic per-provider DSL so the same pipeline shape covers
+  // the CC bridge, the native `claude` path, and any other configured
+  // provider. Idempotent on re-run.
+  {
+    const transformResult = applySystemTransformPipeline(
+      PROVIDER_CC_BRIDGE,
+      body as Parameters<typeof applySystemTransformPipeline>[1]
+    );
+    if (transformResult.appliedOpKinds.length > 0) {
+      console.log(`[SystemTransforms] cc-bridge: ${transformResult.appliedOpKinds.join(", ")}`);
+    }
+  }
+
+  // Step 5c: Guard against orphan tool_use / tool_result blocks.
+  // Anthropic rejects requests where a tool_use has no matching tool_result
+  // in the next user message (e.g. `messages.N: tool_use ids were found
+  // without tool_result blocks immediately after: toolu_...`). Clients can
+  // ship truncated histories mid-tool-call; fixToolPairs strips orphans
+  // (preserving final-message tool_use for in-flight rounds), then
+  // stripTrailingAssistantOrphanToolUse catches the case where the request
+  // body itself ends on an unmatched assistant(tool_use) — invalid for an
+  // upstream-send turn since the body must end on a user message.
+  // Both are idempotent on clean histories.
+  {
+    const b = body as Record<string, unknown>;
+    if (Array.isArray(b.messages)) {
+      const fixed = fixToolPairs(b.messages as Record<string, unknown>[]);
+      b.messages = stripTrailingAssistantOrphanToolUse(fixed);
+    }
+  }
+
   // Step 6: Obfuscation (optional, per-provider setting)
   if (enableObfuscation) {
     obfuscateInBody(body);
   }
 
-  // Step 7: Serialize with CCH placeholder
+  // Step 7: Serialize with CCH placeholder (strip internal sentinel fields)
+  delete (body as Record<string, unknown>)["_claudeCodeRequiresLowercaseToolNames"];
   const serialized = JSON.stringify(body);
 
   // Step 8: Sign with xxHash64
@@ -362,6 +399,40 @@ export {
   disableThinkingIfToolChoiceForced,
   enforceCacheControlLimit,
 } from "./claudeCodeConstraints.ts";
+// Preferred (v2): generic per-provider DSL.
+export {
+  applySystemTransformPipeline,
+  setSystemTransformsConfig,
+  getSystemTransformsConfig,
+  resetSystemTransformsConfig,
+  DEFAULT_SYSTEM_TRANSFORMS_CONFIG,
+  DEFAULT_CLAUDE_PIPELINE,
+  DEFAULT_CC_BRIDGE_PROVIDER_PIPELINE,
+  DEFAULT_OBFUSCATE_WORDS,
+  OPENWEBUI_PARAGRAPH_ANCHORS,
+  OPENWEBUI_IDENTITY_PREFIXES,
+  PROVIDER_CLAUDE,
+  PROVIDER_CC_BRIDGE,
+} from "./systemTransforms.ts";
+export type { SystemTransformsConfig, ProviderTransformsConfig } from "./systemTransforms.ts";
+
+// Legacy (deprecated, kept for transitional API consumers).
+// The base executor is still used internally by systemTransforms.ts;
+// these exports let downstream code reference the building blocks directly
+// while we migrate UI + settings to the v2 shape.
+export {
+  applyCcBridgeTransformPipeline,
+  buildBillingHeaderValue,
+  setCcBridgeTransformsConfig,
+  getCcBridgeTransformsConfig,
+  resetCcBridgeTransformsConfig,
+  DEFAULT_CC_BRIDGE_PIPELINE,
+  DEFAULT_PARAGRAPH_REMOVAL_ANCHORS,
+  DEFAULT_IDENTITY_PREFIXES,
+  DEFAULT_TEXT_REPLACEMENTS,
+  CLAUDE_AGENT_SDK_IDENTITY,
+} from "./ccBridgeTransforms.ts";
+export type { TransformOp, CcBridgeTransformsConfig } from "./ccBridgeTransforms.ts";
 
 export function resolveClaudeCodeCompatibleEffort(
   sourceBody?: Record<string, unknown> | null,

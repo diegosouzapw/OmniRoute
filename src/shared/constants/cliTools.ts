@@ -65,7 +65,6 @@ export const CLI_TOOLS = {
   codex: {
     id: "codex",
     name: "OpenAI Codex CLI",
-    image: "/providers/codex.png",
     color: "#10A37F",
     description: "OpenAI Codex CLI",
     docsUrl: "https://github.com/openai/codex",
@@ -75,7 +74,7 @@ export const CLI_TOOLS = {
   droid: {
     id: "droid",
     name: "Factory Droid",
-    image: "/providers/droid.png",
+    image: "/providers/droid.svg",
     color: "#00D4FF",
     description: "Factory Droid AI Assistant",
     docsUrl: "/docs?section=cli-tools&tool=droid",
@@ -121,7 +120,6 @@ export const CLI_TOOLS = {
   windsurf: {
     id: "windsurf",
     name: "Windsurf",
-    image: "/providers/windsurf.svg",
     color: "#4A90E2",
     description: "Windsurf AI-first IDE by Codeium",
     docsUrl: "https://windsurf.com/",
@@ -151,7 +149,6 @@ export const CLI_TOOLS = {
   cline: {
     id: "cline",
     name: "Cline",
-    image: "/providers/cline.png",
     color: "#00D1B2",
     description: "Cline AI Coding Assistant CLI",
     docsUrl: "https://docs.cline.bot/",
@@ -161,7 +158,7 @@ export const CLI_TOOLS = {
   kilo: {
     id: "kilo",
     name: "Kilo Code",
-    image: "/providers/kilocode.png",
+    image: "/providers/kilocode.svg",
     color: "#FF6B6B",
     description: "Kilo Code AI Assistant CLI",
     docsUrl: "/docs?section=cli-tools&tool=kilocode",
@@ -200,7 +197,6 @@ export const CLI_TOOLS = {
   antigravity: {
     id: "antigravity",
     name: "Antigravity",
-    image: "/providers/antigravity.png",
     color: "#4285F4",
     description: "Google Antigravity IDE with MITM",
     docsUrl: "/docs?section=cli-tools&tool=antigravity",
@@ -381,7 +377,7 @@ amp --model "{{model}}"
   kiro: {
     id: "kiro",
     name: "Kiro AI",
-    image: "/providers/kiro.png",
+    image: "/providers/kiro.svg",
     icon: "psychology_alt",
     color: "#FF6B35",
     description: "Amazon Kiro — AI-powered IDE with MITM",
@@ -419,7 +415,7 @@ amp --model "{{model}}"
       },
       {
         type: "error",
-        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with alicode/openrouter/anthropic/gemini providers instead.",
+        text: "Qwen OAuth free tier was discontinued on 2026-04-15. Use OmniRoute with bailian-coding-plan/alibaba/alibaba-cn/openrouter/anthropic/gemini providers instead.",
       },
     ],
     modelAliases: [
@@ -529,6 +525,22 @@ amp --model "{{model}}"
     configType: "custom-builder",
   },
 };
+
+// ─── Registry helpers ────────────────────────────────────────────────────────
+
+export type CliToolEntry = (typeof CLI_TOOLS)[keyof typeof CLI_TOOLS];
+
+/** Returns an ordered list of all registered CLI tools. */
+export function listCliTools(): CliToolEntry[] {
+  return Object.values(CLI_TOOLS) as CliToolEntry[];
+}
+
+/** Returns a single tool by id, or undefined if not found. */
+export function getCliTool(id: string): CliToolEntry | undefined {
+  return (CLI_TOOLS as Record<string, CliToolEntry>)[id];
+}
+
+// ─── Provider model mapping helper ───────────────────────────────────────────
 
 // Get all provider models for mapping dropdown
 export const getProviderModelsForMapping = (providers) => {

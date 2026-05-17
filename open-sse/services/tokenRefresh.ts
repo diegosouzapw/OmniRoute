@@ -3,6 +3,7 @@ import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
+import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 
 // Token expiry buffer (refresh if expires within 5 minutes)
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -116,6 +117,88 @@ export async function refreshAccessToken(
  * Specialized refresh for Cline OAuth tokens.
  * Cline refresh endpoint expects JSON body and returns camelCase fields.
  */
+/**
+ * Refresh Windsurf (Devin CLI / Codeium) tokens.
+ *
+ * Windsurf uses Firebase Secure Token Service (STS) for token refresh.
+ * If the token is a long-lived Codeium API key (import flow), it never
+ * expires and refresh is a no-op returning the same token.
+ * If the token is a Firebase ID token (device-code flow), it expires after
+ * ~1 hour and can be refreshed with the stored Firebase refresh token.
+ */
+export async function refreshWindsurfToken(
+  refreshToken: string,
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  log: RefreshLogger,
+  proxyConfig: unknown = null
+) {
+  if (!refreshToken) {
+    log?.warn?.(
+      "TOKEN_REFRESH",
+      "No refresh token stored for Windsurf — token may be a long-lived API key"
+    );
+    return null;
+  }
+
+  const authMethod = (providerSpecificData?.authMethod as string) || "import";
+
+  // Long-lived Codeium API keys (import flow) have no expiry — nothing to refresh.
+  if (authMethod === "import") {
+    log?.debug?.("TOKEN_REFRESH", "Windsurf import token is long-lived — no refresh needed");
+    return null;
+  }
+
+  // Firebase STS refresh for browser-flow tokens.
+  // Resolves via WINDSURF_CONFIG.firebaseApiKey, which honors the
+  // WINDSURF_FIREBASE_API_KEY env override and falls back to the embedded
+  // public default in publicCreds.ts. See docs/security/PUBLIC_CREDS.md.
+  const firebaseApiKey = WINDSURF_CONFIG.firebaseApiKey || "";
+  if (!firebaseApiKey) {
+    log?.warn?.(
+      "TOKEN_REFRESH",
+      "Windsurf Firebase API key unavailable — skipping Firebase token refresh"
+    );
+    return null;
+  }
+  const tokenUrl = `https://securetoken.googleapis.com/v1/token?key=${firebaseApiKey}`;
+
+  try {
+    const response = await runWithProxyContext(proxyConfig, () =>
+      fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: buildFormParams({ grant_type: "refresh_token", refresh_token: refreshToken }),
+      })
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      log?.error?.("TOKEN_REFRESH", "Failed to refresh Windsurf Firebase token", {
+        status: response.status,
+        error: errorText.slice(0, 200),
+      });
+      return null;
+    }
+
+    const data = await response.json();
+    const expiresIn = parseInt(data.expires_in ?? "3600", 10);
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed Windsurf Firebase token", {
+      expiresIn,
+      hasNewIdToken: !!data.id_token,
+    });
+
+    return {
+      accessToken: data.id_token,
+      refreshToken: data.refresh_token || refreshToken,
+      expiresIn,
+    };
+  } catch (error) {
+    log?.error?.("TOKEN_REFRESH", `Network error refreshing Windsurf token: ${error.message}`);
+    return null;
+  }
+}
+
 export async function refreshClineToken(refreshToken, log, proxyConfig: unknown = null) {
   const endpoint = PROVIDERS.cline?.refreshUrl;
   if (!endpoint) {
@@ -266,11 +349,20 @@ export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig: un
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorBody: { error?: string; error_description?: string } = {};
+      try {
+        errorBody = await response.json();
+      } catch {
+        const text = await response.text().catch(() => "unknown");
+        errorBody = { error: text };
+      }
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Claude OAuth token", {
         status: response.status,
-        error: errorText,
+        error: errorBody,
       });
+      if (errorBody.error === "invalid_grant" || errorBody.error === "invalid_request") {
+        return { error: errorBody.error, code: `http_${response.status}` };
+      }
       return null;
     }
 
@@ -789,6 +881,15 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "kimi-coding":
       return await refreshKimiCodingToken(credentials.refreshToken, log, proxyConfig);
 
+    case "windsurf":
+    case "devin-cli":
+      return await refreshWindsurfToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        log,
+        proxyConfig
+      );
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -812,6 +913,8 @@ export function supportsTokenRefresh(provider) {
     "amazon-q",
     "cline",
     "kimi-coding",
+    "windsurf",
+    "devin-cli",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];
@@ -1186,6 +1289,13 @@ export async function refreshWithRetry(
 
     try {
       const result = await withTimeout(refreshFn, REFRESH_TIMEOUT_MS);
+      if (isUnrecoverableRefreshError(result)) {
+        log?.warn?.(
+          "TOKEN_REFRESH",
+          `Unrecoverable refresh error for ${provider}: ${result.error} — skipping retries`
+        );
+        return result;
+      }
       if (result) {
         recordSuccess(provider);
         return result;

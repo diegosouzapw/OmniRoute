@@ -6,6 +6,7 @@ import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
 import { DefaultExecutor } from "./default.ts";
+import { GlmExecutor } from "./glm.ts";
 import { PollinationsExecutor } from "./pollinations.ts";
 import { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 import { OpencodeExecutor } from "./opencode.ts";
@@ -18,9 +19,14 @@ import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
+import { WindsurfExecutor } from "./windsurf.ts";
+import { DevinCliExecutor } from "./devin-cli.ts";
+import { DeepSeekWebExecutor } from "./deepseek-web.ts";
+import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -31,8 +37,13 @@ const executors = {
   "amazon-q": new KiroExecutor("amazon-q"),
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
+  glm: new GlmExecutor("glm"),
+  "glm-cn": new GlmExecutor("glm-cn"),
+  glmt: new GlmExecutor("glmt"),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
+  "command-code": new CommandCodeExecutor(),
+  cmd: new CommandCodeExecutor(), // Alias
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
@@ -58,6 +69,12 @@ const executors = {
   "bb-web": new BlackboxWebExecutor(), // Alias
   "muse-spark-web": new MuseSparkWebExecutor(),
   "ms-web": new MuseSparkWebExecutor(), // Alias
+  windsurf: new WindsurfExecutor(),
+  ws: new WindsurfExecutor(), // Alias
+  "devin-cli": new DevinCliExecutor(),
+  devin: new DevinCliExecutor(), // Alias
+  "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
+  "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -81,6 +98,7 @@ export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";
 export { DefaultExecutor } from "./default.ts";
+export { GlmExecutor } from "./glm.ts";
 export { PollinationsExecutor } from "./pollinations.ts";
 export { CloudflareAIExecutor } from "./cloudflare-ai.ts";
 export { OpencodeExecutor } from "./opencode.ts";
@@ -89,10 +107,16 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { KieExecutor } from "./kie.ts";
 export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
+export { WindsurfExecutor } from "./windsurf.ts";
+export { DevinCliExecutor } from "./devin-cli.ts";
+export { DeepSeekWebExecutor } from "./deepseek-web.ts";
+export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";

@@ -25,6 +25,81 @@
       "context": "all",
       "category": "structural",
       "minIntensity": "lite"
+    },
+    {
+      "name": "es_redundant_phrasing",
+      "pattern": "\\b(?:asegurate de|asegúrate de|asegurate que|asegúrate que|ten cuidado de)\\b\\s*",
+      "replacement": "asegura ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_redundant_because",
+      "pattern": "\\b(?:debido a que|por la razon de que|por la razón de que|la razon es porque|la razón es porque)\\b\\s*",
+      "replacement": "porque ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_redundant_directive",
+      "pattern": "\\b(?:es importante que|deberias|deberías|recuerda que)\\b\\s*",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_list_conjunction",
+      "pattern": ",\\s*y tambien\\s+|,\\s*y también\\s+|,\\s*asi como\\s+|,\\s*así como\\s+",
+      "replacement": ", ",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_redundant_quantifiers",
+      "pattern": "\\b(?:cada uno de los|cada una de las|todos y cada uno|todas y cada una)\\b",
+      "replacement": "cada",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_all_quantifier",
+      "pattern": "\\b(?:cualquiera y todos|todas y cada una de las|todos y cada uno de los)\\b",
+      "replacement": "todos",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
+    },
+    {
+      "name": "es_transition_removal",
+      "pattern": "^(?:Por otro lado,?\\s*|En contraste,?\\s*|Sin embargo,?\\s*)",
+      "replacement": "",
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "lite"
+    },
+    {
+      "name": "es_passive_voice",
+      "pattern": "\\b(?:esta siendo usado|está siendo usado|esta siendo llamada|está siendo llamada|esta siendo generado|está siendo generado|fue creado|fue generado|fue implementado)\\b",
+      "replacement": "usa",
+      "replacementMap": {
+        "esta siendo usado": "usa",
+        "está siendo usado": "usa",
+        "esta siendo llamada": "llama",
+        "está siendo llamada": "llama",
+        "esta siendo generado": "generado",
+        "está siendo generado": "generado",
+        "fue creado": "creado",
+        "fue generado": "generado",
+        "fue implementado": "implementado"
+      },
+      "context": "all",
+      "category": "structural",
+      "minIntensity": "full"
     }
   ]
 }

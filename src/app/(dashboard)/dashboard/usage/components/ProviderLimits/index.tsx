@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import Image from "next/image";
 import {
   parseQuotaData,
   calculatePercentage,
@@ -18,6 +17,9 @@ import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
 import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
+import ProviderIcon from "@/shared/components/ProviderIcon";
+import QuotaCutoffModal from "./QuotaCutoffModal";
+import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
@@ -25,6 +27,7 @@ const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
+const LIMITS_GRID_TEMPLATE_COLUMNS = "minmax(220px,260px) minmax(240px,1fr) 104px 76px 56px";
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -36,11 +39,24 @@ const PROVIDER_CONFIG = {
   codex: { label: "OpenAI Codex", color: "#10A37F" },
   claude: { label: "Claude Code", color: "#D97757" },
   glm: { label: "GLM (Z.AI)", color: "#4A90D9" },
+  zai: { label: "Z.AI", color: "#2563EB" },
   glmt: { label: "GLM Thinking", color: "#2563EB" },
   "kimi-coding": { label: "Kimi Coding", color: "#1E3A8A" },
   minimax: { label: "MiniMax", color: "#7C3AED" },
   "minimax-cn": { label: "MiniMax CN", color: "#DC2626" },
   nanogpt: { label: "NanoGPT", color: "#4F46E5" },
+  deepseek: { label: "DeepSeek", color: "#4D6BFE" },
+};
+
+// Currency symbol mapping
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  CNY: "¥",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  KRW: "₩",
+  INR: "₹",
 };
 
 const TIER_FILTERS = [
@@ -51,6 +67,7 @@ const TIER_FILTERS = [
   { key: "ultra", labelKey: "tierUltra" },
   { key: "pro", labelKey: "tierPro" },
   { key: "plus", labelKey: "tierPlus" },
+  { key: "lite", label: "Lite" },
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
@@ -64,6 +81,18 @@ function getBarColor(remainingPercentage) {
     return { bar: "#eab308", text: "#eab308", bg: "rgba(234,179,8,0.12)" };
   }
   return { bar: "#ef4444", text: "#ef4444", bg: "rgba(239,68,68,0.12)" };
+}
+
+// Short label for a quota-window key, used in the inline cutoff summary
+// ("session:90% · weekly:80%"). Unknown keys fall back to the key itself,
+// shortened to keep the button compact.
+function shortWindowLabel(key: string): string {
+  const map: Record<string, string> = {
+    session: "5h",
+    weekly: "7d",
+    code_review: "review",
+  };
+  return map[key] || (key.length > 8 ? `${key.slice(0, 7)}…` : key);
 }
 
 // Format countdown
@@ -86,6 +115,11 @@ function formatCountdown(resetAt) {
 
 export default function ProviderLimits() {
   const t = useTranslations("usage");
+  const tr = useCallback(
+    (key: string, fallback: string, values?: UsageTranslationValues) =>
+      translateUsageOrFallback(t, key, fallback, values),
+    [t]
+  );
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const [connections, setConnections] = useState([]);
   const [quotaData, setQuotaData] = useState({});
@@ -113,6 +147,56 @@ export default function ProviderLimits() {
 
   const lastFetchTimeRef = useRef({});
   const staleProbeRef = useRef({});
+  // Cutoff modal state: connection being edited, the window list captured at
+  // open time (from quotaData), and the resilience-settings defaults the
+  // modal renders as placeholders. Kept as separate slices instead of
+  // mutating the connection object — the window list is UI state, not part
+  // of the domain.
+  const [cutoffModalConn, setCutoffModalConn] = useState<any | null>(null);
+  const [cutoffModalWindows, setCutoffModalWindows] = useState<any[]>([]);
+  const [providerWindowDefaults, setProviderWindowDefaults] = useState<
+    Record<string, Record<string, number>>
+  >({});
+  const [globalThresholdDefault, setGlobalThresholdDefault] = useState<number>(98);
+
+  // Load the resilience-settings defaults once. The endpoint also returns a
+  // per-provider window registry but we ignore it here — the modal uses the
+  // connection's live quota cache for window discovery instead.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/providers/quota-windows")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!alive || !data) return;
+        setProviderWindowDefaults(data.defaults?.providerWindowDefaults || {});
+        if (typeof data.defaults?.globalThresholdPercent === "number") {
+          setGlobalThresholdDefault(data.defaults.globalThresholdPercent);
+        }
+      })
+      .catch(() => {
+        /* fail silent — modal still works with empty defaults */
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const saveQuotaWindowThresholds = useCallback(
+    async (connectionId: string, patch: Record<string, number | null> | null) => {
+      const res = await fetch(`/api/providers/${connectionId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quotaWindowThresholds: patch }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const newValue = data?.connection?.quotaWindowThresholds ?? null;
+      setConnections((prev) =>
+        prev.map((c) => (c.id === connectionId ? { ...c, quotaWindowThresholds: newValue } : c))
+      );
+    },
+    []
+  );
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -214,6 +298,7 @@ export default function ProviderLimits() {
             plan: data.plan || null,
             message: data.message || null,
             raw: data,
+            stale: data._stale ? { since: data._staleSince, reason: data._staleReason } : null,
           },
         }));
         setLastRefreshedAt((prev) => ({
@@ -298,11 +383,12 @@ export default function ProviderLimits() {
       claude: 5,
       kiro: 6,
       glm: 7,
-      glmt: 8,
-      "kimi-coding": 9,
-      minimax: 10,
-      "minimax-cn": 11,
-      nanogpt: 12,
+      zai: 8,
+      glmt: 9,
+      "kimi-coding": 10,
+      minimax: 11,
+      "minimax-cn": 12,
+      nanogpt: 13,
     };
     return [...filteredConnections].sort(
       (a, b) => (priority[a.provider] || 9) - (priority[b.provider] || 9)
@@ -334,6 +420,7 @@ export default function ProviderLimits() {
       ultra: 0,
       pro: 0,
       plus: 0,
+      lite: 0,
       free: 0,
       unknown: 0,
     };
@@ -505,7 +592,7 @@ export default function ProviderLimits() {
                 color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
               }}
             >
-              <span>{t(tier.labelKey)}</span>
+              <span>{tier.label || t(tier.labelKey)}</span>
               <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
             </button>
           );
@@ -517,11 +604,20 @@ export default function ProviderLimits() {
         {/* Table header */}
         <div
           className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
-          style={{ display: "grid", gridTemplateColumns: "280px 1fr 128px 48px" }}
+          style={{ display: "grid", gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS }}
         >
           <div>{t("account")}</div>
           <div>{t("modelQuotas")}</div>
           <div className="text-center">{t("lastUsed")}</div>
+          <div
+            className="text-center truncate"
+            title={tr(
+              "quotaCutoffsColumnHelp",
+              "Stop requests when remaining quota falls to this percentage or below."
+            )}
+          >
+            {tr("quotaThresholdLabel", "Min left")}
+          </div>
           <div className="text-center">{t("actions")}</div>
         </div>
 
@@ -544,20 +640,18 @@ export default function ProviderLimits() {
                 className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "280px 1fr 128px 48px",
+                  gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS,
                   borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
                 }}
               >
                 {/* Account Info */}
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                    <Image
-                      src={`/providers/${conn.provider}.png`}
-                      alt={conn.provider}
-                      width={32}
-                      height={32}
+                    <ProviderIcon
+                      providerId={conn.provider}
+                      size={32}
+                      type="color"
                       className="object-contain"
-                      sizes="32px"
                     />
                   </div>
                   <div className="min-w-0">
@@ -619,8 +713,11 @@ export default function ProviderLimits() {
                       const remainingPercentage = Math.round(remainingPercentageRaw);
                       const colors = getBarColor(remainingPercentage);
                       const cd = formatCountdown(q.resetAt);
-                      const shortName = formatQuotaLabel(q.name);
+                      const shortName = q.displayName || formatQuotaLabel(q.name);
                       const staleAfterReset = q.staleAfterReset === true;
+                      const details = Array.isArray(q.details)
+                        ? q.details.filter((detail) => detail && detail.used > 0)
+                        : [];
 
                       return (
                         <div
@@ -630,7 +727,7 @@ export default function ProviderLimits() {
                           }`}
                         >
                           {q.isCredits ? (
-                            /* ── AI Credits counter ── */
+                            /* ── AI Credits / Balance counter ── */
                             <>
                               <span
                                 className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap"
@@ -642,9 +739,12 @@ export default function ProviderLimits() {
                                 className="text-[12px] font-bold tabular-nums"
                                 style={{ color: colors.text }}
                               >
-                                {q.creditCount ?? q.remaining}
+                                {CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? ""}
+                                {(q.creditCount ?? q.remaining).toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </span>
-                              <span className="text-[10px] text-text-muted">left</span>
                             </>
                           ) : (
                             /* ── Standard quota bar ── */
@@ -657,6 +757,16 @@ export default function ProviderLimits() {
                               >
                                 {shortName}
                               </span>
+
+                              {details.length > 0 ? (
+                                <span className="text-[10px] text-text-muted whitespace-nowrap">
+                                  {details
+                                    .map(
+                                      (detail) => `${formatQuotaLabel(detail.name)} ${detail.used}`
+                                    )
+                                    .join(" · ")}
+                                </span>
+                              ) : null}
 
                               {/* Countdown */}
                               {staleAfterReset ? (
@@ -698,19 +808,87 @@ export default function ProviderLimits() {
                 </div>
 
                 {/* Last Refreshed */}
-                <div className="text-center text-[11px] text-text-muted">
-                  {refreshedAt ? (
-                    <span>
-                      {new Date(refreshedAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                      })}
-                    </span>
-                  ) : (
-                    "-"
-                  )}
+                <div className="text-center text-[11px]">
+                  {(() => {
+                    const stale = quota?.stale;
+                    const displayTime = stale?.since || refreshedAt;
+                    if (!displayTime) return <span className="text-text-muted">-</span>;
+                    const formatted = new Date(displayTime).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    });
+                    if (stale) {
+                      return (
+                        <span
+                          className="text-amber-500 cursor-help"
+                          title={t("staleQuotaTooltip")}
+                          aria-label={t("staleQuotaTooltip")}
+                        >
+                          {formatted}
+                        </span>
+                      );
+                    }
+                    return <span className="text-text-muted">{formatted}</span>;
+                  })()}
+                </div>
+
+                {/* Quota Threshold Cutoff — button opens modal */}
+                <div className="flex justify-center items-center">
+                  {(() => {
+                    const overrides = (conn.quotaWindowThresholds || null) as Record<
+                      string,
+                      number
+                    > | null;
+                    const hasOverrides = overrides && Object.keys(overrides).length > 0;
+                    // Window list comes from the connection's own quota cache
+                    // (the same data that drives the Model Quotas bars), so the
+                    // button works for every provider with usage data — not
+                    // just providers that registered with quotaPreflight.
+                    const connectionWindows = (quota?.quotas || []).filter(
+                      (q: any) => q && typeof q.name === "string" && !q.isCredits
+                    );
+                    const connectionHasWindows = connectionWindows.length > 0;
+                    // Summary: up to 2 entries with short labels; "+N" for the rest.
+                    let label: string = tr("quotaCutoffsButtonDefault", "Default");
+                    if (hasOverrides && overrides) {
+                      const entries = Object.entries(overrides);
+                      const visible = entries
+                        .slice(0, 2)
+                        .map(([k, v]) => `${shortWindowLabel(k)}:${v}%`)
+                        .join(" · ");
+                      label = entries.length > 2 ? `${visible} +${entries.length - 2}` : visible;
+                    }
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCutoffModalWindows(connectionWindows);
+                          setCutoffModalConn(conn);
+                        }}
+                        disabled={!connectionHasWindows}
+                        title={
+                          connectionHasWindows
+                            ? tr(
+                                "quotaCutoffsButtonHelp",
+                                "Edit minimum remaining quota cutoffs for this account."
+                              )
+                            : tr(
+                                "quotaCutoffsButtonDisabled",
+                                "No quota windows are available for this account yet."
+                              )
+                        }
+                        className={`block w-full max-w-[70px] truncate px-1.5 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                          hasOverrides
+                            ? "border-primary/40 text-primary bg-primary/5"
+                            : "border-border text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })()}
                 </div>
 
                 {/* Actions */}
@@ -769,12 +947,58 @@ export default function ProviderLimits() {
           <div className="py-6 px-4 text-center text-text-muted text-[13px]">
             {t("noAccountsForTierFilter")}{" "}
             <strong>
-              {t(TIER_FILTERS.find((tier) => tier.key === tierFilter)?.labelKey || "tierUnknown")}
+              {(() => {
+                const tier = TIER_FILTERS.find((tier) => tier.key === tierFilter);
+                return tier?.label || t(tier?.labelKey || "tierUnknown");
+              })()}
             </strong>
             .
           </div>
         )}
       </div>
+
+      {cutoffModalConn && (
+        <QuotaCutoffModal
+          isOpen={!!cutoffModalConn}
+          onClose={() => {
+            setCutoffModalConn(null);
+            setCutoffModalWindows([]);
+          }}
+          connectionName={
+            pickDisplayValue(
+              [cutoffModalConn.name, cutoffModalConn.displayName, cutoffModalConn.email],
+              emailsVisible,
+              cutoffModalConn.provider
+            ) || cutoffModalConn.provider
+          }
+          provider={cutoffModalConn.provider}
+          windows={cutoffModalWindows.map((q: any) => ({
+            key: q.name,
+            displayName: q.displayName || formatQuotaLabel(q.name),
+          }))}
+          current={cutoffModalConn.quotaWindowThresholds || null}
+          providerDefaults={providerWindowDefaults[cutoffModalConn.provider] || {}}
+          globalDefaultPercent={globalThresholdDefault}
+          onSave={async (patch) => {
+            await saveQuotaWindowThresholds(cutoffModalConn.id, patch);
+            // Reflect the new state in the modal-open connection ref so the
+            // button summary updates without closing/reopening.
+            setCutoffModalConn((prev: any) => {
+              if (!prev) return prev;
+              if (patch === null) return { ...prev, quotaWindowThresholds: null };
+              const next = { ...(prev.quotaWindowThresholds || {}) };
+              for (const [k, v] of Object.entries(patch)) {
+                if (v === null) delete next[k];
+                else next[k] = v;
+              }
+              return {
+                ...prev,
+                quotaWindowThresholds: Object.keys(next).length === 0 ? null : next,
+              };
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

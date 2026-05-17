@@ -18,13 +18,14 @@ test("docsNavigation has expected sections", () => {
   assert.deepEqual(
     docsNavigation.map((section) => section.title),
     [
-      "Getting Started",
-      "Features",
-      "API & Protocols",
-      "Deployment",
-      "Operations",
-      "Development",
-      "Other",
+      "Architecture",
+      "Guides",
+      "Reference",
+      "Frameworks",
+      "Routing",
+      "Security",
+      "Compression",
+      "Ops",
     ]
   );
 });
@@ -55,7 +56,7 @@ test("getDocItemBySlug returns section title and item for known slug", () => {
   const result = getDocItemBySlug("setup-guide");
   assert.ok(result, "setup-guide should be found");
   assert.equal(result.item.slug, "setup-guide");
-  assert.equal(result.sectionTitle, "Getting Started");
+  assert.equal(result.sectionTitle, "Guides");
 });
 
 test("getDocItemBySlug returns null for unknown slug", () => {
@@ -313,23 +314,31 @@ test("WhatsNewSection is importable", async () => {
 });
 
 // ──────────────────────────────────────────────
-// i18n locale system
+// i18n locale system (next-intl + config/i18n.json)
 // ──────────────────────────────────────────────
 
-test("DocsI18n is importable", async () => {
-  const mod = await import("../../src/app/docs/components/DocsI18n");
-  assert.ok(mod.useLocalizedSectionTitle, "useLocalizedSectionTitle should be exported");
-  assert.ok(mod.getAvailableLocales, "getAvailableLocales should be exported");
-  assert.ok(mod.LOCALE_NAMES, "LOCALE_NAMES should be exported");
-  assert.equal(mod.LOCALE_NAMES.en, "English");
-  assert.equal(mod.LOCALE_NAMES["zh-CN"], "简体中文");
+test("docs locale handling uses the shared next-intl config", async () => {
+  const cfg = await import("../../src/i18n/config");
+  assert.ok(Array.isArray(cfg.LANGUAGES), "LANGUAGES should be exported");
+  assert.ok(cfg.LANGUAGES.length >= 10, "LANGUAGES should cover all configured locales");
+  const codes = cfg.LANGUAGES.map((l) => l.code);
+  assert.ok(codes.includes("en"));
+  assert.ok(codes.includes("pt-BR"));
+  assert.ok(codes.includes("zh-CN"));
+  const en = cfg.LANGUAGES.find((l) => l.code === "en");
+  const zh = cfg.LANGUAGES.find((l) => l.code === "zh-CN");
+  assert.equal(en?.english, "English");
+  assert.equal(zh?.native, "中文 (简体)");
 });
 
-test("getAvailableLocales returns 10 locales", async () => {
-  const { getAvailableLocales } = await import("../../src/app/docs/components/DocsI18n");
-  const locales = getAvailableLocales();
-  assert.equal(locales.length, 10);
-  assert.ok(locales.includes("en"));
-  assert.ok(locales.includes("pt-BR"));
-  assert.ok(locales.includes("zh-CN"));
+test("docs language selector reuses the global LanguageSelector component", async () => {
+  const selector = await import("../../src/shared/components/LanguageSelector");
+  assert.ok(selector.default, "LanguageSelector default export should exist");
+});
+
+test("DocsI18n shim is no longer present (replaced by next-intl)", async () => {
+  await assert.rejects(
+    async () => import("../../src/app/docs/components/DocsI18n"),
+    "DocsI18n.tsx should be removed; docs UI uses next-intl directly"
+  );
 });

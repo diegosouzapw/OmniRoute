@@ -4,17 +4,69 @@ import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
 /**
- * Build OpenAI-compatible error response body
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @returns {object} Error response object
+ * Sanitize an error message to prevent stack trace exposure in API responses.
+ * Strips stack traces, file paths, and absolute Windows/POSIX paths from
+ * error messages before they reach the client.
  */
-export function buildErrorBody(statusCode, message) {
+interface ErrorResponseBody {
+  error: {
+    message: string;
+    type?: string;
+    code?: string;
+  };
+}
+
+// Length cap protects against pathological inputs even before tokenization.
+const MAX_ERROR_LEN = 4096;
+const SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"] as const;
+
+function looksLikeAbsolutePath(tok: string): boolean {
+  // POSIX: "/<...>.ts" (optionally followed by :line[:col]).
+  // Windows: "C:\<...>.ts" or "C:/<...>.ts".
+  if (tok.length < 4 || tok.length > 2048) return false;
+  const isPosix = tok.charCodeAt(0) === 0x2f; // '/'
+  const isWindows = tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
+  if (!isPosix && !isWindows) return false;
+  const dot = tok.lastIndexOf(".");
+  if (dot <= 0 || dot === tok.length - 1) return false;
+  const ext = tok
+    .slice(dot + 1)
+    .split(":", 1)[0]
+    .toLowerCase();
+  return (SOURCE_EXT as readonly string[]).includes(ext);
+}
+
+/**
+ * Strip stack-trace tail and absolute source paths from error messages.
+ *
+ * Implemented via simple whitespace tokenization (linear time) instead of a
+ * single complex regex, so CodeQL `js/polynomial-redos` stays clean even when
+ * the runtime error message is attacker-controlled.
+ */
+export function sanitizeErrorMessage(message: unknown): string {
+  let str = typeof message === "string" ? message : String(message ?? "");
+  if (str.length > MAX_ERROR_LEN) str = str.slice(0, MAX_ERROR_LEN);
+  const nl = str.indexOf("\n");
+  const firstLine = nl >= 0 ? str.slice(0, nl) : str;
+  // Preserve original whitespace by splitting on captured separator.
+  const parts = firstLine.split(/(\s+)/);
+  for (let i = 0; i < parts.length; i++) {
+    if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
+  }
+  return parts.join("");
+}
+
+/**
+ * Build OpenAI-compatible error response body. Message is always sanitized
+ * so callers do not need to remember to strip stack traces themselves.
+ */
+export function buildErrorBody(statusCode: number, message: string): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
+  const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
 
   return {
     error: {
-      message: message || getDefaultErrorMessage(statusCode),
+      message: safeMessage,
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -28,7 +80,7 @@ export function buildErrorBody(statusCode, message) {
  * @returns {Response} HTTP Response object
  */
 export function errorResponse(statusCode, message) {
-  return new Response(JSON.stringify(buildErrorBody(statusCode, message)), {
+  return new Response(JSON.stringify(buildErrorBody(statusCode, sanitizeErrorMessage(message))), {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
@@ -43,7 +95,7 @@ export function errorResponse(statusCode, message) {
  * @param {string} message - Error message
  */
 export async function writeStreamError(writer, statusCode, message) {
-  const errorBody = buildErrorBody(statusCode, message);
+  const errorBody = buildErrorBody(statusCode, sanitizeErrorMessage(message));
   const encoder = new TextEncoder();
   await writer.write(encoder.encode(`data: ${JSON.stringify(errorBody)}\n\n`));
 }
@@ -116,6 +168,8 @@ export async function parseUpstreamError(response, provider = null) {
   let message = "";
   let retryAfterMs = null;
   let responseBody = null;
+  let errorCode = undefined;
+  let errorType = undefined;
 
   try {
     const text = await response.text();
@@ -125,6 +179,8 @@ export async function parseUpstreamError(response, provider = null) {
     try {
       const json = JSON.parse(text);
       message = json.error?.message || json.message || json.error || text;
+      errorCode = json.error?.code || json.code;
+      errorType = json.error?.type || json.type;
     } catch {
       message = text;
     }
@@ -179,6 +235,8 @@ export async function parseUpstreamError(response, provider = null) {
   return {
     statusCode: response.status,
     message: messageStr,
+    errorCode,
+    errorType,
     retryAfterMs,
     responseBody,
     responseHeaders,
@@ -195,19 +253,34 @@ export async function parseUpstreamError(response, provider = null) {
 export function createErrorResult(
   statusCode: number,
   message: string,
-  retryAfterMs: number | null = null
+  retryAfterMs: number | null = null,
+  errorCode?: string,
+  errorType?: string
 ) {
+  const body = buildErrorBody(statusCode, message);
+  if (errorCode) {
+    body.error.code = errorCode;
+  }
+  if (errorType) {
+    body.error.type = errorType;
+  }
+
   const result: {
     success: false;
     status: number;
     error: string;
+    errorType?: string;
     response: Response;
     retryAfterMs?: number;
   } = {
     success: false,
     status: statusCode,
-    error: message,
-    response: errorResponse(statusCode, message),
+    error: body.error.message,
+    errorType,
+    response: new Response(JSON.stringify(body), {
+      status: statusCode,
+      headers: { "Content-Type": "application/json" },
+    }),
   };
 
   // Add retryAfterMs if available (for Antigravity quota errors)

@@ -9,7 +9,7 @@ export default function SettingsError({
 }) {
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-[400px] p-6"
+      className="flex flex-col items-center justify-center min-h-[400px]"
       role="alert"
       aria-live="assertive"
     >

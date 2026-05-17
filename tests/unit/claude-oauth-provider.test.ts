@@ -1,20 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// Public OAuth client_id/secret defaults for Gemini, Antigravity and Windsurf
+// are resolved at module load through open-sse/utils/publicCreds.ts — no need
+// to populate them here. Only the providers without a baked-in default need
+// explicit env setup for this suite.
 Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-  GEMINI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_OAUTH_CLIENT_SECRET: "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",
-  GEMINI_CLI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_CLI_OAUTH_CLIENT_SECRET: "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",
   QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
-  ANTIGRAVITY_OAUTH_CLIENT_ID:
-    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
 });
 
@@ -74,4 +69,36 @@ test("Claude OAuth provider always uses the configured redirectUri during token 
   assert.equal(captured.body.code, "auth-code");
   assert.equal(captured.body.state, "state-from-fragment");
   assert.equal(captured.body.code_verifier, "verifier-123");
+});
+
+test("Claude OAuth token mapper persists the first non-empty token plan field", () => {
+  const cases = [
+    [{ account_tier: " Pro ", plan: "Max" }, "Pro"],
+    [{ account_tier: "", plan: "Max" }, "Max"],
+    [{ plan: "", subscription_type: "Team" }, "Team"],
+    [{ subscription_type: "", billing: { plan: "Enterprise" } }, "Enterprise"],
+  ];
+
+  for (const [tokens, expected] of cases) {
+    const mapped = claude.mapTokens({ access_token: "token-1", ...tokens });
+
+    assert.equal(mapped.providerSpecificData.plan, expected);
+  }
+});
+
+test("Claude OAuth token mapper reads plan fields from userinfo extras after token fields", () => {
+  const mapped = claude.mapTokens(
+    { access_token: "token-1" },
+    { userInfo: { account_tier: "", subscription_type: "Max" } }
+  );
+
+  assert.equal(mapped.providerSpecificData.plan, "Max");
+});
+
+test("Claude OAuth token mapper leaves providerSpecificData.plan undefined without plan fields", () => {
+  const mapped = claude.mapTokens({ access_token: "token-1", scope: "user:profile" });
+
+  assert.ok(mapped.providerSpecificData);
+  assert.ok(typeof mapped.providerSpecificData.cliUserID === "string");
+  assert.equal(mapped.providerSpecificData.plan, undefined);
 });

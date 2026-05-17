@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "خطا: {message}",
+    "serverOffline": "سرور OmniRoute آفلاین است. با این دستور راه‌اندازی کنید: omniroute serve",
+    "authRequired": "احراز هویت لازم است. OMNIROUTE_API_KEY را تنظیم کنید یا اجرا کنید: omniroute setup",
+    "rateLimited": "محدودیت درخواست رسیده است. پس از {seconds} ثانیه دوباره تلاش کنید.",
+    "timeout": "درخواست پس از {ms}ms منقضی شد.",
+    "success": "انجام شد.",
+    "yes": "بله",
+    "no": "خیر",
+    "confirm": "مطمئنید؟ (بله/خیر)",
+    "dryRun": "[شبیه‌سازی] اقدام می‌شد: {action}",
+    "cancelled": "لغو شد.",
+    "jsonOpt": "خروجی به صورت JSON",
+    "yesOpt": "رد کردن تأیید"
+  },
+  "program": {
+    "description": "OmniRoute — روتر هوشمند هوش مصنوعی با fallback خودکار",
+    "version": "نمایش نسخه و خروج",
+    "output": "فرمت خروجی (table, json, jsonl, csv)",
+    "quiet": "حذف خروجی غیر ضروری",
+    "no_color": "غیرفعال کردن خروجی رنگی",
+    "timeout": "تایم‌اوت درخواست HTTP به میلی‌ثانیه",
+    "api_key": "کلید API برای سرور OmniRoute",
+    "base_url": "URL پایه سرور OmniRoute",
+    "context": "زمینه/پروفایل سرور برای این دستور",
+    "lang": "تنظیم زبان نمایش CLI (OMNIROUTE_LANG را نادیده می‌گیرد)"
+  }
+}

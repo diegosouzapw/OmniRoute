@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "خطأ: {message}",
+    "serverOffline": "خادم OmniRoute غير متصل. ابدأ بالأمر: omniroute serve",
+    "authRequired": "المصادقة مطلوبة. عيّن OMNIROUTE_API_KEY أو شغّل: omniroute setup",
+    "rateLimited": "تم تجاوز حد الطلبات. أعد المحاولة بعد {seconds} ثانية.",
+    "timeout": "انتهت مهلة الطلب بعد {ms}ms.",
+    "success": "تم.",
+    "yes": "نعم",
+    "no": "لا",
+    "confirm": "هل أنت متأكد؟ (نعم/لا)",
+    "dryRun": "[محاكاة] سيتم: {action}",
+    "cancelled": "تم الإلغاء.",
+    "jsonOpt": "إخراج بتنسيق JSON",
+    "yesOpt": "تخطي رسالة التأكيد"
+  },
+  "program": {
+    "description": "OmniRoute — جهاز توجيه الذكاء الاصطناعي مع التبديل التلقائي",
+    "version": "عرض الإصدار والخروج",
+    "output": "تنسيق الإخراج (table, json, jsonl, csv)",
+    "quiet": "إخفاء المخرجات غير الأساسية",
+    "no_color": "تعطيل الإخراج الملوّن",
+    "timeout": "مهلة طلب HTTP بالميلي ثانية",
+    "api_key": "مفتاح API لخادم OmniRoute",
+    "base_url": "عنوان URL الأساسي لخادم OmniRoute",
+    "context": "سياق/ملف تعريف الخادم المستخدم في هذا الأمر",
+    "lang": "تعيين لغة عرض CLI (يتجاوز OMNIROUTE_LANG)"
+  }
+}

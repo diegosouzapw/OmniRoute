@@ -1,9 +1,11 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { Button, Card } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
+import AutoDisableCard from "./AutoDisableCard";
+import ModelCooldownsCard from "./ModelCooldownsCard";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -16,6 +18,9 @@ type RequestQueueSettings = {
 type ConnectionCooldownProfileSettings = {
   baseCooldownMs: number;
   useUpstreamRetryHints: boolean;
+  // Issue #2100 follow-up. Optional / undefined when unset; the per-provider
+  // default in src/shared/utils/providerHints.ts resolves at runtime.
+  useUpstream429BreakerHints?: boolean;
   maxBackoffSteps: number;
 };
 
@@ -211,12 +216,12 @@ function RequestQueueCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">speed</span>
-            <h2 className="text-lg font-bold">Request Queue &amp; Pacing</h2>
+            <h2 className="text-lg font-bold">Request Queue & Rate</h2>
           </div>
           <SectionDescription
-            scope="Per request bucket"
-            trigger="Before a request is sent upstream"
-            effect="Queues requests, limits concurrency, and spaces requests out"
+            scope="Per request queue"
+            trigger="Before sending to upstream"
+            effect="Queues requests, limits concurrency, and spaces calls"
           />
         </div>
         <ActionRow
@@ -235,15 +240,16 @@ function RequestQueueCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        This layer only controls queueing and pacing. It does not write cooldowns or open breakers.
+        This layer only controls queueing and pacing. It does not write cooldown state nor open the
+        circuit breaker.
       </p>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {editing ? (
           <>
             <BooleanField
-              label="Auto-enable for API key providers"
-              description="Enable queue protection by default for active API key connections."
+              label="Auto-enable for API-key providers"
+              description="Enable queue protection by default for active API-key connections."
               checked={draft.autoEnableApiKeyProviders}
               onChange={(autoEnableApiKeyProviders) =>
                 setDraft((prev) => ({ ...prev, autoEnableApiKeyProviders }))
@@ -256,7 +262,7 @@ function RequestQueueCard({
               onChange={(requestsPerMinute) => setDraft((prev) => ({ ...prev, requestsPerMinute }))}
             />
             <NumberField
-              label="Min time between requests"
+              label="Minimum time between requests"
               value={draft.minTimeBetweenRequestsMs}
               suffix="ms"
               onChange={(minTimeBetweenRequestsMs) =>
@@ -272,7 +278,7 @@ function RequestQueueCard({
               }
             />
             <NumberField
-              label="Max queue wait"
+              label="Maximum queue wait time"
               value={draft.maxWaitMs}
               min={1}
               suffix="ms"
@@ -282,7 +288,7 @@ function RequestQueueCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Auto-enable for API key providers</div>
+              <div className="text-xs text-text-muted">Auto-enable for API-key providers</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.autoEnableApiKeyProviders ? "Enabled" : "Disabled"}
               </div>
@@ -294,7 +300,7 @@ function RequestQueueCard({
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Min time between requests</div>
+              <div className="text-xs text-text-muted">Minimum time between requests</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.minTimeBetweenRequestsMs)}
               </div>
@@ -306,7 +312,7 @@ function RequestQueueCard({
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Max queue wait</div>
+              <div className="text-xs text-text-muted">Maximum queue wait time</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {formatMs(value.maxWaitMs)}
               </div>
@@ -351,7 +357,7 @@ function ConnectionCooldownCard({
             />
             <BooleanField
               label="Use upstream retry hints"
-              description="Use upstream retry-after/reset values when they are present."
+              description="Use upstream retry-after/reset values when available."
               checked={current.useUpstreamRetryHints}
               onChange={(useUpstreamRetryHints) =>
                 setDraft((prev) => ({
@@ -360,6 +366,48 @@ function ConnectionCooldownCard({
                 }))
               }
             />
+            <div className="flex flex-col gap-1">
+              <label className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-text-muted">Use upstream 429 hints for breaker cooldown</span>
+                <select
+                  className="rounded border border-border-default bg-surface-1 px-2 py-1 text-sm font-mono"
+                  value={
+                    current.useUpstream429BreakerHints === true
+                      ? "on"
+                      : current.useUpstream429BreakerHints === false
+                        ? "off"
+                        : "default"
+                  }
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const next: boolean | undefined =
+                      v === "on" ? true : v === "off" ? false : undefined;
+                    setDraft((prev) => {
+                      const profile = { ...prev[key] };
+                      if (next === undefined) {
+                        delete (profile as { useUpstream429BreakerHints?: boolean })
+                          .useUpstream429BreakerHints;
+                      } else {
+                        (
+                          profile as { useUpstream429BreakerHints?: boolean }
+                        ).useUpstream429BreakerHints = next;
+                      }
+                      return { ...prev, [key]: profile };
+                    });
+                  }}
+                >
+                  <option value="default">Default (per provider)</option>
+                  <option value="on">Always on</option>
+                  <option value="off">Always off</option>
+                </select>
+              </label>
+              <p className="text-xs text-text-muted">
+                Apply Retry-After / quota-exhausted signals from 429 responses to circuit-breaker
+                cooldown duration. Default uses a per-provider policy: direct cloud providers
+                default on; reverse-proxy / self-hosted / CLI-backed providers default off.
+                Independent of &quot;Use upstream retry hints&quot;.
+              </p>
+            </div>
             <NumberField
               label="Max backoff steps"
               value={current.maxBackoffSteps}
@@ -382,6 +430,16 @@ function ConnectionCooldownCard({
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
+              <span className="text-text-muted">Use upstream 429 hints (breaker)</span>
+              <span className="font-mono text-text-main">
+                {current.useUpstream429BreakerHints === true
+                  ? "Yes"
+                  : current.useUpstream429BreakerHints === false
+                    ? "No"
+                    : "Default"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
               <span className="text-text-muted">Max backoff steps</span>
               <span className="font-mono text-text-main">{current.maxBackoffSteps}</span>
             </div>
@@ -400,9 +458,9 @@ function ConnectionCooldownCard({
             <h2 className="text-lg font-bold">Connection Cooldown</h2>
           </div>
           <SectionDescription
-            scope="Single connection"
-            trigger="A connection returns a retryable upstream failure"
-            effect="Temporarily skips that connection and increases backoff on repeated failures"
+            scope="Individual connection"
+            trigger="When a connection returns a transient upstream failure"
+            effect="Temporarily skips that connection and increases backoff after repeated failures"
           />
         </div>
         <ActionRow
@@ -414,15 +472,34 @@ function ConnectionCooldownCard({
             setEditing(false);
           }}
           onSave={async () => {
-            await onSave(draft);
+            // Build PATCH-ready payload: convert undefined useUpstream429BreakerHints
+            // to explicit null sentinel so the server treats it as unset (not as
+            // partial-merge "leave unchanged"). JSON.stringify drops undefined keys.
+            const payload = {
+              oauth: {
+                ...draft.oauth,
+                useUpstream429BreakerHints:
+                  draft.oauth.useUpstream429BreakerHints === undefined
+                    ? (null as unknown as boolean | undefined)
+                    : draft.oauth.useUpstream429BreakerHints,
+              },
+              apikey: {
+                ...draft.apikey,
+                useUpstream429BreakerHints:
+                  draft.apikey.useUpstream429BreakerHints === undefined
+                    ? (null as unknown as boolean | undefined)
+                    : draft.apikey.useUpstream429BreakerHints,
+              },
+            };
+            await onSave(payload as typeof draft);
             setEditing(false);
           }}
         />
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Base cooldown covers retryable connection failures. When upstream retry hints are enabled,
-        explicit provider wait windows override the local base cooldown.
+        Base cooldown covers transient connection failures. When upstream retry hints are enabled,
+        the provider&apos;s explicit retry window overrides the local cooldown.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -497,12 +574,12 @@ function ProviderBreakerCard({
             <span className="material-symbols-outlined text-xl text-primary">
               electrical_services
             </span>
-            <h2 className="text-lg font-bold">Provider Circuit Breaker</h2>
+            <h2 className="text-lg font-bold">Circuit Breaker per Provider</h2>
           </div>
           <SectionDescription
-            scope="Whole provider"
-            trigger="Provider-level final transport/server failures after connection fallback is exhausted"
-            effect="Temporarily blocks that provider until the reset timeout elapses"
+            scope="Entire provider"
+            trigger="Final transport/server failures after exhausting connection fallback"
+            effect="Temporarily blocks this provider until the reset timeout expires"
           />
         </div>
         <ActionRow
@@ -521,8 +598,8 @@ function ProviderBreakerCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        Breaker runtime state is shown only on the Health page. Connection-scoped 429 rate limits
-        stay in Connection Cooldown and do not trip the provider breaker.
+        The live breaker state is shown only on the Health page. 429 rate limits at the connection
+        scope stay in Connection Cooldown and do not trip the provider breaker.
       </p>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -555,12 +632,12 @@ function WaitForCooldownCard({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-xl text-primary">hourglass_top</span>
-            <h2 className="text-lg font-bold">Wait For Cooldown</h2>
+            <h2 className="text-lg font-bold">Wait for Cooldown</h2>
           </div>
           <SectionDescription
             scope="Current client request"
-            trigger="All candidate connections are already cooling down"
-            effect="Waits on the server side and retries when the earliest cooldown expires"
+            trigger="When all candidate connections are already in cooldown"
+            effect="Waits on the server and retries when the first cooldown expires"
           />
         </div>
         <ActionRow
@@ -579,26 +656,26 @@ function WaitForCooldownCard({
       </div>
 
       <p className="mb-4 text-sm text-text-muted">
-        This only affects the current request. It does not write connection or provider state.
+        This only affects the current request. No connection or provider state is written.
       </p>
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         {editing ? (
           <>
             <BooleanField
-              label="Enable server-side waiting"
-              description="When enabled, OmniRoute waits for the earliest cooldown and retries automatically."
+              label="Enable server-side wait"
+              description="When enabled, OmniRoute waits for the first cooldown to expire and retries automatically."
               checked={draft.enabled}
               onChange={(enabled) => setDraft((prev) => ({ ...prev, enabled }))}
             />
             <NumberField
-              label="Max retries"
+              label="Maximum retries"
               value={draft.maxRetries}
               min={0}
               onChange={(maxRetries) => setDraft((prev) => ({ ...prev, maxRetries }))}
             />
             <NumberField
-              label="Max retry wait"
+              label="Maximum wait per retry"
               value={draft.maxRetryWaitSec}
               min={0}
               suffix="sec"
@@ -608,17 +685,17 @@ function WaitForCooldownCard({
         ) : (
           <>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Enable server-side waiting</div>
+              <div className="text-xs text-text-muted">Enable server-side wait</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.enabled ? "Enabled" : "Disabled"}
               </div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Max retries</div>
+              <div className="text-xs text-text-muted">Maximum retries</div>
               <div className="mt-1 text-sm font-semibold text-text-main">{value.maxRetries}</div>
             </div>
             <div className="rounded-xl border border-border bg-bg-subtle p-4">
-              <div className="text-xs text-text-muted">Max retry wait</div>
+              <div className="text-xs text-text-muted">Maximum wait per retry</div>
               <div className="mt-1 text-sm font-semibold text-text-main">
                 {value.maxRetryWaitSec}s
               </div>
@@ -632,9 +709,19 @@ function WaitForCooldownCard({
 
 export default function ResilienceTab() {
   const notify = useNotificationStore();
+  const t = useTranslations("settings");
   const [data, setData] = useState<ResilienceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [savingSection, setSavingSection] = useState<string | null>(null);
+  const tx = useCallback(
+    (key: string, fallback: string) => {
+      if (typeof t.has === "function" && t.has(key as never)) {
+        return t(key as never);
+      }
+      return fallback;
+    },
+    [t]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -654,7 +741,11 @@ export default function ResilienceTab() {
           waitForCooldown: json.waitForCooldown,
         });
       } catch (error) {
-        notify.error(error instanceof Error ? error.message : "Failed to load resilience settings");
+        notify.error(
+          error instanceof Error
+            ? error.message
+            : tx("failedLoadResilience", "Failed to load resilience settings")
+        );
       } finally {
         if (mounted) setLoading(false);
       }
@@ -664,7 +755,7 @@ export default function ResilienceTab() {
     return () => {
       mounted = false;
     };
-  }, [notify]);
+  }, [notify, tx]);
 
   const savePatch = async (section: string, payload: Record<string, unknown>) => {
     setSavingSection(section);
@@ -684,9 +775,13 @@ export default function ResilienceTab() {
         providerBreaker: json.providerBreaker,
         waitForCooldown: json.waitForCooldown,
       });
-      notify.success("Resilience settings updated.");
+      notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {
-      notify.error(error instanceof Error ? error.message : "Failed to save resilience settings");
+      notify.error(
+        error instanceof Error
+          ? error.message
+          : tx("saveFailed", "Failed to save resilience settings")
+      );
       throw error;
     } finally {
       setSavingSection(null);
@@ -698,7 +793,7 @@ export default function ResilienceTab() {
       <Card className="p-6">
         <div className="flex items-center gap-2 text-sm text-text-muted">
           <span className="material-symbols-outlined animate-spin">progress_activity</span>
-          Loading resilience settings...
+          {tx("loadingResilience", "Loading resilience settings...")}
         </div>
       </Card>
     );
@@ -707,21 +802,29 @@ export default function ResilienceTab() {
   if (!data) {
     return (
       <Card className="p-6">
-        <p className="text-sm text-text-muted">Unable to load resilience settings.</p>
+        <p className="text-sm text-text-muted">
+          {tx("failedLoadResilience", "Unable to load resilience settings.")}
+        </p>
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
+      <ModelCooldownsCard />
+      <AutoDisableCard />
       <Card className="p-6">
         <div className="flex items-start gap-3">
           <span className="material-symbols-outlined text-xl text-primary">info</span>
           <div>
-            <h2 className="text-lg font-bold text-text-main">Resilience Structure</h2>
+            <h2 className="text-lg font-bold text-text-main">
+              {tx("resilienceStructureTitle", "Resilience Structure")}
+            </h2>
             <p className="mt-1 text-sm text-text-muted">
-              This page only configures behavior. Live breaker state is shown on the Health page.
-              Combo-specific retry and round-robin slot control remain on combo settings.
+              {tx(
+                "resilienceStructureDesc",
+                "This page only configures behavior. Live breaker state is shown on the Health page. Combo-specific retry and round-robin slot control remain on combo settings."
+              )}
             </p>
           </div>
         </div>

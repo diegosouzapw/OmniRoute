@@ -5,6 +5,12 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Claude Code local state — runtime files only; shared commands at .claude/commands/ are tracked
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks/
+.claude/sessions/
+.claude/state.json
+
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
 
@@ -61,6 +67,7 @@ next-env.d.ts
 data/
 .data/
 logs/*
+test_output.log
 
 # analysis directories (generated, not tracked)
 .analysis/
@@ -75,6 +82,7 @@ open-sse/test/*
 .github/instructions/codacy.instructions.md
 
 # Playwright
+.playwright-mcp/
 test-results/
 playwright-report/
 blob-report/

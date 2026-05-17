@@ -171,7 +171,16 @@ export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
   compressRoles: ["user"],
   skipRules: [],
   minMessageLength: 50,
-  preservePatterns: [],
+  // Protect code blocks, inline code, file paths, URLs, and error/stack lines
+  // from caveman compression so signal-carrying content is never mangled.
+  preservePatterns: [
+    "```[\\s\\S]*?```",
+    "`[^`\\n]+`",
+    "\\b(https?://\\S+)",
+    "(?:^|\\s)(\\.{0,2}/[\\w./\\-]+)",
+    "^\\s*(Error|TypeError|RangeError|SyntaxError|ReferenceError):",
+    "^\\s+at\\s",
+  ],
   intensity: "full",
 };
 
@@ -298,3 +307,6 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
 };
+
+export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
+export { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "./engines/mcpAccessibility/constants.ts";

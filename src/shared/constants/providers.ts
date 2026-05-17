@@ -11,7 +11,7 @@ export const FREE_PROVIDERS = {
     color: "#10B981",
     deprecated: true,
     deprecationReason:
-      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'alicode', 'alicode-intl', or 'openrouter' provider with API key instead.",
+      "Qwen OAuth free tier was discontinued on 2026-04-15. Use 'bailian-coding-plan', 'alibaba', 'alibaba-cn', or 'openrouter' provider with API key instead.",
   },
   "gemini-cli": {
     id: "gemini-cli",
@@ -33,6 +33,22 @@ export const FREE_PROVIDERS = {
     website: "https://aws.amazon.com/q/developer/",
     authHint:
       "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
+  },
+  opencode: {
+    id: "opencode",
+    alias: "oc",
+    name: "OpenCode Free",
+    icon: "terminal",
+    color: "#E87040",
+    textIcon: "OC",
+    website: "https://opencode.ai",
+    noAuth: true,
+    authHint: "No API key required — uses OpenCode's public free endpoint.",
+    freeNote:
+      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
+    notice: {
+      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
+    },
   },
 };
 
@@ -90,6 +106,28 @@ export const OAUTH_PROVIDERS = {
     color: "#5B9BD5",
     textIcon: "CL",
   },
+  windsurf: {
+    id: "windsurf",
+    alias: "ws",
+    name: "Windsurf (Devin CLI)",
+    icon: "air",
+    color: "#00C5A0",
+    textIcon: "WS",
+    authHint:
+      "Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.",
+    website: "https://windsurf.com",
+  },
+  "devin-cli": {
+    id: "devin-cli",
+    alias: "dv",
+    name: "Devin CLI (Official)",
+    icon: "terminal",
+    color: "#6366F1",
+    textIcon: "DV",
+    authHint:
+      "Requires the Devin CLI binary. Run `devin auth login` to authenticate, or provide your WINDSURF_API_KEY. Install: https://cli.devin.ai",
+    website: "https://cli.devin.ai",
+  },
 };
 
 // Web / Cookie Providers
@@ -145,6 +183,16 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
+  "deepseek-web": {
+    id: "deepseek-web",
+    alias: "ds-web",
+    name: "DeepSeek Web",
+    icon: "auto_awesome",
+    color: "#4D6BFE",
+    textIcon: "DS",
+    website: "https://chat.deepseek.com",
+    authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
+  },
 };
 
 // API Key Providers
@@ -161,6 +209,18 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "$200 free credits on signup - multi-model routing gateway",
     apiHint: "Get $200 free credits at https://agentrouter.org/register — no credit card required.",
+  },
+  "command-code": {
+    id: "command-code",
+    alias: "cmd",
+    name: "Command Code",
+    icon: "terminal",
+    color: "#111827",
+    textIcon: "CC",
+    website: "https://commandcode.ai/",
+    authHint:
+      "Use a Command Code API key. Requests are sent to Command Code's /alpha/generate endpoint.",
+    apiHint: "Create or copy an API key from Command Code, then paste it here as a Bearer token.",
   },
   openrouter: {
     id: "openrouter",
@@ -182,7 +242,6 @@ export const APIKEY_PROVIDERS = {
     color: "#2468F2",
     textIcon: "BD",
     website: "https://cloud.baidu.com/product/wenxinworkshop",
-    passthroughModels: true,
     apiHint:
       "Use a Qianfan API key from Baidu AI Cloud. The default endpoint is OpenAI-compatible v2.",
   },
@@ -193,7 +252,7 @@ export const APIKEY_PROVIDERS = {
     icon: "code",
     color: "#2563EB",
     textIcon: "GL",
-    website: "https://open.bigmodel.cn",
+    website: "https://z.ai/subscribe",
   },
   "glm-cn": {
     id: "glm-cn",
@@ -230,7 +289,7 @@ export const APIKEY_PROVIDERS = {
     icon: "psychology",
     color: "#1E3A8A",
     textIcon: "KM",
-    website: "https://kimi.moonshot.cn",
+    website: "https://platform.moonshot.ai",
   },
   "kimi-coding-apikey": {
     id: "kimi-coding-apikey",
@@ -239,7 +298,7 @@ export const APIKEY_PROVIDERS = {
     icon: "psychology",
     color: "#1E40AF",
     textIcon: "KC",
-    website: "https://kimi.com",
+    website: "https://www.kimi.com/code",
   },
   minimax: {
     id: "minimax",
@@ -248,7 +307,7 @@ export const APIKEY_PROVIDERS = {
     icon: "memory",
     color: "#7C3AED",
     textIcon: "MM",
-    website: "https://www.minimaxi.com",
+    website: "https://www.minimax.io",
   },
   "minimax-cn": {
     id: "minimax-cn",
@@ -267,24 +326,6 @@ export const APIKEY_PROVIDERS = {
     color: "#0EA5E9",
     textIcon: "CR",
     website: "https://crof.ai",
-  },
-  alicode: {
-    id: "alicode",
-    alias: "alicode",
-    name: "Alibaba",
-    icon: "cloud",
-    color: "#FF6A00",
-    textIcon: "ALi",
-    website: "https://bailian.console.aliyun.com",
-  },
-  "alicode-intl": {
-    id: "alicode-intl",
-    alias: "alicode-intl",
-    name: "Alibaba Intl",
-    icon: "cloud",
-    color: "#FF6A00",
-    textIcon: "ALi",
-    website: "https://modelstudio.console.alibabacloud.com",
   },
   openai: {
     id: "openai",
@@ -314,7 +355,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#2563EB",
     textIcon: "AF",
-    website: "https://learn.microsoft.com/azure/ai-foundry/",
+    website: "https://learn.microsoft.com/azure/ai-foundry",
     authHint:
       "Use your Azure AI Foundry key. Base URL can be https://<resource>.services.ai.azure.com/openai/v1/ or https://<resource>.openai.azure.com/openai/v1/.",
     apiHint:
@@ -328,7 +369,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#FF9900",
     textIcon: "BR",
-    website: "https://aws.amazon.com/bedrock/",
+    website: "https://aws.amazon.com/bedrock",
     authHint:
       "Use your Amazon Bedrock API key in Authorization: Bearer <key>. OmniRoute defaults to the OpenAI-compatible bedrock-mantle endpoint in us-east-1; set a regional base URL if your account uses another region or the bedrock-runtime /openai/v1 path.",
     apiHint:
@@ -356,7 +397,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#C74634",
     textIcon: "OCI",
-    website: "https://www.oracle.com/artificial-intelligence/generative-ai/",
+    website: "https://www.oracle.com/artificial-intelligence/generative-ai",
     authHint:
       "Use your OCI Generative AI API key or IAM bearer token. Base URL can be https://inference.generativeai.<region>.oci.oraclecloud.com/openai/v1/.",
     apiHint:
@@ -444,7 +485,7 @@ export const APIKEY_PROVIDERS = {
     icon: "smart_toy",
     color: "#D97757",
     textIcon: "AN",
-    website: "https://console.anthropic.com",
+    website: "https://platform.claude.com",
   },
   gemini: {
     id: "gemini",
@@ -453,7 +494,7 @@ export const APIKEY_PROVIDERS = {
     icon: "diamond",
     color: "#4285F4",
     textIcon: "GE",
-    website: "https://ai.google.dev",
+    website: "https://aistudio.google.com",
     hasFree: true,
     freeNote:
       "Free forever: 1,500 req/day for Gemini 2.5 Flash — no credit card, get key at aistudio.google.com",
@@ -465,7 +506,7 @@ export const APIKEY_PROVIDERS = {
     icon: "bolt",
     color: "#4D6BFE",
     textIcon: "DS",
-    website: "https://deepseek.com",
+    website: "https://platform.deepseek.com",
     hasFree: true,
     freeNote: "5M free tokens on signup - no credit card required",
   },
@@ -490,6 +531,57 @@ export const APIKEY_PROVIDERS = {
     website: "https://blackbox.ai",
     hasFree: true,
     freeNote: "Free tier: unlimited basic chat plus Minimax-M2.5, no credit card required",
+  },
+  bazaarlink: {
+    id: "bazaarlink",
+    alias: "bzl",
+    name: "BazaarLink",
+    icon: "storefront",
+    color: "#6366F1",
+    textIcon: "BZ",
+    website: "https://bazaarlink.ai",
+    hasFree: true,
+    freeNote: "Free tier with auto:free routing — zero-cost inference, no credit card required",
+    apiHint:
+      "Get free API key at https://bazaarlink.ai — use model 'auto:free' for zero-cost inference. OpenAI-compatible.",
+  },
+  completions: {
+    id: "completions",
+    alias: "cpl",
+    name: "Completions.me",
+    icon: "bolt",
+    color: "#F59E0B",
+    textIcon: "CP",
+    website: "https://completions.me",
+    hasFree: true,
+    freeNote: "Free unlimited access to Claude, GPT, Gemini — no credit card, no rate limits",
+    apiHint: "Sign up at https://completions.me for free API key. OpenAI-compatible endpoint.",
+  },
+  enally: {
+    id: "enally",
+    alias: "enly",
+    name: "Enally AI",
+    icon: "school",
+    color: "#8B5CF6",
+    textIcon: "EN",
+    website: "https://ai.enally.in",
+    hasFree: true,
+    freeNote: "Free for students and developers — no credit card, OTP verification",
+    apiHint:
+      "Get free API key at https://ai.enally.in/api — requires email and domain whitelisting.",
+  },
+  freetheai: {
+    id: "freetheai",
+    alias: "fta",
+    name: "FreeTheAi",
+    icon: "lock_open",
+    color: "#10B981",
+    textIcon: "FT",
+    website: "https://freetheai.xyz",
+    hasFree: true,
+    freeNote: "Community-run — free forever, no paid tiers, no credit card",
+    apiHint:
+      "Get free API key via Discord: https://freetheai.xyz — 16,000+ models, OpenAI-compatible.",
   },
   xai: {
     id: "xai",
@@ -618,6 +710,15 @@ export const APIKEY_PROVIDERS = {
     textIcon: "NB",
     website: "https://nanobananaapi.ai",
   },
+  kie: {
+    id: "kie",
+    alias: "kie",
+    name: "KIE.AI",
+    icon: "hub",
+    color: "#2563EB",
+    textIcon: "KIE",
+    website: "https://kie.ai",
+  },
   "ollama-cloud": {
     id: "ollama-cloud",
     alias: "ollamacloud",
@@ -702,16 +803,26 @@ export const APIKEY_PROVIDERS = {
     name: "OpenCode Go",
     icon: "opencode",
     color: "#6366f1",
-    website: "https://opencode.ai/zen/go",
+    website: "https://opencode.ai/go",
   },
   alibaba: {
     id: "alibaba",
     alias: "ali",
-    name: "Alibaba Cloud (DashScope)",
+    name: "Alibaba",
     icon: "cloud_queue",
     color: "#FF6600",
     textIcon: "AL",
     website: "https://dashscope-intl.aliyuncs.com",
+    hasFree: false,
+  },
+  "alibaba-cn": {
+    id: "alibaba-cn",
+    alias: "ali-cn",
+    name: "Alibaba (China)",
+    icon: "cloud_queue",
+    color: "#FF6600",
+    textIcon: "AL",
+    website: "https://dashscope.aliyuncs.com",
     hasFree: false,
   },
   longcat: {
@@ -721,7 +832,7 @@ export const APIKEY_PROVIDERS = {
     icon: "auto_awesome",
     color: "#FF6B9D",
     textIcon: "LC",
-    website: "https://longcat.chat",
+    website: "https://longcat.chat/platform/docs",
     hasFree: true,
     freeNote:
       "50M tokens/day (Flash-Lite) + 500K/day (Chat/Thinking) — 100% free while public beta",
@@ -734,8 +845,9 @@ export const APIKEY_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "PO",
     website: "https://pollinations.ai",
-    hasFree: false,
-    freeNote: "API key required. Spore tier: ~0.01 pollen/hour ($0.01/hr).",
+    hasFree: true,
+    freeNote:
+      "No API key required for free public endpoint. Optional Spore tier: ~0.01 pollen/hour.",
   },
   puter: {
     id: "puter",
@@ -751,6 +863,19 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "Get token at puter.com/dashboard → Copy Auth Token",
   },
+  uncloseai: {
+    id: "uncloseai",
+    alias: "unc",
+    name: "UncloseAI",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "UN",
+    website: "https://uncloseai.com",
+    hasFree: true,
+    freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
+    passthroughModels: true,
+    authHint: "No auth required. API accepts any non-empty string as key for identification.",
+  },
   "cloudflare-ai": {
     id: "cloudflare-ai",
     alias: "cf",
@@ -758,7 +883,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#F48120",
     textIcon: "CF",
-    website: "https://developers.cloudflare.com/workers-ai/",
+    website: "https://developers.cloudflare.com/workers-ai",
     hasFree: true,
     freeNote:
       "Free 10K Neurons/day: ~150 LLM responses or 500s Whisper audio — edge inference globally",
@@ -771,7 +896,7 @@ export const APIKEY_PROVIDERS = {
     icon: "cloud",
     color: "#4F0599",
     textIcon: "SCW",
-    website: "https://www.scaleway.com/en/ai/generative-apis/",
+    website: "https://www.scaleway.com/en/ai/generative-apis",
     hasFree: true,
     freeNote: "1M free tokens for new accounts — EU/GDPR compliant (Paris), Qwen3 235B & Llama 70B",
   },
@@ -903,6 +1028,44 @@ export const APIKEY_PROVIDERS = {
     color: "#EA580C",
     textIcon: "FL",
     website: "https://featherless.ai",
+    hasFree: true,
+    freeNote: "Free tier available — no credit card required",
+  },
+  llm7: {
+    id: "llm7",
+    alias: "llm7",
+    name: "LLM7.io",
+    icon: "hub",
+    color: "#6366F1",
+    textIcon: "LM",
+    website: "https://llm7.io",
+    hasFree: true,
+    freeNote: "No signup required - 2 req/s, 20 RPM, 100 req/hr free tier",
+    apiHint:
+      "Works without API key (use 'unused' as key). Get free token at token.llm7.io for higher limits.",
+  },
+  lepton: {
+    id: "lepton",
+    alias: "lepton",
+    name: "Lepton AI",
+    icon: "bolt",
+    color: "#10B981",
+    textIcon: "LP",
+    website: "https://lepton.ai",
+    hasFree: true,
+    freeNote: "Free tier available - fast inference on custom hardware",
+  },
+  kluster: {
+    id: "kluster",
+    alias: "kluster",
+    name: "Kluster AI",
+    icon: "hub",
+    color: "#8B5CF6",
+    textIcon: "KL",
+    website: "https://kluster.ai",
+    hasFree: true,
+    freeNote: "$5 free credits on signup - DeepSeek R1, Llama 4 Maverick/Scout, Qwen3 235B",
+    apiHint: "Get API key at https://kluster.ai/dashboard/api-keys",
   },
   friendliai: {
     id: "friendliai",
@@ -912,6 +1075,8 @@ export const APIKEY_PROVIDERS = {
     color: "#EC4899",
     textIcon: "FR",
     website: "https://friendli.ai",
+    hasFree: true,
+    freeNote: "Free tier for serverless inference — no credit card required",
   },
   llamagate: {
     id: "llamagate",
@@ -1068,6 +1233,30 @@ export const APIKEY_PROVIDERS = {
     color: "#EA580C",
     textIcon: "MM",
     website: "https://mimo.mi.com",
+  },
+  gitlawb: {
+    id: "gitlawb",
+    alias: "glb",
+    name: "Gitlawb Opengateway (MiMo)",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "GLB",
+    website: "https://opengateway.gitlawb.com",
+    hasFree: true,
+    freeNote: "Free tier available — no credit card required",
+    apiHint: "Get your API key from Gitlawb Opengateway dashboard.",
+  },
+  "gitlawb-gmi": {
+    id: "gitlawb-gmi",
+    alias: "glb-gmi",
+    name: "Gitlawb Opengateway (GMI Cloud)",
+    icon: "hub",
+    color: "#10B981",
+    textIcon: "GMI",
+    website: "https://opengateway.gitlawb.com",
+    hasFree: true,
+    freeNote: "Free tier available — no credit card required",
+    apiHint: "Get your API key from Gitlawb Opengateway dashboard.",
   },
   "inference-net": {
     id: "inference-net",
@@ -1285,6 +1474,8 @@ export const APIKEY_PROVIDERS = {
     color: "#06B6D4",
     textIcon: "CH",
     website: "https://chutes.ai",
+    hasFree: true,
+    freeNote: "Free tier available — no credit card required",
     authHint: "Bearer API key for the Chutes OpenAI-compatible gateway.",
     passthroughModels: true,
   },
@@ -1645,6 +1836,16 @@ export const SEARCH_PROVIDERS = {
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
+  "ollama-search": {
+    id: "ollama-search",
+    alias: "ollama-search",
+    name: "Ollama Search",
+    icon: "search",
+    color: "#58A6FF",
+    textIcon: "OS",
+    website: "https://ollama.com/settings/api-keys",
+    authHint: "Same API key as Ollama Cloud (from ollama.com/settings/api-keys)",
+  },
 };
 
 // Audio Only Providers
@@ -1746,6 +1947,39 @@ export const UPSTREAM_PROXY_PROVIDERS = {
   },
 };
 
+export const CLOUD_AGENT_PROVIDERS = {
+  jules: {
+    id: "jules",
+    alias: "jules",
+    name: "Google Jules",
+    icon: "engineering",
+    color: "#4285F4",
+    textIcon: "JL",
+    website: "https://jules.google",
+    authHint: "Jules API key for creating and managing cloud coding tasks.",
+  },
+  devin: {
+    id: "devin",
+    alias: "devin",
+    name: "Devin",
+    icon: "smart_toy",
+    color: "#111827",
+    textIcon: "DV",
+    website: "https://devin.ai",
+    authHint: "Devin API key for cloud agent sessions.",
+  },
+  "codex-cloud": {
+    id: "codex-cloud",
+    alias: "codex-cloud",
+    name: "Codex Cloud",
+    icon: "cloud",
+    color: "#10A37F",
+    textIcon: "CC",
+    website: "https://openai.com/codex",
+    authHint: "OpenAI API key with Codex Cloud task access.",
+  },
+};
+
 export function isClaudeCodeCompatibleProvider(providerId: unknown): providerId is string {
   return typeof providerId === "string" && providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX);
 }
@@ -1772,6 +2006,61 @@ export function isSelfHostedChatProvider(providerId: unknown): boolean {
   return typeof providerId === "string" && SELF_HOSTED_CHAT_PROVIDER_IDS.has(providerId);
 }
 
+export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
+  return (
+    providerId === "searxng-search" ||
+    providerId === "petals" ||
+    providerId === "pollinations" ||
+    isLocalProvider(providerId) ||
+    isSelfHostedChatProvider(providerId) ||
+    isOpenAICompatibleProvider(providerId) ||
+    isAnthropicCompatibleProvider(providerId)
+  );
+}
+
+/**
+ * Providers explicitly excluded from bulk API key add — auth is heterogeneous,
+ * OAuth-based, multi-field, or requires manual setup per connection.
+ */
+const BULK_API_KEY_EXCLUDED = new Set([
+  "vertex",
+  "vertex-partner",
+  "ollama-local",
+  "grok-web",
+  "perplexity-web",
+  "blackbox-web",
+  "muse-spark-web",
+  "deepseek-web",
+  "qoder",
+  "google-pse-search",
+  "command-code",
+  "azure",
+  "cloudflare-ai",
+]);
+
+export function supportsBulkApiKey(providerId: unknown): boolean {
+  if (typeof providerId !== "string" || !providerId) return false;
+  if (BULK_API_KEY_EXCLUDED.has(providerId)) return false;
+  if (isLocalProvider(providerId)) return false;
+  if (isSelfHostedChatProvider(providerId)) return false;
+  if (isClaudeCodeCompatibleProvider(providerId)) return false;
+  return true;
+}
+
+// ── System Providers (virtual, not user-connectable) ──────────────────────────
+export const SYSTEM_PROVIDERS = {
+  auto: {
+    id: "auto",
+    alias: "auto",
+    name: "Auto (Zero-Config)",
+    icon: "auto_awesome",
+    color: "#6366F1",
+    textIcon: "Auto",
+    systemOnly: true,
+    description: "Zero-config auto-routing with LKGP across all connected providers",
+  },
+};
+
 // All providers (combined)
 export const AI_PROVIDERS = {
   ...FREE_PROVIDERS,
@@ -1782,6 +2071,8 @@ export const AI_PROVIDERS = {
   ...SEARCH_PROVIDERS,
   ...AUDIO_ONLY_PROVIDERS,
   ...UPSTREAM_PROXY_PROVIDERS,
+  ...CLOUD_AGENT_PROVIDERS,
+  ...SYSTEM_PROVIDERS, // <-- system providers included
 };
 
 export type AiProviderId = keyof typeof AI_PROVIDERS;
@@ -1838,13 +2129,17 @@ export const USAGE_SUPPORTED_PROVIDERS = [
   "github",
   "codex",
   "claude",
+  "cursor",
   "kimi-coding",
   "glm",
+  "glm-cn",
+  "zai",
   "glmt",
   "minimax",
   "minimax-cn",
   "crof",
   "nanogpt",
+  "deepseek",
 ];
 
 // ── Zod validation at module load (Phase 7.2) ──
@@ -1858,3 +2153,4 @@ validateProviders(LOCAL_PROVIDERS, "LOCAL_PROVIDERS");
 validateProviders(SEARCH_PROVIDERS, "SEARCH_PROVIDERS");
 validateProviders(AUDIO_ONLY_PROVIDERS, "AUDIO_ONLY_PROVIDERS");
 validateProviders(UPSTREAM_PROXY_PROVIDERS, "UPSTREAM_PROXY_PROVIDERS");
+validateProviders(CLOUD_AGENT_PROVIDERS, "CLOUD_AGENT_PROVIDERS");

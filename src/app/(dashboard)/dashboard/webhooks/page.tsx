@@ -273,15 +273,8 @@ export default function WebhooksPage() {
   const isModalOpen = formMode !== null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[24px] text-primary">webhook</span>
-            <h1 className="text-3xl font-bold tracking-tight text-text-main">{t("title")}</h1>
-          </div>
-          <p className="mt-1 text-sm text-text-muted">{t("description")}</p>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         <button
           onClick={openCreateModal}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"

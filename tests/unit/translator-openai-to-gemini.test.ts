@@ -597,16 +597,20 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   assert.equal(result.project, "proj-1");
   assert.deepEqual(Object.keys(result), [
     "project",
+    "requestId",
+    "request",
     "model",
     "userAgent",
     "requestType",
-    "requestId",
-    "request",
+    "enabledCreditTypes",
   ]);
   assert.equal(result.userAgent, "antigravity");
   assert.equal(result.requestType, "agent");
-  assert.match(result.requestId, /^agent-/);
-  assert.match(result.request.sessionId, /^-\d+$/);
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.match(result.request.sessionId, /^-?\d+$/);
+  assert.deepEqual(result.enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.request.generationConfig.topK, 40);
+  assert.equal(result.request.generationConfig.topP, 1.0);
   assert.equal(
     (result as any).request?.systemInstruction.parts[0].text,
     ANTIGRAVITY_DEFAULT_SYSTEM
@@ -616,7 +620,7 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   });
 });
 
-test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", () => {
+test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schema", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -659,28 +663,34 @@ test("OpenAI -> Antigravity uses the Claude bridge for Claude-family models", ()
 
   assert.equal(result.project, "proj-claude");
   assert.equal(result.userAgent, "antigravity");
-  assert.ok((result as any).request?.system.includes(ANTIGRAVITY_DEFAULT_SYSTEM));
-  assert.ok((result as any).request?.system.includes("Project rules"));
-  assert.equal((result as any).request?.max_tokens, 16384);
+  assert.match(result.requestId, /^agent\/\d+\/[0-9a-f]{8}$/);
+  assert.deepEqual((result as any).enabledCreditTypes, ["GOOGLE_ONE_AI"]);
+  assert.equal(result.request.systemInstruction.parts[0].text, ANTIGRAVITY_DEFAULT_SYSTEM);
+  assert.equal(result.request.systemInstruction.parts[1].text, "Project rules");
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, undefined);
+  assert.equal((result as any).request?.messages, undefined);
+  assert.equal((result as any).request?.system, undefined);
+  assert.equal((result as any).request?.max_tokens, undefined);
+  assert.equal((result as any).request?.stream, undefined);
 
-  const modelTurn = result.request.messages.find(
-    (msg) => msg.role === "assistant" && msg.content.some((block) => block.type === "tool_use")
+  const modelTurn = result.request.contents.find(
+    (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
   );
-  assert.ok(modelTurn, "expected a Claude-bridged model turn");
-  const bridgeFunctionCall = modelTurn.content.find((block) => block.type === "tool_use");
+  assert.ok(modelTurn, "expected a Gemini-compatible model turn");
+  const bridgeFunctionCall = getFunctionCall(modelTurn.parts[0]);
   assert.equal(bridgeFunctionCall.name, "read_file");
-  assert.deepEqual(bridgeFunctionCall.input, { path: "/tmp/demo" });
+  assert.deepEqual(bridgeFunctionCall.args, { path: "/tmp/demo" });
 
-  const toolTurn = result.request.messages.find(
-    (msg) => msg.role === "user" && msg.content.some((block) => block.type === "tool_result")
+  const toolTurn = result.request.contents.find(
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
-  assert.ok(toolTurn, "expected a Claude-bridged tool response turn");
-  const toolResultBlock = toolTurn.content.find((block) => block.type === "tool_result");
-  assert.equal(toolResultBlock.tool_use_id, "call_1");
-  assert.equal((result as any).request?.tools[0].name, "read_file");
+  assert.ok(toolTurn, "expected a Gemini-compatible tool response turn");
+  const toolResultBlock = getFunctionResponse(toolTurn.parts[0]);
+  assert.equal(toolResultBlock.id, "call_1");
+  assert.equal((result as any).request?.tools[0].functionDeclarations[0].name, "read_file");
 });
 
-test("OpenAI -> Antigravity Claude bridge preserves tool names (Claude supports longer names)", () => {
+test("OpenAI -> Antigravity Claude path sanitizes tool names for Gemini schema", () => {
   const longToolName =
     "ns:mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle";
   const result = openaiToAntigravityRequest(
@@ -722,26 +732,35 @@ test("OpenAI -> Antigravity Claude bridge preserves tool names (Claude supports 
     { projectId: "proj-claude-map" } as any
   );
 
-  const sanitizedToolName = (result as any).request?.tools[0].name;
-  assert.equal(sanitizedToolName, longToolName);
+  const sanitizedToolName = (result as any).request?.tools[0].functionDeclarations[0].name;
+  assert.notEqual(sanitizedToolName, longToolName);
+  assert.match(
+    sanitizedToolName,
+    /^mcp_filesystem_read_multiple_files_with_validation_and__\w{8}$/
+  );
 
-  const modelTurn = result.request.messages.find(
-    (msg) => msg.role === "assistant" && msg.content.some((block) => block.type === "tool_use")
+  const modelTurn = result.request.contents.find(
+    (content) => content.role === "model" && content.parts.some((part) => part.functionCall)
   );
   assert.ok(modelTurn, "expected a model turn");
-  const toolUseBlock = modelTurn.content.find((block) => block.type === "tool_use");
+  const toolUseBlock = getFunctionCall(modelTurn.parts[0]);
   assert.equal(toolUseBlock.name, sanitizedToolName);
 
-  const toolTurn = result.request.messages.find(
-    (msg) => msg.role === "user" && msg.content.some((block) => block.type === "tool_result")
+  const toolTurn = result.request.contents.find(
+    (content) => content.role === "user" && content.parts.some((part) => part.functionResponse)
   );
   assert.ok(toolTurn, "expected a tool response turn");
-  const toolResultBlock = toolTurn.content.find((block) => block.type === "tool_result");
-  assert.equal(toolResultBlock.tool_use_id, "call_long_2");
-  assert.ok(toolResultBlock.content.includes("ok"));
+  const toolResultBlock = getFunctionResponse(toolTurn.parts[0]);
+  assert.equal(toolResultBlock.id, "call_long_2");
+  assert.equal(toolResultBlock.name, sanitizedToolName);
+  assert.deepEqual(toolResultBlock.response, { result: { ok: true } });
 });
 
-test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap but forwards thinking", () => {
+test("OpenAI -> Antigravity Claude path applies output cap and strips thinkingConfig", () => {
+  // For Claude on Antigravity, applyAntigravityGenerationDefaults must bump
+  // maxOutputTokens to thinkingBudget+1 BEFORE the envelope strips thinkingConfig
+  // (because Claude on Cloud Code does not understand Gemini's thinkingConfig
+  // shape but still benefits from the larger output cap derived from it).
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -753,11 +772,15 @@ test("OpenAI -> Antigravity Claude bridge applies Antigravity output cap but for
     { projectId: "proj-claude-thinking" } as any
   );
 
-  assert.equal((result as any).request?.max_tokens, 16384);
-  assert.deepEqual((result as any).request?.thinking, { type: "enabled", budget_tokens: 131072 });
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 32769);
+  // thinkingConfig must be stripped for Claude — Cloud Code Claude endpoint
+  // does not understand the Gemini-shape thinkingConfig field.
+  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+  assert.equal((result as any).request?.max_tokens, undefined);
+  assert.equal((result as any).request?.thinking, undefined);
 });
 
-test("OpenAI -> Antigravity Claude bridge preserves lower requested output despite reasoning effort", () => {
+test("OpenAI -> Antigravity Claude path preserves lower requested output and strips thinkingConfig", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",
     {
@@ -769,6 +792,33 @@ test("OpenAI -> Antigravity Claude bridge preserves lower requested output despi
     { projectId: "proj-claude-short" } as any
   );
 
-  assert.equal((result as any).request?.max_tokens, 1000);
-  assert.deepEqual((result as any).request?.thinking, { type: "enabled", budget_tokens: 131072 });
+  assert.equal((result as any).request?.generationConfig.maxOutputTokens, 32769);
+  assert.equal((result as any).request?.generationConfig.thinkingConfig, undefined);
+  assert.equal((result as any).request?.max_tokens, undefined);
+  assert.equal((result as any).request?.thinking, undefined);
+});
+
+test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is stripped)", () => {
+  // Negative-control for the Claude-thinkingConfig-strip behavior. Gemini models
+  // on Antigravity must still receive thinkingConfig — only Claude needs it removed
+  // (Cloud Code Claude endpoint does not understand the Gemini-shape field).
+  const result = openaiToAntigravityRequest(
+    "gemini-2.5-pro",
+    {
+      messages: [{ role: "user", content: "Summarize this" }],
+      max_completion_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false,
+    { projectId: "proj-gemini-thinking" } as any
+  );
+
+  // For Gemini, thinkingConfig must remain in place because the Cloud Code
+  // Gemini endpoint understands and uses it.
+  assert.ok(
+    (result as any).request?.generationConfig.thinkingConfig,
+    "thinkingConfig must be preserved for Gemini models on Antigravity"
+  );
+  assert.equal((result as any).request?.generationConfig.thinkingConfig.thinkingBudget > 0, true);
+  assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
 });

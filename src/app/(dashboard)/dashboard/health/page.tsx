@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
 import TelemetryCard from "./TelemetryCard";
 
@@ -156,7 +157,7 @@ export default function HealthPage() {
 
   if (!data && !error) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           <p className="text-text-muted mt-4">{t("loadingHealth")}</p>
@@ -167,7 +168,7 @@ export default function HealthPage() {
 
   if (error && !data) {
     return (
-      <div className="p-6">
+      <div>
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
           <span className="material-symbols-outlined text-red-500 text-[32px] mb-2">error</span>
           <p className="text-red-400">{t("failedToLoad", { error })}</p>
@@ -196,31 +197,24 @@ export default function HealthPage() {
   const lockoutEntries = Object.entries(lockouts || {});
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
-          <p className="text-sm text-text-muted mt-1">{t("description")}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {lastRefresh && (
-            <span className="text-xs text-text-muted">
-              {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
-            </span>
-          )}
-          <button
-            onClick={() => {
-              fetchHealth();
-              fetchExtras();
-              fetchDbHealth();
-            }}
-            className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
-            title={tc("refresh")}
-          >
-            <span className="material-symbols-outlined text-[18px]">refresh</span>
-          </button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-end gap-3">
+        {lastRefresh && (
+          <span className="text-xs text-text-muted">
+            {t("updatedAt", { time: lastRefresh.toLocaleTimeString() })}
+          </span>
+        )}
+        <button
+          onClick={() => {
+            fetchHealth();
+            fetchExtras();
+            fetchDbHealth();
+          }}
+          className="p-2 rounded-lg bg-surface hover:bg-surface/80 text-text-muted hover:text-text-main transition-colors"
+          title={tc("refresh")}
+        >
+          <span className="material-symbols-outlined text-[18px]">refresh</span>
+        </button>
       </div>
 
       {/* Status Banner */}
@@ -762,7 +756,7 @@ export default function HealthPage() {
                     {unhealthy.map(([provider, cb]: [string, any]) => {
                       const style = CB_STYLES[cb.state] || CB_STYLES.OPEN;
                       const providerInfo = AI_PROVIDERS[provider];
-                      const displayName = providerInfo?.name || provider;
+                      const displayName = getProviderDisplayName(provider, providerInfo);
                       return (
                         <div
                           key={provider}
@@ -820,7 +814,7 @@ export default function HealthPage() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                       {healthy.map(([provider]) => {
                         const providerInfo = AI_PROVIDERS[provider];
-                        const displayName = providerInfo?.name || provider;
+                        const displayName = getProviderDisplayName(provider, providerInfo);
                         return (
                           <div
                             key={provider}
@@ -873,7 +867,7 @@ export default function HealthPage() {
               if (customName.length > 12) displayName += ` (${customName.slice(0, 8)}…)`;
               else if (customName) displayName += ` (${customName})`;
             } else {
-              displayName = providerInfo?.name || providerId;
+              displayName = getProviderDisplayName(providerId, providerInfo);
             }
 
             return { providerId, displayName, providerInfo, connectionId, model };

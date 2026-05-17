@@ -24,17 +24,40 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-async function seedConnection(provider, overrides = {}) {
+async function seedConnection(provider: string, overrides: Record<string, unknown> = {}) {
   return providersDb.createProviderConnection({
     provider,
-    authType: overrides.authType || "apikey",
-    name: overrides.name || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
-    apiKey: overrides.apiKey || "sk-test",
-    accessToken: overrides.accessToken,
-    isActive: overrides.isActive ?? true,
-    testStatus: overrides.testStatus || "active",
-    providerSpecificData: overrides.providerSpecificData || {},
+    authType: (overrides.authType as string) || "apikey",
+    name: (overrides.name as string) || `${provider}-${Math.random().toString(16).slice(2, 8)}`,
+    apiKey: (overrides.apiKey as string) || "sk-test",
+    accessToken: overrides.accessToken as string | undefined,
+    isActive: (overrides.isActive as boolean) ?? true,
+    testStatus: (overrides.testStatus as string) || "active",
+    providerSpecificData: (overrides.providerSpecificData as Record<string, unknown>) || {},
   });
+}
+
+function capability(overrides = {}) {
+  return {
+    tool_call: null,
+    reasoning: null,
+    attachment: null,
+    structured_output: null,
+    temperature: null,
+    modalities_input: JSON.stringify([]),
+    modalities_output: JSON.stringify([]),
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: null,
+    limit_input: null,
+    limit_output: null,
+    interleaved_field: null,
+    ...overrides,
+  };
 }
 
 test.beforeEach(async () => {
@@ -228,6 +251,263 @@ test("v1 models catalog keeps only visible combos when no providers are active",
   );
 });
 
+test("v1 models catalog derives combo metadata from known targets conservatively", async () => {
+  try {
+    modelsDevSync.saveModelsDevCapabilities({
+      openai: {
+        "combo-alpha": capability({
+          tool_call: true,
+          reasoning: true,
+          attachment: true,
+          structured_output: true,
+          temperature: false,
+          modalities_input: JSON.stringify(["text", "image"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 1000,
+          limit_input: 900,
+          limit_output: 120,
+        }),
+      },
+      gemini: {
+        "combo-beta": capability({
+          tool_call: true,
+          reasoning: true,
+          attachment: false,
+          structured_output: true,
+          temperature: false,
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 800,
+          limit_input: 700,
+          limit_output: 90,
+        }),
+      },
+    });
+
+    await combosDb.createCombo({
+      name: "metadata-router",
+      strategy: "priority",
+      models: ["openai/combo-alpha", "gemini/combo-beta"],
+    });
+
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const combo = body.data.find((item) => item.id === "metadata-router");
+
+    assert.equal(response.status, 200);
+    assert.ok(combo);
+    assert.equal(combo.context_length, 800);
+    assert.equal(combo.max_input_tokens, 700);
+    assert.equal(combo.max_output_tokens, 90);
+    assert.deepEqual(combo.input_modalities, ["text"]);
+    assert.deepEqual(combo.output_modalities, ["text"]);
+    assert.equal(combo.capabilities.structured_output, true);
+    assert.equal(combo.capabilities.temperature, false);
+    assert.equal(combo.capabilities.tool_calling, true);
+    assert.equal(combo.capabilities.reasoning, true);
+    assert.equal(combo.capabilities.thinking, true);
+    assert.equal("vision" in combo.capabilities, false);
+    assert.equal("attachment" in combo.capabilities, false);
+    assert.equal("architecture" in combo, false);
+    assert.equal("top_provider" in combo, false);
+    assert.equal("supported_parameters" in combo, false);
+  } finally {
+    modelsDevSync.saveModelsDevCapabilities({});
+  }
+});
+
+test("v1 models catalog lets explicit combo context override derived context", async () => {
+  try {
+    modelsDevSync.saveModelsDevCapabilities({
+      openai: {
+        "context-alpha": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 1000,
+          limit_input: 900,
+          limit_output: 120,
+        }),
+      },
+      gemini: {
+        "context-beta": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 800,
+          limit_input: 700,
+          limit_output: 90,
+        }),
+      },
+    });
+
+    const combo = await combosDb.createCombo({
+      name: "context-router",
+      strategy: "priority",
+      models: ["openai/context-alpha", "gemini/context-beta"],
+    });
+    await combosDb.updateCombo((combo as any).id, { context_length: 12345 });
+
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const listed = body.data.find((item) => item.id === "context-router");
+
+    assert.equal(response.status, 200);
+    assert.equal(listed.context_length, 12345);
+    assert.equal(listed.max_input_tokens, 700);
+    assert.equal(listed.max_output_tokens, 90);
+  } finally {
+    modelsDevSync.saveModelsDevCapabilities({});
+  }
+});
+
+test("v1 models catalog keeps unknown combo targets visible without guessed metadata", async () => {
+  await combosDb.createCombo({
+    name: "unknown-router",
+    strategy: "priority",
+    models: ["openai/no-known-metadata"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const combo = body.data.find((item) => item.id === "unknown-router");
+
+  assert.equal(response.status, 200);
+  assert.ok(combo);
+  assert.equal("context_length" in combo, false);
+  assert.equal("max_input_tokens" in combo, false);
+  assert.equal("max_output_tokens" in combo, false);
+  assert.equal("input_modalities" in combo, false);
+  assert.equal("output_modalities" in combo, false);
+  assert.equal("capabilities" in combo, false);
+});
+
+test("v1 models catalog aggregates nested combos and keeps hidden child combos unlisted", async () => {
+  try {
+    modelsDevSync.saveModelsDevCapabilities({
+      openai: {
+        "nested-alpha": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 1000,
+          limit_input: 900,
+          limit_output: 120,
+        }),
+      },
+      gemini: {
+        "nested-beta": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 800,
+          limit_input: 700,
+          limit_output: 90,
+        }),
+      },
+    });
+
+    await combosDb.createCombo({
+      name: "hidden-child-router",
+      strategy: "priority",
+      models: ["openai/nested-alpha", "gemini/nested-beta"],
+      isHidden: true,
+    });
+    await combosDb.createCombo({
+      name: "parent-router",
+      strategy: "priority",
+      models: ["hidden-child-router"],
+    });
+
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const parent = body.data.find((item) => item.id === "parent-router");
+
+    assert.equal(response.status, 200);
+    assert.ok(parent);
+    assert.equal(parent.context_length, 800);
+    assert.equal(parent.max_output_tokens, 90);
+    assert.equal(
+      body.data.some((item) => item.id === "hidden-child-router"),
+      false
+    );
+  } finally {
+    modelsDevSync.saveModelsDevCapabilities({});
+  }
+});
+
+test("v1 models catalog resolves provider aliases without corrupting slashful model ids", async () => {
+  try {
+    modelsDevSync.saveModelsDevCapabilities({
+      claude: {
+        "alias-model": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 2000,
+          limit_input: 1900,
+          limit_output: 200,
+        }),
+      },
+      openrouter: {
+        "Qwen/Qwen3-Coder": capability({
+          modalities_input: JSON.stringify(["text"]),
+          modalities_output: JSON.stringify(["text"]),
+          limit_context: 1600,
+          limit_input: 1500,
+          limit_output: 150,
+        }),
+      },
+    });
+
+    await combosDb.createCombo({
+      name: "alias-and-slash-router",
+      strategy: "priority",
+      models: [
+        { kind: "model", providerId: "claude", model: "cc/alias-model" },
+        { kind: "model", providerId: "openrouter", model: "Qwen/Qwen3-Coder" },
+      ],
+    });
+
+    const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+      new Request("http://localhost/api/v1/models")
+    );
+    const body = (await response.json()) as any;
+    const combo = body.data.find((item) => item.id === "alias-and-slash-router");
+
+    assert.equal(response.status, 200);
+    assert.ok(combo);
+    assert.equal(combo.context_length, 1600);
+    assert.equal(combo.max_input_tokens, 1500);
+    assert.equal(combo.max_output_tokens, 150);
+  } finally {
+    modelsDevSync.saveModelsDevCapabilities({});
+  }
+});
+
+test("v1 models catalog does not final-enrich combo names as real models", async () => {
+  await combosDb.createCombo({
+    name: "gpt-5.5",
+    strategy: "priority",
+    models: ["openai/no-known-metadata"],
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const combo = body.data.find((item) => item.id === "gpt-5.5");
+
+  assert.equal(response.status, 200);
+  assert.ok(combo);
+  assert.equal(combo.owned_by, "combo");
+  assert.equal("max_output_tokens" in combo, false);
+  assert.equal("capabilities" in combo, false);
+});
+
 test("v1 models catalog exposes claude alias and provider-prefixed built-in models with vision metadata", async () => {
   await seedConnection("claude", {
     authType: "oauth",
@@ -286,6 +566,36 @@ test("v1 models catalog exposes refreshed GitHub Copilot aliases and drops retir
     body.data.some((item) => item.id === "gh/claude-opus-4.1"),
     false
   );
+});
+
+test("v1 models catalog exposes bare Codex-preferred IDs for native Codex clients", async () => {
+  await seedConnection("codex", {
+    authType: "oauth",
+    name: "codex-native",
+    apiKey: null,
+    accessToken: "codex-access",
+  });
+
+  const response = await v1ModelsCatalog.getUnifiedModelsResponse(
+    new Request("http://localhost/api/v1/models")
+  );
+  const body = (await response.json()) as any;
+  const getModel = (id: string) => body.data.find((item) => item.id === id);
+
+  assert.equal(response.status, 200);
+  const modelId = "codex-auto-review";
+  const bareModel = getModel(modelId);
+  const providerModel = getModel(`codex/${modelId}`);
+  const aliasModel = getModel(`cx/${modelId}`);
+  const openAiModel = getModel(`openai/${modelId}`);
+
+  assert.ok(bareModel, `expected bare ${modelId} model`);
+  assert.ok(providerModel, `expected codex/${modelId} model`);
+  assert.ok(aliasModel, `expected cx/${modelId} model`);
+  assert.equal(openAiModel, undefined);
+  assert.equal(bareModel.owned_by, "codex");
+  assert.equal(bareModel.parent, providerModel.id);
+  assert.equal(providerModel.parent, aliasModel.id);
 });
 
 test("v1 models catalog exposes Antigravity client-visible preview aliases instead of upstream internal IDs", async () => {

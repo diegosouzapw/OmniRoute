@@ -72,27 +72,15 @@ export default function TranslatorPageClient() {
   };
 
   return (
-    <div className="p-4 sm:p-8 space-y-6 min-w-0">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-w-0">
-        <div>
-          <h1 className="text-2xl font-bold text-text-main flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[28px]">translate</span>
-            {t("playgroundTitle")}
-          </h1>
-          <p className="text-sm text-text-muted mt-1">
-            {modeDescriptions[mode] || t("modeDescriptionFallback")}
-          </p>
-        </div>
-        <div className="w-full sm:w-auto overflow-x-auto">
-          <SegmentedControl
-            options={modes}
-            value={mode}
-            onChange={setMode}
-            size="md"
-            className="min-w-max"
-          />
-        </div>
+    <div className="space-y-6 min-w-0">
+      <div className="flex justify-end min-w-0 overflow-x-auto">
+        <SegmentedControl
+          options={modes}
+          value={mode}
+          onChange={setMode}
+          size="md"
+          className="min-w-max"
+        />
       </div>
 
       <Card className="border-primary/10 bg-primary/5">

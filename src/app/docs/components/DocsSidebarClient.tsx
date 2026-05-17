@@ -12,7 +12,7 @@ export function DocsSidebarClient({ mobileOnly = false }: { mobileOnly?: boolean
   const [isOpen, setIsOpen] = useState(false);
 
   // Extract slug from pathname (e.g., /docs/setup-guide -> setup-guide)
-  const currentSlug = pathname.split("/").filter(Boolean).pop() || "";
+  const currentSlug = pathname.split("/").filter(Boolean).pop();
 
   const isActive = (slug: string) => currentSlug === slug;
 

@@ -1,8 +1,6 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 import TokenHealthBadge from "./TokenHealthBadge";
 import DegradationBadge from "./DegradationBadge";
@@ -17,111 +15,154 @@ import {
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
+import {
+  SIDEBAR_SECTIONS,
+  getSectionItems,
+  type SidebarItemDefinition,
+  type HideableSidebarItemId,
+} from "@/shared/constants/sidebarVisibility";
 import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
+
+// Map sidebar item id → header description i18n key
+const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
+  home: "homeDescription",
+  endpoints: "endpointDescription",
+  "api-manager": "apiManagerDescription",
+  providers: "providerDescription",
+  combos: "comboDescription",
+  batch: "batchDescription",
+  costs: "costsDescription",
+  analytics: "analyticsDescription",
+  cache: "cacheDescription",
+  limits: "limitsDescription",
+  media: "mediaDescription",
+  agents: "agentsDescription",
+  "cloud-agents": "cloudAgentsDescription",
+  memory: "memoryDescription",
+  skills: "skillsDescription",
+  "agent-skills": "agentSkillsDescription",
+  settings: "settingsDescription",
+  "context-caveman": "contextCavemanDescription",
+  "context-rtk": "contextRtkDescription",
+  "context-combos": "contextCombosDescription",
+  translator: "translatorDescription",
+  playground: "playgroundDescription",
+  "search-tools": "searchToolsDescription",
+  logs: "logsDescription",
+  audit: "auditDescription",
+  webhooks: "webhooksDescription",
+  health: "healthDescription",
+  proxy: "proxyDescription",
+  changelog: "changelogDescription",
+  // Protocols
+  mcp: "mcpDescription",
+  a2a: "a2aDescription",
+  "api-endpoints": "apiEndpointsDescription",
+  // Agents & AI sub-pages
+  "batch-files": "batchFilesDescription",
+  // Analytics sub-pages
+  "analytics-evals": "analyticsEvalsDescription",
+  "analytics-search": "analyticsSearchDescription",
+  "analytics-utilization": "analyticsUtilizationDescription",
+  "analytics-combo-health": "analyticsComboHealthDescription",
+  "analytics-compression": "analyticsCompressionDescription",
+  // Costs sub-pages
+  "costs-budget": "costsBudgetDescription",
+  "costs-pricing": "costsPricingDescription",
+  // Logs sub-pages
+  "logs-proxy": "logsProxyDescription",
+  "logs-console": "logsConsoleDescription",
+  "logs-activity": "logsActivityDescription",
+  // Audit sub-pages
+  "audit-mcp": "auditMcpDescription",
+  // Settings sub-pages
+  "settings-general": "settingsGeneralDescription",
+  "settings-appearance": "settingsAppearanceDescription",
+  "settings-ai": "settingsAiDescription",
+  "settings-security": "settingsSecurityDescription",
+  "settings-routing": "settingsRoutingDescription",
+  "settings-resilience": "settingsResilienceDescription",
+  "settings-advanced": "settingsAdvancedDescription",
+  // Proxy sub-pages
+  "mitm-proxy": "mitmProxyDescription",
+  "1proxy": "oneProxyDescription",
+  // OmniProxy items
+  "cli-tools": "cliToolsDescription",
+  agents: "agentsDescription",
+  "cloud-agents": "cloudAgentsDescription",
+  "api-endpoints": "apiEndpointsDescription",
+  webhooks: "webhooksDescription",
+};
+
+// Build href → sidebar item lookup (non-external items only)
+const sidebarByHref = new Map<string, SidebarItemDefinition>();
+for (const section of SIDEBAR_SECTIONS) {
+  for (const item of getSectionItems(section)) {
+    if (!item.external) sidebarByHref.set(item.href, item);
+  }
+}
+
+function getSidebarItem(pathname: string): SidebarItemDefinition | undefined {
+  const exact = sidebarByHref.get(pathname);
+  if (exact) return exact;
+  // Longest prefix match
+  let best: SidebarItemDefinition | undefined;
+  let bestLen = 0;
+  for (const [href, item] of sidebarByHref) {
+    if (pathname.startsWith(href) && href.length > bestLen) {
+      best = item;
+      bestLen = href.length;
+    }
+  }
+  return best;
+}
 
 type HeaderProps = {
   onMenuClick?: () => void;
   showMenuButton?: boolean;
 };
 
-function usePageInfo(pathname: string | null): {
+type PageInfo = {
   title: string;
   description: string;
-  breadcrumbs: { label: string; href?: string; image?: string; providerId?: string }[];
-} {
-  const t = useTranslations("header");
+  icon?: string;
+  providerId?: string;
+};
 
-  if (!pathname) return { title: "", description: "", breadcrumbs: [] };
+function usePageInfo(pathname: string | null): PageInfo {
+  const ts = useTranslations("sidebar");
+  const th = useTranslations("header");
 
-  // Provider detail page: /dashboard/providers/[id]
+  if (!pathname) return { title: "", description: "" };
+
+  // Special: provider detail page /dashboard/providers/[id]
   const providerMatch = pathname.match(/\/providers\/([^/]+)$/);
   if (providerMatch) {
-    const providerId = providerMatch[1];
-    const providerInfo =
-      OAUTH_PROVIDERS[providerId] || FREE_PROVIDERS[providerId] || APIKEY_PROVIDERS[providerId];
-
-    if (providerInfo) {
-      return {
-        title: providerInfo.name,
-        description: "",
-        breadcrumbs: [
-          { label: t("providers"), href: "/dashboard/providers" },
-          { label: providerInfo.name, providerId: providerInfo.id },
-        ],
-      };
-    }
-
-    if (providerId.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX)) {
-      return {
-        title: "CC Compatible",
-        description: "",
-        breadcrumbs: [
-          { label: t("providers"), href: "/dashboard/providers" },
-          { label: "CC Compatible", providerId: "claude" },
-        ],
-      };
-    }
-
-    if (providerId.startsWith(OPENAI_COMPATIBLE_PREFIX)) {
-      return {
-        title: t("openaiCompatible"),
-        description: "",
-        breadcrumbs: [
-          { label: t("providers"), href: "/dashboard/providers" },
-          { label: t("openaiCompatible"), providerId: "oai-cc" },
-        ],
-      };
-    }
-
-    if (providerId.startsWith(ANTHROPIC_COMPATIBLE_PREFIX)) {
-      return {
-        title: t("anthropicCompatible"),
-        description: "",
-        breadcrumbs: [
-          { label: t("providers"), href: "/dashboard/providers" },
-          { label: t("anthropicCompatible"), providerId: "anthropic-m" },
-        ],
-      };
-    }
+    const pid = providerMatch[1];
+    const info = OAUTH_PROVIDERS[pid] || FREE_PROVIDERS[pid] || APIKEY_PROVIDERS[pid];
+    if (info) return { title: info.name, description: "", providerId: info.id };
+    if (pid.startsWith(CLAUDE_CODE_COMPATIBLE_PREFIX))
+      return { title: "CC Compatible", description: "", providerId: "claude" };
+    if (pid.startsWith(OPENAI_COMPATIBLE_PREFIX))
+      return { title: th("openaiCompatible"), description: "", providerId: "oai-cc" };
+    if (pid.startsWith(ANTHROPIC_COMPATIBLE_PREFIX))
+      return { title: th("anthropicCompatible"), description: "", providerId: "anthropic-m" };
   }
 
-  if (pathname.includes("/providers"))
+  // Derive from sidebar
+  const item = getSidebarItem(pathname);
+  if (item) {
+    const descKey = HEADER_DESCRIPTIONS[item.id];
     return {
-      title: t("providers"),
-      description: t("providerDescription"),
-      breadcrumbs: [],
+      title: ts(item.i18nKey),
+      description: descKey ? th(descKey) : "",
+      icon: item.icon,
     };
-  if (pathname.includes("/combos"))
-    return { title: t("combos"), description: t("comboDescription"), breadcrumbs: [] };
-  if (pathname.includes("/usage"))
-    return {
-      title: t("usage"),
-      description: t("usageDescription"),
-      breadcrumbs: [],
-    };
-  if (pathname.includes("/analytics"))
-    return {
-      title: t("analytics"),
-      description: t("analyticsDescription"),
-      breadcrumbs: [],
-    };
-  if (pathname.includes("/cli-tools"))
-    return { title: t("cliTools"), description: t("cliToolsDescription"), breadcrumbs: [] };
-  if (pathname === "/dashboard")
-    return { title: t("home"), description: t("homeDescription"), breadcrumbs: [] };
-  if (pathname.includes("/mcp"))
-    return { title: t("mcp"), description: t("mcpDescription"), breadcrumbs: [] };
-  if (pathname.includes("/a2a"))
-    return { title: t("a2a"), description: t("a2aDescription"), breadcrumbs: [] };
-  if (pathname.includes("/endpoint"))
-    return { title: t("endpoint"), description: t("endpointDescription"), breadcrumbs: [] };
-  if (pathname.includes("/profile"))
-    return { title: t("settings"), description: t("settingsDescription"), breadcrumbs: [] };
-  // Note: /themes page removed – theme settings live in /settings → AppearanceTab
+  }
 
-  return { title: "", description: "", breadcrumbs: [] };
+  return { title: "", description: "" };
 }
 
 export default function Header({ onMenuClick, showMenuButton = true }: HeaderProps) {
@@ -129,7 +170,7 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
   const router = useRouter();
   const isElectron = useIsElectron();
   const t = useTranslations("header");
-  const { title, description, breadcrumbs } = usePageInfo(pathname);
+  const { title, description, icon, providerId } = usePageInfo(pathname);
   const isMacElectron =
     isElectron &&
     typeof window !== "undefined" &&
@@ -149,9 +190,9 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
 
   return (
     <header
-      className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-bg px-8 py-5 dark:border-white/5"
+      className="sticky top-0 z-10 flex items-center justify-between border-b border-black/5 bg-bg px-8 py-4 dark:border-white/5"
       style={{
-        paddingTop: isMacElectron ? "calc(1.25rem + var(--desktop-safe-top))" : undefined,
+        paddingTop: isMacElectron ? "calc(1rem + var(--desktop-safe-top))" : undefined,
       }}
     >
       {/* Mobile menu button */}
@@ -166,74 +207,31 @@ export default function Header({ onMenuClick, showMenuButton = true }: HeaderPro
         )}
       </div>
 
-      {/* Page title with breadcrumbs - desktop */}
-      <div className="hidden lg:flex flex-col">
-        {breadcrumbs.length > 0 ? (
-          <div className="flex items-center gap-2">
-            {breadcrumbs.map((crumb, index) => (
-              <div
-                key={`${crumb.label}-${crumb.href || "current"}`}
-                className="flex items-center gap-2"
-              >
-                {index > 0 && (
-                  <span className="material-symbols-outlined text-text-muted text-base">
-                    chevron_right
-                  </span>
-                )}
-                {crumb.href ? (
-                  <Link
-                    href={crumb.href}
-                    className="text-text-muted hover:text-primary transition-colors"
-                  >
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {crumb.image && (
-                      <Image
-                        src={crumb.image}
-                        alt={crumb.label}
-                        width={28}
-                        height={28}
-                        className="object-contain rounded max-w-[28px] max-h-[28px]"
-                        sizes="28px"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                    )}
-                    {crumb.providerId && (
-                      <ProviderIcon providerId={crumb.providerId} size={28} type="color" />
-                    )}
-                    <h1 className="text-2xl font-semibold text-text-main tracking-tight">
-                      {crumb.label}
-                    </h1>
-                  </div>
-                )}
-              </div>
-            ))}
+      {/* Page title with icon - desktop */}
+      <div className="hidden lg:flex items-center gap-3">
+        {(icon || providerId) && (
+          <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10 shrink-0">
+            {icon ? (
+              <span className="material-symbols-outlined text-primary text-[20px]">{icon}</span>
+            ) : (
+              providerId && <ProviderIcon providerId={providerId} size={22} type="color" />
+            )}
           </div>
-        ) : title ? (
+        )}
+        {title && (
           <div>
-            <h1 className="text-2xl font-semibold text-text-main tracking-tight">{title}</h1>
-            {description && <p className="text-sm text-text-muted">{description}</p>}
+            <h1 className="text-xl font-semibold text-text-main tracking-tight">{title}</h1>
+            {description && <p className="text-xs text-text-muted mt-0.5">{description}</p>}
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Right actions */}
       <div className="flex items-center gap-3 ml-auto">
-        {/* Language selector */}
         <LanguageSelector />
-
-        {/* Theme toggle */}
         <ThemeToggle />
-
-        {/* Degradation & Token health */}
         {!isE2EMode && <DegradationBadge />}
         {!isE2EMode && <TokenHealthBadge />}
-
-        {/* Logout button */}
         <button
           onClick={handleLogout}
           className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
 
-const { createOmnirouteWsBridge } = await import("../../scripts/v1-ws-bridge.mjs");
+const { createOmnirouteWsBridge } = await import("../../scripts/dev/v1-ws-bridge.mjs");
 
 function listen(server) {
   return new Promise((resolve) => {

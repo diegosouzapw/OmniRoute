@@ -203,31 +203,28 @@ export default function MemoryPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <div className="flex items-center gap-2">
-            {health !== null && (
-              <span
-                className={`inline-block w-3 h-3 rounded-full ${health.working ? "bg-green-500" : "bg-red-500"}`}
-                title={
-                  health.working
-                    ? t("pipelineOk", { latencyMs: health.latencyMs })
-                    : t("pipelineError")
-                }
-              />
-            )}
-            {health === null && !checkingHealth && (
-              <span
-                className="inline-block w-3 h-3 rounded-full bg-gray-400"
-                title={t("healthUnknown")}
-              />
-            )}
-            <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
-              {checkingHealth ? t("checkingHealth") : t("checkHealth")}
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center gap-2">
+          {health !== null && (
+            <span
+              className={`inline-block w-3 h-3 rounded-full ${health.working ? "bg-green-500" : "bg-red-500"}`}
+              title={
+                health.working
+                  ? t("pipelineOk", { latencyMs: health.latencyMs })
+                  : t("pipelineError")
+              }
+            />
+          )}
+          {health === null && !checkingHealth && (
+            <span
+              className="inline-block w-3 h-3 rounded-full bg-gray-400"
+              title={t("healthUnknown")}
+            />
+          )}
+          <Button variant="outline" size="sm" onClick={checkHealth} disabled={checkingHealth}>
+            {checkingHealth ? t("checkingHealth") : t("checkHealth")}
+          </Button>
         </div>
         <div className="flex gap-2">
           <input

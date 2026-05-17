@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Fout: {message}",
+    "serverOffline": "OmniRoute-server is offline. Start met: omniroute serve",
+    "authRequired": "Authenticatie vereist. Stel OMNIROUTE_API_KEY in of voer uit: omniroute setup",
+    "rateLimited": "Verzoeklimiet overschreden. Probeer opnieuw na {seconds}s.",
+    "timeout": "Verzoek verlopen na {ms}ms.",
+    "success": "Klaar.",
+    "yes": "ja",
+    "no": "nee",
+    "confirm": "Weet u het zeker? (ja/nee)",
+    "dryRun": "[simulatie] zou: {action}",
+    "cancelled": "Geannuleerd.",
+    "jsonOpt": "Uitvoer als JSON",
+    "yesOpt": "Bevestiging overslaan"
+  },
+  "program": {
+    "description": "OmniRoute — Slimme AI-router met automatische fallback",
+    "version": "Versie afdrukken en afsluiten",
+    "output": "Uitvoerformaat (table, json, jsonl, csv)",
+    "quiet": "Niet-essentiële uitvoer onderdrukken",
+    "no_color": "Gekleurde uitvoer uitschakelen",
+    "timeout": "HTTP-verzoek timeout in milliseconden",
+    "api_key": "API-sleutel voor de OmniRoute-server",
+    "base_url": "Basis-URL van de OmniRoute-server",
+    "context": "Servercontext/profiel voor dit commando",
+    "lang": "CLI-weergavetaal instellen (overschrijft OMNIROUTE_LANG)"
+  }
+}

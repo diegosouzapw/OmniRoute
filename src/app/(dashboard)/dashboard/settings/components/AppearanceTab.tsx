@@ -15,6 +15,7 @@ import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SECTIONS,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
+  getSectionItems,
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
@@ -102,7 +103,7 @@ export default function AppearanceTab() {
         }
       }
     } catch (err) {
-      console.error(`Failed to update ${key}:`, err);
+      console.error("Failed to update", key, err);
     }
   };
 
@@ -148,7 +149,7 @@ export default function AppearanceTab() {
   ).map((section) => ({
     ...section,
     title: getSidebarLabel(section.titleKey, section.titleFallback),
-    items: section.items.map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
+    items: getSectionItems(section).map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
   }));
 
   const toggleSidebarItem = (itemId: HideableSidebarItemId) => {

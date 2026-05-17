@@ -21,14 +21,16 @@ let clientPromise: Promise<unknown> | null = null;
 let exitHookInstalled = false;
 
 const CHATGPT_PROFILE = "firefox_148"; // matches the Firefox 148 UA we send
-const DEFAULT_TIMEOUT_MS = 60_000;
+const DEFAULT_TIMEOUT_MS =
+  Number.parseInt(process.env.OMNIROUTE_CHATGPT_TLS_TIMEOUT_MS || "", 10) || 60_000;
 // Grace period added to the binding's wire-level timeout before our JS-level
 // hard timeout fires. Under healthy operation `tls-client-node` honors
 // `timeoutMilliseconds` and rejects on its own; the JS-level race only wins
 // when the koffi-loaded native library is wedged (which the binding's own
 // timer can't escape). Keep the grace small so users don't wait noticeably
 // longer than the configured timeout when the binding is dead.
-const HARD_TIMEOUT_GRACE_MS = 10_000;
+const HARD_TIMEOUT_GRACE_MS =
+  Number.parseInt(process.env.OMNIROUTE_CHATGPT_TLS_GRACE_MS || "", 10) || 10_000;
 
 function installExitHook(): void {
   if (exitHookInstalled) return;
@@ -188,6 +190,45 @@ export interface TlsFetchOptions {
    * mangled. Default false (text mode).
    */
   byteResponse?: boolean;
+  /**
+   * Optional upstream proxy URL (`http://user:pass@host:port` or
+   * `socks5://...`). When set, the request is tunneled through this proxy
+   * before reaching chatgpt.com. Required for hosts whose bare IP is
+   * flagged by ChatGPT/Cloudflare (Russia, datacenter ranges, etc.) —
+   * without it, every call leaks the host IP and gets edge-rejected with
+   * a templated 401 / `Invalid session cookie`.
+   *
+   * Resolution order:
+   *   1. `options.proxyUrl` (per-call override from caller)
+   *   2. `process.env.OMNIROUTE_TLS_PROXY_URL` (single-flag opt-in)
+   *   3. `process.env.HTTPS_PROXY` / `HTTP_PROXY` / `ALL_PROXY` (POSIX-standard fallback)
+   *
+   * The native `tls-client-node` binding does **not** consult Go's
+   * `http.ProxyFromEnvironment`, so the env vars need to be plumbed in
+   * here at the JS layer. The dashboard's global-fetch monkey-patch only
+   * reaches Node's undici, not the koffi-loaded shared library used here.
+   */
+  proxyUrl?: string;
+}
+
+import { resolveProxyForRequest } from "../utils/proxyFetch.ts";
+
+/**
+ * Resolve the proxy URL for a tls-client request. Per-call value wins;
+ * otherwise we use the standard proxy fetch resolution which reads from
+ * the dashboard AsyncLocalStorage context or falls back to env vars.
+ */
+function resolveProxyUrl(perCall: string | undefined): string | undefined {
+  if (perCall && perCall.length > 0) return perCall;
+  try {
+    const proxyInfo = resolveProxyForRequest("https://chatgpt.com");
+    if (proxyInfo && proxyInfo.proxyUrl) {
+      return proxyInfo.proxyUrl;
+    }
+  } catch {
+    // Ignore resolution errors
+  }
+  return undefined;
 }
 
 export interface TlsFetchResult {
@@ -240,6 +281,13 @@ export async function tlsFetchChatGpt(
     followRedirects: true,
     withRandomTLSExtensionOrder: true,
     isByteResponse: options.byteResponse === true,
+    // Plumb the configured proxy through to the native binding. tls-client-node
+    // consults `proxyUrl` in the per-call options (it does NOT auto-pick up
+    // HTTP_PROXY / HTTPS_PROXY env), so callers / env have to be threaded in
+    // explicitly. See `resolveProxyUrl()` for the lookup order. Without this
+    // line, every chatgpt-web call egresses with the bare host IP regardless
+    // of dashboard proxy config — see #2022.
+    proxyUrl: resolveProxyUrl(options.proxyUrl),
   };
 
   if (options.stream) {

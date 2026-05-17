@@ -23,7 +23,10 @@ import {
 } from "../../open-sse/services/claudeCodeFingerprint.ts";
 
 // ── Tool remapper ─────────────────────────────────────────────────────────────
-import { remapToolNamesInRequest } from "../../open-sse/services/claudeCodeToolRemapper.ts";
+import {
+  remapToolNamesInRequest,
+  remapToolNamesInResponse,
+} from "../../open-sse/services/claudeCodeToolRemapper.ts";
 
 // ── Constraints ───────────────────────────────────────────────────────────────
 import {
@@ -165,11 +168,84 @@ describe("remapToolNamesInRequest", () => {
     assert.ok(Array.isArray(body.tools), "tools array must still be present after remap");
   });
 
+  it("tracks remapped tool names without leaking helper fields into the wire payload", () => {
+    const body = {
+      tools: [
+        { name: "bash", description: "Run bash commands" },
+        { name: "glob", description: "Search files" },
+      ],
+      tool_choice: { type: "tool", name: "glob" },
+      messages: [
+        {
+          role: "assistant",
+          content: [{ type: "tool_use", name: "read", input: { file_path: "README.md" } }],
+        },
+      ],
+    };
+
+    remapToolNamesInRequest(body);
+
+    const mappedBody = body as Record<string, unknown> & {
+      _toolNameMap?: Map<string, string>;
+      _claudeCodeRequiresLowercaseToolNames?: boolean;
+    };
+
+    assert.equal(body.tools[0].name, "Bash");
+    assert.equal(body.tools[1].name, "Glob");
+    assert.equal(body.tool_choice.name, "Glob");
+    assert.equal(body.messages[0].content[0].name, "Read");
+    assert.equal(mappedBody._toolNameMap?.get("Bash"), "bash");
+    assert.equal(mappedBody._toolNameMap?.get("Glob"), "glob");
+    assert.equal(mappedBody._toolNameMap?.get("Read"), "read");
+    assert.equal(Object.keys(body).includes("_toolNameMap"), false);
+    assert.equal(mappedBody._claudeCodeRequiresLowercaseToolNames, undefined);
+
+    const wirePayload = JSON.stringify(body);
+    assert.equal(wirePayload.includes("_toolNameMap"), false);
+    assert.equal(wirePayload.includes("_claudeCodeRequiresLowercaseToolNames"), false);
+    assert.match(wirePayload, /"name":"Bash"/);
+    assert.match(wirePayload, /"name":"Glob"/);
+  });
+
+  it("merges an existing in-memory tool name map and keeps it non-enumerable", () => {
+    const body: Record<string, unknown> = {
+      tools: [{ name: "bash", description: "Run bash commands" }],
+      messages: [],
+    };
+    body._toolNameMap = new Map([["proxy_read_file", "read_file"]]);
+
+    remapToolNamesInRequest(body);
+
+    const toolNameMap = body._toolNameMap as Map<string, string>;
+    assert.equal(toolNameMap.get("proxy_read_file"), "read_file");
+    assert.equal(toolNameMap.get("Bash"), "bash");
+    assert.equal(Object.keys(body).includes("_toolNameMap"), false);
+    assert.equal(JSON.stringify(body).includes("_toolNameMap"), false);
+  });
+
   it("handles body without tools without throwing", () => {
     const body = { messages: [{ role: "user", content: "hello" }] };
     assert.doesNotThrow(() => remapToolNamesInRequest(body));
   });
   // Note: remapToolNamesInRequest requires a non-null body (callers always provide one)
+});
+
+describe("remapToolNamesInResponse", () => {
+  it("restores response tool names from the request-side map", () => {
+    const text = 'data: {"name":"Bash","other":{"name": "Glob"}}\n\n';
+    const restored = remapToolNamesInResponse(
+      text,
+      true,
+      new Map([
+        ["Bash", "shell"],
+        ["Glob", "glob"],
+      ])
+    );
+
+    assert.match(restored, /"name":"shell"/);
+    assert.match(restored, /"name": "glob"/);
+    assert.equal(remapToolNamesInResponse(text, false), text);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -6,7 +6,11 @@
 
 _The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
 
-**Chat Completions • Responses API • Embeddings • Image Generation • Video • Music • Audio Speech/Transcription • Reranking • Moderations • Web Search • MCP Server • A2A Protocol • 4,600+ Tests • 100% TypeScript**
+[![npm](https://img.shields.io/npm/v/omniroute?logo=npm&style=flat-square)](https://www.npmjs.com/package/omniroute)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522.22.2-brightgreen?style=flat-square)](package.json)
+[![Stars](https://img.shields.io/github/stars/diegosouzapw/OmniRoute?style=social)](https://github.com/diegosouzapw/OmniRoute)
+[![Trendshift](https://trendshift.io/api/badge/repositories/23589)](https://trendshift.io/repositories/23589)
 
 <br/>
 
@@ -28,7 +32,7 @@ _The most complete open-source AI proxy — **one endpoint**, **160+ providers**
 
 <div align="">
 
-🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
+🌐 **Available in:** 🇺🇸 [English](README.md) | 🇧🇷 [Português (Brasil)](docs/i18n/pt-BR/README.md) | 🇪🇸 [Español](docs/i18n/es/README.md) | 🇫🇷 [Français](docs/i18n/fr/README.md) | 🇮🇹 [Italiano](docs/i18n/it/README.md) | 🇷🇺 [Русский](docs/i18n/ru/README.md) | 🇨🇳 [中文 (简体)](docs/i18n/zh-CN/README.md) | 🇩🇪 [Deutsch](docs/i18n/de/README.md) | 🇮🇳 [हिन्दी](docs/i18n/in/README.md) | 🇹🇭 [ไทย](docs/i18n/th/README.md) | 🇺🇦 [Українська](docs/i18n/uk-UA/README.md) | 🇸🇦 [العربية](docs/i18n/ar/README.md) | 🇦🇿 [Azərbaycan dili](docs/i18n/az/README.md) | 🇯🇵 [日本語](docs/i18n/ja/README.md) | 🇻🇳 [Tiếng Việt](docs/i18n/vi/README.md) | 🇧🇬 [Български](docs/i18n/bg/README.md) | 🇩🇰 [Dansk](docs/i18n/da/README.md) | 🇫🇮 [Suomi](docs/i18n/fi/README.md) | 🇮🇱 [עברית](docs/i18n/he/README.md) | 🇭🇺 [Magyar](docs/i18n/hu/README.md) | 🇮🇩 [Bahasa Indonesia](docs/i18n/id/README.md) | 🇰🇷 [한국어](docs/i18n/ko/README.md) | 🇲🇾 [Bahasa Melayu](docs/i18n/ms/README.md) | 🇳🇱 [Nederlands](docs/i18n/nl/README.md) | 🇳🇴 [Norsk](docs/i18n/no/README.md) | 🇵🇹 [Português (Portugal)](docs/i18n/pt/README.md) | 🇷🇴 [Română](docs/i18n/ro/README.md) | 🇵🇱 [Polski](docs/i18n/pl/README.md) | 🇸🇰 [Slovenčina](docs/i18n/sk/README.md) | 🇸🇪 [Svenska](docs/i18n/sv/README.md) | 🇵🇭 [Filipino](docs/i18n/phi/README.md) | 🇨🇿 [Čeština](docs/i18n/cs/README.md)
 
 </div>
 
@@ -136,28 +140,28 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
       </td>
       <td align="center" width="110">
         <a href="https://github.com/openai/codex">
-          <img src="./public/providers/codex.png" alt="Codex CLI" width="48"/><br/>
+          <img src="./public/providers/codex.svg" alt="Codex CLI" width="48"/><br/>
           <b>Codex CLI</b>
         </a><br/>
         <sub>⭐ 60.8K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/anthropics/claude-code">
-          <img src="./public/providers/claude.png" alt="Claude Code" width="48"/><br/>
+          <img src="./public/providers/claude.svg" alt="Claude Code" width="48"/><br/>
           <b>Claude Code</b>
         </a><br/>
         <sub>⭐ 67.3K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/google-gemini/gemini-cli">
-          <img src="./public/providers/gemini-cli.png" alt="Gemini CLI" width="48"/><br/>
+          <img src="./public/providers/gemini-cli.svg" alt="Gemini CLI" width="48"/><br/>
           <b>Gemini CLI</b>
         </a><br/>
         <sub>⭐ 94.7K</sub>
       </td>
       <td align="center" width="110">
         <a href="https://github.com/Kilo-Org/kilocode">
-          <img src="./public/providers/kilocode.png" alt="Kilo Code" width="48"/><br/>
+          <img src="./public/providers/kilocode.svg" alt="Kilo Code" width="48"/><br/>
           <b>Kilo Code</b>
         </a><br/>
         <sub>⭐ 15.5K</sub>
@@ -207,26 +211,80 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 
 ## 🤔 Why OmniRoute?
 
-**Stop wasting money, tokens and hitting limits:**
+**One endpoint. 207+ providers. Never stop building.**
 
-❌ Subscription quota expires unused every month
-❌ Rate limits stop you mid-coding
-❌ Tool outputs (`git diff`, `grep`, `ls`...) burn tokens fast
-❌ Expensive APIs ($20-50/month per provider)
-❌ Manual switching between providers
-❌ Each provider has a different API format
-❌ AI providers blocked in your country
+Stop juggling 10 dashboards, dead API keys, and surprise bills. OmniRoute
+routes every request through the cheapest viable provider — automatically.
 
-**OmniRoute solves all of this:**
+### The 3-tier fallback (zero-downtime AI)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  Your IDE / CLI / App                    │
+│         (Claude Code, Cursor, Cline, Copilot, …)         │
+└─────────────────────┬────────────────────────────────────┘
+                      │ http://localhost:20128/v1
+                      ▼
+┌──────────────────────────────────────────────────────────┐
+│               OmniRoute (Smart Router)                   │
+│  • RTK token saver (47 specialized filters)              │
+│  • Caveman terse-mode (3 levels + SHARED_BOUNDARIES)     │
+│  • Auto-fallback combos (14 strategies)                  │
+│  • Circuit breaker · TLS fingerprint stealth (JA3/JA4)   │
+│  • Memory · MCP server · A2A · Guardrails · Evals        │
+└─────────────────────┬────────────────────────────────────┘
+                      │
+   ┌──────────────────┼─────────────────┐
+   ▼ Tier 1           ▼ Tier 2          ▼ Tier 3
+SUBSCRIPTION         CHEAP              FREE
+(Claude Code,        (DeepSeek $0.27,   (Kiro, OpenCode,
+ Codex, Copilot,      GLM $0.60,         Gemini CLI,
+ Cursor, Antigravity) MiniMax $0.20)     Vertex $300cr)
+
+  quota exhausted?   budget hit?        always available
+  → falls to Tier 2  → falls to Tier 3
+```
+
+### Why this matters
+
+- ❌ **Subscription quota wasted** every month? OmniRoute uses every token before expiry.
+- ❌ **Rate limits stop you mid-flow?** Auto-fallback to the next provider in milliseconds.
+- ❌ **Tool outputs burn tokens?** RTK compresses `git diff`, logs, and grep results 30-50%.
+- ❌ **Paying $50/mo across 5 providers?** Route to the cheapest viable model automatically.
+- ❌ **Each AI tool wants its own setup?** One endpoint, every tool, one dashboard.
+
+### What sets OmniRoute apart
+
+| Feature                             | OmniRoute                                                     | Other routers |
+| ----------------------------------- | ------------------------------------------------------------- | ------------- |
+| Providers                           | **207+**                                                      | 20-100        |
+| Combo strategies                    | **14** (priority, weighted, cost-optimized, context-relay, …) | 1-3           |
+| Token compression (RTK)             | **47 specialized filters**                                    | None          |
+| Built-in MCP server                 | **37 tools, 3 transports, 13 scopes**                         | Rare          |
+| A2A agent protocol                  | **5 skills, JSON-RPC 2.0**                                    | None          |
+| Memory (FTS5 + vector)              | **Yes**                                                       | Rare          |
+| Guardrails (PII, injection, vision) | **Yes**                                                       | Rare          |
+| Cloud agent integrations            | Codex, Devin, Jules                                           | None          |
+| Circuit breaker per provider        | **3-state, lazy recovery**                                    | Rare          |
+| TLS fingerprint stealth             | **JA3/JA4 via wreq-js**                                       | None          |
+| Eval framework                      | **Built-in**                                                  | Rare          |
+| CLI (no Electron required)          | **Yes** + system tray                                         | Varies        |
+| i18n                                | **40+ locales**                                               | 0-4           |
+
+See [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md) for a detailed comparison vs LiteLLM, OpenRouter, and Portkey.
+
+---
+
+**Also solves:**
 
 ✅ **Prompt Compression** — auto-compress prompts & tool outputs, save 15-95% eligible tokens per request with RTK+Caveman stacked mode
 ✅ **Maximize subscriptions** — track quota, use every bit before reset
-✅ **Auto fallback** — Subscription → API Key → Cheap → Free, zero downtime
+✅ **Auto fallback** — Subscription → Cheap → Free, zero downtime
 ✅ **Multi-account** — round-robin between accounts per provider
 ✅ **Format translation** — OpenAI ↔ Claude ↔ Gemini ↔ Responses API, any tool works
 ✅ **3-level proxy** — bypass geo-blocks with global, per-provider, and per-key proxies
 ✅ **10 multi-modal APIs** — chat, images, video, music, audio, search in one endpoint
-✅ **MCP + A2A** — 29 MCP tools + agent-to-agent protocol, production-ready
+✅ **MCP + A2A** — 37 MCP tools + agent-to-agent protocol, production-ready
 ✅ **Universal** — works with Claude Code, Codex, Gemini CLI, Cursor, Cline, OpenClaw, any CLI tool
 
 ---
@@ -240,7 +298,6 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
-- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 
 ### 🐛 Reporting a Bug?
 
@@ -286,6 +343,63 @@ OmniRoute works seamlessly with **16+ AI coding tools** — one config, all tool
 </table>
 
 📖 Full setup for each tool: [`docs/CLI-TOOLS.md`](docs/CLI-TOOLS.md)
+
+### 🧩 OpenCode integration — `@omniroute/opencode-provider`
+
+[![npm version](https://img.shields.io/npm/v/@omniroute/opencode-provider.svg?logo=npm&label=%40omniroute%2Fopencode-provider)](https://www.npmjs.com/package/@omniroute/opencode-provider)
+[![npm downloads](https://img.shields.io/npm/dm/@omniroute/opencode-provider.svg?logo=npm)](https://www.npmjs.com/package/@omniroute/opencode-provider)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@omniroute/opencode-provider?label=minzip)](https://bundlephobia.com/package/@omniroute/opencode-provider)
+[![license](https://img.shields.io/npm/l/@omniroute/opencode-provider.svg)](./@omniroute/opencode-provider/LICENSE)
+
+Schema-valid generator for [`opencode.json`](https://opencode.ai/config.json). Emits a `provider.omniroute` entry that delegates the runtime to [`@ai-sdk/openai-compatible`](https://www.npmjs.com/package/@ai-sdk/openai-compatible) — every OpenCode request flows through OmniRoute's `/v1` surface and benefits from Auto-Combo routing, circuit breakers, key policies, and observability.
+
+**Two integration paths:**
+
+```bash
+# Path 1 — CLI generator (ships with OmniRoute)
+omniroute config opencode \
+  --baseUrl http://localhost:20128 \
+  --apiKey "$OMNIROUTE_API_KEY"
+```
+
+```bash
+# Path 2 — npm package (for scripted / programmatic setups)
+npm install --save-dev @omniroute/opencode-provider
+```
+
+```ts
+import { writeFileSync } from "node:fs";
+import { buildOmniRouteOpenCodeConfig } from "@omniroute/opencode-provider";
+
+const config = buildOmniRouteOpenCodeConfig({
+  baseURL: "http://localhost:20128",
+  apiKey: process.env.OMNIROUTE_API_KEY ?? "sk_omniroute",
+});
+
+writeFileSync("opencode.json", JSON.stringify(config, null, 2));
+```
+
+Resulting `opencode.json` (excerpt):
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "omniroute": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OmniRoute",
+      "options": { "baseURL": "http://localhost:20128/v1", "apiKey": "sk_omniroute" },
+      "models": {
+        "claude-opus-4-5-thinking": { "name": "claude-opus-4-5-thinking" },
+        "gemini-3.1-pro-high": { "name": "gemini-3.1-pro-high" },
+        // …
+      },
+    },
+  },
+}
+```
+
+📦 Package: [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider) · 📖 Full guide: [`docs/frameworks/OPENCODE.md`](docs/frameworks/OPENCODE.md) · 🛠 Source: [`@omniroute/opencode-provider/`](./@omniroute/opencode-provider)
 
 ---
 
@@ -396,6 +510,19 @@ Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest La
     <td align="center" width="130"><b>SD WebUI</b></td>
   </tr>
 </table>
+
+---
+
+## 🤖 AI Agent Skills
+
+Drop-in markdown manifests that let any AI agent consume OmniRoute via one fetch.
+
+Tell your agent (Claude Desktop, ChatGPT, Cursor, Cline, etc.):
+
+> "Fetch this URL and use OmniRoute according to its instructions:
+> `https://raw.githubusercontent.com/diegosouzapw/OmniRoute/main/skills/omniroute/SKILL.md`"
+
+10 skills available — see [skills/README.md](./skills/README.md).
 
 ---
 
@@ -665,7 +792,7 @@ PORT=20128 DASHBOARD_PORT=20129 NEXT_PUBLIC_BASE_URL=http://localhost:20129 npm 
 
 **MCP:** `omniroute --mcp` (stdio transport)
 
-**CLI options:** `omniroute --port 3000`, `omniroute --no-open`, `omniroute --help`
+**CLI options:** `omniroute setup`, `omniroute doctor`, `omniroute providers available`, `omniroute providers list`, `omniroute --port 3000`, `omniroute --no-open`, `omniroute --help`
 
 **Split-port mode:** `PORT=20128 DASHBOARD_PORT=20129 omniroute`
 
@@ -1030,6 +1157,34 @@ Combo: "my-coding-stack"              Format Translation:
 ---
 
 ## 🎯 Use Cases — Ready-Made Combo Playbooks
+
+### Case 0: "I want zero-config, auto-routing NOW"
+
+**Problem:** Don't want to create combos manually. Just want AI routing to work immediately.
+
+```bash
+# No combo creation needed! Use auto/ prefix directly:
+model: "auto"           # Default LKGP routing across all connected providers
+model: "auto/coding"    # Quality-first weights for code generation
+model: "auto/fast"      # Low-latency routing (fastest provider first)
+model: "auto/cheap"     # Cost-optimized (cheapest per token)
+model: "auto/offline"   # High availability (most quota available)
+model: "auto/smart"     # Best discovery (10% exploration rate)
+```
+
+**How it works:**
+
+1. Add providers in Dashboard → Providers (OAuth or API key)
+2. Use `auto/` prefix in any AI tool — **no combo creation needed**
+3. OmniRoute dynamically builds a virtual combo from your active connections
+4. Routes using LKGP (Last Known Good Provider) + 6-factor scoring
+5. Session stickiness ensures consistent provider selection
+
+**Dashboard indicator:** A blue banner at the top shows "Auto-Routing Active" with a link to `/dashboard/combos` for configuration.
+
+**Monthly cost:** $0 (uses your existing free providers) or whatever your connected providers cost
+
+---
 
 ### Case 1: "I have a Claude Pro subscription"
 
@@ -1497,8 +1652,6 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 
 ## 🙏 Acknowledgments
 
-Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
-
 Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** by **[router-for-me](https://github.com/router-for-me)** — the original Go implementation that inspired this JavaScript port.
 
 Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[JuliusBrussee](https://github.com/JuliusBrussee)** (⭐ 51K+) — the viral "why use many token when few token do trick" project whose caveman-speak compression philosophy inspired OmniRoute's standard compression mode and 30+ filler/condensation regex rules.
@@ -1514,9 +1667,10 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-  <sub>Built with ❤️ for developers who code 24/7</sub>
-  <br/>
-  <sub><a href="https://omniroute.online">omniroute.online</a></sub>
+
+**[⬆ Back to top](#-omniroute)** · Built with ❤️ for the open-source AI community.
+
+<sub>OmniRoute v3.8.0 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+
 </div>
 <!-- GitHub Discussions enabled for community Q&A -->
-

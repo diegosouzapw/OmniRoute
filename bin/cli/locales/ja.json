@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "エラー: {message}",
+    "serverOffline": "OmniRouteサーバーはオフラインです。起動: omniroute serve",
+    "authRequired": "認証が必要です。OMNIROUTE_API_KEYを設定するか実行してください: omniroute setup",
+    "rateLimited": "リクエスト制限を超えました。{seconds}秒後に再試行してください。",
+    "timeout": "{ms}ms後にリクエストがタイムアウトしました。",
+    "success": "完了。",
+    "yes": "はい",
+    "no": "いいえ",
+    "confirm": "よろしいですか？（はい/いいえ）",
+    "dryRun": "[シミュレーション] 実行予定: {action}",
+    "cancelled": "キャンセルしました。",
+    "jsonOpt": "JSON形式で出力",
+    "yesOpt": "確認をスキップ"
+  },
+  "program": {
+    "description": "OmniRoute — 自動フォールバック付きスマートAIルーター",
+    "version": "バージョンを表示して終了",
+    "output": "出力形式 (table, json, jsonl, csv)",
+    "quiet": "重要でない出力を抑制",
+    "no_color": "カラー出力を無効化",
+    "timeout": "HTTPリクエストタイムアウト（ミリ秒）",
+    "api_key": "OmniRouteサーバーのAPIキー",
+    "base_url": "OmniRouteサーバーのベースURL",
+    "context": "このコマンドで使用するサーバーコンテキスト/プロファイル",
+    "lang": "CLI表示言語を設定（OMNIROUTE_LANGを上書き）"
+  }
+}

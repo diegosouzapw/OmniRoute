@@ -9,6 +9,7 @@ import { smartTruncate } from "./smartTruncate.ts";
 import { normalizeCodeLanguage, stripCode } from "./codeStripper.ts";
 import { maybePersistRtkRawOutput, type RtkRawOutputPointer } from "./rawOutput.ts";
 import { isTextBlock } from "../../messageContent.ts";
+import { adaptBodyForCompression } from "../../bodyAdapter.ts";
 
 type Message = {
   role: string;
@@ -186,10 +187,83 @@ function mergeRtkConfig(base?: Partial<RtkConfig>, override?: Record<string, unk
 }
 
 function shouldCompressMessage(message: Message, config: RtkConfig): boolean {
-  if (message.role === "tool") return config.applyToToolResults || config.applyToCodeBlocks;
+  if (message.role === "tool")
+    return config.applyToToolResults || (config.applyToCodeBlocks && hasCodeFence(message.content));
   if (message.role === "assistant")
-    return config.applyToAssistantMessages || config.applyToCodeBlocks;
+    return (
+      config.applyToAssistantMessages || (config.applyToCodeBlocks && hasCodeFence(message.content))
+    );
   return false;
+}
+
+function hasCodeFence(content: Message["content"]): boolean {
+  if (!content) return false;
+  if (typeof content === "string") return /```/.test(content);
+  if (!Array.isArray(content)) return false;
+  return content.some(
+    (part) => isTextBlock(part) && typeof part.text === "string" && /```/.test(part.text)
+  );
+}
+
+function codeOnlyConfig(config: RtkConfig): boolean {
+  return config.applyToCodeBlocks && !config.applyToToolResults && !config.applyToAssistantMessages;
+}
+
+function processRtkCodeBlocksOnly(
+  content: Message["content"],
+  config: RtkConfig
+): {
+  content: Message["content"];
+  compressed: boolean;
+  techniquesUsed: string[];
+  rulesApplied: string[];
+  rawOutputPointers: RtkRawOutputPointer[];
+} {
+  const techniquesUsed: string[] = [];
+  const rulesApplied: string[] = [];
+  const rawOutputPointers: RtkRawOutputPointer[] = [];
+  const processText = (text: string) => {
+    let compressed = false;
+    const nextText = text.replace(/```([\s\S]*?)```/g, (match) => {
+      const processed = processRtkText(match, { config });
+      techniquesUsed.push(...processed.techniquesUsed);
+      rulesApplied.push(...processed.rulesApplied);
+      if (processed.rawOutputPointers) rawOutputPointers.push(...processed.rawOutputPointers);
+      if (!processed.compressed) return match;
+      compressed = true;
+      return processed.text;
+    });
+    return { text: compressed ? nextText : text, compressed };
+  };
+
+  if (typeof content === "string") {
+    const processed = processText(content);
+    return {
+      content: processed.text,
+      compressed: processed.compressed,
+      techniquesUsed,
+      rulesApplied,
+      rawOutputPointers,
+    };
+  }
+  if (!Array.isArray(content)) {
+    return { content, compressed: false, techniquesUsed, rulesApplied, rawOutputPointers };
+  }
+  let compressed = false;
+  const nextContent = content.map((part) => {
+    if (!isTextBlock(part) || !part.text) return part;
+    const processed = processText(part.text);
+    if (!processed.compressed) return part;
+    compressed = true;
+    return { ...part, text: processed.text };
+  });
+  return {
+    content: compressed ? nextContent : content,
+    compressed,
+    techniquesUsed,
+    rulesApplied,
+    rawOutputPointers,
+  };
 }
 
 export function processRtkText(
@@ -296,6 +370,9 @@ function processRtkContent(
   rulesApplied: string[];
   rawOutputPointers: RtkRawOutputPointer[];
 } {
+  if (codeOnlyConfig(config)) {
+    return processRtkCodeBlocksOnly(content, config);
+  }
   const techniquesUsed: string[] = [];
   const rulesApplied: string[] = [];
   const rawOutputPointers: RtkRawOutputPointer[] = [];
@@ -352,7 +429,8 @@ export function applyRtkCompression(
   const config = mergeRtkConfig(options.config, options.stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 
-  const messages = body.messages as Message[] | undefined;
+  const adapter = adaptBodyForCompression(body);
+  const messages = adapter.body.messages as Message[] | undefined;
   if (!Array.isArray(messages) || messages.length === 0) {
     return { body, compressed: false, stats: null };
   }
@@ -373,9 +451,9 @@ export function applyRtkCompression(
     };
   });
 
-  const compressedBody = { ...body, messages: compressedMessages };
+  const compressedBody = { ...adapter.body, messages: compressedMessages };
   const stats = createCompressionStats(
-    body,
+    adapter.body,
     compressedBody,
     "rtk",
     [...new Set(allTechniques)],
@@ -387,7 +465,7 @@ export function applyRtkCompression(
     stats.rtkRawOutputPointers = rawOutputPointers;
   }
   return {
-    body: compressedBody,
+    body: adapter.restore(compressedBody),
     compressed: stats.compressedTokens < stats.originalTokens,
     stats,
   };

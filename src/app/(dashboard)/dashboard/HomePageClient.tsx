@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
@@ -11,7 +11,10 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+
+const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
+import { TierCoverageWidget } from "./TierCoverageWidget";
 
 type UpdateStep = {
   step: string;
@@ -178,21 +181,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     );
     return models.filter((m) => providerKeys.has(m.provider));
   }, [selectedProvider, models]);
-
-  const quickStartLinks = [
-    { label: t("documentation"), href: "/docs", icon: "menu_book" },
-    { label: ts("providers"), href: "/dashboard/providers", icon: "dns" },
-    { label: ts("combos"), href: "/dashboard/combos", icon: "layers" },
-    { label: ts("analytics"), href: "/dashboard/analytics", icon: "analytics" },
-    { label: t("healthMonitor"), href: "/dashboard/health", icon: "health_and_safety" },
-    { label: ts("cliTools"), href: "/dashboard/cli-tools", icon: "terminal" },
-    {
-      label: t("reportIssue"),
-      href: "https://github.com/diegosouzapw/OmniRoute/issues",
-      external: true,
-      icon: "bug_report",
-    },
-  ];
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -728,70 +716,38 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </div>
             </li>
           </ol>
-
-          <div className="flex flex-wrap gap-2">
-            {quickStartLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {link.icon || (link.external ? "open_in_new" : "arrow_forward")}
-                </span>
-                {link.label}
-              </a>
-            ))}
-          </div>
         </div>
       </Card>
 
-      {/* Providers Overview */}
+      {/* Tier Coverage */}
+      <TierCoverageWidget />
+
+      {/* Provider Topology */}
       <Card>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold">{t("providersOverview")}</h2>
-            <p className="text-sm text-text-muted">
-              {t("configuredOf", {
-                configured: providerStats.filter((item) => item.total > 0).length,
-                total: providerStats.length,
-              })}
+            <h2 className="text-base font-semibold">Provider Topology</h2>
+            <p className="text-xs text-text-muted">
+              Connected providers routing through OmniRoute in real time
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-3 text-[11px] text-text-muted">
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-green-500" /> {tc("free")}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-blue-500" /> {t("oauthLabel")}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-amber-500" /> {t("apiKeyLabel")}
-              </span>
-            </div>
-            <Link
-              href="/dashboard/providers"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">settings</span>
-              {tc("manage")}
-            </Link>
+          <div className="flex items-center gap-3 text-[11px] text-text-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-green-500" /> Active
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-amber-500" /> Recent
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-red-500" /> Error
+            </span>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {providerStats.map((item) => (
-            <ProviderOverviewCard
-              key={item.id}
-              item={item}
-              metrics={providerMetrics[item.provider.alias] || providerMetrics[item.id]}
-              onClick={() => setSelectedProvider(item)}
-            />
-          ))}
-        </div>
+        <ProviderTopology
+          providers={providerStats
+            .filter((p) => p.total > 0)
+            .map((p) => ({ id: p.id, provider: p.id, name: p.provider.name }))}
+        />
       </Card>
 
       {/* Provider Models Modal */}

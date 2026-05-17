@@ -1,6 +1,6 @@
 // Re-export from open-sse with localDb integration
 import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } from "@/lib/localDb";
-import { getSettings } from "@/lib/localDb";
+import { getCachedSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
   parseModel,
@@ -43,6 +43,18 @@ export async function getModelInfo(modelStr) {
   const parsed = parseModel(modelStr);
   const { extendedContext } = parsed;
 
+  const attachCustomApiFormat = async (info: any) => {
+    if (!info?.provider || !info?.model) return info;
+    const apiFormat = await lookupCustomModelApiFormat(String(info.provider), String(info.model));
+    if (apiFormat) {
+      return {
+        ...info,
+        apiFormat,
+      };
+    }
+    return info;
+  };
+
   // Check custom provider nodes first (for both alias and non-alias formats)
   if (parsed.providerAlias || parsed.provider) {
     // Ensure prefixToCheck is always a concise identifier, not a full model string
@@ -83,7 +95,7 @@ export async function getModelInfo(modelStr) {
     // stripModelPrefix: if enabled, strip provider prefix and re-resolve
     // the bare model name using existing heuristics (claude-* → anthropic, etc.)
     try {
-      const settings = await getSettings();
+      const settings = await getCachedSettings();
       if (settings.stripModelPrefix === true) {
         const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
         return { ...strippedResult, extendedContext };
@@ -94,10 +106,10 @@ export async function getModelInfo(modelStr) {
   }
 
   if (!parsed.isAlias) {
-    return getModelInfoCore(modelStr, null);
+    return await attachCustomApiFormat(await getModelInfoCore(modelStr, null));
   }
 
-  return getModelInfoCore(modelStr, getModelAliases);
+  return await attachCustomApiFormat(await getModelInfoCore(modelStr, getModelAliases));
 }
 
 /**

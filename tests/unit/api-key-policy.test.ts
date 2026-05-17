@@ -28,6 +28,9 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-sec
 const coreDb = await import("../../src/lib/db/core.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
 const costRules = await import("../../src/domain/costRules.ts");
+const rateLimiter = await import("../../src/shared/utils/rateLimiter.ts");
+
+rateLimiter.setRateLimiterTestMode(true);
 
 async function resetStorage() {
   apiKeysDb.resetApiKeyState();
@@ -458,6 +461,21 @@ test("enforceApiKeyPolicy rejects disallowed models and exhausted budgets", asyn
   assert.match(await readErrorMessage(overBudget.rejection), /Daily budget exceeded/);
 });
 
+test("enforceApiKeyPolicy does not rate-limit unrestricted keys by default", async () => {
+  const unrestrictedKey = await createKeyWithPolicy({ allowedModels: ["openai/*"] });
+  const policy = await loadPolicy("default-no-request-limit");
+
+  // 5 calls is enough to prove no rate-limit fires; 1005 DB-backed iterations
+  // were flagged as unnecessary overhead in code review.
+  for (let i = 0; i < 5; i += 1) {
+    const result = await policy.enforceApiKeyPolicy(
+      makePolicyRequest(unrestrictedKey.key),
+      "openai/gpt-4.1"
+    );
+    assert.equal(result.rejection, null);
+  }
+});
+
 test("enforceApiKeyPolicy enforces request-per-minute limits and returns success when allowed", async () => {
   const limitedKey = await createKeyWithPolicy({
     allowedModels: ["openai/*"],
@@ -477,5 +495,5 @@ test("enforceApiKeyPolicy enforces request-per-minute limits and returns success
     "openai/gpt-4.1"
   );
   assert.equal(second.rejection.status, 429);
-  assert.match(await readErrorMessage(second.rejection), /Per-minute request limit exceeded/);
+  assert.match(await readErrorMessage(second.rejection), /Request limit exceeded/);
 });

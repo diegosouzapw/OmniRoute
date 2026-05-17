@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Eroare: {message}",
+    "serverOffline": "Serverul OmniRoute este offline. Porniți cu: omniroute serve",
+    "authRequired": "Autentificare necesară. Setați OMNIROUTE_API_KEY sau rulați: omniroute setup",
+    "rateLimited": "Limita de cereri depășită. Încercați din nou după {seconds}s.",
+    "timeout": "Cererea a expirat după {ms}ms.",
+    "success": "Gata.",
+    "yes": "da",
+    "no": "nu",
+    "confirm": "Sigur? (da/nu)",
+    "dryRun": "[simulare] ar face: {action}",
+    "cancelled": "Anulat.",
+    "jsonOpt": "Ieșire ca JSON",
+    "yesOpt": "Omite confirmarea"
+  },
+  "program": {
+    "description": "OmniRoute — Router AI inteligent cu fallback automat",
+    "version": "Afișează versiunea și ieși",
+    "output": "Format de ieșire (table, json, jsonl, csv)",
+    "quiet": "Suprimă ieșirile neesențiale",
+    "no_color": "Dezactivează ieșirea colorată",
+    "timeout": "Timeout cereri HTTP în milisecunde",
+    "api_key": "Cheie API pentru serverul OmniRoute",
+    "base_url": "URL de bază al serverului OmniRoute",
+    "context": "Contextul/profilul serverului pentru această comandă",
+    "lang": "Setează limba de afișare CLI (suprascrie OMNIROUTE_LANG)"
+  }
+}

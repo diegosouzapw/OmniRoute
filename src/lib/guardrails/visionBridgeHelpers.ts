@@ -13,16 +13,55 @@ const PROVIDER_API_KEY_MAP: Record<string, string> = {
 };
 
 /**
- * Resolve API key based on model provider.
+ * Resolve API key based on model provider (issue #2232).
+ *
+ * Priority:
+ *   1. `explicitKey` argument (caller override)
+ *   2. `VISION_BRIDGE_API_KEY` env var — operator-set, takes precedence over
+ *      per-provider env vars. Used when the operator wants every vision-bridge
+ *      call to go through a single OpenAI-compatible endpoint (e.g.,
+ *      OmniRoute itself, OpenRouter, a Gemini-OpenAI-compat URL).
+ *   3. Per-provider env var (`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`,
+ *      `OPENAI_API_KEY`) based on the `provider/` prefix in the model id.
+ *   4. `OPENAI_API_KEY` as final fallback when the prefix is unrecognized.
+ *
  * @param model - Model identifier (e.g., "anthropic/claude-3-haiku", "openai/gpt-4o-mini")
  * @param explicitKey - Explicit API key passed as argument (takes precedence)
  * @returns Resolved API key string
  */
 export function resolveProviderApiKey(model: string, explicitKey?: string): string {
   if (explicitKey) return explicitKey;
+  const isAnthropic = model.startsWith("anthropic/");
+  // VISION_BRIDGE_API_KEY only applies to the OpenAI-compatible branch — the
+  // Anthropic branch keeps its dedicated key, since the wire format differs.
+  if (!isAnthropic) {
+    const bridgeKey = (process.env.VISION_BRIDGE_API_KEY || "").trim();
+    if (bridgeKey) return bridgeKey;
+  }
   const provider = model.includes("/") ? model.split("/")[0] : "";
   const envVar = PROVIDER_API_KEY_MAP[provider] || "OPENAI_API_KEY";
   return process.env[envVar] || "";
+}
+
+/**
+ * Resolve the OpenAI-compatible base URL for non-Anthropic vision bridge calls
+ * (issue #2232).
+ *
+ * Priority:
+ *   1. `VISION_BRIDGE_BASE_URL` env var — operator-set, e.g. point this at
+ *      OmniRoute's own `/v1` so the vision model can be any provider
+ *      registered in OmniRoute (`google/gemini-2.0-flash`,
+ *      `openrouter/...`, etc.) instead of being limited to OpenAI/Anthropic.
+ *   2. `OPENAI_API_URL` env var (legacy)
+ *   3. `https://api.openai.com/v1` (default — works only when the operator
+ *      actually has an OpenAI account and OPENAI_API_KEY set)
+ */
+export function resolveVisionBridgeBaseUrl(): string {
+  const explicit = (process.env.VISION_BRIDGE_BASE_URL || "").trim();
+  if (explicit) return explicit.replace(/\/+$/, "");
+  const legacy = (process.env.OPENAI_API_URL || "").trim();
+  if (legacy) return legacy.replace(/\/+$/, "");
+  return "https://api.openai.com/v1";
 }
 
 export interface ImagePart {
@@ -217,8 +256,11 @@ export async function callVisionModel(
         }),
       });
     } else {
-      // OpenAI-compatible path (default)
-      const baseUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1";
+      // OpenAI-compatible path (default) — issue #2232: honor
+      // VISION_BRIDGE_BASE_URL so the vision-bridge call can be routed through
+      // OmniRoute itself or any other OpenAI-compatible endpoint instead of
+      // hardcoded api.openai.com.
+      const baseUrl = resolveVisionBridgeBaseUrl();
 
       response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",

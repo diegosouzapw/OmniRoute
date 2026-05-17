@@ -6,6 +6,10 @@ const openaiHelper = await import("../../open-sse/translator/helpers/openaiHelpe
 const claudeHelper = await import("../../open-sse/translator/helpers/claudeHelper.ts");
 const geminiHelper = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallHelper.ts");
+const { FORMATS } = await import("../../open-sse/translator/formats.ts");
+const { translateRequest } = await import("../../open-sse/translator/index.ts");
+const { cacheReasoningByKey, clearReasoningCacheAll, getReasoningCacheServiceStats } =
+  await import("../../open-sse/services/reasoningCache.ts");
 
 const originalMathRandom = Math.random;
 
@@ -132,14 +136,18 @@ test("schemaCoercion sanitizes descriptions, tool schemas, tool ids and deepseek
       { role: "assistant", tool_calls: [{ id: "call_2" }], reasoning_content: "keep" },
       { role: "user", tool_calls: [{ id: "call_3" }] },
     ],
-    "deepseek"
+    "deepseek",
+    "deepseek-v4-flash"
   );
   assert.equal(injected[0].reasoning_content, "");
   assert.equal(injected[1].reasoning_content, "keep");
   assert.equal(injected[2].reasoning_content, undefined);
   assert.equal(
-    schemaCoercion.injectEmptyReasoningContentForToolCalls([{ role: "assistant" }], "openai")[0]
-      .reasoning_content,
+    schemaCoercion.injectEmptyReasoningContentForToolCalls(
+      [{ role: "assistant" }],
+      "openai",
+      "gpt-4o"
+    )[0].reasoning_content,
     undefined
   );
 });
@@ -304,12 +312,24 @@ test("claudeHelper validates content, ordering and request preparation branches"
   assert.equal(prepared.messages.length, 6);
   assert.equal(prepared.messages[2].content.at(-1).cache_control.type, "ephemeral");
   assert.equal(prepared.messages[4].content[0].type, "tool_result");
+  // messages[5] is the latest (and last) assistant message; Anthropic enforces
+  // that its thinking blocks must remain verbatim — not rewritten to
+  // redacted_thinking. The guard in prepareClaudeRequest preserves them.
   assert.deepEqual(
     prepared.messages[5].content.map((block) => block.type),
-    ["redacted_thinking", "text"]
+    ["thinking", "text"]
   );
-  assert.ok(prepared.messages[5].content[0].signature);
-  assert.equal(prepared.messages[5].content[0].thinking, undefined);
+  assert.equal(prepared.messages[5].content[0].thinking, "old", "thinking text preserved verbatim");
+  assert.equal(
+    prepared.messages[5].content[0].signature,
+    "replace",
+    "signature preserved verbatim"
+  );
+  assert.equal(
+    prepared.messages[5].content[0].data,
+    undefined,
+    "no data field on verbatim thinking"
+  );
   assert.equal(prepared.tools.length, 2);
   assert.equal(prepared.tools[0].cache_control, undefined);
   assert.deepEqual(prepared.tools[1].cache_control, { type: "ephemeral", ttl: "1h" });
@@ -467,4 +487,64 @@ test("toolCallHelper normalizes ids, links tool responses and inserts missing to
   );
   assert.equal(toolCallHelper.hasToolResults({ role: "user", content: [] }, []), false);
   assert.deepEqual(toolCallHelper.fixMissingToolResponses({ messages: null }), { messages: null });
+});
+
+test("translateRequest replays cached DeepSeek reasoning messages without tool calls", () => {
+  clearReasoningCacheAll();
+  cacheReasoningByKey(
+    "request:req_reasoning_only:message:0",
+    "deepseek",
+    "deepseek-reasoner",
+    "cached reasoning only"
+  );
+
+  const result = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI,
+    "deepseek-reasoner",
+    {
+      _reasoningCacheRequestId: "req_reasoning_only",
+      messages: [
+        { role: "user", content: "solve this" },
+        { role: "assistant", content: "answer", reasoning_content: "" },
+      ],
+    },
+    false,
+    null,
+    "deepseek"
+  );
+
+  assert.equal(result.messages[1].reasoning_content, "cached reasoning only");
+  assert.equal(getReasoningCacheServiceStats().replays, 1);
+  clearReasoningCacheAll();
+});
+
+test("translateRequest does not replay reasoning-only messages for non-DeepSeek models", () => {
+  clearReasoningCacheAll();
+  cacheReasoningByKey(
+    "request:req_kimi_reasoning_only:message:0",
+    "kimi",
+    "kimi-k2.5",
+    "cached kimi reasoning"
+  );
+
+  const result = translateRequest(
+    FORMATS.OPENAI,
+    FORMATS.OPENAI,
+    "kimi-k2.5",
+    {
+      _reasoningCacheRequestId: "req_kimi_reasoning_only",
+      messages: [
+        { role: "user", content: "solve this" },
+        { role: "assistant", content: "answer", reasoning_content: "" },
+      ],
+    },
+    false,
+    null,
+    "kimi"
+  );
+
+  assert.equal(result.messages[1].reasoning_content, "");
+  assert.equal(getReasoningCacheServiceStats().replays, 0);
+  clearReasoningCacheAll();
 });

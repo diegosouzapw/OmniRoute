@@ -22,6 +22,12 @@ export function normalizeModelName(model: string): string {
   return parts[parts.length - 1];
 }
 
+export type CostCalculationOptions = {
+  provider?: string | null;
+  model?: string | null;
+  serviceTier?: string | null;
+};
+
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim().length > 0) {
@@ -29,6 +35,35 @@ function toNumber(value: unknown, fallback = 0): number {
     return Number.isFinite(parsed) ? parsed : fallback;
   }
   return fallback;
+}
+
+function normalizeServiceTier(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function stripCodexEffortSuffix(model: string): string {
+  return model.replace(/-(?:xhigh|high|medium|low|none)$/i, "");
+}
+
+export function getCodexFastCostMultiplier(
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
+): number {
+  const providerKey = normalizeServiceTier(provider);
+  const tier = normalizeServiceTier(serviceTier);
+  if (
+    (providerKey !== "codex" && providerKey !== "cx") ||
+    (tier !== "priority" && tier !== "fast")
+  ) {
+    return 1;
+  }
+
+  const modelKey = stripCodexEffortSuffix(normalizeModelName(String(model || "")).toLowerCase());
+  const compactModelKey = modelKey.replace(/-/g, "");
+  if (modelKey === "gpt-5.5" || compactModelKey === "gpt5.5") return 2.5;
+  if (modelKey === "gpt-5.4" || compactModelKey === "gpt5.4") return 2;
+  return 1;
 }
 
 /**
@@ -45,7 +80,8 @@ function toNumber(value: unknown, fallback = 0): number {
  */
 export function computeCostFromPricing(
   pricing: Record<string, unknown> | null | undefined,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
 ): number {
   if (!pricing || !tokens) return 0;
   const inputPrice = toNumber(pricing.input, 0);
@@ -71,13 +107,14 @@ export function computeCostFromPricing(
   const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 
-  return cost;
+  return cost * getCodexFastCostMultiplier(options.provider, options.model, options.serviceTier);
 }
 
 export async function calculateCost(
   provider: string,
   model: string,
-  tokens: Record<string, number | undefined> | null | undefined
+  tokens: Record<string, number | undefined> | null | undefined,
+  options: CostCalculationOptions = {}
 ): Promise<number> {
   if (!tokens || !provider || !model) return 0;
 
@@ -91,6 +128,12 @@ export async function calculateCost(
       if (normalized !== model) {
         pricing = await getPricingForModel(provider, normalized);
       }
+      if (!pricing && (provider.toLowerCase() === "codex" || provider.toLowerCase() === "cx")) {
+        const stripped = stripCodexEffortSuffix(normalized);
+        if (stripped !== normalized) {
+          pricing = await getPricingForModel(provider, stripped);
+        }
+      }
     }
     if (!pricing) return 0;
 
@@ -98,7 +141,11 @@ export async function calculateCost(
       pricing && typeof pricing === "object" && !Array.isArray(pricing)
         ? (pricing as Record<string, unknown>)
         : {};
-    return computeCostFromPricing(pricingRecord, tokens);
+    return computeCostFromPricing(pricingRecord, tokens, {
+      provider,
+      model,
+      ...options,
+    });
   } catch (error) {
     console.error("Error calculating cost:", error);
     return 0;

@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Kesalahan: {message}",
+    "serverOffline": "Server OmniRoute sedang offline. Mulai dengan: omniroute serve",
+    "authRequired": "Autentikasi diperlukan. Setel OMNIROUTE_API_KEY atau jalankan: omniroute setup",
+    "rateLimited": "Batas permintaan terlampaui. Coba lagi dalam {seconds}d.",
+    "timeout": "Permintaan habis waktu setelah {ms}ms.",
+    "success": "Selesai.",
+    "yes": "ya",
+    "no": "tidak",
+    "confirm": "Apakah Anda yakin? (ya/tidak)",
+    "dryRun": "[simulasi] akan: {action}",
+    "cancelled": "Dibatalkan.",
+    "jsonOpt": "Keluaran sebagai JSON",
+    "yesOpt": "Lewati konfirmasi"
+  },
+  "program": {
+    "description": "OmniRoute — Router AI Cerdas dengan Fallback Otomatis",
+    "version": "Cetak versi dan keluar",
+    "output": "Format keluaran (table, json, jsonl, csv)",
+    "quiet": "Sembunyikan output yang tidak penting",
+    "no_color": "Nonaktifkan output berwarna",
+    "timeout": "Batas waktu permintaan HTTP dalam milidetik",
+    "api_key": "Kunci API untuk server OmniRoute",
+    "base_url": "URL dasar server OmniRoute",
+    "context": "Konteks/profil server untuk perintah ini",
+    "lang": "Atur bahasa tampilan CLI (menggantikan OMNIROUTE_LANG)"
+  }
+}
