@@ -79,6 +79,7 @@ type BuildRequestOptions = {
   now?: Date;
   sessionId?: string | null;
   preserveCacheControl?: boolean;
+  preserveClaudeMessages?: boolean;
 };
 
 function supportsClaudeXHighEffort(model: string | null | undefined): boolean {
@@ -228,10 +229,13 @@ export function buildClaudeCodeCompatibleRequest({
   cwd = process.cwd(),
   sessionId,
   preserveCacheControl = false,
+  preserveClaudeMessages = false,
 }: BuildRequestOptions) {
   const normalized = normalizedBody || {};
   const preparedClaudeBody = claudeBody
-    ? prepareClaudeCodeCompatibleBody(claudeBody, preserveCacheControl)
+    ? preserveClaudeMessages
+      ? prepareClaudeCodeCompatibleSemanticBody(claudeBody)
+      : prepareClaudeCodeCompatibleBody(claudeBody, preserveCacheControl)
     : null;
   const normalizedMessages = Array.isArray(normalized.messages)
     ? (normalized.messages as MessageLike[])
@@ -242,13 +246,18 @@ export function buildClaudeCodeCompatibleRequest({
       : null;
   const effectiveClaudeBody = preparedClaudeBody || extractedClaudeBody;
   const messages = effectiveClaudeBody
-    ? buildClaudeCodeCompatibleMessagesFromClaude(
-        effectiveClaudeBody.messages as MessageLike[],
-        preserveCacheControl
-      )
+    ? preserveClaudeMessages && preparedClaudeBody
+      ? cloneClaudeCodeCompatibleMessagesFromClaude(
+          effectiveClaudeBody.messages as MessageLike[],
+          preserveCacheControl
+        )
+      : buildClaudeCodeCompatibleMessagesFromClaude(
+          effectiveClaudeBody.messages as MessageLike[],
+          preserveCacheControl
+        )
     : buildClaudeCodeCompatibleMessages(normalizedMessages);
   const system = buildClaudeCodeCompatibleSystemBlocks({
-    messages: normalizedMessages,
+    messages: preserveClaudeMessages ? [] : normalizedMessages,
     systemBlocks: effectiveClaudeBody?.system as Record<string, unknown>[] | undefined,
     preserveCacheControl,
   });
@@ -616,6 +625,25 @@ function buildClaudeCodeCompatibleMessagesFromClaude(
   return merged;
 }
 
+function cloneClaudeCodeCompatibleMessagesFromClaude(
+  messages: MessageLike[] | undefined,
+  preserveCacheControl: boolean
+) {
+  const cloned = Array.isArray(messages)
+    ? messages.map((message) => cloneValue(message) as MessageLike)
+    : [];
+
+  if (!preserveCacheControl) {
+    for (const message of cloned) {
+      if (Array.isArray(message.content)) {
+        stripCacheControlFromContentBlocks(message.content as Array<Record<string, unknown>>);
+      }
+    }
+  }
+
+  return cloned;
+}
+
 function buildClaudeCodeCompatibleSystemBlocks({
   messages,
   systemBlocks,
@@ -792,6 +820,28 @@ function prepareClaudeCodeCompatibleBody(
   );
 
   return readRecord(prepared);
+}
+
+function prepareClaudeCodeCompatibleSemanticBody(claudeBody: Record<string, unknown>) {
+  const prepared: Record<string, unknown> = {
+    system: normalizeClaudeSystemInput(claudeBody.system),
+    messages: Array.isArray(claudeBody.messages)
+      ? (cloneValue(claudeBody.messages) as Array<Record<string, unknown>>)
+      : [],
+    tools: normalizeClaudeToolInput(claudeBody.tools),
+    thinking: (readRecord(cloneValue(claudeBody.thinking)) || null) as Record<
+      string,
+      unknown
+    > | null,
+  };
+
+  const metadata = readRecord(cloneValue(claudeBody.metadata));
+  if (metadata) prepared.metadata = metadata;
+
+  const outputConfig = readRecord(cloneValue(claudeBody.output_config));
+  if (outputConfig) prepared.output_config = outputConfig;
+
+  return prepared;
 }
 
 function extractClaudeBodyFromSource(
