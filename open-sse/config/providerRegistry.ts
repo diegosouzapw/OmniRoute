@@ -933,6 +933,43 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "github-models": {
+    id: "github-models",
+    alias: "ghm",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://models.github.ai/inference/chat/completions",
+    modelsUrl: "https://models.github.ai/inference/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28",
+      Accept: "application/vnd.github+json",
+    },
+    defaultContextLength: 128000,
+    models: [
+      { id: "openai/gpt-4.1", name: "GPT-4.1 (Free)", contextLength: 1047576 },
+      { id: "openai/gpt-4o", name: "GPT-4o (Free)", contextLength: 128000 },
+      { id: "openai/gpt-4o-mini", name: "GPT-4o Mini (Free)", contextLength: 128000 },
+      { id: "openai/o1", name: "o1 (Free)", contextLength: 200000 },
+      { id: "openai/o3", name: "o3 (Free)", contextLength: 200000 },
+      { id: "openai/o4-mini", name: "o4-mini (Free)", contextLength: 200000 },
+      { id: "deepseek/DeepSeek-R1", name: "DeepSeek R1 (Free)", contextLength: 131072 },
+      {
+        id: "meta/Llama-4-Maverick-17B-128E-Instruct",
+        name: "Llama 4 Maverick (Free)",
+        contextLength: 131072,
+      },
+      { id: "xai/grok-3", name: "Grok 3 (Free)", contextLength: 131072 },
+      { id: "mistral-ai/Mistral-Medium-3", name: "Mistral Medium 3 (Free)", contextLength: 128000 },
+      { id: "cohere/Cohere-command-a", name: "Cohere Command A (Free)", contextLength: 128000 },
+      { id: "microsoft/Phi-4", name: "Phi-4 (Free)", contextLength: 16384 },
+      { id: "openai/text-embedding-3-large", name: "Text Embedding 3 Large (Free)" },
+      { id: "openai/text-embedding-3-small", name: "Text Embedding 3 Small (Free)" },
+    ],
+  },
+
   kiro: {
     id: "kiro",
     alias: "kr",
@@ -2347,20 +2384,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "hf",
     format: "openai",
     executor: "default",
-    // HuggingFace Inference API — OpenAI-compatible endpoint
-    // Users must set their provider-specific baseUrl (model endpoint) in providerSpecificData.baseUrl
-    // or use a fixed model like: https://router.huggingface.co/ngc/nvidia/llama-3_1-nemotron-51b-instruct
-    baseUrl:
-      "https://router.huggingface.co/hf-inference/models/meta-llama/Meta-Llama-3.1-70B-Instruct/v1/chat/completions",
+    baseUrl: "https://router.huggingface.co/v1/chat/completions",
+    modelsUrl: "https://router.huggingface.co/v1/models",
     authType: "apikey",
     authHeader: "bearer",
-    models: [
-      { id: "meta-llama/Meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B Instruct" },
-      { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B Instruct" },
-      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
-      { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B v0.3" },
-      { id: "microsoft/Phi-3.5-mini-instruct", name: "Phi-3.5 Mini" },
-    ],
+    models: [],
   },
 
   synthetic: {
@@ -2654,6 +2682,20 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3.6:27b", name: "Qwen3 Coder 27B (🆓 Free)" },
       { id: "gemma4:31b", name: "Gemma 4 31B (🆓 Free)" },
     ],
+  },
+
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ai.hackclub.com/proxy/v1/chat/completions",
+    modelsUrl: "https://ai.hackclub.com/proxy/v1/models",
+    authType: "optional",
+    authHeader: "bearer",
+    passthroughModels: true,
+    defaultContextLength: 128000,
+    models: [],
   },
 
   deepinfra: {

@@ -31,6 +31,8 @@ import {
   buildMergedOAuthProviderEntries,
   buildStaticProviderEntries,
   filterConfiguredProviderEntries,
+  shouldApplyConfiguredOnlyFilter,
+  shouldShowFirstProviderHint,
 } from "./providerPageUtils";
 import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
@@ -117,6 +119,7 @@ export default function ProvidersPage() {
   const [expirations, setExpirations] = useState<any>(null);
   const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAllProviders, setShowAllProviders] = useState(false);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
   const [showAddAnthropicCompatibleModal, setShowAddAnthropicCompatibleModal] = useState(false);
   const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
@@ -422,6 +425,11 @@ export default function ProvidersPage() {
       textIcon: "CC",
     }));
 
+  const effectiveShowConfiguredOnly = shouldApplyConfiguredOnlyFilter(
+    showConfiguredOnly,
+    connections.length
+  );
+
   const oauthProviderEntriesAll = buildMergedOAuthProviderEntries(
     OAUTH_PROVIDERS,
     FREE_PROVIDERS,
@@ -429,7 +437,7 @@ export default function ProvidersPage() {
   );
   const oauthProviderEntries = filterConfiguredProviderEntries(
     oauthProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -444,37 +452,37 @@ export default function ProvidersPage() {
         !VIDEO_PROVIDER_IDS.has(entry.providerId) &&
         !EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)
     ),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
   const aggregatorProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => AGGREGATOR_PROVIDER_IDS.has(entry.providerId)),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
   const imageProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => IMAGE_ONLY_PROVIDER_IDS.has(entry.providerId)),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
   const enterpriseProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => ENTERPRISE_CLOUD_PROVIDER_IDS.has(entry.providerId)),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
   const videoProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => VIDEO_PROVIDER_IDS.has(entry.providerId)),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
   const embeddingRerankProviderEntries = filterConfiguredProviderEntries(
     apiKeyProviderEntriesAll.filter((entry) => EMBEDDING_RERANK_PROVIDER_IDS.has(entry.providerId)),
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -482,7 +490,7 @@ export default function ProvidersPage() {
   const webCookieProviderEntriesAll = buildStaticProviderEntries("web-cookie", getProviderStats);
   const webCookieProviderEntries = filterConfiguredProviderEntries(
     webCookieProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -490,7 +498,7 @@ export default function ProvidersPage() {
   const localProviderEntriesAll = buildStaticProviderEntries("local", getProviderStats);
   const localProviderEntries = filterConfiguredProviderEntries(
     localProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -498,7 +506,7 @@ export default function ProvidersPage() {
   const searchProviderEntriesAll = buildStaticProviderEntries("search", getProviderStats);
   const searchProviderEntries = filterConfiguredProviderEntries(
     searchProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -506,7 +514,7 @@ export default function ProvidersPage() {
   const audioProviderEntriesAll = buildStaticProviderEntries("audio", getProviderStats);
   const audioProviderEntries = filterConfiguredProviderEntries(
     audioProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -514,7 +522,7 @@ export default function ProvidersPage() {
   const cloudAgentProviderEntriesAll = buildStaticProviderEntries("cloud-agent", getProviderStats);
   const cloudAgentProviderEntries = filterConfiguredProviderEntries(
     cloudAgentProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -522,7 +530,7 @@ export default function ProvidersPage() {
   const upstreamProxyEntriesAll = buildStaticProviderEntries("upstream-proxy", getProviderStats);
   const upstreamProxyEntries = filterConfiguredProviderEntries(
     upstreamProxyEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -552,7 +560,7 @@ export default function ProvidersPage() {
   ];
   const compatibleProviderEntries = filterConfiguredProviderEntries(
     compatibleProviderEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
   );
@@ -591,7 +599,7 @@ export default function ProvidersPage() {
   );
   const freeSectionEntries = filterConfiguredProviderEntries(
     freeSectionEntriesAll,
-    showConfiguredOnly,
+    effectiveShowConfiguredOnly,
     searchQuery
   );
 
@@ -617,42 +625,37 @@ export default function ProvidersPage() {
     );
   }
 
-  const totalConfigured =
-    oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
-    apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
-    webCookieProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
-    localProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length;
-
-  if (totalConfigured === 0 && !searchQuery) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
-          <span className="material-symbols-outlined text-[32px] text-primary">dns</span>
-        </div>
-        <h2 className="text-xl font-semibold text-text-main">
-          {t("addFirstProvider") || "Add your first provider"}
-        </h2>
-        <p className="text-sm text-text-muted mt-2 max-w-md">
-          {t("addFirstProviderDesc") ||
-            "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
-        </p>
-        <div className="flex items-center gap-3 mt-4">
-          <a
-            href="https://docs.omniroute.io/providers"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">help</span>
-            {t("learnMore") || "Learn more"}
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const showFirstProviderHint =
+    shouldShowFirstProviderHint(connections.length, searchQuery) && !showAllProviders;
 
   return (
     <div className="flex flex-col gap-6">
+      {showFirstProviderHint && (
+        <Card padding="lg">
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
+              <span className="material-symbols-outlined text-[32px] text-primary">dns</span>
+            </div>
+            <h2 className="text-xl font-semibold text-text-main">
+              {t("addFirstProvider") || "Add your first provider"}
+            </h2>
+            <p className="text-sm text-text-muted mt-2 max-w-md">
+              {t("addFirstProviderDesc") ||
+                "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
+            </p>
+            <a
+              href="https://docs.omniroute.io/providers"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors mt-4"
+            >
+              <span className="material-symbols-outlined text-[16px]">help</span>
+              {t("learnMore") || "Learn more"}
+            </a>
+          </div>
+        </Card>
+      )}
+
       {/* Provider Summary Card */}
       <Card padding="sm">
         <div className="flex flex-col gap-3">
@@ -679,9 +682,10 @@ export default function ProvidersPage() {
             </div>
             <Toggle
               size="sm"
-              checked={showConfiguredOnly}
+              checked={effectiveShowConfiguredOnly}
               onChange={setShowConfiguredOnly}
               label={t("showConfiguredOnly")}
+              disabled={connections.length === 0}
               className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
             />
             <button
@@ -954,9 +958,10 @@ export default function ProvidersPage() {
             />
             <Toggle
               size="sm"
-              checked={showConfiguredOnly}
+              checked={effectiveShowConfiguredOnly}
               onChange={setShowConfiguredOnly}
               label={t("showConfiguredOnly")}
+              disabled={connections.length === 0}
               className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
             />
             <button

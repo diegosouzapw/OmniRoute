@@ -99,8 +99,8 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "huggingface-asr",
     models: [
+      { id: "openai/whisper-large-v3-turbo", name: "Whisper Large v3 Turbo (HF)" },
       { id: "openai/whisper-large-v3", name: "Whisper Large v3 (HF)" },
-      { id: "openai/whisper-small", name: "Whisper Small (HF)" },
     ],
   },
 
@@ -192,8 +192,9 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "huggingface-tts",
     models: [
-      { id: "facebook/mms-tts-eng", name: "MMS TTS English" },
-      { id: "microsoft/speecht5_tts", name: "SpeechT5 TTS" },
+      { id: "canopylabs/orpheus-3b-0.1-ft", name: "Orpheus 3B" },
+      { id: "ResembleAI/chatterbox", name: "Chatterbox" },
+      { id: "hexgrad/Kokoro-82M", name: "Kokoro TTS" },
     ],
   },
 
