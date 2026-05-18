@@ -8,6 +8,7 @@ import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
+import TokenSaverCard from "./components/TokenSaverCard";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
@@ -1720,6 +1721,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           )}
         </div>
       </Card>
+
+      <TokenSaverCard />
 
       <Card>
         <div className="flex items-center justify-between mb-5">

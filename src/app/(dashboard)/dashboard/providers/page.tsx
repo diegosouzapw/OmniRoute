@@ -726,7 +726,7 @@ export default function ProvidersPage() {
                 {
                   key: "ide",
                   color: "bg-cyan-500",
-                  label: t("ideProviders") || "IDE",
+                  label: "IDE",
                   stat: summaryStats.ide,
                 },
                 {
@@ -738,31 +738,31 @@ export default function ProvidersPage() {
                 {
                   key: "webcookie",
                   color: "bg-purple-500",
-                  label: t("webCookieProviders") || "Web Cookie",
+                  label: "Web Cookie",
                   stat: summaryStats.webcookie,
                 },
                 {
                   key: "search",
                   color: "bg-teal-500",
-                  label: t("searchProvidersHeading") || "Search",
+                  label: "Search",
                   stat: summaryStats.search,
                 },
                 {
                   key: "audio",
                   color: "bg-rose-500",
-                  label: t("audioProvidersHeading") || "Audio",
+                  label: "Audio",
                   stat: summaryStats.audio,
                 },
                 {
                   key: "local",
                   color: "bg-emerald-500",
-                  label: t("localProviders") || "Local",
+                  label: "Local",
                   stat: summaryStats.local,
                 },
                 {
                   key: "cloudagent",
                   color: "bg-violet-500",
-                  label: t("cloudAgentProviders") || "Cloud Agent",
+                  label: "Cloud Agent",
                   stat: summaryStats.cloudagent,
                 },
               ] as Array<{
@@ -815,70 +815,72 @@ export default function ProvidersPage() {
       </Card>
 
       {/* API Key Compatible Providers — dynamic (OpenAI/Anthropic compatible) */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-            {t("compatibleProviders")}{" "}
-            <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
-            <ProviderCountBadge {...countConfigured(compatibleProviderEntriesAll)} />
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {(compatibleProviders.length > 0 ||
-              anthropicCompatibleProviders.length > 0 ||
-              ccCompatibleProviders.length > 0) && (
-              <button
-                onClick={() => handleBatchTest("compatible")}
-                disabled={!!testingMode}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                  testingMode === "compatible"
-                    ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                    : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-                }`}
-                title={t("testAllCompatible")}
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {testingMode === "compatible" ? "sync" : "play_arrow"}
-                </span>
-                {testingMode === "compatible" ? t("testing") : t("testAll")}
-              </button>
-            )}
-            {ccCompatibleProviderEnabled && (
-              <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
-                {addCcCompatibleLabel}
+      {showSection("compatible") && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("compatibleProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-orange-500" title={t("compatibleLabel")} />
+              <ProviderCountBadge {...countConfigured(compatibleProviderEntriesAll)} />
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {(compatibleProviders.length > 0 ||
+                anthropicCompatibleProviders.length > 0 ||
+                ccCompatibleProviders.length > 0) && (
+                <button
+                  onClick={() => handleBatchTest("compatible")}
+                  disabled={!!testingMode}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    testingMode === "compatible"
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                  }`}
+                  title={t("testAllCompatible")}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {testingMode === "compatible" ? "sync" : "play_arrow"}
+                  </span>
+                  {testingMode === "compatible" ? t("testing") : t("testAll")}
+                </button>
+              )}
+              {ccCompatibleProviderEnabled && (
+                <Button size="sm" icon="add" onClick={() => setShowAddCcCompatibleModal(true)}>
+                  {addCcCompatibleLabel}
+                </Button>
+              )}
+              <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
+                {t("addAnthropicCompatible")}
               </Button>
-            )}
-            <Button size="sm" icon="add" onClick={() => setShowAddAnthropicCompatibleModal(true)}>
-              {t("addAnthropicCompatible")}
-            </Button>
-            <Button size="sm" icon="add" onClick={() => setShowAddCompatibleModal(true)}>
-              {t("addOpenAICompatible")}
-            </Button>
+              <Button size="sm" icon="add" onClick={() => setShowAddCompatibleModal(true)}>
+                {t("addOpenAICompatible")}
+              </Button>
+            </div>
           </div>
+          {compatibleProviders.length === 0 &&
+          anthropicCompatibleProviders.length === 0 &&
+          ccCompatibleProviders.length === 0 ? (
+            <div className="flex items-center justify-center gap-2 py-2 border border-dashed border-border rounded-xl text-text-muted text-sm">
+              <span className="material-symbols-outlined text-[18px]">extension</span>
+              <span>{t("noCompatibleYet")}</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {compatibleProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ProviderCard
+                    key={providerId}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          )}
         </div>
-        {compatibleProviders.length === 0 &&
-        anthropicCompatibleProviders.length === 0 &&
-        ccCompatibleProviders.length === 0 ? (
-          <div className="flex items-center justify-center gap-2 py-2 border border-dashed border-border rounded-xl text-text-muted text-sm">
-            <span className="material-symbols-outlined text-[18px]">extension</span>
-            <span>{t("noCompatibleYet")}</span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {compatibleProviderEntries.map(
-              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                <ProviderCard
-                  key={providerId}
-                  providerId={providerId}
-                  provider={provider}
-                  stats={stats}
-                  authType={displayAuthType}
-                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                />
-              )
-            )}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Expiration Banner */}
       {expirations?.summary &&
@@ -917,7 +919,7 @@ export default function ProvidersPage() {
         )}
 
       {/* Free Tier Providers */}
-      {freeSectionEntries.length > 0 && (
+      {showSection("free") && freeSectionEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-start gap-2">
             <div className="flex-1 min-w-0">
@@ -962,69 +964,71 @@ export default function ProvidersPage() {
       )}
 
       {/* OAuth Providers (including providers that expose free tiers via OAuth) */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-            {t("oauthProviders")}{" "}
-            <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
-            <ProviderCountBadge
-              {...countConfigured(
-                oauthProviderEntriesAll.filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
+      {showSection("oauth") && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("oauthProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
+              <ProviderCountBadge
+                {...countConfigured(
+                  oauthProviderEntriesAll.filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
+                )}
+              />
+            </h2>
+            <div className="flex items-center gap-2">
+              {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
+                <button
+                  onClick={handleRepairEnv}
+                  disabled={repairingEnv}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    repairingEnv
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+                  }`}
+                  title={t("repairEnvHint")}
+                  aria-label={t("repairEnv")}
+                >
+                  <span className="material-symbols-outlined text-[14px]">
+                    {repairingEnv ? "sync" : "settings_backup_restore"}
+                  </span>
+                  {repairingEnv ? t("repairEnvWorking") : t("repairEnv")}
+                </button>
               )}
-            />
-          </h2>
-          <div className="flex items-center gap-2">
-            {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
               <button
-                onClick={handleRepairEnv}
-                disabled={repairingEnv}
+                onClick={() => handleBatchTest("oauth")}
+                disabled={!!testingMode}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                  repairingEnv
+                  testingMode === "oauth"
                     ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
                     : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
                 }`}
-                title={t("repairEnvHint")}
-                aria-label={t("repairEnv")}
+                title={t("testAllOAuth")}
+                aria-label={t("testAllOAuth")}
               >
                 <span className="material-symbols-outlined text-[14px]">
-                  {repairingEnv ? "sync" : "settings_backup_restore"}
+                  {testingMode === "oauth" ? "sync" : "play_arrow"}
                 </span>
-                {repairingEnv ? t("repairEnvWorking") : t("repairEnv")}
+                {testingMode === "oauth" ? t("testing") : t("testAll")}
               </button>
-            )}
-            <button
-              onClick={() => handleBatchTest("oauth")}
-              disabled={!!testingMode}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                testingMode === "oauth"
-                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-              }`}
-              title={t("testAllOAuth")}
-              aria-label={t("testAllOAuth")}
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                {testingMode === "oauth" ? "sync" : "play_arrow"}
-              </span>
-              {testingMode === "oauth" ? t("testing") : t("testAll")}
-            </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {oauthProviderEntries
+              .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
+              .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={providerId}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              ))}
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {oauthProviderEntries
-            .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
-            .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-              <ProviderCard
-                key={providerId}
-                providerId={providerId}
-                provider={provider}
-                stats={stats}
-                authType={displayAuthType}
-                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-              />
-            ))}
-        </div>
-      </div>
+      )}
 
       {/* IDE Providers (Cursor, Zed, Trae) — editors with built-in AI subscription */}
       {showSection("ide") && (
@@ -1083,165 +1087,179 @@ export default function ProvidersPage() {
       )}
 
       {/* API Key Providers — fixed list */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
-            {t("apiKeyProviders")}{" "}
-            <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
-            <ProviderCountBadge {...countConfigured(apiKeyProviderEntriesAll)} />
-          </h2>
-          <button
-            onClick={() => handleBatchTest("apikey")}
-            disabled={!!testingMode}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              testingMode === "apikey"
-                ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
-                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
-            }`}
-            title={t("testAllApiKey")}
-            aria-label={t("testAllApiKey")}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {testingMode === "apikey" ? "sync" : "play_arrow"}
-            </span>
-            {testingMode === "apikey" ? t("testing") : t("testAll")}
-          </button>
+      {showSection("apikey") && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("apiKeyProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-amber-500" title={t("apiKeyLabel")} />
+              <ProviderCountBadge {...countConfigured(apiKeyProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("apikey")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "apikey"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAllApiKey")}
+              aria-label={t("testAllApiKey")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "apikey" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "apikey" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          {llmProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("llmProviders")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {llmProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {aggregatorProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("aggregatorsGateways")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {aggregatorProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {enterpriseProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("enterpriseCloud")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {enterpriseProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {imageProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("imageProviders")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {imageProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {videoProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("videoProviders")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {videoProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
+          {embeddingRerankProviderEntries.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                {t("embeddingRerankProviders")}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {embeddingRerankProviderEntries.map(
+                  ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                    <ProviderCard
+                      key={providerId}
+                      providerId={providerId}
+                      provider={provider}
+                      stats={stats}
+                      authType={displayAuthType}
+                      onToggle={(active) =>
+                        handleToggleProvider(providerId, toggleAuthType, active)
+                      }
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
         </div>
-        {llmProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("llmProviders")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {llmProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {aggregatorProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("aggregatorsGateways")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {aggregatorProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {enterpriseProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("enterpriseCloud")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {enterpriseProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {imageProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("imageProviders")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {imageProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {videoProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("videoProviders")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {videoProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        {embeddingRerankProviderEntries.length > 0 && (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-              {t("embeddingRerankProviders")}
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-              {embeddingRerankProviderEntries.map(
-                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
-                  <ProviderCard
-                    key={providerId}
-                    providerId={providerId}
-                    provider={provider}
-                    stats={stats}
-                    authType={displayAuthType}
-                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Web / Cookie Providers */}
-      {webCookieProviderEntries.length > 0 && (
+      {showSection("webcookie") && webCookieProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1284,7 +1302,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Search Providers */}
-      {searchProviderEntries.length > 0 && (
+      {showSection("search") && searchProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1327,7 +1345,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Audio Only Providers */}
-      {audioProviderEntries.length > 0 && (
+      {showSection("audio") && audioProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1370,7 +1388,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Cloud Agent Providers */}
-      {cloudAgentProviderEntries.length > 0 && (
+      {showSection("cloudagent") && cloudAgentProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
@@ -1413,7 +1431,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Local / Self-Hosted Providers */}
-      {localProviderEntries.length > 0 && (
+      {showSection("local") && localProviderEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
