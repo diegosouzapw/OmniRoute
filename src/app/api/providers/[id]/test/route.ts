@@ -597,8 +597,34 @@ async function testApiKeyConnection(connection: any) {
  * @param {string} validationModelId Optional custom model ID to test connection with
  * @returns {Promise<object>} Test result (same shape as the JSON response)
  */
+/**
+ * Exchange a Cursor API key (crsr_...) for a JWT access token.
+ * Returns the accessToken + refreshToken on success, null on failure.
+ */
+async function exchangeCursorApiKey(
+  crsrKey: string
+): Promise<{ accessToken: string; refreshToken: string | null } | null> {
+  try {
+    const res = await fetch("https://api2.cursor.sh/auth/exchange_user_api_key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${crsrKey}`,
+      },
+      body: "{}",
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as Record<string, unknown>;
+    const accessToken = data?.accessToken as string | undefined;
+    if (!accessToken) return null;
+    return { accessToken, refreshToken: (data.refreshToken as string) || null };
+  } catch {
+    return null;
+  }
+}
+
 export async function testSingleConnection(connectionId: string, validationModelId?: string) {
-  const connection = await getProviderConnectionById(connectionId);
+  let connection = await getProviderConnectionById(connectionId);
 
   if (!connection) {
     return { valid: false, error: "Connection not found", diagnosis: null, latencyMs: 0 };
@@ -639,18 +665,42 @@ export async function testSingleConnection(connectionId: string, validationModel
       diagnosis: (runtime as any).diagnosis,
     };
   } else if (connection.authType === "apikey") {
-    const enrichedConnection = validationModelId
-      ? {
-          ...connection,
-          providerSpecificData: {
-            ...((connection.providerSpecificData as any) || {}),
-            validationModelId,
-          },
+    // Cursor API key connections store the JWT accessToken and have the same
+    // test semantics as OAuth connections (check expiry). The apiKey field is
+    // kept in providerSpecificData, not on the top-level connection record.
+    if (connection.provider === "cursor") {
+      // Cursor API key connections need a JWT accessToken for testing.
+      // The crsr_ key may live in providerSpecificData (import-apikey flow)
+      // or on the top-level apiKey field (standard POST /api/providers flow).
+      // Exchange the long-lived key for a JWT on demand when missing/expired.
+      if (!connection.accessToken) {
+        const crsrKey = (connection.providerSpecificData as any)?.apiKey || connection.apiKey;
+        if (crsrKey && typeof crsrKey === "string") {
+          const exchanged = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+            exchangeCursorApiKey(crsrKey)
+          );
+          if (exchanged) {
+            connection = { ...connection, accessToken: exchanged.accessToken };
+          }
         }
-      : connection;
-    result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
-      testApiKeyConnection(enrichedConnection)
-    );
+      }
+      result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+        testOAuthConnection(connection)
+      );
+    } else {
+      const enrichedConnection = validationModelId
+        ? {
+            ...connection,
+            providerSpecificData: {
+              ...((connection.providerSpecificData as any) || {}),
+              validationModelId,
+            },
+          }
+        : connection;
+      result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
+        testApiKeyConnection(enrichedConnection)
+      );
+    }
   } else {
     result = await runWithProxyContext(proxyInfo?.proxy || null, () =>
       testOAuthConnection(connection)
