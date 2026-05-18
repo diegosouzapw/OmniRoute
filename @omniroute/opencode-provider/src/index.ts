@@ -327,6 +327,31 @@ export function createOmniRouteMCPEntry(options: OmniRouteMCPOptions): OpenCodeM
   return { command, args, env };
 }
 
+async function fetchJSON<T>(url: string, apiKey: string, timeoutMs: number): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    throw new Error(
+      `@omniroute/opencode-provider: request to ${url} failed: ${(err as Error).message}`
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!response.ok) {
+    throw new Error(`@omniroute/opencode-provider: received HTTP ${response.status} from ${url}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 /**
  * Lightweight model descriptor returned by `fetchLiveModels`.
  * The shape mirrors the subset of fields that OmniRoute's `/v1/models`
@@ -372,33 +397,10 @@ export async function fetchLiveModels(
   apiKey: string,
   timeoutMs = 5_000
 ): Promise<OmniRouteLiveModel[]> {
-  const url = normalizeBaseURL(baseURL).replace(/\/v1$/, "/v1/models");
   const key = requireNonEmpty(apiKey, "apiKey");
+  const url = `${normalizeBaseURL(baseURL)}/models`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      signal: controller.signal,
-    });
-  } catch (err) {
-    throw new Error(
-      `@omniroute/opencode-provider: fetchLiveModels request failed: ${(err as Error).message}`
-    );
-  } finally {
-    clearTimeout(timer);
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      `@omniroute/opencode-provider: fetchLiveModels received HTTP ${response.status} from ${url}`
-    );
-  }
-
-  const body = (await response.json()) as unknown;
+  const body = await fetchJSON<unknown>(url, key, timeoutMs);
 
   const rawList: unknown[] = Array.isArray(body)
     ? body
@@ -451,6 +453,17 @@ export type OmniRouteCompressionOverride =
   | "rtk"
   | "stacked";
 
+const VALID_COMPRESSION_OVERRIDES = new Set<string>([
+  "",
+  "off",
+  "lite",
+  "standard",
+  "aggressive",
+  "ultra",
+  "rtk",
+  "stacked",
+]);
+
 /** Slim combo descriptor returned by `listCombos`. */
 export interface OmniRouteCombo {
   id: string;
@@ -479,50 +492,16 @@ export async function listCombos(
   managementApiKey: string,
   timeoutMs = 5_000
 ): Promise<OmniRouteCombo[]> {
+  const key = requireNonEmpty(managementApiKey, "managementApiKey");
   const base = normalizeBaseURL(baseURL).replace(/\/v1$/, "");
   const url = `${base}/api/combos`;
-  const key = requireNonEmpty(managementApiKey, "managementApiKey");
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      signal: controller.signal,
-    });
-  } catch (err) {
-    throw new Error(
-      `@omniroute/opencode-provider: listCombos request failed: ${(err as Error).message}`
-    );
-  } finally {
-    clearTimeout(timer);
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      `@omniroute/opencode-provider: listCombos received HTTP ${response.status} from ${url}`
-    );
-  }
-
-  const body = (await response.json()) as unknown;
+  const body = await fetchJSON<unknown>(url, key, timeoutMs);
   const rawList: unknown[] = Array.isArray(body)
     ? body
     : Array.isArray((body as { combos?: unknown[] }).combos)
       ? ((body as { combos: unknown[] }).combos as unknown[])
       : [];
-
-  const VALID_OVERRIDES = new Set<string>([
-    "",
-    "off",
-    "lite",
-    "standard",
-    "aggressive",
-    "ultra",
-    "rtk",
-    "stacked",
-  ]);
 
   const combos: OmniRouteCombo[] = [];
   for (const raw of rawList) {
@@ -537,7 +516,7 @@ export async function listCombos(
     const active = typeof r.active === "boolean" ? r.active : false;
 
     const rawOverride = typeof r.compressionOverride === "string" ? r.compressionOverride : "";
-    const compressionOverride = VALID_OVERRIDES.has(rawOverride)
+    const compressionOverride = VALID_COMPRESSION_OVERRIDES.has(rawOverride)
       ? (rawOverride as OmniRouteCompressionOverride)
       : "";
 
