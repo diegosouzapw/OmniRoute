@@ -266,6 +266,8 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
   while (keep > 2) {
     let candidate = [...system, ...nonSystem.slice(-keep)];
     candidate = fixToolPairs(candidate);
+    candidate = fixToolAdjacency(candidate);
+    candidate = stripTrailingAssistantOrphanToolUse(candidate);
     const tokens = estimateTokens(JSON.stringify(candidate));
     if (tokens <= targetTokens) break;
     keep = Math.max(2, Math.floor(keep * 0.7)); // Drop 30% each iteration
@@ -273,6 +275,8 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
 
   let result = [...system, ...nonSystem.slice(-keep)];
   result = fixToolPairs(result);
+  result = fixToolAdjacency(result);
+  result = stripTrailingAssistantOrphanToolUse(result);
 
   // Add summary of dropped messages
   if (keep < nonSystem.length) {
