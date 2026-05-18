@@ -41,6 +41,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   // Monitoring > Costs Parameters
   "costs-pricing",
   "costs-budget",
+  "costs-quota-share",
   // Monitoring > Audit
   "audit",
   "audit-mcp",
@@ -413,6 +414,13 @@ const COSTS_PARAMS_GROUP: SidebarItemGroup = {
       i18nKey: "costsBudget",
       subtitleKey: "costsBudgetSubtitle",
       icon: "savings",
+    },
+    {
+      id: "costs-quota-share",
+      href: "/dashboard/costs/quota-share",
+      i18nKey: "costsQuotaShare",
+      subtitleKey: "costsQuotaShareSubtitle",
+      icon: "pie_chart",
     },
   ],
 };

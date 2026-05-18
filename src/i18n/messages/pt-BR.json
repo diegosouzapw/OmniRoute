@@ -765,6 +765,7 @@
     "analyticsComboHealth": "Combo Health",
     "analyticsCompression": "Compression",
     "costsBudget": "Budget",
+    "costsQuotaShare": "Compartilhamento de Cota",
     "costsPricing": "Pricing",
     "logsProxy": "Proxy Logs",
     "logsConsole": "Console",
