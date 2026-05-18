@@ -82,6 +82,28 @@ export const OAUTH_PROVIDERS = {
       "OAuth application with ai_features + read_user scopes. Configure GITLAB_DUO_OAUTH_CLIENT_ID and optionally GITLAB_DUO_OAUTH_CLIENT_SECRET on this OmniRoute instance.",
   },
   cursor: { id: "cursor", alias: "cu", name: "Cursor IDE", icon: "edit_note", color: "#00D4AA" },
+  zed: {
+    id: "zed",
+    alias: "zd",
+    name: "Zed IDE",
+    icon: "code",
+    color: "#084CCF",
+    textIcon: "ZD",
+    website: "https://zed.dev",
+    authHint:
+      "Zed stores LLM provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) in the OS keychain. Use the Import button below to discover and import them automatically.",
+  },
+  trae: {
+    id: "trae",
+    alias: "tr",
+    name: "Trae",
+    icon: "edit_square",
+    color: "#FF7849",
+    textIcon: "TR",
+    website: "https://trae.ai",
+    authHint:
+      "Trae is an AI-native IDE by ByteDance. Sign in inside Trae and paste your API token or use OAuth device flow here.",
+  },
   "kimi-coding": {
     id: "kimi-coding",
     alias: "kmc",
@@ -1635,6 +1657,11 @@ export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
 ]);
 
 export const VIDEO_PROVIDER_IDS = new Set(["runwayml"]);
+
+// IDE Providers: editors with built-in AI subscription (separate section in UI).
+// These providers live in OAUTH_PROVIDERS but render under "IDE Providers"
+// instead of "OAuth Providers" to avoid visual duplication.
+export const IDE_PROVIDER_IDS = new Set(["cursor", "zed", "trae"]);
 
 export const EMBEDDING_RERANK_PROVIDER_IDS = new Set(["voyage-ai", "jina-ai"]);
 

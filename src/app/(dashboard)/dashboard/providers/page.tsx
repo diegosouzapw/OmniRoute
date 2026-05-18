@@ -16,6 +16,7 @@ import {
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   ENTERPRISE_CLOUD_PROVIDER_IDS,
+  IDE_PROVIDER_IDS,
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
@@ -125,7 +126,6 @@ export default function ProvidersPage() {
   const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
   const [testingMode, setTestingMode] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any>(null);
-  const [importingZed, setImportingZed] = useState(false);
   const [showConfiguredOnly, setShowConfiguredOnly] = useState(false);
   const [configuredOnlyPreferenceReady, setConfiguredOnlyPreferenceReady] = useState(false);
   const [oauthEnvRepairStatus, setOauthEnvRepairStatus] = useState<{
@@ -203,33 +203,6 @@ export default function ProvidersPage() {
   useEffect(() => {
     void fetchOauthEnvRepairStatus();
   }, [fetchOauthEnvRepairStatus]);
-
-  const handleZedImport = async () => {
-    setImportingZed(true);
-    try {
-      const res = await fetch("/api/providers/zed/import", { method: "POST" });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        if (data.count > 0) {
-          notify.success(
-            t("zedImportSuccess", { count: data.count, providers: data.providers.join(", ") })
-          );
-          // Refresh connections silently
-          const connectionsRes = await fetch("/api/providers");
-          const connectionsData = await connectionsRes.json();
-          if (connectionsRes.ok) setConnections(connectionsData.connections || []);
-        } else {
-          notify.info(t("zedImportNone"));
-        }
-      } else {
-        notify.error(data.error || t("zedImportFailed"));
-      }
-    } catch (error) {
-      notify.error(t("zedImportNetworkError"));
-    } finally {
-      setImportingZed(false);
-    }
-  };
 
   const handleRepairEnv = async () => {
     if (!oauthEnvRepairStatus?.available || repairingEnv) return;
@@ -603,7 +576,22 @@ export default function ProvidersPage() {
     searchQuery
   );
 
-  const oauthOnlyEntriesAll = oauthProviderEntriesAll.filter((e) => e.toggleAuthType === "oauth");
+  // IDE providers: subset of oauth/apikey providers that are editors/IDEs with
+  // built-in AI subscription. Rendered in a dedicated "IDE Providers" section
+  // and excluded from the regular OAuth/API Key sections to avoid duplication.
+  const ideProviderEntriesAll = [...oauthProviderEntriesAll, ...apiKeyProviderEntriesAll].filter(
+    (e) => IDE_PROVIDER_IDS.has(e.providerId)
+  );
+  const ideProviderEntries = filterConfiguredProviderEntries(
+    ideProviderEntriesAll,
+    effectiveShowConfiguredOnly,
+    searchQuery,
+    showFreeOnly
+  );
+
+  const oauthOnlyEntriesAll = oauthProviderEntriesAll
+    .filter((e) => e.toggleAuthType === "oauth")
+    .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId));
   const summaryStats = {
     all: {
       configured:
@@ -614,6 +602,13 @@ export default function ProvidersPage() {
     free: countConfigured(freeSectionEntriesAll),
     oauth: countConfigured(oauthOnlyEntriesAll),
     apikey: countConfigured(apiKeyProviderEntriesAll),
+    compatible: countConfigured(compatibleProviderEntriesAll),
+    webcookie: countConfigured(webCookieProviderEntriesAll),
+    search: countConfigured(searchProviderEntriesAll),
+    audio: countConfigured(audioProviderEntriesAll),
+    local: countConfigured(localProviderEntriesAll),
+    cloudagent: countConfigured(cloudAgentProviderEntriesAll),
+    ide: countConfigured(ideProviderEntriesAll),
   };
 
   if (loading) {
@@ -705,48 +700,116 @@ export default function ProvidersPage() {
             </button>
           </div>
 
-          {/* Row 2: Legend */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted select-none">
+          {/* Category filter pills with embedded counters */}
+          <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2">
             {(
               [
-                ["bg-green-500", tc("free")],
-                ["bg-blue-500", t("oauthLabel")],
-                ["bg-amber-500", t("apiKeyLabel")],
-                ["bg-orange-500", t("compatibleLabel")],
-                ["bg-purple-500", t("webCookieProviders")],
-                ["bg-teal-500", t("searchProvidersHeading")],
-                ["bg-rose-500", t("audioProvidersHeading")],
-                ["bg-emerald-500", t("localProviders")],
-                ["bg-indigo-500", t("upstreamProxyProviders")],
-                ["bg-violet-500", t("cloudAgentProviders")],
-              ] as [string, string][]
-            ).map(([color, label]) => (
-              <span key={color} className="flex items-center gap-1 whitespace-nowrap">
-                <span className={`size-2 rounded-full shrink-0 ${color}`} />
-                {label}
-              </span>
-            ))}
-          </div>
-
-          {/* Divider + Stats */}
-          <div className="border-t border-border pt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
-            {(
-              [
-                [null, t("providerSummaryAll"), summaryStats.all],
-                ["bg-green-500", tc("free"), summaryStats.free],
-                ["bg-blue-500", t("oauthLabel"), summaryStats.oauth],
-                ["bg-amber-500", t("apiKeyLabel"), summaryStats.apikey],
-              ] as [string | null, string, { configured: number; total: number }][]
-            ).map(([color, label, stat]) => (
-              <span key={label} className="flex items-center gap-1.5">
-                {color && <span className={`size-2 rounded-full shrink-0 ${color}`} />}
-                <span className="text-xs text-text-muted">{label}</span>
-                <span className="text-sm font-semibold text-text-main">
-                  {stat.configured}
-                  <span className="font-normal text-text-muted">/{stat.total}</span>
-                </span>
-              </span>
-            ))}
+                { key: null, color: null, label: t("providerSummaryAll"), stat: summaryStats.all },
+                {
+                  key: "free",
+                  color: "bg-green-500",
+                  label: tc("free"),
+                  stat: summaryStats.free,
+                },
+                {
+                  key: "oauth",
+                  color: "bg-blue-500",
+                  label: t("oauthLabel"),
+                  stat: summaryStats.oauth,
+                },
+                {
+                  key: "apikey",
+                  color: "bg-amber-500",
+                  label: t("apiKeyLabel"),
+                  stat: summaryStats.apikey,
+                },
+                {
+                  key: "ide",
+                  color: "bg-cyan-500",
+                  label: t("ideProviders") || "IDE",
+                  stat: summaryStats.ide,
+                },
+                {
+                  key: "compatible",
+                  color: "bg-orange-500",
+                  label: t("compatibleLabel"),
+                  stat: summaryStats.compatible,
+                },
+                {
+                  key: "webcookie",
+                  color: "bg-purple-500",
+                  label: t("webCookieProviders") || "Web Cookie",
+                  stat: summaryStats.webcookie,
+                },
+                {
+                  key: "search",
+                  color: "bg-teal-500",
+                  label: t("searchProvidersHeading") || "Search",
+                  stat: summaryStats.search,
+                },
+                {
+                  key: "audio",
+                  color: "bg-rose-500",
+                  label: t("audioProvidersHeading") || "Audio",
+                  stat: summaryStats.audio,
+                },
+                {
+                  key: "local",
+                  color: "bg-emerald-500",
+                  label: t("localProviders") || "Local",
+                  stat: summaryStats.local,
+                },
+                {
+                  key: "cloudagent",
+                  color: "bg-violet-500",
+                  label: t("cloudAgentProviders") || "Cloud Agent",
+                  stat: summaryStats.cloudagent,
+                },
+              ] as Array<{
+                key: string | null;
+                color: string | null;
+                label: string;
+                stat: { configured: number; total: number };
+              }>
+            ).map((cat) => {
+              const isActive =
+                (cat.key === null && !activeCategory && !showFreeOnly) ||
+                (cat.key === "free" && showFreeOnly) ||
+                (cat.key !== "free" &&
+                  cat.key !== null &&
+                  !showFreeOnly &&
+                  activeCategory === cat.key);
+              return (
+                <button
+                  key={cat.key ?? "all"}
+                  onClick={() => {
+                    if (cat.key === null) {
+                      setShowFreeOnly(false);
+                      setActiveCategory(null);
+                    } else if (cat.key === "free") {
+                      setShowFreeOnly(true);
+                      setActiveCategory(null);
+                    } else {
+                      setShowFreeOnly(false);
+                      setActiveCategory(cat.key);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary text-white border-primary"
+                      : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
+                  }`}
+                  title={cat.label}
+                >
+                  {cat.color && <span className={`size-2 rounded-full shrink-0 ${cat.color}`} />}
+                  <span>{cat.label}</span>
+                  <span className={`text-[11px] ${isActive ? "text-white/80" : "text-text-muted"}`}>
+                    {cat.stat.configured}
+                    <span className="opacity-70">/{cat.stat.total}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </Card>
@@ -815,48 +878,6 @@ export default function ProvidersPage() {
             )}
           </div>
         )}
-      </div>
-
-      {/* Category Filter Chips */}
-      <div className="flex flex-wrap items-center gap-2">
-        {[
-          { key: null, label: t("allProviders") || "All" },
-          { key: "free", label: t("freeProviders") || "Free" },
-          { key: "oauth", label: t("oauthProviders") },
-          { key: "apikey", label: t("apiKeyProviders") },
-          { key: "webcookie", label: t("webCookieProviders") || "Web Cookie" },
-          { key: "search", label: t("searchProviders") || "Search" },
-          { key: "audio", label: t("audioProviders") || "Audio" },
-          { key: "cloudagent", label: t("cloudAgentProviders") || "Cloud Agent" },
-          { key: "local", label: t("localProviders") || "Local" },
-          { key: "compatible", label: t("compatibleProviders") || "Compatible" },
-        ].map((cat) => (
-          <button
-            key={cat.key ?? "all"}
-            onClick={() => {
-              if (cat.key === "free") {
-                setShowFreeOnly(true);
-                setActiveCategory(null);
-              } else {
-                setShowFreeOnly(false);
-                setActiveCategory(cat.key);
-              }
-            }}
-            className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-              (cat.key === "free" && showFreeOnly) ||
-              (cat.key !== "free" && !showFreeOnly && activeCategory === cat.key)
-                ? "bg-primary text-white border-primary"
-                : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
-            }`}
-          >
-            {cat.key === "free" && (
-              <span className="material-symbols-outlined text-[12px] mr-0.5 align-middle">
-                star
-              </span>
-            )}
-            {cat.label}
-          </button>
-        ))}
       </div>
 
       {/* Expiration Banner */}
@@ -946,37 +967,13 @@ export default function ProvidersPage() {
           <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
             {t("oauthProviders")}{" "}
             <span className="size-2.5 rounded-full bg-blue-500" title={t("oauthLabel")} />
-            <ProviderCountBadge {...countConfigured(oauthProviderEntriesAll)} />
+            <ProviderCountBadge
+              {...countConfigured(
+                oauthProviderEntriesAll.filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
+              )}
+            />
           </h2>
           <div className="flex items-center gap-2">
-            <Toggle
-              size="sm"
-              checked={showFreeOnly}
-              onChange={setShowFreeOnly}
-              label={t("showFreeOnly") || "Free only"}
-              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
-            />
-            <Toggle
-              size="sm"
-              checked={effectiveShowConfiguredOnly}
-              onChange={setShowConfiguredOnly}
-              label={t("showConfiguredOnly")}
-              disabled={connections.length === 0}
-              className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
-            />
-            <button
-              onClick={handleZedImport}
-              disabled={importingZed}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
-              title={t("zedImportHint")}
-            >
-              <span
-                className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
-              >
-                {importingZed ? "sync" : "download"}
-              </span>
-              {importingZed ? t("zedImporting") : t("zedImportButton")}
-            </button>
             {oauthEnvRepairStatus?.available && oauthEnvRepairStatus.missingCount > 0 && (
               <button
                 onClick={handleRepairEnv}
@@ -1014,8 +1011,9 @@ export default function ProvidersPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          {oauthProviderEntries.map(
-            ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+          {oauthProviderEntries
+            .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
+            .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
                 providerId={providerId}
@@ -1024,10 +1022,65 @@ export default function ProvidersPage() {
                 authType={displayAuthType}
                 onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
               />
-            )
-          )}
+            ))}
         </div>
       </div>
+
+      {/* IDE Providers (Cursor, Zed, Trae) — editors with built-in AI subscription */}
+      {showSection("ide") && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("ideProviders") || "IDE Providers"}{" "}
+              <span
+                className="size-2.5 rounded-full bg-cyan-500"
+                title={t("ideProviders") || "IDE Providers"}
+              />
+              <ProviderCountBadge {...countConfigured(ideProviderEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("ide")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "ide"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+              aria-label={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "ide" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "ide" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <p className="text-sm text-text-muted -mt-2">
+            {t("ideProvidersDesc") ||
+              "Editors with built-in AI subscription. Use the provider page to import credentials directly from the IDE's keychain."}
+          </p>
+          {ideProviderEntries.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border bg-bg-subtle p-6 text-center text-sm text-text-muted">
+              {t("noIdeProviders") || "No IDE providers match the current filters."}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {ideProviderEntries.map(
+                ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                  <ProviderCard
+                    key={`ide-${providerId}`}
+                    providerId={providerId}
+                    provider={provider}
+                    stats={stats}
+                    authType={displayAuthType}
+                    onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                  />
+                )
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* API Key Providers — fixed list */}
       <div className="flex flex-col gap-4">

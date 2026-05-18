@@ -1710,6 +1710,7 @@ export const providersBatchTestSchema = z
       "local",
       "upstream-proxy",
       "cloud-agent",
+      "ide",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),

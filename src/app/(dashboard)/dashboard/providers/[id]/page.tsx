@@ -1034,6 +1034,7 @@ export default function ProviderDetailPage() {
     Record<string, { proxy: any; level: string } | null>
   >({});
   const [importingModels, setImportingModels] = useState(false);
+  const [importingZed, setImportingZed] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importProgress, setImportProgress] = useState({
     current: 0,
@@ -1294,6 +1295,36 @@ export default function ProviderDetailPage() {
       .then((c) => setProxyConfig(c))
       .catch(() => {});
   }, [fetchConnections, fetchAliases]);
+
+  const handleZedImport = useCallback(async () => {
+    if (importingZed) return;
+    setImportingZed(true);
+    try {
+      const res = await fetch("/api/providers/zed/import", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        notify.error(data.error || "Zed import failed");
+      } else if (!data.count) {
+        const found = data.credentials?.length ?? 0;
+        if (found === 0) {
+          notify.info("No Zed credentials found in keychain");
+        } else {
+          notify.info(
+            `Found ${found} keychain credential(s), but none matched supported providers`
+          );
+        }
+      } else {
+        notify.success(
+          `Imported ${data.count} credential(s) from Zed for ${data.providers?.length ?? 0} provider(s)`
+        );
+        await fetchConnections();
+      }
+    } catch (e: any) {
+      notify.error(e?.message || "Zed import failed");
+    } finally {
+      setImportingZed(false);
+    }
+  }, [importingZed, notify, fetchConnections]);
 
   useEffect(() => {
     if (providerId !== "codex") return;
@@ -3109,6 +3140,33 @@ export default function ProviderDetailPage() {
           </div>
         </div>
       </div>
+
+      {providerId === "zed" && (
+        <Card>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px]">download</span>
+                Import from Zed Keychain
+              </h2>
+              <p className="text-sm text-text-muted mt-1">
+                Discover AI provider credentials (OpenAI, Anthropic, Google, Mistral, xAI) that Zed
+                IDE stored in the OS keychain and import them as connections. Requires Zed IDE
+                installed on this machine.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={importingZed ? "sync" : "download"}
+              onClick={handleZedImport}
+              disabled={importingZed}
+            >
+              {importingZed ? "Importing…" : "Import from Zed"}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {isCompatible && providerNode && (
         <Card>

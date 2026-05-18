@@ -3,6 +3,7 @@ import { getMachineId } from "@/shared/utils/machine";
 import { getSettings } from "@/lib/localDb";
 import HomePageClient from "../dashboard/HomePageClient";
 import BootstrapBanner from "../dashboard/BootstrapBanner";
+import AutoRoutingBanner from "@/shared/components/AutoRoutingBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function HomePage() {
   return (
     <>
       {isBootstrapped && <BootstrapBanner />}
+      <AutoRoutingBanner />
       <HomePageClient machineId={machineId} />
     </>
   );
