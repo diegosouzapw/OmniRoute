@@ -193,6 +193,17 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://chat.deepseek.com",
     authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
   },
+  "copilot-web": {
+    id: "copilot-web",
+    alias: "copilot",
+    name: "Microsoft Copilot Web",
+    icon: "auto_awesome",
+    color: "#0078D4",
+    textIcon: "CP",
+    website: "https://copilot.microsoft.com",
+    authHint:
+      "Paste your access_token from copilot.microsoft.com (or export a .har file from DevTools while logged in)",
+  },
 };
 
 // API Key Providers
@@ -875,6 +886,31 @@ export const APIKEY_PROVIDERS = {
     freeNote: "Free forever — no signup, no credit card. OpenAI-compatible endpoints.",
     passthroughModels: true,
     authHint: "No auth required. API accepts any non-empty string as key for identification.",
+  },
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    name: "Hackclub AI",
+    icon: "auto_awesome",
+    color: "#FF6B00",
+    textIcon: "HC",
+    website: "https://ai.hackclub.com",
+    hasFree: true,
+    freeNote: "Free AI for Hack Club members — 30+ models, no credit card.",
+    passthroughModels: true,
+    authHint: "Sign in with your Hack Club account at ai.hackclub.com.",
+  },
+  "github-models": {
+    id: "github-models",
+    alias: "ghm",
+    name: "GitHub Models",
+    icon: "code",
+    color: "#238636",
+    textIcon: "GH",
+    website: "https://github.com/marketplace/models",
+    hasFree: true,
+    freeNote: "Free GPT-5, o-series, DeepSeek-R1, Llama 4, Grok 3 — GitHub account only.",
+    authHint: "Create a GitHub PAT with 'models: read' scope at github.com/settings/tokens",
   },
   "cloudflare-ai": {
     id: "cloudflare-ai",
@@ -1578,6 +1614,7 @@ export const AGGREGATOR_PROVIDER_IDS = new Set([
   "empower",
   "poe",
   "chutes",
+  "hackclub",
 ]);
 
 export const ENTERPRISE_CLOUD_PROVIDER_IDS = new Set([
@@ -2011,11 +2048,42 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "searxng-search" ||
     providerId === "petals" ||
     providerId === "pollinations" ||
+    providerId === "copilot-web" ||
+    providerId === "hackclub" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||
     isAnthropicCompatibleProvider(providerId)
   );
+}
+
+/**
+ * Providers explicitly excluded from bulk API key add — auth is heterogeneous,
+ * OAuth-based, multi-field, or requires manual setup per connection.
+ */
+const BULK_API_KEY_EXCLUDED = new Set([
+  "vertex",
+  "vertex-partner",
+  "ollama-local",
+  "grok-web",
+  "perplexity-web",
+  "blackbox-web",
+  "muse-spark-web",
+  "deepseek-web",
+  "qoder",
+  "google-pse-search",
+  "command-code",
+  "azure",
+  "cloudflare-ai",
+]);
+
+export function supportsBulkApiKey(providerId: unknown): boolean {
+  if (typeof providerId !== "string" || !providerId) return false;
+  if (BULK_API_KEY_EXCLUDED.has(providerId)) return false;
+  if (isLocalProvider(providerId)) return false;
+  if (isSelfHostedChatProvider(providerId)) return false;
+  if (isClaudeCodeCompatibleProvider(providerId)) return false;
+  return true;
 }
 
 // ── System Providers (virtual, not user-connectable) ──────────────────────────

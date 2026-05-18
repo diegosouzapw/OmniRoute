@@ -107,7 +107,10 @@ export function normalizeBaseURL(rawBaseURL: string): string {
       `@omniroute/opencode-provider: baseURL is not a valid URL: ${JSON.stringify(rawBaseURL)}`
     );
   }
-  return trimmed.replace(/\/+$/, "").replace(/\/v1$/, "") + "/v1";
+  let base = trimmed;
+  while (base.endsWith("/")) base = base.slice(0, -1);
+  if (base.endsWith("/v1")) base = base.slice(0, -3);
+  return base + "/v1";
 }
 
 /**

@@ -547,6 +547,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     },
   },
   // gemini-cli handled via retrieveUserQuota (see GET handler)
+  huggingface: {
+    url: "https://router.huggingface.co/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
+  },
   qwen: {
     url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
     method: "GET",

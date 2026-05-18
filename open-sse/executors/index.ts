@@ -27,6 +27,7 @@ import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+import { CopilotWebExecutor } from "./copilot-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -75,6 +76,8 @@ const executors = {
   devin: new DevinCliExecutor(), // Alias
   "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
   "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
+  "copilot-web": new CopilotWebExecutor(),
+  copilot: new CopilotWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -118,5 +121,6 @@ export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
 export { WindsurfExecutor } from "./windsurf.ts";
 export { DevinCliExecutor } from "./devin-cli.ts";
+export { CopilotWebExecutor } from "./copilot-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";

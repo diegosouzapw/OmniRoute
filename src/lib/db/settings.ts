@@ -405,7 +405,12 @@ export async function resetAllPricing() {
 
 // ──────────────── LKGP (Last Known Good Provider) ────────────────
 
-export async function getLKGP(comboName: string, modelId: string): Promise<string | null> {
+export interface LKGPRecord {
+  provider: string;
+  connectionId?: string;
+}
+
+export async function getLKGP(comboName: string, modelId: string): Promise<LKGPRecord | null> {
   const db = getDbInstance();
   const key = `${comboName}:${modelId}`;
   const row = db
@@ -413,18 +418,29 @@ export async function getLKGP(comboName: string, modelId: string): Promise<strin
     .get(key) as { value?: string } | undefined;
   if (!row?.value) return null;
   try {
-    return JSON.parse(row.value);
+    const parsed = JSON.parse(row.value);
+    if (typeof parsed === "object" && parsed !== null && "provider" in parsed) {
+      return parsed as LKGPRecord;
+    }
+    return { provider: String(parsed) };
   } catch {
-    return row.value;
+    return { provider: row.value };
   }
 }
 
-export async function setLKGP(comboName: string, modelId: string, providerId: string) {
+export async function setLKGP(
+  comboName: string,
+  modelId: string,
+  providerId: string,
+  connectionId?: string
+) {
   const db = getDbInstance();
   const key = `${comboName}:${modelId}`;
+  const value: LKGPRecord = { provider: providerId };
+  if (connectionId) value.connectionId = connectionId;
   db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('lkgp', ?, ?)").run(
     key,
-    JSON.stringify(providerId)
+    JSON.stringify(value)
   );
 }
 

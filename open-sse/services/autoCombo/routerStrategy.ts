@@ -130,10 +130,11 @@ class LKGPStrategyImpl implements RouterStrategy {
     }
 
     if (context.lastKnownGoodProvider) {
-      const best = pool.find(
+      const candidates = pool.filter(
         (c) => c.provider === context.lastKnownGoodProvider && c.circuitBreakerState !== "OPEN"
       );
-      if (best) {
+      if (candidates.length > 0) {
+        const best = candidates[0];
         return {
           provider: best.provider,
           model: best.model,
