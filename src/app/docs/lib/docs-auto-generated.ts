@@ -704,13 +704,13 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "reference/PROVIDER_REFERENCE.md",
     section: "Reference",
     content:
-      "Auto-generated from src/shared/constants/providers.ts — do not edit by hand. Regenerate with: npm run gen:provider-reference Last generated: 2026-05-13 Total providers: 177. See category breakdown below. - Free — free tier with API key (configured via dashboard) - OAuth — sign-in flow handled by Omn",
+      "Auto-generated from src/shared/constants/providers.ts — do not edit by hand. Regenerate with: npm run gen:provider-reference Last generated: 2026-05-17 Total providers: 177. See category breakdown below. - Free — free tier with API key (configured via dashboard) - OAuth — sign-in flow handled by Omn",
     headings: [
       "Categories",
       "Free Tier (OAuth-first or no-key) (5)",
       "OAuth Providers (11)",
-      "Web Cookie Providers (5)",
-      "API Key Providers (paid / paid-with-free-credits) (123)",
+      "Web Cookie Providers (6)",
+      "API Key Providers (paid / paid-with-free-credits) (122)",
       "Local Providers (10)",
       "Search Providers (11)",
       "Audio-only Providers (7)",

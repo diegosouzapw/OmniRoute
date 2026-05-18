@@ -152,6 +152,17 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://grok.com",
     authHint: "Paste your sso= cookie value from grok.com",
   },
+  "gemini-web": {
+    id: "gemini-web",
+    alias: "gweb",
+    name: "Gemini Web (Free)",
+    icon: "auto_awesome",
+    color: "#4285F4",
+    textIcon: "GWeb",
+    website: "https://gemini.google.com",
+    authHint:
+      "Paste your __Secure-1PSID cookie value from gemini.google.com. Optionally add __Secure-1PSIDTS separated by semicolon.",
+  },
   "perplexity-web": {
     id: "perplexity-web",
     alias: "pplx-web",
