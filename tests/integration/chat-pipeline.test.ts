@@ -654,10 +654,10 @@ test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", 
   assert.match(call.url, /chatgpt\.com\/backend-api\/codex\/responses$/);
   assert.equal(call.headers.Authorization, "Bearer codex-oauth-token");
   assert.equal(call.headers.Accept, "text/event-stream");
-  assert.equal(call.headers.Version, "0.130.0");
+  assert.equal(call.headers.Version, "0.131.0");
   assert.equal(call.headers["Openai-Beta"], "responses=experimental");
   assert.equal(call.headers["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(call.headers["User-Agent"], "codex-cli/0.130.0 (Windows 10.0.26200; x64)");
+  assert.equal(call.headers["User-Agent"], "codex-cli/0.131.0 (Windows 10.0.26200; x64)");
   assert.equal(call.headers["x-codex-window-id"], "conv_codex_fingerprint:0");
   assert.ok(call.headers["x-client-request-id"], "expected Codex request id header");
   assert.ok(call.headers["x-codex-turn-metadata"], "expected Codex turn metadata header");

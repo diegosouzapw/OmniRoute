@@ -1039,6 +1039,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     clientVersion: CURSOR_REGISTRY_VERSION,
     models: [
       { id: "auto", name: "Auto (Server Picks)" },
+      { id: "composer-2.5-fast", name: "Composer 2.5 Fast" },
+      { id: "composer-2.5", name: "Composer 2.5" },
       { id: "composer-2-fast", name: "Composer 2 Fast" },
       { id: "composer-2", name: "Composer 2" },
       //

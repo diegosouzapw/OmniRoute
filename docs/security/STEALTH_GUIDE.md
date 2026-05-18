@@ -212,8 +212,8 @@ All MITM endpoints require management auth (`requireCliToolsAuth`). The sudo pas
 
 | Variable                 | Default                                       |
 | ------------------------ | --------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.137 (external, cli)`          |
-| `CODEX_USER_AGENT`       | `codex-cli/0.130.0 (Windows 10.0.26200; x64)` |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.143 (external, cli)`          |
+| `CODEX_USER_AGENT`       | `codex-cli/0.131.0 (Windows 10.0.26200; x64)` |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    |
 | `ANTIGRAVITY_USER_AGENT` | `antigravity/1.23.2 darwin/arm64`             |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             |

@@ -70,14 +70,14 @@ test("bootstrapEnv strips matching quotes from env values", () => {
     fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(
       path.join(dataDir, "server.env"),
-      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"\n',
+      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.143 (external, cli)"\n',
       "utf8"
     );
 
     const env = bootstrapEnv({ quiet: true });
 
     assert.equal(env.JWT_SECRET, "jwt-from-server-env");
-    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.137 (external, cli)");
+    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.143 (external, cli)");
   });
 });
 

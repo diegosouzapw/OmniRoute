@@ -25,7 +25,7 @@ function writeEnvExample(rootDir: string) {
       "MACHINE_ID_SALT=",
       "CLAUDE_OAUTH_CLIENT_ID=claude-default",
       "CODEX_OAUTH_CLIENT_ID=codex-default",
-      'CLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"',
+      'CLAUDE_USER_AGENT="claude-cli/2.1.143 (external, cli)"',
       "# COMMENTED_KEY=skip-me",
       "",
     ].join("\n"),
@@ -72,7 +72,7 @@ test("syncEnv creates .env from .env.example and generates blank secrets", () =>
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
-    assert.match(envContent, /^CLAUDE_USER_AGENT="claude-cli\/2\.1\.137 \(external, cli\)"$/m);
+    assert.match(envContent, /^CLAUDE_USER_AGENT="claude-cli\/2\.1\.143 \(external, cli\)"$/m);
     assert.doesNotMatch(envContent, /^COMMENTED_KEY=/m);
   } finally {
     process.env.DATA_DIR = origDataDir;
@@ -107,7 +107,7 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
     assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=.{32,}$/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
-    assert.match(envContent, /^CLAUDE_USER_AGENT=claude-cli\/2\.1\.137 \(external, cli\)$/m);
+    assert.match(envContent, /^CLAUDE_USER_AGENT=claude-cli\/2\.1\.143 \(external, cli\)$/m);
     assert.match(envContent, /Auto-added by sync-env/);
   } finally {
     process.env.DATA_DIR = origDataDir;
@@ -130,7 +130,7 @@ test("syncEnv treats quoted and unquoted values as equivalent", () => {
         "MACHINE_ID_SALT=machine-salt",
         "CLAUDE_OAUTH_CLIENT_ID=claude-default",
         "CODEX_OAUTH_CLIENT_ID=codex-default",
-        'CLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"',
+        'CLAUDE_USER_AGENT="claude-cli/2.1.143 (external, cli)"',
         "",
       ].join("\n"),
       "utf8"
