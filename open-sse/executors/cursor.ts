@@ -10,7 +10,12 @@ declare const EdgeRuntime: string | undefined;
  * Wire format & schema details live in ../utils/cursorAgentProtobuf.ts.
  */
 
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import {
+  BaseExecutor,
+  mergeUpstreamExtraHeaders,
+  type ProviderCredentials,
+  type ExecutorLog,
+} from "./base.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import {
   buildAgentRequestBody,
@@ -1105,8 +1110,69 @@ export class CursorExecutor extends BaseExecutor {
     );
   }
 
-  async refreshCredentials() {
-    return null;
+  /**
+   * Refresh Cursor access token.
+   *
+   * Supported strategy:
+   *   - API key flow (authMethod === "apikey"): re-exchange the long-lived
+   *     Cursor API key (`crsr_...`) at POST /auth/exchange_user_api_key.
+   *     This mirrors what cursor-agent CLI does internally.
+   *
+   * Legacy IDE-import flow (authMethod === "imported") has no refresh path —
+   * the user must re-run auto-import while Cursor IDE is logged in.
+   */
+  async refreshCredentials(credentials: ProviderCredentials, log?: ExecutorLog | null) {
+    const psd = (credentials?.providerSpecificData || {}) as Record<string, unknown>;
+    const apiKey = psd.apiKey as string | undefined;
+    if (!apiKey) return null;
+
+    try {
+      const res = await fetch("https://api2.cursor.sh/auth/exchange_user_api_key", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: "{}",
+      });
+
+      if (!res.ok) {
+        log?.warn?.("TOKEN", `Cursor exchange_user_api_key failed: HTTP ${res.status}`);
+        return null;
+      }
+
+      const data = (await res.json()) as Record<string, unknown>;
+      const accessToken = data?.accessToken as string | undefined;
+      if (!accessToken) {
+        log?.warn?.("TOKEN", "Cursor exchange response missing accessToken");
+        return null;
+      }
+
+      let expiresIn = 3600;
+      try {
+        const payload = accessToken.split(".")[1];
+        if (payload) {
+          const decoded = JSON.parse(Buffer.from(payload, "base64").toString("utf8"));
+          if (Number.isFinite(decoded?.exp)) {
+            expiresIn = Math.max(60, decoded.exp - Math.floor(Date.now() / 1000));
+          }
+        }
+      } catch {
+        // Non-JWT token; keep default expiresIn
+      }
+
+      log?.info?.("TOKEN", "Cursor refreshed via API key");
+
+      return {
+        accessToken,
+        refreshToken: (data.refreshToken as string) || credentials.refreshToken || null,
+        expiresIn,
+        providerSpecificData: { ...psd },
+      } as Partial<ProviderCredentials> & { expiresIn: number };
+    } catch (e) {
+      log?.error?.("TOKEN", `Cursor refresh error: ${(e as Error).message}`);
+      return null;
+    }
   }
 }
 

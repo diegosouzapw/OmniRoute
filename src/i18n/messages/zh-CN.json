@@ -3216,7 +3216,10 @@
     "zedImportNetworkError": "Zed 导入网络错误",
     "zedImportNone": "没有可从 Zed 导入的内容",
     "zedImportSuccess": "Zed 导入成功",
-    "zedImporting": "正在从 Zed 导入"
+    "zedImporting": "正在从 Zed 导入",
+    "addFirstProvider": "添加你的第一个供应商",
+    "addFirstProviderDesc": "连接一个 AI 供应商，开始通过 OmniRoute 路由请求。你可以使用免费供应商、API Key 或 OAuth 账户。",
+    "learnMore": "了解更多"
   },
   "settings": {
     "title": "设置",
@@ -5233,6 +5236,8 @@
   },
   "cursorAuthModal": {
     "title": "连接 Cursor IDE",
+    "tabIde": "从 IDE 发现",
+    "tabApiKey": "API Key",
     "autoDetecting": "自动检测令牌中...",
     "readingFromCursor": "正在从 Cursor IDE 或 cursor-agent 读取",
     "tokensAutoDetected": "已成功从 Cursor IDE 自动检测到令牌！",
@@ -5243,12 +5248,20 @@
     "machineId": "机器 ID",
     "optional": "（可选）",
     "machineIdPlaceholder": "机器 ID 将自动填充...",
+    "apiKeyInfo": "输入你的 Cursor 用户 API Key（以 crsr_ 开头）。它是长期有效的，支持自动刷新 token。",
+    "apiKeyField": "Cursor API Key",
+    "apiKeyPlaceholder": "crsr_...",
+    "label": "显示名称",
+    "labelPlaceholder": "例如：我的 Cursor Key",
     "importing": "正在导入...",
     "importToken": "导入令牌",
+    "importApiKey": "导入 API Key",
     "cancel": "取消",
     "errorAutoDetect": "无法自动检测令牌",
     "errorAutoDetectFailed": "自动检测令牌失败",
     "errorEnterToken": "请输入访问令牌",
+    "errorApiKeyEmpty": "请输入 API Key",
+    "errorApiKeyFormat": "API Key 必须以 'crsr_' 开头",
     "errorImportFailed": "导入失败"
   },
   "pricingModal": {

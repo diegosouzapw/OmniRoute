@@ -254,9 +254,13 @@ export default function ProvidersPage() {
   };
 
   const getProviderStats = (providerId, authType) => {
+    // Cursor supports both OAuth and API key connections; count both under
+    // the OAuth entry so they appear as a single provider on the dashboard.
+    const includeAllAuthTypes = providerId === "cursor" && authType === "oauth";
     const providerConnections = connections.filter((c) => {
       if (c.provider !== providerId) return false;
       if (authType === "free") return true;
+      if (includeAllAuthTypes) return c.authType === "oauth" || c.authType === "apikey";
       return c.authType === authType;
     });
 
@@ -321,15 +325,22 @@ export default function ProvidersPage() {
 
   // Toggle all connections for a provider on/off
   const handleToggleProvider = async (providerId: string, authType: string, newActive: boolean) => {
+    // Cursor supports both OAuth and API key connections; include both under
+    // the OAuth toggle so enabling/disabling affects all connections.
+    const isCursorOAuth = providerId === "cursor" && authType === "oauth";
     const providerConns = connections.filter((c) => {
       if (c.provider !== providerId) return false;
       if (authType === "free") return true;
+      if (isCursorOAuth) return c.authType === "oauth" || c.authType === "apikey";
       return c.authType === authType;
     });
     // Optimistically update UI
     setConnections((prev) =>
       prev.map((c) =>
-        c.provider === providerId && (authType === "free" || c.authType === authType)
+        c.provider === providerId &&
+        (authType === "free" ||
+          c.authType === authType ||
+          (isCursorOAuth && (c.authType === "oauth" || c.authType === "apikey")))
           ? { ...c, isActive: newActive }
           : c
       )

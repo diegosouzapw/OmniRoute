@@ -1,6 +1,8 @@
 // Re-export from open-sse with local logger
 import * as log from "../utils/logger";
 import { updateProviderConnection, resolveProxyForProvider } from "@/lib/localDb";
+import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
+import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
   refreshAccessToken as _refreshAccessToken,
@@ -176,11 +178,29 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
       });
 
       const connectionId: string | undefined = updatedCredentials.connectionId;
-      const newCredentials = connectionId
+      let newCredentials = connectionId
         ? await withConnectionRefreshMutex(connectionId, () =>
             getAccessToken(provider, updatedCredentials)
           )
         : await getAccessToken(provider, updatedCredentials);
+
+      // Fallback: executor-based refresh for providers like cursor that
+      // use non-standard refresh mechanisms (e.g., API key exchange).
+      // Forward the connection-level proxy config so connections behind
+      // a proxy / Vercel relay can still reach the upstream token endpoint.
+      if (!newCredentials?.accessToken) {
+        const executor = getExecutor(provider);
+        if (executor?.refreshCredentials) {
+          const proxy = await resolveProxyForProvider(provider);
+          const execCreds = await runWithProxyContext(proxy, () =>
+            executor.refreshCredentials(updatedCredentials, log)
+          );
+          if (execCreds?.accessToken) {
+            newCredentials = execCreds;
+          }
+        }
+      }
+
       if (newCredentials && newCredentials.accessToken) {
         await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
 

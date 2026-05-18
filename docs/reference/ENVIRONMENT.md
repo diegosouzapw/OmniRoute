@@ -679,17 +679,18 @@ Anthropic-compatible provider instead.
 > [!CAUTION]
 > These variables produce **verbose output** and may leak sensitive data. **Never enable in production.**
 
-| Variable                         | Default             | Source File                                | Description                                                                       |
-| -------------------------------- | ------------------- | ------------------------------------------ | --------------------------------------------------------------------------------- |
-| `CURSOR_DEBUG`                   | _(unset)_           | `open-sse/executors/cursor.ts`             | Set `1` to enable verbose Cursor executor logs (decoded SSE chunks, etc.).        |
-| `CURSOR_STREAM_DEBUG`            | _(unset)_           | `open-sse/executors/cursor.ts`             | Backward-compatible alias of `CURSOR_DEBUG`.                                      |
-| `CURSOR_DUMP_FILE`               | _(unset)_           | `open-sse/executors/cursor.ts`             | Optional file path that receives raw decoded Cursor chunks when `CURSOR_DEBUG=1`. |
-| `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`             | Stream idle timeout (ms) for the Cursor executor.                                 |
-| `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`  | Override the Cursor state DB lookup used for version detection.                   |
-| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/ad-hoc/cursor-tap.cjs`            | Direct Cursor bearer token used by developer tooling.                             |
-| `OMNIROUTE_LOG_REQUEST_SHAPE`    | enabled (`!== "0"`) | `src/app/api/v1/chat/completions/route.ts` | Log content-type/length markers for large chat payloads. Set `"0"` to silence.    |
-| `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_           | `open-sse/handlers/responseTranslator.ts`  | Set `true` to log Responses API SSE→JSON translation details.                     |
-| `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_           | E2E test harness                           | Set `true` to enable E2E test mode (relaxed auth, test hooks).                    |
+| Variable                         | Default             | Source File                                       | Description                                                                       |
+| -------------------------------- | ------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `CURSOR_DEBUG`                   | _(unset)_           | `open-sse/executors/cursor.ts`                    | Set `1` to enable verbose Cursor executor logs (decoded SSE chunks, etc.).        |
+| `CURSOR_STREAM_DEBUG`            | _(unset)_           | `open-sse/executors/cursor.ts`                    | Backward-compatible alias of `CURSOR_DEBUG`.                                      |
+| `CURSOR_DUMP_FILE`               | _(unset)_           | `open-sse/executors/cursor.ts`                    | Optional file path that receives raw decoded Cursor chunks when `CURSOR_DEBUG=1`. |
+| `CURSOR_STREAM_TIMEOUT_MS`       | `300000`            | `open-sse/executors/cursor.ts`                    | Stream idle timeout (ms) for the Cursor executor.                                 |
+| `CURSOR_STATE_DB_PATH`           | _(probed)_          | `open-sse/utils/cursorVersionDetector.ts`         | Override the Cursor state DB lookup used for version detection.                   |
+| `CURSOR_TOKEN`                   | _(unset)_           | `scripts/ad-hoc/cursor-tap.cjs`                   | Direct Cursor bearer token used by developer tooling.                             |
+| `CURSOR_API_KEY`                 | _(unset)_           | `src/app/api/oauth/cursor/import-apikey/route.ts` | Cursor API key fallback used by Cursor OAuth API-key import endpoint.             |
+| `OMNIROUTE_LOG_REQUEST_SHAPE`    | enabled (`!== "0"`) | `src/app/api/v1/chat/completions/route.ts`        | Log content-type/length markers for large chat payloads. Set `"0"` to silence.    |
+| `DEBUG_RESPONSES_SSE_TO_JSON`    | _(unset)_           | `open-sse/handlers/responseTranslator.ts`         | Set `true` to log Responses API SSE→JSON translation details.                     |
+| `NEXT_PUBLIC_OMNIROUTE_E2E_MODE` | _(unset)_           | E2E test harness                                  | Set `true` to enable E2E test mode (relaxed auth, test hooks).                    |
 
 ---
 
