@@ -3009,6 +3009,7 @@ export async function handleChatCore({
     provider,
     model,
     connectionId,
+    clientResponseFormat,
   });
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };

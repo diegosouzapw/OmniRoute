@@ -1,4 +1,5 @@
 import { trackPendingRequest } from "@/lib/usageDb";
+import { FORMATS } from "../translator/formats.ts";
 
 // Stream handler with disconnect detection - shared for all providers
 
@@ -16,9 +17,40 @@ type StreamControllerOptions = {
   provider?: string;
   model?: string;
   connectionId?: string | null;
+  clientResponseFormat?: string | null;
 };
 
 type StreamController = ReturnType<typeof createStreamController>;
+
+function isResponsesClientFormat(clientResponseFormat?: string | null): boolean {
+  return (
+    clientResponseFormat === FORMATS.OPENAI_RESPONSES ||
+    clientResponseFormat === FORMATS.OPENAI_RESPONSE
+  );
+}
+
+function responsesErrorType(statusCode: number): string {
+  if (statusCode === 429) return "rate_limit_error";
+  if (statusCode === 401 || statusCode === 403) return "authentication_error";
+  if (statusCode >= 400 && statusCode < 500) return "invalid_request_error";
+  return "server_error";
+}
+
+function responsesErrorCode(statusCode: number): string {
+  if (statusCode === 429) return "rate_limit_exceeded";
+  if (statusCode === 401) return "invalid_authentication";
+  if (statusCode === 403) return "permission_denied";
+  if (statusCode >= 400 && statusCode < 500) return "bad_request";
+  return "server_error";
+}
+
+function claudeErrorType(statusCode: number): string {
+  if (statusCode === 429) return "rate_limit_error";
+  if (statusCode === 401) return "authentication_error";
+  if (statusCode === 403) return "permission_error";
+  if (statusCode >= 400 && statusCode < 500) return "invalid_request_error";
+  return "api_error";
+}
 
 // Get HH:MM:SS timestamp
 function getTimeString() {
@@ -45,6 +77,7 @@ export function createStreamController({
   provider,
   model,
   connectionId,
+  clientResponseFormat,
 }: StreamControllerOptions = {}) {
   const abortController = new AbortController();
   const startTime = Date.now();
@@ -138,7 +171,65 @@ export function createStreamController({
     },
 
     abort: () => abortController.abort(),
+    clientResponseFormat,
   };
+}
+
+function buildStreamErrorChunks(
+  errorMsg: string,
+  statusCode: number,
+  clientResponseFormat?: string | null
+) {
+  const encoder = new TextEncoder();
+  if (isResponsesClientFormat(clientResponseFormat)) {
+    const errorEvent = {
+      type: "response.failed",
+      response: {
+        id: null,
+        status: "failed",
+        error: {
+          message: errorMsg,
+          type: responsesErrorType(statusCode),
+          code: responsesErrorCode(statusCode),
+        },
+      },
+    };
+
+    return [encoder.encode(`event: response.failed\ndata: ${JSON.stringify(errorEvent)}\n\n`)];
+  }
+
+  if (clientResponseFormat === FORMATS.CLAUDE) {
+    const errorEvent = {
+      type: "error",
+      error: {
+        type: claudeErrorType(statusCode),
+        message: errorMsg,
+      },
+    };
+
+    return [encoder.encode(`event: error\ndata: ${JSON.stringify(errorEvent)}\n\n`)];
+  }
+
+  const errorEvent = {
+    object: "chat.completion.chunk",
+    choices: [
+      {
+        index: 0,
+        delta: {},
+        finish_reason: "error",
+      },
+    ],
+    error: {
+      message: errorMsg,
+      type: "upstream_error",
+      code: statusCode,
+    },
+  };
+
+  return [
+    encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`),
+    encoder.encode(`data: [DONE]\n\n`),
+  ];
 }
 
 /**
@@ -175,25 +266,13 @@ export function createDisconnectAwareStream(transformStream, streamController) {
             ? Number((error as { statusCode?: unknown }).statusCode) || 500
             : 500;
 
-        const errorEvent = {
-          object: "chat.completion.chunk",
-          choices: [
-            {
-              index: 0,
-              delta: {},
-              finish_reason: "error",
-            },
-          ],
-          error: {
-            message: errorMsg,
-            type: "upstream_error",
-            code: statusCode,
-          },
-        };
-
-        const encoder = new TextEncoder();
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`));
-        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+        for (const chunk of buildStreamErrorChunks(
+          errorMsg,
+          statusCode,
+          streamController.clientResponseFormat
+        )) {
+          controller.enqueue(chunk);
+        }
 
         controller.close();
       }
