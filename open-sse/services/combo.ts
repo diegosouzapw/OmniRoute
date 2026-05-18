@@ -1742,7 +1742,7 @@ export async function handleComboChat({
     try {
       const { getLKGP } = await import("../../src/lib/localDb");
       const lkgp = await getLKGP(combo.name, combo.id || combo.name);
-      if (lkgp) lastKnownGoodProvider = lkgp;
+      if (lkgp) lastKnownGoodProvider = lkgp.provider;
     } catch (err) {
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
@@ -1819,22 +1819,34 @@ export async function handleComboChat({
       const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
 
       if (lkgpProvider) {
-        const lkgpIndex = orderedTargets.findIndex(
-          (target) =>
-            target.provider === lkgpProvider || target.modelStr.startsWith(`${lkgpProvider}/`)
-        );
+        const lkgpRecord = lkgpProvider;
+        const providerName = lkgpRecord.provider;
+        const connId = lkgpRecord.connectionId;
+
+        let lkgpIndex = -1;
+        if (connId) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) => target.provider === providerName && target.connectionId === connId
+          );
+        }
+        if (lkgpIndex < 0) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) =>
+              target.provider === providerName || target.modelStr.startsWith(`${providerName}/`)
+          );
+        }
 
         if (lkgpIndex > 0) {
           const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
           orderedTargets.unshift(lkgpTarget);
           log.info(
             "COMBO",
-            `[LKGP] Prioritizing last known good provider ${lkgpProvider} for combo "${combo.name}"`
+            `[LKGP] Prioritizing last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} for combo "${combo.name}"`
           );
         } else if (lkgpIndex === 0) {
           log.debug(
             "COMBO",
-            `[LKGP] Last known good provider ${lkgpProvider} already first for combo "${combo.name}"`
+            `[LKGP] Last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} already first for combo "${combo.name}"`
           );
         }
       }
@@ -2070,12 +2082,13 @@ export async function handleComboChat({
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {
+          const connId = target.connectionId || undefined;
           void (async () => {
             try {
               const { setLKGP } = await import("../../src/lib/localDb");
               await Promise.all([
-                setLKGP(combo.name, target.executionKey, provider),
-                setLKGP(combo.name, combo.id || combo.name, provider),
+                setLKGP(combo.name, target.executionKey, provider, connId),
+                setLKGP(combo.name, combo.id || combo.name, provider, connId),
               ]);
             } catch (err) {
               log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
@@ -2400,12 +2413,13 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
           if (provider) {
+            const connId = target.connectionId || undefined;
             void (async () => {
               try {
                 const { setLKGP } = await import("../../src/lib/localDb");
                 await Promise.all([
-                  setLKGP(combo.name, target.executionKey, provider),
-                  setLKGP(combo.name, combo.id || combo.name, provider),
+                  setLKGP(combo.name, target.executionKey, provider, connId),
+                  setLKGP(combo.name, combo.id || combo.name, provider, connId),
                 ]);
               } catch (err) {
                 log.warn(

@@ -150,16 +150,16 @@ test("cached LKGP values refresh only after the specific key is invalidated", as
   const lkgpKey = `${comboName}:${modelId}`;
 
   await settingsDb.setLKGP(comboName, modelId, "openai");
-  assert.equal(await readCache.getCachedLKGP(comboName, modelId), "openai");
+  assert.deepEqual(await readCache.getCachedLKGP(comboName, modelId), { provider: "openai" });
 
   db.prepare("UPDATE key_value SET value = ? WHERE namespace = 'lkgp' AND key = ?").run(
     JSON.stringify("anthropic"),
     lkgpKey
   );
 
-  assert.equal(await readCache.getCachedLKGP(comboName, modelId), "openai");
+  assert.deepEqual(await readCache.getCachedLKGP(comboName, modelId), { provider: "openai" });
 
   await readCache.setCachedLKGP(comboName, modelId, "gemini");
 
-  assert.equal(await readCache.getCachedLKGP(comboName, modelId), "gemini");
+  assert.deepEqual(await readCache.getCachedLKGP(comboName, modelId), { provider: "gemini" });
 });
