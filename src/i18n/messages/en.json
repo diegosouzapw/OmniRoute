@@ -1721,6 +1721,9 @@
     "contextRelaySummaryModelHelp": "Optional override model used only for generating the handoff summary. Leave empty to reuse the active combo model.",
     "contextRelayProviderNote": "Context Relay currently generates handoffs for Codex account rotation. Pair it with multiple accounts of the same provider for the best continuity.",
     "advancedHint": "Leave empty to use global defaults. These override per-provider settings.",
+    "failoverBeforeRetry": "Failover Before Retry",
+    "maxSetRetries": "Max Set Retries",
+    "setRetryDelayMs": "Set Retry Delay (ms)",
     "moveUp": "Move up",
     "moveDown": "Move down",
     "removeModel": "Remove",
@@ -1810,7 +1813,10 @@
       "timeout": "Maximum request duration before aborting.",
       "healthcheck": "Skips unhealthy models/providers from routing decisions.",
       "concurrencyPerModel": "Max simultaneous requests allowed per model in round-robin.",
-      "queueTimeout": "How long a request can wait in queue before timing out."
+      "queueTimeout": "How long a request can wait in queue before timing out.",
+      "failoverBeforeRetry": "When enabled, any upstream error triggers immediate failover to the next combo target, skipping all retries and fallback URLs.",
+      "maxSetRetries": "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
+      "setRetryDelayMs": "Delay between set-level retry attempts, giving transient issues time to resolve."
     },
     "templatesTitle": "Quick templates",
     "templatesDescription": "Apply a starting profile, then adjust models and config.",

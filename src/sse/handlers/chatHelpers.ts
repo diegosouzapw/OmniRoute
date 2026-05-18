@@ -303,6 +303,7 @@ export async function executeChatWithBreaker({
   modelApiFormat,
   providerProfile,
   cachedSettings,
+  skipUpstreamRetry = false,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
 
@@ -324,6 +325,7 @@ export async function executeChatWithBreaker({
           comboStepId,
           comboExecutionKey,
           cachedSettings,
+          skipUpstreamRetry,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

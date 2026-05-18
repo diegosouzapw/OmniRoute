@@ -1567,8 +1567,14 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
-    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
+    if (
+      isPerModelQuotaProvider &&
+      provider &&
+      model &&
+      (status === 404 || status === 429 || status >= 500)
+    ) {
+      const reason =
+        status === 404 ? "not_found" : status === 429 ? "rate_limited" : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

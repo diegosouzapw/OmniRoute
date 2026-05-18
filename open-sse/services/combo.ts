@@ -1678,6 +1678,8 @@ export async function handleComboChat({
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
+  const maxSetRetries = config.maxSetRetries ?? 0;
+  const setRetryDelayMs = resolveDelayMs(config.setRetryDelayMs, 2000);
 
   let orderedTargets =
     strategy === "weighted"
@@ -1954,82 +1956,242 @@ export async function handleComboChat({
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
-  let lastError = null;
-  let earliestRetryAfter = null;
-  let lastStatus = null;
-  const startTime = Date.now();
   let globalAttempts = 0;
-  let fallbackCount = 0;
-  let recordedAttempts = 0;
 
-  for (let i = 0; i < orderedTargets.length; i++) {
-    const target = orderedTargets[i];
-    const modelStr = target.modelStr;
-    const provider = target.provider;
-    const profile = await getRuntimeProviderProfile(provider);
-
-    // Pre-check: skip models where all accounts are in cooldown
-    if (isModelAvailable) {
-      const available = await isModelAvailable(modelStr, target);
-      if (!available) {
-        log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
-        if (i > 0) fallbackCount++;
-        continue;
+  for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
+    if (setTry > 0) {
+      log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, setRetryDelayMs);
+        signal?.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(timer);
+            resolve(undefined);
+          },
+          { once: true }
+        );
+      });
+      if (signal?.aborted) {
+        log.info("COMBO", "Client disconnected during set retry delay — aborting");
+        return errorResponse(499, "Client disconnected");
       }
     }
 
-    // Retry loop for transient errors
-    for (let retry = 0; retry <= maxRetries; retry++) {
-      // Fix #1681: Bail out immediately if the client has disconnected
-      if (signal?.aborted) {
-        log.info("COMBO", `Client disconnected — aborting combo loop before model ${modelStr}`);
-        return errorResponse(499, "Client disconnected");
-      }
-      globalAttempts++;
-      if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
-        log.warn(
-          "COMBO",
-          `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
-        );
-        return errorResponse(503, "Maximum combo retry limit reached");
-      }
-      if (retry > 0) {
-        log.info(
-          "COMBO",
-          `Retrying ${modelStr} in ${retryDelayMs}ms (attempt ${retry + 1}/${maxRetries + 1})`
-        );
-        await new Promise((resolve) => {
-          const timer = setTimeout(resolve, retryDelayMs);
-          signal?.addEventListener(
-            "abort",
-            () => {
-              clearTimeout(timer);
-              resolve(undefined);
-            },
-            { once: true }
-          );
-        });
-        if (signal?.aborted) {
-          log.info("COMBO", `Client disconnected during retry delay — aborting`);
-          return errorResponse(499, "Client disconnected");
+    let lastError = null;
+    let earliestRetryAfter = null;
+    let lastStatus = null;
+    const startTime = Date.now();
+    let fallbackCount = 0;
+    let recordedAttempts = 0;
+
+    for (let i = 0; i < orderedTargets.length; i++) {
+      const target = orderedTargets[i];
+      const modelStr = target.modelStr;
+      const provider = target.provider;
+      const profile = await getRuntimeProviderProfile(provider);
+
+      // Pre-check: skip models where all accounts are in cooldown
+      if (isModelAvailable) {
+        const available = await isModelAvailable(modelStr, target);
+        if (!available) {
+          log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
+          if (i > 0) fallbackCount++;
+          continue;
         }
       }
 
-      log.info(
-        "COMBO",
-        `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
-      );
-
-      const result = await handleSingleModelWrapped(body, modelStr, target);
-
-      // Success — validate response quality before returning
-      if (result.ok) {
-        const quality = await validateResponseQuality(result, clientRequestedStream, log);
-        if (!quality.valid) {
+      // Retry loop for transient errors
+      for (let retry = 0; retry <= maxRetries; retry++) {
+        // Fix #1681: Bail out immediately if the client has disconnected
+        if (signal?.aborted) {
+          log.info("COMBO", `Client disconnected — aborting combo loop before model ${modelStr}`);
+          return errorResponse(499, "Client disconnected");
+        }
+        globalAttempts++;
+        if (globalAttempts > MAX_GLOBAL_ATTEMPTS) {
           log.warn(
             "COMBO",
-            `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
+            `Maximum combo attempts (${MAX_GLOBAL_ATTEMPTS}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
           );
+          return errorResponse(503, "Maximum combo retry limit reached");
+        }
+        if (retry > 0) {
+          log.info(
+            "COMBO",
+            `Retrying ${modelStr} in ${retryDelayMs}ms (attempt ${retry + 1}/${maxRetries + 1})`
+          );
+          await new Promise((resolve) => {
+            const timer = setTimeout(resolve, retryDelayMs);
+            signal?.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(timer);
+                resolve(undefined);
+              },
+              { once: true }
+            );
+          });
+          if (signal?.aborted) {
+            log.info("COMBO", `Client disconnected during retry delay — aborting`);
+            return errorResponse(499, "Client disconnected");
+          }
+        }
+
+        log.info(
+          "COMBO",
+          `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
+        );
+
+        const result = await handleSingleModelWrapped(body, modelStr, {
+          ...target,
+          failoverBeforeRetry: config.failoverBeforeRetry,
+        });
+
+        // Success — validate response quality before returning
+        if (result.ok) {
+          const quality = await validateResponseQuality(result, clientRequestedStream, log);
+          if (!quality.valid) {
+            log.warn(
+              "COMBO",
+              `Model ${modelStr} returned 200 but failed quality check: ${quality.reason}`
+            );
+            recordComboRequest(combo.name, modelStr, {
+              success: false,
+              latencyMs: Date.now() - startTime,
+              fallbackCount,
+              strategy,
+              target: toRecordedTarget(target),
+            });
+            recordedAttempts++;
+            // Fix #1707: Set terminal state so the fallback doesn't emit
+            // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
+            lastError = `Upstream response failed quality validation: ${quality.reason}`;
+            if (!lastStatus) lastStatus = 502;
+            if (i > 0) fallbackCount++;
+            break; // move to next model
+          }
+          const latencyMs = Date.now() - startTime;
+          log.info(
+            "COMBO",
+            `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
+          );
+          recordComboRequest(combo.name, modelStr, {
+            success: true,
+            latencyMs,
+            fallbackCount,
+            strategy,
+            target: toRecordedTarget(target),
+          });
+          recordedAttempts++;
+
+          // Context-relay intentionally splits responsibilities:
+          // combo.ts decides whether a successful turn should generate a handoff,
+          // while chat.ts injects the handoff after the real connectionId is resolved.
+          if (
+            strategy === "context-relay" &&
+            relayOptions?.sessionId &&
+            relayConfig &&
+            relayConfig.handoffProviders.includes(provider) &&
+            provider === "codex"
+          ) {
+            const connectionId = getSessionConnection(relayOptions.sessionId);
+            if (connectionId) {
+              const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
+              if (quotaInfo) {
+                const resetCandidates = [quotaInfo.window5h?.resetAt, quotaInfo.window7d?.resetAt]
+                  .filter((value): value is string => typeof value === "string" && value.length > 0)
+                  .sort((a, b) => a.localeCompare(b));
+                const handoffSourceMessages =
+                  Array.isArray(body?.messages) && body.messages.length > 0
+                    ? body.messages
+                    : Array.isArray(body?.input)
+                      ? body.input
+                      : [];
+
+                maybeGenerateHandoff({
+                  sessionId: relayOptions.sessionId,
+                  comboName: combo.name,
+                  connectionId,
+                  percentUsed: quotaInfo.percentUsed,
+                  messages: handoffSourceMessages,
+                  model: modelStr,
+                  expiresAt: resetCandidates[0] || null,
+                  config: relayConfig,
+                  handleSingleModel: handleSingleModelWrapped,
+                });
+              }
+            }
+          }
+
+          // Record last known good provider (LKGP) for this combo/model (#919)
+          if (provider) {
+            const connId = target.connectionId || undefined;
+            void (async () => {
+              try {
+                const { setLKGP } = await import("../../src/lib/localDb");
+                await Promise.all([
+                  setLKGP(combo.name, target.executionKey, provider, connId),
+                  setLKGP(combo.name, combo.id || combo.name, provider, connId),
+                ]);
+              } catch (err) {
+                log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
+                  err,
+                });
+              }
+            })();
+          }
+
+          return quality.clonedResponse ?? result;
+        }
+
+        // Extract error info from response
+        let errorText = result.statusText || "";
+        let errorBody = null;
+        let retryAfter = null;
+        try {
+          const cloned = result.clone();
+          try {
+            const text = await cloned.text();
+            if (text) {
+              errorText = text.substring(0, 500);
+              errorBody = JSON.parse(text);
+              errorText =
+                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+              retryAfter = errorBody?.retryAfter || null;
+            }
+          } catch {
+            /* Clone parse failed */
+          }
+        } catch {
+          /* Clone failed */
+        }
+
+        // Track earliest retryAfter
+        if (
+          retryAfter &&
+          (!earliestRetryAfter || new Date(retryAfter) < new Date(earliestRetryAfter))
+        ) {
+          earliestRetryAfter = retryAfter;
+        }
+
+        // Normalize error text
+        if (typeof errorText !== "string") {
+          try {
+            errorText = JSON.stringify(errorText);
+          } catch {
+            errorText = String(errorText);
+          }
+        }
+
+        const isStreamReadinessFailure =
+          (result.status === 502 || result.status === 504) &&
+          isStreamReadinessFailureErrorBody(errorBody);
+
+        // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
+        // There is no point trying fallback models when nobody is listening.
+        if (result.status === 499) {
+          log.info("COMBO", `Client disconnected (499) during ${modelStr} — stopping combo loop`);
           recordComboRequest(combo.name, modelStr, {
             success: false,
             latencyMs: Date.now() - startTime,
@@ -2038,134 +2200,45 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
-          // Fix #1707: Set terminal state so the fallback doesn't emit
-          // misleading ALL_ACCOUNTS_INACTIVE when the real issue is quality.
-          lastError = `Upstream response failed quality validation: ${quality.reason}`;
-          if (!lastStatus) lastStatus = 502;
-          if (i > 0) fallbackCount++;
-          break; // move to next model
+          return result;
         }
-        const latencyMs = Date.now() - startTime;
-        log.info(
-          "COMBO",
-          `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
+
+        // Combo fallback is target-level orchestration: a non-ok target response is
+        // treated as local to that target and the combo continues to the next target.
+        // Error classification is retained only for retry/cooldown pacing; it must
+        // not decide whether fallback happens, including for generic 400 responses.
+        const { cooldownMs } = checkFallbackError(
+          result.status,
+          errorText,
+          0,
+          null,
+          provider,
+          result.headers,
+          profile
         );
-        recordComboRequest(combo.name, modelStr, {
-          success: true,
-          latencyMs,
-          fallbackCount,
-          strategy,
-          target: toRecordedTarget(target),
-        });
-        recordedAttempts++;
 
-        // Context-relay intentionally splits responsibilities:
-        // combo.ts decides whether a successful turn should generate a handoff,
-        // while chat.ts injects the handoff after the real connectionId is resolved.
+        // Trigger shared provider circuit breaker for 5xx errors and connection failures.
+        // If the next target in the combo is on the same provider, don't mark the provider
+        // as failed — different models on the same provider may still succeed.
+        const nextTarget = orderedTargets[i + 1];
+        const sameProviderNext =
+          typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
         if (
-          strategy === "context-relay" &&
-          relayOptions?.sessionId &&
-          relayConfig &&
-          relayConfig.handoffProviders.includes(provider) &&
-          provider === "codex"
+          !isStreamReadinessFailure &&
+          isProviderFailureCode(result.status) &&
+          !sameProviderNext
         ) {
-          const connectionId = getSessionConnection(relayOptions.sessionId);
-          if (connectionId) {
-            const quotaInfo = await fetchCodexQuota(connectionId).catch(() => null);
-            if (quotaInfo) {
-              const resetCandidates = [quotaInfo.window5h?.resetAt, quotaInfo.window7d?.resetAt]
-                .filter((value): value is string => typeof value === "string" && value.length > 0)
-                .sort((a, b) => a.localeCompare(b));
-              const handoffSourceMessages =
-                Array.isArray(body?.messages) && body.messages.length > 0
-                  ? body.messages
-                  : Array.isArray(body?.input)
-                    ? body.input
-                    : [];
-
-              maybeGenerateHandoff({
-                sessionId: relayOptions.sessionId,
-                comboName: combo.name,
-                connectionId,
-                percentUsed: quotaInfo.percentUsed,
-                messages: handoffSourceMessages,
-                model: modelStr,
-                expiresAt: resetCandidates[0] || null,
-                config: relayConfig,
-                handleSingleModel: handleSingleModelWrapped,
-              });
-            }
-          }
+          recordProviderFailure(provider, log, target.connectionId, profile);
         }
 
-        // Record last known good provider (LKGP) for this combo/model (#919)
-        if (provider) {
-          const connId = target.connectionId || undefined;
-          void (async () => {
-            try {
-              const { setLKGP } = await import("../../src/lib/localDb");
-              await Promise.all([
-                setLKGP(combo.name, target.executionKey, provider, connId),
-                setLKGP(combo.name, combo.id || combo.name, provider, connId),
-              ]);
-            } catch (err) {
-              log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
-                err,
-              });
-            }
-          })();
+        // Check if this is a transient error worth retrying on same model
+        const isTransient =
+          !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
+        if (retry < maxRetries && isTransient) {
+          continue; // Retry same model
         }
 
-        return quality.clonedResponse ?? result;
-      }
-
-      // Extract error info from response
-      let errorText = result.statusText || "";
-      let errorBody = null;
-      let retryAfter = null;
-      try {
-        const cloned = result.clone();
-        try {
-          const text = await cloned.text();
-          if (text) {
-            errorText = text.substring(0, 500);
-            errorBody = JSON.parse(text);
-            errorText =
-              errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
-            retryAfter = errorBody?.retryAfter || null;
-          }
-        } catch {
-          /* Clone parse failed */
-        }
-      } catch {
-        /* Clone failed */
-      }
-
-      // Track earliest retryAfter
-      if (
-        retryAfter &&
-        (!earliestRetryAfter || new Date(retryAfter) < new Date(earliestRetryAfter))
-      ) {
-        earliestRetryAfter = retryAfter;
-      }
-
-      // Normalize error text
-      if (typeof errorText !== "string") {
-        try {
-          errorText = JSON.stringify(errorText);
-        } catch {
-          errorText = String(errorText);
-        }
-      }
-
-      const isStreamReadinessFailure =
-        (result.status === 502 || result.status === 504) &&
-        isStreamReadinessFailureErrorBody(errorBody);
-
-      // Fix #1681: Status 499 means client disconnected — stop combo loop immediately.
-      // There is no point trying fallback models when nobody is listening.
-      if (result.status === 499) {
-        log.info("COMBO", `Client disconnected (499) during ${modelStr} — stopping combo loop`);
+        // Done retrying this model
         recordComboRequest(combo.name, modelStr, {
           success: false,
           latencyMs: Date.now() - startTime,
@@ -2174,109 +2247,76 @@ export async function handleComboChat({
           target: toRecordedTarget(target),
         });
         recordedAttempts++;
-        return result;
-      }
+        lastError = errorText || String(result.status);
+        if (!lastStatus) lastStatus = result.status;
+        if (i > 0) fallbackCount++;
+        log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
 
-      // Combo fallback is target-level orchestration: a non-ok target response is
-      // treated as local to that target and the combo continues to the next target.
-      // Error classification is retained only for retry/cooldown pacing; it must
-      // not decide whether fallback happens, including for generic 400 responses.
-      const { cooldownMs } = checkFallbackError(
-        result.status,
-        errorText,
-        0,
-        null,
-        provider,
-        result.headers,
-        profile
-      );
-
-      // Trigger shared provider circuit breaker for 5xx errors and connection failures
-      if (!isStreamReadinessFailure && isProviderFailureCode(result.status)) {
-        recordProviderFailure(provider, log, target.connectionId, profile);
-      }
-
-      // Check if this is a transient error worth retrying on same model
-      const isTransient =
-        !isStreamReadinessFailure && [408, 429, 500, 502, 503, 504].includes(result.status);
-      if (retry < maxRetries && isTransient) {
-        continue; // Retry same model
-      }
-
-      // Done retrying this model
-      recordComboRequest(combo.name, modelStr, {
-        success: false,
-        latencyMs: Date.now() - startTime,
-        fallbackCount,
-        strategy,
-        target: toRecordedTarget(target),
-      });
-      recordedAttempts++;
-      lastError = errorText || String(result.status);
-      if (!lastStatus) lastStatus = result.status;
-      if (i > 0) fallbackCount++;
-      log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
-
-      const fallbackWaitMs =
-        fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
-          ? Math.min(cooldownMs, fallbackDelayMs)
-          : 0;
-      if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
-        log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
-        await new Promise((resolve) => {
-          const timer = setTimeout(resolve, fallbackWaitMs);
-          signal?.addEventListener(
-            "abort",
-            () => {
-              clearTimeout(timer);
-              resolve(undefined);
-            },
-            { once: true }
-          );
-        });
-        if (signal?.aborted) {
-          log.info("COMBO", `Client disconnected during fallback wait — aborting`);
-          return errorResponse(499, "Client disconnected");
+        const fallbackWaitMs =
+          fallbackDelayMs > 0 && cooldownMs > 0 && cooldownMs <= MAX_FALLBACK_WAIT_MS
+            ? Math.min(cooldownMs, fallbackDelayMs)
+            : 0;
+        if ([502, 503, 504].includes(result.status) && fallbackWaitMs > 0) {
+          log.info("COMBO", `Waiting ${fallbackWaitMs}ms before fallback to next model`);
+          await new Promise((resolve) => {
+            const timer = setTimeout(resolve, fallbackWaitMs);
+            signal?.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(timer);
+                resolve(undefined);
+              },
+              { once: true }
+            );
+          });
+          if (signal?.aborted) {
+            log.info("COMBO", `Client disconnected during fallback wait — aborting`);
+            return errorResponse(499, "Client disconnected");
+          }
         }
+
+        break; // Move to next model
       }
-
-      break; // Move to next model
     }
+
+    // All models failed in this set try
+    const latencyMs = Date.now() - startTime;
+    if (recordedAttempts === 0) {
+      recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
+    }
+
+    // Retry the entire set if more attempts remain
+    if (setTry < maxSetRetries) continue;
+
+    // All set retries exhausted — return the final error
+    if (!lastStatus) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "Service temporarily unavailable: all upstream accounts are inactive",
+            type: "service_unavailable",
+            code: "ALL_ACCOUNTS_INACTIVE",
+          },
+        }),
+        { status: 503, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const status = lastStatus;
+    const msg = lastError || "All combo models unavailable";
+
+    if (earliestRetryAfter) {
+      const retryHuman = formatRetryAfter(earliestRetryAfter);
+      log.warn("COMBO", `All models failed | ${msg} (${retryHuman})`);
+      return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
+    }
+
+    log.warn("COMBO", `All models failed | ${msg}`);
+    return new Response(JSON.stringify({ error: { message: msg } }), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-
-  // All models failed
-  const latencyMs = Date.now() - startTime;
-  if (recordedAttempts === 0) {
-    recordComboRequest(combo.name, null, { success: false, latencyMs, fallbackCount, strategy });
-  }
-
-  if (!lastStatus) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          message: "Service temporarily unavailable: all upstream accounts are inactive",
-          type: "service_unavailable",
-          code: "ALL_ACCOUNTS_INACTIVE",
-        },
-      }),
-      { status: 503, headers: { "Content-Type": "application/json" } }
-    );
-  }
-
-  const status = lastStatus;
-  const msg = lastError || "All combo models unavailable";
-
-  if (earliestRetryAfter) {
-    const retryHuman = formatRetryAfter(earliestRetryAfter);
-    log.warn("COMBO", `All models failed | ${msg} (${retryHuman})`);
-    return unavailableResponse(status, msg, earliestRetryAfter, retryHuman);
-  }
-
-  log.warn("COMBO", `All models failed | ${msg}`);
-  return new Response(JSON.stringify({ error: { message: msg } }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
 }
 
 /**
@@ -2392,7 +2432,10 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
-        const result = await handleSingleModel(body, modelStr, target);
+        const result = await handleSingleModel(body, modelStr, {
+          ...target,
+          failoverBeforeRetry: config.failoverBeforeRetry,
+        });
 
         // Success — validate response quality before returning
         if (result.ok) {

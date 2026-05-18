@@ -489,6 +489,14 @@ export function shouldMarkAccountExhaustedFrom429(
 }
 
 /**
+ * Clear all in-memory model lockouts and failure state (for tests / full reset).
+ */
+export function clearAllModelLockouts(): void {
+  modelLockouts.clear();
+  modelFailureState.clear();
+}
+
+/**
  * Check if a specific model on a specific account is locked
  * @returns {boolean}
  */

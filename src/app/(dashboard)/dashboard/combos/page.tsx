@@ -156,6 +156,12 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "Round-robin combo/model limit: max simultaneous requests sent to each model target. This is separate from any provider account-only cap.",
   queueTimeout:
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
+  failoverBeforeRetry:
+    "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
+  maxSetRetries:
+    "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
+  setRetryDelayMs:
+    "Delay between set-level retry attempts, giving transient issues time to resolve.",
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -1427,7 +1433,7 @@ function FieldLabelWithHelp({ label, help, showHelp = true }) {
     <div className="flex items-center gap-1 mb-0.5">
       <label className="text-[10px] text-text-muted">{label}</label>
       {showHelp && (
-        <Tooltip content={help}>
+        <Tooltip position="bottom" content={help}>
           <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
             help
           </span>
@@ -3534,6 +3540,94 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           setConfig({
                             ...config,
                             retryDelayMs: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  {/* failoverBeforeRetry + maxSetRetries + setRetryDelayMs */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2 py-1">
+                        <input
+                          type="checkbox"
+                          id="failoverBeforeRetry"
+                          checked={!!config.failoverBeforeRetry}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              failoverBeforeRetry: e.target.checked || undefined,
+                            })
+                          }
+                          className="w-3.5 h-3.5 rounded border border-black/20 dark:border-white/20 accent-primary cursor-pointer"
+                        />
+                        <label
+                          htmlFor="failoverBeforeRetry"
+                          className="text-xs text-text-muted cursor-pointer select-none"
+                        >
+                          {t("failoverBeforeRetry")}
+                        </label>
+                        <Tooltip
+                          position="bottom"
+                          content={getI18nOrFallback(
+                            t,
+                            "advancedHelp.failoverBeforeRetry",
+                            ADVANCED_FIELD_HELP_FALLBACK.failoverBeforeRetry
+                          )}
+                        >
+                          <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
+                            help
+                          </span>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("maxSetRetries")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.maxSetRetries",
+                          ADVANCED_FIELD_HELP_FALLBACK.maxSetRetries
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={config.maxSetRetries ?? ""}
+                        placeholder="0"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            maxSetRetries: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("setRetryDelayMs")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.setRetryDelayMs",
+                          ADVANCED_FIELD_HELP_FALLBACK.setRetryDelayMs
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="60000"
+                        step="500"
+                        value={config.setRetryDelayMs ?? ""}
+                        placeholder="2000"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            setRetryDelayMs: e.target.value ? Number(e.target.value) : undefined,
                           })
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"

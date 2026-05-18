@@ -517,6 +517,9 @@ const comboRuntimeConfigSchema = z
     maxComboDepth: z.coerce.number().int().min(1).max(10).optional(),
     trackMetrics: z.boolean().optional(),
     compressionMode: compressionModeSchema.optional(),
+    failoverBeforeRetry: z.boolean().optional(),
+    maxSetRetries: z.coerce.number().int().min(0).max(10).optional(),
+    setRetryDelayMs: z.coerce.number().int().min(0).max(60000).optional(),
     // Auto-Combo / LKGP Extensions
     candidatePool: z.array(z.string().min(1)).optional(),
     weights: scoringWeightsSchema.optional(),

@@ -463,6 +463,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           executionKey?: string | null;
           stepId?: string | null;
           allowedConnectionIds?: string[] | null;
+          failoverBeforeRetry?: boolean;
         }
       ) =>
         handleSingleModelChat(
@@ -481,6 +482,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             allowedConnectionIds: target?.allowedConnectionIds ?? null,
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
+            skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
             preselectedCredentials: comboPreselectedCredentials.get(
               getComboCredentialCacheKey(m, target)
             ),
@@ -611,6 +613,7 @@ async function handleSingleModelChat(
     allowedConnectionIds?: string[] | null;
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
+    skipUpstreamRetry?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
   } = {},
@@ -643,6 +646,7 @@ async function handleSingleModelChat(
           connectionId?: string | null;
           executionKey?: string | null;
           stepId?: string | null;
+          failoverBeforeRetry?: boolean;
         }
       ) =>
         handleSingleModelChat(
@@ -660,6 +664,7 @@ async function handleSingleModelChat(
             allowedConnectionIds: null,
             comboStepId: null,
             comboExecutionKey: null,
+            skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
           },
           redirectCombo.strategy ?? "priority",
           false
@@ -916,6 +921,7 @@ async function handleSingleModelChat(
         modelApiFormat: apiFormat,
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
+        skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
       });
       if (telemetry) telemetry.endPhase();
 
@@ -1129,7 +1135,11 @@ async function handleSingleModelChat(
         continue;
       }
 
-      if (!forceLiveComboTest && PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))) {
+      if (
+        !forceLiveComboTest &&
+        !isCombo &&
+        PROVIDER_BREAKER_FAILURE_STATUSES.has(Number(result.status))
+      ) {
         breaker._onFailure();
       }
 

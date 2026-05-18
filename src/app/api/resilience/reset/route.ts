@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 /**
- * POST /api/resilience/reset — Reset all provider circuit breakers
+ * POST /api/resilience/reset — Reset all provider circuit breakers and model lockouts
  */
 export async function POST() {
   try {
@@ -17,10 +17,15 @@ export async function POST() {
       resetCount++;
     }
 
+    // Also clear in-memory model lockouts (per-model quota cooldowns)
+    const { clearAllModelLockouts } =
+      await import("@omniroute/open-sse/services/accountFallback.ts");
+    clearAllModelLockouts();
+
     return NextResponse.json({
       ok: true,
       resetCount,
-      message: `Reset ${resetCount} circuit breaker(s)`,
+      message: `Reset ${resetCount} circuit breaker(s) and model lockouts`,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to reset resilience state";
