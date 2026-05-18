@@ -6,7 +6,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "endpoints",
   "providers",
   "combos",
-  "limits",
+  "quota",
   // OmniProxy > Compression Context
   "context-caveman",
   "context-rtk",
@@ -37,6 +37,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "logs-console",
   "logs-activity",
   "health",
+  "runtime",
   // Monitoring > Costs Parameters
   "costs-pricing",
   "costs-budget",
@@ -168,10 +169,10 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "layers",
   },
   {
-    id: "limits",
-    href: "/dashboard/limits",
-    i18nKey: "quotaTracker",
-    subtitleKey: "quotaTrackerSubtitle",
+    id: "quota",
+    href: "/dashboard/quota",
+    i18nKey: "providerQuota",
+    subtitleKey: "providerQuotaSubtitle",
     icon: "tune",
   },
 ];
@@ -383,6 +384,13 @@ const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "health",
     subtitleKey: "healthSubtitle",
     icon: "health_and_safety",
+  },
+  {
+    id: "runtime",
+    href: "/dashboard/runtime",
+    i18nKey: "runtime",
+    subtitleKey: "runtimeSubtitle",
+    icon: "bolt",
   },
 ];
 

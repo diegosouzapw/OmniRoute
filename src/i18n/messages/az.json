@@ -747,6 +747,8 @@
     "homeSubtitle": "Dashboard overview",
     "providersSubtitle": "Manage AI providers",
     "quotaTrackerSubtitle": "Track usage limits",
+    "providerQuotaSubtitle": "Track provider usage limits",
+    "runtimeSubtitle": "Realtime resilience & sessions",
     "contextCombosSubtitle": "Combine compression engines",
     "cliToolsSubtitle": "Configure CLI runtimes",
     "agentsSubtitle": "Manage local agents",
