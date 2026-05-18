@@ -385,3 +385,16 @@ export {
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,
 } from "./db/sessionAccountAffinity";
+
+export {
+  insertPlugin,
+  getPluginById,
+  getPluginByName,
+  listPlugins,
+  updatePluginStatus,
+  updatePluginConfig,
+  deletePlugin,
+  pluginExists,
+} from "./db/plugins";
+
+export type { PluginRow, PluginCreateInput } from "./db/plugins";
