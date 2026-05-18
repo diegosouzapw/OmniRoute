@@ -1,0 +1,18 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.2
+2 info using node@v24.11.1
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:D:\programatyvna_shlaypa(sandbox)\OmniRoute\.npmrc
+5 silly config load:file:D:\programatyvna_shlaypa(sandbox)\OmniRoute\build-userprofile\.npmrc
+6 silly config load:file:D:\programatyvna_shlaypa(sandbox)\OmniRoute\build-appdata\npm\etc\npmrc
+7 verbose title npm run build
+8 verbose argv "run" "build"
+9 verbose logfile logs-max:10 dir:D:\programatyvna_shlaypa(sandbox)\OmniRoute\build-localappdata\npm-cache\_logs\2026-05-18T00_23_12_851Z-
+10 verbose logfile D:\programatyvna_shlaypa(sandbox)\OmniRoute\build-localappdata\npm-cache\_logs\2026-05-18T00_23_12_851Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd D:\programatyvna_shlaypa(sandbox)\OmniRoute
+13 verbose os Windows_NT 10.0.19045
+14 verbose node v24.11.1
+15 verbose npm  v11.6.2
+16 verbose exit 0
+17 info ok

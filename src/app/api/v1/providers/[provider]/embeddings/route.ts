@@ -11,7 +11,7 @@ import { handleEmbedding } from "@omniroute/open-sse/handlers/embeddings.ts";
 import * as log from "@/sse/utils/logger";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1EmbeddingsSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 /**
  * Handle CORS preflight
@@ -47,7 +47,8 @@ export async function POST(request, { params }) {
   }
   const validation = validateBody(v1EmbeddingsSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+    const err = getValidationError(validation) as any;
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, err?.message || "Invalid request");
   }
   const body = validation.data;
 

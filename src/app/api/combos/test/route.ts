@@ -5,7 +5,7 @@ import { getApiKeys, getComboByName, getCombos } from "@/lib/localDb";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import { testComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 async function getInternalApiKey(): Promise<string | null> {
@@ -140,7 +140,7 @@ export async function POST(request) {
   try {
     const validation = validateBody(testComboSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { comboName } = validation.data;
 

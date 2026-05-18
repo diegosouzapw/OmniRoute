@@ -7,7 +7,7 @@ import {
   updateProxy,
 } from "@/lib/localDb";
 import { createProxyRegistrySchema, updateProxyRegistrySchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
@@ -69,10 +69,11 @@ export async function POST(request: Request) {
   try {
     const validation = validateBody(createProxyRegistrySchema, rawBody);
     if (isValidationFailure(validation)) {
+      const err = getValidationError(validation) as any;
       return createErrorResponse({
         status: 400,
-        message: validation.error.message,
-        details: validation.error.details,
+        message: err?.message || "Invalid request",
+        details: err?.details,
         type: "invalid_request",
       });
     }
@@ -102,10 +103,11 @@ export async function PATCH(request: Request) {
   try {
     const validation = validateBody(updateProxyRegistrySchema, rawBody);
     if (isValidationFailure(validation)) {
+      const err = getValidationError(validation) as any;
       return createErrorResponse({
         status: 400,
-        message: validation.error.message,
-        details: validation.error.details,
+        message: err?.message || "Invalid request",
+        details: err?.details,
         type: "invalid_request",
       });
     }

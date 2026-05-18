@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { setProviderKeyLimit, getProviderKeyLimit } from "@/lib/db/registeredKeys";
 
 const limitsSchema = z.object({
@@ -42,7 +42,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ prov
 
   const validation = validateBody(limitsSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   const { provider } = await params;

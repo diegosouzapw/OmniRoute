@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createCompressionCombo, listCompressionCombos } from "@/lib/db/compressionCombos";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import {
   cavemanIntensitySchema,
   stackedPipelineStepSchema,
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(compressionComboCreateSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   const combo = createCompressionCombo(validation.data);

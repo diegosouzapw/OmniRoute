@@ -9,7 +9,7 @@ import {
   type CustomAgentDef,
 } from "@/lib/acp/registry";
 import { getSettings, updateSettings } from "@/lib/db/settings";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 const customAgentBodySchema = z.object({
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(customAgentBodySchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   try {

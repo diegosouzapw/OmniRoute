@@ -13,7 +13,7 @@ import { validateCompositeTiersConfig } from "@/lib/combos/compositeTiers";
 import { normalizeComboModels } from "@/lib/combos/steps";
 import { validateComboDAG } from "@omniroute/open-sse/services/combo.ts";
 import { updateComboSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // GET /api/combos/[id] - Get combo by ID
@@ -60,7 +60,7 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const validation = validateBody(updateComboSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const currentCombo = await getComboById(id);
     if (!currentCombo) {
@@ -103,7 +103,7 @@ export async function PUT(request, { params }) {
     };
     const compositeValidation = validateCompositeTiersConfig(nextComboState);
     if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      return NextResponse.json({ error: (compositeValidation as any).error }, { status: 400 });
     }
 
     // Check if name already exists (exclude current combo)

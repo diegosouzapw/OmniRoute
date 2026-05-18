@@ -1,6 +1,6 @@
 import { bulkAssignProxyToScope } from "@/lib/localDb";
 import { bulkProxyAssignmentSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
@@ -23,10 +23,11 @@ export async function PUT(request: Request) {
   try {
     const validation = validateBody(bulkProxyAssignmentSchema, rawBody);
     if (isValidationFailure(validation)) {
+      const err = getValidationError(validation) as any;
       return createErrorResponse({
         status: 400,
-        message: validation.error.message,
-        details: validation.error.details,
+        message: err?.message || "Invalid request",
+        details: err?.details,
         type: "invalid_request",
       });
     }

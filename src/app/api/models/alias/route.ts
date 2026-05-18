@@ -27,16 +27,17 @@ export async function GET(request) {
     if (alias) {
       const resolved = await resolveModelAliasLookup(alias);
       if (!resolved.ok) {
+        const rerr = (resolved as any).error;
         return NextResponse.json(
           {
             error: {
-              message: resolved.error.message,
-              code: resolved.error.code,
-              ...(resolved.error.candidates ? { candidates: resolved.error.candidates } : {}),
+              message: rerr.message,
+              code: rerr.code,
+              ...(rerr.candidates ? { candidates: rerr.candidates } : {}),
             },
           },
           {
-            status: resolved.error.status,
+            status: rerr.status,
             headers: getCatalogDiagnosticsHeaders({ request, resolvedAlias: alias }),
           }
         );
@@ -122,7 +123,7 @@ export async function PUT(request) {
     const validation = validateBody(cloudModelAliasUpdateSchema, rawBody);
     if (isValidationFailure(validation)) {
       return NextResponse.json(
-        { error: validation.error },
+        { error: (validation as any).error },
         { status: 400, headers: diagnosticHeaders }
       );
     }

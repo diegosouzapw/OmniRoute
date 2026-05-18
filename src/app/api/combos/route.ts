@@ -34,7 +34,7 @@ export async function POST(request) {
     // Zod validation (covers name format, length, etc.)
     const validation = validateBody(createComboSchema, body);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: (validation as any).error }, { status: 400 });
     }
     const allCombos = await getCombos();
     const normalizedModels = normalizeComboModels(validation.data.models, {
@@ -48,7 +48,7 @@ export async function POST(request) {
     const { name, strategy, config } = comboInput;
     const compositeValidation = validateCompositeTiersConfig(comboInput);
     if (!compositeValidation.success) {
-      return NextResponse.json({ error: compositeValidation.error }, { status: 400 });
+      return NextResponse.json({ error: (compositeValidation as any).error }, { status: 400 });
     }
 
     // Check if name already exists

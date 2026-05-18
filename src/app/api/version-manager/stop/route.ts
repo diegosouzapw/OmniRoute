@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { stopTool } from "@/lib/versionManager";
 import { versionManagerToolSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function POST(request: Request) {
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(versionManagerToolSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   try {

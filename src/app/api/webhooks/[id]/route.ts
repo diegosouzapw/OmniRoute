@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 import { getWebhook, updateWebhookRecord, deleteWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { getValidationError } from "@/shared/validation/helpers";
 
 const updateWebhookSchema = z
   .object({
@@ -46,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const rawBody = await request.json();
     const validation = validateBody(updateWebhookSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const webhook = updateWebhookRecord(id, validation.data);

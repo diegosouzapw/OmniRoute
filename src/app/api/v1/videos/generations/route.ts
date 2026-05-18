@@ -16,7 +16,7 @@ import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ImageGenerationSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 /**
  * Handle CORS preflight
@@ -66,7 +66,8 @@ export async function POST(request) {
 
   const validation = validateBody(v1ImageGenerationSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+    const err = getValidationError(validation) as any;
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, err?.message || "Invalid request");
   }
   const body = validation.data;
 

@@ -4,7 +4,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { getRegistryEntry } from "@omniroute/open-sse/config/providerRegistry.ts";
 import { providerChatCompletionSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 let initialized = false;
 
@@ -54,7 +54,8 @@ export async function POST(request, { params }) {
   }
   const validation = validateBody(providerChatCompletionSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+    const err = getValidationError(validation) as any;
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, err?.message || "Invalid request");
   }
   const body = validation.data;
 

@@ -3,7 +3,7 @@ import { getApiKeys, createApiKey, isCloudEnabled, updateApiKeyPermissions } fro
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { createKeySchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { isApiKeyRevealEnabled, maskStoredApiKey } from "@/lib/apiKeyExposure";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import * as log from "@/sse/utils/logger";
@@ -60,7 +60,7 @@ export async function POST(request) {
     // Zod validation
     const validation = validateBody(createKeySchema, body);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { name, noLog, scopes } = validation.data;
 

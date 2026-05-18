@@ -6,7 +6,7 @@ import {
   updateAssignments,
 } from "@/lib/db/compressionCombos";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 export const assignmentsUpdateSchema = z
   .object({
@@ -38,7 +38,7 @@ export async function PUT(request: Request, { params }) {
 
   const validation = validateBody(assignmentsUpdateSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   const updated = updateAssignments(id, validation.data.routingComboIds);

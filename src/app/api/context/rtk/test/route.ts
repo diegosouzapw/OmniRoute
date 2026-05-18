@@ -5,7 +5,7 @@ import {
   processRtkText,
 } from "@omniroute/open-sse/services/compression/engines/rtk";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { rtkConfigSchema } from "@/shared/validation/compressionConfigSchemas";
 
 export const rtkTestSchema = z
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(rtkTestSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   const detection = detectCommandType(validation.data.text, validation.data.command);

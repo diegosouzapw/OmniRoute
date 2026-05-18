@@ -5,7 +5,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1ModerationSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 /**
  * Handle CORS preflight
@@ -33,7 +33,8 @@ export async function POST(request) {
 
   const validation = validateBody(v1ModerationSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+    const err = getValidationError(validation) as any;
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, err?.message || "Invalid request");
   }
   const body = validation.data;
 

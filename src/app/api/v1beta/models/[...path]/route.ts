@@ -1,7 +1,7 @@
 import { buildClientRawRequest, handleChat } from "@/sse/handlers/chat";
 import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 import { v1betaGeminiGenerateSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 let initialized = false;
 
@@ -71,7 +71,7 @@ export async function POST(request, { params }) {
 
     const validation = validateBody(v1betaGeminiGenerateSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return Response.json({ error: validation.error }, { status: 400 });
+      return Response.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const body = validation.data;
 

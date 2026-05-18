@@ -14,7 +14,7 @@ import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { enforceApiKeyPolicy } from "@/shared/utils/apiKeyPolicy";
 import { v1SearchSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { recordCost } from "@/domain/costRules";
 import {
   computeCacheKey,
@@ -98,7 +98,8 @@ export async function POST(request: Request) {
 
   const validation = validateBody(v1SearchSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+    const err = getValidationError(validation) as any;
+    return errorResponse(HTTP_STATUS.BAD_REQUEST, err?.message || "Invalid request");
   }
   const body = validation.data;
 

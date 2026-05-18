@@ -3,7 +3,7 @@ import { reorderCombos, isCloudEnabled } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { reorderCombosSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // POST /api/combos/reorder - Persist combo ordering
@@ -29,7 +29,7 @@ export async function POST(request) {
   try {
     const validation = validateBody(reorderCombosSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const combos = await reorderCombos(validation.data.comboIds);

@@ -311,10 +311,10 @@ export class BaseExecutor {
   }
 
   buildHeaders(
-    credentials: ProviderCredentials,
+    credentials: any,
     stream = true,
-    clientHeaders?: Record<string, string> | null,
-    model?: string
+    clientHeaders?: any,
+    model?: any
   ): Record<string, string> {
     void clientHeaders;
     void model;
@@ -353,12 +353,7 @@ export class BaseExecutor {
   }
 
   // Override in subclass for provider-specific transformations
-  transformRequest(
-    model: string,
-    body: unknown,
-    stream: boolean,
-    credentials: ProviderCredentials
-  ): unknown {
+  transformRequest(model: any, body: any, stream: any, credentials: any): any {
     void model;
     void stream;
     void credentials;
@@ -412,10 +407,7 @@ export class BaseExecutor {
   static FETCH_START_TIMEOUT_MS = FETCH_TIMEOUT_MS;
 
   // Override in subclass for provider-specific refresh
-  async refreshCredentials(
-    credentials: ProviderCredentials,
-    log: ExecutorLog | null
-  ): Promise<Partial<ProviderCredentials> | null> {
+  async refreshCredentials(credentials: any, log: ExecutorLog | null): Promise<any | null> {
     void credentials;
     void log;
     return null;
@@ -511,7 +503,7 @@ export class BaseExecutor {
     extendedContext,
     upstreamExtraHeaders,
     clientHeaders,
-  }: ExecuteInput) {
+  }: ExecuteInput): Promise<any> {
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
     let lastStatus = 0;

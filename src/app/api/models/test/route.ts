@@ -6,6 +6,7 @@ import { POST as postRerank } from "@/app/api/v1/rerank/route";
 import { buildComboTestRequestBody, extractComboTestResponseText } from "@/lib/combos/testHealth";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getCustomModels } from "@/lib/localDb";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { z } from "zod";
 
 const testModelSchema = z.object({
@@ -136,7 +137,8 @@ export async function POST(request: Request) {
   try {
     const validation = testModelSchema.safeParse(rawBody);
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.format() }, { status: 400 });
+      const err = getValidationError(validation) as any;
+      return NextResponse.json({ error: err?.format ? err.format() : err }, { status: 400 });
     }
     const { providerId, modelId } = validation.data;
 

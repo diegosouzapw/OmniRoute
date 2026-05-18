@@ -7,7 +7,7 @@ import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { ensureCliConfigWriteAllowed, getCliConfigPaths } from "@/shared/services/cliRuntime";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { codexProfileIdSchema, codexProfileNameSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 const PROFILES_DIR = path.join(resolveDataDir(), "codex-profiles");
 
@@ -124,7 +124,7 @@ export async function POST(request) {
 
     const validation = validateBody(codexProfileNameSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { name } = validation.data;
 
@@ -213,7 +213,7 @@ export async function PUT(request) {
 
     const validation = validateBody(codexProfileIdSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { profileId } = validation.data;
 
@@ -282,7 +282,7 @@ export async function DELETE(request) {
   try {
     const validation = validateBody(codexProfileIdSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { profileId } = validation.data;
 

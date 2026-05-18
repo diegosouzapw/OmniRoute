@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllFallbackChains, registerFallback, removeFallback } from "@/domain/fallbackPolicy";
 import { registerFallbackSchema, removeFallbackSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 export async function GET() {
   try {
@@ -32,7 +32,7 @@ export async function POST(request) {
   try {
     const validation = validateBody(registerFallbackSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { model, chain } = validation.data;
 

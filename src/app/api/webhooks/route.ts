@@ -7,7 +7,7 @@
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { getWebhooks, createWebhook } from "@/lib/localDb";
-import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { validateBody, isValidationFailure, getValidationError } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const createWebhookSchema = z.object({
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     const rawBody = await request.json();
     const validation = validateBody(createWebhookSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const { data } = validation;

@@ -5,7 +5,7 @@ import { listSuites, runSuite, createScorecard } from "@/lib/evals/evalRunner";
 import { buildEvalTargetOptions, runEvalSuiteAgainstTarget } from "@/lib/evals/runtime";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { evalRunSuiteSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   try {
     const validation = validateBody(evalRunSuiteSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const { suiteId, outputs, target, compareTarget, apiKeyId } = validation.data;

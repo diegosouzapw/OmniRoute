@@ -3,7 +3,7 @@ import { validateApiKey, getModelAliases, setModelAlias, isCloudEnabled } from "
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { cloudModelAliasUpdateSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 // PUT /api/cloud/models/alias - Set model alias (for cloud/CLI)
 export async function PUT(request: Request) {
@@ -12,7 +12,12 @@ export async function PUT(request: Request) {
     rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: { message: "Invalid request", details: [{ field: "body", message: "Invalid JSON body" }] } },
+      {
+        error: {
+          message: "Invalid request",
+          details: [{ field: "body", message: "Invalid JSON body" }],
+        },
+      },
       { status: 400 }
     );
   }
@@ -32,7 +37,7 @@ export async function PUT(request: Request) {
 
     const validation = validateBody(cloudModelAliasUpdateSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { model, alias } = validation.data;
 

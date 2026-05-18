@@ -1,6 +1,6 @@
 import { CORS_HEADERS } from "@/shared/utils/cors";
 import { v1CountTokensSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { estimateTokens } from "@/shared/utils/costEstimator";
 import { getExecutor } from "@omniroute/open-sse/executors/index.ts";
 import { getModelInfo } from "@/sse/services/model";
@@ -31,7 +31,7 @@ export async function POST(request) {
 
   const validation = validateBody(v1CountTokensSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return new Response(JSON.stringify({ error: validation.error }), {
+    return new Response(JSON.stringify({ error: getValidationError(validation) }), {
       status: 400,
       headers: { "Content-Type": "application/json", ...CORS_HEADERS },
     });

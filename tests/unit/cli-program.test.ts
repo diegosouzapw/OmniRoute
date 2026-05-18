@@ -73,6 +73,13 @@ test("program registers 'serve' command", () => {
   assert.ok(cmd, "serve command exists");
 });
 
+test("serve command has 'launch' alias", () => {
+  const program = createProgram();
+  const cmd = program.commands.find((c) => c.name() === "serve");
+  assert.ok(cmd, "serve command exists");
+  assert.ok(cmd?.aliases().includes("launch"), "serve command has launch alias");
+});
+
 test("serve command is the default command", () => {
   const program = createProgram();
   assert.equal(

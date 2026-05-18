@@ -9,7 +9,7 @@ import {
   verifyManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { loginSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { checkLoginGuard, clearLoginAttempts, recordLoginFailure } from "@/server/auth/loginGuard";
 
 // SECURITY: No hardcoded fallback — JWT_SECRET must be configured.
@@ -53,7 +53,7 @@ export async function POST(request) {
     // Zod validation
     const validation = validateBody(loginSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const password = typeof validation.data.password === "string" ? validation.data.password : "";
     if (!password) {

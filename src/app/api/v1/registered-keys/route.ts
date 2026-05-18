@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { issueRegisteredKey, checkQuota, listRegisteredKeys } from "@/lib/db/registeredKeys";
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(issueKeySchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   const { provider, accountId } = validation.data;

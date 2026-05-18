@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getModelAliases, setModelAlias, getProviderConnections } from "@/models";
 import { AI_MODELS, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import { updateModelAliasSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 
 // GET /api/models - Get models with aliases (only from active providers by default)
@@ -112,7 +112,7 @@ export async function PUT(request) {
   try {
     const validation = validateBody(updateModelAliasSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { model, alias } = validation.data;
 

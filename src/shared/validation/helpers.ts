@@ -58,3 +58,18 @@ export function isValidationFailure<TData>(
 ): validation is ValidationFailure {
   return validation.success === false;
 }
+
+/**
+ * Safely extract an error object from a validation result which may be
+ * a union or different shapes across callers. Returns the `.error` or
+ * `.response` field when present, otherwise returns the original value.
+ */
+export function getValidationError(v: unknown): unknown {
+  const anyV = v as any;
+  return anyV?.error ?? anyV?.response ?? anyV;
+}
+
+export function getValidationResponse(v: unknown): unknown {
+  const anyV = v as any;
+  return anyV?.response ?? anyV?.error ?? anyV;
+}

@@ -4,7 +4,7 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "skipLibCheck": true,

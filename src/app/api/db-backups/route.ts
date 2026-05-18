@@ -8,7 +8,7 @@ import {
   getDbBackupRetentionDays,
 } from "@/lib/localDb";
 import { dbBackupCleanupSchema, dbBackupRestoreSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
   try {
     const validation = validateBody(dbBackupRestoreSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
     const { backupId } = validation.data;
 
@@ -118,7 +118,7 @@ export async function DELETE(request) {
   try {
     const validation = validateBody(dbBackupCleanupSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const keepLatest = validation.data.keepLatest ?? getDbBackupMaxFiles();

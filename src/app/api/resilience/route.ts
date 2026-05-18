@@ -8,7 +8,7 @@ import {
   type ResilienceSettingsPatch,
 } from "@/lib/resilience/settings";
 import { updateResilienceSchema } from "@/shared/validation/schemas";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { resetAllCircuitBreakers } from "@/shared/utils/circuitBreaker";
 
 type JsonRecord = Record<string, unknown>;
@@ -165,7 +165,7 @@ export async function PATCH(request) {
   try {
     const validation = validateBody(updateResilienceSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
     }
 
     const body = validation.data as JsonRecord;

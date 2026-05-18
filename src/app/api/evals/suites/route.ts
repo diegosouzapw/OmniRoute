@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { saveCustomEvalSuite } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 import { evalSuiteSaveSchema } from "@/shared/validation/schemas";
 
 export async function POST(request: Request) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   const validation = validateBody(evalSuiteSaveSchema, rawBody);
   if (isValidationFailure(validation)) {
-    return NextResponse.json({ error: validation.error }, { status: 400 });
+    return NextResponse.json({ error: getValidationError(validation) }, { status: 400 });
   }
 
   try {

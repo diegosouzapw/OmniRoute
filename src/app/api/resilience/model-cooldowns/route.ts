@@ -6,7 +6,7 @@ import {
   resetAllAvailability,
 } from "@/domain/modelAvailability";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
-import { validateBody } from "@/shared/validation/helpers";
+import { isValidationFailure, validateBody, getValidationError } from "@/shared/validation/helpers";
 
 const deleteCooldownSchema = z
   .object({

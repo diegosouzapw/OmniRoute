@@ -107,9 +107,20 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
+  // Provide safe local overrides for Windows user dirs during build
+  const safeAppData = path.join(projectRoot, ".next_build_appdata");
+  const safeLocalAppData = path.join(projectRoot, ".next_build_localappdata");
+  const safeUserProfile = path.join(projectRoot, ".next_build_userprofile");
+
+  // Allow opting out if a caller explicitly wants the host APPDATA preserved
+  const keepAppData = baseEnv.OMNIROUTE_BUILD_KEEP_APPDATA === "1";
+
   return {
     ...baseEnv,
     NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
+    APPDATA: keepAppData ? baseEnv.APPDATA : safeAppData,
+    LOCALAPPDATA: keepAppData ? baseEnv.LOCALAPPDATA : safeLocalAppData,
+    USERPROFILE: keepAppData ? baseEnv.USERPROFILE : safeUserProfile,
   };
 }
 
