@@ -56,7 +56,7 @@ function errResp(message: string, status = 502): Response {
 
 type ToolIntent = "video" | "image" | "tts" | "enhance";
 
-function detectIntent(model?: string, prompt?: string): ToolIntent {
+export function detectIntent(model?: string, prompt?: string): ToolIntent {
   const m = (model || "").toLowerCase();
   if (m.includes("tts") || m.includes("speech") || m.includes("audio")) return "tts";
   if (m.includes("image") || m.includes("banana") || m.includes("imagen")) return "image";
