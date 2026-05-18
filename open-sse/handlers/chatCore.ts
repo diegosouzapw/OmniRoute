@@ -1541,6 +1541,12 @@ export async function handleChatCore({
     log?.info?.("ALIAS", `Model alias applied: ${model} → ${resolvedModel}`);
   }
 
+  // ── Plugin onModelSelect hook ──
+  try {
+    const { emitHook } = await import("@/lib/plugins/hooks");
+    await emitHook("onModelSelect", { model: effectiveModel, provider, requestId: traceId });
+  } catch (_) {}
+
   const alias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   const modelTargetFormat = getModelTargetFormat(alias, resolvedModel);
   const targetFormat =
@@ -2816,6 +2822,17 @@ export async function handleChatCore({
         `onError hook error (non-fatal): ${pluginErr instanceof Error ? pluginErr.message : String(pluginErr)}`
       );
     }
+
+    // ── Plugin onProviderError hook ──
+    try {
+      const { emitHook } = await import("@/lib/plugins/hooks");
+      await emitHook("onProviderError", {
+        error: error instanceof Error ? error : new Error(String(error)),
+        provider,
+        model,
+        requestId: traceId,
+      });
+    } catch (_) {}
 
     const parsedStatus = Number(error?.statusCode);
     const statusCode =

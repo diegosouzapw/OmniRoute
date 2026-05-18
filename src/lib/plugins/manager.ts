@@ -14,6 +14,7 @@ import { logger } from "../../../open-sse/utils/logger.ts";
 import { getDefaultPluginDir, scanPluginDir } from "./scanner";
 import { loadPlugin, type LoadedPlugin } from "./loader";
 import { registerPlugin, unregisterPlugin } from "./index";
+import { registerHook, unregisterHooks } from "./hooks";
 import {
   insertPlugin,
   getPluginByName,
@@ -118,6 +119,20 @@ class PluginManager {
       // Register hooks with the existing plugin system
       registerPlugin(loaded.plugin);
 
+      // Register custom hooks from manifest
+      const hookNames = [
+        manifest.hooks.onRequest && "onRequest",
+        manifest.hooks.onResponse && "onResponse",
+        manifest.hooks.onError && "onError",
+      ].filter(Boolean) as string[];
+
+      for (const hookName of hookNames) {
+        const handler = loaded.plugin[hookName as keyof typeof loaded.plugin];
+        if (typeof handler === "function") {
+          registerHook(hookName, name, handler as (payload: unknown) => void | Promise<void>);
+        }
+      }
+
       this.loadedPlugins.set(name, loaded);
       updatePluginStatus(name, "active");
 
@@ -136,6 +151,7 @@ class PluginManager {
     const loaded = this.loadedPlugins.get(name);
     if (loaded) {
       unregisterPlugin(name);
+      unregisterHooks(name);
       loaded.cleanup();
       this.loadedPlugins.delete(name);
     }
