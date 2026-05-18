@@ -826,7 +826,7 @@ function prepareClaudeCodeCompatibleSemanticBody(claudeBody: Record<string, unkn
   const prepared: Record<string, unknown> = {
     system: normalizeClaudeSystemInput(claudeBody.system),
     messages: Array.isArray(claudeBody.messages)
-      ? (cloneValue(claudeBody.messages) as Array<Record<string, unknown>>)
+      ? (claudeBody.messages as Array<Record<string, unknown>>)
       : [],
     tools: normalizeClaudeToolInput(claudeBody.tools),
     thinking: (readRecord(cloneValue(claudeBody.thinking)) || null) as Record<
