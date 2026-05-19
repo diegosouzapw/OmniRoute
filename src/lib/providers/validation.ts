@@ -732,14 +732,31 @@ async function validateGeminiLikeProvider({
   isLocal = false,
 }: any) {
   try {
+    if (!baseUrl) {
+      return { valid: false, error: "Missing base URL" };
+    }
+
     const requestUrl =
       typeof providerSpecificData?.modelsUrl === "string" &&
       providerSpecificData.modelsUrl.trim() !== ""
         ? providerSpecificData.modelsUrl.trim()
         : `${baseUrl}/models`;
+        
     const urlWithKey =
       authType === "query" ? `${requestUrl}?key=${encodeURIComponent(apiKey)}` : requestUrl;
-    const headers = authType === "header" ? { "x-goog-api-key": apiKey } : {};
+      
+    // Use the correct auth header based on provider config:
+    // - gemini / gemini-cli (API key): x-goog-api-key
+    // - gemini-cli (OAuth): Bearer token
+    const headers: Record<string, string> = {};
+    
+    if (authType === "header" || authType === "apikey") {
+      headers["x-goog-api-key"] = apiKey;
+    } else if (authType === "oauth" || apiKey.startsWith("ya29.")) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+    
+    applyCustomUserAgent(headers, providerSpecificData);
 
     const response = await validationRead(
       urlWithKey,
@@ -748,10 +765,6 @@ async function validateGeminiLikeProvider({
       },
       isLocal
     );
-
-    if (!baseUrl) {
-      return { valid: false, error: "Missing base URL" };
-    }
 
     if (response.ok) {
       return { valid: true, error: null };

@@ -704,8 +704,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
       return `${base}:${action}`;
     },
-    authType: "oauth",
-    authHeader: "bearer",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
@@ -714,6 +714,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: resolvePublicCred("gemini_alt"),
     },
     models: [
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
       { id: "gemini-3.1-pro-preview-customtools", name: "Gemini 3.1 Pro Preview Custom Tools" },
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
