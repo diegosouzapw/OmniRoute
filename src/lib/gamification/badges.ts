@@ -411,11 +411,13 @@ export async function evaluateBadges(
 
   const definitions = getBadgeDefinitions();
   const earned = getBadges(apiKeyId);
-  const earnedIds = new Set(earned.map((b) => b.badge_id));
+  const earnedIds = new Set(earned.map((b) => b.badgeId));
   const newlyUnlocked: string[] = [];
 
   for (const def of definitions) {
     if (earnedIds.has(def.id)) continue; // Already earned
+
+    if (!def.criteria) continue;
 
     let criteria: BadgeCriteria;
     try {
