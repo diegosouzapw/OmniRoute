@@ -1098,11 +1098,21 @@ export default function ProviderLimits() {
                   borderBottom: !isLast || isExpanded ? "1px solid var(--color-border)" : "none",
                 }}
               >
-                {/* Collapsed row — clickable to expand */}
-                <button
-                  type="button"
+                {/* Collapsed row — clickable to expand. Uses div+role=button
+                    because the row hosts other interactive controls (cutoff
+                    button, refresh, etc.) which would be invalid HTML nested
+                    inside a real <button>. */}
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleRow(conn.id)}
-                  className="w-full text-left items-center px-3 py-3 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02] border-none bg-transparent cursor-pointer"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleRow(conn.id);
+                    }
+                  }}
+                  className="w-full text-left items-center px-3 py-3 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02] cursor-pointer"
                   style={{
                     display: "grid",
                     gridTemplateColumns:
@@ -1289,7 +1299,7 @@ export default function ProviderLimits() {
                       </span>
                     </span>
                   </div>
-                </button>
+                </div>
 
                 {/* Expanded panel */}
                 {isExpanded && (

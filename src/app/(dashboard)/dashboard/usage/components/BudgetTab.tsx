@@ -214,23 +214,22 @@ export default function BudgetTab() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const keysRes = await fetch("/api/keys");
+      // Bulk: one request for the key list + one for every key's budget
+      // (was N+1: one budget request per key).
+      const [keysRes, bulkRes] = await Promise.all([
+        fetch("/api/keys"),
+        fetch("/api/usage/budget/bulk"),
+      ]);
       const keysData = keysRes.ok ? await keysRes.json() : null;
       const keys: ApiKey[] = Array.isArray(keysData) ? keysData : keysData?.keys || [];
 
-      const budgets = await Promise.all(
-        keys.map(async (k) => {
-          try {
-            const r = await fetch(`/api/usage/budget?apiKeyId=${k.id}`);
-            if (!r.ok) return null;
-            return (await r.json()) as BudgetSummary;
-          } catch {
-            return null;
-          }
-        })
-      );
+      const bulkPayload = bulkRes.ok ? await bulkRes.json() : null;
+      const budgetsMap: Record<string, BudgetSummary> =
+        bulkPayload && typeof bulkPayload === "object" && bulkPayload.budgets
+          ? bulkPayload.budgets
+          : {};
 
-      setRows(keys.map((k, i) => ({ ...k, budget: budgets[i] })));
+      setRows(keys.map((k) => ({ ...k, budget: budgetsMap[k.id] ?? null })));
     } catch (err) {
       console.error("[Budget] load failed", err);
     } finally {
@@ -429,12 +428,15 @@ export default function BudgetTab() {
     );
   }
 
-  const projectionOverBudget =
-    stats.projectionEom > 0 &&
-    rows.some((r) => {
-      const m = r.budget?.monthlyLimitUsd || 0;
-      return m > 0 && stats.projectionEom > m;
-    });
+  // True when at least one key's own projected end-of-month spend exceeds
+  // that key's monthly limit. Comparing the aggregate projection against an
+  // individual limit caused false positives.
+  const projectionOverBudget = rows.some((r) => {
+    const m = r.budget?.monthlyLimitUsd || 0;
+    if (m <= 0) return false;
+    const keyProjection = projectEndOfMonth(r.budget?.totalCostMonth || 0);
+    return keyProjection > m;
+  });
 
   return (
     <div className="flex flex-col gap-4">

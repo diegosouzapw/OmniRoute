@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
@@ -362,6 +363,7 @@ function diffSnapshots(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function RuntimePageClient() {
+  const t = useTranslations("runtime");
   const [health, setHealth] = useState<HealthPayload | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -467,11 +469,9 @@ export default function RuntimePageClient() {
         <div>
           <h1 className="text-xl font-bold text-text-main flex items-center gap-2">
             <span className="material-symbols-outlined text-[24px] text-primary">bolt</span>
-            Runtime
+            {t("title")}
           </h1>
-          <p className="text-sm text-text-muted mt-0.5">
-            Realtime observability · 3-layer resilience + sessions + quota alerts
-          </p>
+          <p className="text-sm text-text-muted mt-0.5">{t("description")}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-text-muted tabular-nums">
@@ -485,14 +485,14 @@ export default function RuntimePageClient() {
             <span className="material-symbols-outlined text-[16px]">
               {paused ? "play_arrow" : "pause"}
             </span>
-            {paused ? "Resume" : "Pause"}
+            {paused ? t("resume") : t("pause")}
           </button>
           <button
             type="button"
             onClick={() => fetchAll()}
             disabled={loading}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[12px] cursor-pointer hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-50"
-            title="Refresh now"
+            title={t("refreshNow")}
           >
             <span
               className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}
@@ -507,23 +507,23 @@ export default function RuntimePageClient() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
           icon="fingerprint"
-          label="Sessions"
+          label={t("kpiSessions")}
           value={counts.sessions}
-          hint={`${counts.stickyBound} sticky-bound`}
+          hint={t("hintStickyBound", { count: counts.stickyBound })}
           tone="#06b6d4"
           onClick={() => setFeedFilter("sessions")}
           active={feedFilter === "sessions"}
         />
         <KpiCard
           icon="bolt"
-          label="Circuits"
+          label={t("kpiCircuits")}
           value={`${counts.openCircuits} / ${counts.totalBreakers}`}
           hint={
             counts.halfCircuits > 0
-              ? `${counts.halfCircuits} recovering`
+              ? t("hintRecovering", { count: counts.halfCircuits })
               : counts.openCircuits === 0
-                ? "all healthy"
-                : "open"
+                ? t("hintAllHealthy")
+                : t("hintOpen")
           }
           tone={
             counts.openCircuits > 0 ? "#ef4444" : counts.halfCircuits > 0 ? "#eab308" : "#22c55e"
@@ -533,18 +533,18 @@ export default function RuntimePageClient() {
         />
         <KpiCard
           icon="ac_unit"
-          label="Cooldowns"
+          label={t("kpiCooldowns")}
           value={counts.cooldowns}
-          hint="connections cooling"
+          hint={t("hintConnsCooling")}
           tone={counts.cooldowns > 0 ? "#3b82f6" : "#22c55e"}
           onClick={() => setFeedFilter("cooldowns")}
           active={feedFilter === "cooldowns"}
         />
         <KpiCard
           icon="lock"
-          label="Lockouts"
+          label={t("kpiLockouts")}
           value={counts.lockouts}
-          hint="models blocked"
+          hint={t("hintModelsBlocked")}
           tone={counts.lockouts > 0 ? "#f97316" : "#22c55e"}
           onClick={() => setFeedFilter("lockouts")}
           active={feedFilter === "lockouts"}
@@ -556,8 +556,8 @@ export default function RuntimePageClient() {
         <Card padding="md">
           <SectionHeader
             icon="shield"
-            title="3-Layer Resilience"
-            subtitle="Mirrors the documented resilience model (CLAUDE.md)"
+            title={t("resilienceTitle")}
+            subtitle={t("resilienceSubtitle")}
             trailing={
               <div className="flex items-center gap-3 text-[11px]">
                 <span className="text-green-500">✓ {overallHealthy}</span>
@@ -575,22 +575,25 @@ export default function RuntimePageClient() {
               />
             </div>
             <div className="mt-1 text-[11px] text-text-muted tabular-nums">
-              {overallPercent}% providers healthy
+              {t("providersHealthy", { percent: overallPercent })}
             </div>
           </div>
 
           {/* Layer 1 */}
           <LayerSection
             id={1}
-            title="Provider Circuit Breakers"
-            description="Stop traffic to providers failing at the upstream level"
-            badge={`${counts.openCircuits + counts.halfCircuits} of ${counts.totalBreakers} affected`}
+            title={t("layer1Title")}
+            description={t("layer1Desc")}
+            badge={t("badgeAffectedOf", {
+              affected: counts.openCircuits + counts.halfCircuits,
+              total: counts.totalBreakers,
+            })}
             badgeTone={
               counts.openCircuits > 0 ? "red" : counts.halfCircuits > 0 ? "amber" : "green"
             }
           >
             {breakers.length === 0 ? (
-              <EmptyHint text="No circuit breakers active yet" />
+              <EmptyHint text={t("emptyCircuits")} />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {breakers.map((b) => {
@@ -624,13 +627,13 @@ export default function RuntimePageClient() {
           {/* Layer 2 */}
           <LayerSection
             id={2}
-            title="Connection Cooldowns"
-            description="Skip one bad account/key; other connections keep serving"
-            badge={`${counts.cooldowns} cooling`}
+            title={t("layer2Title")}
+            description={t("layer2Desc")}
+            badge={t("badgeCooling", { count: counts.cooldowns })}
             badgeTone={counts.cooldowns > 0 ? "blue" : "green"}
           >
             {cooldowns.length === 0 ? (
-              <EmptyHint text="No connection cooldowns active" />
+              <EmptyHint text={t("emptyCooldowns")} />
             ) : (
               <div className="flex flex-col divide-y divide-border/60">
                 {cooldowns.slice(0, 8).map((c) => {
@@ -674,7 +677,7 @@ export default function RuntimePageClient() {
                 })}
                 {cooldowns.length > 8 && (
                   <div className="pt-2 text-[10px] text-text-muted">
-                    +{cooldowns.length - 8} more cooldowns
+                    {t("moreCooldowns", { count: cooldowns.length - 8 })}
                   </div>
                 )}
               </div>
@@ -684,13 +687,13 @@ export default function RuntimePageClient() {
           {/* Layer 3 */}
           <LayerSection
             id={3}
-            title="Model Lockouts"
-            description="Per-model rate-limit locks; same connection still serves other models"
-            badge={`${lockoutEntries.length} locked`}
+            title={t("layer3Title")}
+            description={t("layer3Desc")}
+            badge={t("badgeLocked", { count: lockoutEntries.length })}
             badgeTone={lockoutEntries.length > 0 ? "orange" : "green"}
           >
             {lockoutEntries.length === 0 ? (
-              <EmptyHint text="No model lockouts" />
+              <EmptyHint text={t("emptyLockouts")} />
             ) : (
               <div className="flex flex-col divide-y divide-border/60">
                 {lockoutEntries.slice(0, 8).map(([key, lk]) => {
@@ -721,7 +724,7 @@ export default function RuntimePageClient() {
                 })}
                 {lockoutEntries.length > 8 && (
                   <div className="pt-2 text-[10px] text-text-muted">
-                    +{lockoutEntries.length - 8} more lockouts
+                    {t("moreLockouts", { count: lockoutEntries.length - 8 })}
                   </div>
                 )}
               </div>
@@ -733,8 +736,8 @@ export default function RuntimePageClient() {
         <Card padding="md">
           <SectionHeader
             icon="rss_feed"
-            title="Live Feed"
-            subtitle={`Last ${filteredFeed.length} events`}
+            title={t("feedTitle")}
+            subtitle={t("feedSubtitle", { count: filteredFeed.length })}
             trailing={
               <div className="flex items-center gap-1.5">
                 <select
@@ -742,20 +745,20 @@ export default function RuntimePageClient() {
                   onChange={(e) => setFeedFilter(e.target.value as FeedFilter)}
                   className="text-[10px] bg-bg-subtle border border-border rounded px-1.5 py-1 cursor-pointer text-text-main"
                 >
-                  <option value="all">All</option>
-                  <option value="circuits">Circuits</option>
-                  <option value="cooldowns">Cooldowns</option>
-                  <option value="lockouts">Lockouts</option>
-                  <option value="sessions">Sessions</option>
-                  <option value="quotas">Quotas</option>
+                  <option value="all">{t("feedFilterAll")}</option>
+                  <option value="circuits">{t("feedFilterCircuits")}</option>
+                  <option value="cooldowns">{t("feedFilterCooldowns")}</option>
+                  <option value="lockouts">{t("feedFilterLockouts")}</option>
+                  <option value="sessions">{t("feedFilterSessions")}</option>
+                  <option value="quotas">{t("feedFilterQuotas")}</option>
                 </select>
                 <button
                   type="button"
                   onClick={() => setFeed([])}
                   className="text-[10px] px-1.5 py-1 rounded border border-border text-text-muted hover:text-text-main hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer"
-                  title="Clear feed"
+                  title={t("feedClear")}
                 >
-                  Clear
+                  {t("feedClear")}
                 </button>
               </div>
             }
@@ -768,9 +771,7 @@ export default function RuntimePageClient() {
                   hourglass_empty
                 </span>
                 <p className="text-xs">
-                  {feed.length === 0
-                    ? "Waiting for events... (polled every 5s)"
-                    : "No events match this filter"}
+                  {feed.length === 0 ? t("feedEmptyWaiting") : t("feedEmptyFiltered")}
                 </p>
               </div>
             ) : (
@@ -811,9 +812,13 @@ export default function RuntimePageClient() {
         <Card padding="md">
           <SectionHeader
             icon="fingerprint"
-            title="Active Sessions"
-            subtitle="Sticky-bound request fingerprints (live)"
-            trailing={<span className="text-[11px] text-text-muted">{counts.sessions} active</span>}
+            title={t("sessionsTitle")}
+            subtitle={t("sessionsSubtitle")}
+            trailing={
+              <span className="text-[11px] text-text-muted">
+                {t("sessionsActive", { count: counts.sessions })}
+              </span>
+            }
           />
 
           {(health?.sessions?.top ?? []).length === 0 ? (
@@ -821,8 +826,8 @@ export default function RuntimePageClient() {
               <span className="material-symbols-outlined text-[40px] opacity-30 block mb-2">
                 fingerprint
               </span>
-              <p className="text-sm">No active sessions</p>
-              <p className="text-xs mt-1">Sessions appear as requests flow through the proxy</p>
+              <p className="text-sm">{t("sessionsEmptyTitle")}</p>
+              <p className="text-xs mt-1">{t("sessionsEmptyHint")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto mt-2">
@@ -830,19 +835,19 @@ export default function RuntimePageClient() {
                 <thead>
                   <tr className="border-b border-border/40">
                     <th className="text-left py-2 px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Session
+                      {t("tblSession")}
                     </th>
                     <th className="text-right py-2 px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Age
+                      {t("tblAge")}
                     </th>
                     <th className="text-right py-2 px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Idle
+                      {t("tblIdle")}
                     </th>
                     <th className="text-right py-2 px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Reqs
+                      {t("tblReqs")}
                     </th>
                     <th className="text-left py-2 px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Bound to
+                      {t("tblBoundTo")}
                     </th>
                   </tr>
                 </thead>
@@ -880,7 +885,7 @@ export default function RuntimePageClient() {
               </table>
               {Object.keys(health?.sessions?.byApiKey ?? {}).length > 0 && (
                 <div className="mt-2 pt-2 border-t border-border/40 text-[10px] text-text-muted">
-                  Top API keys:{" "}
+                  {t("topApiKeys")}:{" "}
                   {Object.entries(health?.sessions?.byApiKey ?? {})
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 3)
@@ -895,11 +900,11 @@ export default function RuntimePageClient() {
         <Card padding="md">
           <SectionHeader
             icon="radar"
-            title="Quota Monitors"
-            subtitle="Live quota state per account window"
+            title={t("quotaMonitorsTitle")}
+            subtitle={t("quotaMonitorsSubtitle")}
             trailing={
               <Link href="/dashboard/quota" className="text-[11px] text-primary hover:underline">
-                Open Quota →
+                {t("openQuota")} →
               </Link>
             }
           />
@@ -916,19 +921,21 @@ export default function RuntimePageClient() {
                   <span className="material-symbols-outlined text-[40px] opacity-30 block mb-2">
                     radar
                   </span>
-                  <p className="text-sm">All quotas healthy</p>
+                  <p className="text-sm">{t("allQuotasHealthy")}</p>
                 </div>
               );
             }
             return (
               <div className="mt-2 flex flex-col gap-3">
                 {exhausted.length > 0 && (
-                  <QuotaGroup tone="red" label="EXHAUSTED" items={exhausted} />
+                  <QuotaGroup tone="red" label={t("statusExhausted")} items={exhausted} />
                 )}
                 {alerting.length > 0 && (
-                  <QuotaGroup tone="amber" label="ALERTING" items={alerting} />
+                  <QuotaGroup tone="amber" label={t("statusAlerting")} items={alerting} />
                 )}
-                {errors.length > 0 && <QuotaGroup tone="orange" label="ERROR" items={errors} />}
+                {errors.length > 0 && (
+                  <QuotaGroup tone="orange" label={t("statusError")} items={errors} />
+                )}
               </div>
             );
           })()}
@@ -1072,17 +1079,18 @@ function QuotaGroup({
   label: string;
   items: QuotaMonitor[];
 }) {
+  const t = useTranslations("runtime");
   const toneMap = {
     red: { text: "#ef4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.20)" },
     amber: { text: "#eab308", bg: "rgba(234,179,8,0.08)", border: "rgba(234,179,8,0.20)" },
     orange: { text: "#f97316", bg: "rgba(249,115,22,0.08)", border: "rgba(249,115,22,0.20)" },
   } as const;
-  const t = toneMap[tone];
+  const tc = toneMap[tone];
   return (
     <div>
       <div
         className="text-[10px] font-bold uppercase tracking-wider mb-1.5"
-        style={{ color: t.text }}
+        style={{ color: tc.text }}
       >
         {label}
       </div>
@@ -1091,7 +1099,7 @@ function QuotaGroup({
           <div
             key={`${m.accountId ?? ""}:${m.window ?? ""}:${i}`}
             className="rounded-md border px-2.5 py-1.5 flex items-center justify-between gap-2"
-            style={{ background: t.bg, borderColor: t.border }}
+            style={{ background: tc.bg, borderColor: tc.border }}
           >
             <div className="min-w-0">
               <div className="text-[11px] font-medium text-text-main truncate">
@@ -1101,7 +1109,7 @@ function QuotaGroup({
               <div className="text-[10px] text-text-muted">{m.window ?? ""}</div>
             </div>
             {typeof m.remainingPercent === "number" && (
-              <span className="text-[11px] font-bold tabular-nums" style={{ color: t.text }}>
+              <span className="text-[11px] font-bold tabular-nums" style={{ color: tc.text }}>
                 {Math.round(m.remainingPercent)}%
               </span>
             )}
@@ -1109,7 +1117,7 @@ function QuotaGroup({
         ))}
         {items.length > 6 && (
           <div className="text-[10px] text-text-muted text-center pt-1">
-            +{items.length - 6} more
+            {t("moreSuffix", { count: items.length - 6 })}
           </div>
         )}
       </div>

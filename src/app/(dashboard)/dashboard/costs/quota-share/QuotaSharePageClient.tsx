@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import { Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
@@ -226,6 +227,7 @@ function Donut({
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function QuotaSharePageClient() {
+  const t = useTranslations("quotaShare");
   const [connections, setConnections] = useState<Connection[]>([]);
   const [caches, setCaches] = useState<Record<string, CachedProviderLimit>>({});
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -286,7 +288,7 @@ export default function QuotaSharePageClient() {
 
   const removePool = useCallback(
     (id: string) => {
-      if (!confirm("Remove this pool?")) return;
+      if (!confirm(t("removeConfirm"))) return;
       savePools(pools.filter((p) => p.id !== id));
     },
     [pools, savePools]
@@ -325,13 +327,11 @@ export default function QuotaSharePageClient() {
             <span className="material-symbols-outlined text-[24px] text-primary">pie_chart</span>
             Quota Sharing
           </h1>
-          <p className="text-sm text-text-muted mt-0.5">
-            Compartilhe cotas de providers entre API keys com limites %
-          </p>
+          <p className="text-sm text-text-muted mt-0.5">{t("description")}</p>
         </div>
         <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
           <span className="material-symbols-outlined text-[14px] mr-1">add</span>
-          New pool
+          {t("newPool")}
         </Button>
       </div>
 
@@ -349,29 +349,28 @@ export default function QuotaSharePageClient() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Active pools" value={String(stats.activePools)} />
-        <StatCard label="Keys allocated" value={String(stats.allocations)} />
+        <StatCard label={t("kpiActivePools")} value={String(stats.activePools)} />
+        <StatCard label={t("kpiKeysAllocated")} value={String(stats.allocations)} />
         <StatCard
-          label="Avg unallocated"
+          label={t("kpiAvgUnallocated")}
           value={`${stats.uncapped}%`}
           tone={stats.uncapped > 0 ? "amber" : "green"}
         />
-        <StatCard label="Providers w/ quota" value={String(connections.length)} />
+        <StatCard label={t("kpiProvidersWithQuota")} value={String(connections.length)} />
       </div>
 
       {loading ? (
-        <div className="text-text-muted text-sm py-10 text-center animate-pulse">Loading…</div>
+        <div className="text-text-muted text-sm py-10 text-center animate-pulse">
+          {t("loading")}
+        </div>
       ) : pools.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface py-16 text-center">
           <span className="material-symbols-outlined text-[64px] opacity-15">pie_chart</span>
-          <h3 className="mt-3 text-base font-semibold text-text-main">No pools configured</h3>
-          <p className="mt-1 text-sm text-text-muted max-w-md mx-auto">
-            Create a pool to assign API keys to share a provider&apos;s quota window with %
-            allocations.
-          </p>
+          <h3 className="mt-3 text-base font-semibold text-text-main">{t("emptyTitle")}</h3>
+          <p className="mt-1 text-sm text-text-muted max-w-md mx-auto">{t("emptyDescription")}</p>
           <Button variant="primary" size="sm" className="mt-4" onClick={() => setCreateOpen(true)}>
             <span className="material-symbols-outlined text-[14px] mr-1">add</span>
-            New pool
+            {t("newPool")}
           </Button>
         </div>
       ) : (
@@ -464,6 +463,7 @@ function PoolCard({
   onRemove: () => void;
   onPolicyChange: (policy: PoolPolicy) => void;
 }) {
+  const t = useTranslations("quotaShare");
   // Refresh totalQuota from latest cache if available
   const live = cached?.quotas?.[pool.window];
   const liveTotal = live ? Number((live as any).total || 0) : 0;
@@ -509,7 +509,7 @@ function PoolCard({
           <button
             type="button"
             onClick={onRemove}
-            title="Remove pool"
+            title={t("removePool")}
             className="p-1.5 rounded-md hover:bg-red-500/10 text-text-muted hover:text-red-400 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -524,12 +524,12 @@ function PoolCard({
             <Donut slices={slices} size={160} thickness={24} />
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <div className="text-[10px] uppercase tracking-wide text-text-muted font-semibold">
-                Pool
+                {t("pool")}
               </div>
               <div className="text-lg font-bold text-text-main tabular-nums">
                 {Math.round(usedPct)}%
               </div>
-              <div className="text-[10px] text-text-muted">used</div>
+              <div className="text-[10px] text-text-muted">{t("used")}</div>
             </div>
           </div>
           <div className="w-full px-1">
@@ -546,7 +546,7 @@ function PoolCard({
         <div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
-              Allocations ({pool.allocations.length})
+              {t("allocationsCount", { count: pool.allocations.length })}
             </h3>
             <span
               className={`text-[10px] font-bold tabular-nums ${
@@ -557,13 +557,13 @@ function PoolCard({
                     : "text-amber-400"
               }`}
             >
-              {totalAllocated}% allocated · {unallocated}% free
+              {t("allocatedFree", { allocated: totalAllocated, free: unallocated })}
             </span>
           </div>
 
           {pool.allocations.length === 0 ? (
             <div className="text-[11px] text-text-muted italic py-3 text-center bg-bg-subtle/40 rounded-md">
-              No keys allocated yet
+              {t("noAllocations")}
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -589,7 +589,7 @@ function PoolCard({
                     <span className="text-right text-text-muted tabular-nums">
                       cap {fmtNumber(cap, pool.unit)}
                     </span>
-                    <span className="text-text-muted text-right">(not tracked yet)</span>
+                    <span className="text-text-muted text-right">{t("notTrackedYet")}</span>
                   </div>
                 );
               })}
@@ -611,10 +611,10 @@ function PoolCard({
                   }`}
                   title={
                     p === "hard"
-                      ? "Block when key exhausts allocation"
+                      ? t("policyHardHint")
                       : p === "soft"
-                        ? "Allow overflow, alert only"
-                        : "Allow burst into free pool"
+                        ? t("policySoftHint")
+                        : t("policyBurstHint")
                   }
                 >
                   {p}
@@ -624,7 +624,7 @@ function PoolCard({
             <div className="flex items-center gap-1">
               <Button variant="secondary" size="sm" onClick={onEdit}>
                 <span className="material-symbols-outlined text-[14px] mr-1">edit</span>
-                Edit allocations
+                {t("editAllocations")}
               </Button>
             </div>
           </div>
@@ -647,6 +647,7 @@ function CreatePoolModal({
   onClose: () => void;
   onCreate: (pool: QuotaPool) => void;
 }) {
+  const t = useTranslations("quotaShare");
   const [connectionId, setConnectionId] = useState<string>("");
   const [window, setWindow] = useState<string>("");
 
@@ -668,7 +669,7 @@ function CreatePoolModal({
   const handleCreate = () => {
     if (!selectedConn || !selectedWindow) return;
     if (usedPairs.has(`${connectionId}:${window}`)) {
-      alert("A pool for this connection + window already exists");
+      alert(t("duplicatePoolError"));
       return;
     }
     const accountLabel =
@@ -694,11 +695,11 @@ function CreatePoolModal({
   };
 
   return (
-    <Modal isOpen onClose={onClose} title="New quota pool">
+    <Modal isOpen onClose={onClose} title={t("newPoolTitle")}>
       <div className="space-y-3">
         <div>
           <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
-            Provider connection (account)
+            {t("providerConnection")}
           </label>
           <select
             value={connectionId}
@@ -708,7 +709,7 @@ function CreatePoolModal({
             }}
             className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
           >
-            <option value="">Select a connection…</option>
+            <option value="">{t("selectConnection")}</option>
             {eligibleConnections.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.provider} / {c.name || c.email || c.id.slice(0, 12)}
@@ -716,29 +717,27 @@ function CreatePoolModal({
             ))}
           </select>
           {eligibleConnections.length === 0 && (
-            <p className="text-[10px] text-amber-400 mt-1">
-              No connections with quota data. Refresh from /dashboard/quota first.
-            </p>
+            <p className="text-[10px] text-amber-400 mt-1">{t("noEligibleConnections")}</p>
           )}
         </div>
 
         {connectionId && (
           <div>
             <label className="text-[11px] uppercase tracking-wide text-text-muted font-semibold block mb-1">
-              Quota window
+              {t("quotaWindow")}
             </label>
             <select
               value={window}
               onChange={(e) => setWindow(e.target.value)}
               className="w-full px-3 py-2 rounded border border-border bg-bg-base text-sm"
             >
-              <option value="">Select a window…</option>
+              <option value="">{t("selectWindow")}</option>
               {windowSources.map((w) => {
                 const used = usedPairs.has(`${connectionId}:${w.window}`);
                 return (
                   <option key={w.window} value={w.window} disabled={used}>
                     {w.windowLabel} · total {fmtNumber(w.totalQuota, w.unit)} {w.unit}{" "}
-                    {used ? "(already used)" : ""}
+                    {used ? t("alreadyUsedSuffix") : ""}
                   </option>
                 );
               })}
@@ -753,7 +752,7 @@ function CreatePoolModal({
               {fmtNumber(selectedWindow.totalQuota, selectedWindow.unit)} {selectedWindow.unit}
             </div>
             <div>
-              Reset:{" "}
+              {t("windowReset")}:{" "}
               {selectedWindow.resetIso ? new Date(selectedWindow.resetIso).toLocaleString() : "—"}
             </div>
           </div>
@@ -761,7 +760,7 @@ function CreatePoolModal({
 
         <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
           <Button variant="secondary" size="sm" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             variant="primary"
@@ -769,7 +768,7 @@ function CreatePoolModal({
             onClick={handleCreate}
             disabled={!selectedConn || !selectedWindow}
           >
-            Create pool
+            {t("createPool")}
           </Button>
         </div>
       </div>
@@ -788,6 +787,7 @@ function EditAllocationsModal({
   onClose: () => void;
   onSave: (allocations: Allocation[]) => void;
 }) {
+  const t = useTranslations("quotaShare");
   const [drafts, setDrafts] = useState<Allocation[]>(pool.allocations);
   const total = drafts.reduce((s, a) => s + (Number.isFinite(a.percent) ? a.percent : 0), 0);
 
@@ -819,7 +819,7 @@ function EditAllocationsModal({
   const keyLabel = (id: string) => apiKeys.find((k) => k.id === id)?.name || shortId(id);
 
   return (
-    <Modal isOpen onClose={onClose} title="Edit allocations" size="lg">
+    <Modal isOpen onClose={onClose} title={t("editTitle")} size="lg">
       <div className="space-y-3">
         <div className="text-xs text-text-muted">
           Pool:{" "}
@@ -832,7 +832,7 @@ function EditAllocationsModal({
 
         {drafts.length === 0 ? (
           <div className="text-[12px] text-text-muted italic py-4 text-center bg-bg-subtle/40 rounded-md">
-            No keys allocated. Add one below.
+            {t("noKeysAdded")}
           </div>
         ) : (
           <div className="space-y-2">
@@ -877,7 +877,7 @@ function EditAllocationsModal({
               total === 100 ? "text-emerald-400" : total > 100 ? "text-red-400" : "text-amber-400"
             }`}
           >
-            Total: {total}% {total > 100 && "⚠ exceeds 100%"}
+            {t("totalLabel", { percent: total })} {total > 100 && t("totalExceeded")}
           </span>
           <div className="flex items-center gap-2">
             {availableKeys.length > 0 && (
@@ -886,7 +886,7 @@ function EditAllocationsModal({
                 onChange={(e) => e.target.value && addKey(e.target.value)}
                 className="px-2 py-1 rounded border border-border bg-bg-base text-xs"
               >
-                <option value="">+ Add key…</option>
+                <option value="">{t("addKey")}</option>
                 {availableKeys.map((k) => (
                   <option key={k.id} value={k.id}>
                     {k.name || shortId(k.id)}
@@ -907,7 +907,7 @@ function EditAllocationsModal({
 
         <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
           <Button variant="secondary" size="sm" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button variant="primary" size="sm" onClick={() => onSave(drafts)} disabled={total > 100}>
             Save allocations
