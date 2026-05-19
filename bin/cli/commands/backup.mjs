@@ -7,6 +7,7 @@ import {
   readdirSync,
   readFileSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
@@ -139,10 +140,19 @@ async function encryptFile(srcPath, destPath, passphrase) {
   const authTag = cipher.getAuthTag();
   // Format: salt(16) + iv(12) + authTag(16) + ciphertext
   const out = createWriteStream(destPath);
-  out.write(Buffer.concat([salt, iv, authTag]));
-  await pipeline(createReadStream(tmpCipherPath), out);
-  const { unlinkSync } = await import("node:fs");
-  unlinkSync(tmpCipherPath);
+  try {
+    await new Promise((resolve, reject) => {
+      out.write(Buffer.concat([salt, iv, authTag]), (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    await pipeline(createReadStream(tmpCipherPath), out);
+  } finally {
+    try {
+      unlinkSync(tmpCipherPath);
+    } catch {}
+  }
 }
 
 async function promptPassphrase() {

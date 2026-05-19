@@ -12,20 +12,8 @@ import { isAlwaysProtectedPath, isLocalOnlyPath, isLoopbackHost } from "../route
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
-function firstHeaderIp(value: string | null): string | null {
-  return value?.split(",")[0]?.trim() || null;
-}
-
 function requestPeerAddress(ctx: PolicyContext): string | null {
-  const headers = ctx.request.headers;
-  return (
-    ctx.request.ip ||
-    ctx.request.socket?.remoteAddress ||
-    firstHeaderIp(headers.get("cf-connecting-ip")) ||
-    firstHeaderIp(headers.get("x-forwarded-for")) ||
-    firstHeaderIp(headers.get("x-real-ip")) ||
-    null
-  );
+  return ctx.request.ip || ctx.request.socket?.remoteAddress || null;
 }
 
 function isLoopbackRequest(ctx: PolicyContext): boolean {

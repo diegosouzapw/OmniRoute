@@ -112,6 +112,30 @@ test("management policy rejects /api/mcp/ when host is spoofed from a remote soc
   if (!outcome.allow) assert.equal(outcome.status, 403);
 });
 
+test("management policy rejects /api/mcp/ when loopback x-forwarded-for is untrusted", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx("/api/mcp/sse", {
+    host: "localhost",
+    "x-forwarded-for": "127.0.0.1",
+    [CLI_TOKEN_HEADER]: token,
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
+test("management policy rejects /api/mcp/ when loopback x-real-ip is untrusted", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx("/api/mcp/sse", {
+    host: "localhost",
+    "x-real-ip": "127.0.0.1",
+    [CLI_TOKEN_HEADER]: token,
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
 test("management policy allows /api/mcp/ from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
   const ctx = makeCtx(
