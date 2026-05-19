@@ -150,3 +150,6 @@ bun.lock
 
 # Private environment variables for .http-client
 http-client.private.env.json
+
+# Feature-triage ephemeral artifact (regenerated each run)
+_ideia/_triage.json

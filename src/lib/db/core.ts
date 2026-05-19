@@ -89,13 +89,20 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "webhooks", maxRows: 5_000 },
 ];
 
-function isNativeSqliteLoadError(error: unknown): boolean {
+export function isNativeSqliteLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
+  const code = getErrorCode(error);
   return (
     message.includes("Module did not self-register") ||
     message.includes("NODE_MODULE_VERSION") ||
     message.includes("ERR_DLOPEN_FAILED") ||
-    getErrorCode(error) === "ERR_DLOPEN_FAILED"
+    // bun and similar runtimes that skip the postinstall script never download
+    // the prebuilt *.node binary, so `bindings()` fails with this message
+    // before any DLOPEN even happens (#2358).
+    message.includes("Could not locate the bindings file") ||
+    message.includes("Cannot find module 'better-sqlite3'") ||
+    code === "ERR_DLOPEN_FAILED" ||
+    code === "MODULE_NOT_FOUND"
   );
 }
 

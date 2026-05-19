@@ -102,11 +102,7 @@ const OAUTH_TEST_CONFIG = {
   },
 };
 
-const CLI_RUNTIME_PROVIDER_MAP = {
-  cline: "cline",
-  kilocode: "kilo",
-  qoder: "qoder",
-};
+import { CLI_RUNTIME_PROVIDER_MAP } from "./cliRuntimeProviderMap";
 
 /** POST body is optional; when present, only known fields are validated. */
 const providerConnectionTestBodySchema = z.object({

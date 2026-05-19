@@ -4409,6 +4409,20 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // ── Gamification event (fire-and-forget) ──
+    if (apiKeyInfo?.id) {
+      try {
+        const { emitGamificationEvent } = await import("@/lib/gamification/events");
+        emitGamificationEvent({
+          apiKeyId: apiKeyInfo.id,
+          action: "request",
+          metadata: { model, provider },
+        });
+      } catch (_) {
+        /* gamification optional */
+      }
+    }
+
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -4727,6 +4741,20 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+
+  // ── Gamification event (fire-and-forget) ──
+  if (apiKeyInfo?.id) {
+    try {
+      const { emitGamificationEvent } = await import("@/lib/gamification/events");
+      emitGamificationEvent({
+        apiKeyId: apiKeyInfo.id,
+        action: "request",
+        metadata: { model, provider },
+      });
+    } catch (_) {
+      /* gamification optional */
+    }
+  }
 
   return {
     success: true,

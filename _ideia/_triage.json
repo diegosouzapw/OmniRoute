@@ -1,0 +1,670 @@
+{
+  "metadata": {
+    "run_at": "2026-05-19T12:12:41.235Z",
+    "owner": "diegosouzapw",
+    "repo": "OmniRoute",
+    "thresholds": {
+      "quarantine_days": 14,
+      "override_thumbs": 5,
+      "override_commenters": 3,
+      "stale_needs_days": 30,
+      "stale_defer_days": 90
+    }
+  },
+  "counts": {
+    "total_fetched": 54,
+    "absorb": 18,
+    "dormant": 31,
+    "already_delivered": 4,
+    "skip_assigned": 0,
+    "skip_has_pr": 1,
+    "stale_need_details": 0,
+    "stale_defer": 0,
+    "closed_externally": 0
+  },
+  "buckets": {
+    "absorb": [
+      {
+        "number": 1980,
+        "title": "[Feature] Please add llama.cpp to Local Providers",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1980",
+        "author": "woutercoppens",
+        "created_at": "2026-05-05T19:39:20Z",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 3,
+        "labels": [
+          "enhancement"
+        ],
+        "reason": "override:commenters",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1909,
+        "title": "[Feature] add t3.chat web provider",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1909",
+        "author": "aartzz",
+        "created_at": "2026-05-03T09:19:28Z",
+        "age_days": 16,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [
+          "enhancement"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1833,
+        "title": "[Feature] API-first Management — REST Endpoints for Programmatic OmniRoute Configuration",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1833",
+        "author": "diegosouzapw",
+        "created_at": "2026-04-30T19:55:40Z",
+        "age_days": 18,
+        "thumbs": 0,
+        "commenters": 1,
+        "labels": [
+          "enhancement",
+          "kilo-triaged",
+          "kilo-duplicate"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1765,
+        "title": "[Feature] In the team mode scenario, add key grouping and set the available grouping model.",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1765",
+        "author": "bypanghu",
+        "created_at": "2026-04-29T08:16:16Z",
+        "age_days": 20,
+        "thumbs": 0,
+        "commenters": 1,
+        "labels": [
+          "enhancement"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1594,
+        "title": "[Feature] permanent provider or the internal key inside the provider",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1594",
+        "author": "newbe36524",
+        "created_at": "2026-04-25T13:58:11Z",
+        "age_days": 23,
+        "thumbs": 0,
+        "commenters": 1,
+        "labels": [
+          "enhancement"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1584,
+        "title": "[Feature] CoStrict provider",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1584",
+        "author": "uwuclxdy",
+        "created_at": "2026-04-25T11:46:48Z",
+        "age_days": 24,
+        "thumbs": 0,
+        "commenters": 1,
+        "labels": [
+          "enhancement"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1881,
+        "title": "[Feature] Generic API key rotation CLI command",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1881",
+        "author": "apoapostolov",
+        "created_at": "2026-05-02T14:27:26Z",
+        "age_days": 16,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1845,
+        "title": "[Feature] First-class Hermes Agent support — auto-configured tool card with YAML provider integration",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1845",
+        "author": "apoapostolov",
+        "created_at": "2026-05-01T10:23:54Z",
+        "age_days": 18,
+        "thumbs": 1,
+        "commenters": 1,
+        "labels": [
+          "kilo-triaged",
+          "kilo-duplicate"
+        ],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1814,
+        "title": "[Feature] Streamed GLM chat/completions requests can look stalled when no output cap is forwarded",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1814",
+        "author": "apoapostolov",
+        "created_at": "2026-04-30T10:49:11Z",
+        "age_days": 19,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1812,
+        "title": "[Feature] Auto-combo scoring ignores output token cost",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1812",
+        "author": "matteoantoci",
+        "created_at": "2026-04-30T10:12:37Z",
+        "age_days": 19,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1808,
+        "title": "[Feature] Auto-combo can route to models with insufficient context window",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1808",
+        "author": "matteoantoci",
+        "created_at": "2026-04-30T09:20:52Z",
+        "age_days": 19,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1786,
+        "title": "[Feature] Add CodeBuddy + Yep.com support",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1786",
+        "author": "crakindee2k-a11y",
+        "created_at": "2026-04-29T18:43:00Z",
+        "age_days": 19,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1737,
+        "title": "[Feature] Auto-update Limits and Quotas widget",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1737",
+        "author": "apoapostolov",
+        "created_at": "2026-04-28T18:04:00Z",
+        "age_days": 20,
+        "thumbs": 1,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1736,
+        "title": "[Feature] Dashboard customization for /Home",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1736",
+        "author": "apoapostolov",
+        "created_at": "2026-04-28T18:03:58Z",
+        "age_days": 20,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1735,
+        "title": "[Feature] Combo Builder: quota-aware Highest Remaining Quota rule",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1735",
+        "author": "apoapostolov",
+        "created_at": "2026-04-28T17:54:35Z",
+        "age_days": 20,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1731,
+        "title": "[Feature] (combo): provider-level exhaustion tracking to skip same-provider targets",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1731",
+        "author": "matteoantoci",
+        "created_at": "2026-04-28T15:31:43Z",
+        "age_days": 20,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1718,
+        "title": "[Feature] expose upstream error details in client-facing error responses",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1718",
+        "author": "matteoantoci",
+        "created_at": "2026-04-28T10:04:16Z",
+        "age_days": 21,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      },
+      {
+        "number": 1716,
+        "title": "[Feature] Separate fetch-start and first-content timeouts from stream idle timeout",
+        "url": "https://github.com/diegosouzapw/OmniRoute/issues/1716",
+        "author": "matteoantoci",
+        "created_at": "2026-04-28T09:51:04Z",
+        "age_days": 21,
+        "thumbs": 0,
+        "commenters": 0,
+        "labels": [],
+        "reason": "age>=14",
+        "existing_idea_file": null,
+        "last_synced_comment_id": null
+      }
+    ],
+    "dormant": [
+      {
+        "number": 2411,
+        "title": "[Feature] OmniMemory",
+        "age_days": 0,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2356,
+        "title": "[Feature]",
+        "age_days": 1,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2353,
+        "title": "[Feature] add 'playground' function",
+        "age_days": 1,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2330,
+        "title": "Mistral Vibe Cli Support",
+        "age_days": 2,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2306,
+        "title": "[Feature] Support Zed IDE Integration When OmniRoute Runs in Docker",
+        "age_days": 2,
+        "thumbs": 0,
+        "commenters": 1,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2303,
+        "title": "[Feature] Do not compress previous messages to avoid big and frequent cache writes",
+        "age_days": 3,
+        "thumbs": 0,
+        "commenters": 1,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2302,
+        "title": "[Feature] Real-Time Usage Network Map",
+        "age_days": 3,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2275,
+        "title": "[Feature] Support free chatgpt accounts",
+        "age_days": 4,
+        "thumbs": 0,
+        "commenters": 1,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2268,
+        "title": "[Feature] Support multiple models in Factory Droid auto-configuration",
+        "age_days": 4,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2229,
+        "title": "[Feature] Identify back off time based on provider response",
+        "age_days": 5,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2206,
+        "title": "Windsurf IDE integration support",
+        "age_days": 6,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2205,
+        "title": "Add api.airforce as a built-in provider",
+        "age_days": 6,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2204,
+        "title": "Disable API Compression on a per-API-Action basis",
+        "age_days": 6,
+        "thumbs": 0,
+        "commenters": 1,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2187,
+        "title": "[Feature] Support Serverless Relay Proxies",
+        "age_days": 7,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2170,
+        "title": "Alternative to quota issue - Airbridge integration",
+        "age_days": 7,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2151,
+        "title": "[Feature] Add apply proxy fast in list provider",
+        "age_days": 8,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2147,
+        "title": "[Feature] How do I customize the ID of API Key Compatible Providers?",
+        "age_days": 8,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2110,
+        "title": "[Feature] breaker circuit",
+        "age_days": 9,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2101,
+        "title": "[Feature] per-API-key / per-request compression bypass",
+        "age_days": 9,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2062,
+        "title": "[Feature] Add support for CommandCode",
+        "age_days": 10,
+        "thumbs": 2,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2056,
+        "title": "[Feature] Add option to hide provider alias model IDs from /v1/models",
+        "age_days": 11,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2044,
+        "title": "[Feature] Support importing Providers configrations from CLIProxyAPI",
+        "age_days": 11,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2034,
+        "title": "[Feature] Respect HOST/HOSTNAME env var instead of hardcoding 0.0.0.0",
+        "age_days": 12,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1998,
+        "title": "[Feature] Unified/Consistent API Key visibility between API Manager and CLI Tools",
+        "age_days": 12,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1987,
+        "title": "[Feature] Middleware de pre-request para roteamento semantico | Programmatic Pre-request Middleware for Semantic Routing",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1981,
+        "title": "[Feature] LLM-guided configuration assistant with checkpoints and safe auto-setup",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2328,
+        "title": "[Feature] Kiro multi-account support: independent OAuth sessions per connection",
+        "age_days": 2,
+        "thumbs": 0,
+        "commenters": 1,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 2132,
+        "title": "[Feature] Add coding-score-aware routing similar to OpenRouter Pareto (minCodingScore)",
+        "age_days": 8,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1985,
+        "title": "[Feature] Unify Vertex AI and Vertex AI Partners provider routing",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1984,
+        "title": "[Feature] Google Custom Search JSON API is closed to new customers",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      },
+      {
+        "number": 1975,
+        "title": "[Feature] Dashboard: Credit Balance Widget for Providers with $/Credit Check Endpoints",
+        "age_days": 13,
+        "thumbs": 0,
+        "commenters": 0,
+        "reason": "age<14 && thumbs<5 && commenters<3"
+      }
+    ],
+    "already_delivered": [
+      {
+        "number": 2274,
+        "title": "[Feature] Support microsoft copilot",
+        "author": "warreth",
+        "confidence": "high",
+        "evidence": {
+          "pr_merged": {
+            "number": 2340,
+            "merged_at": "2026-05-17T23:02:02Z",
+            "ref": "closes #2274"
+          }
+        },
+        "version": "release/v3.8.0",
+        "version_source": "branch_unreleased"
+      },
+      {
+        "number": 2262,
+        "title": "[Feature] Make LGKP mode remember the last good account and not only the provider",
+        "author": "uwuclxdy",
+        "confidence": "high",
+        "evidence": {
+          "pr_merged": {
+            "number": 2338,
+            "merged_at": "2026-05-17T22:54:33Z",
+            "ref": "closes #2262"
+          }
+        },
+        "version": "release/v3.8.0",
+        "version_source": "branch_unreleased"
+      },
+      {
+        "number": 1826,
+        "title": "[Feature] Add https://ai.hackclub.com/ integrations",
+        "author": "oyi77",
+        "confidence": "high",
+        "evidence": {
+          "pr_merged": {
+            "number": 2339,
+            "merged_at": "2026-05-17T22:43:58Z",
+            "ref": "closes #1826"
+          }
+        },
+        "version": "release/v3.8.0",
+        "version_source": "branch_unreleased"
+      },
+      {
+        "number": 2095,
+        "title": "[Feature] Add 16 new AI providers to the provider list - Aproved",
+        "author": "oyi77",
+        "confidence": "high",
+        "evidence": {
+          "pr_merged": {
+            "number": 2096,
+            "merged_at": "2026-05-10T01:00:22Z",
+            "ref": "closes #2095"
+          }
+        },
+        "version": "release/v3.8.0",
+        "version_source": "branch_unreleased"
+      }
+    ],
+    "skip_assigned": [],
+    "skip_has_pr": [
+      {
+        "number": 2060,
+        "title": "[Feature] WordPress-style Plugin System for OmniRoute - Approved for 4.0.0-rc.1 Version",
+        "linked_prs": [
+          {
+            "number": 2386,
+            "state": "open"
+          },
+          {
+            "number": 2387,
+            "state": "open"
+          },
+          {
+            "number": 2388,
+            "state": "open"
+          },
+          {
+            "number": 2385,
+            "state": "open"
+          }
+        ]
+      }
+    ],
+    "stale_need_details": [],
+    "stale_defer": [],
+    "closed_externally": []
+  },
+  "warnings": [
+    {
+      "level": "warn",
+      "issue": 2356,
+      "message": "weak delivery signal — manual verification recommended"
+    },
+    {
+      "level": "warn",
+      "issue": 2062,
+      "message": "weak delivery signal — manual verification recommended"
+    },
+    {
+      "level": "warn",
+      "issue": 2044,
+      "message": "weak delivery signal — manual verification recommended"
+    },
+    {
+      "level": "warn",
+      "issue": 2328,
+      "message": "weak delivery signal — manual verification recommended"
+    },
+    {
+      "level": "warn",
+      "issue": 1786,
+      "message": "weak delivery signal — manual verification recommended"
+    },
+    {
+      "level": "warn",
+      "issue": 1735,
+      "message": "weak delivery signal — manual verification recommended"
+    }
+  ]
+}

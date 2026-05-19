@@ -56,6 +56,10 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "agent-skills",
   "mcp",
   "a2a",
+  // Gamification
+  "leaderboard",
+  "profile",
+  "tokens",
   // Other Features — flat
   "media",
   // Other Features > Batch
@@ -527,6 +531,36 @@ const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
   },
 ];
 
+const GAMIFICATION_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "gamification",
+  titleKey: "gamificationGroup",
+  titleFallback: "Gamification",
+  items: [
+    {
+      id: "leaderboard",
+      href: "/dashboard/leaderboard",
+      i18nKey: "leaderboard",
+      subtitleKey: "leaderboardSubtitle",
+      icon: "emoji_events",
+    },
+    {
+      id: "profile",
+      href: "/dashboard/profile",
+      i18nKey: "profile",
+      subtitleKey: "profileSubtitle",
+      icon: "person",
+    },
+    {
+      id: "tokens",
+      href: "/dashboard/tokens",
+      i18nKey: "tokens",
+      subtitleKey: "tokensSubtitle",
+      icon: "toll",
+    },
+  ],
+};
+
 const OTHER_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
   {
     id: "media",
@@ -697,7 +731,7 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     id: "other-features",
     titleKey: "otherFeaturesSection",
     titleFallback: "Other Features",
-    children: [...OTHER_FEATURES_ITEMS, BATCH_GROUP],
+    children: [GAMIFICATION_GROUP, ...OTHER_FEATURES_ITEMS, BATCH_GROUP],
   },
   {
     id: "configuration",

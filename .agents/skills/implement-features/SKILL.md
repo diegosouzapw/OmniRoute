@@ -39,19 +39,19 @@ _tasks/features-vX.Y.Z/   # Implementation plans (per-release)
 
 ---
 
-## Phase 1 — Harvest: Collect & Catalog Feature Ideas
+## Phase 0 — Pre-flight Triage (NEW)
 
-### 1.1 Identify the Repository
+Before harvesting, run a deterministic triage script that decides which issues to absorb, which to leave dormant, which were already delivered, and which need lifecycle cleanup. This phase replaces the old Phase 1.1/1.2 and gates the rest of the workflow on the triage JSON.
+
+### 0.1 Identify the Repository
 
 // turbo
 
 - Run: `git -C <project_root> remote get-url origin` to extract owner/repo.
 
-### 1.2 Ensure Release Branch Exists
+### 0.2 Ensure Release Branch Exists
 
 // turbo
-
-Before doing any work, ensure you are on the current release branch:
 
 ```bash
 # Check current branch
@@ -67,37 +67,82 @@ npm install
 
 If already on a `release/vX.Y.Z` branch, continue working there.
 
-### 1.3 Fetch ALL Open Feature Requests
+### 0.3 Run feature-triage script
 
-// turbo-all
-
-**⚠️ CRITICAL**: The JSON output of `gh issue list` can be truncated by the tool, silently hiding issues. You MUST use the two-step approach below.
-
-**Step 1 — Get Issue numbers only** (small output, never truncated):
+// turbo
 
 ```bash
-# Fetch issues with feature/enhancement labels
-gh issue list --repo <owner>/<repo> --state open -l "enhancement" --limit 500 --json number --jq '.[].number'
-
-# Also check for [Feature] in title (common pattern when no labels are set)
-gh issue list --repo <owner>/<repo> --state open --limit 500 --json number,title --jq '.[] | select(.title | test("\\[Feature\\]|\\[feature\\]|feature request"; "i")) | .number'
+node scripts/features/feature-triage.mjs \
+  --owner <OWNER> --repo <REPO> \
+  --output _ideia/_triage.json \
+  --verbose
 ```
 
-- Merge both lists, deduplicate. Count and confirm the total.
+Read `_ideia/_triage.json` into context. Buckets present: `absorb`, `dormant`, `already_delivered`, `skip_assigned`, `skip_has_pr`, `stale_need_details`, `stale_defer`, `closed_externally`.
 
-**Step 2 — Fetch full metadata for each Issue** (one call per issue):
+> **Defaults** (overridable via flags or env vars):
+> quarantine=14d, override-thumbs=5, override-commenters=3, stale-needs=30d, stale-defer=90d.
 
-```bash
-gh issue view <NUMBER> --repo <owner>/<repo> --json number,title,labels,body,comments,createdAt,author,assignees
-```
+### 0.4 Apply deterministic actions (in this exact order)
 
-- Read the **entire body** — including description, use cases, screenshots, mockups, and any embedded images.
-- Read **ALL comments** — community discussion, agreements, restrictions, owner responses, and linked PRs.
-- **Images**: If the body or comments contain image URLs (`![...](...)` or `https://...png/jpg/gif`), note them — they may contain UI mockups, wireframes, or architecture diagrams that are essential to understanding the request.
-- You may batch these into parallel calls (up to 4 at a time).
-- Sort by oldest first (FIFO).
+For each bucket, perform the action described. **Order matters** — `already_delivered` runs first because its close action precludes any other processing.
+
+1. **`already_delivered`** — pick comment template based on `version_source` + `confidence`:
+   - `version_source == "tag_after_merge"` AND `confidence == "high"` → template **HIGH** (see Phase 2.5.3)
+   - `version_source == "tag_after_merge"` AND `confidence == "medium"` → template **MEDIUM** (asks for verification)
+   - `version_source == "branch_unreleased"` → template **unreleased**
+   - Then `gh issue close <N> --repo <O>/<R> --comment "<rendered template>"`
+
+2. **`closed_externally`** — for each entry, `rm` the file (log to stderr what was removed).
+
+3. **`stale_need_details`** — for each entry, post the stale template (see Phase 2.5.3), close the issue, then `mv <file> _ideia/notfit/stale/`.
+
+4. **`skip_assigned` / `skip_has_pr`** — no action (silent skip).
+
+5. **`dormant`** — no action (total silence; the JSON records the decision for internal visibility only).
+
+6. **`warnings`** — log each warning to stderr; include them in the Phase 3 report.
+
+> **Note**: issues with `confidence == "low"` are not in `already_delivered` — they appear in `absorb`/`dormant` with a warning, so step 0.4.1 never sees them.
+
+### 0.5 Incremental re-sync for existing idea files in `absorb`
+
+For each `absorb` entry where `existing_idea_file != null`, the script already updated the file via `resync.mjs`. No additional action needed in this step — but verify with `git status` that only expected idea files were modified.
+
+If the entry has `needs_reclassification: true`, move the file out of `_ideia/viable/need_details/` back to `_ideia/` root for Phase 2 to re-classify.
+
+---
+
+## Phase 1 — Harvest: Collect & Catalog Feature Ideas
+
+> Phases 1.1 and 1.2 are now handled by Phase 0.1 and 0.2.
+
+### 1.3 Process triage results
+
+Instead of re-fetching every open issue, use the `_ideia/_triage.json` produced by Phase 0.3. Iterate only over:
+
+- `buckets.absorb[]` — issues that passed quarantine (age ≥ 14d OR engagement override)
+- `buckets.stale_defer[]` — deferred ideas due for re-evaluation
+
+For each `absorb` entry, the JSON already includes `number`, `title`, `author`, `created_at`, `age_days`, `thumbs`, `commenters`, `labels`, `existing_idea_file`, and `last_synced_comment_id`. Fetch the full issue body only if needed for Phase 2 research.
+
+For each `stale_defer` entry, **treat it as a fresh idea**:
+
+- Re-run Phase 2 (Research) from scratch — codebase may have evolved in 90+ days, opening new architectural possibilities
+- Re-run Phase 2.5 (Organize & Respond) and let the new verdict decide:
+  - If still **DEFER** → stay in `_ideia/defer/`, but bump `snapshot.classified_at` so the next check is 90 days from now
+  - If **VIABLE** → move to `_ideia/viable/`, post the "we're picking this back up" variant of the VIABLE comment
+  - If **NOT FIT** → move to `_ideia/notfit/`, close issue with NOT FIT template
+
+You may batch `gh issue view` calls in parallel (up to 4 at a time) when fresh fetches are required.
+
+> Old behavior (fetching every open issue with `gh issue list`) is replaced by Phase 0.3.
 
 ### 1.4 Create Idea Files (initially in `_ideia/` root)
+
+> **If `existing_idea_file != null` in the triage JSON**, the file was already re-synced in Phase 0.5 — skip the create/update step and proceed to Phase 2 for that issue.
+>
+> **If `needs_reclassification == true`**, the file was moved back to `_ideia/` root in Phase 0.5 — treat it as a fresh idea for the rest of the run.
 
 For each feature request, create a structured idea file in `<project_root>/_ideia/`:
 
@@ -107,6 +152,19 @@ Example: `1046-native-playground.md`, `1041-smart-auto-combos.md`
 #### 1.4a — If the idea file does NOT exist yet, create it:
 
 ```markdown
+---
+issue: <NUMBER>
+last_synced_at: <ISO_TIMESTAMP_NOW>
+last_synced_comment_id: <MAX_COMMENT_ID_OR_0>
+snapshot:
+  thumbs: <THUMBS_COUNT>
+  commenters: <COMMENTERS_COUNT>
+  age_days: <AGE_DAYS>
+  labels: [<LABEL_LIST>]
+  state: open
+  classified_at: <ISO_TIMESTAMP_NOW>
+---
+
 # Feature: <Title from Issue>
 
 > GitHub Issue: #<NUMBER> — opened by @<author> on <date>
@@ -480,6 +538,109 @@ Thank you for helping improve OmniRoute! 🚀
 
 ---
 
+#### For 🎉 ALREADY DELIVERED — HIGH confidence
+
+// turbo
+
+Used when triage `confidence == "high"` and `version_source == "tag_after_merge"`. Close the issue with a celebratory comment pointing at the shipped version + PR.
+
+```markdown
+Hi @<author>! 🎉
+
+Great news — this functionality was already delivered in version **<VERSION>** through PR #<PR_NUMBER> (<PR_TITLE>).
+
+**How to try it:**
+\`\`\`bash
+git pull origin main && npm install
+npm run dev
+\`\`\`
+
+If your use case is slightly different from what was shipped, feel free to reopen this issue or open a new one with the specific gap. Thanks for helping shape OmniRoute! 🚀
+```
+
+```bash
+gh issue close <NUMBER> --repo <owner>/<repo> --comment "<comment above>"
+```
+
+---
+
+#### For 🎉 ALREADY DELIVERED — MEDIUM confidence
+
+// turbo
+
+Used when triage `confidence == "medium"`. More cautious — asks the author to verify.
+
+```markdown
+Hi @<author>! 🎉
+
+This functionality appears to have been delivered in version **<VERSION>** based on related changes (PR #<PR_NUMBER>, CHANGELOG, commit history).
+
+Could you please verify if the current release covers your request? If yes, feel free to close. If not, comment back with the gap and we'll reopen for further work.
+
+**How to verify:**
+\`\`\`bash
+git pull origin main && npm install
+\`\`\`
+
+Thanks for contributing! 🚀
+```
+
+```bash
+gh issue close <NUMBER> --repo <owner>/<repo> --comment "<comment above>"
+```
+
+---
+
+#### For 🎉 ALREADY DELIVERED — branch_unreleased
+
+// turbo
+
+Used when `version_source == "branch_unreleased"` (regardless of confidence). The fix is on a release branch that hasn't been tagged yet.
+
+```markdown
+Hi @<author>! 🎉
+
+This functionality has been implemented in the upcoming release (branch `release/<VERSION>`, PR #<PR_NUMBER>) and will ship in the next release.
+
+You can already try it on the release branch:
+\`\`\`bash
+git fetch origin && git checkout release/<VERSION>
+npm install && npm run dev
+\`\`\`
+
+Closing now since the work is done — feel free to reopen if you spot any gaps after testing. 🚀
+```
+
+```bash
+gh issue close <NUMBER> --repo <owner>/<repo> --comment "<comment above>"
+```
+
+---
+
+#### For ⏰ STALE NEED_DETAILS — Close after 30d without author reply
+
+// turbo
+
+Used for entries in `buckets.stale_need_details`. Polite close + invite to reopen + `mv` file to `notfit/stale/`.
+
+```markdown
+Hi @<author>! 🙏
+
+Since we haven't heard back from you in about 30 days regarding the details we asked for, we're closing this issue to keep the backlog clean.
+
+**No worries** — please feel free to **reopen** this issue whenever you have the details handy. Just click "Reopen" and reply with the missing information, and we'll pick it back up.
+
+Thanks for thinking of OmniRoute! 🚀
+```
+
+```bash
+gh issue close <NUMBER> --repo <owner>/<repo> --comment "<comment above>"
+mkdir -p _ideia/notfit/stale
+mv <FILE_PATH> _ideia/notfit/stale/
+```
+
+---
+
 ## Phase 3 — Report: Present Findings to User
 
 ### 3.1 🛑 MANDATORY STOP — Present Consolidated Report
@@ -490,13 +651,20 @@ Present a structured report containing:
 
 #### 3.1a — Feature Summary Table
 
-| #   | Issue | Title | Verdict         | Location                      | Action                        |
-| --- | ----- | ----- | --------------- | ----------------------------- | ----------------------------- |
-| 1   | #N    | Title | ✅ VIABLE       | `_ideia/viable/`              | Issue OPEN, comment posted    |
-| 2   | #N    | Title | ⏭️ DEFER        | `_ideia/defer/`               | Issue CLOSED with explanation |
-| 3   | #N    | Title | ❌ NOT FIT      | `_ideia/notfit/`              | Issue CLOSED with explanation |
-| 4   | #N    | Title | 🔁 EXISTS       | `_ideia/notfit/`              | Issue CLOSED with guidance    |
-| 5   | #N    | Title | ❓ NEEDS DETAIL | `_ideia/viable/need_details/` | Issue OPEN, questions posted  |
+| #   | Issue | Title | Verdict               | Location                      | Action                                    |
+| --- | ----- | ----- | --------------------- | ----------------------------- | ----------------------------------------- |
+| 1   | #N    | Title | ✅ VIABLE             | `_ideia/viable/`              | Issue OPEN, comment posted                |
+| 2   | #N    | Title | ⏭️ DEFER              | `_ideia/defer/`               | Issue CLOSED with explanation             |
+| 3   | #N    | Title | ❌ NOT FIT            | `_ideia/notfit/`              | Issue CLOSED with explanation             |
+| 4   | #N    | Title | 🔁 EXISTS             | `_ideia/notfit/`              | Issue CLOSED with guidance                |
+| 5   | #N    | Title | ❓ NEEDS DETAIL       | `_ideia/viable/need_details/` | Issue OPEN, questions posted              |
+| 6   | #N    | Title | 🎉 ALREADY DELIVERED  | (closed)                      | Issue CLOSED, version + PR cited          |
+| 7   | #N    | Title | 💤 DORMANT            | (no file)                     | Silent skip — quarantine not met yet      |
+| 8   | #N    | Title | 👤 SKIP_ASSIGNED      | (no file)                     | Silent skip — has assignee                |
+| 9   | #N    | Title | 🔗 SKIP_HAS_PR        | (no file)                     | Silent skip — has open linked PR          |
+| 10  | #N    | Title | ⏰ STALE NEED_DETAILS | `_ideia/notfit/stale/`        | Issue CLOSED politely after 30d           |
+| 11  | #N    | Title | ♻️ STALE DEFER        | (re-classified)               | Re-ran Phase 2; new verdict applied       |
+| 12  | #N    | Title | 🗑️ CLOSED EXTERNALLY  | (file deleted)                | Idea file removed; issue closed elsewhere |
 
 #### 3.1b — Viable Features Detail
 
@@ -702,12 +870,19 @@ Present a final summary report to the user:
 | #N    | Title | 🔁 Exists       | Issue closed + saved in `_ideia/notfit/`           | —         |
 | #N    | Title | ❓ Needs Detail | Issue OPEN, moved to `_ideia/viable/need_details/` | —         |
 
-Include:
+Include all counters from `_ideia/_triage.json` `counts` field plus:
 
-- Total features harvested
+- Total features harvested (= `counts.total_fetched`)
+- Total absorbed and processed (= `counts.absorb`)
+- Total dormant (skipped quarantine) (= `counts.dormant`)
+- Total already-delivered (closed with version reference) (= `counts.already_delivered`)
+- Total skipped (assigned + has PR) (= `counts.skip_assigned + counts.skip_has_pr`)
+- Total stale need_details (closed after 30d silence) (= `counts.stale_need_details`)
+- Total stale defer (re-classified) (= `counts.stale_defer`)
+- Total cleaned up (closed externally) (= `counts.closed_externally`)
 - Total ideas cataloged (`viable/need_details/` + `defer/` + `notfit/`)
 - Total features implemented (idea files deleted, issues closed)
-- Total features deferred
 - Total issues closed
-- Total issues left open (needs detail only — viable are closed after implementation)
+- Total issues left open
 - Test results (pass/fail count)
+- All `warnings[]` entries from `_triage.json`
