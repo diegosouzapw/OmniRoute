@@ -804,9 +804,9 @@ export default function ProviderLimits() {
           const tone = STATUS_TONE[key];
           const labelMap: Record<string, string> = {
             all: tr("statTotal", "Total"),
-            critical: tr("statCritical", "Crítico"),
-            alert: tr("statAlert", "Alerta"),
-            ok: tr("statHealthy", "Saudável"),
+            critical: tr("statCritical", "Critical"),
+            alert: tr("statAlert", "Alert"),
+            ok: tr("statHealthy", "Healthy"),
           };
           const active = statusFilter === key;
           const count = statusCounts[key] || 0;
