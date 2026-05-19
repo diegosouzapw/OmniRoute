@@ -46,7 +46,7 @@
   },
   "homepage": "https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-provider#readme",
   "engines": {
-    "node": ">=20.20.2"
+    "node": ">=22.22.2"
   },
   "publishConfig": {
     "access": "public"

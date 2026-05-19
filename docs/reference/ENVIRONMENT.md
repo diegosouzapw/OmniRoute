@@ -244,15 +244,16 @@ OmniRoute provides a two-layer defense: request-side injection scanning and resp
 
 Route upstream LLM provider calls through an HTTP or SOCKS5 proxy for egress control, geo-routing, or IP masking.
 
-| Variable                          | Default   | Source File          | Description                                                                         |
-| --------------------------------- | --------- | -------------------- | ----------------------------------------------------------------------------------- |
-| `ENABLE_SOCKS5_PROXY`             | `true`    | `open-sse/executors` | Enable SOCKS5 proxy agent for upstream calls.                                       |
-| `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY` | `true`    | Client-side          | Client-side awareness of SOCKS5 availability.                                       |
-| `HTTP_PROXY`                      | _(unset)_ | Node.js standard     | HTTP proxy for upstream calls.                                                      |
-| `HTTPS_PROXY`                     | _(unset)_ | Node.js standard     | HTTPS proxy for upstream calls.                                                     |
-| `ALL_PROXY`                       | _(unset)_ | Node.js standard     | Universal proxy (supports `socks5://`).                                             |
-| `NO_PROXY`                        | _(unset)_ | Node.js standard     | Comma-separated hostnames/IPs to bypass the proxy.                                  |
-| `ENABLE_TLS_FINGERPRINT`          | `false`   | `open-sse/executors` | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking. |
+| Variable                                | Default   | Source File                                  | Description                                                                             |
+| --------------------------------------- | --------- | -------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `ENABLE_SOCKS5_PROXY`                   | `true`    | `open-sse/executors`                         | Enable SOCKS5 proxy agent for upstream calls.                                           |
+| `NEXT_PUBLIC_ENABLE_SOCKS5_PROXY`       | `true`    | Client-side                                  | Client-side awareness of SOCKS5 availability.                                           |
+| `HTTP_PROXY`                            | _(unset)_ | Node.js standard                             | HTTP proxy for upstream calls.                                                          |
+| `HTTPS_PROXY`                           | _(unset)_ | Node.js standard                             | HTTPS proxy for upstream calls.                                                         |
+| `ALL_PROXY`                             | _(unset)_ | Node.js standard                             | Universal proxy (supports `socks5://`).                                                 |
+| `NO_PROXY`                              | _(unset)_ | Node.js standard                             | Comma-separated hostnames/IPs to bypass the proxy.                                      |
+| `ENABLE_TLS_FINGERPRINT`                | `false`   | `open-sse/executors`                         | Spoof TLS fingerprint using wreq-js (mimics Chrome 124). Counters JA3/JA4 blocking.     |
+| `OMNIROUTE_TURNSTILE_IGNORE_TLS_ERRORS` | `false`   | `open-sse/services/claudeTurnstileSolver.ts` | Ignore HTTPS certificate errors in the Claude Turnstile Playwright context. Debug only. |
 
 ### Scenarios
 

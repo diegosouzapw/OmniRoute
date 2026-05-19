@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
-import { getMachineTokenSync } from "../../../lib/machineToken";
+import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
@@ -12,17 +12,37 @@ import { isAlwaysProtectedPath, isLocalOnlyPath, isLoopbackHost } from "../route
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
-function isLoopbackRequest(headers: Headers): boolean {
-  return isLoopbackHost(headers.get("host"));
+function firstHeaderIp(value: string | null): string | null {
+  return value?.split(",")[0]?.trim() || null;
 }
 
-function hasValidCliToken(headers: Headers): boolean {
-  if (!isLoopbackRequest(headers)) return false;
+function requestPeerAddress(ctx: PolicyContext): string | null {
+  const headers = ctx.request.headers;
+  return (
+    ctx.request.ip ||
+    ctx.request.socket?.remoteAddress ||
+    firstHeaderIp(headers.get("cf-connecting-ip")) ||
+    firstHeaderIp(headers.get("x-forwarded-for")) ||
+    firstHeaderIp(headers.get("x-real-ip")) ||
+    null
+  );
+}
+
+function isLoopbackRequest(ctx: PolicyContext): boolean {
+  const peerAddress = requestPeerAddress(ctx);
+  return peerAddress ? isLoopbackHost(peerAddress) : false;
+}
+
+function hasValidCliToken(ctx: PolicyContext): boolean {
+  if (!isLoopbackRequest(ctx)) return false;
+  const headers = ctx.request.headers;
   const provided = headers.get(CLI_TOKEN_HEADER);
   if (!provided) return false;
-  const expected = getMachineTokenSync();
-  if (expected === "" || provided.length !== expected.length) return false;
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  const expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()].filter(Boolean);
+  return expectedTokens.some((expected) => {
+    if (provided.length !== expected.length) return false;
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  });
 }
 
 function hasBearerToken(headers: Headers): boolean {
@@ -42,7 +62,7 @@ export const managementPolicy: RoutePolicy = {
 
     // Tier 1: local-only gate — block spawn-capable routes from non-loopback.
     if (isLocalOnlyPath(path)) {
-      if (!isLoopbackRequest(ctx.request.headers)) {
+      if (!isLoopbackRequest(ctx)) {
         return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
       }
     }
@@ -51,7 +71,7 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
 
-    if (hasValidCliToken(ctx.request.headers)) {
+    if (hasValidCliToken(ctx)) {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
     }
 

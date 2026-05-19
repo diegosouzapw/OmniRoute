@@ -54,7 +54,11 @@ test("isLoopbackHost: rejects non-loopback hosts", () => {
 
 // ─── management policy — local-only gate ──────────────────────────────────
 
-function makeCtx(path: string, headers: Record<string, string>) {
+function makeCtx(
+  path: string,
+  headers: Record<string, string>,
+  requestExtras: Record<string, unknown> = {}
+) {
   return {
     request: {
       method: "GET",
@@ -62,6 +66,7 @@ function makeCtx(path: string, headers: Record<string, string>) {
       cookies: { get: () => undefined },
       nextUrl: { pathname: path },
       url: `http://localhost:20128${path}`,
+      ...requestExtras,
     },
     classification: {
       routeClass: "MANAGEMENT" as const,
@@ -79,9 +84,44 @@ test("management policy rejects /api/mcp/ from non-localhost (status 403)", asyn
   if (!outcome.allow) assert.equal(outcome.status, 403);
 });
 
+test("management policy rejects /api/mcp/ when forwarded peer is remote", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx("/api/mcp/sse", {
+    host: "localhost",
+    "x-forwarded-for": "203.0.113.10",
+    [CLI_TOKEN_HEADER]: token,
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
+test("management policy rejects /api/mcp/ when host is spoofed from a remote socket", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx(
+    "/api/mcp/sse",
+    {
+      host: "localhost",
+      "x-forwarded-for": "127.0.0.1",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "203.0.113.10" } }
+  );
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
 test("management policy allows /api/mcp/ from localhost with valid CLI token", async () => {
   const token = getMachineTokenSync();
-  const ctx = makeCtx("/api/mcp/sse", { host: "localhost", [CLI_TOKEN_HEADER]: token });
+  const ctx = makeCtx(
+    "/api/mcp/sse",
+    {
+      host: "localhost",
+      [CLI_TOKEN_HEADER]: token,
+    },
+    { socket: { remoteAddress: "127.0.0.1" } }
+  );
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });
