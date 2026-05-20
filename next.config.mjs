@@ -96,6 +96,8 @@ const nextConfig = {
       "./src/mitm/server.cjs",
       "./open-sse/services/compression/engines/rtk/filters/**/*.json",
       "./open-sse/services/compression/rules/**/*.json",
+      "./open-sse/lib/sha3_wasm_bg.wasm",
+      "./open-sse/lib/deepseek-pow-solver.cjs",
     ],
   },
   outputFileTracingExcludes: {
