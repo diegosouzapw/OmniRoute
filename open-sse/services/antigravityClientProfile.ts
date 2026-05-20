@@ -1,9 +1,4 @@
-import {
-  getCloudCodeNodeApiClientHeader,
-  getRuntimeArch,
-  getRuntimePlatform,
-  normalizeCloudCodeArch,
-} from "./cloudCodeHeaders.ts";
+import { getRuntimeArch, getRuntimePlatform, normalizeCloudCodeArch } from "./cloudCodeHeaders.ts";
 import {
   deriveAntigravityMachineId,
   getAntigravityVscodeSessionId,
@@ -11,6 +6,7 @@ import {
 } from "./antigravityIdentity.ts";
 import {
   antigravityUserAgent,
+  ANTIGRAVITY_CREDIT_PROBE_API_CLIENT,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
 import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
@@ -59,8 +55,8 @@ export function antigravityHarnessUserAgent(version = getCachedAntigravityVersio
   return `antigravity/${version} ${getHarnessPlatformArch()}`;
 }
 
-export function antigravityHarnessApiClientHeader(version = getCachedAntigravityVersion()): string {
-  return `google-genai-sdk/${version} ${getCloudCodeNodeApiClientHeader()}`;
+export function antigravityHarnessApiClientHeader(): string {
+  return ANTIGRAVITY_CREDIT_PROBE_API_CLIENT;
 }
 
 function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
@@ -120,7 +116,7 @@ export function applyAntigravityClientProfileHeaders(
 
   if (profile === "harness") {
     headers["User-Agent"] = antigravityHarnessUserAgent(version);
-    headers["X-Goog-Api-Client"] = antigravityHarnessApiClientHeader(version);
+    removeHeaderCaseInsensitive(headers, "X-Goog-Api-Client");
     removeHeaderCaseInsensitive(headers, "x-client-name");
     removeHeaderCaseInsensitive(headers, "x-client-version");
     removeHeaderCaseInsensitive(headers, "x-machine-id");

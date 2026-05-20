@@ -71,7 +71,7 @@ test("applyAntigravityClientProfileHeaders uses harness fingerprint when configu
   );
 
   assert.equal(headers["User-Agent"], antigravityHarnessUserAgent("4.2.0"));
-  assert.match(headers["X-Goog-Api-Client"], /^google-genai-sdk\/4\.2\.0 gl-node\//);
+  assert.equal(headers["X-Goog-Api-Client"], undefined);
   assert.equal(headers["x-client-name"], undefined);
   assert.equal(headers["x-vscode-sessionid"], undefined);
   assert.equal(headers["x-goog-user-project"], "project-2");
