@@ -51,12 +51,16 @@ addition to the existing OpenAI-compatible and Anthropic-compatible flows.
 2. Choose **Add Claude Code Compatible** (only visible when the flag above is set).
 3. Fill in the fields:
 
-| Field     | Value                                                      |
-| --------- | ---------------------------------------------------------- |
-| Name      | `AgentRouter` (or any label)                               |
-| Prefix    | `agentrouter` (used to namespace the provider's model IDs) |
-| Base URL  | `https://agentrouter.org`                                  |
-| Chat path | `/v1/messages?beta=true` (default — leave as-is)           |
+| Field     | Value                                                          |
+| --------- | -------------------------------------------------------------- |
+| Name      | `AgentRouter` (or any label)                                   |
+| Prefix    | `agentrouter` (friendly alias shown in logs and the dashboard) |
+| Base URL  | `https://agentrouter.org`                                      |
+| Chat path | `/v1/messages?beta=true` (default — leave as-is)               |
+
+> The canonical model identifier still uses the full provider node ID
+> (`anthropic-compatible-cc-{uuid}/{model}`). The **Prefix** is just a display
+> alias resolved by `src/lib/usage/callLogs.ts` for friendlier log output.
 
 4. (Optional) Paste your API key in the **Validate** field and click **Check** to
    confirm connectivity before saving.
@@ -128,7 +132,9 @@ plan covers in the AgentRouter dashboard.
 **`Invalid JSON response from provider (reset after Ns)` from the omniroute logs** —
 The upstream returned a non-JSON body (typically an HTML error page from the WAF).
 This usually means the request never reached the AgentRouter backend — recheck that
-the provider type is `anthropic-compatible-cc` and the feature flag is enabled.
+the provider ID starts with `anthropic-compatible-cc-` (note the trailing dash —
+see `CLAUDE_CODE_COMPATIBLE_PREFIX` in `open-sse/services/claudeCodeCompatible.ts`)
+and the feature flag is enabled.
 
 ---
 
