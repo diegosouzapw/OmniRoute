@@ -190,14 +190,13 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
     }
     const fileContent = fs.readFileSync(sourceAbs, "utf8");
     const { content, data: frontmatter } = matter(fileContent);
-    pageTitle = frontmatter.title != null ? String(frontmatter.title) : item.title;
-    version = frontmatter.version != null ? String(frontmatter.version) : null;
-    lastUpdated =
-      frontmatter.lastUpdated != null
-        ? frontmatter.lastUpdated instanceof Date
-          ? frontmatter.lastUpdated.toISOString().slice(0, 10)
-          : String(frontmatter.lastUpdated)
-        : null;
+    pageTitle = String(frontmatter.title || item.title);
+    version = frontmatter.version ? String(frontmatter.version) : null;
+    lastUpdated = frontmatter.lastUpdated
+      ? frontmatter.lastUpdated instanceof Date
+        ? frontmatter.lastUpdated.toISOString().slice(0, 10)
+        : String(frontmatter.lastUpdated)
+      : null;
     mermaidCharts = extractMermaidCharts(content);
     headings = extractHeadings(content);
     htmlContent = renderMarkdown(content);
