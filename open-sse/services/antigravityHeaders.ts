@@ -24,11 +24,20 @@ export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
 export const ANTIGRAVITY_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
 // Harness/bootstrap X-Goog-Api-Client synced with CLIProxyAPI misc.AntigravityGoogAPIClientUA.
 export const ANTIGRAVITY_CREDIT_PROBE_API_CLIENT = "gl-node/22.21.1";
-const LOAD_CODE_ASSIST_METADATA = Object.freeze({
-  ideType: "ANTIGRAVITY",
-  platform: "MACOS",
-  pluginType: "GEMINI",
-});
+type AntigravityLoadCodeAssistPlatform = "MACOS" | "WINDOWS" | "LINUX";
+
+function getAntigravityLoadCodeAssistPlatformLabel(
+  platform: NodeJS.Platform = process.platform
+): AntigravityLoadCodeAssistPlatform {
+  switch (platform) {
+    case "darwin":
+      return "MACOS";
+    case "win32":
+      return "WINDOWS";
+    default:
+      return "LINUX";
+  }
+}
 
 function withOptionalBearerAuth(
   headers: Record<string, string>,
@@ -74,12 +83,20 @@ export function antigravityNativeOAuthUserAgent(): string {
   return `vscode/1.X.X (Antigravity/${getCachedAntigravityVersion()})`;
 }
 
-export function getAntigravityLoadCodeAssistMetadata(): Record<string, string> {
-  return { ...LOAD_CODE_ASSIST_METADATA };
+export function getAntigravityLoadCodeAssistMetadata(
+  platform: NodeJS.Platform = process.platform
+): Record<string, string> {
+  return {
+    ideType: "ANTIGRAVITY",
+    platform: getAntigravityLoadCodeAssistPlatformLabel(platform),
+    pluginType: "GEMINI",
+  };
 }
 
-export function getAntigravityLoadCodeAssistClientMetadata(): string {
-  return JSON.stringify(LOAD_CODE_ASSIST_METADATA);
+export function getAntigravityLoadCodeAssistClientMetadata(
+  platform: NodeJS.Platform = process.platform
+): string {
+  return JSON.stringify(getAntigravityLoadCodeAssistMetadata(platform));
 }
 
 export function getAntigravityHeaders(

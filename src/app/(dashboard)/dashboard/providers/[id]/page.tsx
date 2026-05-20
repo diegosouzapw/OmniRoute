@@ -9396,11 +9396,6 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (supportsGoogleProjectId) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
-        if (isAntigravity) {
-          updates.providerSpecificData.clientProfile = normalizeAntigravityClientProfileSetting(
-            formData.antigravityClientProfile
-          );
-        }
         if (isCcCompatible) {
           const currentRequestDefaults =
             updates.providerSpecificData.requestDefaults &&
@@ -9438,11 +9433,15 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (supportsGoogleProjectId) {
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
-        if (isAntigravity) {
-          updates.providerSpecificData.clientProfile = normalizeAntigravityClientProfileSetting(
+      }
+      if (isAntigravity) {
+        updates.providerSpecificData = {
+          ...(connection.providerSpecificData || {}),
+          ...(updates.providerSpecificData || {}),
+          clientProfile: normalizeAntigravityClientProfileSetting(
             formData.antigravityClientProfile
-          );
-        }
+          ),
+        };
       }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {

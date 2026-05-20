@@ -242,7 +242,8 @@ function validateProviderSpecificData(
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "providerSpecificData.clientProfile must be ide or harness",
+        message:
+          "providerSpecificData.clientProfile must be ide, harness, cli, or sdk (cli/sdk map to harness)",
         path: ["clientProfile"],
       });
     }

@@ -80,7 +80,15 @@ test("antigravityUserAgent matches Antigravity Manager platform fingerprints", (
 });
 
 test("deriveAntigravityMachineId uses the raw system machine id like Antigravity Manager", () => {
-  assert.equal(deriveAntigravityMachineId(), machineIdSync(true));
+  let systemMachineId: string | null = null;
+  try {
+    systemMachineId = machineIdSync(true);
+  } catch {
+    systemMachineId = null;
+  }
+  if (!systemMachineId) return;
+
+  assert.equal(deriveAntigravityMachineId(), systemMachineId);
 });
 
 test("antigravityHarnessUserAgent uses Go harness platform and arch names", () => {

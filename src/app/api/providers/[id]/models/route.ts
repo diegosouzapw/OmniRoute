@@ -229,7 +229,8 @@ async function fetchAntigravityDiscoveryModelsCached(
   proxy: unknown,
   providerSpecificData?: unknown
 ): Promise<Array<{ id: string; name: string }>> {
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}`;
+  const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
