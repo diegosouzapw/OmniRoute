@@ -71,18 +71,20 @@ key (`sk-...`). The connection's `test_status` should turn `active`.
 
 ## 3. Use it through a combo or directly
 
-Reference the model the same way as any other provider — `<provider-id>/<model>`,
-for example:
+Reference the model using your provider's prefix as the namespace:
 
 ```bash
 curl -X POST http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "anthropic-compatible-cc-<your-node-id>/claude-opus-4-6",
+    "model": "agentrouter/claude-opus-4-6",
     "messages": [{"role": "user", "content": "hello"}],
     "max_tokens": 100
   }'
 ```
+
+The canonical model ID `anthropic-compatible-cc-{uuid}/claude-opus-4-6` also works
+and is what shows up in the database and combo configuration.
 
 Or add it to a combo for routing, fallback, and quota management like any other
 provider.
