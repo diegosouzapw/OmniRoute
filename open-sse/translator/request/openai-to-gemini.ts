@@ -315,7 +315,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
             if (!signatureForToolCall && stringifySignaturelessToolCalls) {
               const args = tc.function?.arguments || "{}";
               parts.push({
-                text: `[Llamada de herramienta: ${tc.function?.name || "unknown"}]\nArgumentos: ${args}`,
+                text: `[Tool call: ${tc.function?.name || "unknown"}]\nArguments: ${args}`,
               });
               continue;
             }
@@ -402,7 +402,7 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
                   const name = tcID2Name[tc.id] || tc.function?.name || "unknown";
                   const resp = toolResponses[tc.id];
                   toolParts.push({
-                    text: `[Respuesta de herramienta: ${name}]\nResultado: ${resp}`,
+                    text: `[Tool response: ${name}]\nResult: ${resp}`,
                   });
                 }
               }

@@ -75,6 +75,11 @@ function getStreamErrorStatusMapping(statusCode: number): StreamErrorStatusMappi
         responses: { type: "server_error", code: "server_error" },
         claude: { type: "api_error" },
       };
+    default:
+      return {
+        responses: { type: "server_error", code: "server_error" },
+        claude: { type: "api_error" },
+      };
   }
 }
 

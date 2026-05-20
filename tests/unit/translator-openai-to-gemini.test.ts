@@ -662,7 +662,7 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
     modelTurn.parts.some(
       (part) =>
         typeof part.text === "string" &&
-        part.text.includes("[Llamada de herramienta: default_api:todowrite_ide]")
+        part.text.includes("[Tool call: default_api:todowrite_ide]")
     ),
     "expected signature-less tool call to be preserved as text"
   );
@@ -678,7 +678,7 @@ test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool ca
       content.parts.some(
         (part) =>
           typeof part.text === "string" &&
-          part.text.includes("[Respuesta de herramienta: default_api:todowrite_ide]")
+          part.text.includes("[Tool response: default_api:todowrite_ide]")
       )
   );
   assert.ok(toolTurn, "expected signature-less tool response to be preserved as text");

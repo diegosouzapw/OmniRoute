@@ -5,6 +5,20 @@ import {
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 
+async function fetchFirstOk(endpoints: string[], init: RequestInit) {
+  let lastError: unknown = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, init);
+      if (response.ok) return response;
+      lastError = new Error(`${response.status} ${await response.text()}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("No Antigravity endpoints configured");
+}
+
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
   flowType: "authorization_code",
@@ -52,19 +66,6 @@ export const antigravity = {
   postExchange: async (tokens) => {
     const headers = getAntigravityHeaders("loadCodeAssist", tokens.access_token);
     const metadata = getAntigravityLoadCodeAssistMetadata();
-    const fetchFirstOk = async (endpoints: string[], init: RequestInit) => {
-      let lastError = null;
-      for (const endpoint of endpoints) {
-        try {
-          const response = await fetch(endpoint, init);
-          if (response.ok) return response;
-          lastError = new Error(`${response.status} ${await response.text()}`);
-        } catch (error) {
-          lastError = error;
-        }
-      }
-      throw lastError || new Error("No Antigravity endpoints configured");
-    };
 
     const userInfoRes = await fetch(`${ANTIGRAVITY_CONFIG.userInfoUrl}?alt=json`, {
       headers: { Authorization: `Bearer ${tokens.access_token}` },

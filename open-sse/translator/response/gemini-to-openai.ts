@@ -5,17 +5,46 @@ import {
   storeGeminiThoughtSignature,
 } from "../../services/geminiThoughtSignatureStore.ts";
 
-function buildToolCallId(functionCall, toolName, toolCallIndex) {
+type GeminiToOpenAIState = {
+  functionIndex: number;
+  messageId: string;
+  model: string;
+  pendingThoughtSignature?: string | null;
+  signatureNamespace?: string | null;
+  toolCalls: Map<number, unknown>;
+  toolNameMap?: Map<string, string>;
+};
+
+type GeminiFunctionCallPart = {
+  functionCall: {
+    args?: unknown;
+    id?: string;
+    name: string;
+  };
+};
+
+function buildToolCallId(
+  functionCall: GeminiFunctionCallPart["functionCall"],
+  toolName: string,
+  toolCallIndex: number
+) {
   return typeof functionCall?.id === "string" && functionCall.id.length > 0
     ? functionCall.id
     : `${toolName}-${Date.now()}-${toolCallIndex}`;
 }
 
-function getSignatureCacheKey(state, toolCallId) {
+function getSignatureCacheKey(
+  state: Pick<GeminiToOpenAIState, "signatureNamespace">,
+  toolCallId: unknown
+) {
   return buildGeminiThoughtSignatureKey(state?.signatureNamespace, toolCallId);
 }
 
-function emitFunctionCallPart(part, state, results) {
+function emitFunctionCallPart(
+  part: GeminiFunctionCallPart,
+  state: GeminiToOpenAIState,
+  results: Array<Record<string, unknown>>
+) {
   const rawToolName = part.functionCall.name;
   const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
   const fcArgs = part.functionCall.args || {};

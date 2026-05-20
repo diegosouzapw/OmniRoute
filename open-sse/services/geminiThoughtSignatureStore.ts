@@ -20,6 +20,15 @@ type PersistedEntry = Entry & {
 const signatures = new Map<string, Entry>();
 let signatureCacheMode: SignatureCacheMode = "enabled";
 let persistedPruneCounter = 0;
+const loggedPersistenceErrors = new Set<string>();
+
+function warnPersistenceError(operation: string, error: unknown) {
+  if (process.env.NODE_ENV === "test") return;
+  if (loggedPersistenceErrors.has(operation)) return;
+  loggedPersistenceErrors.add(operation);
+  const message = error instanceof Error ? error.message : String(error);
+  console.warn(`[signature-cache] persisted ${operation} failed: ${message}`);
+}
 
 export function buildGeminiThoughtSignatureKey(namespace: unknown, toolCallId: unknown): unknown {
   if (
@@ -132,8 +141,8 @@ export function storeGeminiThoughtSignature(toolCallId: unknown, signature: unkn
       serializePersistedEntry({ signature, createdAt: now, expiresAt: now + PERSISTED_TTL_MS })
     );
     maybePrunePersistedSignatures(db);
-  } catch {
-    // Fail silently during build phase or if DB is not ready
+  } catch (error) {
+    warnPersistenceError("store", error);
   }
 }
 
@@ -175,8 +184,8 @@ export function getGeminiThoughtSignature(toolCallId: unknown) {
 
       return persisted.entry.signature;
     }
-  } catch {
-    // Fail silently
+  } catch (error) {
+    warnPersistenceError("read", error);
   }
 
   return null;
@@ -300,8 +309,8 @@ export function clearGeminiThoughtSignatures() {
   try {
     const db = getDbInstance();
     db.prepare("DELETE FROM key_value WHERE namespace = ?").run(NAMESPACE);
-  } catch {
-    // Fail silently
+  } catch (error) {
+    warnPersistenceError("clear", error);
   }
 }
 
