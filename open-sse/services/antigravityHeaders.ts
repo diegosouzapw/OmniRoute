@@ -37,17 +37,34 @@ function withOptionalBearerAuth(
   return headers;
 }
 
-/**
- * Antigravity desktop User-Agent:
- * "Antigravity/VERSION (Macintosh; Intel Mac OS X 10_15_7) Chrome/132... Electron/39..."
- */
-export function antigravityUserAgent(): string {
-  return `Antigravity/${getCachedAntigravityVersion()} (Macintosh; Intel Mac OS X 10_15_7) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
+function getAntigravityPlatformInfo(platform: NodeJS.Platform = process.platform): string {
+  switch (platform) {
+    case "darwin":
+      return "Macintosh; Intel Mac OS X 10_15_7";
+    case "win32":
+      return "Windows NT 10.0; Win64; x64";
+    case "linux":
+    default:
+      return "X11; Linux x86_64";
+  }
 }
 
-export async function resolveAntigravityUserAgent(): Promise<string> {
+/**
+ * Antigravity desktop User-Agent:
+ * "Antigravity/VERSION (PLATFORM) Chrome/132... Electron/39..."
+ */
+export function antigravityUserAgent(
+  version = getCachedAntigravityVersion(),
+  platform: NodeJS.Platform = process.platform
+): string {
+  return `Antigravity/${version} (${getAntigravityPlatformInfo(platform)}) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
+}
+
+export async function resolveAntigravityUserAgent(
+  platform: NodeJS.Platform = process.platform
+): Promise<string> {
   const version = await resolveAntigravityVersion();
-  return `Antigravity/${version} (Macintosh; Intel Mac OS X 10_15_7) Chrome/${ANTIGRAVITY_CHROME_VERSION} Electron/${ANTIGRAVITY_ELECTRON_VERSION}`;
+  return antigravityUserAgent(version, platform);
 }
 
 export function antigravityNativeOAuthUserAgent(): string {

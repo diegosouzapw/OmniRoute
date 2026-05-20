@@ -120,7 +120,12 @@ export function applyAntigravityClientProfileHeaders(
     headers["User-Agent"] = antigravityUserAgent();
     headers["x-client-name"] = "antigravity";
     headers["x-client-version"] = version;
-    headers["x-machine-id"] = deriveAntigravityMachineId(credentials);
+    const machineId = deriveAntigravityMachineId(credentials);
+    if (machineId) {
+      headers["x-machine-id"] = machineId;
+    } else {
+      removeHeaderCaseInsensitive(headers, "x-machine-id");
+    }
     headers["x-vscode-sessionid"] = getAntigravityVscodeSessionId();
     removeHeaderCaseInsensitive(headers, "X-Goog-Api-Client");
     removeHeaderCaseInsensitive(headers, "Client-Metadata");
