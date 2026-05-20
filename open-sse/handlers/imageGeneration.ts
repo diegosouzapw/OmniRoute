@@ -46,7 +46,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
-import { sanitizeErrorMessage } from "../utils/error.ts";
+import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
   model: string;
@@ -88,6 +88,32 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "flux-kontext-pro",
   "qwen-image",
 ]);
+
+const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
+
+function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+    if (IMAGE_ASPECT_RATIO_PATTERN.test(trimmedValue)) return trimmedValue;
+  }
+  return mapImageSize(typeof fallbackSize === "string" ? fallbackSize : null);
+}
+
+function parseJsonOrNull(value: string): unknown | null {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeImageProviderError(errorText: string): unknown {
+  const parsed = parseJsonOrNull(errorText);
+  if (parsed !== null) {
+    return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
+  }
+  return sanitizeErrorMessage(errorText);
+}
 
 const BFL_MODEL_ENDPOINTS = {
   "flux-2-max": "/v1/flux-2-max",
@@ -661,10 +687,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       generationConfig: {
         candidateCount,
         imageConfig: {
-          aspectRatio:
-            typeof body.aspect_ratio === "string"
-              ? body.aspect_ratio
-              : mapImageSize(typeof body.size === "string" ? body.size : null),
+          aspectRatio: normalizeImageAspectRatio(body.aspect_ratio, body.size),
         },
       },
     },
@@ -693,15 +716,14 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   }
 
   try {
-    let finalHeaders = headers;
     let response = await fetch(url, {
       method: "POST",
-      headers: finalHeaders,
+      headers,
       body: JSON.stringify(antigravityBody),
     });
 
-    if (response.status === HTTP_STATUS.FORBIDDEN && finalHeaders["x-goog-user-project"]) {
-      const retryHeaders = { ...finalHeaders };
+    if (response.status === HTTP_STATUS.FORBIDDEN && headers["x-goog-user-project"]) {
+      const retryHeaders = { ...headers };
       delete retryHeaders["x-goog-user-project"];
       if (log) {
         log.info("IMAGE", "antigravity image 403 with x-goog-user-project; retrying without it");
@@ -711,13 +733,15 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
         headers: retryHeaders,
         body: JSON.stringify(antigravityBody),
       });
-      finalHeaders = retryHeaders;
     }
 
     if (!response.ok) {
       const errorText = await response.text();
+      const safeError = sanitizeImageProviderError(errorText);
+      const safeErrorLog =
+        typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
       if (log) {
-        log.error("IMAGE", `antigravity error ${response.status}: ${errorText.slice(0, 200)}`);
+        log.error("IMAGE", `antigravity error ${response.status}: ${safeErrorLog.slice(0, 200)}`);
       }
 
       saveCallLog({
@@ -727,11 +751,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
         model: `antigravity/${model}`,
         provider,
         duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
+        error: safeErrorLog.slice(0, 500),
         requestBody: logRequestBody,
       }).catch(() => {});
 
-      return { success: false, status: response.status, error: errorText };
+      return { success: false, status: response.status, error: safeError };
     }
 
     const data = await response.json();
@@ -746,7 +770,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
         if (part.inlineData) {
           images.push({
             b64_json: part.inlineData.data,
-            revised_prompt: parts.find((p) => p.text)?.text || body.prompt,
+            revised_prompt: parts.find((p) => p.text)?.text || promptText,
           });
         }
       }

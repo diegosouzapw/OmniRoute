@@ -729,6 +729,7 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
         model: "antigravity/gemini-3.1-flash-image-preview",
         prompt: "painted beach",
         size: "1024x1024",
+        aspect_ratio: "not-a-ratio",
       },
       credentials: { accessToken: "ag-token", projectId: "project-123" },
       log: null,
@@ -758,6 +759,31 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
     assert.deepEqual(result.data.data, [
       { b64_json: "YmFzZTY0LWdlbWluaQ==", revised_prompt: "painted beach" },
     ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration rejects Antigravity image requests without projectId", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("fetch should not be called without an Antigravity projectId");
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "painted forest",
+        size: "1024x1024",
+      },
+      credentials: { accessToken: "ag-token" },
+      log: null,
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.match(String(result.error), /Missing Google projectId/);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -827,6 +853,41 @@ test("handleImageGeneration retries Antigravity image requests without billing p
     assert.deepEqual(result.data.data, [
       { b64_json: "YmFzZTY0LXJldHJ5", revised_prompt: "painted forest" },
     ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration sanitizes Antigravity upstream error payloads", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          code: 500,
+          message:
+            "failed at /Users/backryun/OmniRoute/open-sse/handlers/imageGeneration.ts:1\nstack",
+          status: "INTERNAL",
+        },
+      }),
+      { status: 500, headers: { "content-type": "application/json" } }
+    );
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "painted forest",
+        size: "1024x1024",
+      },
+      credentials: { accessToken: "ag-token", projectId: "project-123" },
+      log: null,
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 500);
+    assert.equal(result.error.error.message, "failed at <path>");
   } finally {
     globalThis.fetch = originalFetch;
   }
