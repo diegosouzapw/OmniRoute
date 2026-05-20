@@ -4,10 +4,15 @@ import { allow, reject } from "../context";
 
 function extractBearer(headers: Headers): string | null {
   const raw = headers.get("authorization") ?? headers.get("Authorization");
-  if (!raw) return null;
-  const trimmed = raw.trim();
-  if (!trimmed.toLowerCase().startsWith("bearer ")) return null;
-  return trimmed.slice(7).trim() || null;
+  const xApiKey = headers.get("x-api-key") ?? headers.get("X-Api-Key");
+  if (raw) {
+    const trimmed = raw.trim();
+    if (!trimmed.toLowerCase().startsWith("bearer ")) return null;
+    return trimmed.slice(7).trim() || null;
+  } else if (xApiKey) {
+    return xApiKey?.trim() || null;
+  }
+  return null;
 }
 
 function maskKeyId(apiKey: string): string {
