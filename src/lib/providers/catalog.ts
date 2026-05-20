@@ -161,6 +161,7 @@ const MANAGED_PROVIDER_CONNECTION_CATEGORIES = new Set<StaticProviderCatalogCate
   "local",
   "search",
   "audio",
+  "cloud-agent",
 ]);
 
 export function getStaticProviderCatalogGroup(
