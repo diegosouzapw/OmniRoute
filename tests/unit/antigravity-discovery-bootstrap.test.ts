@@ -123,6 +123,27 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedAuth, "Bearer my-secret-token", "Authorization header must be set");
   });
 
+  test("uses CLI/SDK harness headers when requested", async () => {
+    let capturedHeaders: Headers | null = null;
+
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      capturedHeaders = new Headers(init?.headers);
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-harness" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    await ensureAntigravityProjectAssigned("harness-token", mockFetch, "harness");
+
+    assert.match(
+      capturedHeaders?.get("User-Agent") || "",
+      /^antigravity\/4\.2\.0 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+    );
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), "gl-node/22.21.1");
+    assert.equal(capturedHeaders?.get("Client-Metadata"), null);
+  });
+
   test("falls through to next URL when first loadCodeAssist returns 404", async () => {
     const hitUrls: string[] = [];
 

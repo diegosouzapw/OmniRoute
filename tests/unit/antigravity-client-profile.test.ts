@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { normalizeAntigravityClientProfile } from "../../src/shared/constants/antigravityClientProfile.ts";
 import {
   applyAntigravityClientProfileHeaders,
+  getAntigravityBootstrapHeaders,
   antigravityHarnessUserAgent,
   getAntigravityClientProfile,
 } from "../../open-sse/services/antigravityClientProfile.ts";
@@ -80,6 +81,35 @@ test("antigravityUserAgent matches Antigravity Manager platform fingerprints", (
 
 test("deriveAntigravityMachineId uses the raw system machine id like Antigravity Manager", () => {
   assert.equal(deriveAntigravityMachineId(), machineIdSync(true));
+});
+
+test("antigravityHarnessUserAgent uses Go harness platform and arch names", () => {
+  assert.equal(
+    antigravityHarnessUserAgent("2.0.1", "darwin", "arm64"),
+    "antigravity/2.0.1 darwin/arm64"
+  );
+  assert.equal(
+    antigravityHarnessUserAgent("2.0.1", "win32", "x64"),
+    "antigravity/2.0.1 windows/amd64"
+  );
+  assert.equal(
+    antigravityHarnessUserAgent("2.0.1", "linux", "x64"),
+    "antigravity/2.0.1 linux/amd64"
+  );
+});
+
+test("getAntigravityBootstrapHeaders uses SDK loadCodeAssist harness fingerprint", () => {
+  seedAntigravityVersionCache("2.0.1");
+
+  const headers = getAntigravityBootstrapHeaders("harness", "token");
+
+  assert.equal(headers.Authorization, "Bearer token");
+  assert.equal(
+    headers["User-Agent"],
+    `${antigravityHarnessUserAgent("2.0.1")} google-api-nodejs-client/10.3.0`
+  );
+  assert.equal(headers["X-Goog-Api-Client"], "gl-node/22.21.1");
+  assert.equal(headers["Client-Metadata"], undefined);
 });
 
 test("applyAntigravityClientProfileHeaders uses harness fingerprint when configured", () => {

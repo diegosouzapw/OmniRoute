@@ -21,7 +21,11 @@ import { getGitHubCopilotInternalUserHeaders } from "../config/providerHeaderPro
 import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
-import { applyAntigravityClientProfileHeaders } from "./antigravityClientProfile.ts";
+import {
+  applyAntigravityClientProfileHeaders,
+  getAntigravityBootstrapHeaders,
+  getAntigravityClientProfile,
+} from "./antigravityClientProfile.ts";
 import {
   antigravityUserAgent,
   getAntigravityHeaders,
@@ -1823,7 +1827,10 @@ async function getAntigravityUsage(
   }
 
   try {
-    const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
+    const subscriptionInfo = await getAntigravitySubscriptionInfoCached(
+      accessToken,
+      providerSpecificData
+    );
     const projectId =
       connectionProjectId || toRecord(subscriptionInfo).cloudaicompanionProject?.toString() || null;
 
@@ -1914,15 +1921,19 @@ async function getAntigravityUsage(
  * Get Antigravity subscription info (cached, 5 min TTL)
  * Prevents duplicate loadCodeAssist calls within the same quota cycle.
  */
-async function getAntigravitySubscriptionInfoCached(accessToken: string): Promise<unknown> {
-  const cacheKey = accessToken.substring(0, 16);
+async function getAntigravitySubscriptionInfoCached(
+  accessToken: string,
+  providerSpecificData?: JsonRecord
+): Promise<unknown> {
+  const profile = getAntigravityClientProfile({ providerSpecificData });
+  const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
   const cached = _antigravitySubCache.get(cacheKey);
 
   if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
     return cached.data;
   }
 
-  const data = await getAntigravitySubscriptionInfo(accessToken);
+  const data = await getAntigravitySubscriptionInfo(accessToken, providerSpecificData);
   _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
   return data;
 }
@@ -1931,11 +1942,18 @@ async function getAntigravitySubscriptionInfoCached(accessToken: string): Promis
  * Get Antigravity subscription info using correct Antigravity headers.
  * Must match the headers used in providers.js postExchange (not CLI headers).
  */
-async function getAntigravitySubscriptionInfo(accessToken: string): Promise<unknown | null> {
+async function getAntigravitySubscriptionInfo(
+  accessToken: string,
+  providerSpecificData?: JsonRecord
+): Promise<unknown | null> {
   try {
+    const profile = getAntigravityClientProfile({ providerSpecificData });
     const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
       method: "POST",
-      headers: getAntigravityHeaders("loadCodeAssist", accessToken),
+      headers:
+        profile === "harness"
+          ? getAntigravityBootstrapHeaders(profile, accessToken)
+          : getAntigravityHeaders("loadCodeAssist", accessToken),
       body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
     });
 

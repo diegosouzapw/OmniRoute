@@ -19,6 +19,10 @@ import {
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
+import {
+  getAntigravityBootstrapHeaders,
+  type AntigravityClientProfile,
+} from "./antigravityClientProfile.ts";
 import { ANTIGRAVITY_BASE_URLS } from "../config/antigravityUpstream.ts";
 
 const LOAD_CODE_ASSIST_PATH = "/v1internal:loadCodeAssist";
@@ -34,20 +38,30 @@ const projectCache = new Map<string, string>();
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
+function getProjectCacheKey(accessToken: string, clientProfile: AntigravityClientProfile): string {
+  return `${clientProfile}:${accessToken}`;
+}
+
 /**
  * Attempt loadCodeAssist against each known base URL in order.
  * Returns the discovered project id, or null if all endpoints fail.
  */
 async function tryLoadCodeAssist(
   accessToken: string,
-  fetchImpl: FetchLike
+  fetchImpl: FetchLike,
+  clientProfile: AntigravityClientProfile
 ): Promise<string | null> {
   const urls = getAntigravityLoadCodeAssistUrls();
+  const headers =
+    clientProfile === "harness"
+      ? getAntigravityBootstrapHeaders(clientProfile, accessToken)
+      : getAntigravityHeaders("loadCodeAssist", accessToken);
+
   for (const url of urls) {
     try {
       const response = await fetchImpl(url, {
         method: "POST",
-        headers: getAntigravityHeaders("loadCodeAssist", accessToken),
+        headers,
         body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
         signal: AbortSignal.timeout(BOOTSTRAP_TIMEOUT_MS),
       });
@@ -100,16 +114,18 @@ async function tryLoadCodeAssist(
  */
 export async function ensureAntigravityProjectAssigned(
   accessToken: string,
-  fetchImpl: FetchLike = fetch
+  fetchImpl: FetchLike = fetch,
+  clientProfile: AntigravityClientProfile = "ide"
 ): Promise<void> {
-  if (projectCache.has(accessToken)) {
+  const cacheKey = getProjectCacheKey(accessToken, clientProfile);
+  if (projectCache.has(cacheKey)) {
     return; // already bootstrapped for this token
   }
 
-  const projectId = await tryLoadCodeAssist(accessToken, fetchImpl);
+  const projectId = await tryLoadCodeAssist(accessToken, fetchImpl, clientProfile);
 
   if (projectId) {
-    projectCache.set(accessToken, projectId);
+    projectCache.set(cacheKey, projectId);
   }
   // Non-fatal: if all endpoints failed, we proceed without caching.
 }
@@ -120,6 +136,9 @@ export function clearAntigravityProjectCache(): void {
 }
 
 /** Exported for tests — inspect cache state. */
-export function getAntigravityProjectFromCache(accessToken: string): string | undefined {
-  return projectCache.get(accessToken);
+export function getAntigravityProjectFromCache(
+  accessToken: string,
+  clientProfile: AntigravityClientProfile = "ide"
+): string | undefined {
+  return projectCache.get(getProjectCacheKey(accessToken, clientProfile));
 }

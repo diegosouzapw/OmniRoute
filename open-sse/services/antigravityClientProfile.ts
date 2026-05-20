@@ -3,7 +3,7 @@ import {
   normalizeAntigravityClientProfile,
   type AntigravityClientProfile,
 } from "@/shared/constants/antigravityClientProfile";
-import { getRuntimeArch, getRuntimePlatform, normalizeCloudCodeArch } from "./cloudCodeHeaders.ts";
+import { getRuntimeArch, getRuntimePlatform } from "./cloudCodeHeaders.ts";
 import {
   deriveAntigravityMachineId,
   getAntigravityVscodeSessionId,
@@ -12,6 +12,7 @@ import {
 import {
   antigravityUserAgent,
   ANTIGRAVITY_CREDIT_PROBE_API_CLIENT,
+  ANTIGRAVITY_NODE_API_CLIENT,
   getAntigravityLoadCodeAssistMetadata,
 } from "./antigravityHeaders.ts";
 import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
@@ -40,13 +41,42 @@ export function getAntigravityClientProfile(
   return normalizeAntigravityClientProfile(fromProviderData);
 }
 
-function getHarnessPlatformArch(): string {
-  const platform = getRuntimePlatform() === "win32" ? "windows" : getRuntimePlatform();
-  return `${platform}/${normalizeCloudCodeArch(getRuntimeArch())}`;
+function normalizeHarnessPlatform(
+  platform: NodeJS.Platform | string = getRuntimePlatform()
+): string {
+  return platform === "win32" ? "windows" : platform || "unknown";
 }
 
-export function antigravityHarnessUserAgent(version = getCachedAntigravityVersion()): string {
-  return `antigravity/${version} ${getHarnessPlatformArch()}`;
+function normalizeHarnessArch(arch: NodeJS.Architecture | string = getRuntimeArch()): string {
+  switch (arch) {
+    case "x64":
+      return "amd64";
+    case "ia32":
+      return "386";
+    default:
+      return arch || "unknown";
+  }
+}
+
+function getHarnessPlatformArch(
+  platform: NodeJS.Platform | string = getRuntimePlatform(),
+  arch: NodeJS.Architecture | string = getRuntimeArch()
+): string {
+  return `${normalizeHarnessPlatform(platform)}/${normalizeHarnessArch(arch)}`;
+}
+
+export function antigravityHarnessUserAgent(
+  version = getCachedAntigravityVersion(),
+  platform: NodeJS.Platform | string = getRuntimePlatform(),
+  arch: NodeJS.Architecture | string = getRuntimeArch()
+): string {
+  return `antigravity/${version} ${getHarnessPlatformArch(platform, arch)}`;
+}
+
+export function antigravityHarnessLoadCodeAssistUserAgent(
+  version = getCachedAntigravityVersion()
+): string {
+  return `${antigravityHarnessUserAgent(version)} ${ANTIGRAVITY_NODE_API_CLIENT}`;
 }
 
 export function antigravityHarnessApiClientHeader(): string {
@@ -84,13 +114,8 @@ export function getAntigravityBootstrapHeaders(
   }
 
   if (profile === "harness") {
-    headers["User-Agent"] = antigravityHarnessUserAgent();
+    headers["User-Agent"] = antigravityHarnessLoadCodeAssistUserAgent();
     headers["X-Goog-Api-Client"] = antigravityHarnessApiClientHeader();
-    headers["Client-Metadata"] = JSON.stringify({
-      ideType: "ANTIGRAVITY",
-      platform: getRuntimePlatform() === "win32" ? "WINDOWS" : "MACOS",
-      pluginType: "GEMINI",
-    });
     return headers;
   }
 

@@ -21,10 +21,13 @@ export const ANTIGRAVITY_CHROME_VERSION = "132.0.6834.160";
 export const ANTIGRAVITY_ELECTRON_VERSION = "39.2.3";
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT = `vscode/1.X.X (Antigravity/${ANTIGRAVITY_FALLBACK_VERSION})`;
 export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
+export const ANTIGRAVITY_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
 // Harness/bootstrap X-Goog-Api-Client synced with CLIProxyAPI misc.AntigravityGoogAPIClientUA.
 export const ANTIGRAVITY_CREDIT_PROBE_API_CLIENT = "gl-node/22.21.1";
 const LOAD_CODE_ASSIST_METADATA = Object.freeze({
   ideType: "ANTIGRAVITY",
+  platform: "MACOS",
+  pluginType: "GEMINI",
 });
 
 function withOptionalBearerAuth(
