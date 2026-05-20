@@ -8,7 +8,12 @@ import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
 import { getApiKeyMetadata } from "../../../lib/db/apiKeys";
 import { hasManageScope } from "../../../lib/api/requireManagementAuth";
 import { CLI_TOKEN_HEADER } from "../headers";
-import { isAlwaysProtectedPath, isLocalOnlyPath, isLoopbackHost } from "../routeGuard";
+import {
+  isAlwaysProtectedPath,
+  isLocalOnlyBypassableByManageScope,
+  isLocalOnlyPath,
+  isLoopbackHost,
+} from "../routeGuard";
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
@@ -41,10 +46,37 @@ export const managementPolicy: RoutePolicy = {
     const path = ctx.classification.normalizedPath;
 
     // Tier 1: local-only gate — block spawn-capable routes from non-loopback.
-    if (isLocalOnlyPath(path)) {
-      if (!isLoopbackRequest(ctx.request.headers)) {
-        return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
+    //
+    // Carve-out: a small allow-list of LOCAL_ONLY paths (see
+    // LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES) is reachable from non-loopback
+    // when the caller presents a valid API key with the `manage` scope. This
+    // lets headless / remote MCP clients drive the management surface while
+    // keeping the strict-loopback default for everything else (notably the
+    // subprocess-spawning /api/cli-tools/runtime/* surface).
+    //
+    // Anonymous (no Bearer / invalid key / wrong scope) requests still hit
+    // the same 403 LOCAL_ONLY they did before.
+    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx.request.headers)) {
+      if (isLocalOnlyBypassableByManageScope(path)) {
+        const apiKey = extractApiKey(ctx.request as unknown as Request);
+        if (apiKey) {
+          try {
+            if (await isValidApiKey(apiKey)) {
+              const meta = await getApiKeyMetadata(apiKey);
+              if (meta && hasManageScope(meta.scopes)) {
+                return allow({
+                  kind: "management_key",
+                  id: meta.id,
+                  label: "api-key-manage-scope-local-only-bypass",
+                });
+              }
+            }
+          } catch {
+            return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
+          }
+        }
       }
+      return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
     }
 
     if (isInternalModelSyncRequest(ctx)) {

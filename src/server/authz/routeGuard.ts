@@ -5,6 +5,12 @@
  *   child processes; exposing them to non-local traffic is a known CVE class
  *   (GHSA-fhh6-4qxv-rpqj). Blocked unconditionally regardless of auth state.
  *
+ *   Carve-out: paths in `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` MAY also be
+ *   accessed from non-loopback if and only if the request carries an API key
+ *   with the `manage` scope. This is gated explicitly per-path; the default
+ *   for new LOCAL_ONLY paths remains strict-loopback. Unauthenticated requests
+ *   to bypassable paths are still rejected with 403 LOCAL_ONLY.
+ *
  * Tier 2 — ALWAYS_PROTECTED: auth is always required, even when
  *   requireLogin=false. Covers destructive / irreversible operations.
  *
@@ -18,6 +24,14 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/mcp/",
   "/api/cli-tools/runtime/",
 ];
+
+/**
+ * Subset of LOCAL_ONLY paths that an API key with the `manage` scope may
+ * reach from non-loopback. Kept deliberately narrow: `/api/cli-tools/runtime/`
+ * is intentionally NOT on this list because it spawns arbitrary local CLI
+ * subprocesses on behalf of the caller — that surface stays strict-loopback.
+ */
+export const LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES: ReadonlyArray<string> = ["/api/mcp/"];
 
 export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
   "/api/shutdown",
@@ -40,6 +54,10 @@ export function isLoopbackHost(hostHeader: string | null): boolean {
 
 export function isLocalOnlyPath(path: string): boolean {
   return LOCAL_ONLY_API_PREFIXES.some((p) => path === p || path.startsWith(p));
+}
+
+export function isLocalOnlyBypassableByManageScope(path: string): boolean {
+  return LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES.some((p) => path === p || path.startsWith(p));
 }
 
 export function isAlwaysProtectedPath(path: string): boolean {
