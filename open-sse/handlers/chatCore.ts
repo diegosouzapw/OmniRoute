@@ -3427,7 +3427,9 @@ export async function handleChatCore({
       failureStatus,
       error instanceof Error && error.name ? error.name : "upstream_error"
     );
-    console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
+    }
     return createErrorResult(failureStatus, failureMessage);
   }
   // We need to peek at the error text if it's 400 for Qwen
@@ -3585,9 +3587,11 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[provider] Node ${connectionId} banned (${statusCode}) — disabling permanently`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           await updateProviderConnection(connectionId, {
             isActive: false,
@@ -3596,9 +3600,11 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
           const quotaCooldownMs = retryAfterMs || COOLDOWN_MS.rateLimit;
@@ -3613,9 +3619,11 @@ export async function handleChatCore({
           }
           if (isModelScope() && connectionId) {
             lockModel(provider, connectionId, model, "quota_exhausted", quotaCooldownMs);
-            console.warn(
-              `[provider] Node ${connectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
-            );
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                `[provider] Node ${connectionId} ModelScope model quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              );
+            }
           } else if (
             lockModelIfPerModelQuota(
               provider,
@@ -3625,9 +3633,11 @@ export async function handleChatCore({
               quotaCooldownMs
             )
           ) {
-            console.warn(
-              `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
-            );
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                `[provider] Node ${connectionId} model-only quota exhausted (${statusCode}) for ${model} - ${Math.ceil(quotaCooldownMs / 1000)}s (connection stays active)`
+              );
+            }
           } else {
             await updateProviderConnection(connectionId, {
               testStatus: "credits_exhausted",
@@ -3635,7 +3645,9 @@ export async function handleChatCore({
               lastError: message,
               errorCode: statusCode,
             });
-            console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(`[provider] Node ${connectionId} exhausted quota (${statusCode})`);
+            }
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           await updateProviderConnection(connectionId, {
@@ -3645,9 +3657,11 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
           // Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
           await updateProviderConnection(connectionId, {
@@ -3662,9 +3676,11 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${connectionId} OAuth token invalid (${statusCode}) — token refresh available`
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[provider] Node ${connectionId} OAuth token invalid (${statusCode}) — token refresh available`
+            );
+          }
         } else if (errorType === PROVIDER_ERROR_TYPES.PROJECT_ROUTE_ERROR) {
           // Cloud Code 403 with stale project: not a ban, keep account active.
           await updateProviderConnection(connectionId, {
@@ -3672,9 +3688,11 @@ export async function handleChatCore({
             lastError: message,
             errorCode: statusCode,
           });
-          console.warn(
-            `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
-          );
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              `[provider] Node ${connectionId} project routing error (${statusCode}) — not banning`
+            );
+          }
         }
       } catch {
         // Best-effort state update; request flow should continue with fallback handling.
@@ -3686,7 +3704,9 @@ export async function handleChatCore({
     );
 
     const errMsg = formatProviderError(new Error(message), provider, model, statusCode);
-    console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`${COLORS.red}[ERROR] ${errMsg}${COLORS.reset}`);
+    }
 
     // Log Antigravity retry time if available
     if (retryAfterMs && provider === "antigravity") {
@@ -4136,7 +4156,9 @@ export async function handleChatCore({
     const cacheUsageLogMeta = buildCacheUsageLogMeta(usage);
     if (usage && typeof usage === "object") {
       const msg = `[${new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}] 📊 [USAGE] ${provider.toUpperCase()} | ${formatUsageLog(usage)}${connectionId ? ` | account=${connectionId.slice(0, 8)}...` : ""}`;
-      console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      if (process.env.NODE_ENV !== "production") {
+        console.log(`${COLORS.green}${msg}${COLORS.reset}`);
+      }
 
       saveRequestUsage({
         provider: provider || "unknown",
@@ -4153,7 +4175,9 @@ export async function handleChatCore({
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
       }).catch((err) => {
-        console.error("Failed to save usage stats:", err.message);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to save usage stats:", err.message);
+        }
       });
     }
 
@@ -4516,7 +4540,9 @@ export async function handleChatCore({
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
       }).catch((err) => {
-        console.error("Failed to save usage stats:", err.message);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Failed to save usage stats:", err.message);
+        }
       });
     }
 
