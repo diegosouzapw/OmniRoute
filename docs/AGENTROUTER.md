@@ -6,11 +6,36 @@ designed as a drop-in `ANTHROPIC_BASE_URL` replacement for the official Claude C
 client, so it only accepts traffic that matches the Claude Code wire image (specific
 User-Agent, `anthropic-beta` flags, Stainless SDK headers, etc.).
 
-OmniRoute supports AgentRouter through the **Claude Code compatible** provider type
-(`anthropic-compatible-cc-*`), which speaks the Anthropic Messages API with the
-correct wire image. A generic `openai-compatible-chat` provider pointing at
-`https://agentrouter.org` will **not** work — the upstream WAF rejects requests that
-do not look like Claude Code.
+## Quick start — use the native `agentrouter` provider (recommended)
+
+For most users, **no special setup is required**. OmniRoute ships a built-in
+`agentrouter` provider with the full Claude Code wire image already baked in (see
+`open-sse/config/providerRegistry.ts` → `agentrouter`). To use it:
+
+1. Open **Dashboard → Providers → Add Provider**.
+2. Select **AgentRouter** from the list.
+3. Paste your `sk-...` API key and save.
+
+That's it — no environment variables, no custom provider type. Built-in models
+include `claude-opus-4-6`, `claude-haiku-4-5-20251001`, `glm-5.1`, and
+`deepseek-v3.2`.
+
+The rest of this guide covers the **advanced path**: using the
+`anthropic-compatible-cc-*` provider type. Use that when you need more control
+over the wire image — for example, when connecting to other AgentRouter-style
+relays that are not yet in the native provider registry, or when overriding the
+base URL, chat path, or header set.
+
+---
+
+## Advanced: connecting via the Claude Code compatible provider type
+
+OmniRoute also supports AgentRouter (and similar relays) through the **Claude Code
+compatible** provider type (`anthropic-compatible-cc-*`), which speaks the
+Anthropic Messages API with the correct wire image. A generic
+`openai-compatible-chat` provider pointing at `https://agentrouter.org` will
+**not** work — the upstream WAF rejects requests that do not look like Claude
+Code.
 
 ---
 
