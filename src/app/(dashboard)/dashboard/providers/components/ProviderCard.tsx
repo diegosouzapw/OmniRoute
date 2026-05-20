@@ -17,6 +17,7 @@ interface ProviderStats {
   total?: number;
   connected?: number;
   error?: number;
+  warning?: number;
   errorCode?: string | null;
   errorTime?: string | null;
   allDisabled?: boolean;
@@ -57,6 +58,7 @@ const DOT_COLORS: Record<string, string> = {
 function getStatusDisplay(
   connected: number,
   error: number,
+  warning: number,
   errorCode: string | null | undefined,
   t: ReturnType<typeof useTranslations>,
   afterConnected?: ReactNode
@@ -69,6 +71,13 @@ function getStatusDisplay(
       </Badge>
     );
     if (afterConnected) parts.push(afterConnected);
+  }
+  if (warning > 0) {
+    parts.push(
+      <Badge key="warning" variant="warning" size="sm" dot>
+        {t("warningCount", { count: warning })}
+      </Badge>
+    );
   }
   if (error > 0) {
     const errText = errorCode
@@ -206,7 +215,14 @@ export default function ProviderCard({
                   </Badge>
                 ) : (
                   <>
-                    {getStatusDisplay(connected, error, stats.errorCode, t, codexFastChip)}
+                    {getStatusDisplay(
+                      connected,
+                      error,
+                      Number(stats.warning || 0),
+                      stats.errorCode,
+                      t,
+                      codexFastChip
+                    )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
                         {t("expiredBadge")}

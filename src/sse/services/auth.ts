@@ -36,6 +36,7 @@ import {
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -1314,6 +1315,13 @@ export async function getProviderCredentials(
     } else {
       // Default: fill-first (already sorted by priority in getProviderConnections)
       connection = orderedConnections[0];
+    }
+
+    const apiKeyHealth = connection.providerSpecificData?.apiKeyHealth as
+      | Record<string, KeyHealth>
+      | undefined;
+    if (apiKeyHealth) {
+      syncHealthFromDB(connection.id, apiKeyHealth);
     }
 
     return {

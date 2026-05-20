@@ -136,13 +136,15 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     fetchData();
   }, [fetchData]);
 
-  // T07: Check for invalid API keys and show notification (once per session)
-  const notifiedInvalidKeys = useRef<Set<string>>(new Set());
+  // T07: Check for unhealthy API keys and show notification (once per session)
+  const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
   useEffect(() => {
     const checkApiKeyHealth = () => {
-      const newInvalidKeys = new Set<string>();
-      const invalidConnections: string[] = [];
-      let firstInvalidProviderId: string | null = null;
+      const newUnhealthyKeys = new Set<string>();
+      const unhealthyProviderIds = new Set<string>();
+      const unhealthyConnections: string[] = [];
+      let firstUnhealthyProviderId: string | null = null;
+      let hasWarning = false;
 
       for (const conn of providerConnections) {
         const health = conn.providerSpecificData?.apiKeyHealth as
@@ -157,41 +159,63 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           | undefined;
         if (!health) continue;
 
-        const invalidKeys = Object.entries(health).filter(([_, h]) => h.status === "invalid");
+        // Defense-in-depth: skip stale extra_N health entries whose index
+        // is out of range of the current extraApiKeys list.
+        // The backend cleans this up on PATCH, but existing stale data from
+        // before the fix or other code paths could still have orphan entries.
+        const extras: string[] = conn.providerSpecificData?.extraApiKeys ?? [];
+        const extraKeyCount = Array.isArray(extras) ? extras.length : 0;
 
-        if (invalidKeys.length > 0) {
-          for (const [keyId] of invalidKeys) {
-            newInvalidKeys.add(`${conn.id}:${keyId}`);
+        const unhealthyKeys = Object.entries(health).filter(([keyId, h]) => {
+          if (h.status !== "invalid" && h.status !== "warning") return false;
+          // extra_N entries: only flag if the index is still within bounds
+          if (keyId.startsWith("extra_")) {
+            const idx = parseInt(keyId.slice(6), 10);
+            if (isNaN(idx) || idx >= extraKeyCount) return false;
           }
-          if (firstInvalidProviderId === null) {
-            firstInvalidProviderId = conn.provider;
+          return true;
+        });
+
+        if (unhealthyKeys.length > 0) {
+          for (const [, h] of unhealthyKeys) {
+            if (h.status === "warning") hasWarning = true;
+            break;
           }
-          invalidConnections.push(conn.name || conn.id);
+          for (const [keyId] of unhealthyKeys) {
+            newUnhealthyKeys.add(`${conn.id}:${keyId}`);
+          }
+          if (firstUnhealthyProviderId === null) {
+            firstUnhealthyProviderId = conn.provider;
+          }
+          unhealthyConnections.push(conn.name || conn.id);
+          unhealthyProviderIds.add(conn.provider);
         }
       }
 
-      // Only notify for newly invalid keys (not already notified)
-      const hasNewInvalid = Array.from(newInvalidKeys).some(
-        (k) => !notifiedInvalidKeys.current.has(k)
+      // Only notify for newly unhealthy keys (not already notified)
+      const hasNewUnhealthy = Array.from(newUnhealthyKeys).some(
+        (k) => !notifiedUnhealthyKeys.current.has(k)
       );
-      if (hasNewInvalid) {
+      if (hasNewUnhealthy) {
         const navigateTo =
-          newInvalidKeys.size === 1 && firstInvalidProviderId
-            ? `/dashboard/providers/${firstInvalidProviderId}`
-            : "/dashboard/providers";
+          newUnhealthyKeys.size === 1 && firstUnhealthyProviderId
+            ? `/dashboard/providers/${firstUnhealthyProviderId}`
+            : `/dashboard/providers?search=${encodeURIComponent(Array.from(unhealthyProviderIds).join(" "))}`;
+
+        const notificationType = hasWarning ? "warning" : "error";
 
         useNotificationStore.getState().addNotification({
-          type: "warning",
-          message: tp("apiKeyInvalidAlert", {
-            count: newInvalidKeys.size,
-            connections: invalidConnections.join(", "),
+          type: notificationType,
+          message: tp(hasWarning ? "apiKeyWarningAlert" : "apiKeyInvalidAlert", {
+            count: newUnhealthyKeys.size,
+            connections: unhealthyConnections.join(", "),
           }),
-          title: tp("apiKeyInvalidAlertTitle"),
+          title: tp(hasWarning ? "apiKeyWarningAlertTitle" : "apiKeyInvalidAlertTitle"),
           duration: 10000,
           onClick: () => router.push(navigateTo),
         });
-        // Mark all current invalid keys as notified
-        newInvalidKeys.forEach((k) => notifiedInvalidKeys.current.add(k));
+        // Mark all current unhealthy keys as notified
+        newUnhealthyKeys.forEach((k) => notifiedUnhealthyKeys.current.add(k));
       }
     };
 

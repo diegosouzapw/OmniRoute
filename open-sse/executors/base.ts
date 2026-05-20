@@ -1,7 +1,11 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
 import { supportsXHighEffort } from "../config/providerModels.ts";
-import { getRotatingApiKey, getValidApiKey } from "../services/apiKeyRotator.ts";
+import {
+  getRotatingApiKey,
+  getValidApiKey,
+  resolveKeyForRequest,
+} from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -345,22 +349,25 @@ export class BaseExecutor {
     if (credentials.accessToken) {
       headers["Authorization"] = `Bearer ${credentials.accessToken}`;
     } else if (credentials.apiKey) {
-      // T07: rotate between primary + extra API keys when extraApiKeys is configured
       const extraKeys =
         (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
-      // Extract health directly from credentials for reliability across all call paths
-      const credentialsHealth =
-        health ??
-        (credentials.providerSpecificData?.apiKeyHealth as Record<string, KeyHealth> | undefined);
-      const effectiveKey =
-        extraKeys.length > 0 && credentials.connectionId
-          ? getValidApiKey(
-              credentials.connectionId,
-              credentials.apiKey,
-              extraKeys,
-              credentialsHealth
-            ) || credentials.apiKey
-          : credentials.apiKey;
+      const selectedKeyId = (
+        credentials.providerSpecificData as Record<string, unknown> | undefined
+      )?.selectedKeyId as string | undefined;
+      let effectiveKey = credentials.apiKey;
+      if (extraKeys.length > 0 && credentials.connectionId) {
+        const resolved = resolveKeyForRequest(
+          credentials.connectionId,
+          credentials.apiKey,
+          extraKeys,
+          selectedKeyId ?? null
+        );
+        effectiveKey = resolved?.key ?? credentials.apiKey;
+        if (resolved && credentials.providerSpecificData) {
+          (credentials.providerSpecificData as Record<string, unknown>).selectedKeyId =
+            resolved.keyId;
+        }
+      }
       headers["Authorization"] = `Bearer ${effectiveKey}`;
     }
 

@@ -690,7 +690,7 @@ test("handleImageGeneration uploads source images to Topaz and returns base64 ou
   }
 });
 
-test("handleImageGeneration transforms Gemini image responses from Antigravity", async () => {
+test("handleImageGeneration sends Antigravity image requests with native image_gen envelope", async () => {
   const originalFetch = globalThis.fetch;
   let captured;
 
@@ -703,13 +703,21 @@ test("handleImageGeneration transforms Gemini image responses from Antigravity",
 
     return new Response(
       JSON.stringify({
-        candidates: [
-          {
-            content: {
-              parts: [{ text: "revised prompt" }, { inlineData: { data: "YmFzZTY0LWdlbWluaQ==" } }],
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    thoughtSignature: "signature",
+                    inlineData: { mimeType: "image/jpeg", data: "YmFzZTY0LWdlbWluaQ==" },
+                  },
+                ],
+              },
             },
-          },
-        ],
+          ],
+          modelVersion: "gemini-3.1-flash-image",
+        },
       }),
       { status: 200, headers: { "content-type": "application/json" } }
     );
@@ -718,26 +726,168 @@ test("handleImageGeneration transforms Gemini image responses from Antigravity",
   try {
     const result = await handleImageGeneration({
       body: {
-        model: "antigravity/gemini-image-preview",
+        model: "antigravity/gemini-3.1-flash-image-preview",
         prompt: "painted beach",
+        size: "1024x1024",
+        aspect_ratio: "not-a-ratio",
       },
-      credentials: { accessToken: "ag-token" },
+      credentials: { accessToken: "ag-token", projectId: "project-123" },
       log: null,
     });
 
     assert.equal(result.success, true);
     assert.equal(
       captured.url,
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-image-preview:generateContent"
+      "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent"
     );
     assert.equal(captured.headers.Authorization, "Bearer ag-token");
-    assert.deepEqual(captured.body, {
-      contents: [{ parts: [{ text: "painted beach" }] }],
-      generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+    assert.equal(captured.headers["x-client-name"], "antigravity");
+    assert.equal(captured.headers["x-goog-user-project"], "project-123");
+    assert.ok(captured.headers["User-Agent"].startsWith("Antigravity/"));
+    assert.equal(captured.body.project, "project-123");
+    assert.match(captured.body.requestId, /^image_gen\//);
+    assert.equal(captured.body.model, "gemini-3.1-flash-image");
+    assert.equal(captured.body.userAgent, "antigravity");
+    assert.equal(captured.body.requestType, "image_gen");
+    assert.deepEqual(captured.body.request, {
+      contents: [{ role: "user", parts: [{ text: "painted beach" }] }],
+      generationConfig: {
+        candidateCount: 1,
+        imageConfig: { aspectRatio: "1:1" },
+      },
     });
     assert.deepEqual(result.data.data, [
-      { b64_json: "YmFzZTY0LWdlbWluaQ==", revised_prompt: "revised prompt" },
+      { b64_json: "YmFzZTY0LWdlbWluaQ==", revised_prompt: "painted beach" },
     ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration rejects Antigravity image requests without projectId", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error("fetch should not be called without an Antigravity projectId");
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "painted forest",
+        size: "1024x1024",
+      },
+      credentials: { accessToken: "ag-token" },
+      log: null,
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 400);
+    assert.match(String(result.error), /Missing Google projectId/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration retries Antigravity image requests without billing project on 403", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    });
+
+    if (calls.length === 1) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 403,
+            message: "Cloud Code Private API has not been used in project project-123 before.",
+            status: "PERMISSION_DENIED",
+          },
+        }),
+        { status: 403, headers: { "content-type": "application/json" } }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    inlineData: { mimeType: "image/jpeg", data: "YmFzZTY0LXJldHJ5" },
+                  },
+                ],
+              },
+            },
+          ],
+          modelVersion: "gemini-3.1-flash-image",
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "painted forest",
+        size: "1024x1024",
+      },
+      credentials: { accessToken: "ag-token", projectId: "project-123" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(calls.length, 2);
+    assert.equal(calls[0].headers["x-goog-user-project"], "project-123");
+    assert.equal(calls[1].headers["x-goog-user-project"], undefined);
+    assert.equal(calls[1].body.project, "project-123");
+    assert.deepEqual(result.data.data, [
+      { b64_json: "YmFzZTY0LXJldHJ5", revised_prompt: "painted forest" },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("handleImageGeneration sanitizes Antigravity upstream error payloads", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        error: {
+          code: 500,
+          message:
+            "failed at /Users/backryun/OmniRoute/open-sse/handlers/imageGeneration.ts:1\nstack",
+          status: "INTERNAL",
+        },
+      }),
+      { status: 500, headers: { "content-type": "application/json" } }
+    );
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image",
+        prompt: "painted forest",
+        size: "1024x1024",
+      },
+      credentials: { accessToken: "ag-token", projectId: "project-123" },
+      log: null,
+    });
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 500);
+    assert.equal(result.error.error.message, "failed at <path>");
   } finally {
     globalThis.fetch = originalFetch;
   }

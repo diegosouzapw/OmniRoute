@@ -9759,7 +9759,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                     ? "text-red-400"
                     : health?.status === "warning"
                       ? "text-yellow-400"
-                      : "text-green-400";
+                      : "text-text-muted";
                 const statusIcon =
                   health?.status === "invalid" ? "🔴" : health?.status === "warning" ? "🟡" : "🟢";
                 const statusLabel =
@@ -9772,7 +9772,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 return (
                   <div className="flex items-center gap-2">
                     <span
-                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                      className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
                     >
                       {statusIcon} {t("primaryKey")}: {connection.apiKey.slice(0, 6)}...
                       {connection.apiKey.slice(-4)}
@@ -9826,7 +9826,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                       ? "text-red-400"
                       : health?.status === "warning"
                         ? "text-yellow-400"
-                        : "text-green-400";
+                        : "text-text-muted";
                   const statusIcon =
                     health?.status === "invalid"
                       ? "🔴"
@@ -9843,7 +9843,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                   return (
                     <div key={idx} className="flex items-center gap-2">
                       <span
-                        className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate ${statusColor}`}
+                        className={`flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border truncate ${statusColor}`}
                       >
                         {statusIcon}{" "}
                         {t("extraApiKeyMasked", {

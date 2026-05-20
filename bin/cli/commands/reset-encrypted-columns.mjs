@@ -51,9 +51,9 @@ export async function runResetEncryptedColumns(argv) {
     db = new Database(dbPath);
 
     // Build WHERE clause for encrypted values
-    const whereClause = ENCRYPTED_COLUMNS
-      .map((col) => `${col} LIKE '${ENCRYPTED_PATTERN}'`)
-      .join(" OR ");
+    const whereClause = ENCRYPTED_COLUMNS.map((col) => `${col} LIKE '${ENCRYPTED_PATTERN}'`).join(
+      " OR "
+    );
 
     // Count affected rows
     const countResult = db

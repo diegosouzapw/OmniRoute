@@ -49,7 +49,6 @@ import { updateProviderConnection } from "@/lib/db/providers";
 import {
   recordKeyFailure,
   recordKeySuccess,
-  getLastUsedKeyId,
   getInvalidKeyCount,
   trackConnectionExtraKeys,
   connectionHasExtraKeys,
@@ -1317,6 +1316,63 @@ export async function handleChatCore({
       apiKeyName: apiKeyInfo?.name || undefined,
       serviceTier: effectiveServiceTier,
     }).catch(() => {});
+  };
+
+  const recordKeyHealthStatus = (
+    status: number,
+    creds: Record<string, unknown> | null | undefined
+  ): void => {
+    const connId = creds?.connectionId as string | undefined;
+    if (!connId) return;
+
+    const psd = creds.providerSpecificData as Record<string, unknown> | undefined;
+    const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
+    const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
+    const currentKeyId = (psd?.selectedKeyId as string | undefined) ?? "primary";
+
+    trackConnectionExtraKeys(connId, extraKeys);
+
+    if (status === 401) {
+      const updatedHealth = recordKeyFailure(connId, currentKeyId);
+      log?.warn?.(
+        "AUTH",
+        `401 on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
+      );
+
+      // Persist health status to DB on every failure (not just invalid transitions)
+      // This ensures in-memory state survives process restarts
+      const prevStatus = health?.[currentKeyId]?.status;
+      const prevFailures = health?.[currentKeyId]?.failures ?? 0;
+      if (updatedHealth.status !== prevStatus || updatedHealth.failures !== prevFailures) {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    } else if (status >= 200 && status < 300) {
+      const updatedHealth = recordKeySuccess(connId, currentKeyId);
+      const prevStatus = health?.[currentKeyId]?.status;
+      if (prevStatus === "warning" || prevStatus === "invalid") {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    }
   };
 
   const persistCodexQuotaState = async (
@@ -3029,6 +3085,8 @@ export async function handleChatCore({
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
       const executionCredentials = getExecutionCredentials();
+      // Track execution credentials for key health recording (to capture selectedKeyId)
+      let lastExecCreds = executionCredentials;
       const accountSemaphoreMaxConcurrency =
         resolveAccountSemaphoreMaxConcurrency(executionCredentials);
       const accountSemaphoreKey = resolveAccountSemaphoreKey({
@@ -3160,11 +3218,12 @@ export async function handleChatCore({
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
+              const execCreds = getExecutionCredentials();
               const res = await executor.execute({
                 model: modelToCall,
                 body: bodyToSend,
                 stream: upstreamStream,
-                credentials: getExecutionCredentials(),
+                credentials: execCreds,
                 signal: streamController.signal,
                 log,
                 extendedContext,
@@ -3175,41 +3234,8 @@ export async function handleChatCore({
               });
               trace("post_executor", { status: res?.response?.status });
 
-              // T07: Handle 401 authentication errors with API key health tracking
-              if (res.response.status === 401 && credentials?.connectionId) {
-                const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
-                const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
-                const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
-
-                // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
-                trackConnectionExtraKeys(credentials.connectionId, extraKeys);
-
-                const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-
-                // Record failure for the current key
-                const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
-                log?.warn?.(
-                  "AUTH",
-                  `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/${3})`
-                );
-
-                // Persist health status to DB if key is now invalid
-                if (
-                  updatedHealth.status === "invalid" &&
-                  health?.[currentKeyId]?.status !== "invalid"
-                ) {
-                  updateProviderConnection(credentials.connectionId, {
-                    providerSpecificData: {
-                      ...psd,
-                      apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                    },
-                  }).catch((err) => {
-                    log?.error?.(
-                      "DB",
-                      `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                    );
-                  });
-                }
+              if (res.response.status === 401 && execCreds?.connectionId) {
+                recordKeyHealthStatus(401, execCreds);
               }
 
               // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -3337,6 +3363,7 @@ export async function handleChatCore({
 
                 return {
                   ...res,
+                  _executionCredentials: execCreds,
                   response: new Response(
                     wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
                     {
@@ -3349,7 +3376,10 @@ export async function handleChatCore({
                 };
               }
 
-              return res;
+              return {
+                ...res,
+                _executionCredentials: execCreds,
+              };
             }
           },
           streamController.signal
@@ -3362,62 +3392,12 @@ export async function handleChatCore({
         // Non-stream: release semaphore immediately after reading full response body.
         const status = rawResult.response.status;
 
-        // T07: Record API key health status
-        if (credentials?.connectionId && credentials?.apiKey) {
-          const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
-          const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
-          const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
-
-          if (status === 401) {
-            // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
-            trackConnectionExtraKeys(credentials.connectionId, extraKeys);
-
-            // Authentication failed - mark current key as failed
-            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-            const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
-            log?.warn?.(
-              "AUTH",
-              `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/3)`
-            );
-
-            // Persist to DB if status changed to invalid
-            if (
-              updatedHealth.status === "invalid" &&
-              health?.[currentKeyId]?.status !== "invalid"
-            ) {
-              updateProviderConnection(credentials.connectionId, {
-                providerSpecificData: {
-                  ...psd,
-                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                },
-              }).catch((err) => {
-                log?.error?.(
-                  "DB",
-                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                );
-              });
-            }
-          } else if (status >= 200 && status < 300) {
-            // Success - mark current key as successful
-            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-            const updatedHealth = recordKeySuccess(credentials.connectionId, currentKeyId);
-
-            // Persist to DB if status was warning/invalid and now active
-            const prevStatus = health?.[currentKeyId]?.status;
-            if (prevStatus === "warning" || prevStatus === "invalid") {
-              updateProviderConnection(credentials.connectionId, {
-                providerSpecificData: {
-                  ...psd,
-                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                },
-              }).catch((err) => {
-                log?.error?.(
-                  "DB",
-                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                );
-              });
-            }
-          }
+        // Use execution credentials captured during request processing
+        if (
+          rawResult._executionCredentials?.connectionId &&
+          rawResult._executionCredentials?.apiKey
+        ) {
+          recordKeyHealthStatus(status, rawResult._executionCredentials);
         }
 
         const statusText = rawResult.response.statusText;
@@ -3747,7 +3727,13 @@ export async function handleChatCore({
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
           // Single-key connections still get disabled as before.
-          if (connectionHasExtraKeys(connectionId)) {
+          if (
+            connectionHasExtraKeys(
+              connectionId,
+              (credentials?.providerSpecificData as Record<string, unknown> | undefined)
+                ?.extraApiKeys as string[] | undefined
+            )
+          ) {
             await updateProviderConnection(connectionId, {
               lastErrorType: errorType,
               lastError: message,

@@ -1,12 +1,11 @@
 export const ANTIGRAVITY_PUBLIC_MODELS = Object.freeze([
   { id: "claude-opus-4-6-thinking", name: "Claude Opus 4.6 Thinking" },
   { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6 Thinking" },
-  { id: "gemini-3-pro-preview", name: "Gemini 3.1 Pro (High)" },
+  { id: "gemini-3-flash-agent", name: "Gemini 3.5 Flash (High)" },
+  { id: "gemini-3.5-flash-low", name: "Gemini 3.5 Flash (Medium)" },
+  { id: "gemini-pro-agent", name: "Gemini 3.1 Pro (High)" },
   { id: "gemini-3.1-pro-low", name: "Gemini 3.1 Pro (Low)" },
-  { id: "gemini-3-flash-preview", name: "Gemini 3 Flash" },
   { id: "gpt-oss-120b-medium", name: "GPT OSS 120B Medium" },
-  { id: "gemini-3-pro-image-preview", name: "Gemini 3 Pro Image" },
-  { id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" },
   {
     id: "gemini-2.5-computer-use-preview-10-2025",
     name: "Gemini 2.5 Computer Use Preview (10/2025)",

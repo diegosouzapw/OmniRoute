@@ -10,7 +10,6 @@ import {
   getValidApiKey,
   recordKeyFailure,
   recordKeySuccess,
-  getLastUsedKeyId,
   connectionHasExtraKeys,
   trackConnectionExtraKeys,
   getInvalidKeyCount,
@@ -46,13 +45,25 @@ describe("apiKeyRotator Health Tracking", () => {
       const connectionId = "test-conn-1";
       const primaryKey = "pk-test-123";
       const result = getValidApiKey(connectionId, primaryKey, []);
-      assert.equal(result, primaryKey);
+      assert.equal(result?.key, primaryKey);
+      assert.equal(result?.keyId, "primary");
     });
 
     it("should return null when no keys available", () => {
       const connectionId = "test-conn-2";
       const result = getValidApiKey(connectionId, "", []);
       assert.equal(result, null);
+    });
+
+    it("should return object with key and keyId when a valid key is found", () => {
+      const connectionId = "test-conn-keyid";
+      const primaryKey = "pk-keyid-test";
+      const result = getValidApiKey(connectionId, primaryKey, []);
+      assert.ok(result, "should return an object");
+      assert.equal(typeof result!.key, "string");
+      assert.equal(typeof result!.keyId, "string");
+      assert.equal(result!.key, primaryKey);
+      assert.equal(result!.keyId, "primary");
     });
 
     it("should skip invalid primary key and return first extra key", () => {
@@ -71,7 +82,8 @@ describe("apiKeyRotator Health Tracking", () => {
       };
 
       const result = getValidApiKey(connectionId, primaryKey, extraKeys, health);
-      assert.equal(result, "extra-1");
+      assert.equal(result?.key, "extra-1");
+      assert.equal(result?.keyId, "extra_0");
     });
 
     it("should skip all invalid keys and return null", () => {
@@ -101,15 +113,14 @@ describe("apiKeyRotator Health Tracking", () => {
       assert.equal(result, null);
     });
 
-    it("should track last used keyId", () => {
+    it("should return keyId in result", () => {
       const connectionId = "test-conn-5";
       const primaryKey = "pk-test";
       const extraKeys = ["extra-1", "extra-2"];
 
       const result = getValidApiKey(connectionId, primaryKey, extraKeys);
-      const lastKeyId = getLastUsedKeyId(connectionId);
-      assert.ok(lastKeyId, "should have lastKeyId");
-      assert.ok(["primary", "extra_0", "extra_1"].includes(lastKeyId), "keyId should be valid");
+      assert.ok(result, "should have a result");
+      assert.ok(["primary", "extra_0", "extra_1"].includes(result!.keyId), "keyId should be valid");
     });
 
     it("should round-robin among valid keys only (skipping invalid)", () => {
@@ -135,14 +146,14 @@ describe("apiKeyRotator Health Tracking", () => {
       // Should only rotate among primary, extra-1 (index 0), extra-3 (index 2)
       // Invalid extra_1 (which corresponds to extraKeys[1]) should be skipped
       const validKeys = [primaryKey, "extra-1", "extra-3"];
-      assert.ok(validKeys.includes(key1!));
-      assert.ok(validKeys.includes(key2!));
-      assert.ok(validKeys.includes(key3!));
+      assert.ok(validKeys.includes(key1!.key));
+      assert.ok(validKeys.includes(key2!.key));
+      assert.ok(validKeys.includes(key3!.key));
 
       // extra-2 should never be selected
-      assert.notEqual(key1, "extra-2");
-      assert.notEqual(key2, "extra-2");
-      assert.notEqual(key3, "extra-2");
+      assert.notEqual(key1!.key, "extra-2");
+      assert.notEqual(key2!.key, "extra-2");
+      assert.notEqual(key3!.key, "extra-2");
     });
   });
 
@@ -315,23 +326,22 @@ describe("apiKeyRotator Health Tracking", () => {
       // keyA should be null (primary is invalid, no extra keys)
       assert.equal(keyA, null);
       // keyB should work (no failures recorded for connB)
-      assert.equal(keyB, primaryKeyB);
+      assert.equal(keyB?.key, primaryKeyB);
     });
 
-    it("should isolate lastUsedKeyId per connection", () => {
+    it("should return correct keyId per connection", () => {
       const connA = "conn-A";
       const connB = "conn-B";
 
-      getValidApiKey(connA, "pk-A", ["extra-A"]);
-      const lastA = getLastUsedKeyId(connA);
+      const resultA = getValidApiKey(connA, "pk-A", ["extra-A"]);
+      const resultB = getValidApiKey(connB, "pk-B", ["extra-B"]);
 
-      getValidApiKey(connB, "pk-B", ["extra-B"]);
-      const lastB = getLastUsedKeyId(connB);
-
-      // Both should have their own lastUsedKeyId
-      assert.ok(lastA);
-      assert.ok(lastB);
-      // lastUsedKeyId IS connection-scoped - this should pass
+      // Both should have a valid keyId
+      assert.ok(resultA, "connA should have a result");
+      assert.ok(resultB, "connB should have a result");
+      assert.ok(resultA!.keyId, "connA should have keyId");
+      assert.ok(resultB!.keyId, "connB should have keyId");
+      // keyId is per-connection scoped
     });
   });
 });
@@ -376,8 +386,8 @@ describe("Integration: 401 handling should skip key not connection", () => {
     // getValidApiKey should now skip primary and return an extra key
     const nextKey = getValidApiKey(connectionId, primaryKey, extraKeys, health);
     assert.ok(nextKey, "should return an extra key");
-    assert.notEqual(nextKey, primaryKey, "should NOT return primary (invalid)");
-    assert.ok(extraKeys.includes(nextKey!), "should return one of the extra keys");
+    assert.notEqual(nextKey!.key, primaryKey, "should NOT return primary (invalid)");
+    assert.ok(extraKeys.includes(nextKey!.key), "should return one of the extra keys");
 
     // The connection should still be usable because extra keys are available
     // This is the core behavior the A3 guard should enable
@@ -404,8 +414,8 @@ describe("E2E: Complete 401 flow simulation", () => {
 
     // Step 2: First request - should get primary key
     const key1 = getValidApiKey(connectionId, primaryKey, extraKeys);
-    assert.equal(key1, primaryKey);
-    assert.equal(getLastUsedKeyId(connectionId), "primary");
+    assert.equal(key1?.key, primaryKey);
+    assert.equal(key1?.keyId, "primary");
 
     // Step 3: Simulate 401 failure on primary key
     const health1 = recordKeyFailure(connectionId, "primary");
@@ -414,12 +424,15 @@ describe("E2E: Complete 401 flow simulation", () => {
 
     // Step 4: Retry - should get a valid key (primary is still active, but round-robin may pick extra)
     const key2 = getValidApiKey(connectionId, primaryKey, extraKeys, { primary: health1 });
-    assert.ok(key2 === primaryKey || extraKeys.includes(key2!), "should return a valid key");
+    assert.ok(
+      key2!.key === primaryKey || extraKeys.includes(key2!.key),
+      "should return a valid key"
+    );
 
     // Step 5: Second 401 failure
     const health2 = recordKeyFailure(connectionId, "primary");
     assert.equal(health2.failures, 2);
-    assert.equal(health2.status, "warning");
+    assert.equal(health2.status, "invalid");
 
     // Step 6: Third 401 failure - now primary becomes invalid
     const health3 = recordKeyFailure(connectionId, "primary");
@@ -430,8 +443,8 @@ describe("E2E: Complete 401 flow simulation", () => {
     const healthState = { primary: health3 };
     const key3 = getValidApiKey(connectionId, primaryKey, extraKeys, healthState);
     assert.ok(key3, "should return a key");
-    assert.notEqual(key3, primaryKey, "should NOT return invalid primary key");
-    assert.ok(extraKeys.includes(key3!), "should return an extra key");
+    assert.notEqual(key3!.key, primaryKey, "should NOT return invalid primary key");
+    assert.ok(extraKeys.includes(key3!.key), "should return an extra key");
 
     // Step 8: Verify the invalid key count
     assert.equal(getInvalidKeyCount(healthState), 1);
@@ -442,9 +455,8 @@ describe("E2E: Complete 401 flow simulation", () => {
     assert.equal(shouldSkipConnectionDisable, true);
 
     // Step 10: Success on extra key - mark it as successful
-    const usedKeyId = getLastUsedKeyId(connectionId);
-    assert.ok(usedKeyId?.startsWith("extra_"));
-    const successHealth = recordKeySuccess(connectionId, usedKeyId!);
+    assert.ok(key3!.keyId.startsWith("extra_"));
+    const successHealth = recordKeySuccess(connectionId, key3!.keyId);
     assert.equal(successHealth.status, "active");
     assert.equal(successHealth.failures, 0);
 
@@ -456,7 +468,10 @@ describe("E2E: Complete 401 flow simulation", () => {
     // Step 12: Next request - can use primary again
     const recoveredState = { primary: recoveredHealth };
     const key4 = getValidApiKey(connectionId, primaryKey, extraKeys, recoveredState);
-    assert.ok(key4 === primaryKey || extraKeys.includes(key4!), "should rotate among valid keys");
+    assert.ok(
+      key4!.key === primaryKey || extraKeys.includes(key4!.key),
+      "should rotate among valid keys"
+    );
   });
 
   it("should handle multiple invalid keys and still find valid ones", () => {
@@ -495,7 +510,7 @@ describe("E2E: Complete 401 flow simulation", () => {
     const validKeys: string[] = [];
     for (let i = 0; i < 10; i++) {
       const key = getValidApiKey(connectionId, primaryKey, extraKeys, health);
-      if (key) validKeys.push(key);
+      if (key) validKeys.push(key.key);
     }
 
     assert.ok(validKeys.length > 0, "should return valid keys");
@@ -576,7 +591,7 @@ describe("E2E: Complete 401 flow simulation", () => {
 
     // Get valid key should still work
     const key = getValidApiKey(connectionId, primaryKey, extraKeys, dbHealth);
-    assert.equal(key, primaryKey); // Still valid (only 1 failure)
+    assert.equal(key?.key, primaryKey); // Still valid (only 1 failure)
   });
 });
 
@@ -618,7 +633,7 @@ describe("A3 Guard Integration Test", () => {
     });
 
     if (health.status === "invalid") {
-      assert.ok(extraKeys.includes(nextKey!), "should use backup key");
+      assert.ok(extraKeys.includes(nextKey!.key!), "should use backup key");
     }
 
     // Step 5: Connection remains usable
