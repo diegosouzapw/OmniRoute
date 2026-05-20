@@ -233,4 +233,44 @@ describe("OpencodeExecutor", () => {
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);
     });
   });
+
+  describe("user-agent forwarding", () => {
+    it("forwards User-Agent from clientHeaders", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "User-Agent": "opencode/1.15.4",
+      });
+      assert.equal(headers["User-Agent"], "opencode/1.15.4");
+    });
+
+    it("omits User-Agent when clientHeaders is null", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, null);
+      assert.equal(headers["User-Agent"], undefined);
+    });
+
+    it("omits User-Agent when clientHeaders has no User-Agent key", () => {
+      const headers = zenExecutor.buildHeaders({ apiKey: "test-key" }, true, {});
+      assert.equal(headers["User-Agent"], undefined);
+    });
+
+    it("forwards User-Agent with claude format headers", () => {
+      goExecutor._requestFormat = "claude";
+      const headers = goExecutor.buildHeaders(
+        { apiKey: "claude-key" },
+        true,
+        { "User-Agent": "opencode/1.0" },
+        "minimax-m2.7"
+      );
+      assert.equal(headers["User-Agent"], "opencode/1.0");
+      assert.equal(headers["x-api-key"], "claude-key");
+      assert.equal(headers["anthropic-version"], "2023-06-01");
+      assert.equal(headers["Content-Type"], "application/json");
+      assert.equal(headers["Accept"], "text/event-stream");
+    });
+
+    it("forwards User-Agent without credentials", () => {
+      const headers = zenExecutor.buildHeaders(null, true, { "User-Agent": "opencode/1.0" });
+      assert.equal(headers["User-Agent"], "opencode/1.0");
+      assert.equal(headers["Authorization"], undefined);
+    });
+  });
 });
