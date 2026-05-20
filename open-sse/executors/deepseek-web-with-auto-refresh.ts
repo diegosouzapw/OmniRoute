@@ -36,11 +36,7 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
   override async execute(input: ExecuteInput) {
     this.retryCount = 0;
     const creds = input.credentials as unknown as Record<string, unknown>;
-    this.currentUserToken =
-      (creds.apiKey as string) ||
-      (creds.accessToken as string) ||
-      (creds.refreshToken as string) ||
-      "";
+    this.currentUserToken = (creds.apiKey as string) || (creds.accessToken as string) || "";
     return this.executeWithRetry(input);
   }
 
@@ -102,9 +98,13 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
     throw new Error("Failed to refresh session after max retries");
   }
 
+  private executeBase(input: ExecuteInput) {
+    return super.execute(input);
+  }
+
   private async executeWithRetry(input: ExecuteInput) {
     try {
-      return await super.execute(input);
+      return await this.executeBase(input);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       const isUnauthorized =
@@ -113,7 +113,7 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
         this.retryCount++;
         try {
           await this.doRefreshSession();
-          return await super.execute(input);
+          return await this.executeBase(input);
         } catch (refreshError) {
           console.error(
             `[DeepSeek-WEB] Session refresh failed (attempt ${this.retryCount}/${this.maxRetries}):`,
