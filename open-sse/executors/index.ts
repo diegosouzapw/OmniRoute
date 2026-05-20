@@ -50,6 +50,7 @@ const executors = {
   pol: new PollinationsExecutor(), // Alias
   "cloudflare-ai": new CloudflareAIExecutor(),
   cf: new CloudflareAIExecutor(), // Alias
+  "opencode": new OpencodeExecutor("opencode"),
   "opencode-zen": new OpencodeExecutor("opencode-zen"),
   "opencode-go": new OpencodeExecutor("opencode-go"),
   puter: new PuterExecutor(),

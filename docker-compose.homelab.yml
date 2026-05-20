@@ -1,0 +1,87 @@
+# OmniRoute homelab/local deployment.
+#
+# This compose file intentionally uses the existing named volume `omniroute-data`
+# so it can adopt the current Docker-run instance without moving application data.
+# For a Proxmox host, copy the repo and .env, restore the volume, then run:
+#   docker compose -f docker-compose.homelab.yml up -d --build
+
+services:
+  redis:
+    image: redis:8.6.2
+    container_name: omniroute-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "${REDIS_BIND:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - omniroute-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  omniroute:
+    container_name: omniroute
+    image: ${OMNIROUTE_IMAGE:-omniroute:local-ui-fix}
+    build:
+      context: .
+      target: ${OMNIROUTE_BUILD_TARGET:-runner-cli}
+    restart: unless-stopped
+    stop_grace_period: 40s
+    env_file: .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-20128}
+      HOSTNAME: 0.0.0.0
+      DATA_DIR: /app/data
+      REDIS_URL: redis://redis:6379
+      CLI_CONFIG_HOME: /root
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "${OMNIROUTE_BIND:-0.0.0.0}:${PORT:-20128}:${PORT:-20128}"
+    volumes:
+      - omniroute-data:/app/data
+      - omniroute-codex-home:/root/.codex
+      - omniroute-claude-home:/root/.claude
+      - omniroute-opencode-home:/root/.config/opencode
+      - omniroute-goose-home:/root/.config/goose
+      - omniroute-gemini-home:/root/.gemini
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.mjs"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  qdrant:
+    image: ${QDRANT_IMAGE:-qdrant/qdrant:latest}
+    container_name: omniroute-qdrant
+    restart: unless-stopped
+    profiles:
+      - qdrant
+    ports:
+      - "${QDRANT_BIND:-127.0.0.1}:${QDRANT_PORT:-6333}:6333"
+    volumes:
+      - omniroute-qdrant-data:/qdrant/storage
+
+volumes:
+  omniroute-data:
+    name: omniroute-data
+    external: true
+  omniroute-redis-data:
+    name: omniroute-redis-data
+  omniroute-qdrant-data:
+    name: omniroute-qdrant-data
+  omniroute-codex-home:
+    name: omniroute-codex-home
+  omniroute-claude-home:
+    name: omniroute-claude-home
+  omniroute-opencode-home:
+    name: omniroute-opencode-home
+  omniroute-goose-home:
+    name: omniroute-goose-home
+  omniroute-gemini-home:
+    name: omniroute-gemini-home
