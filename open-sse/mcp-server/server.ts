@@ -965,7 +965,7 @@ export function createMcpServer(): McpServer {
       withScopeEnforcement(toolDef.name, async (args) => {
         try {
           const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-ignore: handler expected specific object
+          // @ts-expect-error - handler type lost through dynamic Object.values() access
           const result = await toolDef.handler(parsedArgs);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
@@ -988,7 +988,7 @@ export function createMcpServer(): McpServer {
       withScopeEnforcement(toolDef.name, async (args) => {
         try {
           const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-ignore: handler expected specific object
+          // @ts-expect-error - handler type lost through dynamic Object.values() access
           const result = await toolDef.handler(parsedArgs);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
@@ -1011,7 +1011,7 @@ export function createMcpServer(): McpServer {
       withScopeEnforcement(toolDef.name, async (args) => {
         try {
           const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-ignore: handler expected specific object
+          // @ts-expect-error - handler type lost through dynamic Object.values() access
           const result = await toolDef.handler(parsedArgs);
           return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
         } catch (err) {
