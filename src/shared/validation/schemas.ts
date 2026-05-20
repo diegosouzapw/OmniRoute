@@ -232,6 +232,21 @@ function validateProviderSpecificData(
       });
     }
   }
+
+  const clientProfile = data.clientProfile;
+  if (clientProfile !== undefined && clientProfile !== null) {
+    const normalized = typeof clientProfile === "string" ? clientProfile.trim().toLowerCase() : "";
+    if (
+      typeof clientProfile !== "string" ||
+      !["ide", "harness", "cli", "sdk"].includes(normalized)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "providerSpecificData.clientProfile must be ide or harness",
+        path: ["clientProfile"],
+      });
+    }
+  }
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file

@@ -329,6 +329,8 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
   assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
     ideType: "ANTIGRAVITY",
+    platform: "MACOS",
+    pluginType: "GEMINI",
   });
 
   globalThis.fetch = async (url) => {
