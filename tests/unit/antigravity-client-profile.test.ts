@@ -1,11 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
+import { normalizeAntigravityClientProfile } from "../../src/shared/constants/antigravityClientProfile.ts";
 import {
   applyAntigravityClientProfileHeaders,
   antigravityHarnessUserAgent,
   getAntigravityClientProfile,
-  normalizeAntigravityClientProfile,
 } from "../../open-sse/services/antigravityClientProfile.ts";
 import {
   seedAntigravityVersionCache,

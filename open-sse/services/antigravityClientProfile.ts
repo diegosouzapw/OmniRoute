@@ -1,3 +1,8 @@
+import {
+  DEFAULT_ANTIGRAVITY_CLIENT_PROFILE,
+  normalizeAntigravityClientProfile,
+  type AntigravityClientProfile,
+} from "@/shared/constants/antigravityClientProfile";
 import { getRuntimeArch, getRuntimePlatform, normalizeCloudCodeArch } from "./cloudCodeHeaders.ts";
 import {
   deriveAntigravityMachineId,
@@ -11,27 +16,16 @@ import {
 } from "./antigravityHeaders.ts";
 import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
 
-export const ANTIGRAVITY_CLIENT_PROFILE_VALUES = ["ide", "harness"] as const;
-
-export type AntigravityClientProfile = (typeof ANTIGRAVITY_CLIENT_PROFILE_VALUES)[number];
-
-export const DEFAULT_ANTIGRAVITY_CLIENT_PROFILE: AntigravityClientProfile = "ide";
+export {
+  ANTIGRAVITY_CLIENT_PROFILE_VALUES,
+  DEFAULT_ANTIGRAVITY_CLIENT_PROFILE,
+  normalizeAntigravityClientProfile,
+  type AntigravityClientProfile,
+} from "@/shared/constants/antigravityClientProfile";
 
 type AntigravityProfileCredentials = AntigravityCredentialsLike & {
   providerSpecificData?: Record<string, unknown> | null;
 };
-
-function toNonEmptyString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-export function normalizeAntigravityClientProfile(value: unknown): AntigravityClientProfile {
-  const normalized = toNonEmptyString(value)?.toLowerCase();
-  if (normalized === "harness" || normalized === "cli" || normalized === "sdk") {
-    return "harness";
-  }
-  return DEFAULT_ANTIGRAVITY_CLIENT_PROFILE;
-}
 
 export function getAntigravityClientProfile(
   credentials?: AntigravityProfileCredentials | null
