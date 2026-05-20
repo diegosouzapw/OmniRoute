@@ -17,6 +17,14 @@ import { randomUUID } from "crypto";
  */
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
+import { HTTP_STATUS } from "../config/constants.ts";
+import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
+import {
+  deriveAntigravityMachineId,
+  getAntigravityEnvelopeUserAgent,
+  getAntigravityVscodeSessionId,
+} from "../services/antigravityIdentity.ts";
+import { getCachedAntigravityVersion } from "../services/antigravityVersion.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
@@ -602,42 +610,82 @@ async function handleKieImageGeneration({
  */
 async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
   const startTime = Date.now();
-  const url = `${providerConfig.baseUrl}/${model}:generateContent`;
+  const url = providerConfig.baseUrl;
   const provider = "antigravity";
+  const credentialRecord = credentials || {};
+  const token = credentialRecord.accessToken || credentialRecord.apiKey;
+  const providerSpecificData = credentialRecord.providerSpecificData;
+  const providerSpecificProjectId =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as Record<string, unknown>).projectId
+      : null;
+  const credentialProjectId =
+    typeof credentialRecord.projectId === "string" ? credentialRecord.projectId.trim() : "";
+  const providerProjectId =
+    typeof providerSpecificProjectId === "string" ? providerSpecificProjectId.trim() : "";
+  const projectId = credentialProjectId || providerProjectId || null;
+  const candidateCount =
+    typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
+  const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
 
   // Summarized request for call log
   const logRequestBody = {
     model: body.model,
-    prompt:
-      typeof body.prompt === "string"
-        ? body.prompt.slice(0, 200)
-        : String(body.prompt ?? "").slice(0, 200),
+    prompt: promptText.slice(0, 200),
     size: body.size || "default",
-    n: body.n || 1,
+    n: candidateCount,
   };
 
-  const geminiBody = {
-    contents: [
-      {
-        parts: [{ text: body.prompt }],
+  if (!projectId || typeof projectId !== "string") {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error:
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers so OmniRoute can fetch your Cloud Code project.",
+      requestBody: logRequestBody,
+    });
+  }
+
+  const antigravityBody = {
+    project: projectId,
+    requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
+    request: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: promptText }],
+        },
+      ],
+      generationConfig: {
+        candidateCount,
+        imageConfig: {
+          aspectRatio:
+            typeof body.aspect_ratio === "string"
+              ? body.aspect_ratio
+              : mapImageSize(typeof body.size === "string" ? body.size : null),
+        },
       },
-    ],
-    generationConfig: {
-      responseModalities: ["TEXT", "IMAGE"],
     },
+    model,
+    userAgent: getAntigravityEnvelopeUserAgent(credentialRecord),
+    requestType: "image_gen",
   };
 
-  const token = credentials.accessToken || credentials.apiKey;
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
+    "User-Agent": antigravityUserAgent(),
+    "x-client-name": "antigravity",
+    "x-client-version": getCachedAntigravityVersion(),
+    "x-machine-id": deriveAntigravityMachineId(credentialRecord),
+    "x-vscode-sessionid": getAntigravityVscodeSessionId(),
+    "x-goog-user-project": projectId,
   };
 
   if (log) {
-    const promptPreview =
-      typeof body.prompt === "string"
-        ? body.prompt.slice(0, 60)
-        : String(body.prompt ?? "").slice(0, 60);
+    const promptPreview = promptText.slice(0, 60);
     log.info(
       "IMAGE",
       `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | format: gemini-image`
@@ -645,11 +693,26 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   }
 
   try {
-    const response = await fetch(url, {
+    let finalHeaders = headers;
+    let response = await fetch(url, {
       method: "POST",
-      headers,
-      body: JSON.stringify(geminiBody),
+      headers: finalHeaders,
+      body: JSON.stringify(antigravityBody),
     });
+
+    if (response.status === HTTP_STATUS.FORBIDDEN && finalHeaders["x-goog-user-project"]) {
+      const retryHeaders = { ...finalHeaders };
+      delete retryHeaders["x-goog-user-project"];
+      if (log) {
+        log.info("IMAGE", "antigravity image 403 with x-goog-user-project; retrying without it");
+      }
+      response = await fetch(url, {
+        method: "POST",
+        headers: retryHeaders,
+        body: JSON.stringify(antigravityBody),
+      });
+      finalHeaders = retryHeaders;
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -672,10 +735,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     }
 
     const data = await response.json();
+    const responseBody = data.response || data;
 
-    // Extract image data from Gemini response
+    // Extract image data from Antigravity's wrapped Gemini response.
     const images = [];
-    const candidates = data.candidates || [];
+    const candidates = responseBody.candidates || [];
     for (const candidate of candidates) {
       const parts = candidate.content?.parts || [];
       for (const part of parts) {
