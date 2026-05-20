@@ -355,7 +355,7 @@ test("provider models route returns the local catalog for embedding and rerank p
   assert.equal(voyageBody.provider, "voyage-ai");
   assert.equal(voyageBody.source, "local_catalog");
   assert.ok(voyageBody.models.some((model) => model.id === "voyage-4-large"));
-  assert.ok(voyageBody.models.some((model) => model.id === "voyage-3-large"));
+  assert.ok(voyageBody.models.some((model) => model.id === "voyage-code-3"));
 
   assert.equal(jinaResponse.status, 200);
   assert.equal(jinaBody.provider, "jina-ai");
@@ -663,7 +663,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
 
     assert.equal(init.method, "POST");
     assert.equal(init.headers.Authorization, "Bearer ag-access");
-    assert.match(init.headers["User-Agent"], /^Antigravity\//);
+    assert.match(init.headers["User-Agent"], /^Antigravity\/1\.22\.2 /);
+    assert.equal(init.headers["x-goog-api-client"], undefined);
     return Response.json({
       models: [{ id: "gemini-3-flash", displayName: "Gemini 3 Flash" }],
     });
@@ -683,8 +684,8 @@ test("provider models route retries Antigravity discovery endpoints before retur
   assert.equal(response.status, 200);
   assert.equal(body.source, "api");
   assert.deepEqual(discoveryUrls, [
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+    "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
   ]);
   assert.deepEqual(body.models, [{ id: "gemini-3-flash-preview", name: "Gemini 3 Flash" }]);
 });
@@ -710,9 +711,9 @@ test("provider models route falls back through all Antigravity discovery endpoin
   assert.equal(body.source, "local_catalog");
   assert.match(body.warning, /local catalog/i);
   assert.deepEqual(discoveryUrls, [
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
     "https://daily-cloudcode-pa.googleapis.com/v1internal:models",
     "https://cloudcode-pa.googleapis.com/v1internal:models",
+    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:models",
   ]);
   assert.ok(body.models.some((model) => model.id === "gemini-3-pro-preview"));
 });

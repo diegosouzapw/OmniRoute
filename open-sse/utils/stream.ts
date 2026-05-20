@@ -58,7 +58,7 @@ export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
 
-const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+export const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
 
 function markPendingRequestCleared(error: Error): Error {
   (error as Error & Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] = true;
@@ -149,6 +149,7 @@ type StreamOptions = {
 type TranslateState = ReturnType<typeof initState> & {
   provider?: string | null;
   toolNameMap?: unknown;
+  signatureNamespace?: string | null;
   usage?: unknown;
   finishReason?: unknown;
   copilotCompatibleReasoning?: boolean;
@@ -544,6 +545,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
   } = options;
+  const signatureNamespace = connectionId;
 
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
@@ -583,6 +585,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           ...(initState(sourceFormat) as TranslateState),
           provider,
           toolNameMap,
+          signatureNamespace,
           copilotCompatibleReasoning,
           accumulatedContent: "",
         }

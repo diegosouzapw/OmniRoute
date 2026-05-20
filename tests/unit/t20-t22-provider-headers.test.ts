@@ -6,11 +6,12 @@ const { antigravityUserAgent } = await import("../../open-sse/services/antigravi
 const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
   await import("../../open-sse/services/geminiCliHeaders.ts");
 
-test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
+test("T20: antigravity config has updated User-Agent and daily Cloud Code first URL", () => {
   const antigravity = REGISTRY.antigravity;
   assert.ok(Array.isArray(antigravity.baseUrls));
-  assert.equal(antigravity.baseUrls[0], "https://daily-cloudcode-pa.sandbox.googleapis.com");
+  assert.equal(antigravity.baseUrls[0], "https://daily-cloudcode-pa.googleapis.com");
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
+  assert.match(antigravity.headers["User-Agent"], /^Antigravity\//);
 });
 
 test("T20: gemini CLI fingerprint uses the current CLI version and normalizes darwin to macos", () => {

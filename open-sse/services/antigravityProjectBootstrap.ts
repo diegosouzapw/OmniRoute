@@ -116,18 +116,20 @@ export async function ensureAntigravityProjectAssigned(
   accessToken: string,
   fetchImpl: FetchLike = fetch,
   clientProfile: AntigravityClientProfile = "ide"
-): Promise<void> {
+): Promise<string | undefined> {
   const cacheKey = getProjectCacheKey(accessToken, clientProfile);
   if (projectCache.has(cacheKey)) {
-    return; // already bootstrapped for this token
+    return projectCache.get(cacheKey); // already bootstrapped for this token
   }
 
   const projectId = await tryLoadCodeAssist(accessToken, fetchImpl, clientProfile);
 
   if (projectId) {
     projectCache.set(cacheKey, projectId);
+    return projectId;
   }
   // Non-fatal: if all endpoints failed, we proceed without caching.
+  return undefined;
 }
 
 /** Exported for tests. */

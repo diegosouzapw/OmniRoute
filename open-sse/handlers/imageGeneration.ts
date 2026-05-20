@@ -18,13 +18,8 @@ import { randomUUID } from "crypto";
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
-import { antigravityUserAgent } from "../services/antigravityHeaders.ts";
-import {
-  deriveAntigravityMachineId,
-  getAntigravityEnvelopeUserAgent,
-  getAntigravityVscodeSessionId,
-} from "../services/antigravityIdentity.ts";
-import { getCachedAntigravityVersion } from "../services/antigravityVersion.ts";
+import { applyAntigravityClientProfileHeaders } from "../services/antigravityClientProfile.ts";
+import { getAntigravityEnvelopeUserAgent } from "../services/antigravityIdentity.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
@@ -699,13 +694,9 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
-    "User-Agent": antigravityUserAgent(),
-    "x-client-name": "antigravity",
-    "x-client-version": getCachedAntigravityVersion(),
-    "x-machine-id": deriveAntigravityMachineId(credentialRecord),
-    "x-vscode-sessionid": getAntigravityVscodeSessionId(),
-    "x-goog-user-project": projectId,
   };
+  applyAntigravityClientProfileHeaders(headers, credentialRecord, antigravityBody);
+  delete headers["x-goog-user-project"];
 
   if (log) {
     const promptPreview = promptText.slice(0, 60);
@@ -716,24 +707,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
   }
 
   try {
-    let response = await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(antigravityBody),
     });
-
-    if (response.status === HTTP_STATUS.FORBIDDEN && headers["x-goog-user-project"]) {
-      const retryHeaders = { ...headers };
-      delete retryHeaders["x-goog-user-project"];
-      if (log) {
-        log.info("IMAGE", "antigravity image 403 with x-goog-user-project; retrying without it");
-      }
-      response = await fetch(url, {
-        method: "POST",
-        headers: retryHeaders,
-        body: JSON.stringify(antigravityBody),
-      });
-    }
 
     if (!response.ok) {
       const errorText = await response.text();

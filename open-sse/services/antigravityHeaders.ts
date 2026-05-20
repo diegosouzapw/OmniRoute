@@ -24,6 +24,7 @@ export const ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT = "";
 export const ANTIGRAVITY_NODE_API_CLIENT = "google-api-nodejs-client/10.3.0";
 // Harness/bootstrap X-Goog-Api-Client synced with CLIProxyAPI misc.AntigravityGoogAPIClientUA.
 export const ANTIGRAVITY_CREDIT_PROBE_API_CLIENT = "gl-node/22.21.1";
+export const ANTIGRAVITY_API_CLIENT = ANTIGRAVITY_CREDIT_PROBE_API_CLIENT;
 type AntigravityLoadCodeAssistPlatform = "MACOS" | "WINDOWS" | "LINUX";
 
 function getAntigravityLoadCodeAssistPlatformLabel(
@@ -129,6 +130,11 @@ export function getAntigravityHeaders(
 /** X-Goog-Api-Client used by Antigravity's credit probe path. */
 export function getAntigravityCreditProbeApiClientHeader(): string {
   return ANTIGRAVITY_CREDIT_PROBE_API_CLIENT;
+}
+
+/** X-Goog-Api-Client used by harness/native Node Antigravity paths. */
+export function getAntigravityApiClientHeader(): string {
+  return ANTIGRAVITY_API_CLIENT;
 }
 
 export { ANTIGRAVITY_VERSION };

@@ -1,11 +1,57 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import { storeGeminiThoughtSignature } from "../../services/geminiThoughtSignatureStore.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+} from "../../services/geminiThoughtSignatureStore.ts";
 
 function buildToolCallId(functionCall, toolName, toolCallIndex) {
   return typeof functionCall?.id === "string" && functionCall.id.length > 0
     ? functionCall.id
     : `${toolName}-${Date.now()}-${toolCallIndex}`;
+}
+
+function getSignatureCacheKey(state, toolCallId) {
+  return buildGeminiThoughtSignatureKey(state?.signatureNamespace, toolCallId);
+}
+
+function emitFunctionCallPart(part, state, results) {
+  const rawToolName = part.functionCall.name;
+  const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
+  const fcArgs = part.functionCall.args || {};
+  const toolCallIndex = state.functionIndex++;
+  const toolCall = {
+    id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
+    index: toolCallIndex,
+    type: "function",
+    function: {
+      name: fcName,
+      arguments: JSON.stringify(fcArgs),
+    },
+  };
+
+  if (state.pendingThoughtSignature) {
+    storeGeminiThoughtSignature(
+      getSignatureCacheKey(state, toolCall.id),
+      state.pendingThoughtSignature
+    );
+    state.pendingThoughtSignature = null;
+  }
+
+  state.toolCalls.set(toolCallIndex, toolCall);
+  results.push({
+    id: `chatcmpl-${state.messageId}`,
+    object: "chat.completion.chunk",
+    created: Math.floor(Date.now() / 1000),
+    model: state.model,
+    choices: [
+      {
+        index: 0,
+        delta: { tool_calls: [toolCall] },
+        finish_reason: null,
+      },
+    ],
+  });
 }
 
 // Convert Gemini response chunk to OpenAI format
@@ -111,41 +157,7 @@ export function geminiToOpenAIResponse(chunk, state) {
         }
 
         if (hasFunctionCall) {
-          const rawToolName = part.functionCall.name;
-          const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
-          const fcArgs = part.functionCall.args || {};
-          const toolCallIndex = state.functionIndex++;
-
-          const toolCall = {
-            id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
-            index: toolCallIndex,
-            type: "function",
-            function: {
-              name: fcName,
-              arguments: JSON.stringify(fcArgs),
-            },
-          };
-
-          if (state.pendingThoughtSignature) {
-            storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
-            state.pendingThoughtSignature = null;
-          }
-
-          state.toolCalls.set(toolCallIndex, toolCall);
-
-          results.push({
-            id: `chatcmpl-${state.messageId}`,
-            object: "chat.completion.chunk",
-            created: Math.floor(Date.now() / 1000),
-            model: state.model,
-            choices: [
-              {
-                index: 0,
-                delta: { tool_calls: [toolCall] },
-                finish_reason: null,
-              },
-            ],
-          });
+          emitFunctionCallPart(part, state, results);
         }
         continue;
       }
@@ -169,41 +181,7 @@ export function geminiToOpenAIResponse(chunk, state) {
 
       // Function call
       if (part.functionCall) {
-        const rawToolName = part.functionCall.name;
-        const fcName = state.toolNameMap?.get(rawToolName) || rawToolName;
-        const fcArgs = part.functionCall.args || {};
-        const toolCallIndex = state.functionIndex++;
-
-        const toolCall = {
-          id: buildToolCallId(part.functionCall, fcName, toolCallIndex),
-          index: toolCallIndex,
-          type: "function",
-          function: {
-            name: fcName,
-            arguments: JSON.stringify(fcArgs),
-          },
-        };
-
-        if (state.pendingThoughtSignature) {
-          storeGeminiThoughtSignature(toolCall.id, state.pendingThoughtSignature);
-          state.pendingThoughtSignature = null;
-        }
-
-        state.toolCalls.set(toolCallIndex, toolCall);
-
-        results.push({
-          id: `chatcmpl-${state.messageId}`,
-          object: "chat.completion.chunk",
-          created: Math.floor(Date.now() / 1000),
-          model: state.model,
-          choices: [
-            {
-              index: 0,
-              delta: { tool_calls: [toolCall] },
-              finish_reason: null,
-            },
-          ],
-        });
+        emitFunctionCallPart(part, state, results);
       }
 
       // Inline data (images)
