@@ -123,7 +123,7 @@ async function solvePow(challenge: PowChallenge): Promise<string> {
       salt: challenge.salt,
       answer,
       signature: challenge.signature,
-      target_path: "/api/v0/chat/completion",
+      target_path: challenge.target_path,
     })
   ).toString("base64");
 }
