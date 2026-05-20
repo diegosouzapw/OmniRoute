@@ -3129,6 +3129,34 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+/** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
+async function validateJulesProvider({ apiKey }: { apiKey: string }) {
+  try {
+    const response = await validationWrite("https://jules.googleapis.com/v1alpha/sources", {
+      method: "GET",
+      headers: {
+        "X-Goog-Api-Key": apiKey,
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    const errorText = await response.text().catch(() => "");
+    return {
+      valid: false,
+      error: errorText.trim() || `Jules API returned ${response.status}`,
+    };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3162,6 +3190,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    jules: validateJulesProvider,
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
