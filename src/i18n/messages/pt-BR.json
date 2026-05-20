@@ -3188,7 +3188,6 @@
     "extraApiKeyMasked": "Chave {index}: {prefix}••••{suffix}",
     "extraApiKeysHint": "Rotação round-robin — opcional",
     "extraApiKeysLabel": "Chaves de API Extras",
-
     "apiKeyHealthLabel": "API Key Health",
     "apiKeyStatusActive": "Active",
     "apiKeyStatusWarning": "Warning ({count} failures)",
@@ -3969,7 +3968,11 @@
     "optional": "Opcional",
     "current": "Atual",
     "remove": "Remover",
-    "search": "Buscar"
+    "search": "Buscar",
+    "codexFastTierTitle": "__MISSING__:Codex Fast Tier",
+    "codexFastTierDesc": "__MISSING__:Globally inject service_tier=priority for OpenAI Codex requests.",
+    "codexFastTierHint": "__MISSING__:When enabled, OmniRoute adds service_tier=priority to outbound Codex requests for connections that don't already specify a tier. Priority tier requires an OpenAI Enterprise API key or the ChatGPT-auth Codex path; other key types will receive a tier-related error from OpenAI. Per-connection settings on the Codex provider page take precedence.",
+    "codexFastTierSaveError": "__MISSING__:Failed to update Codex Fast Tier setting"
   },
   "contextRtk": {
     "title": "Motor RTK",
