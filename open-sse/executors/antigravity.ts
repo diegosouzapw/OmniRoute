@@ -31,7 +31,10 @@ import {
   stripCloudCodeThinkingConfig,
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
-import { applyAntigravityClientProfileHeaders } from "../services/antigravityClientProfile.ts";
+import {
+  applyAntigravityClientProfileHeaders,
+  removeHeaderCaseInsensitive,
+} from "../services/antigravityClientProfile.ts";
 import {
   generateAntigravityRequestId,
   getAntigravityEnvelopeUserAgent,
@@ -291,15 +294,6 @@ function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | nul
 function getRequestTargetModel(body: Record<string, unknown>): string {
   const target = body.model;
   return typeof target === "string" && target.length > 0 ? target : "unknown";
-}
-
-function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
-  const lowerName = name.toLowerCase();
-  for (const key of Object.keys(headers)) {
-    if (key.toLowerCase() === lowerName) {
-      delete headers[key];
-    }
-  }
 }
 
 function applyAntigravityGenerationDefaults(request: Record<string, unknown>): void {

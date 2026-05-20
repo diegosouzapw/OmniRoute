@@ -83,7 +83,7 @@ export function antigravityHarnessApiClientHeader(): string {
   return ANTIGRAVITY_CREDIT_PROBE_API_CLIENT;
 }
 
-function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
+export function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
   const lowerName = name.toLowerCase();
   for (const key of Object.keys(headers)) {
     if (key.toLowerCase() === lowerName) {

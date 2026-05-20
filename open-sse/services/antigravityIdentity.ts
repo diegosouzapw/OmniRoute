@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { createRequire } from "node:module";
 
-type AntigravityCredentialsLike = {
+export type AntigravityCredentialsLike = {
   accessToken?: string | null;
   connectionId?: string | null;
   email?: string | null;
