@@ -5,10 +5,14 @@ import {
   type CreateTaskParams,
   type GetStatusResult,
 } from "../baseAgent.ts";
-import type { CloudAgentTask, CloudAgentActivity, CloudAgentStatus } from "../types.ts";
+import { buildJulesApiUrl, JULES_API_BASE_URL } from "../julesApi.ts";
+import type {
+  CloudAgentTask,
+  CloudAgentActivity,
+  CloudAgentStatus,
+  CloudAgentResult,
+} from "../types.ts";
 import { CLOUD_AGENT_STATUS } from "../types.ts";
-
-const JULES_API_BASE = "https://jules.googleapis.com/v1alpha";
 
 function julesHeaders(apiKey: string, json = false): Record<string, string> {
   const headers: Record<string, string> = {
@@ -21,8 +25,9 @@ function julesHeaders(apiKey: string, json = false): Record<string, string> {
 }
 
 function parseGithubOwnerRepo(repoUrl: string, repoName: string): { owner: string; repo: string } {
+  const normalized = repoUrl.includes("://") ? repoUrl : `https://${repoUrl}`;
   try {
-    const url = new URL(repoUrl);
+    const url = new URL(normalized);
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts.length >= 2) {
       return {
@@ -31,11 +36,12 @@ function parseGithubOwnerRepo(repoUrl: string, repoName: string): { owner: strin
       };
     }
   } catch {
-    // fall through
+    // fall through to string split for non-URL inputs
   }
   const parts = repoUrl.split("/").filter(Boolean);
   const owner = parts.length >= 2 ? parts[parts.length - 2] : "";
-  return { owner, repo: repoName };
+  const repo = parts.length >= 2 ? parts[parts.length - 1].replace(/\.git$/i, "") : repoName.trim();
+  return { owner, repo: repo || repoName.trim() };
 }
 
 function buildJulesSourceResourceName(owner: string, repo: string): string {
@@ -82,7 +88,7 @@ function mapJulesActivity(act: Record<string, unknown>): CloudAgentActivity {
   };
 }
 
-function extractJulesResult(outputs: unknown) {
+function extractJulesResult(outputs: unknown): CloudAgentResult | undefined {
   if (!Array.isArray(outputs)) return undefined;
 
   for (const item of outputs) {
@@ -101,6 +107,20 @@ function extractJulesResult(outputs: unknown) {
   return undefined;
 }
 
+function readJulesErrorMessage(data: Record<string, unknown>): string {
+  if (typeof data.error === "string" && data.error.trim()) {
+    return data.error.trim();
+  }
+  if (data.error && typeof data.error === "object") {
+    const record = data.error as Record<string, unknown>;
+    const message = record.message;
+    if (typeof message === "string" && message.trim()) {
+      return message.trim();
+    }
+  }
+  return "";
+}
+
 function inferJulesStatus(
   data: Record<string, unknown>,
   activities: Record<string, unknown>[]
@@ -114,16 +134,58 @@ function inferJulesStatus(
   if (activities.some((act) => act.planGenerated) && !activities.some((act) => act.planApproved)) {
     return CLOUD_AGENT_STATUS.AWAITING_APPROVAL;
   }
-  const state = typeof data.state === "string" ? data.state : "running";
-  if (state.toLowerCase().includes("pending")) {
+
+  if (readJulesErrorMessage(data)) {
+    return CLOUD_AGENT_STATUS.FAILED;
+  }
+
+  const state = typeof data.state === "string" ? data.state.toLowerCase() : "";
+  if (state.includes("failed") || state.includes("error")) {
+    return CLOUD_AGENT_STATUS.FAILED;
+  }
+  if (state.includes("cancelled") || state.includes("canceled")) {
+    return CLOUD_AGENT_STATUS.CANCELLED;
+  }
+  if (state.includes("completed") || state.includes("done")) {
+    return CLOUD_AGENT_STATUS.COMPLETED;
+  }
+  if (state.includes("pending") || state.includes("queued")) {
     return CLOUD_AGENT_STATUS.QUEUED;
   }
-  return CLOUD_AGENT_STATUS.RUNNING;
+  if (state.includes("running") || state.includes("active")) {
+    return CLOUD_AGENT_STATUS.RUNNING;
+  }
+
+  if (activities.some((act) => act.progressUpdated)) {
+    return CLOUD_AGENT_STATUS.RUNNING;
+  }
+
+  return CLOUD_AGENT_STATUS.QUEUED;
+}
+
+function readJulesSourceBranch(source: Record<string, unknown>): string | undefined {
+  const githubRepo = source.githubRepo as Record<string, unknown> | undefined;
+  const githubRepoContext = source.githubRepoContext as Record<string, unknown> | undefined;
+
+  const candidates = [
+    githubRepoContext?.startingBranch,
+    githubRepoContext?.defaultBranch,
+    githubRepo?.defaultBranch,
+    source.defaultBranch,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && candidate.trim()) {
+      return candidate.trim();
+    }
+  }
+
+  return undefined;
 }
 
 export class JulesAgent extends CloudAgentBase {
   readonly providerId = "jules";
-  readonly baseUrl = JULES_API_BASE;
+  readonly baseUrl = JULES_API_BASE_URL;
 
   async createTask(
     params: CreateTaskParams,
@@ -151,7 +213,7 @@ export class JulesAgent extends CloudAgentBase {
       body.requirePlanApproval = true;
     }
 
-    const response = await fetch(`${this.baseUrl}/sessions`, {
+    const response = await fetch(buildJulesApiUrl("/sessions"), {
       method: "POST",
       headers: julesHeaders(credentials.apiKey, true),
       body: JSON.stringify(body),
@@ -186,10 +248,10 @@ export class JulesAgent extends CloudAgentBase {
     const sessionId = normalizeJulesSessionId(externalId);
 
     const [sessionRes, activitiesRes] = await Promise.all([
-      fetch(`${this.baseUrl}/sessions/${sessionId}`, {
+      fetch(buildJulesApiUrl(`/sessions/${sessionId}`), {
         headers: julesHeaders(credentials.apiKey),
       }),
-      fetch(`${this.baseUrl}/sessions/${sessionId}/activities?pageSize=30`, {
+      fetch(buildJulesApiUrl(`/sessions/${sessionId}/activities?pageSize=30`), {
         headers: julesHeaders(credentials.apiKey),
       }),
     ]);
@@ -211,19 +273,20 @@ export class JulesAgent extends CloudAgentBase {
     const activities = rawActivities.map(mapJulesActivity);
     const status = inferJulesStatus(data, rawActivities);
     const result = extractJulesResult(data.outputs);
+    const errorMessage = readJulesErrorMessage(data);
 
     return {
       status,
       externalId: sessionId,
       result,
       activities,
-      error: typeof data.error === "string" ? data.error : undefined,
+      error: errorMessage || undefined,
     };
   }
 
   async approvePlan(externalId: string, credentials: AgentCredentials): Promise<void> {
     const sessionId = normalizeJulesSessionId(externalId);
-    const response = await fetch(`${this.baseUrl}/sessions/${sessionId}:approvePlan`, {
+    const response = await fetch(buildJulesApiUrl(`/sessions/${sessionId}:approvePlan`), {
       method: "POST",
       headers: julesHeaders(credentials.apiKey, true),
       body: "{}",
@@ -241,7 +304,7 @@ export class JulesAgent extends CloudAgentBase {
     credentials: AgentCredentials
   ): Promise<CloudAgentActivity> {
     const sessionId = normalizeJulesSessionId(externalId);
-    const response = await fetch(`${this.baseUrl}/sessions/${sessionId}:sendMessage`, {
+    const response = await fetch(buildJulesApiUrl(`/sessions/${sessionId}:sendMessage`), {
       method: "POST",
       headers: julesHeaders(credentials.apiKey, true),
       body: JSON.stringify({ prompt: message }),
@@ -263,7 +326,7 @@ export class JulesAgent extends CloudAgentBase {
   async listSources(
     credentials: AgentCredentials
   ): Promise<{ name: string; url: string; branch?: string }[]> {
-    const response = await fetch(`${this.baseUrl}/sources`, {
+    const response = await fetch(buildJulesApiUrl("/sources"), {
       headers: julesHeaders(credentials.apiKey),
     });
 
@@ -278,10 +341,12 @@ export class JulesAgent extends CloudAgentBase {
         const githubRepo = source.githubRepo as Record<string, unknown> | undefined;
         const owner = typeof githubRepo?.owner === "string" ? githubRepo.owner : "";
         const repo = typeof githubRepo?.repo === "string" ? githubRepo.repo : "";
+        const branch = readJulesSourceBranch(source);
+
         return {
           name: typeof source.name === "string" ? source.name : `${owner}/${repo}`,
           url: owner && repo ? `https://github.com/${owner}/${repo}` : "",
-          branch: "main",
+          ...(branch ? { branch } : {}),
         };
       }
     );

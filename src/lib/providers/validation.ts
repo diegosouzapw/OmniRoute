@@ -29,6 +29,7 @@ import {
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import {
@@ -3132,7 +3133,7 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
 /** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
 async function validateJulesProvider({ apiKey }: { apiKey: string }) {
   try {
-    const response = await validationWrite("https://jules.googleapis.com/v1alpha/sources", {
+    const response = await validationWrite(buildJulesApiUrl("/sources"), {
       method: "GET",
       headers: {
         "X-Goog-Api-Key": apiKey,
