@@ -325,7 +325,7 @@ export default function QuotaSharePageClient() {
         <div>
           <h1 className="text-xl font-bold text-text-main flex items-center gap-2">
             <span className="material-symbols-outlined text-[24px] text-primary">pie_chart</span>
-            Quota Sharing
+            {t("title")}
           </h1>
           <p className="text-sm text-text-muted mt-0.5">{t("description")}</p>
         </div>
@@ -339,11 +339,7 @@ export default function QuotaSharePageClient() {
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
         <span className="material-symbols-outlined text-[18px] shrink-0">science</span>
         <div>
-          <strong>Beta — UI preview.</strong> A configuração é salva em <code>localStorage</code>{" "}
-          (não persiste no servidor ainda). A aplicação dos caps por request ainda não está
-          conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota;
-          a aplicação real virá em uma próxima iteração com persistência no banco e interceptação na
-          chamada upstream.
+          <strong>{t("betaTitle")}</strong> {t("betaDescription")}
         </div>
       </div>
 
@@ -500,7 +496,7 @@ function PoolCard({
               {pool.provider} · {pool.accountLabel}
             </div>
             <div className="text-[11px] text-text-muted">
-              {pool.windowLabel} · reset in {fmtCountdown(resetIso)} · total{" "}
+              {pool.windowLabel} · {t("resetIn")} {fmtCountdown(resetIso)} · {t("quotaTotal")}{" "}
               {fmtNumber(total, pool.unit)} {pool.unit === "USD" ? "" : pool.unit}
             </div>
           </div>
@@ -533,7 +529,7 @@ function PoolCard({
             </div>
           </div>
           <div className="w-full px-1">
-            <div className="h-1.5 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] overflow-hidden">
+            <div className="h-1.5 rounded-sm bg-black/6 dark:bg-white/6 overflow-hidden">
               <div className="h-full bg-primary" style={{ width: `${usedPct}%` }} />
             </div>
             <div className="text-[10px] text-text-muted text-center mt-1 tabular-nums">
@@ -587,7 +583,7 @@ function PoolCard({
                       {a.percent}%
                     </span>
                     <span className="text-right text-text-muted tabular-nums">
-                      cap {fmtNumber(cap, pool.unit)}
+                      {t("capLabel", { value: fmtNumber(cap, pool.unit) })}
                     </span>
                     <span className="text-text-muted text-right">{t("notTrackedYet")}</span>
                   </div>
@@ -598,7 +594,9 @@ function PoolCard({
 
           <div className="mt-3 flex items-center justify-between gap-2 flex-wrap text-[11px]">
             <div className="flex items-center gap-1">
-              <span className="text-text-muted font-semibold uppercase tracking-wide">Policy:</span>
+              <span className="text-text-muted font-semibold uppercase tracking-wide">
+                {t("policy")}:
+              </span>
               {(["hard", "soft", "burst"] as PoolPolicy[]).map((p) => (
                 <button
                   key={p}
@@ -617,7 +615,11 @@ function PoolCard({
                         : t("policyBurstHint")
                   }
                 >
-                  {p}
+                  {p === "hard"
+                    ? t("policyHard")
+                    : p === "soft"
+                      ? t("policySoft")
+                      : t("policyBurst")}
                 </button>
               ))}
             </div>
@@ -736,7 +738,7 @@ function CreatePoolModal({
                 const used = usedPairs.has(`${connectionId}:${w.window}`);
                 return (
                   <option key={w.window} value={w.window} disabled={used}>
-                    {w.windowLabel} · total {fmtNumber(w.totalQuota, w.unit)} {w.unit}{" "}
+                    {w.windowLabel} · {t("quotaTotal")} {fmtNumber(w.totalQuota, w.unit)} {w.unit}{" "}
                     {used ? t("alreadyUsedSuffix") : ""}
                   </option>
                 );
@@ -822,12 +824,12 @@ function EditAllocationsModal({
     <Modal isOpen onClose={onClose} title={t("editTitle")} size="lg">
       <div className="space-y-3">
         <div className="text-xs text-text-muted">
-          Pool:{" "}
+          {t("pool")}:{" "}
           <strong className="text-text-main">
             {pool.provider} / {pool.accountLabel} · {pool.windowLabel}
           </strong>
           <br />
-          Total: {fmtNumber(pool.totalQuota, pool.unit)} {pool.unit}
+          {t("quotaTotal")}: {fmtNumber(pool.totalQuota, pool.unit)} {pool.unit}
         </div>
 
         {drafts.length === 0 ? (
@@ -856,7 +858,7 @@ function EditAllocationsModal({
                     className="px-2 py-1 rounded border border-border bg-bg-base text-sm text-right tabular-nums"
                   />
                   <span className="text-[11px] text-text-muted tabular-nums">
-                    cap {fmtNumber(cap, pool.unit)}
+                    {t("capLabel", { value: fmtNumber(cap, pool.unit) })}
                   </span>
                   <button
                     type="button"
@@ -900,7 +902,7 @@ function EditAllocationsModal({
               onClick={equalSplit}
               disabled={drafts.length === 0}
             >
-              Equal split
+              {t("equalSplit")}
             </Button>
           </div>
         </div>
@@ -910,7 +912,7 @@ function EditAllocationsModal({
             {t("cancel")}
           </Button>
           <Button variant="primary" size="sm" onClick={() => onSave(drafts)} disabled={total > 100}>
-            Save allocations
+            {t("save")}
           </Button>
         </div>
       </div>

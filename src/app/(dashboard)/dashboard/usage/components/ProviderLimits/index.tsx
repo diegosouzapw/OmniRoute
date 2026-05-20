@@ -697,7 +697,7 @@ export default function ProviderLimits() {
     }
   }, []);
 
-  // Default inteligente: se não há preferência salva e há connections com grupo, abre em Por Ambiente
+  // Smart default: if no preference is saved and grouped connections exist, open by environment.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hasSaved = localStorage.getItem(LS_GROUP_BY) !== null;

@@ -18,6 +18,7 @@ import { AI_PROVIDERS } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
 import TelemetryCard from "./TelemetryCard";
+import ProviderHealthAutopilotCard from "./ProviderHealthAutopilotCard";
 
 function formatUptime(seconds) {
   const d = Math.floor(seconds / 86400);
@@ -240,6 +241,8 @@ export default function HealthPage() {
       </div>
 
       <TelemetryCard />
+
+      <ProviderHealthAutopilotCard />
 
       <Card className="p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
