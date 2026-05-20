@@ -420,7 +420,12 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
   }
 
   // Preserve historical behavior: OpenAI stays default when model exists there
-  if (providers.includes("openai")) {
+  if (
+    providers.includes("openai") ||
+    /^gpt-/i.test(modelId) ||
+    /^o1/i.test(modelId) ||
+    /^o3/i.test(modelId)
+  ) {
     return {
       provider: "openai",
       model: modelId,

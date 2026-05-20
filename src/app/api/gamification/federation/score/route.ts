@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   const token = authHeader.slice(7);
   const tokenHash = crypto
-    .pbkdf2Sync(token, "omniroute-federation-salt", 1000, 32, "sha256")
+    .pbkdf2Sync(token, "omniroute-federation-salt", 120000, 32, "sha256")
     .toString("hex");
   const { getDbInstance } = await import("@/lib/db/core");
   const db = getDbInstance();

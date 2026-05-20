@@ -25,7 +25,7 @@ export async function connectServer(
 ): Promise<ServerConnection> {
   const id = crypto.randomUUID();
   const apiKeyHash = crypto
-    .pbkdf2Sync(apiKey, "omniroute-federation-salt", 1000, 32, "sha256")
+    .pbkdf2Sync(apiKey, "omniroute-federation-salt", 120000, 32, "sha256")
     .toString("hex");
 
   const { connectServer: dbConnect } = await import("../db/gamification");
