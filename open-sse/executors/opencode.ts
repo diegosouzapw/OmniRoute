@@ -75,6 +75,22 @@ export class OpencodeExecutor extends BaseExecutor {
       if (clientUA) {
         setUserAgentHeader(headers, clientUA);
       }
+
+      // Forward OpenCode request metadata headers from client
+      const opencodeHeaderKeys = [
+        "x-opencode-session",
+        "x-opencode-request",
+        "x-opencode-project",
+        "x-opencode-client",
+      ];
+      for (const headerName of opencodeHeaderKeys) {
+        const value = Object.entries(clientHeaders).find(
+          ([key]) => key.toLowerCase() === headerName.toLowerCase()
+        )?.[1];
+        if (value) {
+          headers[headerName] = value;
+        }
+      }
     }
 
     void model;
