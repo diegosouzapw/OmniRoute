@@ -2562,8 +2562,8 @@ export async function handleChatCore({
     if (!Array.isArray(payload.messages)) return;
     let messages = payload.messages as ClaudeMessage[];
 
-    // Extract system role messages (Issue #1797)
-    const systemMessages = messages.filter((m) => m.role === "system");
+    // Extract system/developer role messages (Issue #1797)
+    const systemMessages = messages.filter((m) => m.role === "system" || m.role === "developer");
     if (systemMessages.length > 0) {
       const extraBlocks: ClaudeContentBlock[] = [];
       for (const sm of systemMessages) {
@@ -2587,7 +2587,7 @@ export async function handleChatCore({
           payload.system = extraBlocks;
         }
       }
-      messages = messages.filter((m) => m.role !== "system");
+      messages = messages.filter((m) => m.role !== "system" && m.role !== "developer");
       payload.messages = messages;
     }
 
@@ -2722,6 +2722,46 @@ export async function handleChatCore({
       if (!isClaudeCodeSemanticPassthrough) {
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
       } else {
+        // Semantic passthrough preserves messages as-is, but system role messages
+        // must still be extracted into the top-level `system` parameter for Anthropic.
+        if (Array.isArray(translatedBody.messages)) {
+          const msgs = translatedBody.messages as ClaudeMessage[];
+          const systemMsgs = msgs.filter((m) => m.role === "system" || m.role === "developer");
+          if (systemMsgs.length > 0) {
+            const extraBlocks: ClaudeContentBlock[] = [];
+            for (const sm of systemMsgs) {
+              if (typeof sm.content === "string" && sm.content.length > 0) {
+                extraBlocks.push({ type: "text", text: sm.content });
+              } else if (Array.isArray(sm.content)) {
+                for (const block of sm.content as ClaudeContentBlock[]) {
+                  if (
+                    block?.type === "text" &&
+                    typeof block.text === "string" &&
+                    block.text.length > 0
+                  ) {
+                    extraBlocks.push(block);
+                  }
+                }
+              }
+            }
+            if (extraBlocks.length > 0) {
+              const existingSystem = translatedBody.system;
+              if (typeof existingSystem === "string" && existingSystem.length > 0) {
+                translatedBody.system = [{ type: "text", text: existingSystem }, ...extraBlocks];
+              } else if (Array.isArray(existingSystem)) {
+                translatedBody.system = [
+                  ...(existingSystem as ClaudeContentBlock[]),
+                  ...extraBlocks,
+                ];
+              } else {
+                translatedBody.system = extraBlocks;
+              }
+            }
+            translatedBody.messages = msgs.filter(
+              (m) => m.role !== "system" && m.role !== "developer"
+            );
+          }
+        }
         log?.debug?.("FORMAT", "claude-code semantic passthrough enabled");
       }
 
