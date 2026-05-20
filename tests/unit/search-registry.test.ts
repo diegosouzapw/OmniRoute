@@ -19,7 +19,7 @@ const { computeCacheKey, getOrCoalesce, getCacheStats, SEARCH_CACHE_DEFAULT_TTL_
 
 // ─── Registry Tests ──────────────────────────────────────────
 
-test("SEARCH_PROVIDERS has all 10 providers", () => {
+test("SEARCH_PROVIDERS has all 11 providers", () => {
   assert.ok(SEARCH_PROVIDERS["serper-search"], "serper should exist");
   assert.ok(SEARCH_PROVIDERS["brave-search"], "brave should exist");
   assert.ok(SEARCH_PROVIDERS["perplexity-search"], "perplexity-search should exist");
@@ -31,7 +31,8 @@ test("SEARCH_PROVIDERS has all 10 providers", () => {
   assert.ok(SEARCH_PROVIDERS["youcom-search"], "youcom should exist");
   assert.ok(SEARCH_PROVIDERS["searxng-search"], "searxng should exist");
   assert.ok(SEARCH_PROVIDERS["ollama-search"], "ollama-search should exist");
-  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 11);
+  assert.ok(SEARCH_PROVIDERS["zai-search"], "zai should exist");
+  assert.equal(Object.keys(SEARCH_PROVIDERS).length, 12);
 });
 
 test("serper-search config is correct", () => {
@@ -140,9 +141,20 @@ test("searxng-search config is correct", () => {
   assert.deepEqual(s.searchTypes, ["web", "news"]);
 });
 
+test("zai-search config is correct", () => {
+  const z = SEARCH_PROVIDERS["zai-search"];
+  assert.equal(z.id, "zai-search");
+  assert.equal(z.method, "POST");
+  assert.equal(z.authHeader, "bearer");
+  assert.equal(z.baseUrl, "https://api.z.ai/api/mcp/web_search_prime/mcp");
+  assert.equal(z.costPerQuery, 0);
+  assert.equal(z.freeMonthlyQuota, 0);
+  assert.deepEqual(z.searchTypes, ["web"]);
+});
+
 test("getAllSearchProviders returns flat list", () => {
   const all = getAllSearchProviders();
-  assert.equal(all.length, 11);
+  assert.equal(all.length, 12);
   assert.ok(all.some((p) => p.id === "serper-search"));
   assert.ok(all.some((p) => p.id === "brave-search"));
   assert.ok(all.some((p) => p.id === "perplexity-search"));
@@ -154,6 +166,7 @@ test("getAllSearchProviders returns flat list", () => {
   assert.ok(all.some((p) => p.id === "youcom-search"));
   assert.ok(all.some((p) => p.id === "searxng-search"));
   assert.ok(all.some((p) => p.id === "ollama-search"));
+  assert.ok(all.some((p) => p.id === "zai-search"));
   // Each entry should have id, name, searchTypes
   for (const p of all) {
     assert.ok(p.id);

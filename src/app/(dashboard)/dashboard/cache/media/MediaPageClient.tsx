@@ -726,12 +726,6 @@ export default function MediaPageClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-main">{t("title")}</h1>
-        <p className="text-text-muted text-sm mt-1">{t("subtitle")}</p>
-      </div>
-
       {/* Modality Tabs */}
       <div className="flex flex-wrap gap-2 p-1 bg-surface/50 rounded-xl border border-black/5 dark:border-white/5">
         {(Object.keys(MODALITY_CONFIG) as Modality[]).map((key) => {

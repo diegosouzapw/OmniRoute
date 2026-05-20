@@ -133,11 +133,24 @@ export class GeminiCLIExecutor extends BaseExecutor {
     model?: string
   ) {
     void clientHeaders;
+
+    // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
+    const activeModel = model || this._currentModel || "unknown";
+
     const raw = getGeminiCliHeaders(
-      normalizeGeminiModel(model || "unknown"),
+      normalizeGeminiModel(activeModel),
       credentials.accessToken,
       stream ? "*/*" : "application/json"
     );
+
+    if (credentials.apiKey) {
+      raw["x-goog-api-key"] = credentials.apiKey;
+      // getGeminiCliHeaders adds Authorization: Bearer undefined if accessToken is empty, so we clean it up
+      if (!credentials.accessToken) {
+        delete raw["Authorization"];
+      }
+    }
+
     return scrubProxyAndFingerprintHeaders(raw);
   }
 

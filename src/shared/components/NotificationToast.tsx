@@ -31,9 +31,9 @@ const COLORS = {
     icon: "#ef4444",
   },
   warning: {
-    bg: "rgba(245, 158, 11, 0.15)",
-    border: "rgba(245, 158, 11, 0.4)",
-    icon: "#f59e0b",
+    bg: "rgba(40, 28, 0, 0.92)",
+    border: "rgba(245, 158, 11, 0.7)",
+    icon: "#fbbf24",
   },
   info: {
     bg: "rgba(59, 130, 246, 0.15)",
@@ -51,11 +51,16 @@ function Toast({ notification, onDismiss }) {
   };
 
   const color = COLORS[notification.type] || COLORS.info;
+  const textColors = {
+    title: "var(--text-primary, #fff)",
+    message: "var(--text-secondary, #ccc)",
+  };
 
   return (
     <div
       role="alert"
       aria-live="polite"
+      onClick={notification.onClick}
       style={{
         display: "flex",
         alignItems: "flex-start",
@@ -68,6 +73,7 @@ function Toast({ notification, onDismiss }) {
         boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
         minWidth: "320px",
         maxWidth: "420px",
+        cursor: notification.onClick ? "pointer" : "default",
         animation: isExiting ? "toastOut 0.2s ease-in forwards" : "toastIn 0.3s ease-out forwards",
         transition: "all 0.2s ease",
       }}
@@ -89,7 +95,7 @@ function Toast({ notification, onDismiss }) {
             style={{
               fontWeight: 600,
               fontSize: "14px",
-              color: "var(--text-primary, #fff)",
+              color: textColors.title,
               marginBottom: "2px",
             }}
           >
@@ -99,7 +105,7 @@ function Toast({ notification, onDismiss }) {
         <div
           style={{
             fontSize: "13px",
-            color: "var(--text-secondary, #ccc)",
+            color: textColors.message,
             lineHeight: 1.4,
           }}
         >

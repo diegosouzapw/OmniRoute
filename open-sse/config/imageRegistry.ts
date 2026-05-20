@@ -317,6 +317,40 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4"],
   },
 
+  haiper: {
+    id: "haiper",
+    baseUrl: "https://api.haiper.ai/v1/jobs/gen2/text2image",
+    statusUrl: "https://api.haiper.ai/v1/jobs",
+    authType: "apikey",
+    authHeader: "HAIPER_KEY",
+    format: "haiper-image",
+    models: [{ id: "gen2", name: "Gen 2 Image" }],
+    supportedSizes: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+  },
+  leonardo: {
+    id: "leonardo",
+    baseUrl: "https://cloud.leonardo.ai/api/rest/v1/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "leonardo-image",
+    models: [
+      { id: "phoenix", name: "Phoenix" },
+      { id: "sdxl", name: "SDXL" },
+    ],
+    supportedSizes: ["1024x1024", "1024x576", "576x1024"],
+  },
+  ideogram: {
+    id: "ideogram",
+    baseUrl: "https://api.ideogram.ai/generate",
+    authType: "apikey",
+    authHeader: "Api-Key",
+    format: "ideogram-image",
+    models: [
+      { id: "V_3", name: "Ideogram V3" },
+      { id: "V_2A", name: "Ideogram V2A" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
+  },
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",

@@ -254,14 +254,7 @@ export default function CloudAgentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-text-muted mt-1">{t("description")}</p>
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-6">
       <Card className="border-purple-500/20 bg-purple-500/5">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">

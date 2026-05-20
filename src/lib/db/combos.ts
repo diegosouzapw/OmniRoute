@@ -260,3 +260,15 @@ export async function deleteCombo(id: string) {
   backupDbFile("pre-write");
   return true;
 }
+
+export async function deleteComboByName(name: string) {
+  const combo = await getComboByName(name);
+  if (!combo || typeof combo.id !== "string") return false;
+  return deleteCombo(combo.id);
+}
+
+export function setActiveCombo(name: string, db = getDbInstance()) {
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'activeCombo', ?)"
+  ).run(JSON.stringify(name));
+}

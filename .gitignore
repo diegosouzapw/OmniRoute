@@ -5,6 +5,12 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Claude Code local state — runtime files only; shared commands at .claude/commands/ are tracked
+.claude/scheduled_tasks.lock
+.claude/scheduled_tasks/
+.claude/sessions/
+.claude/state.json
+
 # Root-level underscore-prefixed directories (private/draft — never commit)
 /_*/
 
@@ -76,6 +82,7 @@ open-sse/test/*
 .github/instructions/codacy.instructions.md
 
 # Playwright
+.playwright-mcp/
 test-results/
 playwright-report/
 blob-report/
@@ -143,3 +150,6 @@ bun.lock
 
 # Private environment variables for .http-client
 http-client.private.env.json
+
+# Feature-triage ephemeral artifact (regenerated each run)
+_ideia/_triage.json

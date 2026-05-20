@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Erreur : {message}",
+    "serverOffline": "Le serveur OmniRoute est hors ligne. Démarrez avec : omniroute serve",
+    "authRequired": "Authentification requise. Définissez OMNIROUTE_API_KEY ou exécutez : omniroute setup",
+    "rateLimited": "Limite de requêtes atteinte. Réessayez dans {seconds}s.",
+    "timeout": "La requête a expiré après {ms}ms.",
+    "success": "Terminé.",
+    "yes": "oui",
+    "no": "non",
+    "confirm": "Êtes-vous sûr ? (oui/non)",
+    "dryRun": "[simulation] ferait : {action}",
+    "cancelled": "Annulé.",
+    "jsonOpt": "Sortie au format JSON",
+    "yesOpt": "Ignorer la confirmation"
+  },
+  "program": {
+    "description": "OmniRoute — Routeur IA intelligent avec basculement automatique",
+    "version": "Afficher la version et quitter",
+    "output": "Format de sortie (table, json, jsonl, csv)",
+    "quiet": "Supprimer les sorties non essentielles",
+    "no_color": "Désactiver la sortie en couleur",
+    "timeout": "Délai d'expiration des requêtes HTTP en millisecondes",
+    "api_key": "Clé API pour le serveur OmniRoute",
+    "base_url": "URL de base du serveur OmniRoute",
+    "context": "Contexte/profil du serveur pour cette commande",
+    "lang": "Définir la langue d'affichage du CLI (remplace OMNIROUTE_LANG)"
+  }
+}

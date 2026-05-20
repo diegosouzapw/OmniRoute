@@ -131,6 +131,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       healthCheckInterval,
       group,
       maxConcurrent,
+      quotaWindowThresholds: incomingWindowThresholds,
       projectId,
       providerSpecificData: incomingPsd,
     } = body;
@@ -158,6 +159,30 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (healthCheckInterval !== undefined) updateData.healthCheckInterval = healthCheckInterval;
     if (group !== undefined) updateData.group = group;
     if (maxConcurrent !== undefined) updateData.maxConcurrent = maxConcurrent;
+    if (incomingWindowThresholds !== undefined) {
+      // PATCH semantics:
+      //   • null            → clear every per-window override on this connection
+      //   • {} (empty map)  → no-op (no keys to merge); existing overrides preserved
+      //   • partial map     → merge into the existing map; a `null` value at any
+      //                        key clears just that window's override
+      if (incomingWindowThresholds === null) {
+        updateData.quotaWindowThresholds = null;
+      } else {
+        const existingMap =
+          existing.quotaWindowThresholds && typeof existing.quotaWindowThresholds === "object"
+            ? { ...(existing.quotaWindowThresholds as Record<string, number>) }
+            : {};
+        for (const [window, value] of Object.entries(incomingWindowThresholds)) {
+          if (value === null) {
+            delete existingMap[window];
+          } else if (typeof value === "number") {
+            existingMap[window] = value;
+          }
+        }
+        updateData.quotaWindowThresholds =
+          Object.keys(existingMap).length === 0 ? null : existingMap;
+      }
+    }
     if (projectId !== undefined) updateData.projectId = projectId;
 
     // Merge providerSpecificData (partial update — preserve existing keys not sent by caller)

@@ -203,6 +203,114 @@ test("getProviderCredentialsWithQuotaPreflight returns allRateLimited when a for
   assert.match(selected.lastError, /quota preflight/i);
 });
 
+test("getProviderCredentialsWithQuotaPreflight skips the upstream fetcher when no limits are configured", async () => {
+  // Latency gate regression test. When a connection has no per-window
+  // overrides AND its provider has no per-(provider, window) defaults seeded
+  // AND the legacy quotaPreflightEnabled flag isn't set, the dispatch loop
+  // must NOT call the registered quota fetcher. We assert by registering a
+  // fetcher that throws if invoked — any invocation surfaces as a test
+  // failure either via the thrown error or via the connection getting
+  // skipped (we expect it to pass through cleanly).
+  const conn = await seedConnection("openai", {
+    name: "quota-preflight-no-limits",
+    apiKey: "sk-no-limits",
+    // Crucially: no quotaPreflightEnabled flag, no overrides.
+  });
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  let fetcherCalls = 0;
+  quotaPreflight.registerQuotaFetcher("openai", async () => {
+    fetcherCalls++;
+    throw new Error(
+      "quota fetcher must not run when no per-window overrides or provider defaults are set"
+    );
+  });
+
+  const selected = await auth.getProviderCredentialsWithQuotaPreflight("openai");
+
+  assert.equal((selected as any).connectionId, conn.id);
+  assert.equal(fetcherCalls, 0, "fetcher should not have been invoked");
+});
+
+test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when the global default is restrictive", async () => {
+  // No per-connection override and no provider-window defaults — but the
+  // operator has raised the global default cutoff above the factory no-op
+  // level (2% remaining). Preflight must run so the tighter floor applies.
+  const conn = await seedConnection("openai", {
+    name: "quota-preflight-restrictive-global",
+    apiKey: "sk-restrictive-global",
+  });
+  await settingsDb.updateSettings({
+    resilienceSettings: {
+      quotaPreflight: {
+        defaultThresholdPercent: 20, // stop at 20% remaining = 80% used
+        warnThresholdPercent: 30,
+        providerWindowDefaults: {},
+      },
+    },
+  });
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  let fetcherCalls = 0;
+  quotaPreflight.registerQuotaFetcher("openai", async () => {
+    fetcherCalls++;
+    return null;
+  });
+
+  await auth.getProviderCredentialsWithQuotaPreflight("openai");
+  assert.equal(
+    fetcherCalls,
+    1,
+    "fetcher should run when global default is stricter than the factory no-op level"
+  );
+
+  // Reset settings so subsequent tests see factory defaults.
+  await settingsDb.updateSettings({ resilienceSettings: {} });
+  // Verify the gate immediately returns to skip mode.
+  fetcherCalls = 0;
+  quotaPreflight.registerQuotaFetcher("openai", async () => {
+    fetcherCalls++;
+    throw new Error("must not run with factory global default");
+  });
+  await auth.getProviderCredentialsWithQuotaPreflight("openai");
+  assert.equal(fetcherCalls, 0, "fetcher should not run after settings reset to factory default");
+});
+
+test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an override IS set", async () => {
+  // Counterpart to the no-limits test: if the connection has a
+  // quotaWindowThresholds override, preflight must run.
+  const conn = await seedConnection("openai", {
+    name: "quota-preflight-with-override",
+    apiKey: "sk-with-override",
+  });
+  const updated = await providersDb.updateProviderConnection(conn.id, {
+    quotaWindowThresholds: { primary: 50 },
+  });
+  // Sanity: the override must be readable on the connection row (this is
+  // what the dispatch loop reads through getProviderCredentials).
+  assert.deepEqual(
+    (updated as any)?.quotaWindowThresholds,
+    { primary: 50 },
+    "override must be persisted on the connection row"
+  );
+  const refetched = await providersDb.getProviderConnectionById(conn.id);
+  assert.deepEqual(
+    (refetched as any)?.quotaWindowThresholds,
+    { primary: 50 },
+    "override must round-trip through getProviderConnectionById"
+  );
+
+  const quotaPreflight = await import("../../open-sse/services/quotaPreflight.ts");
+  let fetcherCalls = 0;
+  quotaPreflight.registerQuotaFetcher("openai", async () => {
+    fetcherCalls++;
+    return null; // null → preflight proceeds, no skip
+  });
+
+  await auth.getProviderCredentialsWithQuotaPreflight("openai");
+  assert.equal(fetcherCalls, 1, "fetcher should have been invoked exactly once");
+});
+
 test("getProviderCredentials keeps separate codex affinity per session", async () => {
   await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 10 });
   const first = await seedConnection("codex", {

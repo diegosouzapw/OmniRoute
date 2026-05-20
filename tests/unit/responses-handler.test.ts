@@ -306,7 +306,10 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
   );
 });
 
-test("handleResponsesCore injects SSE keepalive comments for Responses streams", async (t) => {
+test("handleResponsesCore injects SSE keepalive frames for Responses streams", async (t) => {
+  // PR #2233 changed the Responses-API heartbeat shape from a SSE comment
+  // (`: keepalive ...`) to a `data: {"type":"response.in_progress"}` frame,
+  // because strict proxies only count `data:` lines as activity.
   t.mock.timers.enable({ apis: ["setInterval"] });
   try {
     const { result } = await invokeResponsesCore({
@@ -321,7 +324,7 @@ test("handleResponsesCore injects SSE keepalive comments for Responses streams",
 
     const sse = await result.response.text();
 
-    assert.match(sse, /^: keepalive .*$/m);
+    assert.match(sse, /data: \{"type":"response\.in_progress"\}/);
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
   } finally {

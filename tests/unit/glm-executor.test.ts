@@ -378,6 +378,7 @@ test("GlmExecutor sends OpenAI coding payload first and enables streaming tool c
     assert.equal(captured?.headers["anthropic-version"], undefined);
     assert.equal(captured?.body.tool_stream, true);
     assert.equal(captured?.body.tools[0].function.name, "get_weather");
+    assert.match(await result.response.text(), /chatcmpl-glm/);
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -479,6 +480,30 @@ test("GlmExecutor falls back when primary stream ends before useful content", as
     const text = await result.response.text();
     assert.match(text, /chat\.completion\.chunk/);
     assert.match(text, /fallback stream ok/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GlmExecutor uses readiness timeout for OpenAI-compatible stream handoff", async () => {
+  const executor = new GlmExecutor("glm");
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () => makeSseResponse(["event: ping", "data: {}"]);
+
+  try {
+    const result = await executor.execute({
+      model: "glm-5.1",
+      body: { messages: [{ role: "user", content: "hello" }] },
+      stream: true,
+      credentials: {
+        apiKey: "glm-key",
+        providerSpecificData: { baseUrl: "https://api.z.ai/api/coding/paas/v4" },
+      },
+    });
+
+    assert.equal(result.response.status, 502);
+    assert.match(await result.response.text(), /STREAM_EARLY_EOF/);
   } finally {
     globalThis.fetch = originalFetch;
   }

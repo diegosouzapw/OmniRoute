@@ -45,6 +45,7 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /deepseek-r1/i,
   /deepseek-reasoner/i,
   /deepseek-chat/i,
+  /deepseek[-/]v4[-.](flash|pro)/i,
   /kimi-k2/i,
   /qwq/i,
   /qwen.*think/i,
@@ -54,12 +55,29 @@ const REASONING_REPLAY_MODEL_PATTERNS = [
   /^mimo[-.]?v\d/i,
 ];
 
+const DEEPSEEK_V4_MODEL_PATTERN = /deepseek[-/]v4[-.](flash|pro)/i;
+
+export function isDeepSeekReasoningModel(params: {
+  provider: string;
+  model: string;
+  thinkingEnabled?: boolean;
+}): boolean {
+  if (params.thinkingEnabled !== true) return false;
+  return DEEPSEEK_V4_MODEL_PATTERN.test(params.model);
+}
+
 /**
  * Check if a provider/model combination requires reasoning replay.
  */
-export function requiresReasoningReplay(provider: string, model: string): boolean {
-  const normalizedProvider = provider.trim().toLowerCase();
-  const normalizedModel = model.trim();
+export function requiresReasoningReplay(params: {
+  provider: string;
+  model: string;
+  thinkingEnabled?: boolean;
+  supportsReasoning?: boolean;
+}): boolean {
+  if (isDeepSeekReasoningModel(params)) return true;
+  const normalizedProvider = params.provider.trim().toLowerCase();
+  const normalizedModel = params.model.trim();
   if (REASONING_REPLAY_PROVIDERS.has(normalizedProvider)) return true;
   return REASONING_REPLAY_MODEL_PATTERNS.some((p) => p.test(normalizedModel));
 }
@@ -79,6 +97,11 @@ type AssistantMessageLike = {
   tool_calls?: unknown;
   reasoning_content?: unknown;
   reasoning?: unknown;
+};
+
+type AssistantMessageCacheContext = {
+  requestId?: string;
+  messageIndex?: number;
 };
 
 type ToolCallLike = {
@@ -125,7 +148,7 @@ function purgeExpiredMemory(): void {
 }
 
 /**
- * Cache a reasoning_content string for one or more tool_call IDs.
+ * Cache a reasoning_content string for one tool_call ID.
  * Writes to memory and best-effort DB persistence.
  */
 export function cacheReasoning(
@@ -134,7 +157,16 @@ export function cacheReasoning(
   model: string,
   reasoning: string
 ): void {
-  if (!toolCallId || !reasoning) return;
+  cacheReasoningByKey(toolCallId, provider, model, reasoning);
+}
+
+export function cacheReasoningByKey(
+  key: string,
+  provider: string,
+  model: string,
+  reasoning: string
+): void {
+  if (!key || !reasoning) return;
 
   const now = Date.now();
 
@@ -142,7 +174,7 @@ export function cacheReasoning(
   if (memoryCache.size >= MAX_MEMORY_ENTRIES) {
     evictOldest();
   }
-  memoryCache.set(toolCallId, {
+  memoryCache.set(key, {
     reasoning,
     provider,
     model,
@@ -151,10 +183,14 @@ export function cacheReasoning(
   });
 
   try {
-    setReasoningCache(toolCallId, provider, model, reasoning, TTL_MS);
+    setReasoningCache(key, provider, model, reasoning, TTL_MS);
   } catch {
     // DB persistence failure is non-fatal; memory cache still serves the hot path.
   }
+}
+
+function buildAssistantMessageCacheKey(requestId: string, messageIndex: number): string {
+  return `request:${requestId}:message:${messageIndex}`;
 }
 
 /**
@@ -172,15 +208,16 @@ export function cacheReasoningBatch(
 }
 
 /**
- * Capture reasoning_content from an assistant message with tool calls.
- * Returns the number of tool_call IDs cached.
+ * Capture reasoning_content from an assistant message.
+ * Returns the number of cache keys written.
  */
 export function cacheReasoningFromAssistantMessage(
   message: AssistantMessageLike | null | undefined,
   provider: string,
-  model: string
+  model: string,
+  context?: AssistantMessageCacheContext
 ): number {
-  if (!message || message.role !== "assistant" || !Array.isArray(message.tool_calls)) {
+  if (!message || message.role !== "assistant") {
     return 0;
   }
 
@@ -192,10 +229,26 @@ export function cacheReasoningFromAssistantMessage(
         : "";
   if (!reasoning) return 0;
 
-  const toolCallIds = (message.tool_calls as ToolCallLike[])
-    .map((toolCall) => (typeof toolCall.id === "string" ? toolCall.id : ""))
-    .filter((id) => id.length > 0);
-  if (toolCallIds.length === 0) return 0;
+  const toolCallIds = Array.isArray(message.tool_calls)
+    ? (message.tool_calls as ToolCallLike[])
+        .map((toolCall) => (typeof toolCall.id === "string" ? toolCall.id : ""))
+        .filter((id) => id.length > 0)
+    : [];
+  if (toolCallIds.length === 0) {
+    const requestId = context?.requestId?.trim();
+    const messageIndex = context?.messageIndex;
+    if (!requestId || typeof messageIndex !== "number" || !Number.isInteger(messageIndex)) {
+      return 0;
+    }
+
+    cacheReasoningByKey(
+      buildAssistantMessageCacheKey(requestId, messageIndex),
+      provider,
+      model,
+      reasoning
+    );
+    return 1;
+  }
 
   cacheReasoningBatch(toolCallIds, provider, model, reasoning);
   return toolCallIds.length;

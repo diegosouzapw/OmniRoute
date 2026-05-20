@@ -54,3 +54,7 @@ export function printSuccess(message) {
 export function printInfo(message) {
   console.log(`\x1b[2m${message}\x1b[0m`);
 }
+
+export function printError(message) {
+  console.log(`\x1b[31m✖ ${message}\x1b[0m`);
+}

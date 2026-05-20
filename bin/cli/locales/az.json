@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Xəta: {message}",
+    "serverOffline": "OmniRoute serveri oflayndır. Başladın: omniroute serve",
+    "authRequired": "Autentifikasiya tələb olunur. OMNIROUTE_API_KEY təyin edin və ya işə salın: omniroute setup",
+    "rateLimited": "Sorğu limiti aşıldı. {seconds} saniyə sonra yenidən cəhd edin.",
+    "timeout": "Sorğunun vaxtı {ms}ms sonra bitdi.",
+    "success": "Tamamlandı.",
+    "yes": "bəli",
+    "no": "xeyr",
+    "confirm": "Əminsiniz? (bəli/xeyr)",
+    "dryRun": "[simulyasiya] ediləcəkdi: {action}",
+    "cancelled": "Ləğv edildi.",
+    "jsonOpt": "JSON formatında çıxış",
+    "yesOpt": "Təsdiq sorğusunu keç"
+  },
+  "program": {
+    "description": "OmniRoute — Avtomatik Fallback ilə Ağıllı AI Marşrutlaşdırıcısı",
+    "version": "Versiyasını çap et və çıx",
+    "output": "Çıxış formatı (table, json, jsonl, csv)",
+    "quiet": "Vacib olmayan çıxışı gizlət",
+    "no_color": "Rəngli çıxışı deaktiv et",
+    "timeout": "HTTP sorğusu üçün zaman aşımı (millisaniyə)",
+    "api_key": "OmniRoute serveri üçün API açarı",
+    "base_url": "OmniRoute server baza URL-i",
+    "context": "Bu əmr üçün server konteksti/profili",
+    "lang": "CLI ekran dilini təyin edin (OMNIROUTE_LANG-ı keçir)"
+  }
+}

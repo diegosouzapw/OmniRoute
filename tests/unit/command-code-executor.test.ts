@@ -118,7 +118,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
   assert.equal(calls[0].init.method, "POST");
   assert.equal(headers.Authorization, "Bearer cc_test_key");
   assert.equal(headers["x-command-code-version"], "0.24.1");
-  assert.equal(headers["x-cli-environment"], "production");
+  assert.equal(headers["x-cli-environment"], "external");
   assert.equal(headers["x-project-slug"], "pi-cc");
   assert.equal(headers["x-taste-learning"], "false");
   assert.equal(headers["x-co-flag"], "false");
@@ -129,6 +129,7 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
   for (const key of ["config", "memory", "taste", "skills", "permissionMode", "params"]) {
     assert.ok(key in posted, `missing ${key}`);
   }
+  assert.equal(posted.skills, "");
   assert.equal(posted.params.model, "gpt-5.4-mini");
   assert.equal(posted.params.stream, true);
   assert.equal(posted.params.system, "You are concise.");
@@ -140,13 +141,16 @@ test("Command Code executor posts wrapped body and required headers to alpha/gen
 });
 
 test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () => {
-  globalThis.fetch = async () =>
-    commandCodeStream([
+  const calls: any[] = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), init, body: JSON.parse(String(init.body)) });
+    return commandCodeStream([
       { type: "text-delta", text: "Hello" },
       { type: "reasoning-delta", text: "thinking" },
       { type: "tool-call", toolCallId: "call_1", toolName: "search", input: { q: "docs" } },
       { type: "finish", finishReason: "tool-calls" },
     ]);
+  };
 
   const { response } = await getExecutor("command-code").execute({
     model: "gpt-5.4",
@@ -155,6 +159,7 @@ test("Command Code raw NDJSON stream becomes OpenAI chat SSE chunks", async () =
     body: { messages: [{ role: "user", content: "Hi" }] },
   });
 
+  assert.equal(calls[0].body.params.stream, true);
   assert.equal(response.headers.get("Content-Type"), "text/event-stream; charset=utf-8");
   const sse = await response.text();
   assert.match(sse, /data: \[DONE\]/);

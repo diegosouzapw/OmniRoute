@@ -284,6 +284,137 @@ export const createProviderSchema = z
     }
   });
 
+export const bulkCreateProviderSchema = z
+  .object({
+    provider: z.string().min(1).max(100),
+    entries: z
+      .array(
+        z.object({
+          name: z.string().min(1).max(200),
+          apiKey: z.string().min(1).max(10000),
+        })
+      )
+      .min(1, "entries must contain at least 1 item")
+      .max(200, "entries must contain at most 200 items"),
+    priority: z.number().int().min(1).max(100).optional(),
+    globalPriority: z.number().int().min(1).max(100).nullable().optional(),
+    providerSpecificData: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .superRefine((data, ctx) => {
+        validateProviderSpecificData(data, ctx);
+      }),
+    validateKeys: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.provider === "google-pse-search") {
+      const cx =
+        data.providerSpecificData && typeof data.providerSpecificData === "object"
+          ? (data.providerSpecificData as Record<string, unknown>).cx
+          : undefined;
+      if (typeof cx !== "string" || cx.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Programmable Search Engine ID (cx) is required",
+          path: ["providerSpecificData", "cx"],
+        });
+      }
+    }
+  });
+
+// ──── Codex Import Schema ────
+
+export const importCodexAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "Paste content must be under 256 KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Codex Import Bulk Schema ────
+
+export const importCodexAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Claude Auth Import Schema ────
+
+export const importClaudeAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "Paste content must be under 256 KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Claude Auth Import Bulk Schema ────
+
+export const importClaudeAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Gemini CLI Auth Import Schema ────
+
+export const importGeminiAuthSchema = z.object({
+  source: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("json"), json: z.unknown() }),
+    z.object({
+      kind: z.literal("text"),
+      text: z.string().max(256 * 1024, "oauth_creds.json content exceeds 256KB"),
+    }),
+  ]),
+  name: z.string().min(1).max(200).optional(),
+  email: z.string().email("Must be a valid email").optional(),
+  overwriteExisting: z.boolean().optional(),
+});
+
+// ──── Gemini CLI Auth Import Bulk Schema ────
+
+export const importGeminiAuthBulkSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        json: z.unknown(),
+        name: z.string().min(1).max(200).optional(),
+        email: z.string().email("Must be a valid email").optional(),
+      })
+    )
+    .min(1, "At least one entry is required")
+    .max(50, "At most 50 entries per bulk import"),
+  overwriteExisting: z.boolean().optional(),
+});
+
 // ──── API Key Schemas ────
 
 export const createKeySchema = z.object({
@@ -401,12 +532,18 @@ const comboRuntimeConfigSchema = z
   })
   .strict();
 
+const comboNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Name is required")
+  .max(100)
+  .regex(
+    /^[a-zA-Z0-9_/.\-\[\] ]+$/,
+    "Name can only contain letters, numbers, spaces, -, _, /, ., [ and ]."
+  );
+
 export const createComboSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(100)
-    .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and ."),
+  name: comboNameSchema,
   models: z.array(comboModelEntry).optional().default([]),
   strategy: comboStrategySchema.optional().default("priority"),
   config: comboRuntimeConfigSchema.optional(),
@@ -1334,12 +1471,7 @@ export const cloudSyncActionSchema = z.object({
 
 export const updateComboSchema = z
   .object({
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .max(100)
-      .regex(/^[a-zA-Z0-9_/.-]+$/, "Name can only contain letters, numbers, -, _, / and .")
-      .optional(),
+    name: comboNameSchema.optional(),
     models: z.array(comboModelEntry).optional(),
     strategy: comboStrategySchema.optional(),
     config: comboRuntimeConfigSchema.optional(),
@@ -1597,6 +1729,23 @@ export const updateProviderConnectionSchema = z
     healthCheckInterval: z.coerce.number().int().min(0).optional(),
     group: z.union([z.string().max(100), z.null()]).optional(),
     maxConcurrent: z.union([z.null(), z.coerce.number().int().min(0)]).optional(),
+    // Per-window quota cutoffs. Map keys are window names (e.g. "window5h",
+    // "window7d"); values are 0-100 integers, or null to clear that window's
+    // override (the API route merges this into the existing map and prunes
+    // null entries before persisting). The whole field set to null clears
+    // every override on the connection.
+    quotaWindowThresholds: z
+      .union([
+        z.null(),
+        z.record(
+          // Window keys mirror the quota names from getUsageForProvider —
+          // bound for defense-in-depth so a malicious payload can't ship
+          // megabyte-long keys that would bloat the DB row.
+          z.string().min(1).max(64),
+          z.union([z.null(), z.coerce.number().int().min(0).max(100)])
+        ),
+      ])
+      .optional(),
     projectId: z.union([z.string(), z.null()]).optional(),
     // Partial patch of per-connection provider-specific settings (e.g. quota toggles)
     providerSpecificData: z
@@ -1631,6 +1780,7 @@ export const providersBatchTestSchema = z
       "local",
       "upstream-proxy",
       "cloud-agent",
+      "ide",
     ]),
     // Frontend may send null when mode != 'provider' — accept and treat as missing
     providerId: z.string().trim().min(1).nullable().optional(),
@@ -1813,6 +1963,7 @@ export const v1SearchSchema = z
         "searchapi-search",
         "youcom-search",
         "searxng-search",
+        "zai-search",
       ])
       .optional(),
     max_results: z.coerce.number().int().min(1).max(100).default(5),

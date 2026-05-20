@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select, Badge } from "@/shared/components";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+import Editor from "@/shared/components/MonacoEditor";
 
 interface SearchProvider {
   id: string;

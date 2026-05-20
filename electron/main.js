@@ -280,9 +280,15 @@ function installUpdate() {
 // ── Content Security Policy (#15) ──────────────────────────
 function setupContentSecurityPolicy() {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    const scriptSrc = isDev
+    // Determine if the request is for the Next.js development server
+    const isDevUrl =
+      details.url.includes("localhost:20128") || details.url.includes("127.0.0.1:20128");
+
+    // React/Next.js requires unsafe-eval for source maps and Hot Module Replacement (HMR) during development.
+    const scriptSrc = isDevUrl
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
       : "script-src 'self' 'unsafe-inline' blob:";
+
     const csp = [
       "default-src 'self'",
       "base-uri 'self'",
@@ -291,6 +297,7 @@ function setupContentSecurityPolicy() {
       "frame-src 'none'",
       "child-src 'none'",
       "form-action 'self'",
+      `connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:* https://*.omniroute.online https://*.omniroute.dev`,
       scriptSrc,
       "script-src-attr 'none'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",

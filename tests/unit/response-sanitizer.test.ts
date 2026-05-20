@@ -121,6 +121,61 @@ test("sanitizeOpenAIResponse strips reasoning_details-derived reasoning_content 
   assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
 });
 
+test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_content with visible text", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "deepseek-v4-pro",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Visible answer",
+          reasoning_content: "DeepSeek reasoning",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].message.content, "Visible answer");
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "DeepSeek reasoning");
+});
+
+test("sanitizeOpenAIResponse preserves DeepSeek V4 reasoning_details with visible text", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "deepseek-v4/reasoner",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Visible answer",
+          reasoning_details: [
+            { type: "reasoning.text", text: "first " },
+            { type: "thinking", content: "second" },
+          ],
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, "first second");
+});
+
+test("sanitizeOpenAIResponse still strips non-DeepSeek reasoning_content with visible text", () => {
+  const sanitized = sanitizeOpenAIResponse({
+    model: "o3-mini",
+    choices: [
+      {
+        message: {
+          role: "assistant",
+          content: "Visible answer",
+          reasoning_content: "OpenAI reasoning",
+        },
+      },
+    ],
+  });
+
+  assert.equal((sanitized as any).choices[0].message.reasoning_content, undefined);
+});
+
 test("sanitizeOpenAIResponse keeps reasoning_details-derived reasoning_content for reasoning-only messages", () => {
   const sanitized = sanitizeOpenAIResponse({
     model: "openrouter/model",

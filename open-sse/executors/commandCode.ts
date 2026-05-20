@@ -152,7 +152,7 @@ function buildCommandCodeBody(model: string, body: unknown): JsonRecord {
     config: {
       workingDir: "/workspace",
       date: new Date().toISOString().slice(0, 10),
-      environment: "omniroute",
+      environment: "external",
       structure: [],
       isGitRepo: false,
       currentBranch: "",
@@ -162,7 +162,7 @@ function buildCommandCodeBody(model: string, body: unknown): JsonRecord {
     },
     memory: "",
     taste: "",
-    skills: null,
+    skills: "",
     permissionMode: "standard",
     params: {
       model,
@@ -505,7 +505,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       "x-command-code-version": COMMAND_CODE_VERSION,
-      "x-cli-environment": "production",
+      "x-cli-environment": "external",
       "x-project-slug": "pi-cc",
       "x-taste-learning": "false",
       "x-co-flag": "false",

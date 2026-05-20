@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Błąd: {message}",
+    "serverOffline": "Serwer OmniRoute jest offline. Uruchom: omniroute serve",
+    "authRequired": "Wymagane uwierzytelnienie. Ustaw OMNIROUTE_API_KEY lub uruchom: omniroute setup",
+    "rateLimited": "Przekroczono limit żądań. Spróbuj ponownie za {seconds}s.",
+    "timeout": "Żądanie przekroczyło czas po {ms}ms.",
+    "success": "Gotowe.",
+    "yes": "tak",
+    "no": "nie",
+    "confirm": "Czy jesteś pewien? (tak/nie)",
+    "dryRun": "[symulacja] wykonałoby: {action}",
+    "cancelled": "Anulowano.",
+    "jsonOpt": "Wyjście jako JSON",
+    "yesOpt": "Pomiń potwierdzenie"
+  },
+  "program": {
+    "description": "OmniRoute — Inteligentny router AI z automatycznym fallbackiem",
+    "version": "Wydrukuj wersję i wyjdź",
+    "output": "Format wyjścia (table, json, jsonl, csv)",
+    "quiet": "Pomiń nieistotne wyjście",
+    "no_color": "Wyłącz kolorowe wyjście",
+    "timeout": "Limit czasu żądania HTTP w milisekundach",
+    "api_key": "Klucz API dla serwera OmniRoute",
+    "base_url": "Bazowy URL serwera OmniRoute",
+    "context": "Kontekst/profil serwera dla tego polecenia",
+    "lang": "Ustaw język wyświetlania CLI (nadpisuje OMNIROUTE_LANG)"
+  }
+}

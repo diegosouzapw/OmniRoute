@@ -152,13 +152,8 @@ export default function AgentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-text-muted mt-1">{t("description")}</p>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-end">
         <Button variant="secondary" onClick={handleRefresh} loading={refreshing}>
           <span className="material-symbols-outlined text-[16px] mr-1">refresh</span>
           {t("refresh")}

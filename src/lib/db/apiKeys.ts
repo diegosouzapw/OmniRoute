@@ -119,8 +119,8 @@ const CACHE_TTL = 60 * 1000; // 1 minute TTL
 const LAST_USED_UPDATE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 1000;
 
-// Compiled regex cache for wildcard patterns
-const _regexCache = new Map<string, RegExp>();
+// Wildcard scope matching is now handled by `matchesWildcardPattern`
+// (deterministic, no RegExp from dynamic strings).
 
 const API_KEY_COLUMN_FALLBACKS = [
   { name: "allowed_models", definition: "allowed_models TEXT" },
@@ -187,6 +187,7 @@ async function deleteRedisAuthCacheEntry(keyHash: unknown): Promise<void> {
   try {
     const { getRedisClient } = await import("@/shared/utils/rateLimiter");
     const redis = getRedisClient();
+    if (!redis) return; // #2357: Redis is optional; skip when disabled.
     await redis.del(`auth:api_key:${keyHash}`);
   } catch {
     // Redis is an optimization for auth caching; SQLite remains authoritative.
@@ -235,21 +236,57 @@ function evictIfNeeded<TKey, TValue>(cache: Map<TKey, TValue>) {
 }
 
 /**
- * Get or compile regex for wildcard pattern
+ * Match an API-key wildcard scope pattern against a model id without
+ * compiling a RegExp from string concatenation (avoid ReDoS exposure on
+ * operator-supplied patterns and silence the Semgrep `js/regex-injection`
+ * advisory for `new RegExp(<dynamic>)`).
+ *
+ * Supported pattern syntax (only what real scopes use):
+ *   - literal segments
+ *   - `*` matches any run of characters, but does NOT cross `/`
+ *
+ * Walks the pattern token-by-token: each `*` consumes the longest possible
+ * run within the current path segment, then the next literal anchor must
+ * appear before the segment boundary. Worst-case complexity is O(n*m)
+ * where n = pattern length, m = candidate length — there is no nested
+ * backtracking that could explode adversarially.
  */
-function getWildcardRegex(pattern: string): RegExp {
-  let regex = _regexCache.get(pattern);
-  if (!regex) {
-    const regexStr = pattern.replace(/\*/g, ".*");
-    regex = new RegExp(`^${regexStr}$`);
-    _regexCache.set(pattern, regex);
-    // Prevent unbounded growth
-    if (_regexCache.size > 100) {
-      const firstKey = _regexCache.keys().next().value;
-      if (firstKey) _regexCache.delete(firstKey);
-    }
+function matchesWildcardPattern(pattern: string, candidate: string): boolean {
+  const pSegs = pattern.split("/");
+  const cSegs = candidate.split("/");
+  if (pSegs.length !== cSegs.length) return false;
+  for (let i = 0; i < pSegs.length; i++) {
+    if (!segmentMatchesWildcard(pSegs[i], cSegs[i])) return false;
   }
-  return regex;
+  return true;
+}
+
+function segmentMatchesWildcard(pattern: string, segment: string): boolean {
+  if (pattern === segment) return true;
+  if (!pattern.includes("*")) return false;
+  const parts = pattern.split("*");
+  // Anchor first literal to the start.
+  let cursor = 0;
+  const first = parts[0];
+  if (first) {
+    if (!segment.startsWith(first)) return false;
+    cursor = first.length;
+  }
+  // Anchor last literal to the end.
+  const last = parts[parts.length - 1];
+  const endLimit = segment.length - last.length;
+  if (last) {
+    if (!segment.endsWith(last)) return false;
+  }
+  // Each middle literal must appear in order between cursor and endLimit.
+  for (let i = 1; i < parts.length - 1; i++) {
+    const piece = parts[i];
+    if (!piece) continue;
+    const idx = segment.indexOf(piece, cursor);
+    if (idx === -1 || idx + piece.length > endLimit) return false;
+    cursor = idx + piece.length;
+  }
+  return cursor <= endLimit;
 }
 
 function ensureApiKeyColumn(
@@ -858,6 +895,7 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient } = await import("@/shared/utils/rateLimiter");
       const redis = getRedisClient();
+      if (!redis) throw new Error("redis-disabled"); // #2357: optional
       const redisKey = `auth:api_key:${hashedKey}`;
       const redisData = await redis.get(redisKey);
       if (redisData) {
@@ -909,6 +947,9 @@ export async function validateApiKey(key: string | null | undefined) {
     try {
       const { getRedisClient } = await import("@/shared/utils/rateLimiter");
       const redis = getRedisClient();
+      // #2357: Redis is optional; throw so the catch below skips the write
+      // without affecting the function's `Promise<boolean>` return type.
+      if (!redis) throw new Error("redis-disabled");
       const redisKey = `auth:api_key:${hashedKey}`;
       await redis.set(
         redisKey,
@@ -1081,10 +1122,10 @@ export async function isModelAllowedForKey(
         break;
       }
     }
-    // Support wildcard patterns using cached regex
+    // Support wildcard patterns via deterministic matcher (no RegExp
+    // compilation from operator input — avoids ReDoS exposure).
     if (pattern.includes("*")) {
-      const regex = getWildcardRegex(pattern);
-      if (regex.test(modelId)) {
+      if (matchesWildcardPattern(pattern, modelId)) {
         allowed = true;
         break;
       }
@@ -1120,7 +1161,6 @@ export function clearApiKeyCaches() {
   invalidateCaches();
   _lastUsedUpdateCache.clear();
   _modelPermissionCache.clear();
-  _regexCache.clear();
 }
 
 /**

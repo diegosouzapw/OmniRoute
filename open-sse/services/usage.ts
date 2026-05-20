@@ -3,6 +3,14 @@
  */
 
 import { PROVIDERS } from "../config/constants.ts";
+
+// Quota / usage upstream URLs (overridable for testing or relays).
+const CROF_USAGE_URL = process.env.OMNIROUTE_CROF_USAGE_URL ?? "https://crof.ai/usage_api/";
+const GEMINI_CLI_USAGE_URL =
+  process.env.OMNIROUTE_GEMINI_CLI_USAGE_URL ??
+  "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+const CODEWHISPERER_BASE_URL =
+  process.env.OMNIROUTE_CODEWHISPERER_BASE_URL ?? "https://codewhisperer.us-east-1.amazonaws.com";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
@@ -482,7 +490,7 @@ async function getCrofUsage(apiKey: string) {
 
   let response: Response;
   try {
-    response = await fetch("https://crof.ai/usage_api/", {
+    response = await fetch(CROF_USAGE_URL, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -1014,6 +1022,39 @@ async function getCursorUsage(accessToken: string, providerSpecificData?: unknow
 }
 
 /**
+ * Single source of truth for which providers have a `getUsageForProvider`
+ * implementation. Consumers like `genericQuotaFetcher.ts` reference this so
+ * the registration list can't drift from the switch statement below.
+ *
+ * If you add a new provider to the switch, add it here too.
+ */
+export const USAGE_FETCHER_PROVIDERS = [
+  "github",
+  "gemini-cli",
+  "antigravity",
+  "claude",
+  "codex",
+  "cursor",
+  "kiro",
+  "amazon-q",
+  "kimi-coding",
+  "qwen",
+  "qoder",
+  "glm",
+  "glm-cn",
+  "zai",
+  "glmt",
+  "minimax",
+  "minimax-cn",
+  "crof",
+  "bailian-coding-plan",
+  "nanogpt",
+  "deepseek",
+] as const;
+
+export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];
+
+/**
  * Get usage data for a provider connection
  * @param {Object} connection - Provider connection with accessToken
  * @returns {Promise<unknown>} Usage data with quotas
@@ -1400,7 +1441,7 @@ async function getGeminiCliSubscriptionInfoCached(accessToken: string): Promise<
  */
 async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknown | null> {
   try {
-    const response = await fetch("https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", {
+    const response = await fetch(GEMINI_CLI_USAGE_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -2212,7 +2253,7 @@ async function getKiroUsage(accessToken?: string, providerSpecificData?: JsonRec
       resourceType: "AGENTIC_REQUEST",
     };
 
-    const response = await fetch("https://codewhisperer.us-east-1.amazonaws.com", {
+    const response = await fetch(CODEWHISPERER_BASE_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,

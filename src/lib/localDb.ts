@@ -65,6 +65,7 @@ export {
   getAllSyncedAvailableModels,
   replaceSyncedAvailableModelsForConnection,
   deleteSyncedAvailableModelsForConnection,
+  deleteSyncedAvailableModelsForProvider,
 } from "./db/models";
 
 export type { ModelCompatPerProtocol, ModelCompatPatch, SyncedAvailableModel } from "./db/models";
@@ -302,6 +303,8 @@ export {
   countBatches,
   getPendingBatches,
   getTerminalBatches,
+  deleteBatch,
+  deleteCompletedBatches,
 } from "./db/batches";
 
 export type { FileRecord } from "./db/files";
@@ -424,3 +427,37 @@ export {
   startSessionAccountAffinityCleanup,
   stopSessionAccountAffinityCleanupForTests,
 } from "./db/sessionAccountAffinity";
+
+export {
+  // Gamification & Leaderboard
+  updateScore,
+  getRank,
+  getTopN,
+  addXp,
+  getXp,
+  updateLevel,
+  unlockBadge,
+  getBadges,
+  getBadgeDefinitions,
+  transferTokens,
+  getBalance,
+  getHistory,
+  createInviteToken,
+  getInviteByCode,
+  redeemInvite,
+  revokeInvite,
+  connectServer,
+  disconnectServer,
+  listServers,
+} from "./db/gamification";
+
+export type {
+  LeaderboardRow,
+  UserLevelRow,
+  BadgeDefinition,
+  UserBadge,
+  XpAuditLogEntry,
+  TokenLedgerEntry,
+  InviteToken,
+  CommunityServer,
+} from "./db/gamification";

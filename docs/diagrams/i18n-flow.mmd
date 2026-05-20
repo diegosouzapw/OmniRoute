@@ -1,0 +1,14 @@
+%% Incremental hash-based i18n pipeline
+%% Reflects: scripts/i18n/* and docs/i18n/<locale>/*.md mirror layout
+%% v3.8.0
+flowchart LR
+  Src["Source MDs<br/>(CLAUDE.md, docs/**/*.md)"] --> Hash["sha256 hash"]
+  Hash --> State[".i18n-state.json"]
+  State -->|diff| Dirty["Mark source dirty"]
+  Dirty --> Loop{"For each locale<br/>(39 langs)"}
+  Loop --> LLM["OmniRoute<br/>/chat/completions<br/>(cx/gpt-5.4-mini)"]
+  LLM --> Target["Write<br/>docs/i18n/&lt;locale&gt;/&lt;rel-path&gt;.md"]
+  Target --> State
+  Target --> CI{"CI drift check<br/>(npm run i18n:check)"}
+  CI -->|in sync| Pass["pass"]
+  CI -->|drift| Fail["fail<br/>(exit 1)"]

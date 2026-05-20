@@ -51,6 +51,7 @@ const DOT_COLORS: Record<string, string> = {
   audio: "bg-rose-500",
   local: "bg-emerald-500",
   "upstream-proxy": "bg-indigo-500",
+  "cloud-agent": "bg-violet-500",
 };
 
 function getStatusDisplay(
@@ -149,25 +150,27 @@ export default function ProviderCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 pr-2">
             <div
-              className="size-8 rounded-lg flex items-center justify-center shrink-0"
+              className="size-7 rounded-lg flex items-center justify-center shrink-0"
               style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
             >
               {staticIconPath ? (
                 <Image
                   src={staticIconPath}
                   alt={provider.name}
-                  width={30}
-                  height={30}
-                  className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
-                  sizes="30px"
+                  width={26}
+                  height={26}
+                  className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
+                  sizes="26px"
                 />
               ) : (
-                <ProviderIcon providerId={provider.id || providerId} size={28} type="color" />
+                <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
               )}
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold flex items-center gap-1.5 truncate">
-                <span className={provider.deprecated ? "line-through opacity-60" : ""}>
+              <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
+                <span
+                  className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                >
                   {provider.name}
                 </span>
                 {provider.deprecated && (
@@ -183,9 +186,15 @@ export default function ProviderCard({
                   </Badge>
                 )}
                 <span
-                  className={`size-2 rounded-full ${DOT_COLORS[authType] || DOT_COLORS.apikey} shrink-0`}
+                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
                   title={dotLabels[authType] || t("apiKeyLabel")}
                 />
+                {provider.hasFree === true && authType !== "free" && (
+                  <span
+                    className="size-2 rounded-full shrink-0 bg-green-500"
+                    title={provider.freeNote || t("freeTierAvailable")}
+                  />
+                )}
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {allDisabled ? (
@@ -198,18 +207,6 @@ export default function ProviderCard({
                 ) : (
                   <>
                     {getStatusDisplay(connected, error, stats.errorCode, t, codexFastChip)}
-                    {(authType === "free" || provider.hasFree === true) && (
-                      <Badge
-                        variant="success"
-                        size="sm"
-                        title={provider.freeNote || t("freeTierAvailable")}
-                      >
-                        <span className="flex items-center gap-0.5">
-                          <span className="material-symbols-outlined text-[10px]">redeem</span>
-                          {t("freeTier")}
-                        </span>
-                      </Badge>
-                    )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
                         {t("expiredBadge")}
@@ -247,7 +244,7 @@ export default function ProviderCard({
             {Number(stats.total || 0) > 0 && (
               <div onClick={handleToggle}>
                 <Toggle
-                  size="sm"
+                  size="xs"
                   checked={!allDisabled}
                   onChange={() => {}}
                   title={allDisabled ? t("enableProvider") : t("disableProvider")}

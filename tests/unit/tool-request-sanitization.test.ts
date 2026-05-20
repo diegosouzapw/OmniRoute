@@ -159,8 +159,12 @@ test("tool sanitization: injects empty reasoning_content only for DeepSeek tool-
     },
   ];
 
-  const deepseekMessages = injectEmptyReasoningContentForToolCalls(messages, "deepseek");
-  const openaiMessages = injectEmptyReasoningContentForToolCalls(messages, "openai");
+  const deepseekMessages = injectEmptyReasoningContentForToolCalls(
+    messages,
+    "deepseek",
+    "deepseek-v4-flash"
+  );
+  const openaiMessages = injectEmptyReasoningContentForToolCalls(messages, "openai", "gpt-4o");
 
   assert.equal(deepseekMessages[1].reasoning_content, "");
   assert.equal(openaiMessages[1].reasoning_content, undefined);
@@ -170,7 +174,7 @@ test("translateRequest injects reasoning_content for DeepSeek assistant tool cal
   const translated = translateRequest(
     FORMATS.OPENAI,
     FORMATS.OPENAI,
-    "deepseek-reasoner",
+    "deepseek-v4-flash",
     {
       messages: [
         { role: "user", content: "hello" },

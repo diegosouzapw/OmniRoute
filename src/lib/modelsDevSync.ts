@@ -184,10 +184,9 @@ const MODELS_DEV_PROVIDER_MAP: Record<string, string[]> = {
   opencode: ["opencode-zen"],
   "opencode-go": ["opencode-go"],
   // Additional providers that may overlap with OmniRoute
-  alibaba: ["ali", "alibaba", "bcp", "alicode", "alicode-intl"],
-  "alibaba-cn": ["ali", "alibaba", "bcp"],
-  "alibaba-coding-plan": ["alicode", "alicode-intl"],
-  "alibaba-coding-plan-cn": ["alicode"],
+  alibaba: ["ali", "alibaba"],
+  "alibaba-cn": ["ali-cn", "alibaba-cn", "alibaba-china"],
+  "alibaba-coding-plan": ["bcp", "bailian-coding-plan"],
   zai: ["zai", "glm"], // GLM models via Z.AI
   "zai-coding-plan": ["zai", "glm"],
   moonshotai: ["moonshot", "kimi"],

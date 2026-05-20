@@ -1,7 +1,8 @@
 import { BaseExecutor } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
+import { getRotatingApiKey, getValidApiKey } from "../services/apiKeyRotator.ts";
+import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import {
   buildClaudeCodeCompatibleHeaders,
   CLAUDE_CODE_COMPATIBLE_DEFAULT_CHAT_PATH,
@@ -11,6 +12,7 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import {
+  detectFormat,
   getOpenAICompatibleType,
   getTargetFormat,
   isClaudeCodeCompatible,
@@ -147,8 +149,12 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeDataRobotChatUrl(baseUrl);
       }
       case "azure-ai": {
+        const forceResponses =
+          credentials?.providerSpecificData?._omnirouteForceResponsesUpstream === true;
         const apiType =
-          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+          forceResponses || credentials?.providerSpecificData?.apiType === "responses"
+            ? "responses"
+            : "chat";
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeAzureAiChatUrl(baseUrl, apiType);
       }
@@ -161,8 +167,12 @@ export class DefaultExecutor extends BaseExecutor {
         return normalizeWatsonxChatUrl(baseUrl);
       }
       case "oci": {
+        const forceResponses =
+          credentials?.providerSpecificData?._omnirouteForceResponsesUpstream === true;
         const apiType =
-          credentials?.providerSpecificData?.apiType === "responses" ? "responses" : "chat";
+          forceResponses || credentials?.providerSpecificData?.apiType === "responses"
+            ? "responses"
+            : "chat";
         const baseUrl = credentials?.providerSpecificData?.baseUrl || this.config.baseUrl;
         return normalizeOciChatUrl(baseUrl, apiType);
       }
@@ -244,9 +254,13 @@ export class DefaultExecutor extends BaseExecutor {
     // T07: resolve extra keys round-robin locally since DefaultExecutor overrides BaseExecutor buildHeaders
     const extraKeys =
       (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+    const health = credentials.providerSpecificData?.apiKeyHealth as
+      | Record<string, KeyHealth>
+      | undefined;
     const effectiveKey =
       extraKeys.length > 0 && credentials.connectionId && credentials.apiKey
-        ? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
+        ? getValidApiKey(credentials.connectionId, credentials.apiKey, extraKeys, health) ||
+          credentials.apiKey
         : credentials.apiKey;
 
     switch (this.provider) {
@@ -393,6 +407,11 @@ export class DefaultExecutor extends BaseExecutor {
   transformRequest(model, body, stream, credentials) {
     const cleanedBody = super.transformRequest(model, body, stream, credentials);
     let withDefaults = applyProviderRequestDefaults(cleanedBody, this.config.requestDefaults);
+    const targetFormat = getTargetFormat(this.provider, credentials?.providerSpecificData);
+    const requestFormat =
+      withDefaults && typeof withDefaults === "object" && !Array.isArray(withDefaults)
+        ? detectFormat(withDefaults as Record<string, unknown>)
+        : "openai";
 
     if (typeof withDefaults === "object" && withDefaults !== null && !Array.isArray(withDefaults)) {
       if (this.provider?.startsWith?.("anthropic-compatible-")) {
@@ -401,10 +420,7 @@ export class DefaultExecutor extends BaseExecutor {
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
-      } else if (
-        stream &&
-        getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai"
-      ) {
+      } else if (stream && targetFormat === "openai" && requestFormat !== "openai-responses") {
         if (!credentials?.providerSpecificData?.disableStreamOptions) {
           withDefaults = {
             ...withDefaults,
@@ -418,10 +434,17 @@ export class DefaultExecutor extends BaseExecutor {
           delete withoutStreamOptions.stream_options;
           withDefaults = withoutStreamOptions;
         }
+      } else if (
+        (targetFormat === "openai-responses" || requestFormat === "openai-responses") &&
+        Object.prototype.hasOwnProperty.call(withDefaults, "stream_options")
+      ) {
+        const withoutStreamOptions = { ...withDefaults } as Record<string, unknown>;
+        delete withoutStreamOptions.stream_options;
+        withDefaults = withoutStreamOptions;
       }
 
       // #1961: Map max_tokens -> max_completion_tokens for recent OpenAI models
-      if (getTargetFormat(this.provider, credentials?.providerSpecificData) === "openai") {
+      if (targetFormat === "openai") {
         const isRecentOpenAI = /^(o1|o3|o4|gpt-5)/i.test(model);
         if (isRecentOpenAI && withDefaults && typeof withDefaults === "object") {
           const defaultsRecord = withDefaults as Record<string, unknown>;

@@ -5,9 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { getExampleTemplates, FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
-import dynamic from "next/dynamic";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+import Editor from "@/shared/components/MonacoEditor";
 
 interface CompressionPreviewResult {
   originalTokens: number;

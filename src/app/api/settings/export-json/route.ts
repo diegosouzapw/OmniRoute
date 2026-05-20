@@ -11,7 +11,7 @@ import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
  * GET /api/settings/export-json
- * Exports a legacy 9router compatible JSON backup.
+ * Exports a legacy OmniRoute-compatible JSON backup.
  */
 export async function GET(request: Request) {
   if (await isAuthRequired(request)) {

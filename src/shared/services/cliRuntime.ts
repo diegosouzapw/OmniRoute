@@ -166,6 +166,17 @@ const CLI_TOOLS: Record<string, any> = {
       env: ".qwen/.env",
     },
   },
+  "gemini-cli": {
+    defaultCommand: "gemini",
+    envBinKey: "CLI_GEMINI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      auth: ".gemini/oauth_creds.json",
+      accounts: ".gemini/google_accounts.json",
+      settings: ".gemini/settings.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";

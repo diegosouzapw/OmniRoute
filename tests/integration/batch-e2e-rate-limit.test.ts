@@ -111,7 +111,7 @@ function createServerProcess() {
   const stderrLines: string[] = [];
   let exitInfo: { code: number | null; signal: NodeJS.Signals | null } | null = null;
 
-  const child = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
+  const child = spawn(process.execPath, ["scripts/dev/run-next-playwright.mjs", "dev"], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,

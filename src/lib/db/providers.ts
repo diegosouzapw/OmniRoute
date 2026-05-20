@@ -45,8 +45,49 @@ function withNullableMaxConcurrent(
   };
 }
 
+// Always surface `quotaWindowThresholds` (possibly null) on the returned
+// object — `cleanNulls` strips null values, but the UI needs to see null so
+// it can distinguish "no overrides on this connection" from "field was
+// never read." Mirrors `withNullableMaxConcurrent`'s contract so create and
+// update return the same shape regardless of whether the source had the key
+// stripped or carried forward.
+function withNullableQuotaWindowThresholds(
+  record: JsonRecord,
+  source: JsonRecord | null | undefined
+): JsonRecord {
+  return {
+    ...record,
+    quotaWindowThresholds: (source?.quotaWindowThresholds ?? null) as Record<string, number> | null,
+  };
+}
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" ? (value as JsonRecord) : {};
+}
+
+// Sanitize the per-window threshold map: keep only 0-100 integer values.
+// Called once at each write-path boundary (createProviderConnection +
+// updateProviderConnection) so both the in-memory return and the persisted
+// row share the same shape. Serialization below trusts this output.
+function sanitizeQuotaWindowThresholds(value: unknown): Record<string, number> | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object" || Array.isArray(value)) return null;
+  const map: Record<string, number> = {};
+  for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 100) {
+      map[key] = v;
+    }
+  }
+  return Object.keys(map).length === 0 ? null : map;
+}
+
+// Serialize an already-sanitized map for SQLite TEXT storage. Pass `null` to
+// store a NULL column; anything else is expected to be the output of
+// sanitizeQuotaWindowThresholds above.
+function serializeQuotaWindowThresholds(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object" || Array.isArray(value)) return null;
+  return JSON.stringify(value);
 }
 
 function toStringOrNull(value: unknown): string | null {
@@ -82,7 +123,12 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
   const rows = db.prepare(sql).all(params);
   return rows.map((r) => {
     const camelRow = rowToCamel(r);
-    return decryptConnectionFields(withNullableMaxConcurrent(cleanNulls(camelRow), camelRow));
+    return decryptConnectionFields(
+      withNullableQuotaWindowThresholds(
+        withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+        camelRow
+      )
+    );
   });
 }
 
@@ -92,7 +138,12 @@ export async function getProviderConnectionById(id: string) {
   if (!row) return null;
 
   const camelRow = rowToCamel(row);
-  return decryptConnectionFields(withNullableMaxConcurrent(cleanNulls(camelRow), camelRow));
+  return decryptConnectionFields(
+    withNullableQuotaWindowThresholds(
+      withNullableMaxConcurrent(cleanNulls(camelRow), camelRow),
+      camelRow
+    )
+  );
 }
 
 export async function createProviderConnection(data: JsonRecord) {
@@ -163,7 +214,10 @@ export async function createProviderConnection(data: JsonRecord) {
     );
     _updateConnectionRow(db, existingId, merged);
     backupDbFile("pre-write");
-    return withNullableMaxConcurrent(cleanNulls(merged), merged);
+    return withNullableQuotaWindowThresholds(
+      withNullableMaxConcurrent(cleanNulls(merged), merged),
+      merged
+    );
   }
 
   // Generate name: prefer explicit name, then email, then a stable short-ID label.
@@ -226,6 +280,7 @@ export async function createProviderConnection(data: JsonRecord) {
     "rateLimitProtection",
     "group",
     "maxConcurrent",
+    "quotaWindowThresholds",
   ];
   for (const field of optionalFields) {
     if (data[field] !== undefined && data[field] !== null) {
@@ -234,6 +289,16 @@ export async function createProviderConnection(data: JsonRecord) {
   }
   if (normalizedProviderSpecificData && Object.keys(normalizedProviderSpecificData).length > 0) {
     connection.providerSpecificData = normalizedProviderSpecificData;
+  }
+  // Sanitize the window-thresholds map up front so the in-memory `connection`
+  // matches the row we're about to insert. The serialize path runs the same
+  // sanitizer on the way to SQLite. Assigning null (when sanitize collapses
+  // to no-overrides) keeps the field present on the returned object so the
+  // UI can tell "field was read, no overrides" apart from "field absent."
+  if ("quotaWindowThresholds" in connection) {
+    connection.quotaWindowThresholds = sanitizeQuotaWindowThresholds(
+      connection.quotaWindowThresholds
+    );
   }
 
   _insertConnectionRow(db, encryptConnectionFields({ ...connection }));
@@ -244,7 +309,10 @@ export async function createProviderConnection(data: JsonRecord) {
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
 
-  return withNullableMaxConcurrent(cleanNulls(connection), connection);
+  return withNullableQuotaWindowThresholds(
+    withNullableMaxConcurrent(cleanNulls(connection), connection),
+    connection
+  );
 }
 
 function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
@@ -259,6 +327,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       last_tested, api_key, id_token, provider_specific_data,
       expires_in, display_name, global_priority, default_model,
       token_type, consecutive_use_count, rate_limit_protection, last_used_at, "group", max_concurrent,
+      quota_window_thresholds_json,
       created_at, updated_at
     ) VALUES (
       @id, @provider, @authType, @name, @email, @priority, @isActive,
@@ -269,6 +338,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
       @lastTested, @apiKey, @idToken, @providerSpecificData,
       @expiresIn, @displayName, @globalPriority, @defaultModel,
       @tokenType, @consecutiveUseCount, @rateLimitProtection, @lastUsedAt, @group, @maxConcurrent,
+      @quotaWindowThresholdsJson,
       @createdAt, @updatedAt
     )
   `
@@ -313,6 +383,7 @@ function _insertConnectionRow(db: DbLike, conn: JsonRecord) {
     lastUsedAt: conn.lastUsedAt || null,
     group: conn.group || null,
     maxConcurrent: conn.maxConcurrent ?? null,
+    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(conn.quotaWindowThresholds),
     createdAt: conn.createdAt,
     updatedAt: conn.updatedAt,
   });
@@ -339,6 +410,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
       last_used_at = @lastUsedAt,
       "group" = @group,
       max_concurrent = @maxConcurrent,
+      quota_window_thresholds_json = @quotaWindowThresholdsJson,
       updated_at = @updatedAt
     WHERE id = @id
   `
@@ -383,6 +455,7 @@ function _updateConnectionRow(db: DbLike, id: string, data: JsonRecord) {
     lastUsedAt: data.lastUsedAt || null,
     group: data.group || null,
     maxConcurrent: data.maxConcurrent ?? null,
+    quotaWindowThresholdsJson: serializeQuotaWindowThresholds(data.quotaWindowThresholds),
     updatedAt: now,
   });
 }
@@ -401,6 +474,14 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     toStringOrNull(merged.provider),
     merged.providerSpecificData
   );
+  // Mirror the sanitization the create path applies — keep the returned
+  // object in lockstep with what we persist.
+  if ("quotaWindowThresholds" in merged) {
+    const sanitized = sanitizeQuotaWindowThresholds(merged.quotaWindowThresholds);
+    // For updates we always carry the key forward (even as null) so the read
+    // path surfaces the cleared state to callers that just patched it.
+    merged.quotaWindowThresholds = sanitized;
+  }
   _updateConnectionRow(db, id, encryptConnectionFields({ ...merged }));
   backupDbFile("pre-write");
   invalidateDbCache("connections"); // Bust connections read cache
@@ -414,7 +495,10 @@ export async function updateProviderConnection(id: string, data: JsonRecord) {
     _reorderConnections(db, providerId);
   }
 
-  return withNullableMaxConcurrent(cleanNulls(merged), merged);
+  return withNullableQuotaWindowThresholds(
+    withNullableMaxConcurrent(cleanNulls(merged), merged),
+    merged
+  );
 }
 
 export async function deleteProviderConnection(id: string) {

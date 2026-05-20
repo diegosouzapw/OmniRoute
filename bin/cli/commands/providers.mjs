@@ -1,4 +1,5 @@
-import { parseArgs, getStringFlag, hasFlag } from "../args.mjs";
+import { apiFetch } from "../api.mjs";
+import { emit } from "../output.mjs";
 import { printHeading } from "../io.mjs";
 import { getAvailableProviderCategories, loadAvailableProviders } from "../provider-catalog.mjs";
 import { testProviderApiKey } from "../provider-test.mjs";
@@ -9,6 +10,7 @@ import {
   updateProviderTestResult,
 } from "../provider-store.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
+import { t } from "../i18n.mjs";
 
 function publicConnection(connection) {
   return {
@@ -22,113 +24,6 @@ function publicConnection(connection) {
     lastError: connection.lastError,
     defaultModel: connection.defaultModel,
   };
-}
-
-function printProvidersHelp() {
-  console.log(`
-Usage:
-  omniroute providers available
-  omniroute providers available --search openai
-  omniroute providers available --category api-key
-  omniroute providers list
-  omniroute providers test <id|name>
-  omniroute providers test-all
-  omniroute providers validate
-
-Options:
-  --json                 Print machine-readable JSON
-  --search, --q <text>   Filter available providers by id, name, alias, or category
-  --category <category>  Filter available providers by category
-
-Notes:
-  "available" shows the OmniRoute provider catalog.
-  "list" shows provider connections already configured in local SQLite.
-  Provider commands read local SQLite directly and do not require the server to be running.
-  API-key provider tests update test_status, last_tested, and error fields in SQLite.
-`);
-}
-
-function printAvailableHelp() {
-  console.log(`
-Usage:
-  omniroute providers available
-  omniroute providers available --search openai
-  omniroute providers available --category api-key
-  omniroute providers available --json
-
-Options:
-  --json                 Print machine-readable JSON
-  --search, --q <text>   Filter by id, name, alias, or category
-  --category <category>  Filter by category, for example api-key, oauth, free
-
-Notes:
-  Shows the OmniRoute provider catalog, not locally configured provider connections.
-`);
-}
-
-function printListHelp() {
-  console.log(`
-Usage:
-  omniroute providers list
-  omniroute providers list --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Lists provider connections already configured in local SQLite.
-`);
-}
-
-function printTestHelp() {
-  console.log(`
-Usage:
-  omniroute providers test <id|name>
-  omniroute providers test <id|name> --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Tests one configured provider connection and updates test status in local SQLite.
-`);
-}
-
-function printTestAllHelp() {
-  console.log(`
-Usage:
-  omniroute providers test-all
-  omniroute providers test-all --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Tests every active configured provider connection and updates test status in local SQLite.
-`);
-}
-
-function printValidateHelp() {
-  console.log(`
-Usage:
-  omniroute providers validate
-  omniroute providers validate --json
-
-Options:
-  --json  Print machine-readable JSON
-
-Notes:
-  Validates local provider configuration without calling upstream providers.
-`);
-}
-
-function printProvidersSubcommandHelp(subcommand) {
-  if (subcommand === "available") printAvailableHelp();
-  else if (subcommand === "list") printListHelp();
-  else if (subcommand === "test") printTestHelp();
-  else if (subcommand === "test-all") printTestAllHelp();
-  else if (subcommand === "validate") printValidateHelp();
-  else printProvidersHelp();
 }
 
 function statusColor(status) {
@@ -186,11 +81,11 @@ function publicAvailableProvider(provider) {
   };
 }
 
-function filterAvailableProviders(providers, flags) {
-  const search = String(getStringFlag(flags, "search") || getStringFlag(flags, "q") || "")
+function filterAvailableProviders(providers, opts) {
+  const search = String(opts.search || opts.q || "")
     .trim()
     .toLowerCase();
-  const category = normalizeCategoryFilter(getStringFlag(flags, "category"));
+  const category = normalizeCategoryFilter(opts.category);
 
   return providers.filter((provider) => {
     if (category && provider.category !== category) return false;
@@ -284,12 +179,12 @@ function validateConnection(connection) {
   };
 }
 
-async function availableCommand(flags) {
+export async function runAvailableCommand(opts = {}) {
   const allProviders = loadAvailableProviders();
-  const providers = filterAvailableProviders(allProviders, flags).map(publicAvailableProvider);
+  const providers = filterAvailableProviders(allProviders, opts).map(publicAvailableProvider);
   const categories = getAvailableProviderCategories(allProviders);
 
-  if (hasFlag(flags, "json")) {
+  if (opts.json) {
     console.log(JSON.stringify({ count: providers.length, categories, providers }, null, 2));
   } else {
     printHeading("OmniRoute Available Providers");
@@ -299,11 +194,11 @@ async function availableCommand(flags) {
   return 0;
 }
 
-async function listCommand(flags) {
+export async function runListCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const connections = listProviderConnections(db).map(publicConnection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ providers: connections }, null, 2));
     } else {
       printHeading("OmniRoute Providers");
@@ -315,7 +210,7 @@ async function listCommand(flags) {
   }
 }
 
-async function testCommand(flags, selector) {
+export async function runTestCommand(selector, opts = {}) {
   if (!selector) {
     console.error("Provider id or name is required.");
     return 1;
@@ -330,7 +225,7 @@ async function testCommand(flags, selector) {
     }
 
     const result = await runProviderTest(db, connection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify(result, null, 2));
     } else if (result.valid) {
       console.log(`\x1b[32mOK\x1b[0m ${connection.name}: provider test passed`);
@@ -343,7 +238,7 @@ async function testCommand(flags, selector) {
   }
 }
 
-async function testAllCommand(flags) {
+export async function runTestAllCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const connections = listProviderConnections(db);
@@ -361,7 +256,7 @@ async function testAllCommand(flags) {
       results.push(await runProviderTest(db, connection));
     }
 
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
       printHeading("OmniRoute Provider Tests");
@@ -383,11 +278,11 @@ async function testAllCommand(flags) {
   }
 }
 
-async function validateCommand(flags) {
+export async function runValidateCommand(opts = {}) {
   const { db } = await openOmniRouteDb();
   try {
     const results = listProviderConnections(db).map(validateConnection);
-    if (hasFlag(flags, "json")) {
+    if (opts.json) {
       console.log(JSON.stringify({ results }, null, 2));
     } else {
       printHeading("OmniRoute Provider Validation");
@@ -406,23 +301,183 @@ async function validateCommand(flags) {
   }
 }
 
-export async function runProvidersCommand(argv) {
-  const { flags, positionals } = parseArgs(argv);
-  const requestedSubcommand = positionals[0];
-  const subcommand = requestedSubcommand || "list";
+export function registerProviders(program) {
+  const providers = program.command("providers").description(t("providers.title"));
 
-  if (hasFlag(flags, "help") || hasFlag(flags, "h")) {
-    printProvidersSubcommandHelp(requestedSubcommand);
-    return 0;
+  providers
+    .command("available")
+    .description("Show available providers in the OmniRoute catalog")
+    .option("--json", "Print machine-readable JSON")
+    .option("--search <query>", "Filter by id, name, alias, or category")
+    .option("-q, --q <query>", "Alias for --search")
+    .option("--category <category>", "Filter by category (api-key, oauth, free)")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runAvailableCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("list")
+    .description("List configured provider connections")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runListCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("test <idOrName>")
+    .description("Test a configured provider connection")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (idOrName, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runTestCommand(idOrName, { ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("test-all")
+    .description("Test all active provider connections")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runTestAllCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("validate")
+    .description("Validate local provider configuration without calling upstream")
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runValidateCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  extendProvidersMetrics(providers);
+}
+
+const providerMetricsSchema = [
+  { key: "provider", header: "Provider", width: 20 },
+  { key: "requests", header: "Reqs", formatter: (v) => (v != null ? v.toLocaleString() : "0") },
+  {
+    key: "successRate",
+    header: "Success %",
+    formatter: (v) => (v != null ? `${(v * 100).toFixed(1)}%` : "-"),
+  },
+  {
+    key: "avgLatencyMs",
+    header: "Avg Latency",
+    formatter: (v) => (v ? `${Math.round(v)}ms` : "-"),
+  },
+  { key: "latencyP95Ms", header: "P95", formatter: (v) => (v ? `${v}ms` : "-") },
+  {
+    key: "costUsd",
+    header: "Cost (USD)",
+    formatter: (v) => (v != null ? `$${Number(v).toFixed(4)}` : "-"),
+  },
+  { key: "errors", header: "Errors", formatter: (v) => (v != null ? String(v) : "0") },
+  { key: "breakerState", header: "Breaker" },
+];
+
+function sortRows(rows, sortBy) {
+  if (!sortBy) return rows;
+  return [...rows].sort((a, b) => {
+    const av = a[sortBy] ?? 0;
+    const bv = b[sortBy] ?? 0;
+    return bv > av ? 1 : bv < av ? -1 : 0;
+  });
+}
+
+export async function runProvidersMetrics(opts, cmd) {
+  const globalOpts = cmd.optsWithGlobals();
+
+  const fetchMetrics = async () => {
+    const params = new URLSearchParams({ period: opts.period ?? "24h" });
+    if (opts.provider) params.set("provider", opts.provider);
+    if (opts.connectionId) params.set("connectionId", opts.connectionId);
+    if (opts.compare) params.set("providers", opts.compare);
+    const res = await apiFetch(`/api/provider-metrics?${params}`, {
+      timeout: globalOpts.timeout,
+      acceptNotOk: true,
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const raw = data.metrics ?? data.items ?? data.providers ?? data;
+    if (Array.isArray(raw)) return raw;
+    return Object.entries(raw).map(([provider, m]) => ({
+      provider,
+      ...(typeof m === "object" && m !== null ? m : {}),
+    }));
+  };
+
+  const renderOnce = async () => {
+    const rows = await fetchMetrics();
+    const sorted = sortRows(rows, opts.sortBy);
+    emit(sorted.slice(0, opts.limit ?? 50), globalOpts, providerMetricsSchema);
+  };
+
+  if (opts.watch) {
+    process.stderr.write("[watching — Ctrl+C to exit]\n");
+    await renderOnce();
+    const interval = setInterval(async () => {
+      process.stdout.write("\x1b[2J\x1b[H");
+      await renderOnce();
+    }, 5000);
+    process.on("SIGINT", () => {
+      clearInterval(interval);
+      process.exit(0);
+    });
+    return;
   }
 
-  if (subcommand === "available") return availableCommand(flags);
-  if (subcommand === "list") return listCommand(flags);
-  if (subcommand === "test") return testCommand(flags, positionals[1]);
-  if (subcommand === "test-all") return testAllCommand(flags);
-  if (subcommand === "validate") return validateCommand(flags);
+  await renderOnce();
+}
 
-  console.error(`Unknown providers subcommand: ${subcommand}`);
-  printProvidersHelp();
-  return 1;
+export async function runProviderMetricSingle(id, metric, opts, cmd) {
+  const globalOpts = cmd.optsWithGlobals();
+  const params = new URLSearchParams({ connectionId: id, period: opts.period ?? "24h" });
+  const res = await apiFetch(`/api/provider-metrics?${params}`, {
+    timeout: globalOpts.timeout,
+    acceptNotOk: true,
+  });
+  if (!res.ok) {
+    process.stderr.write(t("common.serverOffline") + "\n");
+    process.exit(res.exitCode ?? 1);
+  }
+  const data = await res.json();
+  const raw = data.metrics ?? data;
+  const connData =
+    raw[id] ??
+    (Array.isArray(raw) ? raw.find((r) => r.connectionId === id || r.provider === id) : null);
+  const value = connData?.[metric] ?? connData;
+  if (globalOpts.output === "json") {
+    process.stdout.write(JSON.stringify(value, null, 2) + "\n");
+  } else {
+    process.stdout.write(`${metric}: ${JSON.stringify(value)}\n`);
+  }
+}
+
+export function extendProvidersMetrics(providers) {
+  providers
+    .command("metrics")
+    .description(t("providers.metrics.description"))
+    .option("--provider <id>", t("providers.metrics.provider"))
+    .option("--connection-id <id>", t("providers.metrics.connection_id"))
+    .option("--period <p>", t("providers.metrics.period"), "24h")
+    .option("--metric <m>", t("providers.metrics.metric"))
+    .option("--sort-by <field>", t("providers.metrics.sort"))
+    .option("--limit <n>", t("providers.metrics.limit"), parseInt, 50)
+    .option("--watch", t("providers.metrics.watch"))
+    .option("--compare <list>", t("providers.metrics.compare"))
+    .action(runProvidersMetrics);
+
+  providers
+    .command("metric <connectionId> <metric>")
+    .description(t("providers.metric_single.description"))
+    .option("--period <p>", t("providers.metrics.period"), "24h")
+    .action(runProviderMetricSingle);
 }

@@ -1,5 +1,6 @@
 import { getModelInfo, getComboForModel } from "../services/model";
 import { clearAccountError, markAccountUnavailable } from "../services/auth";
+import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import * as log from "../utils/logger";
 import { updateProviderCredentials } from "../services/tokenRefresh";
 import {
@@ -207,9 +208,16 @@ export async function resolveModelOrError(
   }
 
   const { provider, model, extendedContext } = modelInfo;
+  // apiFormat: optional custom-model marker — see chatCore.ts for shape narrowing rationale.
+  const apiFormat: string | undefined =
+    modelInfo && typeof modelInfo === "object" && "apiFormat" in modelInfo
+      ? typeof (modelInfo as { apiFormat?: unknown }).apiFormat === "string"
+        ? ((modelInfo as { apiFormat?: string }).apiFormat as string)
+        : undefined
+      : undefined;
   const providerAlias = PROVIDER_ID_TO_ALIAS[provider] || provider;
   let targetFormat = getModelTargetFormat(providerAlias, model) || getTargetFormat(provider);
-  if ((modelInfo as any).apiFormat === "responses") {
+  if (apiFormat === "responses") {
     targetFormat = "openai-responses";
     log.info("ROUTING", `Custom model apiFormat=responses → targetFormat=openai-responses`);
   }
@@ -221,7 +229,7 @@ export async function resolveModelOrError(
     log.info("ROUTING", `Provider: ${provider}, Model: ${model}${ctxTag}`);
   }
 
-  return { provider, model, sourceFormat, targetFormat, extendedContext };
+  return { provider, model, sourceFormat, targetFormat, extendedContext, apiFormat };
 }
 
 export async function checkPipelineGates(
@@ -292,6 +300,7 @@ export async function executeChatWithBreaker({
   comboStepId,
   comboExecutionKey,
   extendedContext,
+  modelApiFormat,
   providerProfile,
   cachedSettings,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
@@ -302,7 +311,7 @@ export async function executeChatWithBreaker({
       runWithProxyContext(proxyInfo?.proxy || null, () =>
         (handleChatCore as any)({
           body: { ...body, model: `${provider}/${model}` },
-          modelInfo: { provider, model, extendedContext },
+          modelInfo: { provider, model, extendedContext, apiFormat: modelApiFormat },
           credentials: refreshedCredentials,
           log: handlerLog,
           clientRawRequest,
@@ -326,7 +335,8 @@ export async function executeChatWithBreaker({
               // apiKey blob mid-request — forward it so the DB credential
               // doesn't go stale after Set-Cookie rotation.
               apiKey: newCreds.apiKey,
-              testStatus: "active",
+              testStatus: newCreds.testStatus ?? "active",
+              isActive: newCreds.isActive,
             });
           },
           onRequestSuccess: async () => {
@@ -334,6 +344,21 @@ export async function executeChatWithBreaker({
           },
           onStreamFailure: async (failure: any) => {
             if (!credentials.connectionId) return;
+            // A3 guard: if 401 and connection has extra keys, skip connection-level disable
+            // (key-level failure already recorded in chatCore.ts via T07)
+            // Check extra keys directly from credentials for reliability across restarts
+            const extraKeys =
+              (credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? [];
+            const hasExtraKeys =
+              extraKeys.length > 0 || connectionHasExtraKeys(credentials.connectionId);
+            const is401 = Number(failure?.status) === 401;
+            if (is401 && hasExtraKeys) {
+              log.debug(
+                "AUTH",
+                `A3 guard: skipping markAccountUnavailable for 401 with extra keys on ${credentials.connectionId.slice(0, 8)}`
+              );
+              return;
+            }
             await markAccountUnavailable(
               credentials.connectionId,
               Number(failure?.status || HTTP_STATUS.BAD_GATEWAY),

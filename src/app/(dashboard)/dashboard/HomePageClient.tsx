@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
-import Image from "next/image";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
@@ -11,6 +11,8 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+
+const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
@@ -76,9 +78,11 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
 }
 
 export default function HomePageClient({ machineId }: HomePageClientProps) {
+  const router = useRouter();
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
+  const tp = useTranslations("providers");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +136,70 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     fetchData();
   }, [fetchData]);
 
+  // T07: Check for invalid API keys and show notification (once per session)
+  const notifiedInvalidKeys = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const checkApiKeyHealth = () => {
+      const newInvalidKeys = new Set<string>();
+      const invalidConnections: string[] = [];
+      let firstInvalidProviderId: string | null = null;
+
+      for (const conn of providerConnections) {
+        const health = conn.providerSpecificData?.apiKeyHealth as
+          | Record<
+              string,
+              {
+                status: "active" | "warning" | "invalid";
+                failures: number;
+                lastFailure: string | null;
+              }
+            >
+          | undefined;
+        if (!health) continue;
+
+        const invalidKeys = Object.entries(health).filter(([_, h]) => h.status === "invalid");
+
+        if (invalidKeys.length > 0) {
+          for (const [keyId] of invalidKeys) {
+            newInvalidKeys.add(`${conn.id}:${keyId}`);
+          }
+          if (firstInvalidProviderId === null) {
+            firstInvalidProviderId = conn.provider;
+          }
+          invalidConnections.push(conn.name || conn.id);
+        }
+      }
+
+      // Only notify for newly invalid keys (not already notified)
+      const hasNewInvalid = Array.from(newInvalidKeys).some(
+        (k) => !notifiedInvalidKeys.current.has(k)
+      );
+      if (hasNewInvalid) {
+        const navigateTo =
+          newInvalidKeys.size === 1 && firstInvalidProviderId
+            ? `/dashboard/providers/${firstInvalidProviderId}`
+            : "/dashboard/providers";
+
+        useNotificationStore.getState().addNotification({
+          type: "warning",
+          message: tp("apiKeyInvalidAlert", {
+            count: newInvalidKeys.size,
+            connections: invalidConnections.join(", "),
+          }),
+          title: tp("apiKeyInvalidAlertTitle"),
+          duration: 10000,
+          onClick: () => router.push(navigateTo),
+        });
+        // Mark all current invalid keys as notified
+        newInvalidKeys.forEach((k) => notifiedInvalidKeys.current.add(k));
+      }
+    };
+
+    if (providerConnections.length > 0) {
+      checkApiKeyHealth();
+    }
+  }, [providerConnections, t, tp, router]);
+
   const providerStats = useMemo(() => {
     return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {
       const connections = providerConnections.filter((conn) => conn.provider === providerId);
@@ -178,21 +246,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     );
     return models.filter((m) => providerKeys.has(m.provider));
   }, [selectedProvider, models]);
-
-  const quickStartLinks = [
-    { label: t("documentation"), href: "/docs", icon: "menu_book" },
-    { label: ts("providers"), href: "/dashboard/providers", icon: "dns" },
-    { label: ts("combos"), href: "/dashboard/combos", icon: "layers" },
-    { label: ts("analytics"), href: "/dashboard/analytics", icon: "analytics" },
-    { label: t("healthMonitor"), href: "/dashboard/health", icon: "health_and_safety" },
-    { label: ts("cliTools"), href: "/dashboard/cli-tools", icon: "terminal" },
-    {
-      label: t("reportIssue"),
-      href: "https://github.com/diegosouzapw/OmniRoute/issues",
-      external: true,
-      icon: "bug_report",
-    },
-  ];
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -728,70 +781,35 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </div>
             </li>
           </ol>
-
-          <div className="flex flex-wrap gap-2">
-            {quickStartLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-              >
-                <span className="material-symbols-outlined text-[14px]">
-                  {link.icon || (link.external ? "open_in_new" : "arrow_forward")}
-                </span>
-                {link.label}
-              </a>
-            ))}
-          </div>
         </div>
       </Card>
 
-      {/* Providers Overview */}
+      {/* Provider Topology */}
       <Card>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold">{t("providersOverview")}</h2>
-            <p className="text-sm text-text-muted">
-              {t("configuredOf", {
-                configured: providerStats.filter((item) => item.total > 0).length,
-                total: providerStats.length,
-              })}
+            <h2 className="text-base font-semibold">Provider Topology</h2>
+            <p className="text-xs text-text-muted">
+              Connected providers routing through OmniRoute in real time
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-3 text-[11px] text-text-muted">
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-green-500" /> {tc("free")}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-blue-500" /> {t("oauthLabel")}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="size-2 rounded-full bg-amber-500" /> {t("apiKeyLabel")}
-              </span>
-            </div>
-            <Link
-              href="/dashboard/providers"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">settings</span>
-              {tc("manage")}
-            </Link>
+          <div className="flex items-center gap-3 text-[11px] text-text-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-green-500" /> Active
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-amber-500" /> Recent
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-red-500" /> Error
+            </span>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {providerStats.map((item) => (
-            <ProviderOverviewCard
-              key={item.id}
-              item={item}
-              metrics={providerMetrics[item.provider.alias] || providerMetrics[item.id]}
-              onClick={() => setSelectedProvider(item)}
-            />
-          ))}
-        </div>
+        <ProviderTopology
+          providers={providerStats
+            .filter((p) => p.total > 0)
+            .map((p) => ({ id: p.id, provider: p.id, name: p.provider.name }))}
+        />
       </Card>
 
       {/* Provider Models Modal */}

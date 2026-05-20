@@ -40,11 +40,39 @@ export interface WaitForCooldownSettings {
   maxRetryWaitMs: number;
 }
 
+export interface QuotaPreflightSettings {
+  /**
+   * Global minimum-remaining cutoff (percent, 0-100). A connection is skipped
+   * when its remaining quota drops to this value or below. Matches the
+   * dashboard's quota bars (which show REMAINING %, not used %), so the
+   * number means the same thing in both places. Default: 2 (stop at 2%
+   * remaining = 98% used).
+   */
+  defaultThresholdPercent: number;
+  /**
+   * Global warn threshold (percent, 0-100 remaining %). Fires when remaining
+   * quota drops to this value or below. Must be HIGHER than the cutoff so
+   * warnings appear before the block point. Default: 20 (warn at 20%
+   * remaining = 80% used).
+   */
+  warnThresholdPercent: number;
+  /**
+   * Per-(provider, window) defaults for providers that expose multiple quota
+   * windows (e.g. Codex's session + weekly). Values are minimum-remaining %
+   * cutoffs. Resolution order, low-to-high precedence:
+   *   defaultThresholdPercent
+   *   → providerWindowDefaults[provider][window]
+   *   → connection.quotaWindowThresholds[window]
+   */
+  providerWindowDefaults: Record<string, Record<string, number>>;
+}
+
 export interface ResilienceSettings {
   requestQueue: RequestQueueSettings;
   connectionCooldown: Record<AuthCategory, ConnectionCooldownProfileSettings>;
   providerBreaker: Record<AuthCategory, ProviderBreakerProfileSettings>;
   waitForCooldown: WaitForCooldownSettings;
+  quotaPreflight: QuotaPreflightSettings;
 }
 
 export interface ResilienceSettingsPatch {
@@ -52,6 +80,7 @@ export interface ResilienceSettingsPatch {
   connectionCooldown?: Partial<Record<AuthCategory, Partial<ConnectionCooldownProfileSettings>>>;
   providerBreaker?: Partial<Record<AuthCategory, Partial<ProviderBreakerProfileSettings>>>;
   waitForCooldown?: Partial<WaitForCooldownSettings>;
+  quotaPreflight?: Partial<QuotaPreflightSettings>;
 }
 
 function asRecord(value: unknown): JsonRecord {
@@ -123,6 +152,16 @@ export const DEFAULT_RESILIENCE_SETTINGS: ResilienceSettings = {
     maxRetries: 3,
     maxRetryWaitSec: 30,
     maxRetryWaitMs: 30000,
+  },
+  quotaPreflight: {
+    // Remaining-% semantics. 2 = "stop when only 2% remaining" (= 98% used).
+    // Uniform across all providers and windows; operators set per-window
+    // overrides per connection via the Cutoff modal in Dashboard › Limits,
+    // or per-(provider, window) globally via the providerWindowDefaults map
+    // below (no factory seeds — keep behavior consistent across providers).
+    defaultThresholdPercent: 2,
+    warnThresholdPercent: 20,
+    providerWindowDefaults: {},
   },
 };
 
@@ -250,6 +289,65 @@ function normalizeProviderBreakerProfile(
   };
 }
 
+function normalizeProviderWindowDefaults(
+  next: unknown,
+  fallback: Record<string, Record<string, number>>
+): Record<string, Record<string, number>> {
+  // Accept either an explicit object or fall back. Drop providers/windows
+  // whose values are not a valid 0-100 integer so a malformed setting can't
+  // accidentally disable cutoffs entirely.
+  const rawProviders = asRecord(next ?? fallback);
+  const out: Record<string, Record<string, number>> = {};
+  for (const [provider, windows] of Object.entries(rawProviders)) {
+    if (!provider || typeof windows !== "object" || windows === null) continue;
+    const windowMap: Record<string, number> = {};
+    for (const [windowName, percent] of Object.entries(windows as Record<string, unknown>)) {
+      if (!windowName) continue;
+      const parsed =
+        typeof percent === "number"
+          ? percent
+          : typeof percent === "string" && percent.trim() !== ""
+            ? Number(percent)
+            : NaN;
+      if (Number.isFinite(parsed)) {
+        const clamped = Math.min(100, Math.max(0, Math.trunc(parsed)));
+        windowMap[windowName] = clamped;
+      }
+    }
+    if (Object.keys(windowMap).length > 0) {
+      out[provider] = windowMap;
+    }
+  }
+  return out;
+}
+
+function normalizeQuotaPreflightSettings(
+  next: unknown,
+  fallback: QuotaPreflightSettings
+): QuotaPreflightSettings {
+  const record = asRecord(next);
+  // Remaining-% semantics: cutoff is the lowest acceptable remaining %, warn
+  // is the higher "you're getting close" remaining %. So warn MUST be greater
+  // than cutoff — otherwise the warn log would only fire after the request
+  // is already blocked.
+  const defaultThresholdPercent = toInteger(
+    record.defaultThresholdPercent,
+    fallback.defaultThresholdPercent,
+    { min: 0, max: 99 }
+  );
+  const warnRaw = toInteger(record.warnThresholdPercent, fallback.warnThresholdPercent, {
+    min: 0,
+    max: 100,
+  });
+  const warnThresholdPercent =
+    warnRaw <= defaultThresholdPercent ? Math.min(100, defaultThresholdPercent + 1) : warnRaw;
+  const providerWindowDefaults = normalizeProviderWindowDefaults(
+    record.providerWindowDefaults,
+    fallback.providerWindowDefaults
+  );
+  return { defaultThresholdPercent, warnThresholdPercent, providerWindowDefaults };
+}
+
 function normalizeWaitForCooldownSettings(
   next: unknown,
   fallback: WaitForCooldownSettings
@@ -351,6 +449,7 @@ function buildLegacyFallback(settings: JsonRecord): ResilienceSettings {
       maxRetryWaitSec: waitMaxRetrySec,
       maxRetryWaitMs: waitMaxRetrySec * 1000,
     },
+    quotaPreflight: DEFAULT_RESILIENCE_SETTINGS.quotaPreflight,
   };
 }
 
@@ -387,6 +486,10 @@ export function resolveResilienceSettings(
       current.waitForCooldown,
       fallback.waitForCooldown
     ),
+    quotaPreflight: normalizeQuotaPreflightSettings(
+      current.quotaPreflight,
+      fallback.quotaPreflight
+    ),
   };
 }
 
@@ -420,6 +523,7 @@ export function mergeResilienceSettings(
       updates.waitForCooldown,
       current.waitForCooldown
     ),
+    quotaPreflight: normalizeQuotaPreflightSettings(updates.quotaPreflight, current.quotaPreflight),
   };
 }
 

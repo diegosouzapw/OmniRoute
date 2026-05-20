@@ -1,20 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+// Public OAuth client_id/secret defaults for Gemini, Antigravity and Windsurf
+// are resolved at module load through open-sse/utils/publicCreds.ts — no need
+// to populate them here. Only the providers without a baked-in default need
+// explicit env setup for this suite.
 Object.assign(process.env, {
   CLAUDE_OAUTH_CLIENT_ID: "9d1c250a-e61b-44d9-88ed-5944d1962f5e",
   CODEX_OAUTH_CLIENT_ID: "app_EMoamEEZ73f0CkXaXp7hrann",
-  GEMINI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_OAUTH_CLIENT_SECRET: "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",
-  GEMINI_CLI_OAUTH_CLIENT_ID:
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  GEMINI_CLI_OAUTH_CLIENT_SECRET: "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",
   QWEN_OAUTH_CLIENT_ID: "f0304373b74a44d2b584a3fb70ca9e56",
   KIMI_CODING_OAUTH_CLIENT_ID: "17e5f671-d194-4dfb-9706-5516cb48c098",
-  ANTIGRAVITY_OAUTH_CLIENT_ID:
-    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  ANTIGRAVITY_OAUTH_CLIENT_SECRET: "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",
   GITHUB_OAUTH_CLIENT_ID: "Iv1.b507a08c87ecfe98",
 });
 

@@ -547,6 +547,10 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
   // Match real Antigravity client: don't send maxOutputTokens when the user
   // hasn't explicitly specified max_tokens / max_completion_tokens.
   // The Cloud Code server decides the output limit on its own.
+  // Note: read hasThinking BEFORE stripping thinkingConfig below — for Claude
+  // models the Cloud Code envelope still carries a thinkingBudget set upstream
+  // by applyAntigravityGenerationDefaults, which we must consult here so we
+  // do not accidentally drop the maxOutputTokens it bumped for us.
   const clientRequestedMaxTokens = body.max_tokens ?? body.max_completion_tokens;
   const hasThinking = !!envelope.request?.generationConfig?.thinkingConfig?.thinkingBudget;
   if (
@@ -555,6 +559,16 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
     envelope.request?.generationConfig
   ) {
     delete envelope.request.generationConfig.maxOutputTokens;
+  }
+
+  // Claude models on Antigravity use their own native thinking — Gemini's thinkingConfig
+  // is not understood by the Cloud Code Claude endpoint and must be stripped.
+  // applyAntigravityGenerationDefaults (inside wrapInCloudCodeEnvelope) already bumped
+  // maxOutputTokens to thinkingBudget+1 before we get here, so the budget is preserved.
+  // Must run AFTER the hasThinking-derived maxOutputTokens decision above so the
+  // budget is accounted for before the field is removed.
+  if (isClaude && envelope.request?.generationConfig) {
+    delete envelope.request.generationConfig.thinkingConfig;
   }
 
   return envelope;

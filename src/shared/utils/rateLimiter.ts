@@ -1,26 +1,44 @@
 import Redis from "ioredis";
 
-// Reuse existing REDIS_URL if set, or local redis via default docker-compose
-// Use REDIS_URL from env (Docker/Production) or fallback to local redis
-const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
-if (process.env.NODE_ENV === "production" && !process.env.REDIS_URL) {
-  console.warn("[REDIS] REDIS_URL is not set in production. Falling back to default.");
-}
+// Issue #2357: When OmniRoute runs in Docker without a sibling Redis
+// container (the default `docker run` / portainer one-click install), every
+// rate-limit lookup hits `redis://localhost:6379` inside the container and
+// spams `[REDIS] Error: connect ECONNREFUSED 127.0.0.1:6379`. Rate limiting
+// is non-essential for a single-instance deployment, so we now:
+//
+// 1) Treat `REDIS_URL` as opt-in. If it's not set we silently fall back to
+//    the in-memory store (same code path used by unit tests).
+// 2) Even when set, errors degrade gracefully: a single startup warning,
+//    then suppress per-request error spam after the first occurrence.
+const REDIS_URL = process.env.REDIS_URL;
+const REDIS_ENABLED = Boolean(REDIS_URL);
 
 let redisClient: Redis | null = null;
+let redisErrorLogged = false;
 
-export function getRedisClient() {
+export function getRedisClient(): Redis | null {
+  if (!REDIS_ENABLED) return null;
   if (!redisClient) {
-    redisClient = new Redis(REDIS_URL, {
+    redisClient = new Redis(REDIS_URL as string, {
       maxRetriesPerRequest: 3,
       enableReadyCheck: false,
+      lazyConnect: false,
       retryStrategy(times) {
         return Math.min(times * 50, 2000); // Exponential backoff
       },
     });
-    redisClient.on("error", (err) => console.error("[REDIS] Error:", err.message));
+    redisClient.on("error", (err) => {
+      if (!redisErrorLogged) {
+        console.warn("[REDIS] Connection error — rate limiter degraded to in-memory:", err.message);
+        redisErrorLogged = true;
+      }
+    });
   }
   return redisClient;
+}
+
+export function isRedisEnabled(): boolean {
+  return REDIS_ENABLED;
 }
 
 export interface RateLimitRule {
@@ -86,37 +104,48 @@ export function setRateLimiterTestMode(enabled: boolean) {
 /**
  * Checks multi-window rate limits for an API key atomically via Redis.
  */
+function checkRateLimitInMemory(keyId: string, rules: RateLimitRule[]): RateLimitResult {
+  const now = Math.floor(Date.now() / 1000);
+  for (const rule of rules) {
+    const currentWindow = Math.floor(now / rule.window);
+    const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
+    const count = TEST_MEMORY_STORE.get(windowKey) || 0;
+    if (count >= rule.limit) {
+      return { allowed: false, failedWindow: rule.window };
+    }
+  }
+  for (const rule of rules) {
+    const currentWindow = Math.floor(now / rule.window);
+    const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
+    TEST_MEMORY_STORE.set(windowKey, (TEST_MEMORY_STORE.get(windowKey) || 0) + 1);
+  }
+  return { allowed: true };
+}
+
 export async function checkRateLimit(
   keyId: string,
   rules: RateLimitRule[]
 ): Promise<RateLimitResult> {
   if (!rules || rules.length === 0) return { allowed: true };
 
-  // ── In-memory mock for unit tests ──
+  // ── In-memory path for unit tests AND single-instance deployments ──
+  // Issue #2357: when REDIS_URL is unset we used to hammer
+  // localhost:6379 and surface a stream of ECONNREFUSED errors. Now the
+  // in-memory fallback handles single-instance setups silently. The
+  // explicit test-mode flag still wins so suites can opt-in even with
+  // REDIS_URL set.
   const isTestMode =
     explicitTestMode ||
     process.env.NODE_ENV === "test" ||
     process.env.DISABLE_SQLITE_AUTO_BACKUP === "true";
 
-  if (isTestMode) {
-    const now = Math.floor(Date.now() / 1000);
-    for (const rule of rules) {
-      const currentWindow = Math.floor(now / rule.window);
-      const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
-      const count = TEST_MEMORY_STORE.get(windowKey) || 0;
-      if (count >= rule.limit) {
-        return { allowed: false, failedWindow: rule.window };
-      }
-    }
-    for (const rule of rules) {
-      const currentWindow = Math.floor(now / rule.window);
-      const windowKey = `rl:api_key:${keyId}:${rule.window}:${currentWindow}`;
-      TEST_MEMORY_STORE.set(windowKey, (TEST_MEMORY_STORE.get(windowKey) || 0) + 1);
-    }
-    return { allowed: true };
+  if (isTestMode || !isRedisEnabled()) {
+    return checkRateLimitInMemory(keyId, rules);
   }
 
   const redis = getRedisClient();
+  if (!redis) return checkRateLimitInMemory(keyId, rules);
+
   const args: (string | number)[] = [Math.floor(Date.now() / 1000)];
 
   for (const rule of rules) {
@@ -135,8 +164,16 @@ export async function checkRateLimit(
 
     return { allowed: true };
   } catch (error) {
-    // Fail-open strategy if Redis goes down to prevent complete API outage
-    console.error("[RATE_LIMITER] Redis eval failed, bypassing rate limit:", error);
+    // Fail-open strategy if Redis goes down to prevent complete API outage.
+    // First failure already logged in the connection error handler — keep
+    // per-request output to a debug line to avoid log spam.
+    if (!redisErrorLogged) {
+      console.warn(
+        "[RATE_LIMITER] Redis eval failed, bypassing rate limit:",
+        (error as Error)?.message ?? String(error)
+      );
+      redisErrorLogged = true;
+    }
     return { allowed: true };
   }
 }

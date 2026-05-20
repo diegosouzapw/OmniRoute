@@ -1,233 +1,413 @@
-# CLAUDE.md — AI Agent Session Bootstrap (Български)
+# CLAUDE.md (Български)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+Този файл предоставя указания за Claude Code (claude.ai/code) при работа с код в този репозиторий.
 
-## Бърз старт
+## Бързо стартиране
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # Инсталиране на зависимости (автоматично генерира .env от .env.example)
+npm run dev                    # Dev сървър на http://localhost:20128
+npm run build                  # Продуктова версия (Next.js 16 самостоятелно)
+npm run lint                   # ESLint (очакват се 0 грешки; предупрежденията са предварително съществуващи)
+npm run typecheck:core         # Проверка на TypeScript (трябва да е чиста)
+npm run typecheck:noimplicit:core  # Строга проверка (без неявни any)
+npm run test:coverage          # Юнит тестове + покритие (75/75/75/70 — изрази/редове/функции/клонове)
+npm run check                  # lint + тест комбинирани
+npm run check:cycles           # Откриване на циклични зависимости
 ```
 
-### Running a Single Test
+### Изпълнение на тестове
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Единичен тестов файл (вграден тестов изпълнител на Node.js — повечето тестове)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest (MCP сървър, autoCombo, кеш)
 npm run test:vitest
+
+# Всички тестови комплекти
+npm run test:all
 ```
+
+За пълната тестова матрица, вижте `CONTRIBUTING.md` → "Изпълнение на тестове". За дълбока архитектура, вижте `AGENTS.md`.
 
 ---
 
-## Преглед
+## Проект в обобщение
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — обединен AI прокси/рутер. Една крайна точка, 160+ LLM доставчици, автоматично резервиране.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Слой            | Местоположение          | Цел                                                                         |
+| --------------- | ----------------------- | --------------------------------------------------------------------------- |
+| API маршрути    | `src/app/api/v1/`       | Next.js App Router — входни точки                                           |
+| Обработчици     | `open-sse/handlers/`    | Обработка на заявки (чат, вграждания и др.)                                 |
+| Изпълнители     | `open-sse/executors/`   | HTTP разпределение, специфично за доставчика                                |
+| Преводачи       | `open-sse/translator/`  | Конверсия на формати (OpenAI↔Claude↔Gemini)                                 |
+| Трансформатор   | `open-sse/transformer/` | API за отговори ↔ Завършвания на чат                                        |
+| Услуги          | `open-sse/services/`    | Комбинирано маршрутизиране, лимити на скорост, кеширане и др.               |
+| База данни      | `src/lib/db/`           | SQLite домейн модули (45+ файла, 55 миграции)                               |
+| Домейн/Политика | `src/domain/`           | Двигател за политики, правила за разходи, логика за резервиране             |
+| MCP сървър      | `open-sse/mcp-server/`  | 37 инструмента (30 основни + 3 памет + 4 умения), 3 транспорта, ~13 области |
+| A2A сървър      | `src/lib/a2a/`          | JSON-RPC 2.0 агент протокол                                                 |
+| Умения          | `src/lib/skills/`       | Разширяема рамка за умения                                                  |
+| Памет           | `src/lib/memory/`       | Персистентна разговорна памет                                               |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Монорепо: `src/` (Next.js 16 приложение), `open-sse/` (работно пространство за стрийминг), `electron/` (десктоп приложение), `tests/`, `bin/` (CLI входна точка).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Пайплайн на заявките
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Client → /v1/chat/completions (Next.js маршрут)
+  → CORS → Zod валидация → автентикация? → проверка на политика → защита от инжектиране на подканва
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → проверка на кеша → ограничение на честотата → комбинирано маршрутизиране?
+      → resolveComboTargets() → handleSingleModel() за всяка цел
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+      → fetch() upstream → повторен опит с backoff
+    → превод на отговора → SSE поток или JSON
+    → Ако Responses API: responsesTransformer.ts TransformStream
 ```
+
+API маршрутите следват последователен модел: `Маршрут → CORS предварителен полет → Zod валидация на тялото → Опционална автентикация (extractApiKey/isValidApiKey) → прилагане на политика за API ключ → делегиране на обработчик (open-sse)`. Няма глобален Next.js middleware — интерцепцията е специфична за маршрута.
+
+**Комбинирано маршрутизиране** (`open-sse/services/combo.ts`): 14 стратегии (приоритет, тегло, запълване на първо място, рунд-робин, P2C, произволно, най-малко използвано, оптимизирано по цена, осведомено за нулиране, стриктно произволно, авто, lkgp, оптимизирано по контекст, контекст-релей). Всяка цел извиква `handleSingleModel()`, което обвива `handleChatCore()` с обработка на грешки за всяка цел и проверки на прекъсвачи. Вижте `docs/routing/AUTO-COMBO.md` за 9-факторното оценяване на Auto-Combo и `docs/architecture/RESILIENCE_GUIDE.md` за 3-те слоя на устойчивост.
 
 ---
 
-## Key Conventions
+## Състояние на устойчивостта по време на изпълнение
 
-### Code Style
+OmniRoute има три свързани, но различни механизма за временно неуспех. Дръжте обхвата им отделен при отстраняване на проблеми с маршрутизацията. Вижте
+[диаграмата на 3-те слоя на устойчивостта](./docs/diagrams/exported/resilience-3layers.svg)
+(източник: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+за бърз преглед.
 
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
+### Прекъсвач на доставчика
 
-### Database Access
+**Обхват**: целият доставчик, напр. `glm`, `openai`, `anthropic`.
 
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
+**Цел**: спиране на трафика към доставчик, който многократно не успява на
+upstream/service ниво, така че един нездравословен доставчик да не забавя всяка заявка.
 
-### Error Handling
+**Имплементация**:
 
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
+- Основен клас: `src/shared/utils/circuitBreaker.ts`
+- Свързване на чат гейта/изпълнението: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- API за статус на изпълнение: `src/app/api/monitoring/health/route.ts`
+- Споделени обвивки: `open-sse/services/accountFallback.ts`
+- Таблица за запазено състояние: `domain_circuit_breakers`
+
+**Състояния**:
+
+- `CLOSED`: нормалният трафик е разрешен.
+- `OPEN`: доставчикът е временно блокиран; извикващите получават отговор с отворен прекъсвач на доставчика
+  или комбинираното маршрутизиране преминава към друга цел.
+- `HALF_OPEN`: времето за нулиране е изтекло; позволява се пробна заявка. Успехът затваря
+  прекъсвача, провалът го отваря отново.
+
+**По подразбиране** (`open-sse/config/constants.ts`):
+
+- OAuth доставчици: праг `3`, време за нулиране `60s`.
+- Доставчици на API ключове: праг `5`, време за нулиране `30s`.
+- Локални доставчици: праг `2`, време за нулиране `15s`.
+
+Само статусите на неуспех на ниво доставчик трябва да задействат прекъсвача на доставчика:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Не задействайте прекъсвача на целия доставчик за нормални грешки с акаунт/ключ/модел като повечето
+`401`, `403` или `429` случаи. Те обикновено принадлежат на охлаждане на връзката или заключване на модела. Генеричен API ключ доставчик `403` трябва да бъде възстановим, освен ако не е класифициран
+като терминална грешка на доставчика/акаунта.
+
+Прекъсвачът използва мързеливо възстановяване, а не фонов таймер. Когато `OPEN` изтече, четения като
+`getStatus()`, `canExecute()`, и `getRetryAfterMs()` обновяват състоянието на
+`HALF_OPEN`, така че таблата и строителите на кандидати за комбинирано маршрутизиране да не продължават да изключват един изтекъл доставчик завинаги.
+
+### Охлаждане на връзката
+
+**Обхват**: една връзка/акаунт/ключ на доставчика.
+
+**Цел**: временно да се пропусне един лош ключ/акаунт, докато се позволи на другите връзки за
+същия доставчик да продължат да обслужват заявки.
+
+**Имплементация**:
+
+- Път за запис/обновление: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Избор/филтриране на акаунти: `src/sse/services/auth.ts::getProviderCredentials...`
+- Изчисление на охлаждането: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Настройки: `src/lib/resilience/settings.ts`
+
+Важно е да се отбележат полетата на връзките на доставчика:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+По време на избора на акаунт, връзката се пропуска, докато:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Охлажданията също са мързеливи: когато `rateLimitedUntil` е в миналото, връзката отново става
+елигибилна. При успешно използване, `clearAccountError()` изчиства `testStatus`,
+`rateLimitedUntil`, полета за грешки и `backoffLevel`.
+
+Поведение на охлаждане на връзката по подразбиране:
+
+- Основно охлаждане на OAuth: `5s`.
+- Основно охлаждане на API ключ: `3s`.
+- API ключ `429` трябва да предпочита указания за повторен опит от upstream (`Retry-After`, заглавия за нулиране или
+  текст за нулиране, който може да се парсва), когато е наличен.
+- Повторни възстановими неуспехи използват експоненциално охлаждане:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+Защитата срещу "громяща тълпа" предотвратява едновременни неуспехи на същата връзка от
+повторно удължаване на охлаждането или двойно увеличаване на `backoffLevel`.
+
+Терминалните състояния не са охлаждания. `banned`, `expired`, и `credits_exhausted` са
+предназначени да останат недостъпни, докато не се променят удостоверенията/настройките или операторът не ги нулира. Не презаписвайте терминални състояния с преходно състояние на охлаждане.
+
+### Заключване на модела
+
+**Обхват**: доставчик + връзка + модел.
+
+**Цел**: да се избегне деактивирането на цяла връзка, когато само един модел е недостъпен или
+ограничен по квота за тази връзка.
+
+Примери:
+
+- Доставчици с квота на модел, които връщат `429`.
+- Локални доставчици, които връщат `404` за един липсващ модел.
+- Специфични за доставчика неуспехи на разрешения за режим/модел, като избрани режими на Grok.
+
+Заключването на модела живее в `open-sse/services/accountFallback.ts` и позволява на същата
+връзка да продължи да обслужва други модели.
+
+### Напътствия за отстраняване на проблеми
+
+- Ако всички ключове за доставчика са пропуснати, инспектирайте както състоянието на прекъсвача на доставчика, така и `rateLimitedUntil`/`testStatus` на всяка
+  връзка.
+- Ако един доставчик изглежда постоянно изключен след прозореца за нулиране, проверете дали кодът
+  чете суровото `state`, вместо да използва `getStatus()`/`canExecute()`.
+- Ако един ключ на доставчика не успее, но другите трябва да работят, предпочитайте охлаждането на връзката пред
+  прекъсвача на доставчика.
+- Ако само един модел не успее, предпочитайте заключването на модела пред охлаждането на връзката.
+- Ако едно състояние трябва да се възстанови само, то трябва да има бъдеща времева отметка/време за нулиране и
+  път за четене, който обновява изтеклото състояние. Постоянните статуси изискват ръчни промени на удостоверения
+  или конфигурации.
+
+## Ключови Конвенции
+
+### Стил на Код
+
+- **2 интервала**, точки и запетаи, двойни кавички, ширина 100 символа, es5 завършващи запетаи (наложени от lint-staged чрез Prettier)
+- **Импорти**: външни → вътрешни (`@/`, `@omniroute/open-sse`) → относителни
+- **Именуване**: файлове=camelCase/kebab, компоненти=PascalCase, константи=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = грешка навсякъде; `no-explicit-any` = предупреждение в `open-sse/` и `tests/`
+- **TypeScript**: `strict: false`, цел ES2022, модул esnext, разрешение bundler. Предпочитайте явни типове.
+
+### База Данни
+
+- **Винаги** преминавайте през `src/lib/db/` домейн модули — **никога** не пишете суров SQL в маршрути или обработчици
+- **Никога** не добавяйте логика в `src/lib/localDb.ts` (само слой за повторен експорт)
+- **Никога** не импортирайте от `localDb.ts` — вместо това импортирайте специфични `db/` модули
+- DB сингълтон: `getDbInstance()` от `src/lib/db/core.ts` (WAL журналиране)
+- Миграции: `src/lib/db/migrations/` — версирани SQL файлове, идемпотентни, изпълняват се в транзакции
+
+### Обработка на Грешки
+
+- try/catch с конкретни типове грешки, логвайте с контекста на pino
+- Никога не поглъщайте грешки в SSE потоци — използвайте сигнали за прекратяване за почистване
+- Връщайте правилни HTTP статус кодове (4xx/5xx)
 
 ### Сигурност
 
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+- **Никога** не използвайте `eval()`, `new Function()`, или подразбирано eval
+- Валидирайте всички входове с Zod схеми
+- Шифровайте удостоверенията в покой (AES-256-GCM)
+- Списък с отхвърлени заглавия: `src/shared/constants/upstreamHeaders.ts` — поддържайте синхронизирани санитаризация, Zod схеми и модулни тестове при редактиране
+- **Публични удостоверения** (Gemini/Antigravity/Windsurf-стил OAuth client_id/secret + Firebase Web ключове извлечени от публични CLI): **ТРЯБВА** да бъдат вградени чрез `resolvePublicCred()` от `open-sse/utils/publicCreds.ts` — **никога** не като стрингови литерали. Вижте `docs/security/PUBLIC_CREDS.md` за задължителния шаблон.
+- **Отговори при грешки** (HTTP / SSE / изпълнител / MCP обработчик): **ТРЯБВА** да преминават през `buildErrorBody()` или `sanitizeErrorMessage()` от `open-sse/utils/error.ts` — **никога** не поставяйте суров `err.stack` или `err.message` в тялото на отговора. Вижте `docs/security/ERROR_SANITIZATION.md`.
+- **Команди на обвивката, изградени от променливи**: при извикване на `exec()`/`spawn()` с скрипт, който се нуждае от стойности по време на изпълнение, предавайте ги чрез опцията `env` (автоматично ескейпнати) — **никога** не интерполирайте ненадеждни/външни пътища в тялото на скрипта. Справка: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Библиотеки с безопасни по подразбиране** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): предпочитайте Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink пред персонализирани реализации всеки път, когато добавяте нови повърхности, чувствителни на сигурността.
 
 ---
 
-## Common Modification Scenarios
+## Чести Сценарии за Модификация
 
-### Adding a New Provider
+### Добавяне на Нов Доставчик
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+1. Регистрирайте в `src/shared/constants/providers.ts` (валидирано с Zod при зареждане)
+2. Добавете изпълнител в `open-sse/executors/`, ако е необходима персонализирана логика (разширете `BaseExecutor`)
+3. Добавете преводач в `open-sse/translator/`, ако форматът не е OpenAI
+4. Добавете конфигурация за OAuth в `src/lib/oauth/constants/oauth.ts`, ако е базирана на OAuth — ако публичният CLI предоставя client_id/secret, вградете чрез `resolvePublicCred()` (вижте `docs/security/PUBLIC_CREDS.md`), **никога** не като литерал
+5. Регистрирайте модели в `open-sse/config/providerRegistry.ts`
+6. Напишете тестове в `tests/unit/` (включете проверка на формата publicCreds, ако добавите нов вграден по подразбиране)
 
-### Adding a New API Route
+### Добавяне на Нов API Маршрут
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+1. Създайте директория под `src/app/api/v1/your-route/`
+2. Създайте `route.ts` с обработчици `GET`/`POST`
+3. Следвайте шаблона: CORS → Zod валидация на тялото → опционална автентикация → делегиране на обработчик
+4. Обработчикът отива в `open-sse/handlers/` (импортирайте от там, не инлайн)
+5. Отговорите при грешки използват `buildErrorBody()` / `errorResponse()` от `open-sse/utils/error.ts` (автоматично санитаризирани — никога не поставяйте `err.stack` или `err.message` сурови в тялото). Вижте `docs/security/ERROR_SANITIZATION.md`.
+6. Добавете тестове — включително поне едно твърдение, че отговорите при грешки не разкриват стек трасове (`!body.error.message.includes("at /")`)
 
-### Adding a New DB Module
+### Добавяне на Нов DB Модул
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+1. Създайте `src/lib/db/yourModule.ts` — импортирайте `getDbInstance` от `./core.ts`
+2. Експортирайте CRUD функции за вашата домейн таблица(и)
+3. Добавете миграция в `src/lib/db/migrations/`, ако са необходими нови таблици
+4. Повторно експортирайте от `src/lib/localDb.ts` (добавете само в списъка за повторен експорт)
+5. Напишете тестове
 
-### Adding a New MCP Tool
+### Добавяне на Нов MCP Инструмент
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+1. Добавете дефиниция на инструмента в `open-sse/mcp-server/tools/` с Zod входна схема + асинхронен обработчик
+2. Регистрирайте в набора от инструменти (свързано от `createMcpServer()`)
+3. Назначете на подходящи обхвати
+4. Напишете тестове (извикването на инструмента е записано в таблицата `mcp_audit`)
 
-### Adding a New A2A Skill
+### Добавяне на Нов A2A Умение
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+1. Създайте умение в `src/lib/a2a/skills/` (вече съществуват 5: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. Умението получава контекст на задачата (съобщения, метаданни) → връща структурирани резултати
+3. Регистрирайте в `A2A_SKILL_HANDLERS` в `src/lib/a2a/taskExecution.ts`
+4. Изложете в `src/app/.well-known/agent.json/route.ts` (Agent Card)
+5. Напишете тестове в `tests/unit/`
+6. Документирайте в `docs/frameworks/A2A-SERVER.md` таблицата на уменията
+
+### Добавяне на Нов Облачeн Агент
+
+1. Създайте клас на агента в `src/lib/cloudAgent/agents/`, разширявайки `CloudAgentBase` (вече съществуват 3: codex-cloud, devin, jules)
+2. Имплементирайте `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Регистрирайте в `src/lib/cloudAgent/registry.ts`
+4. Добавете обработка на OAuth/удостоверения, ако е необходимо (`src/lib/oauth/providers/`)
+5. Тестове + документирайте в `docs/frameworks/CLOUD_AGENT.md`
+
+### Добавяне на Нов Guardrail / Eval / Умение / Webhook Събитие
+
+- Guardrail: `src/lib/guardrails/` → документация: `docs/security/GUARDRAILS.md`
+- Eval пакет: `src/lib/evals/` → документация: `docs/frameworks/EVALS.md`
+- Умение (пясъчник): `src/lib/skills/` → документация: `docs/frameworks/SKILLS.md`
+- Webhook събитие: `src/lib/webhookDispatcher.ts` → документация: `docs/frameworks/WEBHOOKS.md`
+
+## Референтна документация
+
+За всяка нетривиална промяна, първо прочетете съответния дълбочинен анализ:
+
+| Област                                                  | Документ                                                          |
+| ------------------------------------------------------- | ----------------------------------------------------------------- |
+| Навигация в репото                                      | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Архитектура                                             | `docs/architecture/ARCHITECTURE.md`                               |
+| Инженерна справка                                       | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Авто-комбо (оценяване по 9 фактора, 14 стратегии)       | `docs/routing/AUTO-COMBO.md`                                      |
+| Устойчивост (3 механизма)                               | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Повторно разсъждение                                    | `docs/routing/REASONING_REPLAY.md`                                |
+| Рамка за умения                                         | `docs/frameworks/SKILLS.md`                                       |
+| Система за памет (FTS5 + Qdrant)                        | `docs/frameworks/MEMORY.md`                                       |
+| Облачни агенти                                          | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Ограничителни мерки (Лични данни / инжектиране / визия) | `docs/security/GUARDRAILS.md`                                     |
+| Публични удостоверения от upstream (Gemini и др.)       | `docs/security/PUBLIC_CREDS.md`                                   |
+| Санитизация на съобщения за грешки                      | `docs/security/ERROR_SANITIZATION.md`                             |
+| Оценки                                                  | `docs/frameworks/EVALS.md`                                        |
+| Съответствие / одит                                     | `docs/security/COMPLIANCE.md`                                     |
+| Уебхукове                                               | `docs/frameworks/WEBHOOKS.md`                                     |
+| Пайплайн за авторизация                                 | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Стелт (TLS / отпечатък)                                 | `docs/security/STEALTH_GUIDE.md`                                  |
+| Протоколи на агенти (A2A / ACP / Cloud)                 | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP сървър                                              | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A сървър                                              | `docs/frameworks/A2A-SERVER.md`                                   |
+| API справка + OpenAPI                                   | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Каталог на доставчици (автоматично генериран)           | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Процес на освобождаване                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
-## Testing Cheat Sheet
+## Тестване
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+| Какво                   | Команда                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| Юнит тестове            | `npm run test:unit`                                                   |
+| Единичен файл           | `node --import tsx/esm --test tests/unit/file.test.ts`                |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                 |
+| E2E (Playwright)        | `npm run test:e2e`                                                    |
+| Протокол E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                          |
+| Екосистема              | `npm run test:ecosystem`                                              |
+| Праг на покритие        | `npm run test:coverage` (75/75/75/70 — изрази/редове/функции/клонове) |
+| Доклад за покритие      | `npm run coverage:report`                                             |
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+**Правило за PR**: Ако променяте производствен код в `src/`, `open-sse/`, `electron/` или `bin/`, трябва да включите или актуализирате тестове в същия PR.
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+**Предпочитание на тестовия слой**: юнит първо → интеграция (мулти-модул или DB състояние) → e2e (само UI/работен процес). Кодирайте възпроизвеждания на бъгове като автоматизирани тестове преди или заедно с поправката.
+
+**Политика за покритие на Copilot**: Когато PR променя производствен код и покритие е под 75% (изрази/редове/функции) или 70% (клонове), не просто докладвайте — добавете или актуализирайте тестове, повторно стартирайте прага на покритие, след това поискайте потвърждение. Включете изпълнените команди, променените тестови файлове и крайния резултат от покритие в доклада за PR.
 
 ---
 
-## Git Workflow
+## Git Работен поток
 
 ```bash
-# Never commit directly to main
+# Никога не комитвайте директно в main
 git checkout -b feat/your-feature
-# ... make changes ...
-git commit -m "feat: describe your change"
+git commit -m "feat: опишете промените си"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Префикси на клонове**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Формат на комитите** (Конвенционални комити): `feat(db): добави прекъсвач` — области: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky хукове**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## Среда
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Среда на изпълнение**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Модули
+- **TypeScript**: 5.9+, цел ES2022, модул esnext, резолюция bundler
+- **Пътни псевдоними**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Порт по подразбиране**: 20128 (API + табло на същия порт)
+- **Директория за данни**: `DATA_DIR` env var, по подразбиране `~/.omniroute/`
+- **Ключови env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Настройка: `cp .env.example .env` след това генерирайте `JWT_SECRET` (`openssl rand -base64 48`) и `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Строги правила
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. Никога не комитвайте тайни или удостоверения
+2. Никога не добавяйте логика в `localDb.ts`
+3. Никога не използвайте `eval()` / `new Function()` / подразбирано eval
+4. Никога не комитвайте директно в `main`
+5. Никога не пишете суров SQL в маршрути — използвайте модули от `src/lib/db/`
+6. Никога не поглъщайте тихо грешки в SSE потоци
+7. Винаги валидирайте входовете с Zod схеми
+8. Винаги включвайте тестове при промяна на производствен код
+9. Покритие трябва да остава ≥75% (изрази, редове, функции) / ≥70% (клонове). Текущо измерено: ~82%.
+10. Никога не заобикаляйте Husky хукове (`--no-verify`, `--no-gpg-sign`) без изрично одобрение от оператора.
+11. Никога не вграждайте публични upstream OAuth client_id/secret или Firebase Web ключове като стрингови литерали — винаги преминавайте през `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Вижте `docs/security/PUBLIC_CREDS.md`.
+12. Никога не връщайте суров `err.stack` / `err.message` в HTTP / SSE / отговори на изпълнители — винаги маршрутизирайте през `buildErrorBody()` или `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Вижте `docs/security/ERROR_SANITIZATION.md`.
+13. Никога не интерполирайте стрингово външни пътища или стойности на изпълнение в shell скриптове, предадени на `exec()`/`spawn()` — предавайте чрез опцията `env`. Референция: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Никога не отхвърляйте предупреждение за CodeQL / Secret-Scanning без (а) първо да проверите документацията за шаблони по-горе, за да видите дали помощникът е приложим, и (б) да запишете техническото обяснение в коментара за отхвърляне. Прецедент: `js/stack-trace-exposure`, повдигнат на места за извикване, които вече маршрутизират през `sanitizeErrorMessage()`, е известна ограниченост на CodeQL (персонализирани санитаризатори не се разпознават) — отхвърлете като `false positive`, позовавайки се на `docs/security/ERROR_SANITIZATION.md`.
+15. Никога не излагайте маршрути, които стартират дъщерни процеси (`/api/mcp/`, `/api/cli-tools/runtime/`) без класификация `isLocalOnlyPath()` в `src/server/authz/routeGuard.ts`. Принудителното връщане става безусловно преди всяка проверка за удостоверяване — изтекъл JWT чрез тунел не може да задейства стартиране на процес. Вижте `docs/security/ROUTE_GUARD_TIERS.md`.
+16. Никога не включвайте `Co-Authored-By` трейлъри в съобщенията за комити. Комитите трябва да се появяват само под Git идентичността на собственика на репозитория (`diegosouzapw`). Линията `Co-Authored-By: Claude …` причинява GitHub да приписва комити на акаунта на `claude` Anthropic, скривайки истинския автор в историята на PR.

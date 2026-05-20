@@ -66,16 +66,81 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
+function hasOpenAIResponseLifecyclePayload(
+  payload: Record<string, unknown>,
+  type: string
+): boolean {
+  if (type === "response.created" || type === "response.in_progress") {
+    const response = payload.response;
+    if (!isRecord(response)) return false;
+
+    return (
+      hasNonEmptyString(response.id) ||
+      hasNonEmptyString(response.object) ||
+      hasNonEmptyString(response.status) ||
+      typeof response.created_at === "number"
+    );
+  }
+
+  if (type === "response.output_item.added") {
+    const item = payload.item;
+    if (!isRecord(item)) return false;
+
+    return (
+      hasNonEmptyString(item.id) ||
+      hasNonEmptyString(item.type) ||
+      hasNonEmptyString(item.status) ||
+      Array.isArray(item.content) ||
+      isRecord(item.content)
+    );
+  }
+
+  return false;
+}
+
+function hasChatCompletionToolCallStart(value: unknown): boolean {
+  const hasToolCallId = (item: unknown) => isRecord(item) && hasNonEmptyString(item.id);
+  if (Array.isArray(value)) return value.some(hasToolCallId);
+  return hasToolCallId(value);
+}
+
+function hasChatCompletionFunctionCallStart(value: unknown): boolean {
+  return isRecord(value) && hasNonEmptyString(value.name);
+}
+
+function hasChatCompletionChunkStartPayload(payload: Record<string, unknown>): boolean {
+  if (payload.object !== "chat.completion.chunk" && payload.type !== "chat.completion.chunk") {
+    return false;
+  }
+
+  const choices = payload.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return false;
+
+  return choices.some((choice) => {
+    if (!isRecord(choice)) return false;
+    const delta = choice.delta;
+    if (!isRecord(delta)) return false;
+
+    return (
+      hasNonEmptyString(delta.role) ||
+      hasChatCompletionToolCallStart(delta.tool_calls) ||
+      hasChatCompletionFunctionCallStart(delta.function_call)
+    );
+  });
+}
+
 function hasAcceptedStreamStartPayload(payload: unknown, eventType = ""): boolean {
   if (!isRecord(payload)) return false;
 
   // Anthropic/Claude streams can legitimately start with lifecycle frames and
-  // then spend a long time thinking before the first text/tool delta arrives.
-  // Treating the start frame as readiness prevents false 504s while ping-only
-  // zombie streams still fail below.
+  // OpenAI Responses streams can do the same before the first text/tool delta
+  // arrives. Treating structurally valid lifecycle frames as readiness prevents
+  // false 504s while ping-only/generic-empty zombie streams still fail below.
   const type = typeof payload.type === "string" ? payload.type : eventType;
   if (type === "message_start" && isRecord(payload.message)) return true;
   if (type === "content_block_start" && isRecord(payload.content_block)) return true;
+  if (hasOpenAIResponseLifecyclePayload(payload, type)) return true;
+  if (hasChatCompletionChunkStartPayload(payload)) return true;
 
   return false;
 }

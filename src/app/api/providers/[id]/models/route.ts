@@ -21,7 +21,11 @@ import {
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
-import { getAntigravityModelsDiscoveryUrls } from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
+import {
+  getAntigravityModelsDiscoveryUrls,
+  getAntigravityFetchAvailableModelsUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
 import {
   buildGlmCodingHeaders,
   buildGlmModelsUrl,
@@ -229,8 +233,12 @@ async function fetchAntigravityDiscoveryModelsCached(
 
   const promise = (async () => {
     await resolveAntigravityVersion();
+    await ensureAntigravityProjectAssigned(accessToken);
 
-    for (const discoveryUrl of getAntigravityModelsDiscoveryUrls()) {
+    for (const discoveryUrl of [
+      ...getAntigravityFetchAvailableModelsUrls(),
+      ...getAntigravityModelsDiscoveryUrls(),
+    ]) {
       try {
         const response = await safeOutboundFetch(discoveryUrl, {
           ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -539,6 +547,14 @@ const PROVIDER_MODELS_CONFIG: Record<string, ProviderModelsConfigEntry> = {
     },
   },
   // gemini-cli handled via retrieveUserQuota (see GET handler)
+  huggingface: {
+    url: "https://router.huggingface.co/v1/models",
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    authHeader: "Authorization",
+    authPrefix: "Bearer ",
+    parseResponse: (data) => normalizeOpenAiLikeModelsResponse(data, "huggingface"),
+  },
   qwen: {
     url: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models",
     method: "GET",

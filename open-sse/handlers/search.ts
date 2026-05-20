@@ -5,7 +5,7 @@ import { randomUUID } from "crypto";
  * Handles POST /v1/search requests.
  * Routes to 11 search providers with automatic failover:
  *   serper-search, brave-search, perplexity-search, exa-search, tavily-search,
- *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, ollama-search
+ *   google-pse-search, linkup-search, searchapi-search, youcom-search, searxng-search, ollama-search, zai-search
  *
  * Request format:
  * {
@@ -18,6 +18,10 @@ import { randomUUID } from "crypto";
 
 import { getSearchProvider, type SearchProviderConfig } from "../config/searchRegistry.ts";
 import { saveCallLog } from "@/lib/usageDb";
+import { safeOutboundFetch } from "@/shared/network/safeOutboundFetch";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { z } from "zod";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -928,6 +932,243 @@ function normalizeOllamaResponse(
   return { results, totalResults: results.length };
 }
 
+// ── Z.AI Coding Plan Search MCP Execution ───────────────────────────
+
+// Schema for the Z.AI MCP web_search_prime tool result. Z.AI double-encodes
+// the results array as a JSON string inside the MCP text content, so we
+// safely unwrap it with a typed schema instead of `JSON.parse(parsed)`.
+const ZaiSearchItemSchema = z
+  .object({
+    title: z.string().optional(),
+    link: z.string().optional(),
+    content: z.string().optional(),
+    publish_date: z.string().optional(),
+    icon: z.string().optional(),
+    media: z.string().optional(),
+  })
+  .passthrough();
+
+type ZaiSearchItem = z.infer<typeof ZaiSearchItemSchema>;
+
+const ZaiSearchResultsSchema = z.array(ZaiSearchItemSchema);
+
+/**
+ * Unwrap the double-encoded JSON from a Z.AI MCP web_search_prime response.
+ *
+ * Quirk: the MCP server returns a text content block whose body is a JSON
+ * string. That JSON string, once parsed, is itself another JSON string
+ * containing the actual results array. We try a single parse first
+ * (in case the upstream behavior ever changes), then a nested parse.
+ * Both paths are validated through `ZaiSearchResultsSchema` so any shape
+ * regression upstream lands in our error path instead of corrupting results.
+ */
+function unwrapZaiContent(rawText: string): ZaiSearchItem[] | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    return null;
+  }
+
+  // Direct array path (defensive, in case Z.AI stops double-encoding).
+  const direct = ZaiSearchResultsSchema.safeParse(parsed);
+  if (direct.success) return direct.data;
+
+  // Documented Z.AI behavior: parsed is a JSON string of the results array.
+  if (typeof parsed !== "string") return null;
+  let inner: unknown;
+  try {
+    inner = JSON.parse(parsed);
+  } catch {
+    return null;
+  }
+  const validated = ZaiSearchResultsSchema.safeParse(inner);
+  return validated.success ? validated.data : null;
+}
+
+async function zaiSearchExecute(params: {
+  config: SearchProviderConfig;
+  query: string;
+  token: string;
+  params: SearchRequestParams;
+  signal?: AbortSignal;
+}): Promise<{ results: SearchResult[]; totalResults: number | null }> {
+  const baseUrl = resolveSearchBaseUrl(params.config, params.params);
+  const transport = new StreamableHTTPClientTransport(new URL(baseUrl), {
+    fetch: safeOutboundFetch,
+    requestInit: {
+      headers: {
+        Authorization: `Bearer ${params.token}`,
+      },
+    },
+  });
+
+  const client = new Client({ name: "omniroute-search", version: "1.0" }, { capabilities: {} });
+
+  const { signal } = params;
+
+  let abortHandler: (() => void) | undefined;
+  if (signal) {
+    if (signal.aborted) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+    abortHandler = () => {
+      client.close().catch(() => {});
+    };
+    signal.addEventListener("abort", abortHandler, { once: true });
+  }
+
+  try {
+    await client.connect(transport);
+
+    if (signal?.aborted) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+
+    const args: Record<string, unknown> = {
+      search_query: params.query,
+    };
+
+    const { includes } = parseDomainFilter(params.params.domainFilter);
+    if (includes.length > 0) {
+      args.search_domain_filter = includes.join(",");
+    }
+
+    const toolResult = await client.callTool({
+      name: "web_search_prime",
+      arguments: args,
+    });
+
+    const rawContent = Array.isArray(toolResult.content) ? toolResult.content : [];
+    const rawText = rawContent
+      .filter((c: any) => c?.type === "text")
+      .map((c: any) => (typeof c?.text === "string" ? c.text : ""))
+      .join("\n");
+
+    if (!rawText.trim()) {
+      return { results: [], totalResults: null };
+    }
+
+    const items = unwrapZaiContent(rawText);
+    if (!items) {
+      return { results: [], totalResults: null };
+    }
+
+    const now = new Date().toISOString();
+    const results = items.map((item, idx) =>
+      makeResult(
+        "zai-search",
+        {
+          title: item.title,
+          url: item.link,
+          snippet: item.content || "",
+          published_at: item.publish_date,
+          favicon_url: item.icon,
+          source_type: item.media,
+        },
+        idx,
+        now
+      )
+    );
+    return { results, totalResults: results.length };
+  } finally {
+    if (abortHandler && signal) {
+      signal.removeEventListener("abort", abortHandler);
+    }
+    await client.close();
+  }
+}
+
+async function tryZaiMCPProvider(
+  config: SearchProviderConfig,
+  params: Omit<SearchRequestParams, "token">,
+  token: string,
+  providerSpecificData: Record<string, unknown> | undefined,
+  startTime: number,
+  globalStartTime: number,
+  log?: any
+): Promise<SearchHandlerResult> {
+  const { query, searchType, maxResults } = params;
+
+  const remainingGlobal = GLOBAL_TIMEOUT_MS - (Date.now() - globalStartTime);
+  const timeout = Math.min(config.timeoutMs, Math.max(remainingGlobal, 1000));
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const normalized = await zaiSearchExecute({
+      config,
+      query,
+      token,
+      params: { ...params, token, providerSpecificData },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+
+    const results = normalized.results.slice(0, maxResults);
+    const duration = Date.now() - startTime;
+
+    saveCallLog({
+      method: config.method,
+      path: "/v1/search",
+      status: 200,
+      model: config.id,
+      provider: config.id,
+      duration,
+      requestType: "search",
+      tokens: { prompt_tokens: 0, completion_tokens: 0 },
+      requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
+      responseBody: { results_count: results.length, cached: false },
+    }).catch(() => {
+      /* non-critical — logging must not block search response */
+    });
+
+    return {
+      success: true,
+      data: {
+        provider: config.id,
+        query,
+        results,
+        answer: null,
+        usage: { queries_used: 1, search_cost_usd: config.costPerQuery },
+        metrics: {
+          response_time_ms: duration,
+          upstream_latency_ms: duration,
+          total_results_available: normalized.totalResults,
+        },
+        errors: [],
+      },
+    };
+  } catch (err: any) {
+    clearTimeout(timer);
+
+    const isTimeout = err.name === "AbortError";
+    if (log) {
+      log.error("SEARCH", `${config.id} MCP ${isTimeout ? "timeout" : "error"}: ${err.message}`);
+    }
+
+    saveCallLog({
+      method: config.method,
+      path: "/v1/search",
+      status: isTimeout ? 504 : 502,
+      model: config.id,
+      provider: config.id,
+      duration: Date.now() - startTime,
+      requestType: "search",
+      error: err.message,
+      requestBody: { query: query.slice(0, 200), search_type: searchType, max_results: maxResults },
+    }).catch(() => {
+      /* non-critical — logging must not block search response */
+    });
+
+    return {
+      success: false,
+      status: isTimeout ? 504 : 502,
+      error: `Search provider ${isTimeout ? "timeout" : "error"}: ${err.message}`,
+    };
+  }
+}
+
 function normalizeResponse(
   providerId: string,
   data: any,
@@ -1060,6 +1301,19 @@ async function tryProvider(
   }
 
   const { query, searchType, maxResults } = params;
+
+  if (config.id === "zai-search" && token) {
+    return tryZaiMCPProvider(
+      config,
+      params,
+      token,
+      providerSpecificData,
+      startTime,
+      globalStartTime,
+      log
+    );
+  }
+
   let url = "";
   let init: RequestInit = {};
   try {

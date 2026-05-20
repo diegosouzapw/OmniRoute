@@ -211,7 +211,15 @@ export async function validateResponseQuality(
 
   const content = message.content;
   const toolCalls = message.tool_calls;
-  const hasContent = content !== null && content !== undefined && content !== "";
+  // Issue #2341: Reasoning models (Kimi-K2.5-TEE, GLM-5-TEE, etc.) emit their
+  // output in `reasoning_content` (or `reasoning`) with `content: null`. The
+  // validator used to flag those as empty and trigger a false-positive 502
+  // fallback. Count a non-empty reasoning_content as valid output too.
+  const reasoningContent = message.reasoning_content ?? message.reasoning;
+  const hasReasoningContent =
+    typeof reasoningContent === "string" && reasoningContent.trim().length > 0;
+  const hasContent =
+    (content !== null && content !== undefined && content !== "") || hasReasoningContent;
   const hasToolCalls = Array.isArray(toolCalls) && toolCalls.length > 0;
 
   if (!hasContent && !hasToolCalls) {
@@ -1742,7 +1750,7 @@ export async function handleComboChat({
     try {
       const { getLKGP } = await import("../../src/lib/localDb");
       const lkgp = await getLKGP(combo.name, combo.id || combo.name);
-      if (lkgp) lastKnownGoodProvider = lkgp;
+      if (lkgp) lastKnownGoodProvider = lkgp.provider;
     } catch (err) {
       log.warn("COMBO", "Failed to retrieve Last Known Good Provider. This is non-fatal.", { err });
     }
@@ -1819,22 +1827,44 @@ export async function handleComboChat({
       const lkgpProvider = await getLKGP(combo.name, combo.id || combo.name);
 
       if (lkgpProvider) {
-        const lkgpIndex = orderedTargets.findIndex(
-          (target) =>
-            target.provider === lkgpProvider || target.modelStr.startsWith(`${lkgpProvider}/`)
-        );
+        const lkgpRecord = lkgpProvider;
+        const providerName = lkgpRecord.provider;
+        const connId = lkgpRecord.connectionId;
+
+        let lkgpIndex = -1;
+        if (connId) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) => target.provider === providerName && target.connectionId === connId
+          );
+        }
+        if (lkgpIndex < 0) {
+          lkgpIndex = orderedTargets.findIndex(
+            (target) =>
+              target.provider === providerName ||
+              // Issue #2359: Defensive guard. The `target.modelStr` type
+              // annotation is `string`, but malformed combo entries (e.g.,
+              // local-provider rows whose `modelStr` failed to resolve when
+              // the executor catalogue was being rebuilt) have leaked
+              // through and surfaced as `e.startsWith is not a function`
+              // 500s on combo test/dispatch. The fast path stays
+              // unchanged for the common case; this only avoids the
+              // crash when the field is unexpectedly non-string.
+              (typeof target.modelStr === "string" &&
+                target.modelStr.startsWith(`${providerName}/`))
+          );
+        }
 
         if (lkgpIndex > 0) {
           const [lkgpTarget] = orderedTargets.splice(lkgpIndex, 1);
           orderedTargets.unshift(lkgpTarget);
           log.info(
             "COMBO",
-            `[LKGP] Prioritizing last known good provider ${lkgpProvider} for combo "${combo.name}"`
+            `[LKGP] Prioritizing last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} for combo "${combo.name}"`
           );
         } else if (lkgpIndex === 0) {
           log.debug(
             "COMBO",
-            `[LKGP] Last known good provider ${lkgpProvider} already first for combo "${combo.name}"`
+            `[LKGP] Last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} already first for combo "${combo.name}"`
           );
         }
       }
@@ -2070,12 +2100,13 @@ export async function handleComboChat({
 
         // Record last known good provider (LKGP) for this combo/model (#919)
         if (provider) {
+          const connId = target.connectionId || undefined;
           void (async () => {
             try {
               const { setLKGP } = await import("../../src/lib/localDb");
               await Promise.all([
-                setLKGP(combo.name, target.executionKey, provider),
-                setLKGP(combo.name, combo.id || combo.name, provider),
+                setLKGP(combo.name, target.executionKey, provider, connId),
+                setLKGP(combo.name, combo.id || combo.name, provider, connId),
               ]);
             } catch (err) {
               log.warn("COMBO", "Failed to record Last Known Good Provider. This is non-fatal.", {
@@ -2400,12 +2431,13 @@ async function handleRoundRobinCombo({
           });
           recordedAttempts++;
           if (provider) {
+            const connId = target.connectionId || undefined;
             void (async () => {
               try {
                 const { setLKGP } = await import("../../src/lib/localDb");
                 await Promise.all([
-                  setLKGP(combo.name, target.executionKey, provider),
-                  setLKGP(combo.name, combo.id || combo.name, provider),
+                  setLKGP(combo.name, target.executionKey, provider, connId),
+                  setLKGP(combo.name, combo.id || combo.name, provider, connId),
                 ]);
               } catch (err) {
                 log.warn(

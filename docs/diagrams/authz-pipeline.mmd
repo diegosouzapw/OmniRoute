@@ -1,0 +1,23 @@
+%% AuthZ pipeline (3 route classes + policy evaluation)
+%% Reflects: src/middleware.ts, src/server/authz/pipeline.ts,
+%%           src/server/authz/policies/{public,clientApi,management}.ts
+%% v3.8.0
+flowchart LR
+  Req["Incoming request"] --> Strip["Strip trusted internal headers<br/>(x-omniroute-auth-*)"]
+  Strip --> Classify["classifyRoute()"]
+  Classify -->|PUBLIC| PubP["publicPolicy<br/>(login, health, status)"]
+  Classify -->|CLIENT_API| CliP["clientApiPolicy<br/>(/api/v1/*, /v1/*)"]
+  Classify -->|MANAGEMENT| MgmtP["managementPolicy<br/>(dashboard, settings, admin)"]
+
+  PubP -->|allow| Stamp["Stamp x-omniroute-auth-*<br/>(kind / id / label / scopes)"]
+  CliP -->|extract Bearer| Validate["validateApiKey()"]
+  Validate -->|valid| Stamp
+  Validate -->|"invalid (REQUIRE_API_KEY=true)"| Reject401["401 AUTH_002"]
+  Validate -->|"absent (REQUIRE_API_KEY=false)"| Anon["anonymous fallthrough"] --> Stamp
+
+  MgmtP -->|session ok| Stamp
+  MgmtP -->|Bearer w/ manage scope| Stamp
+  MgmtP -->|"Bearer invalid"| Reject403["403 AUTH_001"]
+  MgmtP -->|no auth| Reject401Mgmt["401 / 302 /login"]
+
+  Stamp --> Handler["Handler<br/>(uses assertAuth)"]

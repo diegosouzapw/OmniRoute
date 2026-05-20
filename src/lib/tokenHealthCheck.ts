@@ -313,6 +313,7 @@ export async function checkConnection(conn) {
   const attemptedRefreshToken = conn.refreshToken;
   const attemptedAccessToken = conn.accessToken || null;
   const credentials = {
+    connectionId: conn.id,
     refreshToken: attemptedRefreshToken,
     accessToken: attemptedAccessToken,
     expiresAt: getEffectiveTokenExpiryIso(conn),

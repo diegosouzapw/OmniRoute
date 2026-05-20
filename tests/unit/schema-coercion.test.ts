@@ -3,6 +3,7 @@ import assert from "node:assert";
 import {
   coerceSchemaNumericFields,
   coerceToolSchemas,
+  injectEmptyReasoningContentForToolCalls,
   sanitizeToolDescription,
   sanitizeToolDescriptions,
 } from "../../open-sse/translator/helpers/schemaCoercion.ts";
@@ -111,4 +112,33 @@ test("sanitizeToolDescriptions works on arrays", () => {
   const result = sanitizeToolDescriptions(tools);
   assert.strictEqual(result[0].description, "");
   assert.strictEqual(result[1].function.description, "42");
+});
+
+test("injectEmptyReasoningContentForToolCalls supports DeepSeek V4 models across providers", () => {
+  const messages = [
+    { role: "user", content: "hello" },
+    { role: "assistant", tool_calls: [{ id: "call_1" }] },
+  ];
+
+  for (const provider of ["openrouter", "fireworks", "deepinfra"]) {
+    const result = injectEmptyReasoningContentForToolCalls(
+      messages,
+      provider,
+      "accounts/fireworks/models/deepseek-v4-pro"
+    ) as Array<{ reasoning_content?: string }>;
+
+    assert.equal(result[1].reasoning_content, "");
+  }
+});
+
+test("injectEmptyReasoningContentForToolCalls skips non-DeepSeek V4 models", () => {
+  const messages = [{ role: "assistant", tool_calls: [{ id: "call_1" }] }];
+
+  const result = injectEmptyReasoningContentForToolCalls(
+    messages,
+    "deepseek",
+    "deepseek-reasoner"
+  ) as Array<{ reasoning_content?: string }>;
+
+  assert.equal(result[0].reasoning_content, undefined);
 });

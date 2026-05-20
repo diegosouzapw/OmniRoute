@@ -7,8 +7,8 @@ import { ALIAS_TO_ID } from "@/shared/constants/providers";
 import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import dynamic from "next/dynamic";
+import Editor from "@/shared/components/MonacoEditor";
 
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 const SearchPlayground = dynamic(() => import("./SearchPlayground"), {
   ssr: false,
 });

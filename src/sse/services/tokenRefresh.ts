@@ -141,6 +141,9 @@ export async function updateProviderCredentials(connectionId: string, newCredent
     if (newCredentials.testStatus) {
       updates.testStatus = newCredentials.testStatus;
     }
+    if (newCredentials.isActive !== undefined) {
+      updates.isActive = newCredentials.isActive;
+    }
 
     const result = await updateProviderConnection(connectionId, updates);
     log.info("TOKEN_REFRESH", "Credentials updated in localDb", {

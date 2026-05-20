@@ -3,6 +3,11 @@ import { getDefaultErrorMessage, getErrorInfo } from "../config/errorConfig.ts";
 import { normalizePayloadForLog } from "@/lib/logPayloads";
 import type { ModelCooldownErrorPayload } from "@/types";
 
+/**
+ * Sanitize an error message to prevent stack trace exposure in API responses.
+ * Strips stack traces, file paths, and absolute Windows/POSIX paths from
+ * error messages before they reach the client.
+ */
 interface ErrorResponseBody {
   error: {
     message: string;
@@ -11,28 +16,57 @@ interface ErrorResponseBody {
   };
 }
 
-function sanitizeErrorMessage(message: unknown): string {
-  const str = typeof message === "string" ? message : String(message ?? "");
-  // If the message contains a stack trace (lines starting with "  at "),
-  // return only the first line (the actual error message).
-  const firstLine = str.split("\n")[0] || str;
-  return firstLine;
+// Length cap protects against pathological inputs even before tokenization.
+const MAX_ERROR_LEN = 4096;
+const SOURCE_EXT = ["ts", "tsx", "js", "jsx", "mjs", "cjs"] as const;
+
+function looksLikeAbsolutePath(tok: string): boolean {
+  // POSIX: "/<...>.ts" (optionally followed by :line[:col]).
+  // Windows: "C:\<...>.ts" or "C:/<...>.ts".
+  if (tok.length < 4 || tok.length > 2048) return false;
+  const isPosix = tok.charCodeAt(0) === 0x2f; // '/'
+  const isWindows = tok.length > 2 && tok.charCodeAt(1) === 0x3a && /[A-Za-z]/.test(tok[0]);
+  if (!isPosix && !isWindows) return false;
+  const dot = tok.lastIndexOf(".");
+  if (dot <= 0 || dot === tok.length - 1) return false;
+  const ext = tok
+    .slice(dot + 1)
+    .split(":", 1)[0]
+    .toLowerCase();
+  return (SOURCE_EXT as readonly string[]).includes(ext);
 }
 
 /**
- * Build OpenAI-compatible error response body
- * @param {number} statusCode - HTTP status code
- * @param {string} message - Error message
- * @returns {object} Error response object
+ * Strip stack-trace tail and absolute source paths from error messages.
+ *
+ * Implemented via simple whitespace tokenization (linear time) instead of a
+ * single complex regex, so CodeQL `js/polynomial-redos` stays clean even when
+ * the runtime error message is attacker-controlled.
+ */
+export function sanitizeErrorMessage(message: unknown): string {
+  let str = typeof message === "string" ? message : String(message ?? "");
+  if (str.length > MAX_ERROR_LEN) str = str.slice(0, MAX_ERROR_LEN);
+  const nl = str.indexOf("\n");
+  const firstLine = nl >= 0 ? str.slice(0, nl) : str;
+  // Preserve original whitespace by splitting on captured separator.
+  const parts = firstLine.split(/(\s+)/);
+  for (let i = 0; i < parts.length; i++) {
+    if (looksLikeAbsolutePath(parts[i])) parts[i] = "<path>";
+  }
+  return parts.join("");
+}
+
+/**
+ * Build OpenAI-compatible error response body. Message is always sanitized
+ * so callers do not need to remember to strip stack traces themselves.
  */
 export function buildErrorBody(statusCode: number, message: string): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
-
-  const friendlyMessage = normalizeUserFacingErrorMessage(message, statusCode);
+  const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
 
   return {
     error: {
-      message: friendlyMessage || getDefaultErrorMessage(statusCode),
+      message: safeMessage,
       type: errorInfo.type,
       code: errorInfo.code,
     },
@@ -64,94 +98,6 @@ export async function writeStreamError(writer, statusCode, message) {
   const errorBody = buildErrorBody(statusCode, sanitizeErrorMessage(message));
   const encoder = new TextEncoder();
   await writer.write(encoder.encode(`data: ${JSON.stringify(errorBody)}\n\n`));
-}
-
-function extractMessageText(message: unknown): string {
-  if (typeof message === "string") return message.trim();
-  if (message instanceof Error) return message.message.trim();
-  if (message === null || message === undefined) return "";
-
-  try {
-    return JSON.stringify(message);
-  } catch {
-    return String(message);
-  }
-}
-
-function stripTransportPrefixes(message: string): string {
-  return message
-    .replace(/^AI_APICallError:\s*/i, "")
-    .replace(/^Error:\s*/i, "")
-    .replace(/^\[\d+\]:\s*/, "")
-    .trim();
-}
-
-export function normalizeUserFacingErrorMessage(message: unknown, statusCode?: number): string {
-  const rawMessage = extractMessageText(message);
-  const cleanedMessage = stripTransportPrefixes(rawMessage);
-
-  if (!cleanedMessage) {
-    return getDefaultErrorMessage(statusCode || 500);
-  }
-
-  const normalized = cleanedMessage.toLowerCase();
-
-  if (
-    normalized.includes("unable to verify your membership benefits") ||
-    (normalized.includes("membership") && normalized.includes("active"))
-  ) {
-    return "Nao foi possivel validar os beneficios da assinatura desta conta agora. Confirme se a assinatura do provedor esta ativa e tente novamente em alguns instantes.";
-  }
-
-  if (
-    normalized.includes("chatgpt account") &&
-    normalized.includes("model is not supported") &&
-    normalized.includes("codex")
-  ) {
-    return "Este modelo nao esta liberado para esta conta do Codex. Escolha outro modelo compativel ou deixe o fallback do OmniRoute seguir para a proxima opcao.";
-  }
-
-  if (normalized.includes("requested model is not supported")) {
-    return "O modelo solicitado nao esta disponivel neste provedor ou nesta conta. Escolha outro modelo ou use o fallback automatico para continuar.";
-  }
-
-  if (normalized.includes("customer api key is disabled")) {
-    return "Esta API key esta temporariamente indisponivel. Verifique no painel se o plano esta ativo, se a renovacao foi concluida ou se a chave foi bloqueada pelo administrador.";
-  }
-
-  if (normalized.includes("invalid json response from provider")) {
-    return "O provedor retornou uma resposta invalida nesta tentativa. Tente novamente em alguns segundos ou deixe o fallback usar outro provedor/modelo.";
-  }
-
-  if (normalized.includes("invalid api key")) {
-    return "A API key informada nao foi aceita. Revise a chave configurada e tente novamente.";
-  }
-
-  if (statusCode === 401) {
-    return "Nao foi possivel autenticar esta chamada no provedor configurado. Revise as credenciais e tente novamente.";
-  }
-
-  if (statusCode === 402) {
-    return "Esta chamada nao pode ser concluida agora porque a conta do provedor precisa de assinatura, creditos ou validacao de beneficios. Verifique o status da conta e tente novamente.";
-  }
-
-  if (statusCode === 403) {
-    return "Esta chamada foi recusada pelo provedor. Verifique se esta conta tem permissao para usar este recurso ou modelo.";
-  }
-
-  if (statusCode === 404) {
-    return "O recurso solicitado nao foi encontrado neste provedor. Confira o modelo, rota ou configuracao usada nesta chamada.";
-  }
-
-  if (statusCode === 429) {
-    return "O limite de uso desta conta foi atingido no momento. Aguarde alguns instantes ou deixe o fallback tentar outra conexao.";
-  }
-
-  if (statusCode && statusCode >= 500) {
-    return "O provedor retornou uma falha temporaria. Tente novamente em instantes ou deixe o fallback seguir para a proxima opcao.";
-  }
-
-  return cleanedMessage;
 }
 
 function normalizeRetryAfterSeconds(retryAfter?: string | number | Date | null): number {
@@ -329,7 +275,7 @@ export function createErrorResult(
   } = {
     success: false,
     status: statusCode,
-    error: message,
+    error: body.error.message,
     errorType,
     response: new Response(JSON.stringify(body), {
       status: statusCode,

@@ -34,6 +34,7 @@ import {
   resolveComboBuilderProviderId,
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
+import AutoComboCatalog from "./AutoComboCatalog";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
 import {
@@ -950,6 +951,7 @@ export default function CombosPage() {
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-text-muted mt-1">{t("description")}</p>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] px-2.5 py-1.5">
             <span className="hidden lg:inline text-xs text-text-muted">
@@ -987,6 +989,8 @@ export default function CombosPage() {
           </Button>
         </div>
       </div>
+
+      <AutoComboCatalog />
 
       {showUsageGuide && (
         <ComboUsageGuide

@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Hiba: {message}",
+    "serverOffline": "Az OmniRoute szerver offline. Indítsa el: omniroute serve",
+    "authRequired": "Hitelesítés szükséges. Állítsa be az OMNIROUTE_API_KEY-t vagy futtassa: omniroute setup",
+    "rateLimited": "Kérési korlát túllépve. Próbálja újra {seconds}s múlva.",
+    "timeout": "A kérés {ms}ms után lejárt.",
+    "success": "Kész.",
+    "yes": "igen",
+    "no": "nem",
+    "confirm": "Biztos benne? (igen/nem)",
+    "dryRun": "[szimuláció] végrehajtaná: {action}",
+    "cancelled": "Törölve.",
+    "jsonOpt": "JSON formátumú kimenet",
+    "yesOpt": "Megerősítés kihagyása"
+  },
+  "program": {
+    "description": "OmniRoute — Intelligens AI útválasztó automatikus fallbackkel",
+    "version": "Verzió kiírása és kilépés",
+    "output": "Kimeneti formátum (table, json, jsonl, csv)",
+    "quiet": "Nem lényeges kimenet elnyomása",
+    "no_color": "Színes kimenet letiltása",
+    "timeout": "HTTP kérés időtúllépése ezredmásodpercben",
+    "api_key": "API kulcs az OmniRoute szerverhez",
+    "base_url": "Az OmniRoute szerver alap URL-je",
+    "context": "Szerverkontextus/profil ehhez a parancshoz",
+    "lang": "CLI megjelenítési nyelv beállítása (felülírja az OMNIROUTE_LANG-ot)"
+  }
+}
