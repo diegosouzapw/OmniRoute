@@ -189,6 +189,112 @@ test("managementPolicy: rejects invalid API keys with 403 when bearer is present
   }
 });
 
+// ─── LOCAL_ONLY manage-scope bypass for /api/mcp/* ───────────────────────────
+//
+// `/api/mcp/*` is in LOCAL_ONLY_API_PREFIXES (because it can spawn child
+// processes for unauthenticated callers) AND in
+// LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES (so a manage-scoped API key
+// presented from non-loopback may reach it). `/api/cli-tools/runtime/*` is
+// LOCAL_ONLY but NOT bypassable — the carve-out is path-scoped.
+//
+// `ctx()` uses `new Headers()` without an explicit `host`, so
+// `isLoopbackHost(null)` returns false → the policy treats it as non-loopback,
+// which is the exact case this block exercises.
+
+test("LOCAL_ONLY manage-scope bypass: no Bearer + non-loopback → 403 (regression guard)", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(ctx(new Headers(), "GET", "/api/mcp/stream"));
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 403);
+    assert.equal(out.code, "LOCAL_ONLY");
+  }
+});
+
+test("LOCAL_ONLY manage-scope bypass: non-manage key + non-loopback → 403", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const created = await apiKeysDb.createApiKey("chat-only", "machine-chat-only", ["chat"]);
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ authorization: `Bearer ${created.key}` }), "GET", "/api/mcp/stream")
+  );
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 403);
+    assert.equal(out.code, "LOCAL_ONLY");
+  }
+});
+
+test("LOCAL_ONLY manage-scope bypass: manage-scope key + non-loopback → allow", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const created = await apiKeysDb.createApiKey("mcp-bypass-key", "machine-mcp-bypass", ["manage"]);
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ authorization: `Bearer ${created.key}` }), "GET", "/api/mcp/stream")
+  );
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "management_key");
+    assert.equal(out.subject.id, created.id);
+    assert.ok(
+      (out.subject.label ?? "").includes("local-only-bypass"),
+      `expected label to include 'local-only-bypass', got ${out.subject.label}`
+    );
+  }
+});
+
+test("LOCAL_ONLY manage-scope bypass: carve-out does not extend to /api/cli-tools/runtime/*", async () => {
+  process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
+  process.env.INITIAL_PASSWORD = "initial-pass";
+  await settingsDb.updateSettings({ requireLogin: true });
+  const created = await apiKeysDb.createApiKey("cli-runtime-denied", "machine-cli-runtime-denied", [
+    "manage",
+  ]);
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(
+      new Headers({ authorization: `Bearer ${created.key}` }),
+      "GET",
+      "/api/cli-tools/runtime/foo"
+    )
+  );
+
+  assert.equal(out.allow, false);
+  if (!out.allow) {
+    assert.equal(out.status, 403);
+    assert.equal(out.code, "LOCAL_ONLY");
+  }
+});
+
+test("LOCAL_ONLY manage-scope bypass: loopback + no Bearer → allow (local CLI flow preserved)", async () => {
+  // Match the fresh-bootstrap pattern used by the "allows when auth not
+  // required" test above: no password configured + loopback request →
+  // `isAuthRequired` returns false → anonymous-allow fires once the LOCAL_ONLY
+  // gate is satisfied via the loopback `host` header.
+  await settingsDb.updateSettings({ requireLogin: true, password: null });
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ host: "localhost:20128" }), "GET", "/api/mcp/stream")
+  );
+
+  assert.equal(out.allow, true);
+});
+
 test("managementPolicy: allows internal model sync only on the dedicated provider routes", async () => {
   process.env.JWT_SECRET = "test-jwt-secret-for-mgmt-policy";
   process.env.INITIAL_PASSWORD = "initial-pass";
