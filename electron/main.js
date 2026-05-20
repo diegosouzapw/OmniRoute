@@ -280,12 +280,12 @@ function installUpdate() {
 // ── Content Security Policy (#15) ──────────────────────────
 function setupContentSecurityPolicy() {
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    // Determine if the request is for the Next.js development server
-    const isDevUrl =
-      details.url.includes("localhost:20128") || details.url.includes("127.0.0.1:20128");
-
-    // React/Next.js requires unsafe-eval for source maps and Hot Module Replacement (HMR) during development.
-    const scriptSrc = isDevUrl
+    // React/Next.js needs 'unsafe-eval' only for source maps + HMR in development.
+    // Gate it on the real dev flag (isDev = NODE_ENV==="development" || !app.isPackaged),
+    // NOT on the request URL: a packaged production build still talks to its embedded
+    // server on localhost:20128, so a URL-substring check would silently grant
+    // 'unsafe-eval' in production and open a code-injection vector via XSS.
+    const scriptSrc = isDev
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:"
       : "script-src 'self' 'unsafe-inline' blob:";
 
@@ -297,14 +297,15 @@ function setupContentSecurityPolicy() {
       "frame-src 'none'",
       "child-src 'none'",
       "form-action 'self'",
-      `connect-src 'self' http://localhost:* ws://localhost:* wss://localhost:* https://*.omniroute.online https://*.omniroute.dev`,
+      // Single connect-src: a duplicate directive is ignored by the browser (first wins),
+      // which previously dropped the 127.0.0.1 origins. Keep both loopback forms here.
+      `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://*.omniroute.online https://*.omniroute.dev`,
       scriptSrc,
       "script-src-attr 'none'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https:",
       "media-src 'self' data: blob:",
-      `connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://*.omniroute.online https://*.omniroute.dev`,
       "worker-src 'self' blob:",
       "manifest-src 'self'",
     ].join("; ");

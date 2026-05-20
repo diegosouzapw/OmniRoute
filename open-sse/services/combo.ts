@@ -1994,12 +1994,12 @@ export async function handleComboChat({
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
-  // #1731: Per-request in-memory set of providers whose quota is fully exhausted.
-  // When a target returns a quota-exhausted 429, remaining same-provider targets are skipped.
-  const exhaustedProviders = new Set<string>();
   let globalAttempts = 0;
 
   for (let setTry = 0; setTry <= maxSetRetries; setTry++) {
+    // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
+    // Reset each retry so providers excluded in a previous attempt get another chance.
+    const exhaustedProviders = new Set<string>();
     if (setTry > 0) {
       log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
       await new Promise((resolve) => {

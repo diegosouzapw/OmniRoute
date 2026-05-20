@@ -17,6 +17,7 @@
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { createHash, randomBytes } from "node:crypto";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -595,7 +596,9 @@ export class CopilotWebExecutor extends BaseExecutor {
       conversationId = session.conversationId;
       sessionCookies = session.cookies;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to start Copilot conversation";
+      const msg = sanitizeErrorMessage(
+        err instanceof Error ? err.message : "Failed to start Copilot conversation"
+      );
       return {
         response: new Response(JSON.stringify({ error: { message: msg } }), {
           status: 502,

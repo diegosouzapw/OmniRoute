@@ -6,6 +6,21 @@
 
 ## [Unreleased]
 
+## [3.8.1] — 2026-05-20
+
+### 🔒 Security Fixes
+
+- **fix(security):** replace execSync string-template with spawnSync arg-array in plugin.mjs — eliminates shell command injection.
+- **fix(security):** gate Electron CSP unsafe-eval on !app.isPackaged — was leaking unsafe-eval into production builds.
+- **fix(api):** add requireManagementAuth to /api/usage/budget/bulk and /api/resilience/reset.
+- **fix(security):** route catch-block error messages through sanitizeErrorMessage() in executors and API routes.
+- **fix(codex):** refreshCredentials returns null on token refresh failure.
+- **fix(tokenRefresh):** safe unknown-error access in catch block.
+- **fix(combo):** reset exhaustedProviders set at start of each set-retry iteration.
+- **fix(circuitBreaker):** persist and restore lastFailureKind via options JSON column.
+
+---
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features

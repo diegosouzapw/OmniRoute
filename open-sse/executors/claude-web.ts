@@ -26,6 +26,7 @@ import { createAutoRefreshMiddleware, refreshCookie } from "../services/claudeWe
 import { getCfClearanceToken, getCacheStatus } from "../services/claudeTurnstileSolver.ts";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
 import { randomUUID } from "crypto";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const CLAUDE_WEB_API_BASE = "https://claude.ai/api";
@@ -735,7 +736,7 @@ export class ClaudeWebExecutor extends BaseExecutor {
       const errorResp = new Response(
         JSON.stringify({
           error: {
-            message: `Claude Web connection failed: ${errorMessage}`,
+            message: `Claude Web connection failed: ${sanitizeErrorMessage(errorMessage)}`,
             type: "api_connection_error",
           },
         }),

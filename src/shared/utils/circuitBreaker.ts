@@ -110,6 +110,14 @@ export class CircuitBreaker {
         }
         this.failureCount = saved.failureCount;
         this.lastFailureTime = saved.lastFailureTime;
+        const savedKind = saved.options?.lastFailureKind;
+        if (
+          savedKind === "rate_limit" ||
+          savedKind === "quota_exhausted" ||
+          savedKind === "transient"
+        ) {
+          this.lastFailureKind = savedKind;
+        }
         if (this.state === STATE.HALF_OPEN) {
           this.halfOpenAllowed = this.halfOpenRequests;
         }
@@ -133,6 +141,7 @@ export class CircuitBreaker {
           failureThreshold: this.failureThreshold,
           resetTimeout: this.resetTimeout,
           halfOpenRequests: this.halfOpenRequests,
+          lastFailureKind: this.lastFailureKind,
         },
       });
     } catch {
