@@ -24,16 +24,23 @@ const require = createRequire(import.meta.url);
 const CRYPTO_SECRETS = {
   JWT_SECRET: () => randomBytes(64).toString("hex"),
   API_KEY_SECRET: () => randomBytes(32).toString("hex"),
-  STORAGE_ENCRYPTION_KEY: () => randomBytes(32).toString("hex"),
+  // STORAGE_ENCRYPTION_KEY: Generated at server startup instead of postinstall.
+  // Generated in bin/omniroute.mjs:ensureStorageEncryptionKey() and persisted to
+  // ~/.omniroute/.env to survive across upgrades. This prevents credential loss
+  // when upgrading OmniRoute (issue #1622).
   MACHINE_ID_SALT: () => `omniroute-${randomBytes(8).toString("hex")}`,
 };
 
 /**
  * Keys that MUST NOT be regenerated when existing encrypted data exists in the DB.
  * Generating a new key would make all previously-encrypted credentials unrecoverable.
+ *
+ * Note: STORAGE_ENCRYPTION_KEY is no longer auto-generated in postinstall.
+ * It's generated at server startup in bin/omniroute.mjs and persisted to
+ * ~/.omniroute/.env to survive across upgrades.
  * @see https://github.com/diegosouzapw/OmniRoute/issues/1622
  */
-const ENCRYPTION_BOUND_KEYS = new Set(["STORAGE_ENCRYPTION_KEY"]);
+const ENCRYPTION_BOUND_KEYS = new Set([]);
 
 // ── Resolve DATA_DIR (mirrors bootstrap-env.mjs / dataPaths.ts) ─────────────
 function resolveDataDir(env = process.env) {
