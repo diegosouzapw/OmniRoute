@@ -4,6 +4,11 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+let execFileImpl = execFileAsync;
+
+export function __setExecFileImpl(fn: typeof execFileAsync): void {
+  execFileImpl = fn;
+}
 
 export interface DetectedTool {
   id: string;
@@ -22,6 +27,7 @@ const TOOLS = [
   { id: "cline", name: "Cline", configPath: "~/.cline/data/globalState.json" },
   { id: "kilocode", name: "Kilo Code", configPath: "~/.config/kilocode/settings.json" },
   { id: "continue", name: "Continue", configPath: "~/.continue/config.yaml" },
+  { id: "hermes", name: "Hermes", configPath: "~/.hermes/config.yaml" },
 ] as const;
 
 const BINARY_NAMES: Record<string, string> = {
@@ -31,6 +37,7 @@ const BINARY_NAMES: Record<string, string> = {
   cline: "cline",
   kilocode: "kilocode",
   continue: "continue",
+  hermes: "hermes",
 };
 
 function expandHome(p: string): string {
@@ -50,7 +57,7 @@ function isConfigured(content: string, baseUrl: string): boolean {
 async function detectBinary(name: string): Promise<{ installed: boolean; version?: string }> {
   const binary = BINARY_NAMES[name] || name;
   try {
-    const { stdout } = await execFileAsync(binary, ["--version"], { timeout: 5000 });
+    const { stdout } = await execFileImpl(binary, ["--version"], { timeout: 5000 });
     const version = stdout.trim().replace(/^v/, "");
     return { installed: true, version };
   } catch {

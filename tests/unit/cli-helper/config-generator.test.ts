@@ -50,6 +50,18 @@ describe("config-generator", () => {
       assert.ok("configPath" in result);
     });
 
+    it("returns success for valid hermes config", async () => {
+      const result = await generator.generateConfig("hermes", {
+        baseUrl: "http://localhost:20128",
+        apiKey: "sk-test",
+        model: "gpt-5.4-mini",
+      });
+      assert.strictEqual(result.success, true);
+      assert.ok(result.configPath.endsWith(".hermes/config.yaml"));
+      assert.ok(String(result.content || "").includes("providers:"));
+      assert.ok(String(result.content || "").includes("omniroute"));
+    });
+
     it("returns error for unknown tool", async () => {
       const result = await generator.generateConfig("unknown-tool-xyz", {
         baseUrl: "http://localhost:20128",
@@ -67,7 +79,7 @@ describe("config-generator", () => {
         apiKey: "sk-xxx",
       });
       assert.ok(Array.isArray(results));
-      assert.strictEqual(results.length, 6); // claude, codex, opencode, cline, kilocode, continue
+      assert.strictEqual(results.length, 7); // claude, codex, opencode, cline, kilocode, continue, hermes
     });
   });
 });

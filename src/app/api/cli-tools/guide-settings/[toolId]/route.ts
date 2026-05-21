@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import * as yaml from "js-yaml";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getRuntimePorts } from "@/lib/runtime/ports";
-import { getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
+import { getCliPrimaryConfigPath, getOpenCodeConfigPath } from "@/shared/services/cliRuntime";
 import { mergeOpenCodeConfigText } from "@/shared/services/opencodeConfig";
 import { guideSettingsSaveSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -58,6 +59,8 @@ export async function POST(request, { params }) {
         return await saveOpenCodeConfig({ baseUrl, apiKey, model, models, modelLabels });
       case "qwen":
         return await saveQwenConfig({ baseUrl, apiKey, model });
+      case "hermes":
+        return await saveHermesConfig({ baseUrl, apiKey, model });
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -238,6 +241,62 @@ async function saveQwenConfig({ baseUrl, apiKey, model }) {
   return NextResponse.json({
     success: true,
     message: `Qwen Code config saved to ${configPath}`,
+    configPath,
+  });
+}
+
+/**
+ * Save Hermes config to ~/.hermes/config.yaml
+ *
+ * Hermes stores its primary routing settings in YAML. Preserve any existing
+ * keys, but make sure the OmniRoute provider entry is present and selected.
+ */
+async function saveHermesConfig({ baseUrl, apiKey, model }) {
+  const configPath = getCliPrimaryConfigPath("hermes") || path.join(os.homedir(), ".hermes", "config.yaml");
+  const configDir = path.dirname(configPath);
+
+  await fs.mkdir(configDir, { recursive: true });
+
+  const normalizedBaseUrl = String(baseUrl || "")
+    .trim()
+    .replace(/\/+$/, "");
+  const providerBaseUrl = normalizedBaseUrl.endsWith("/v1") ? normalizedBaseUrl : `${normalizedBaseUrl}/v1`;
+  const selectedModel = model || "gpt-5.4-mini";
+
+  let existingConfig: Record<string, any> = {};
+  try {
+    const raw = await fs.readFile(configPath, "utf-8");
+    const parsed = yaml.load(raw);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      existingConfig = parsed as Record<string, any>;
+    }
+  } catch {
+    // No existing config or unparsable YAML — start fresh.
+  }
+
+  const nextConfig = {
+    ...existingConfig,
+    model: {
+      ...(existingConfig.model || {}),
+      default: selectedModel,
+      provider: "omniroute",
+      base_url: providerBaseUrl,
+    },
+    providers: {
+      ...(existingConfig.providers || {}),
+      omniroute: {
+        ...((existingConfig.providers && existingConfig.providers.omniroute) || {}),
+        base_url: providerBaseUrl,
+        api_key: apiKey || ((existingConfig.providers && existingConfig.providers.omniroute && existingConfig.providers.omniroute.api_key) || ""),
+      },
+    },
+  };
+
+  await fs.writeFile(configPath, yaml.dump(nextConfig, { lineWidth: -1 }), "utf-8");
+
+  return NextResponse.json({
+    success: true,
+    message: `Hermes config saved to ${configPath}`,
     configPath,
   });
 }

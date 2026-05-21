@@ -133,10 +133,10 @@ const CLI_TOOLS: Record<string, any> = {
   hermes: {
     defaultCommand: "hermes",
     envBinKey: "CLI_HERMES_BIN",
-    requiresBinary: false,
+    requiresBinary: true,
     healthcheckTimeoutMs: 4000,
     paths: {
-      config: ".config/hermes/config.json",
+      config: ".hermes/config.yaml",
     },
   },
   amp: {
