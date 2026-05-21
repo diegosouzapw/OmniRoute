@@ -10,7 +10,7 @@
   "license": "MIT",
   "homepage": "https://omniroute.online",
   "engines": {
-    "node": ">=22.22.2 <23 || >=24.0.0 <27"
+    "node": ">=22.19.0 <23 || >=24 <27"
   },
   "scripts": {
     "start": "electron .",

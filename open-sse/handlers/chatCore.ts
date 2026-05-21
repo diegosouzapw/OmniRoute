@@ -863,10 +863,18 @@ function isSemaphoreCapacityError(error: unknown): error is Error & { code: stri
   );
 }
 
-function createStreamingErrorResult(statusCode: number, message: string, code?: string) {
+function createStreamingErrorResult(
+  statusCode: number,
+  message: string,
+  code?: string,
+  type?: string
+) {
   const errorBody = buildErrorBody(statusCode, message);
   if (code) {
     errorBody.error.code = code;
+  }
+  if (type) {
+    errorBody.error.type = type;
   }
 
   const body = `data: ${JSON.stringify(errorBody)}\n\ndata: [DONE]\n\n`;
@@ -885,6 +893,12 @@ function createStreamingErrorResult(statusCode: number, message: string, code?: 
       },
     }),
   };
+}
+
+function getUpstreamErrorIdentifier(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const value = (error as { code?: unknown }).code;
+  return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 function wrapReadableStreamWithFinalize<T>(
@@ -3567,6 +3581,9 @@ export async function handleChatCore({
       error.name === "AbortError"
         ? "Request aborted"
         : formatProviderError(error, provider, model, failureStatus);
+    const upstreamErrorCode = getUpstreamErrorIdentifier(error);
+    const upstreamErrorType =
+      upstreamErrorCode === "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT" ? "upstream_timeout" : undefined;
     appendRequestLog({
       model,
       provider,
@@ -3587,10 +3604,29 @@ export async function handleChatCore({
     }
     persistFailureUsage(
       failureStatus,
-      error instanceof Error && error.name ? error.name : "upstream_error"
+      upstreamErrorCode || (error instanceof Error && error.name ? error.name : "upstream_error")
     );
     console.log(`${COLORS.red}[ERROR] ${failureMessage}${COLORS.reset}`);
-    return createErrorResult(failureStatus, failureMessage);
+    if (stream && upstreamErrorCode) {
+      const result = createStreamingErrorResult(
+        failureStatus,
+        failureMessage,
+        upstreamErrorCode,
+        upstreamErrorType
+      );
+      return {
+        ...result,
+        errorType: upstreamErrorType,
+        errorCode: upstreamErrorCode,
+      };
+    }
+    return createErrorResult(
+      failureStatus,
+      failureMessage,
+      null,
+      upstreamErrorCode,
+      upstreamErrorType
+    );
   }
   // We need to peek at the error text if it's 400 for Qwen
   let upstreamErrorParsed = false;
