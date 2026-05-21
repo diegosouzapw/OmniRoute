@@ -180,6 +180,50 @@ test("updateApiKeyPermissions changing non-manage scopes emits apiKey.scopes.upd
   assert.equal(updates.length, 1, "expected exactly one non-manage scope update event");
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Regression — scopes and ban state are orthogonal (T-008)
+//
+// The Permissions modal previously had two chips bound to `isBanned` (one
+// labelled "Management API Access" with manage-scope copy). A user toggling
+// it expected manage-scope grant; instead it flipped the ban flag. These
+// tests guard against the inverse cross-wire ever returning: updating scopes
+// must not touch isBanned, and toggling isBanned must not touch scopes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("updating scopes to manage leaves isBanned untouched", async () => {
+  const created = await apiKeysDb.createApiKey("banned-then-manage", MACHINE_ID, []);
+  const banOk = await apiKeysDb.updateApiKeyPermissions(created.id, { isBanned: true });
+  assert.equal(banOk, true);
+
+  const ok = await apiKeysDb.updateApiKeyPermissions(created.id, { scopes: ["manage"] });
+  assert.equal(ok, true);
+
+  const meta = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(meta);
+  assert.deepEqual(meta!.scopes, ["manage"]);
+  assert.equal(meta!.isBanned, true, "ban flag must survive a scopes-only update");
+});
+
+test("toggling isBanned does not touch scopes", async () => {
+  const created = await apiKeysDb.createApiKey("manage-then-ban", MACHINE_ID, ["manage"]);
+
+  const banOk = await apiKeysDb.updateApiKeyPermissions(created.id, { isBanned: true });
+  assert.equal(banOk, true);
+
+  const meta = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(meta);
+  assert.deepEqual(meta!.scopes, ["manage"], "scopes must survive a ban-only update");
+  assert.equal(meta!.isBanned, true);
+
+  const unbanOk = await apiKeysDb.updateApiKeyPermissions(created.id, { isBanned: false });
+  assert.equal(unbanOk, true);
+
+  const meta2 = await apiKeysDb.getApiKeyMetadata(created.key);
+  assert.ok(meta2);
+  assert.deepEqual(meta2!.scopes, ["manage"], "scopes must survive an unban update");
+  assert.equal(meta2!.isBanned, false);
+});
+
 test("updateApiKeyPermissions without scopes field does not emit any scope audit event", async () => {
   const created = await apiKeysDb.createApiKey("no-scope-change", MACHINE_ID);
 
