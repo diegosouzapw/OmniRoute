@@ -19,6 +19,7 @@ import {
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -40,6 +41,13 @@ export default function AppearanceTab() {
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
   const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
+  const pinProviderQuotaToHome = settings[PIN_PROVIDER_QUOTA_TO_HOME_KEY] === true;
+  const showQuickStartOnHome = settings.showQuickStartOnHome !== false; // default on
+  const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false; // default on
+  const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true; // default off
+  const autoRefreshProviderQuotaInterval = typeof settings.autoRefreshProviderQuotaInterval === "number"
+    ? settings.autoRefreshProviderQuotaInterval
+    : 180;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -382,6 +390,138 @@ export default function AppearanceTab() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Automatic Refresh of Provider Quota */}
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-4">
+              <p className="font-medium">
+                {getSettingsLabel("autoRefreshProviderQuota", "Automatic Refresh of Provider Quota")}
+              </p>
+              <p className="text-sm text-text-muted">
+                {getSettingsLabel(
+                  "autoRefreshProviderQuotaDesc",
+                  "Automatically refresh provider quotas at a set interval."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={autoRefreshProviderQuota}
+              onChange={() => {
+                const next = !autoRefreshProviderQuota;
+                updateSetting("autoRefreshProviderQuota", next);
+                // Ensure the interval value is persisted when first enabling the feature
+                if (next) {
+                  updateSetting("autoRefreshProviderQuotaInterval", autoRefreshProviderQuotaInterval);
+                }
+              }}
+              disabled={loading}
+            />
+          </div>
+
+          {autoRefreshProviderQuota && (
+            <div className="mt-3 ml-1 flex items-center gap-3">
+              <label className="text-sm text-text-muted min-w-[140px]">
+                {getSettingsLabel("autoRefreshProviderQuotaInterval", "Refresh interval (seconds)")}
+              </label>
+              <input
+                type="number"
+                min={10}
+                max={3600}
+                step={10}
+                value={autoRefreshProviderQuotaInterval}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (!isNaN(val)) {
+                    updateSetting("autoRefreshProviderQuotaInterval", Math.max(10, Math.min(3600, val)));
+                  }
+                }}
+                className="w-24 rounded border border-border bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                disabled={loading}
+              />
+              <span className="text-xs text-text-muted">
+                {getSettingsLabel("autoRefreshProviderQuotaIntervalDesc", "Minimum 10s, default 180s (3 min)")}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Pin Information to Home Page section */}
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("pinProviderQuotaToHome", "Pin Information to Home Page")}
+            </p>
+            <p className="text-sm text-text-muted">
+              Choose which sections to pin to the top of the Home page.
+            </p>
+          </div>
+
+          {/* Pinned options as a rounded table/list */}
+          <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+            <div className="divide-y divide-border/70">
+              {/* Provider Quota Limits */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("providerQuotaLimits", "Provider Quota Limits")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "providerQuotaLimitsDesc",
+                      "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={pinProviderQuotaToHome}
+                  onChange={() => updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, !pinProviderQuotaToHome)}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Quick Start */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("quickStart", "Quick Start")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "quickStartDesc",
+                      "Show the Quick Start panel on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showQuickStartOnHome}
+                  onChange={() => updateSetting("showQuickStartOnHome", !showQuickStartOnHome)}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Provider Topology */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("providerTopology", "Provider Topology")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "providerTopologyDesc",
+                      "Show the Provider Topology on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showProviderTopologyOnHome}
+                  onChange={() => updateSetting("showProviderTopologyOnHome", !showProviderTopologyOnHome)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

@@ -206,7 +206,12 @@ function formatCountdown(resetAt) {
   }
 }
 
-export default function ProviderLimits() {
+interface ProviderLimitsProps {
+  showFilters?: boolean;
+  autoRefreshInterval?: number; // in seconds
+}
+
+export default function ProviderLimits({ showFilters = true, autoRefreshInterval = 0 }: ProviderLimitsProps) {
   const t = useTranslations("usage");
   const tr = useCallback(
     (key: string, fallback: string, values?: UsageTranslationValues) =>
@@ -219,6 +224,8 @@ export default function ProviderLimits() {
   const [loading, setLoading] = useState({});
   const [errors, setErrors] = useState({});
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Record<string, string>>({});
+  const [lastRefreshAllAt, setLastRefreshAllAt] = useState<number | null>(null);
+  const [refreshCountdown, setRefreshCountdown] = useState<string>("");
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
@@ -455,6 +462,7 @@ export default function ProviderLimits() {
       const connectionList = await fetchConnections();
       applyCachedQuotaState(connectionList, data.caches || {});
       setErrors(data.errors || {});
+      setLastRefreshAllAt(Date.now());
     } catch (error) {
       console.error("Error refreshing all:", error);
     } finally {
@@ -462,6 +470,55 @@ export default function ProviderLimits() {
       setRefreshingAll(false);
     }
   }, [applyCachedQuotaState, fetchConnections]);
+
+  // Auto-refresh logic + immediate stale check
+  useEffect(() => {
+    if (!autoRefreshInterval || autoRefreshInterval < 10) return;
+
+    const intervalMs = autoRefreshInterval * 1000;
+
+    const checkAndRefresh = () => {
+      if (refreshingAllRef.current) return;
+      const now = Date.now();
+      if (!lastRefreshAllAt || now - lastRefreshAllAt >= intervalMs) {
+        refreshAll();
+      }
+    };
+
+    // On mount or when interval changes: refresh immediately if data is stale
+    checkAndRefresh();
+
+    const intervalId = setInterval(() => {
+      checkAndRefresh();
+    }, intervalMs);
+
+    return () => clearInterval(intervalId);
+  }, [autoRefreshInterval, lastRefreshAllAt, refreshAll]);
+
+  // Live countdown for the Refresh All button (1s updates)
+  useEffect(() => {
+    if (!autoRefreshInterval || autoRefreshInterval < 10 || !lastRefreshAllAt) {
+      setRefreshCountdown("");
+      return;
+    }
+
+    const intervalMs = autoRefreshInterval * 1000;
+
+    const updateCountdown = () => {
+      const now = Date.now();
+      const nextAt = lastRefreshAllAt + intervalMs;
+      const remaining = Math.max(0, nextAt - now);
+
+      const totalSeconds = Math.ceil(remaining / 1000);
+      const min = Math.floor(totalSeconds / 60);
+      const sec = totalSeconds % 60;
+      setRefreshCountdown(`${min}:${sec.toString().padStart(2, "0")}`);
+    };
+
+    updateCountdown();
+    const id = setInterval(updateCountdown, 1000);
+    return () => clearInterval(id);
+  }, [autoRefreshInterval, lastRefreshAllAt]);
 
   useEffect(() => {
     const init = async () => {
@@ -791,115 +848,123 @@ export default function ProviderLimits() {
             <span
               className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
             >
-              refresh
+              {autoRefreshInterval > 0 && refreshCountdown ? "schedule" : "refresh"}
             </span>
-            {t("refreshAll")}
+            {autoRefreshInterval > 0 && refreshCountdown
+              ? `Refreshing in ${refreshCountdown}`
+              : t("refreshAll")}
           </button>
         </div>
       </div>
 
       {/* Summary Stats — clickable filters by status */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
-          const tone = STATUS_TONE[key];
-          const labelMap: Record<string, string> = {
-            all: tr("statTotal", "Total"),
-            critical: tr("statCritical", "Crítico"),
-            alert: tr("statAlert", "Alerta"),
-            ok: tr("statHealthy", "Saudável"),
-          };
-          const active = statusFilter === key;
-          const count = statusCounts[key] || 0;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => handleSetStatusFilter(key)}
-              className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
-              style={{
-                background: active ? tone.bg : "var(--color-surface)",
-                borderColor: active ? tone.ring : "var(--color-border)",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
-                  {labelMap[key]}
-                </span>
-                {key !== "all" && (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: tone.dot }}
-                    aria-hidden
-                  />
-                )}
-              </div>
-              <div
-                className="mt-0.5 text-2xl font-bold tabular-nums"
-                style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
+      {showFilters && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
+            const tone = STATUS_TONE[key];
+            const labelMap: Record<string, string> = {
+              all: tr("statTotal", "Total"),
+              critical: tr("statCritical", "Crítico"),
+              alert: tr("statAlert", "Alerta"),
+              ok: tr("statHealthy", "Saudável"),
+            };
+            const active = statusFilter === key;
+            const count = statusCounts[key] || 0;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleSetStatusFilter(key)}
+                className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
+                style={{
+                  background: active ? tone.bg : "var(--color-surface)",
+                  borderColor: active ? tone.ring : "var(--color-border)",
+                }}
               >
-                {count}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+                    {labelMap[key]}
+                  </span>
+                  {key !== "all" && (
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ background: tone.dot }}
+                      aria-hidden
+                    />
+                  )}
+                </div>
+                <div
+                  className="mt-0.5 text-2xl font-bold tabular-nums"
+                  style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
+                >
+                  {count}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Purchase Type Filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterPurchaseTypeLabel", "Tipo")}
-        </span>
-        {PURCHASE_TYPES.map((type) => {
-          const count = purchaseTypeCounts[type.key] || 0;
-          if (type.key !== "all" && count === 0) return null;
-          const active = purchaseTypeFilter === type.key;
-          return (
-            <button
-              key={type.key}
-              onClick={() => handleSetPurchaseFilter(type.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tr(type.labelKey, type.fallback)}</span>
-              <span className="opacity-85">{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      {showFilters && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+            {tr("filterPurchaseTypeLabel", "Tipo")}
+          </span>
+          {PURCHASE_TYPES.map((type) => {
+            const count = purchaseTypeCounts[type.key] || 0;
+            if (type.key !== "all" && count === 0) return null;
+            const active = purchaseTypeFilter === type.key;
+            return (
+              <button
+                key={type.key}
+                onClick={() => handleSetPurchaseFilter(type.key)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                style={{
+                  border: active
+                    ? "1px solid var(--color-primary, #E54D5E)"
+                    : "1px solid var(--color-border)",
+                  background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                  color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                }}
+              >
+                <span>{tr(type.labelKey, type.fallback)}</span>
+                <span className="opacity-85">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Tier Filters */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterTierLabel", "Tier")}
-        </span>
-        {TIER_FILTERS.map((tier) => {
-          if (tier.key !== "all" && !tierCounts[tier.key]) return null;
-          const active = tierFilter === tier.key;
-          return (
-            <button
-              key={tier.key}
-              onClick={() => setTierFilter(tier.key)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
-              style={{
-                border: active
-                  ? "1px solid var(--color-primary, #E54D5E)"
-                  : "1px solid var(--color-border)",
-                background: active ? "rgba(229,77,94,0.1)" : "transparent",
-                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
-              }}
-            >
-              <span>{tier.label || t(tier.labelKey)}</span>
-              <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
-            </button>
-          );
-        })}
-      </div>
+      {showFilters && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+            {tr("filterTierLabel", "Tier")}
+          </span>
+          {TIER_FILTERS.map((tier) => {
+            if (tier.key !== "all" && !tierCounts[tier.key]) return null;
+            const active = tierFilter === tier.key;
+            return (
+              <button
+                key={tier.key}
+                onClick={() => setTierFilter(tier.key)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                style={{
+                  border: active
+                    ? "1px solid var(--color-primary, #E54D5E)"
+                    : "1px solid var(--color-border)",
+                  background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                  color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+                }}
+              >
+                <span>{tier.label || t(tier.labelKey)}</span>
+                <span className="opacity-85">{tierCounts[tier.key] || 0}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Account rows — expandable */}
       <div className="rounded-xl border border-border overflow-hidden bg-surface">

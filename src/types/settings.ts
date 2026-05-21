@@ -24,6 +24,11 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  pinProviderQuotaToHome?: boolean;
+  showQuickStartOnHome?: boolean;
+  showProviderTopologyOnHome?: boolean;
+  autoRefreshProviderQuota?: boolean;
+  autoRefreshProviderQuotaInterval?: number;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
 }
