@@ -39,6 +39,7 @@ jobs:
           cache: npm
           cache-dependency-path: "@omniroute/opencode-plugin/package-lock.json"
       - run: npm install --no-audit --no-fund
+      - run: npm run build
       - run: npm test
 
   build:
