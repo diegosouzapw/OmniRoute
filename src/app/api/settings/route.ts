@@ -26,15 +26,19 @@ import { getApiKeyMetadata } from "@/lib/db/apiKeys";
  * - `localOnlyManageScopeBypassEnabled` / `localOnlyManageScopeBypassPrefixes`:
  *   T-011 bypass kill-switch + per-prefix list. Operator must re-confirm
  *   before broadening the LOCAL_ONLY carve-out.
- * - `requireLogin` / `mcpEnabled`: existing security toggles.
+ * - `requireLogin`: dashboard login enforcement toggle.
  * - `newPassword`: password rotation (existing). Handled by the same gate so
  *   the password-verify only fires ONCE per PATCH.
+ *
+ * Note: `mcpEnabled` is NOT gated server-side — the dedicated MCP page
+ * (/dashboard/mcp) toggles it via patchSetting() without a currentPassword
+ * prompt. The Authz section can still prompt client-side for consistency,
+ * but the server accepts the change without re-auth.
  */
 const SECURITY_IMPACTING_KEYS = [
   "localOnlyManageScopeBypassEnabled",
   "localOnlyManageScopeBypassPrefixes",
   "requireLogin",
-  "mcpEnabled",
   "newPassword",
 ] as const;
 
