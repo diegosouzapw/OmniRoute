@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import {
   OmniRoutePlugin,
   OMNIROUTE_PROVIDER_KEY,
@@ -58,4 +59,12 @@ test("OmniRoutePlugin: returns an empty hooks object (scaffold)", async () => {
   const hooks = await OmniRoutePlugin(fakeCtx);
   assert.equal(typeof hooks, "object");
   assert.notEqual(hooks, null);
+});
+
+test("scaffold: CJS default export resolves via require()", () => {
+  const require_ = createRequire(import.meta.url);
+  const cjs = require_("../dist/index.cjs");
+  // after cjsInterop:true, default export is on cjs.default
+  assert.strictEqual(typeof cjs.default, "function");
+  assert.strictEqual(cjs.default.name, "OmniRoutePlugin");
 });

@@ -8,9 +8,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": [
@@ -27,19 +32,19 @@
   "keywords": [
     "omniroute",
     "opencode",
-    "opencode-ai",
     "opencode-plugin",
     "ai-sdk",
     "openai-compatible",
     "provider",
-    "ai-gateway",
-    "llm-router"
+    "gemini",
+    "combos",
+    "mcp"
   ],
   "author": "OmniRoute contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/diegosouzapw/OmniRoute.git",
+    "url": "https://github.com/diegosouzapw/OmniRoute.git",
     "directory": "@omniroute/opencode-plugin"
   },
   "bugs": {

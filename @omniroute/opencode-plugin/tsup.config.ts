@@ -7,8 +7,9 @@ export default defineConfig({
   clean: true,
   sourcemap: false,
   splitting: false,
-  treeshake: true,
+  treeshake: false,
   target: "node22",
   outDir: "dist",
   minify: false,
+  cjsInterop: true,
 });
