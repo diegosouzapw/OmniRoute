@@ -1,7 +1,9 @@
 FROM node:24-slim AS builder
 WORKDIR /app
 
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
@@ -10,14 +12,16 @@ COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
 COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
 COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-RUN if [ -f package-lock.json ]; then \
+RUN --mount=type=cache,target=/root/.npm \
+  if [ -f package-lock.json ]; then \
     npm ci --no-audit --no-fund --legacy-peer-deps; \
     else \
     npm install --no-audit --no-fund --legacy-peer-deps; \
     fi
 
 COPY . ./
-RUN mkdir -p /app/data && npm run build -- --webpack
+RUN --mount=type=cache,target=/app/.next/cache \
+  mkdir -p /app/data && npm run build -- --webpack
 
 FROM node:24-slim AS runner-base
 WORKDIR /app
@@ -35,7 +39,9 @@ ENV NODE_OPTIONS="--max-old-space-size=256"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/data
@@ -75,10 +81,13 @@ CMD ["node", "dev/run-standalone.mjs"]
 FROM runner-base AS runner-cli
 
 # Install system dependencies required by openclaw (git+ssh references).
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+  apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates docker.io docker-compose \
   && rm -rf /var/lib/apt/lists/* \
   && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
 
 # Install CLI tools globally. Separate layer from apt for better cache reuse.
-RUN npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
+RUN --mount=type=cache,target=/root/.npm \
+  npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
