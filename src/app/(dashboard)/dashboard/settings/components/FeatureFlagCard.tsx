@@ -39,9 +39,8 @@ const SOURCE_STYLES: Record<
   default: { bg: "bg-slate-500/20", text: "text-slate-400", label: "DEF" },
 };
 
-// toggles always write "true"/"false"; "1"/"yes" resolution happens in the API
 function isEnabled(value: string): boolean {
-  return value === "true";
+  return value === "true" || value === "1" || value === "yes";
 }
 
 function Spinner() {
