@@ -53,8 +53,8 @@ const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigMo
   ssr: false,
 });
 
-// Validate combo name: letters, numbers, -, _, /, .
-const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
+// Validate combo name: letters, numbers, spaces, -, _, /, ., [ and ].
+const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.\-\[\] ]+$/;
 
 const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
   value: strategy.value,

@@ -232,6 +232,22 @@ function validateProviderSpecificData(
       });
     }
   }
+
+  const clientProfile = data.clientProfile;
+  if (clientProfile !== undefined && clientProfile !== null) {
+    const normalized = typeof clientProfile === "string" ? clientProfile.trim().toLowerCase() : "";
+    if (
+      typeof clientProfile !== "string" ||
+      !["ide", "harness", "cli", "sdk"].includes(normalized)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "providerSpecificData.clientProfile must be ide, harness, cli, or sdk (cli/sdk map to harness)",
+        path: ["clientProfile"],
+      });
+    }
+  }
 }
 
 // Re-export validation helpers from dedicated module to avoid webpack barrel-file
@@ -605,6 +621,14 @@ export const updateSettingsSchema = z.object({
   mcpEnabled: z.boolean().optional(),
   a2aEnabled: z.boolean().optional(),
   wsAuth: z.boolean().optional(),
+
+  // Qdrant integration
+  qdrantEnabled: z.boolean().optional(),
+  qdrantHost: z.string().max(500).optional(),
+  qdrantPort: z.number().int().min(1).max(65535).optional(),
+  qdrantApiKey: z.string().max(500).optional(),
+  qdrantCollection: z.string().max(200).optional(),
+  qdrantEmbeddingModel: z.string().max(200).optional(),
 });
 
 // ──── Auth Schemas ────

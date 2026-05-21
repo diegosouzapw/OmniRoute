@@ -387,6 +387,9 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("youcom-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("jules"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("devin"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("codex-cloud"), true);
 });
 
 test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {

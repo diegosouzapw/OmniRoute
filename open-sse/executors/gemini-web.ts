@@ -14,6 +14,7 @@
  */
 
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -273,7 +274,9 @@ export class GeminiWebExecutor extends BaseExecutor {
     } catch (error) {
       return {
         response: new Response(
-          JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+          JSON.stringify({
+            error: sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error"),
+          }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         ),
         url: GEMINI_URL,

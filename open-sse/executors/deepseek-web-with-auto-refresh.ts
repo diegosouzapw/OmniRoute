@@ -1,5 +1,5 @@
 import type { ExecuteInput } from "./base.ts";
-import { DeepSeekWebExecutor, DEEPSEEK_WEB_BASE } from "./deepseek-web.ts";
+import { DeepSeekWebExecutor, acquireAccessToken, tokenCache } from "./deepseek-web.ts";
 
 interface AutoRefreshConfig {
   sessionRefreshInterval?: number;
@@ -18,12 +18,12 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
   private sessionValid = false;
   private retryCount = 0;
   private readonly maxRetries = 2;
-  private currentCookies = "";
+  private currentUserToken = "";
 
   constructor(config: AutoRefreshConfig = {}) {
     super();
     this.refreshConfig = {
-      sessionRefreshInterval: 20 * 60 * 60 * 1000,
+      sessionRefreshInterval: 50 * 60 * 1000,
       maxRefreshRetries: 3,
       autoRefresh: true,
       ...config,
@@ -35,8 +35,8 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
 
   override async execute(input: ExecuteInput) {
     this.retryCount = 0;
-    this.currentCookies =
-      ((input.credentials as unknown as Record<string, unknown>).cookies as string) || "";
+    const creds = input.credentials as unknown as Record<string, unknown>;
+    this.currentUserToken = (creds.apiKey as string) || (creds.accessToken as string) || "";
     return this.executeWithRetry(input);
   }
 
@@ -71,34 +71,26 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
   }
 
   private async doRefreshSession(): Promise<void> {
-    if (!this.currentCookies) {
+    if (!this.currentUserToken) {
       this.sessionValid = false;
-      throw new Error("No cookies available for session refresh");
+      throw new Error("No userToken available for session refresh");
     }
     const { maxRefreshRetries } = this.refreshConfig;
     for (let attempt = 0; attempt < maxRefreshRetries; attempt++) {
       try {
-        // Validate session by fetching current user (lightweight, no PoW needed)
-        const response = await fetch(`${DEEPSEEK_WEB_BASE}/api/v0/users/current`, {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            Cookie: this.currentCookies,
-          },
-        });
-        if (response.ok) {
-          const json = await response.json();
-          if (json?.data?.biz_data?.token) {
-            this.lastRefreshTime = Date.now();
-            this.sessionValid = true;
-            return;
-          }
+        tokenCache.delete(this.currentUserToken);
+        const accessToken = await acquireAccessToken(this.currentUserToken);
+        if (accessToken) {
+          this.lastRefreshTime = Date.now();
+          this.sessionValid = true;
+          return;
         }
-        if (response.status === 401 || response.status === 403) {
-          this.sessionValid = false;
-          throw new Error("Session expired - requires re-authentication");
-        }
-        await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
       } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        if (msg.includes("invalid") || msg.includes("expired")) {
+          this.sessionValid = false;
+          throw new Error("Token expired — get a new userToken from DeepSeek localStorage");
+        }
         if (attempt >= maxRefreshRetries - 1) throw error;
         await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
       }
@@ -106,18 +98,22 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
     throw new Error("Failed to refresh session after max retries");
   }
 
+  private executeBase(input: ExecuteInput) {
+    return super.execute(input);
+  }
+
   private async executeWithRetry(input: ExecuteInput) {
     try {
-      return await super.execute(input);
+      return await this.executeBase(input);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       const isUnauthorized =
-        msg.includes("401") || msg.includes("Unauthorized") || msg.includes("Session expired");
+        msg.includes("401") || msg.includes("Unauthorized") || msg.includes("expired");
       if (isUnauthorized && this.retryCount < this.maxRetries) {
         this.retryCount++;
         try {
           await this.doRefreshSession();
-          return await super.execute(input);
+          return await this.executeBase(input);
         } catch (refreshError) {
           console.error(
             `[DeepSeek-WEB] Session refresh failed (attempt ${this.retryCount}/${this.maxRetries}):`,

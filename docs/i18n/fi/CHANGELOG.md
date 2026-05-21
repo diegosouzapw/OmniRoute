@@ -6,6 +6,26 @@
 
 ## [Unreleased]
 
+## [3.8.1] — 2026-05-20
+
+### 🔧 Bug Fixes & Refactors
+
+- **fix(translator):** treat `developer` role as system in OpenAI → Claude translation — `openAIToClaude` now extracts `developer`-role messages into `systemParts` (same as `system`) and filters them from the non-system message list, preventing identity context injected via the Responses API `developer` role from silently becoming an assistant turn when routing to a Claude-format provider. ([#2407](https://github.com/diegosouzapw/OmniRoute/issues/2407))
+- **fix(antigravity):** deduplicate `removeHeaderCaseInsensitive` — export canonical implementation from `antigravityClientProfile.ts` and remove the local copy in `antigravity.ts`; export `AntigravityCredentialsLike` type for cross-module use. (#2433 — thanks @Gi99lin)
+
+### 🔒 Security Fixes
+
+- **fix(security):** replace execSync string-template with spawnSync arg-array in plugin.mjs — eliminates shell command injection.
+- **fix(security):** gate Electron CSP unsafe-eval on !app.isPackaged — was leaking unsafe-eval into production builds.
+- **fix(api):** add requireManagementAuth to /api/usage/budget/bulk and /api/resilience/reset.
+- **fix(security):** route catch-block error messages through sanitizeErrorMessage() in executors and API routes.
+- **fix(codex):** refreshCredentials returns null on token refresh failure.
+- **fix(tokenRefresh):** safe unknown-error access in catch block.
+- **fix(combo):** reset exhaustedProviders set at start of each set-retry iteration.
+- **fix(circuitBreaker):** persist and restore lastFailureKind via options JSON column.
+
+---
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features

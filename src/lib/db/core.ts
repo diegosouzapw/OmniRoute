@@ -4,7 +4,13 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import Database from "better-sqlite3";
+import type { SqliteAdapter } from "./adapters/types";
+import {
+  tryOpenSync,
+  getSqlJsAdapter,
+  preInitSqlJs,
+  openDatabaseAsync,
+} from "./adapters/driverFactory";
 import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
@@ -19,7 +25,7 @@ import {
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 type PreservedTableSnapshot = {
@@ -61,7 +67,12 @@ export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite"
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
 const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
-const SKIP_PRESERVE_NAMESPACES = new Set(["syncedAvailableModels", "providerLimitsCache", "lkgp"]);
+const SKIP_PRESERVE_NAMESPACES = new Set([
+  "syncedAvailableModels",
+  "providerLimitsCache",
+  "lkgp",
+  "gemini_thought_signatures",
+]);
 const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   {
     table: "key_value",
@@ -112,32 +123,19 @@ function getErrorCode(error: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
-function createNativeSqliteLoadError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  const detail =
-    `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
-    "This usually happens after switching Node.js versions without rebuilding native modules. " +
-    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
-    `Original error: ${message}`;
-  const wrapped = new Error(detail) as Error & { cause?: unknown; code?: string };
-  wrapped.name = "NativeSqliteLoadError";
-  wrapped.cause = error;
-  wrapped.code = getErrorCode(error) || "ERR_DLOPEN_FAILED";
-  return wrapped;
-}
+function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown>): SqliteDatabase {
+  const adapter = tryOpenSync(sqliteFile, options);
+  if (adapter) return adapter;
 
-function openSqliteDatabase(
-  sqliteFile: string,
-  options?: ConstructorParameters<typeof Database>[1]
-): SqliteDatabase {
-  try {
-    return new Database(sqliteFile, options);
-  } catch (error: unknown) {
-    if (isNativeSqliteLoadError(error)) {
-      throw createNativeSqliteLoadError(error);
-    }
-    throw error;
-  }
+  const sqlJs = getSqlJsAdapter(sqliteFile);
+  if (sqlJs) return sqlJs;
+
+  throw new Error(
+    `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
+      "Chame ensureDbInitialized() no startup. " +
+      "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível). " +
+      "sql.js WASM ainda não foi pré-inicializado."
+  );
 }
 
 // Ensure data directory exists — with fallback for restricted home directories (#133)
@@ -483,7 +481,7 @@ export function cleanNulls(obj: unknown): JsonRecord {
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+  var __omnirouteDb: SqliteAdapter | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -1447,20 +1445,25 @@ export function getDriverInfo(): DbDriverInfo | null {
 export async function ensureDbInitialized(): Promise<void> {
   if (getDb()) return;
 
-  try {
-    const runtimeModule = await import("../../../bin/cli/runtime/sqliteRuntime.mjs" as any);
-    const { driver, source } = await runtimeModule.loadSqliteRuntime();
-    setDriverInfo({ source, kind: driver.kind as string });
-    if ((driver.kind as string) !== "better-sqlite3") {
-      console.warn(
-        `[DB] better-sqlite3 unavailable (resolved via ${source}/${driver.kind}). ` +
-          `OmniRoute may fall back to read-only or limited functionality.`
-      );
-    }
-  } catch {
-    // Runtime loader unavailable (CLI context only) — DB init falls through to normal path.
+  // Cloud/build: getDbInstance() cria in-memory, sem necessidade de pré-init
+  if (isCloud || isBuildPhase || !SQLITE_FILE) {
+    getDbInstance();
+    return;
   }
 
+  // Tenta drivers síncronos primeiro
+  const sync = tryOpenSync(SQLITE_FILE);
+  if (sync) {
+    // Drivers síncronos disponíveis — fechar o probe, getDbInstance() vai abrir com setup completo
+    sync.close();
+    getDbInstance();
+    return;
+  }
+
+  // Nenhum driver síncrono — pré-inicializar sql.js (WASM, async)
+  console.warn("[DB] Pré-inicializando sql.js WASM (drivers síncronos indisponíveis)...");
+  await preInitSqlJs(SQLITE_FILE);
+  // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
   getDbInstance();
 }
 

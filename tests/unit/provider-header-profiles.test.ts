@@ -50,7 +50,7 @@ test("provider header profiles expose dedicated refresh, qwen, qoder and kiro va
     qwenHeaders["User-Agent"],
     `QwenCode/${QWEN_CLI_VERSION} (${process.platform}; ${process.arch})`
   );
-  assert.notEqual(qwenHeaders["User-Agent"], "QwenCode/0.15.3 (linux; x64)");
+  assert.notEqual(qwenHeaders["User-Agent"], "QwenCode/0.15.11 (linux; x64)");
   assert.equal(qwenHeaders["X-Dashscope-UserAgent"], getQwenCliUserAgent());
   assert.equal(qwenHeaders["X-Stainless-Package-Version"], "5.11.0");
   assert.equal(qwenHeaders["X-Stainless-Runtime-Version"], process.version);

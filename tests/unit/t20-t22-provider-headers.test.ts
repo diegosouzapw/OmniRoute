@@ -6,11 +6,12 @@ const { antigravityUserAgent } = await import("../../open-sse/services/antigravi
 const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
   await import("../../open-sse/services/geminiCliHeaders.ts");
 
-test("T20: antigravity config has updated User-Agent and sandbox fallback URL", () => {
+test("T20: antigravity config has updated User-Agent and daily Cloud Code first URL", () => {
   const antigravity = REGISTRY.antigravity;
   assert.ok(Array.isArray(antigravity.baseUrls));
-  assert.equal(antigravity.baseUrls[0], "https://daily-cloudcode-pa.sandbox.googleapis.com");
+  assert.equal(antigravity.baseUrls[0], "https://daily-cloudcode-pa.googleapis.com");
   assert.equal(antigravity.headers["User-Agent"], antigravityUserAgent());
+  assert.match(antigravity.headers["User-Agent"], /^Antigravity\//);
 });
 
 test("T20: gemini CLI fingerprint uses the current CLI version and normalizes darwin to macos", () => {
@@ -59,7 +60,7 @@ test("T20: codex config advertises current client headers and supported models",
   assert.equal(codex.headers.Version, "0.131.0");
   assert.equal(codex.headers["Openai-Beta"], "responses=experimental");
   assert.equal(codex.headers["X-Codex-Beta-Features"], "responses_websockets");
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.131.0 (Windows 10.0.26200; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
   assert.ok(codex.models.some((model) => model.id === "gpt-5.5-medium"));
   assert.ok(!codex.models.some((model) => model.id === "codex-auto-review"));
 });

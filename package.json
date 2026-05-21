@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -41,7 +41,7 @@
     "open-sse"
   ],
   "engines": {
-    "node": ">=22.22.2 <23 || >=24.0.0 <27"
+    "node": ">=22.22.3 <23 || >=24.0.0 <27"
   },
   "keywords": [
     "ai",
@@ -139,7 +139,6 @@
     "@xyflow/react": "^12.10.2",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.10.0",
     "bottleneck": "^2.19.5",
     "cli-table3": "^0.6.5",
     "commander": "^14.0.3",
@@ -155,13 +154,13 @@
     "ink-spinner": "^5.0.0",
     "ink-text-input": "^6.0.0",
     "ioredis": "^5.10.1",
-    "isomorphic-dompurify": "^3.13.0",
+    "isomorphic-dompurify": "^3.14.0",
     "jose": "^6.2.3",
     "js-yaml": "^4.1.1",
     "jsonc-parser": "^3.3.1",
     "lowdb": "^7.0.1",
     "lucide-react": "^1.16.0",
-    "marked": "^18.0.3",
+    "marked": "^18.0.4",
     "marked-terminal": "^7.3.0",
     "mermaid": "^11.15.0",
     "monaco-editor": "^0.55.1",
@@ -182,8 +181,8 @@
     "recharts": "^3.8.1",
     "selfsigned": "^5.5.0",
     "sql.js": "^1.14.1",
-    "tsx": "^4.21.1",
-    "undici": "^8.2.0",
+    "tsx": "^4.22.3",
+    "undici": "^8.3.0",
     "update-notifier": "^7.3.1",
     "uuid": "^14.0.0",
     "xxhash-wasm": "^1.1.0",
@@ -192,9 +191,10 @@
     "zustand": "^5.0.13"
   },
   "optionalDependencies": {
+    "better-sqlite3": "^12.10.0",
     "keytar": "^7.9.0",
     "tls-client-node": "^0.1.13",
-    "wreq-js": "^2.3.0"
+    "wreq-js": "^2.3.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
@@ -204,10 +204,10 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/keytar": "^4.4.2",
-    "@types/node": "^25.7.0",
-    "@types/react": "^19.2.14",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-react": "^6.0.2",
     "c8": "^11.0.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
@@ -216,13 +216,13 @@
     "glob": "^13.0.6",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
-    "lint-staged": "^17.0.4",
+    "lint-staged": "^17.0.5",
     "node-loader": "^2.1.0",
     "prettier": "^3.8.3",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.3",
-    "vitest": "^4.1.6",
+    "typescript-eslint": "^8.59.4",
+    "vitest": "^4.1.7",
     "wait-on": "^9.0.10",
     "wtfnode": "^0.10.1"
   },

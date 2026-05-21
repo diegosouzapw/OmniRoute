@@ -1,6 +1,6 @@
 ---
 title: "Error Message Sanitization"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-14
 ---
 

@@ -742,8 +742,9 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
     );
     assert.equal(captured.headers.Authorization, "Bearer ag-token");
     assert.equal(captured.headers["x-client-name"], "antigravity");
-    assert.equal(captured.headers["x-goog-user-project"], "project-123");
-    assert.ok(captured.headers["User-Agent"].startsWith("Antigravity/"));
+    assert.equal(captured.headers["x-goog-user-project"], undefined);
+    assert.match(captured.headers["User-Agent"], /^Antigravity\//);
+    assert.equal(captured.headers["x-goog-api-client"], undefined);
     assert.equal(captured.body.project, "project-123");
     assert.match(captured.body.requestId, /^image_gen\//);
     assert.equal(captured.body.model, "gemini-3.1-flash-image");
@@ -789,7 +790,7 @@ test("handleImageGeneration rejects Antigravity image requests without projectId
   }
 });
 
-test("handleImageGeneration retries Antigravity image requests without billing project on 403", async () => {
+test("handleImageGeneration sends Antigravity image requests without billing project header", async () => {
   const originalFetch = globalThis.fetch;
   const calls = [];
 
@@ -799,19 +800,6 @@ test("handleImageGeneration retries Antigravity image requests without billing p
       headers: options.headers,
       body: JSON.parse(String(options.body || "{}")),
     });
-
-    if (calls.length === 1) {
-      return new Response(
-        JSON.stringify({
-          error: {
-            code: 403,
-            message: "Cloud Code Private API has not been used in project project-123 before.",
-            status: "PERMISSION_DENIED",
-          },
-        }),
-        { status: 403, headers: { "content-type": "application/json" } }
-      );
-    }
 
     return new Response(
       JSON.stringify({
@@ -846,10 +834,9 @@ test("handleImageGeneration retries Antigravity image requests without billing p
     });
 
     assert.equal(result.success, true);
-    assert.equal(calls.length, 2);
-    assert.equal(calls[0].headers["x-goog-user-project"], "project-123");
-    assert.equal(calls[1].headers["x-goog-user-project"], undefined);
-    assert.equal(calls[1].body.project, "project-123");
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].headers["x-goog-user-project"], undefined);
+    assert.equal(calls[0].body.project, "project-123");
     assert.deepEqual(result.data.data, [
       { b64_json: "YmFzZTY0LXJldHJ5", revised_prompt: "painted forest" },
     ]);

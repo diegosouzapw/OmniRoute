@@ -1202,7 +1202,13 @@ export class CodexExecutor extends BaseExecutor {
         "TOKEN_REFRESH",
         `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
-      return result;
+      // Return null (not the error-only object): base.ts spreads any truthy
+      // result onto activeCredentials and persists it via onCredentialsRefreshed.
+      // Spreading `{ error }` would keep the stale/expired accessToken in place
+      // and write garbage to the connection. Returning null leaves the original
+      // credentials untouched so the upstream 401/403 drives the proper
+      // re-auth / mark-expired path instead.
+      return null;
     }
     return result;
   }

@@ -5,7 +5,8 @@ const ANTIGRAVITY_GITHUB_RELEASE_URL =
 
 export const ANTIGRAVITY_VERSION_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 export const ANTIGRAVITY_VERSION_FETCH_TIMEOUT_MS = 5_000;
-export const ANTIGRAVITY_FALLBACK_VERSION = "4.1.33";
+// Floor version synced with Antigravity-Manager v4.2.0 KNOWN_STABLE_VERSION.
+export const ANTIGRAVITY_FALLBACK_VERSION = "4.2.0";
 
 type VersionCache = {
   fetchedAt: number;

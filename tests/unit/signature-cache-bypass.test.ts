@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  clearGeminiThoughtSignatureMemoryForTests,
   clearGeminiThoughtSignatures,
+  getGeminiThoughtSignature,
   getGeminiThoughtSignatureMode,
   isValidBasicGeminiThoughtSignature,
   isValidFullGeminiThoughtSignature,
@@ -64,4 +66,34 @@ test("bypass-strict mode requires the full protobuf structure before accepting a
   );
   assert.equal(resolveGeminiThoughtSignature("call-1", BASIC_VALID_SIGNATURE), "stored-signature");
   assert.equal(resolveGeminiThoughtSignature("call-1", INVALID_SIGNATURE), "stored-signature");
+});
+
+test("signatures persist to sqlite database and survive in-memory cache clearing", () => {
+  storeGeminiThoughtSignature("db-call-1", "sig-12345");
+
+  // Bypass in-memory cache to verify DB lookup
+  clearGeminiThoughtSignatureMemoryForTests();
+
+  assert.equal(getGeminiThoughtSignature("db-call-1"), "sig-12345");
+});
+
+test("enabled mode keeps ignoring client signatures after sqlite recovery", () => {
+  storeGeminiThoughtSignature("db-call-2", "stored-db-signature");
+  clearGeminiThoughtSignatureMemoryForTests();
+  setGeminiThoughtSignatureMode("enabled");
+
+  assert.equal(
+    resolveGeminiThoughtSignature("db-call-2", STRICT_VALID_SIGNATURE),
+    "stored-db-signature"
+  );
+});
+
+test("persisted signatures stay isolated when callers namespace tool call ids", () => {
+  storeGeminiThoughtSignature("conn-a:call-shared", "signature-a");
+  storeGeminiThoughtSignature("conn-b:call-shared", "signature-b");
+  clearGeminiThoughtSignatureMemoryForTests();
+
+  assert.equal(resolveGeminiThoughtSignature("conn-a:call-shared"), "signature-a");
+  assert.equal(resolveGeminiThoughtSignature("conn-b:call-shared"), "signature-b");
+  assert.equal(resolveGeminiThoughtSignature("call-shared"), null);
 });

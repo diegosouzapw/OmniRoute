@@ -498,3 +498,32 @@ test("OpenAI -> Claude handles assistant tool call messages without reasoning_co
   assert.ok(toolUseBlock, "expected tool_use block to be preserved");
   assert.equal(toolUseBlock.name, `${CLAUDE_OAUTH_TOOL_PREFIX}do_thing`);
 });
+
+test("OpenAI -> Claude treats developer role as system (fix for Responses API → Claude path)", () => {
+  const MARKER = "MAGIC_IDENTITY_847261";
+  const result = openaiToClaudeRequest(
+    "claude-sonnet-4-6",
+    {
+      messages: [
+        { role: "developer", content: `You are ${MARKER}` },
+        { role: "user", content: "What is your identity?" },
+      ],
+    },
+    true
+  );
+
+  // developer content must appear in the system field, not as an assistant turn
+  const systemText =
+    typeof result.system === "string" ? result.system : JSON.stringify(result.system);
+  assert.ok(systemText.includes(MARKER), "developer content must appear in Claude system field");
+
+  // No message in the messages array should contain the marker
+  for (const msg of result.messages) {
+    const msgStr = JSON.stringify(msg);
+    assert.ok(!msgStr.includes(MARKER), "developer content must NOT appear in messages array");
+  }
+
+  // Exactly one user message
+  const userMessages = result.messages.filter((m) => m.role === "user");
+  assert.equal(userMessages.length, 1, "expected exactly one user message");
+});

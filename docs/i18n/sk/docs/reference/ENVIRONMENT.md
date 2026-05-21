@@ -339,14 +339,14 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variable                 | Default Value                                 | When to Update                                                |
 | ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.143 (external, cli)`          | When Anthropic releases a new CLI version                     |
-| `CODEX_USER_AGENT`       | `codex-cli/0.131.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
 | `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override Codex client version independently of full UA string |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.107.0 darwin/arm64`            | When Antigravity IDE updates                                  |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
-| `QWEN_USER_AGENT`        | `QwenCode/0.15.3 (linux; x64)`                | When Qwen Code updates                                        |
+| `QWEN_USER_AGENT`        | `QwenCode/0.15.11 (linux; x64)`               | When Qwen Code updates                                        |
 | `CURSOR_USER_AGENT`      | `connect-es/1.6.1`                            | When Cursor updates                                           |
 | `GEMINI_CLI_USER_AGENT`  | `google-api-nodejs-client/10.3.0`             | When Google API client updates                                |
 

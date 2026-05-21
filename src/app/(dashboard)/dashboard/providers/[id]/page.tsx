@@ -33,6 +33,10 @@ import {
   supportsApiKeyOnFreeProvider,
   supportsBulkApiKey,
 } from "@/shared/constants/providers";
+import {
+  ANTIGRAVITY_CLIENT_PROFILE_OPTIONS,
+  normalizeAntigravityClientProfileSetting,
+} from "@/shared/constants/antigravityClientProfile";
 import { parseBulkApiKeys } from "@/shared/utils/bulkApiKeyParser";
 import { getModelsByProviderId } from "@/shared/constants/models";
 import {
@@ -6852,6 +6856,7 @@ function AddApiKeyModal({
   const isPerplexityWeb = provider === "perplexity-web";
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
+  const isDeepSeekWeb = provider === "deepseek-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
   const apiKeyOptional = providerAllowsOptionalApiKey(provider);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
@@ -6904,43 +6909,49 @@ function AddApiKeyModal({
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
-    : isWebSessionProvider
-      ? t("sessionCookieLabel")
-      : apiKeyOptional
-        ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-        : t("apiKeyLabel");
+    : isDeepSeekWeb
+      ? "User Token"
+      : isWebSessionProvider
+        ? t("sessionCookieLabel")
+        : apiKeyOptional
+          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+          : t("apiKeyLabel");
   const apiCredentialPlaceholder = isVertex
     ? t("vertexServiceAccountPlaceholder")
-    : isGrokWeb
-      ? t("grokWebCookiePlaceholder")
-      : isPerplexityWeb
-        ? t("perplexityWebCookiePlaceholder")
-        : isBlackboxWeb
-          ? t("blackboxWebCookiePlaceholder")
-          : isMuseSparkWeb
-            ? t("museSparkWebCookiePlaceholder")
-            : isQoder
-              ? t("qoderPatPlaceholder")
-              : apiKeyOptional
-                ? t("optional")
-                : undefined;
+    : isDeepSeekWeb
+      ? "Paste userToken value from localStorage"
+      : isGrokWeb
+        ? t("grokWebCookiePlaceholder")
+        : isPerplexityWeb
+          ? t("perplexityWebCookiePlaceholder")
+          : isBlackboxWeb
+            ? t("blackboxWebCookiePlaceholder")
+            : isMuseSparkWeb
+              ? t("museSparkWebCookiePlaceholder")
+              : isQoder
+                ? t("qoderPatPlaceholder")
+                : apiKeyOptional
+                  ? t("optional")
+                  : undefined;
   const apiCredentialHint = isQoder
     ? t("qoderPatHint")
-    : isGrokWeb
-      ? t("grokWebCookieHint")
-      : isPerplexityWeb
-        ? t("perplexityWebCookieHint")
-        : isBlackboxWeb
-          ? t("blackboxWebCookieHint")
-          : isMuseSparkWeb
-            ? t("museSparkWebCookieHint")
-            : isLocalSelfHostedProvider
-              ? t("localProviderApiKeyOptionalHint", {
-                  provider: localProviderMetadata?.name || providerName || provider || "",
-                })
-              : apiKeyOptional
-                ? t("apiKeyOptionalHint")
-                : undefined;
+    : isDeepSeekWeb
+      ? "Found in browser DevTools → Application → Local Storage → chat.deepseek.com → userToken"
+      : isGrokWeb
+        ? t("grokWebCookieHint")
+        : isPerplexityWeb
+          ? t("perplexityWebCookieHint")
+          : isBlackboxWeb
+            ? t("blackboxWebCookieHint")
+            : isMuseSparkWeb
+              ? t("museSparkWebCookieHint")
+              : isLocalSelfHostedProvider
+                ? t("localProviderApiKeyOptionalHint", {
+                    provider: localProviderMetadata?.name || providerName || provider || "",
+                  })
+                : apiKeyOptional
+                  ? t("apiKeyOptionalHint")
+                  : undefined;
 
   const handleValidate = async () => {
     setValidating(true);
@@ -9071,6 +9082,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     consoleApiKey: "",
     ccCompatibleContext1m: false,
     cloudCodeProjectId: "",
+    antigravityClientProfile: "ide",
     blockExtraUsage:
       connection?.provider === "claude"
         ? isClaudeExtraUsageBlockEnabled(connection?.provider, connection?.providerSpecificData)
@@ -9173,6 +9185,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         ccCompatibleContext1m: ccRequestDefaults.context1m,
         cloudCodeProjectId:
           (connection.providerSpecificData?.projectId as string) || connection.projectId || "",
+        antigravityClientProfile: normalizeAntigravityClientProfileSetting(
+          connection.providerSpecificData?.clientProfile
+        ),
         blockExtraUsage: isClaudeExtraUsageBlockEnabled(
           connection.provider,
           connection.providerSpecificData
@@ -9426,6 +9441,15 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           updates.providerSpecificData.projectId = trimmedCloudCodeProjectId || null;
         }
       }
+      if (isAntigravity) {
+        updates.providerSpecificData = {
+          ...(connection.providerSpecificData || {}),
+          ...(updates.providerSpecificData || {}),
+          clientProfile: normalizeAntigravityClientProfileSetting(
+            formData.antigravityClientProfile
+          ),
+        };
+      }
       const error = (await onSave(updates)) as void | unknown;
       if (error) {
         setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
@@ -9521,6 +9545,20 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         )}
         {supportsGoogleProjectId && (
           <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-surface/20 p-4">
+            {isAntigravity && (
+              <Select
+                label={t("antigravityClientProfileLabel")}
+                value={formData.antigravityClientProfile}
+                options={ANTIGRAVITY_CLIENT_PROFILE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: t(option.labelKey),
+                }))}
+                onChange={(e) =>
+                  setFormData({ ...formData, antigravityClientProfile: e.target.value })
+                }
+                hint={t("antigravityClientProfileHint")}
+              />
+            )}
             <Input
               label={isAntigravity ? t("antigravityProjectIdLabel") : t("geminiCliProjectIdLabel")}
               value={formData.cloudCodeProjectId}

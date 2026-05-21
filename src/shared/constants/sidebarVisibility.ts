@@ -74,6 +74,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-resilience",
   "settings-advanced",
   "settings-security",
+  "settings-feature-flags",
   // Help
   "docs",
   "issues",
@@ -650,6 +651,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsSecurity",
     subtitleKey: "settingsSecuritySubtitle",
     icon: "shield",
+  },
+  {
+    id: "settings-feature-flags",
+    href: "/dashboard/settings/feature-flags",
+    i18nKey: "settingsFeatureFlags",
+    subtitleKey: "settingsFeatureFlagsSubtitle",
+    icon: "flag",
   },
 ];
 

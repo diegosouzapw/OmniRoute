@@ -2,7 +2,6 @@
  * db/backup.js — Database backup/restore operations.
  */
 
-import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import {
@@ -275,6 +274,7 @@ export async function listDbBackups() {
       .sort()
       .reverse();
 
+    const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
     return entries.map((filename) => {
       const filePath = path.join(backupDir, filename);
       const stat = fs.statSync(filePath);
@@ -283,12 +283,17 @@ export async function listDbBackups() {
 
       let connectionCount = 0;
       try {
-        const backupDb = new Database(filePath, { readonly: true });
-        const row = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as
-          | CountRow
-          | undefined;
-        connectionCount = row?.cnt || 0;
-        backupDb.close();
+        const backupDb = tryOpenSync(filePath, { readonly: true });
+        if (backupDb) {
+          try {
+            const row = backupDb
+              .prepare("SELECT COUNT(*) as cnt FROM provider_connections")
+              .get() as CountRow | undefined;
+            connectionCount = Number(row?.cnt ?? 0);
+          } finally {
+            backupDb.close();
+          }
+        }
       } catch {
         /* ignore */
       }
@@ -337,9 +342,17 @@ export async function restoreDbBackup(backupId: string) {
 
   // Validate backup integrity
   try {
-    const testDb = new Database(backupPath, { readonly: true });
-    const result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
-    testDb.close();
+    const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
+    const testDb = tryOpenSync(backupPath, { readonly: true });
+    if (!testDb) {
+      throw new Error("Backup file is corrupt: could not open");
+    }
+    let result: Array<{ integrity_check?: string }>;
+    try {
+      result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+    } finally {
+      testDb.close();
+    }
     if (result[0]?.integrity_check !== "ok") {
       throw new Error("Backup integrity check failed");
     }

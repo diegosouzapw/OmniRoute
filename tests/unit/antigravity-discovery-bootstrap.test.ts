@@ -45,13 +45,16 @@ describe("ensureAntigravityProjectAssigned", () => {
       return new Response("Not Found", { status: 404 });
     };
 
-    await ensureAntigravityProjectAssigned("fake-token-1", mockFetch);
+    const projectId = await ensureAntigravityProjectAssigned("fake-token-1", mockFetch);
 
     const loadCalls = calls.filter((u) => u.endsWith(":loadCodeAssist"));
     assert.ok(loadCalls.length >= 1, ":loadCodeAssist must be called at least once");
-
-    const cached = getAntigravityProjectFromCache("fake-token-1");
-    assert.equal(cached, "proj-from-bootstrap", "project id must be memoized after first call");
+    assert.equal(projectId, "proj-from-bootstrap", "project id must be returned");
+    assert.equal(
+      getAntigravityProjectFromCache("fake-token-1"),
+      "proj-from-bootstrap",
+      "project id must be memoized after first call"
+    );
   });
 
   test("subsequent calls for the same token skip the network", async () => {
@@ -123,12 +126,33 @@ describe("ensureAntigravityProjectAssigned", () => {
     assert.equal(capturedAuth, "Bearer my-secret-token", "Authorization header must be set");
   });
 
+  test("uses CLI/SDK harness headers when requested", async () => {
+    let capturedHeaders: Headers | null = null;
+
+    const mockFetch = async (_url: string, init?: RequestInit): Promise<Response> => {
+      capturedHeaders = new Headers(init?.headers);
+      return new Response(JSON.stringify({ cloudaicompanionProject: "proj-harness" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    await ensureAntigravityProjectAssigned("harness-token", mockFetch, "harness");
+
+    assert.match(
+      capturedHeaders?.get("User-Agent") || "",
+      /^antigravity\/4\.2\.0 [^ ]+\/[^ ]+ google-api-nodejs-client\/10\.3\.0$/
+    );
+    assert.equal(capturedHeaders?.get("X-Goog-Api-Client"), "gl-node/22.21.1");
+    assert.equal(capturedHeaders?.get("Client-Metadata"), null);
+  });
+
   test("falls through to next URL when first loadCodeAssist returns 404", async () => {
     const hitUrls: string[] = [];
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
       hitUrls.push(url);
-      if (url.includes("sandbox")) {
+      if (url.includes("daily-cloudcode-pa.googleapis.com")) {
         // First URL fails
         return new Response("not found", { status: 404 });
       }
@@ -139,11 +163,15 @@ describe("ensureAntigravityProjectAssigned", () => {
       });
     };
 
-    await ensureAntigravityProjectAssigned("fallback-token", mockFetch);
+    const projectId = await ensureAntigravityProjectAssigned("fallback-token", mockFetch);
 
     assert.ok(hitUrls.length >= 2, "should try at least two URLs on the first failure");
-    const cached = getAntigravityProjectFromCache("fallback-token");
-    assert.equal(cached, "proj-fallback", "should cache the project from the successful URL");
+    assert.equal(projectId, "proj-fallback", "should return the project from the successful URL");
+    assert.equal(
+      getAntigravityProjectFromCache("fallback-token"),
+      "proj-fallback",
+      "should cache the project from the successful URL"
+    );
   });
 
   test("getAntigravityLoadCodeAssistUrls returns URLs matching ANTIGRAVITY_BASE_URLS", () => {

@@ -209,4 +209,6 @@ export async function registerNodejs(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn("[COMPLIANCE] Could not initialize audit log:", msg);
   }
+
+  await import("@/lib/db/core").then(({ ensureDbInitialized }) => ensureDbInitialized());
 }

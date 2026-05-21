@@ -8,7 +8,7 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ### Prerequisites
 
-- **Node.js** `>=20.20.2 <21`, `>=22.22.2 <23`, or `>=24.0.0 <25` (recommended: 24 LTS)
+- **Node.js** `>=22.22.3 <23`, or `>=24.0.0 <27` (recommended: 24 LTS)
 - **npm** 10+
 - **Git**
 

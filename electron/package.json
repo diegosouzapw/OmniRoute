@@ -1,6 +1,6 @@
 {
   "name": "omniroute-desktop",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "OmniRoute Desktop Application",
   "main": "main.js",
   "author": {
@@ -26,13 +26,14 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.10.0",
-    "electron-updater": "^6.8.5"
+    "electron-updater": "^6.8.6"
   },
   "devDependencies": {
-    "electron": "^42.1.0",
-    "electron-builder": "^26.10.0"
+    "electron": "^41.2.0",
+    "electron-builder": "^26.11.0"
   },
   "overrides": {
+    "@xmldom/xmldom": "^0.9.10",
     "plist": "^4.0.0"
   },
   "build": {

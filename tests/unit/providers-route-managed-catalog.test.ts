@@ -411,6 +411,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         },
       },
     },
+    {
+      provider: "jules",
+      body: {
+        provider: "jules",
+        apiKey: "jules-test-key",
+        name: "Jules API",
+      },
+    },
   ];
 
   for (const entry of cases) {
