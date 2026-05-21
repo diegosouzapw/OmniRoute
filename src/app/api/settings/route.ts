@@ -14,6 +14,25 @@ import {
 } from "@/lib/auth/managementPassword";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
+/**
+ * Settings keys whose change broadens attack surface. Spec §Security:
+ * password re-auth is required when any of these is present in a PATCH body.
+ *
+ * - `localOnlyManageScopeBypassEnabled` / `localOnlyManageScopeBypassPrefixes`:
+ *   T-011 bypass kill-switch + per-prefix list. Operator must re-confirm
+ *   before broadening the LOCAL_ONLY carve-out.
+ * - `requireLogin` / `mcpEnabled`: existing security toggles.
+ * - `newPassword`: password rotation (existing). Handled by the same gate so
+ *   the password-verify only fires ONCE per PATCH.
+ */
+const SECURITY_IMPACTING_KEYS = [
+  "localOnlyManageScopeBypassEnabled",
+  "localOnlyManageScopeBypassPrefixes",
+  "requireLogin",
+  "mcpEnabled",
+  "newPassword",
+] as const;
+
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
@@ -56,29 +75,64 @@ export async function PATCH(request: Request) {
     }
     const body: typeof validation.data & { password?: string } = { ...validation.data };
 
-    // If updating password, hash it
-    if (body.newPassword) {
+    // Security-impacting gate (T-011, spec AC-4 / AC-5). Computed from the
+    // VALIDATED body so we never trip on stray unknown keys. If any security
+    // key is present, require currentPassword + verify against the stored
+    // bcrypt hash. Dedupes with the previous inline newPassword reauth — the
+    // password is verified at most once per PATCH.
+    const touchedSecurityKeys = SECURITY_IMPACTING_KEYS.filter((k) => k in validation.data);
+    let storedPasswordHash = "";
+    if (touchedSecurityKeys.length > 0) {
       const settings = await getSettings();
+      // Lazy-hash any plaintext INITIAL_PASSWORD migration BEFORE we read the
+      // stored hash, so the gate works on fresh deploys too.
       const passwordState = await ensurePersistentManagementPasswordHash({
         settings,
-        source: "settings.password_change",
+        source: "settings.security_impacting_update",
       });
-      const currentHash = getStoredManagementPassword(passwordState.settings);
-
-      if (currentHash) {
+      storedPasswordHash = getStoredManagementPassword(passwordState.settings);
+      // Cold-boot exception: same condition the existing newPassword path
+      // honoured before T-011 — when no password is configured yet AND login
+      // is currently disabled, allow the first write to set policy (incl.
+      // the password itself). Once a hash exists the gate always fires.
+      const isColdBoot = !storedPasswordHash && passwordState.settings.requireLogin === false;
+      if (!isColdBoot) {
         if (!body.currentPassword) {
-          return NextResponse.json({ error: "Current password required" }, { status: 400 });
+          return NextResponse.json(
+            {
+              error: {
+                code: "PASSWORD_REQUIRED",
+                message: "currentPassword required for security-impacting setting changes",
+                keys: touchedSecurityKeys,
+              },
+            },
+            { status: 400 }
+          );
         }
-        const isValid = await verifyManagementPassword(body.currentPassword, currentHash);
+        const isValid = await verifyManagementPassword(body.currentPassword, storedPasswordHash);
         if (!isValid) {
-          return NextResponse.json({ error: "Invalid current password" }, { status: 401 });
+          return NextResponse.json(
+            {
+              error: {
+                code: "PASSWORD_MISMATCH",
+                message: "Invalid current password",
+              },
+            },
+            { status: 401 }
+          );
         }
       }
+    }
 
+    // Password rotation: hash the new value AFTER the gate has accepted the
+    // currentPassword (or the cold-boot exception fired). The gate already
+    // included `newPassword` in SECURITY_IMPACTING_KEYS, so no separate
+    // verify happens here — strictly hashing + body rewriting.
+    if (body.newPassword) {
       body.password = await hashManagementPassword(body.newPassword);
       delete body.newPassword;
-      delete body.currentPassword;
     }
+    delete body.currentPassword;
 
     const settings = await updateSettings(body);
 
