@@ -266,7 +266,9 @@ const LOBE_ICON_COMPONENTS = {
   Snowflake: { mono: SnowflakeMonoIcon, color: SnowflakeColorIcon },
   SenseNova: { mono: SenseNovaMonoIcon, color: SenseNovaColorIcon },
   Stability: { mono: StabilityMonoIcon, color: StabilityColorIcon },
+  Stepfun: { mono: StepfunMonoIcon, color: StepfunColorIcon },
   Tavily: { mono: TavilyMonoIcon, color: TavilyColorIcon },
+  Tencent: { mono: TencentMonoIcon, color: TencentColorIcon },
   Together: { mono: TogetherMonoIcon, color: TogetherColorIcon },
   TopazLabs: { mono: TopazLabsMonoIcon },
   Upstage: { mono: UpstageMonoIcon, color: UpstageColorIcon },
@@ -282,6 +284,7 @@ const LOBE_ICON_COMPONENTS = {
   XAI: { mono: XAIMonoIcon },
   XiaomiMiMo: { mono: XiaomiMiMoMonoIcon },
   Xinference: { mono: XinferenceMonoIcon, color: XinferenceColorIcon },
+  Yi: { mono: YiMonoIcon, color: YiColorIcon },
   ZAI: { mono: ZAIMonoIcon },
   Zhipu: { mono: ZhipuMonoIcon, color: ZhipuColorIcon },
 } satisfies Record<string, LobeIconEntry>;
