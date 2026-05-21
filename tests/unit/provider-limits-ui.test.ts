@@ -12,6 +12,13 @@ test("provider plan fallbacks normalize to Unknown instead of repeating provider
   assert.equal(tier.label, "Unknown");
 });
 
+test("tier token matching avoids substring false positives", () => {
+  assert.equal(providerLimitUtils.normalizePlanTier("MiniMax").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("APPROVE").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("Max").key, "ultra");
+  assert.equal(providerLimitUtils.normalizePlanTier("Pro").key, "pro");
+});
+
 test("paid individual tiers use non-gray badge variants", () => {
   assert.equal(providerLimitUtils.normalizePlanTier("Plus").variant, "success");
   assert.equal(providerLimitUtils.normalizePlanTier("Pro").variant, "success");
@@ -42,6 +49,46 @@ test("Claude providerSpecificData plan is used when live plan is missing", () =>
   const tier = providerLimitUtils.normalizePlanTier(resolvedPlan);
   assert.equal(tier.key, "pro");
   assert.equal(tier.variant, "success");
+});
+
+test("Claude bootstrap rate_limit_tier maps default_claude_max_20x to Max 20x", () => {
+  const resolvedPlan = providerLimitUtils.resolvePlanValue(null, {
+    organizationType: "default_claude_ai",
+    organizationRateLimitTier: "default_claude_max_20x",
+  });
+
+  assert.equal(resolvedPlan, "default_claude_max_20x");
+  const tier = providerLimitUtils.normalizePlanTier(resolvedPlan);
+  assert.equal(tier.key, "ultra");
+  assert.equal(tier.label, "Max 20x");
+});
+
+test("Claude organization_type default_claude_ai is ignored without rate_limit_tier", () => {
+  const resolvedPlan = providerLimitUtils.resolvePlanValue("Claude Code", {
+    organizationType: "default_claude_ai",
+  });
+
+  assert.equal(resolvedPlan, null);
+  const tier = providerLimitUtils.normalizePlanTier(resolvedPlan);
+  assert.equal(tier.label, "Unknown");
+});
+
+test("MiniMax coding plan titles map to tier badges", () => {
+  const proTier = providerLimitUtils.normalizePlanTier("MiniMax Coding Plan Pro");
+  assert.equal(proTier.key, "pro");
+  assert.equal(proTier.label, "Pro");
+
+  const starterTier = providerLimitUtils.normalizePlanTier("Starter");
+  assert.equal(starterTier.key, "lite");
+  assert.equal(starterTier.label, "Starter");
+
+  const minimaxOnly = providerLimitUtils.normalizePlanTier("MiniMax Coding Plan");
+  assert.notEqual(minimaxOnly.key, "ultra");
+});
+
+test("tier token matching ignores embedded substrings", () => {
+  assert.equal(providerLimitUtils.normalizePlanTier("APPROVE").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("LITERAL").key, "unknown");
 });
 
 test("remaining percentage helpers reflect remaining quota and stale resets refill to 100", () => {
