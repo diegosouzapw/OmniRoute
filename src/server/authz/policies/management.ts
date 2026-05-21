@@ -94,12 +94,21 @@ export const managementPolicy: RoutePolicy = {
         // /api/mcp/status, /api/mcp/tools, etc. from a public hostname. Cookie
         // auth is already proof of an authenticated admin — same trust level
         // as a manage-scope Bearer for the surface in scope here.
-        if (await isDashboardSessionAuthenticated(ctx.request)) {
-          return allow({
-            kind: "dashboard_session",
-            id: "dashboard",
-            label: "dashboard-session-local-only-bypass",
-          });
+        try {
+          if (await isDashboardSessionAuthenticated(ctx.request)) {
+            return allow({
+              kind: "dashboard_session",
+              id: "dashboard",
+              label: "dashboard-session-local-only-bypass",
+            });
+          }
+        } catch (err) {
+          // Mirror the manage-scope branch above: degrade closed (503) rather
+          // than leaking the route through an unhandled 500, but log a
+          // breadcrumb for ops. Session-store DB failure / cookie parsing
+          // error / JWT decode throw all land here.
+          console.error("[managementPolicy] dashboard-session bypass auth check failed", err);
+          return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
         }
       }
       return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");

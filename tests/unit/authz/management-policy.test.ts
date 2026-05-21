@@ -52,6 +52,10 @@ async function dashboardCookieHeader(expiresIn = "1h"): Promise<string> {
   // accepts it. The header path is sufficient — the policy reads the cookie
   // from `request.headers.get("cookie")` when there's no `request.cookies`
   // accessor on the plain ctx() object.
+  assert.ok(
+    process.env.JWT_SECRET,
+    "JWT_SECRET must be set before minting dashboard cookie (otherwise TextEncoder would encode the string 'undefined' and silently mint a wrong-secret JWT)"
+  );
   const secret = new TextEncoder().encode(process.env.JWT_SECRET);
   const token = await new SignJWT({ authenticated: true })
     .setProtectedHeader({ alg: "HS256" })

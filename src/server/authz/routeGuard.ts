@@ -97,7 +97,16 @@ export function isLocalOnlyBypassableByManageScope(path: string): boolean {
   const snapshot = getAuthzBypassSnapshot();
   if (!snapshot.enabled) return false;
   return snapshot.prefixes.some((p) => {
-    if (SPAWN_CAPABLE_PREFIXES.some((spawn) => p === spawn || p.startsWith(spawn))) {
+    // Defence-in-depth: reject a bypass prefix that is the same as, child of,
+    // OR PARENT of any spawn-capable prefix. The parent case catches e.g.
+    // `/api/cli-tools/` (parent of `/api/cli-tools/runtime/`) — a request to
+    // `/api/cli-tools/runtime/foo` would otherwise satisfy `path.startsWith(p)`
+    // and reach the spawn-capable surface without a loopback check.
+    if (
+      SPAWN_CAPABLE_PREFIXES.some(
+        (spawn) => p === spawn || p.startsWith(spawn) || spawn.startsWith(p)
+      )
+    ) {
       return false;
     }
     return path === p || path.startsWith(p);

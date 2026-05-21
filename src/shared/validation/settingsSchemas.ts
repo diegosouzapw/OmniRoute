@@ -268,7 +268,15 @@ export const updateSettingsSchema = z
     if (!prefixes) return;
     for (let i = 0; i < prefixes.length; i++) {
       const prefix = prefixes[i];
-      if (SPAWN_CAPABLE_PREFIXES.some((spawn) => prefix === spawn || prefix.startsWith(spawn))) {
+      // Reject prefixes that are the same as, child of, or PARENT of any
+      // spawn-capable prefix. The parent case catches e.g. `/api/cli-tools/`
+      // — a bypass on the parent would grant non-loopback access to the
+      // spawn-capable `/api/cli-tools/runtime/*` surface via path.startsWith.
+      if (
+        SPAWN_CAPABLE_PREFIXES.some(
+          (spawn) => prefix === spawn || prefix.startsWith(spawn) || spawn.startsWith(prefix)
+        )
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["localOnlyManageScopeBypassPrefixes", i],

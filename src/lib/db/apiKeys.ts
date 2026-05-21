@@ -803,7 +803,14 @@ export async function updateApiKeyPermissions(
       changedRows = upd.changes ?? 0;
       db.exec("COMMIT");
     } catch (err) {
-      db.exec("ROLLBACK");
+      // Guard the ROLLBACK: if it throws (e.g. transaction already ended
+      // due to an implicit commit, or backend in a bad state), the original
+      // error from the try block is the actionable one — don't shadow it.
+      try {
+        db.exec("ROLLBACK");
+      } catch {
+        // swallow: original error is more important
+      }
       throw err;
     }
   } else {
