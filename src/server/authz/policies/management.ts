@@ -49,13 +49,19 @@ export const managementPolicy: RoutePolicy = {
     //
     // Carve-out: a small allow-list of LOCAL_ONLY paths (see
     // LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES) is reachable from non-loopback
-    // when the caller presents a valid API key with the `manage` scope. This
-    // lets headless / remote MCP clients drive the management surface while
-    // keeping the strict-loopback default for everything else (notably the
-    // subprocess-spawning /api/cli-tools/runtime/* surface).
+    // when the caller presents EITHER (a) a valid API key with the `manage`
+    // scope, or (b) an authenticated dashboard session. This lets:
+    //   - headless / remote MCP clients drive the management surface with a
+    //     manage-scope Bearer key, and
+    //   - the Dashboard UI itself (cookie session) render its MCP pages
+    //     (/api/mcp/status, /api/mcp/tools) from a public hostname.
     //
-    // Anonymous (no Bearer / invalid key / wrong scope) requests still hit
-    // the same 403 LOCAL_ONLY they did before.
+    // The strict-loopback default still applies to everything else (notably
+    // the subprocess-spawning /api/cli-tools/runtime/* surface, which is NOT
+    // in the bypass list).
+    //
+    // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
+    // still hit the same 403 LOCAL_ONLY they did before.
     if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx.request.headers)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         const apiKey = extractApiKey(ctx.request as unknown as Request);
@@ -64,16 +70,36 @@ export const managementPolicy: RoutePolicy = {
             if (await isValidApiKey(apiKey)) {
               const meta = await getApiKeyMetadata(apiKey);
               if (meta && hasManageScope(meta.scopes)) {
+                // Distinguish admin vs manage in the audit label so log review
+                // can tell which privilege actually granted the bypass.
+                const grantedBy = meta.scopes.includes("admin") ? "admin" : "manage";
                 return allow({
                   kind: "management_key",
                   id: meta.id,
-                  label: "api-key-manage-scope-local-only-bypass",
+                  label: `api-key-${grantedBy}-scope-local-only-bypass`,
                 });
               }
             }
-          } catch {
+          } catch (err) {
+            // Auth backend (DB / file store) failure: surface as 503 so the
+            // caller can retry. Anything else (TypeError / ReferenceError /
+            // programmer error) is logged so it's not silently swallowed —
+            // the policy still degrades closed (503) to avoid leaking the
+            // route, but we leave a breadcrumb for ops.
+            console.error("[managementPolicy] manage-scope bypass auth check failed", err);
             return reject(503, "AUTH_BACKEND_UNAVAILABLE", "Service temporarily unavailable");
           }
+        }
+        // Dashboard session bypass: the Dashboard UI itself needs to render
+        // /api/mcp/status, /api/mcp/tools, etc. from a public hostname. Cookie
+        // auth is already proof of an authenticated admin — same trust level
+        // as a manage-scope Bearer for the surface in scope here.
+        if (await isDashboardSessionAuthenticated(ctx.request)) {
+          return allow({
+            kind: "dashboard_session",
+            id: "dashboard",
+            label: "dashboard-session-local-only-bypass",
+          });
         }
       }
       return reject(403, "LOCAL_ONLY", "This endpoint requires localhost access");
