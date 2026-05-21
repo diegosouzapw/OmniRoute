@@ -87,7 +87,7 @@ function parseErrorCode(payload: unknown): ErrorCode {
 
 // ─── component ────────────────────────────────────────────────────────────
 
-export default function AuthzTab() {
+export default function AuthzSection() {
   const t = useTranslations("settings");
   const [inventory, setInventory] = useState<InventoryPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -210,6 +210,14 @@ export default function AuthzTab() {
   if (loading) {
     return (
       <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-info/10 text-info">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              shield_lock
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold">{t("authz.title")}</h3>
+        </div>
         <p className="text-sm text-text-muted">{t("authz.loading")}</p>
       </Card>
     );
@@ -218,16 +226,25 @@ export default function AuthzTab() {
   if (loadError || !inventory) {
     return (
       <Card>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-info/10 text-info">
+            <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
+              shield_lock
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold">{t("authz.title")}</h3>
+        </div>
         <p className="text-sm text-red-500">{loadError ?? t("authz.loadError")}</p>
       </Card>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <>
+      {/* Authz header + tier inventory */}
       <Card>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg bg-primary/10 text-primary">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-info/10 text-info">
             <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
               shield_lock
             </span>
@@ -237,46 +254,50 @@ export default function AuthzTab() {
             <p className="text-sm text-text-muted">{t("authz.description")}</p>
           </div>
         </div>
-      </Card>
 
-      {/* Tier inventory */}
-      {inventory.tiers.map((tier) => (
-        <Card key={tier.name}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <h4 className="font-semibold">{t(`authz.tier.${tier.name}`)}</h4>
-              {tier.bypassable && (
-                <Badge variant="warning" size="sm">
-                  {t("authz.badge.bypassable")}
-                </Badge>
-              )}
+        <div className="flex flex-col gap-4">
+          {inventory.tiers.map((tier) => (
+            <div
+              key={tier.name}
+              className="rounded-lg border border-border/50 bg-black/[0.02] dark:bg-white/[0.02] p-4"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <h4 className="font-semibold">{t(`authz.tier.${tier.name}`)}</h4>
+                  {tier.bypassable && (
+                    <Badge variant="warning" size="sm">
+                      {t("authz.badge.bypassable")}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-text-muted mb-3">{tier.description}</p>
+              <ul className="flex flex-col gap-2">
+                {tier.prefixes.map((prefix) => {
+                  const badge = tierBadgeVariant(
+                    tier.name,
+                    prefix,
+                    inventory.spawnCapablePrefixes,
+                    inventory.bypassPrefixes,
+                    inventory.bypassEnabled
+                  );
+                  return (
+                    <li
+                      key={`${tier.name}:${prefix}`}
+                      className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2"
+                    >
+                      <code className="text-xs font-mono">{prefix}</code>
+                      <Badge variant={badge.variant} size="sm">
+                        {t(`authz.badge.${badge.key}`)}
+                      </Badge>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
-          </div>
-          <p className="text-sm text-text-muted mb-3">{tier.description}</p>
-          <ul className="flex flex-col gap-2">
-            {tier.prefixes.map((prefix) => {
-              const badge = tierBadgeVariant(
-                tier.name,
-                prefix,
-                inventory.spawnCapablePrefixes,
-                inventory.bypassPrefixes,
-                inventory.bypassEnabled
-              );
-              return (
-                <li
-                  key={`${tier.name}:${prefix}`}
-                  className="flex items-center justify-between gap-3 rounded-md border border-border/40 bg-black/[0.02] dark:bg-white/[0.02] px-3 py-2"
-                >
-                  <code className="text-xs font-mono">{prefix}</code>
-                  <Badge variant={badge.variant} size="sm">
-                    {t(`authz.badge.${badge.key}`)}
-                  </Badge>
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      ))}
+          ))}
+        </div>
+      </Card>
 
       {/* Bypass policy editor */}
       <Card>
@@ -379,24 +400,26 @@ export default function AuthzTab() {
             </Button>
           </div>
         </div>
-      </Card>
 
-      {/* Save bar */}
-      <div className="flex items-center justify-between gap-4 pt-2">
-        <div className="text-sm">
-          {dirty && (
-            <span className="text-amber-600 dark:text-amber-400">{t("authz.pending")}</span>
-          )}
-          {status && (
-            <span className={`ml-3 ${status.type === "error" ? "text-red-500" : "text-green-500"}`}>
-              {status.message}
-            </span>
-          )}
+        {/* Save bar */}
+        <div className="flex items-center justify-between gap-4 pt-4 mt-4 border-t border-border/50">
+          <div className="text-sm">
+            {dirty && (
+              <span className="text-amber-600 dark:text-amber-400">{t("authz.pending")}</span>
+            )}
+            {status && (
+              <span
+                className={`ml-3 ${status.type === "error" ? "text-red-500" : "text-green-500"}`}
+              >
+                {status.message}
+              </span>
+            )}
+          </div>
+          <Button variant="primary" onClick={handleSaveRequest} disabled={!dirty || submitting}>
+            {t("authz.save")}
+          </Button>
         </div>
-        <Button variant="primary" onClick={handleSaveRequest} disabled={!dirty || submitting}>
-          {t("authz.save")}
-        </Button>
-      </div>
+      </Card>
 
       {/* Password re-auth modal — fires for every security-impacting PATCH */}
       <Modal
@@ -443,6 +466,6 @@ export default function AuthzTab() {
           {status?.type === "error" && <p className="text-sm text-red-500">{status.message}</p>}
         </div>
       </Modal>
-    </div>
+    </>
   );
 }
