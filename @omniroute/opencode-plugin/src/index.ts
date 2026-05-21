@@ -220,11 +220,13 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         const apiKey = (auth as { key: string }).key;
         // baseURL resolution: plugin opts win, then a credential-attached
         // baseURL (some auth backends stash it alongside the key), else empty.
-        const resolvedBaseURL =
-          baseURL ??
-          (typeof (auth as { baseURL?: unknown }).baseURL === "string"
-            ? (auth as { baseURL: string }).baseURL
-            : "");
+        // Re-cast through `unknown` first: Auth is a discriminated union
+        // (api | oauth | wellknown) and TS refuses a direct narrowing to a
+        // hypothetical `{ baseURL: string }` shape because WellKnownAuth has
+        // no `baseURL`. We've already checked the runtime type via typeof so
+        // the unknown-bridge is a safe assertion, not a lie.
+        const authBaseURL = (auth as unknown as { baseURL?: unknown }).baseURL;
+        const resolvedBaseURL = baseURL ?? (typeof authBaseURL === "string" ? authBaseURL : "");
         // Without a baseURL the interceptor can't tell which requests to
         // intercept (it would either gate-keep nothing or, worse, all
         // outbound traffic). Fall back to apiKey-only and let the SDK use
