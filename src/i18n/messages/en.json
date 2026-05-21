@@ -842,6 +842,7 @@
     "settingsAi": "AI Settings",
     "settingsSecurity": "Security",
     "settingsFeatureFlags": "Feature Flags",
+    "settingsAuthz": "Authz",
     "settingsRouting": "Routing",
     "settingsResilience": "Resilience",
     "settingsAdvanced": "Advanced",
@@ -913,6 +914,7 @@
     "settingsAdvancedSubtitle": "Power user options",
     "settingsSecuritySubtitle": "Auth and encryption",
     "settingsFeatureFlagsSubtitle": "Toggle system capabilities",
+    "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
     "changelogSubtitle": "Release notes"
@@ -4563,7 +4565,62 @@
     "claudeFastModeHint": "Anthropic does not officially support Fast Mode for SDK-style clients. When enabled, OmniRoute forwards an X-CPA-Force-Fast-Mode header so a paired CLIProxyAPI build can opt-in spoof the entrypoint. Only the listed Opus models are gated by Anthropic's client-side check. Subscription tier, Max plan, and Fast Mode credit balance are still enforced server-side — Anthropic may return out_of_credits even when the toggle is on.",
     "claudeFastModeModelsLabel": "Applied to models ({count})",
     "claudeFastModeModelCheckbox": "Enable Fast Mode for {model}",
-    "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting"
+    "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting",
+    "authz": {
+      "title": "Authz Inventory",
+      "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
+      "loading": "Loading inventory…",
+      "loadError": "Failed to load authz inventory",
+      "tier": {
+        "LOCAL_ONLY": "Local only",
+        "ALWAYS_PROTECTED": "Always protected",
+        "MANAGEMENT": "Management",
+        "CLIENT_API": "Client API",
+        "PUBLIC": "Public"
+      },
+      "bypass": {
+        "section": "Manage-scope bypass",
+        "kill_switch": {
+          "label": "Bypass kill-switch",
+          "desc": "Master toggle. When off, no LOCAL_ONLY prefix is reachable from non-loopback regardless of the per-prefix list."
+        },
+        "prefix": {
+          "label": "Bypassable prefixes",
+          "desc": "LOCAL_ONLY prefixes that manage-scope API keys (or dashboard sessions) may reach from non-loopback hosts.",
+          "add": "Add prefix",
+          "placeholder": "/api/mcp/v2/",
+          "empty": "No prefixes configured. Bypass effectively off."
+        },
+        "cli_tools_runtime_note": "Spawn-capable prefix. Compile-time deny; cannot be made bypassable. Shown read-only."
+      },
+      "password": {
+        "prompt": {
+          "label": "Current password",
+          "desc": "Re-confirm to apply security-impacting changes."
+        },
+        "placeholder": "Current management password",
+        "cancel": "Cancel",
+        "submit": "Apply"
+      },
+      "save": "Save changes",
+      "saved": "Authz settings updated",
+      "pending": "Unsaved changes",
+      "badge": {
+        "bypassable": "Bypassable via manage scope",
+        "strict": "Strict loopback",
+        "auth_required": "Auth required",
+        "public": "Public",
+        "always_protected": "Always protected",
+        "spawn_capable": "Spawn-capable"
+      },
+      "error": {
+        "PASSWORD_REQUIRED": "Current password required to apply these changes.",
+        "PASSWORD_MISMATCH": "Current password is incorrect.",
+        "INSUFFICIENT_SCOPE": "API key lacks the manage scope.",
+        "BYPASS_PREFIX_NOT_ALLOWED": "One or more prefixes target spawn-capable routes and cannot be bypassed.",
+        "GENERIC": "Failed to update authz settings."
+      }
+    }
   },
   "contextRtk": {
     "title": "RTK Engine",
