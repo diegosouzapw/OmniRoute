@@ -92,27 +92,24 @@ export default function FeatureFlagsGrid() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, value: newValue }),
       });
-      if (res.ok) {
-        const result = await res.json();
-        setFlags((prev) =>
-          prev.map((f) =>
-            f.key === key
-              ? { ...f, effectiveValue: result.effectiveValue, source: result.source }
-              : f,
-          ),
-        );
-        setSummary((prev) =>
-          prev
-            ? {
-                ...prev,
-                overriddenByDb:
-                  result.source === "db"
-                    ? prev.overriddenByDb + 1
-                    : Math.max(0, prev.overriddenByDb - 1),
-              }
-            : prev,
-        );
+      if (!res.ok) {
+        setError(`Failed to update flag: HTTP ${res.status}`);
+        return;
       }
+      const result = await res.json();
+      setFlags((prev) => {
+        const oldFlag = prev.find((f) => f.key === key);
+        const wasDb = oldFlag?.source === "db";
+        const isNowDb = result.source === "db";
+        setSummary((s) =>
+          s ? { ...s, overriddenByDb: s.overriddenByDb + (isNowDb ? 1 : 0) - (wasDb ? 1 : 0) } : s
+        );
+        return prev.map((f) =>
+          f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
+        );
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update flag");
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);
@@ -130,19 +127,24 @@ export default function FeatureFlagsGrid() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key }), // no value = remove override
       });
-      if (res.ok) {
-        const result = await res.json();
-        setFlags((prev) =>
-          prev.map((f) =>
-            f.key === key
-              ? { ...f, effectiveValue: result.effectiveValue, source: result.source }
-              : f,
-          ),
-        );
-        setSummary((prev) =>
-          prev ? { ...prev, overriddenByDb: Math.max(0, prev.overriddenByDb - 1) } : prev,
-        );
+      if (!res.ok) {
+        setError(`Failed to update flag: HTTP ${res.status}`);
+        return;
       }
+      const result = await res.json();
+      setFlags((prev) => {
+        const oldFlag = prev.find((f) => f.key === key);
+        const wasDb = oldFlag?.source === "db";
+        const isNowDb = result.source === "db";
+        setSummary((s) =>
+          s ? { ...s, overriddenByDb: s.overriddenByDb + (isNowDb ? 1 : 0) - (wasDb ? 1 : 0) } : s
+        );
+        return prev.map((f) =>
+          f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
+        );
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update flag");
     } finally {
       setSavingKeys((prev) => {
         const next = new Set(prev);
@@ -156,10 +158,16 @@ export default function FeatureFlagsGrid() {
     setResettingAll(true);
     try {
       const res = await fetch("/api/settings/feature-flags", { method: "DELETE" });
-      if (res.ok) {
-        await loadFlags(); // Reload all flag state from server
+      if (!res.ok) {
+        setError(`Failed to reset overrides: HTTP ${res.status}`);
         setShowResetConfirm(false);
+        return;
       }
+      await loadFlags();
+      setShowResetConfirm(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reset overrides");
+      setShowResetConfirm(false);
     } finally {
       setResettingAll(false);
     }
