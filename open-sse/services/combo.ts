@@ -2258,6 +2258,14 @@ export async function handleComboChat({
         // treated as local to that target and the combo continues to the next target.
         // Error classification is retained only for retry/cooldown pacing; it must
         // not decide whether fallback happens, including for generic 400 responses.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2265,7 +2273,8 @@ export async function handleComboChat({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 
@@ -2643,6 +2652,14 @@ async function handleRoundRobinCombo({
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
         // not to decide whether fallback is allowed.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2650,7 +2667,8 @@ async function handleRoundRobinCombo({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 

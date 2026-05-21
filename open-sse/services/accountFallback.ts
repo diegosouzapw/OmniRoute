@@ -136,6 +136,31 @@ const CONTEXT_OVERFLOW_PATTERNS = [
   /\brequest too large\b/i,
 ];
 
+// Structured error codes that reliably indicate model access denied
+// (more reliable than regex on human-readable messages).
+// OpenAI:  { error: { code: "model_not_found", ... } }
+// Anthropic: { error: { type: "not_found_error", ... } }
+const MODEL_ACCESS_DENIED_CODES = new Set([
+  "model_not_found", // OpenAI, OpenAI-compatible (Kiro, Together, Fireworks, etc.)
+  "deployment_not_found", // Azure OpenAI
+]);
+
+const MODEL_ACCESS_DENIED_TYPES = new Set([
+  "not_found_error", // Anthropic: model doesn't exist
+  "permission_error", // Anthropic: account doesn't have access
+]);
+
+// Model access patterns — the account does not have access to the requested model
+// but a different account (e.g. PRO vs free tier) may support it.
+const MODEL_ACCESS_DENIED_PATTERNS = [
+  /\binvalid model\b/i,
+  /\bmodel.*not.*(?:available|found|supported|accessible)\b/i,
+  /\bmodel.*(?:does not exist|doesn't exist)\b/i,
+  /\baccess.*denied.*model\b/i,
+  /\bmodel.*access.*denied\b/i,
+  /\bplease select a different model\b/i,
+];
+
 // Malformed request patterns — the model rejected the message format but a different
 // provider/model in the combo may accept it.
 const MALFORMED_REQUEST_PATTERNS = [
@@ -1007,7 +1032,8 @@ export function checkFallbackError(
   _model: string | null = null,
   provider: string | null = null,
   headers: Headers | Record<string, string> | null = null,
-  profileOverride: ProviderProfile | null = null
+  profileOverride: ProviderProfile | null = null,
+  structuredError?: { code?: string | null; type?: string | null } | null
 ): {
   shouldFallback: boolean;
   cooldownMs: number;
@@ -1222,12 +1248,22 @@ export function checkFallbackError(
     return buildRetryableFallback(RateLimitReason.SERVER_ERROR);
   }
 
-  // 400 — context overflow / malformed request may succeed on another model in the combo
+  // 400 — context overflow / malformed request / model access denied
   if (status === HTTP_STATUS.BAD_REQUEST) {
+    // Check structured error codes first (more reliable, no false positives)
+    // OpenAI:  error.code === "model_not_found"
+    // Anthropic: error.type === "not_found_error" / "permission_error"
+    const isModelAccessDeniedStructured =
+      structuredError &&
+      (MODEL_ACCESS_DENIED_CODES.has(String(structuredError.code || "").toLowerCase()) ||
+        MODEL_ACCESS_DENIED_TYPES.has(String(structuredError.type || "").toLowerCase()));
+
     const isOverflow = CONTEXT_OVERFLOW_PATTERNS.some((p) => p.test(errorStr));
     const isMalformed = MALFORMED_REQUEST_PATTERNS.some((p) => p.test(errorStr));
+    const isModelAccessDenied =
+      isModelAccessDeniedStructured || MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(errorStr));
 
-    if (isOverflow || isMalformed) {
+    if (isOverflow || isMalformed || isModelAccessDenied) {
       return {
         shouldFallback: true,
         cooldownMs: 0,
