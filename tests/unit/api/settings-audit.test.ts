@@ -64,22 +64,11 @@ async function bootstrapWithPassword(password: string): Promise<void> {
   });
 }
 
-// `getAuditLog`'s declared return type loses the original audit_log columns
-// because the row normalizer's spread is widened to the explicit field set.
-// Cast through Record<string, unknown> locally so tests can introspect
-// `action`, `actor`, `target`, `details` without per-call assertions. This
-// mirrors how `tests/unit/compliance-index.test.ts` consumes the same shape.
-type AuditRow = Record<string, unknown> & {
-  action?: string;
-  actor?: string;
-  target?: string;
-  status?: string;
-  resource_type?: string;
-  details?: unknown;
-};
-
-function settingsRows(): AuditRow[] {
-  return compliance.getAuditLog({ target: "settings", limit: 50 }) as unknown as AuditRow[];
+function settingsRows() {
+  // `getAuditLog`'s `AuditLogEntry[]` return type now exposes `action`,
+  // `actor`, `target`, `status`, `details`, etc. directly — no local cast
+  // needed. See src/lib/compliance/index.ts.
+  return compliance.getAuditLog({ target: "settings", limit: 50 });
 }
 
 // ─── AC-9 — success diff row written ──────────────────────────────────────
