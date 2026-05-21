@@ -21,7 +21,7 @@
   "scripts": {
     "build": "tsup",
     "clean": "rm -rf dist",
-    "test": "node --import tsx/esm --test tests/scaffold.test.ts",
+    "test": "node --import tsx/esm --test tests/scaffold.test.ts tests/auth.test.ts",
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [

@@ -45,7 +45,7 @@
  * @see https://github.com/diegosouzapw/OmniRoute for the AI Gateway.
  */
 
-import type { Plugin } from "@opencode-ai/plugin";
+import type { AuthHook, Plugin, PluginOptions } from "@opencode-ai/plugin";
 
 /**
  * Plugin options accepted as the second element of the `plugin: [name, opts]`
@@ -118,18 +118,100 @@ export function resolveOmniRoutePluginOptions(
 }
 
 /**
- * Plugin factory. Returns the OpenCode Plugin object wired with the three
- * hooks. Concrete hook bodies land in subsequent tickets (T-02 auth,
- * T-03 provider.models, T-04 fetch interceptor, T-06 Gemini sanitization,
- * T-07 config backward-compat).
- *
- * The scaffold returns a no-op shape so the plugin loads cleanly under
- * `@opencode-ai/plugin` from the very first publish. Each hook is replaced
- * in turn during the ticket sequence.
+ * Coerce a raw `PluginOptions` (record from opencode.json) into our typed
+ * options shape. Unknown keys are dropped — this isolates the plugin from
+ * config-schema drift.
  */
-export const OmniRoutePlugin: Plugin = async (_ctx) => {
+function coercePluginOptions(opts?: PluginOptions): OmniRoutePluginOptions | undefined {
+  if (!opts || typeof opts !== "object") return undefined;
+  const out: OmniRoutePluginOptions = {};
+  if (typeof opts.providerId === "string") out.providerId = opts.providerId;
+  if (typeof opts.displayName === "string") out.displayName = opts.displayName;
+  if (typeof opts.modelCacheTtl === "number") out.modelCacheTtl = opts.modelCacheTtl;
+  if (typeof opts.baseURL === "string") out.baseURL = opts.baseURL;
+  return out;
+}
+
+/**
+ * Build the AuthHook portion of the plugin for a given options bag. Exported
+ * standalone so the auth contract can be unit-tested without faking the full
+ * PluginInput / Hooks surface.
+ *
+ * Contract notes:
+ *   - `provider` binds to `providerId` (NOT a hardcoded module constant — fixes
+ *     the multi-instance bug in opencode-omniroute-auth@1.2.1 which pinned
+ *     `OMNIROUTE_PROVIDER_ID = "omniroute"` at module scope).
+ *   - `methods[0]` is the `api` flavor (no OAuth flow; OmniRoute issues bearer
+ *     keys directly). Label includes the resolved displayName so multi-instance
+ *     setups stay distinguishable in the OC TUI.
+ *   - `methods[0].prompts` uses the official `{type:"text", key, message}`
+ *     shape from `@opencode-ai/plugin@1.15.6`. The contract does NOT expose
+ *     a `mask: true` flag on text prompts — the OC TUI is expected to handle
+ *     credential masking by itself (per OC's `auth login` UX).
+ *   - `loader` reads the stored credentials via `getAuth()` and projects them
+ *     into the AI-SDK `openai-compatible` options shape (`apiKey`, `baseURL`).
+ *     The fetch interceptor (`fetch`) is wired in T-04; left absent here so
+ *     downstream code falls back to the SDK default fetch.
+ *   - The loader rejects non-`api` auth flavors (oauth / wellknown) and empty
+ *     keys by returning `{}` — OC then surfaces the `/connect` flow to the
+ *     user instead of dispatching a request with bogus credentials.
+ */
+export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook {
+  const { providerId, displayName, baseURL } = resolveOmniRoutePluginOptions(opts);
+
+  const hook: AuthHook = {
+    provider: providerId,
+    methods: [
+      {
+        type: "api",
+        label: `${displayName} API Key`,
+        prompts: [
+          {
+            type: "text",
+            key: "apiKey",
+            message: `OmniRoute API key (${providerId})`,
+          },
+        ],
+      },
+    ],
+    loader: async (getAuth, _provider) => {
+      const auth = await getAuth();
+      if (
+        auth &&
+        typeof auth === "object" &&
+        (auth as { type?: unknown }).type === "api" &&
+        typeof (auth as { key?: unknown }).key === "string" &&
+        (auth as { key: string }).key.length > 0
+      ) {
+        return {
+          apiKey: (auth as { key: string }).key,
+          baseURL: baseURL ?? undefined,
+          // fetch interceptor wired in T-04
+        };
+      }
+      return {};
+    },
+  };
+
+  return hook;
+}
+
+/**
+ * Plugin factory. Returns the OpenCode Plugin object wired with the three
+ * hooks. Concrete hook bodies land in subsequent tickets (T-03 provider.models,
+ * T-04 fetch interceptor, T-06 Gemini sanitization, T-07 config backward-compat).
+ *
+ * Per `@opencode-ai/plugin@1.15.6`, the Plugin signature is
+ * `(input: PluginInput, options?: PluginOptions) => Promise<Hooks>` — opts
+ * arrive as the SECOND argument (from the `[name, opts]` tuple in
+ * opencode.json), NOT as a closure binding. Multi-instance support follows
+ * from each plugin tuple invoking the factory with its own opts.
+ */
+export const OmniRoutePlugin: Plugin = async (_input, options) => {
+  const resolved = coercePluginOptions(options);
   return {
-    // hooks land here in T-02 / T-03 / T-04 / T-06 / T-07
+    auth: createOmniRouteAuthHook(resolved),
+    // provider hook lands in T-03; config shim in T-07
   };
 };
 
