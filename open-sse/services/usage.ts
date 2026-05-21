@@ -22,6 +22,11 @@ import { safePercentage } from "@/shared/utils/formatting";
 import { fetchBailianQuota, type BailianTripleWindowQuota } from "./bailianQuotaFetcher.ts";
 import { fetchDeepseekQuota, type DeepseekQuota } from "./deepseekQuotaFetcher.ts";
 import {
+  applyAntigravityClientProfileHeaders,
+  getAntigravityBootstrapHeaders,
+  getAntigravityClientProfile,
+} from "./antigravityClientProfile.ts";
+import {
   antigravityUserAgent,
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
@@ -32,13 +37,7 @@ import {
 } from "../executors/antigravity.ts";
 import { getCreditsMode } from "./antigravityCredits.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
-import {
-  deriveAntigravityMachineId,
-  generateAntigravityRequestId,
-  getAntigravitySessionId,
-  getAntigravityVscodeSessionId,
-} from "./antigravityIdentity.ts";
-import { getCachedAntigravityVersion } from "./antigravityVersion.ts";
+import { generateAntigravityRequestId, getAntigravitySessionId } from "./antigravityIdentity.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
@@ -1679,7 +1678,8 @@ async function probeAntigravityCreditBalance(
   accessToken: string,
   accountId: string,
   projectId?: string | null,
-  options: AntigravityUsageOptions = {}
+  options: AntigravityUsageOptions = {},
+  providerSpecificData: JsonRecord = {}
 ): Promise<number | null> {
   if (!accessToken) return null;
 
@@ -1696,7 +1696,12 @@ async function probeAntigravityCreditBalance(
   const inflight = _antigravityCreditProbeInflight.get(cacheKey);
   if (inflight) return inflight;
 
-  const promise = probeAntigravityCreditBalanceUncached(accessToken, accountId, projectId)
+  const promise = probeAntigravityCreditBalanceUncached(
+    accessToken,
+    accountId,
+    projectId,
+    providerSpecificData
+  )
     .then(
       (data) => {
         _antigravityCreditProbeCache.set(cacheKey, { data, fetchedAt: Date.now() });
@@ -1718,7 +1723,8 @@ async function probeAntigravityCreditBalance(
 async function probeAntigravityCreditBalanceUncached(
   accessToken: string,
   accountId: string,
-  projectId?: string | null
+  projectId?: string | null,
+  providerSpecificData: JsonRecord = {}
 ): Promise<number | null> {
   try {
     if (!projectId) return null;
@@ -1743,17 +1749,16 @@ async function probeAntigravityCreditBalanceUncached(
         },
       };
 
-      const headers = {
+      const headers: Record<string, string> = {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
-        "User-Agent": antigravityUserAgent(),
-        "x-client-name": "antigravity",
-        "x-client-version": getCachedAntigravityVersion(),
-        "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
-        "x-vscode-sessionid": getAntigravityVscodeSessionId(),
-        "x-goog-user-project": projectId,
         Accept: "text/event-stream",
       };
+      applyAntigravityClientProfileHeaders(
+        headers,
+        { connectionId: accountId, projectId, providerSpecificData },
+        body
+      );
 
       try {
         const res = await fetch(url, {
@@ -1817,13 +1822,15 @@ async function getAntigravityUsage(
   connectionId?: string,
   options: AntigravityUsageOptions = {}
 ) {
-  void providerSpecificData;
   if (!accessToken) {
     return { plan: "Free", message: "Antigravity access token not available." };
   }
 
   try {
-    const subscriptionInfo = await getAntigravitySubscriptionInfoCached(accessToken);
+    const subscriptionInfo = await getAntigravitySubscriptionInfoCached(
+      accessToken,
+      providerSpecificData
+    );
     const projectId =
       connectionProjectId || toRecord(subscriptionInfo).cloudaicompanionProject?.toString() || null;
 
@@ -1841,7 +1848,8 @@ async function getAntigravityUsage(
         accessToken,
         accountId,
         projectId,
-        options
+        options,
+        providerSpecificData || {}
       );
     }
 
@@ -1913,15 +1921,19 @@ async function getAntigravityUsage(
  * Get Antigravity subscription info (cached, 5 min TTL)
  * Prevents duplicate loadCodeAssist calls within the same quota cycle.
  */
-async function getAntigravitySubscriptionInfoCached(accessToken: string): Promise<unknown> {
-  const cacheKey = accessToken.substring(0, 16);
+async function getAntigravitySubscriptionInfoCached(
+  accessToken: string,
+  providerSpecificData?: JsonRecord
+): Promise<unknown> {
+  const profile = getAntigravityClientProfile({ providerSpecificData });
+  const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
   const cached = _antigravitySubCache.get(cacheKey);
 
   if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
     return cached.data;
   }
 
-  const data = await getAntigravitySubscriptionInfo(accessToken);
+  const data = await getAntigravitySubscriptionInfo(accessToken, providerSpecificData);
   _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
   return data;
 }
@@ -1930,11 +1942,18 @@ async function getAntigravitySubscriptionInfoCached(accessToken: string): Promis
  * Get Antigravity subscription info using correct Antigravity headers.
  * Must match the headers used in providers.js postExchange (not CLI headers).
  */
-async function getAntigravitySubscriptionInfo(accessToken: string): Promise<unknown | null> {
+async function getAntigravitySubscriptionInfo(
+  accessToken: string,
+  providerSpecificData?: JsonRecord
+): Promise<unknown | null> {
   try {
+    const profile = getAntigravityClientProfile({ providerSpecificData });
     const response = await fetch(ANTIGRAVITY_CONFIG.loadProjectApiUrl, {
       method: "POST",
-      headers: getAntigravityHeaders("loadCodeAssist", accessToken),
+      headers:
+        profile === "harness"
+          ? getAntigravityBootstrapHeaders(profile, accessToken)
+          : getAntigravityHeaders("loadCodeAssist", accessToken),
       body: JSON.stringify({ metadata: getAntigravityLoadCodeAssistMetadata() }),
     });
 

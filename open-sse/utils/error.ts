@@ -14,6 +14,7 @@ interface ErrorResponseBody {
     type?: string;
     code?: string;
   };
+  upstream_details?: Record<string, unknown> | null; // sanitized upstream provider body
 }
 
 // Length cap protects against pathological inputs even before tokenization.
@@ -56,21 +57,66 @@ export function sanitizeErrorMessage(message: unknown): string {
   return parts.join("");
 }
 
+const BLOCKED_KEYS = /stack|trace|path|file|cwd|dir|password|secret|token|key/i;
+const MAX_DEPTH = 4;
+
+/**
+ * Recursively sanitize an arbitrary JSON value from an upstream provider body.
+ * - Strings: run through sanitizeErrorMessage (strips stacks + absolute paths).
+ * - Keys matching BLOCKED_KEYS are dropped (credential/path guards).
+ * - Depth capped at MAX_DEPTH to prevent pathological nesting.
+ * - Arrays capped at 32 elements.
+ * - Returns null for null/undefined/non-JSON-serializable values.
+ */
+export function sanitizeUpstreamDetails(value: unknown, depth = 0): unknown {
+  if (depth > MAX_DEPTH) return "[truncated]";
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") return sanitizeErrorMessage(value);
+  if (typeof value === "number" || typeof value === "boolean") return value;
+  if (Array.isArray(value)) {
+    return value.slice(0, 32).map((v) => sanitizeUpstreamDetails(v, depth + 1));
+  }
+  if (typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (BLOCKED_KEYS.test(k)) continue;
+      out[k] = sanitizeUpstreamDetails(v, depth + 1);
+    }
+    return out;
+  }
+  return null;
+}
+
 /**
  * Build OpenAI-compatible error response body. Message is always sanitized
  * so callers do not need to remember to strip stack traces themselves.
+ * Optional third argument `upstreamDetails` (raw parsed provider body) is
+ * sanitized by sanitizeUpstreamDetails before inclusion as `upstream_details`.
  */
-export function buildErrorBody(statusCode: number, message: string): ErrorResponseBody {
+export function buildErrorBody(
+  statusCode: number,
+  message: string,
+  upstreamDetails?: unknown
+): ErrorResponseBody {
   const errorInfo = getErrorInfo(statusCode);
   const safeMessage = sanitizeErrorMessage(message) || getDefaultErrorMessage(statusCode);
 
-  return {
+  const body: ErrorResponseBody = {
     error: {
       message: safeMessage,
       type: errorInfo.type,
       code: errorInfo.code,
     },
   };
+
+  if (upstreamDetails !== undefined && upstreamDetails !== null) {
+    const sanitized = sanitizeUpstreamDetails(upstreamDetails);
+    if (sanitized !== null && typeof sanitized === "object" && !Array.isArray(sanitized)) {
+      body.upstream_details = sanitized as Record<string, unknown>;
+    }
+  }
+
+  return body;
 }
 
 /**
@@ -255,9 +301,10 @@ export function createErrorResult(
   message: string,
   retryAfterMs: number | null = null,
   errorCode?: string,
-  errorType?: string
+  errorType?: string,
+  upstreamDetails?: unknown
 ) {
-  const body = buildErrorBody(statusCode, message);
+  const body = buildErrorBody(statusCode, message, upstreamDetails);
   if (errorCode) {
     body.error.code = errorCode;
   }

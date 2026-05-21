@@ -45,7 +45,10 @@ export function getBaseUrl(opts = {}) {
 }
 
 function stripTrailingSlash(value) {
-  return String(value).replace(/\/+$/, "");
+  const s = String(value);
+  let end = s.length;
+  while (end > 0 && s.charCodeAt(end - 1) === 47) end--;
+  return end === s.length ? s : s.slice(0, end);
 }
 
 function resolveUrl(path, opts) {

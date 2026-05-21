@@ -167,7 +167,7 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
-  enabled: true,
+  enabled: false,
   compressRoles: ["user"],
   skipRules: [],
   minMessageLength: 50,
@@ -181,18 +181,18 @@ export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
     "^\\s*(Error|TypeError|RangeError|SyntaxError|ReferenceError):",
     "^\\s+at\\s",
   ],
-  intensity: "full",
+  intensity: "lite",
 };
 
 export const DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG: CavemanOutputModeConfig = {
   enabled: false,
-  intensity: "full",
+  intensity: "lite",
   autoClarity: true,
 };
 
 export const DEFAULT_RTK_CONFIG: RtkConfig = {
-  enabled: true,
-  intensity: "standard",
+  enabled: false,
+  intensity: "minimal",
   applyToToolResults: true,
   applyToCodeBlocks: false,
   applyToAssistantMessages: false,

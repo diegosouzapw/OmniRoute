@@ -1,9 +1,11 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 export function TierFlowDiagram() {
+  const t = useTranslations("onboarding");
   const { resolvedTheme } = useTheme();
   const src =
     resolvedTheme === "dark" ? "/images/tier-flow-dark.svg" : "/images/tier-flow-light.svg";
@@ -12,7 +14,7 @@ export function TierFlowDiagram() {
     <div className="flex flex-col items-center gap-3 my-4">
       <Image
         src={src}
-        alt="OmniRoute 3-tier fallback diagram"
+        alt={t("tierFlowDiagramAlt")}
         width={800}
         height={420}
         priority

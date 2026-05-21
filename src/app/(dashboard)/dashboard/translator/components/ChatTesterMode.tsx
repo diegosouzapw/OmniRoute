@@ -7,9 +7,7 @@ import { Card, Button, Select, Badge } from "@/shared/components";
 import { FORMAT_META, FORMAT_OPTIONS } from "../exampleTemplates";
 import { useProviderOptions } from "../hooks/useProviderOptions";
 import { useAvailableModels } from "../hooks/useAvailableModels";
-import dynamic from "next/dynamic";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+import Editor from "@/shared/components/MonacoEditor";
 
 /**
  * Chat Tester Mode:

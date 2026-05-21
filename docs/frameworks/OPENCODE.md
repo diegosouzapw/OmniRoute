@@ -1,6 +1,6 @@
 ---
 title: "OpenCode Integration"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-14
 ---
 
@@ -81,7 +81,7 @@ writeFileSync("opencode.json", JSON.stringify(config, null, 2));
 
 For a non-destructive merge against an existing file, replicate `mergeOpenCodeConfigText()` from `opencodeConfig.ts` or call the CLI generator.
 
-See the [package README](../../%40omniroute/opencode-provider/README.md) for the full API.
+See the [package README](../../@omniroute/opencode-provider/README.md) for the full API.
 
 ---
 
@@ -161,5 +161,5 @@ For Anthropic-style clients that send `x-api-key` + `anthropic-version`, OmniRou
 
 - [API reference](../reference/API_REFERENCE.md) — full OmniRoute REST surface
 - [Auto-Combo](../routing/AUTO-COMBO.md) — what `model: "auto"` means
-- [`@omniroute/opencode-provider` README](../../%40omniroute/opencode-provider/README.md)
+- [`@omniroute/opencode-provider` README](../../@omniroute/opencode-provider/README.md)
 - Source: `src/shared/services/opencodeConfig.ts`, `src/lib/cli-helper/config-generator/opencode.ts`, `@omniroute/opencode-provider/src/index.ts`

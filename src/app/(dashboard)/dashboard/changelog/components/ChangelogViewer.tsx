@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Button } from "@/shared/components";
 import {
@@ -80,6 +81,7 @@ const markdownComponents: Components = {
 };
 
 export default function ChangelogViewer() {
+  const t = useTranslations("common");
   const [markdown, setMarkdown] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -109,7 +111,7 @@ export default function ChangelogViewer() {
         <span className="material-symbols-outlined animate-spin text-[32px] text-text-muted/50">
           sync
         </span>
-        <p className="text-sm text-text-muted">Loading changelog from GitHub...</p>
+        <p className="text-sm text-text-muted">{t("changelogViewerLoading")}</p>
       </div>
     );
   }

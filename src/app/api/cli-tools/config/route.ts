@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { generateConfig, generateAllConfigs } from "@/lib/cli-helper/config-generator";
+
+const generateConfigSchema = z.object({
+  toolId: z.string().min(1),
+  baseUrl: z.string().optional(),
+  apiKey: z.string().min(1),
+  model: z.string().optional(),
+});
 
 // GET /api/cli-tools/config - List generated configs for all tools
 export async function GET(request: Request) {
@@ -30,15 +38,14 @@ export async function POST(request: Request) {
   if (authError) return authError;
 
   try {
-    const body = await request.json();
-    const { toolId, baseUrl, apiKey, model } = body;
-
-    if (!toolId) {
-      return NextResponse.json({ error: "toolId is required" }, { status: 400 });
+    const parsed = generateConfigSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        { status: 400 }
+      );
     }
-    if (!apiKey) {
-      return NextResponse.json({ error: "apiKey is required" }, { status: 400 });
-    }
+    const { toolId, baseUrl, apiKey, model } = parsed.data;
 
     const result = await generateConfig(toolId, {
       baseUrl: baseUrl || "http://localhost:20128/v1",

@@ -34,6 +34,7 @@ import {
 } from "./ccBridgeTransforms.ts";
 import type {
   CcBridgeTransformsConfig,
+  ReplaceTextOp,
   TransformOp as BaseTransformOp,
 } from "./ccBridgeTransforms.ts";
 
@@ -132,23 +133,46 @@ export const PROVIDER_CC_BRIDGE = "anthropic-compatible-cc";
 /**
  * Default pipeline for the native `claude` provider path.
  *
- * Cosmetic ops only — native executor already injects billing+sentinel.
- * Obfuscates sensitive words (Open WebUI etc.) and drops Open WebUI
- * paragraph anchors. Does NOT inject billing header (would conflict
- * with native code at executors/base.ts:753-782).
+ * Cosmetic ops only — native executor already injects billing+sentinel
+ * (`executors/base.ts:759-784`), so this pipeline deliberately OMITS
+ * `prepend_system_block` and `inject_billing_header` to avoid double-prepend
+ * and prompt-cache prefix breakage (see issue #1712, native comment block
+ * `executors/base.ts:624-631`).
+ *
+ * Plugin parity (`@ex-machina/opencode-anthropic-auth`): drops 3rd-party-agent
+ * anchor paragraphs (anomalyco/opencode, cline, getcursor/cursor, continue.dev,
+ * Open WebUI), drops "You are OpenCode" / "You are Open WebUI" identity
+ * paragraphs, replaces the "Here is some useful information about the
+ * environment you are running in:" billing-gate trigger phrase, and ZWJ
+ * obfuscates sensitive client words. Without these, the native OAuth path
+ * leaks third-party-agent signals into `/v1/messages` and Anthropic returns
+ * `[400] Third-party apps now draw from extra usage, not plan limits.` —
+ * verified against opencode→OmniRoute→Anthropic with claude-opus-4-7 OAuth.
  */
 export const DEFAULT_CLAUDE_PIPELINE: TransformOp[] = [
-  // Open WebUI paragraph anchors (Gap 2 from comment 4459544580).
+  // Drop paragraphs containing 3rd-party-agent anchor URLs (anomalyco/opencode,
+  // opencode.ai/docs, cline, getcursor/cursor, continue.dev) and Open WebUI URLs.
   {
     kind: "drop_paragraph_if_contains",
-    needles: [...OPENWEBUI_PARAGRAPH_ANCHORS],
+    needles: [...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS, ...OPENWEBUI_PARAGRAPH_ANCHORS],
   },
-  // Open WebUI identity prefixes.
+  // Drop "You are OpenCode" + "You are Open WebUI" identity paragraphs.
   {
     kind: "drop_paragraph_if_starts_with",
-    prefixes: [...OPENWEBUI_IDENTITY_PREFIXES],
+    prefixes: [...DEFAULT_IDENTITY_PREFIXES, ...OPENWEBUI_IDENTITY_PREFIXES],
   },
-  // ZWJ obfuscation of sensitive words (closes Gap 1 + Gap 3).
+  // Replace the "Here is some useful information about the environment you are
+  // running in:" billing-gate trigger phrase + the "if OpenCode honestly"
+  // phrase-shape filter (DEFAULT_TEXT_REPLACEMENTS from ccBridgeTransforms.ts).
+  ...DEFAULT_TEXT_REPLACEMENTS.map<ReplaceTextOp>((r) => ({
+    kind: "replace_text" as const,
+    match: r.match,
+    replacement: r.replacement,
+    allOccurrences: true,
+  })),
+  // ZWJ obfuscation of sensitive client words (opencode, cline, cursor, …,
+  // openwebui). Layers on top of the legacy `obfuscateInBody` pass at
+  // `executors/base.ts:622` (which only covers `DEFAULT_SENSITIVE_WORDS`).
   {
     kind: "obfuscate_words",
     words: [...DEFAULT_OBFUSCATE_WORDS],
@@ -188,7 +212,13 @@ export const DEFAULT_CC_BRIDGE_PROVIDER_PIPELINE: TransformOp[] = [
 export const DEFAULT_SYSTEM_TRANSFORMS_CONFIG: SystemTransformsConfig = {
   providers: {
     [PROVIDER_CLAUDE]: {
-      enabled: false,
+      // Enabled by default — matches the module-level docstring ("claude:
+      // obfuscate_words ON …") and closes the native-OAuth third-party-agent
+      // leak that surfaces as `[400] Third-party apps now draw from extra
+      // usage` when opencode (or any non-claude-cli client) hits OmniRoute's
+      // `/v1/chat/completions` endpoint with a `claude/*` model slug. User
+      // overrides via Settings UI (setSystemTransformsConfig) still win.
+      enabled: true,
       pipeline: DEFAULT_CLAUDE_PIPELINE,
     },
     [PROVIDER_CC_BRIDGE]: {

@@ -704,8 +704,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
       return `${base}:${action}`;
     },
-    authType: "oauth",
-    authHeader: "bearer",
+    authType: "apikey",
+    authHeader: "x-goog-api-key",
     defaultContextLength: 1048576,
     oauth: {
       clientIdEnv: "GEMINI_CLI_OAUTH_CLIENT_ID",
@@ -714,6 +714,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       clientSecretDefault: resolvePublicCred("gemini_alt"),
     },
     models: [
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
       { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro Preview" },
       { id: "gemini-3.1-pro-preview-customtools", name: "Gemini 3.1 Pro Preview Custom Tools" },
       { id: "gemini-3-flash-preview", name: "Gemini 3 Flash Preview" },
@@ -933,6 +935,43 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "github-models": {
+    id: "github-models",
+    alias: "ghm",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://models.github.ai/inference/chat/completions",
+    modelsUrl: "https://models.github.ai/inference/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    headers: {
+      "X-GitHub-Api-Version": "2022-11-28",
+      Accept: "application/vnd.github+json",
+    },
+    defaultContextLength: 128000,
+    models: [
+      { id: "openai/gpt-4.1", name: "GPT-4.1 (Free)", contextLength: 1047576 },
+      { id: "openai/gpt-4o", name: "GPT-4o (Free)", contextLength: 128000 },
+      { id: "openai/gpt-4o-mini", name: "GPT-4o Mini (Free)", contextLength: 128000 },
+      { id: "openai/o1", name: "o1 (Free)", contextLength: 200000 },
+      { id: "openai/o3", name: "o3 (Free)", contextLength: 200000 },
+      { id: "openai/o4-mini", name: "o4-mini (Free)", contextLength: 200000 },
+      { id: "deepseek/DeepSeek-R1", name: "DeepSeek R1 (Free)", contextLength: 131072 },
+      {
+        id: "meta/Llama-4-Maverick-17B-128E-Instruct",
+        name: "Llama 4 Maverick (Free)",
+        contextLength: 131072,
+      },
+      { id: "xai/grok-3", name: "Grok 3 (Free)", contextLength: 131072 },
+      { id: "mistral-ai/Mistral-Medium-3", name: "Mistral Medium 3 (Free)", contextLength: 128000 },
+      { id: "cohere/Cohere-command-a", name: "Cohere Command A (Free)", contextLength: 128000 },
+      { id: "microsoft/Phi-4", name: "Phi-4 (Free)", contextLength: 16384 },
+      { id: "openai/text-embedding-3-large", name: "Text Embedding 3 Large (Free)" },
+      { id: "openai/text-embedding-3-small", name: "Text Embedding 3 Small (Free)" },
+    ],
+  },
+
   kiro: {
     id: "kiro",
     alias: "kr",
@@ -1002,6 +1041,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     clientVersion: CURSOR_REGISTRY_VERSION,
     models: [
       { id: "auto", name: "Auto (Server Picks)" },
+      { id: "composer-2.5-fast", name: "Composer 2.5 Fast" },
+      { id: "composer-2.5", name: "Composer 2.5" },
       { id: "composer-2-fast", name: "Composer 2 Fast" },
       { id: "composer-2", name: "Composer 2" },
       //
@@ -1904,6 +1945,68 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  haiper: {
+    id: "haiper",
+    alias: "hp",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.haiper.ai/v1",
+    authType: "apikey",
+    authHeader: "HAIPER_KEY",
+    models: [
+      { id: "gen2", name: "Gen 2 Video" },
+      { id: "gen2-image", name: "Gen 2 Image" },
+    ],
+  },
+  leonardo: {
+    id: "leonardo",
+    alias: "leo",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://cloud.leonardo.ai/api/rest/v1",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "phoenix", name: "Phoenix" },
+      { id: "sdxl", name: "SDXL" },
+    ],
+  },
+  ideogram: {
+    id: "ideogram",
+    alias: "ideo",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.ideogram.ai",
+    authType: "apikey",
+    authHeader: "Api-Key",
+    models: [
+      { id: "V_3", name: "Ideogram V3" },
+      { id: "V_2A", name: "Ideogram V2A" },
+    ],
+  },
+  suno: {
+    id: "suno",
+    alias: "suno",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://studio-api.suno.ai/api/generate/v2/",
+    authType: "cookie",
+    authHeader: "cookie",
+    models: [
+      { id: "chirp-v3-5", name: "Chirp V3.5" },
+      { id: "chirp-v4", name: "Chirp V4" },
+    ],
+  },
+  udio: {
+    id: "udio",
+    alias: "udio",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://www.udio.com/api/generate-proxy",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [{ id: "udio-default", name: "Udio Default" }],
+  },
   groq: {
     id: "groq",
     alias: "groq",
@@ -2072,6 +2175,40 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  "deepseek-web": {
+    id: "deepseek-web",
+    alias: "ds-web",
+    format: "openai",
+    executor: "deepseek-web",
+    baseUrl: "https://chat.deepseek.com/api/v0/chat/completion",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "deepseek-v4-pro", name: "DeepSeek V4 Pro" },
+      { id: "deepseek-v4-pro-think", name: "DeepSeek V4 Pro Think", supportsReasoning: true },
+      { id: "deepseek-v4-pro-search", name: "DeepSeek V4 Pro Search" },
+      {
+        id: "deepseek-v4-pro-think-search",
+        name: "DeepSeek V4 Pro Think+Search",
+        supportsReasoning: true,
+      },
+      { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash" },
+      { id: "deepseek-v4-flash-think", name: "DeepSeek V4 Flash Think", supportsReasoning: true },
+      { id: "deepseek-v4-flash-search", name: "DeepSeek V4 Flash Search" },
+      {
+        id: "deepseek-v4-flash-think-search",
+        name: "DeepSeek V4 Flash Think+Search",
+        supportsReasoning: true,
+      },
+      { id: "deepseek-chat", name: "DeepSeek Chat" },
+      { id: "deepseek-reasoner", name: "DeepSeek Reasoner", supportsReasoning: true },
+      { id: "DeepSeek-R1", name: "DeepSeek R1", supportsReasoning: true },
+      { id: "DeepSeek-R1-Search", name: "DeepSeek R1 Search", supportsReasoning: true },
+      { id: "DeepSeek-V3.2", name: "DeepSeek V3.2" },
+      { id: "DeepSeek-Search", name: "DeepSeek Search" },
+    ],
+  },
+
   "grok-web": {
     id: "grok-web",
     alias: "gw",
@@ -2086,6 +2223,24 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "expert", name: "Grok 4.20 Thinking", toolCalling: true },
       { id: "heavy", name: "Grok 4.20 Multi Agent", toolCalling: true },
       { id: "grok-420-computer-use-sa", name: "Grok 4.3 (Beta)", toolCalling: true },
+    ],
+  },
+
+  "gemini-web": {
+    id: "gemini-web",
+    alias: "gweb",
+    format: "openai",
+    executor: "gemini-web",
+    baseUrl: "https://gemini.google.com/app",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+      { id: "gemini-2.0-pro", name: "Gemini 2.0 Pro" },
+      { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
+      { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+      { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash" },
     ],
   },
 
@@ -2162,6 +2317,54 @@ export const REGISTRY: Record<string, RegistryEntry> = {
         name: "Muse Spark Contemplating",
         supportsReasoning: true,
       },
+    ],
+  },
+
+  // TODO(post-devtools-capture): Confirm baseUrl after Step 0 DevTools capture.
+  // Current guess: "https://t3.chat/api/chat". May be a Convex deployment URL.
+  // TODO(post-devtools-capture): Trim duplicate model entries and update model IDs
+  // to match exact values seen in the DevTools request body (model field).
+  "t3-web": {
+    id: "t3-web",
+    alias: "t3chat",
+    format: "openai",
+    executor: "t3-web",
+    baseUrl: "https://t3.chat/api/chat",
+    authType: "apikey",
+    authHeader: "cookie",
+    models: [
+      // Claude
+      { id: "claude-opus-4", name: "Claude Opus 4 (via t3.chat)" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4 (via t3.chat)" },
+      { id: "claude-haiku-4", name: "Claude Haiku 4 (via t3.chat)" },
+      { id: "claude-3.7", name: "Claude 3.7 Sonnet (via t3.chat)" },
+      // GPT / OpenAI
+      { id: "gpt-5", name: "GPT-5 (via t3.chat)" },
+      { id: "gpt-4o", name: "GPT-4o (via t3.chat)" },
+      { id: "gpt-4.1", name: "GPT-4.1 (via t3.chat)" },
+      { id: "o3", name: "o3 (via t3.chat)" },
+      { id: "o4-mini", name: "o4-mini (via t3.chat)" },
+      // Gemini
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro (via t3.chat)" },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash (via t3.chat)" },
+      // DeepSeek
+      { id: "deepseek-r1", name: "DeepSeek R1 (via t3.chat)", supportsReasoning: true },
+      { id: "deepseek-v3", name: "DeepSeek V3 (via t3.chat)" },
+      // Grok
+      { id: "grok-3", name: "Grok 3 (via t3.chat)" },
+      { id: "grok-3-mini", name: "Grok 3 Mini (via t3.chat)" },
+      // Llama / Meta
+      { id: "llama-4-maverick", name: "Llama 4 Maverick (via t3.chat)" },
+      { id: "llama-4-scout", name: "Llama 4 Scout (via t3.chat)" },
+      { id: "llama-3.3-70b", name: "Llama 3.3 70B (via t3.chat)" },
+      // Mistral
+      { id: "devstral", name: "Devstral (via t3.chat)" },
+      { id: "mistral-large", name: "Mistral Large (via t3.chat)" },
+      // Qwen
+      { id: "qwen3-235b", name: "Qwen3 235B (via t3.chat)", supportsReasoning: true },
+      { id: "qwen3-32b", name: "Qwen3 32B (via t3.chat)", supportsReasoning: true },
+      // Kimi
+      { id: "kimi-k2", name: "Kimi K2 (via t3.chat)" },
     ],
   },
 
@@ -2251,7 +2454,16 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "cohere",
     format: "openai",
     executor: "default",
-    baseUrl: "https://api.cohere.com/v2/chat",
+    // Issue #2360: Cohere's native /v2/chat endpoint returns the upstream
+    // proprietary shape ({ message: { content: [{type:"text", text:...}] } })
+    // which the combo test validator (extractComboTestResponseText) does not
+    // know how to read, surfacing as "Provider returned HTTP 200 but no text
+    // content." Cohere also publishes an OpenAI-compatible compatibility
+    // layer at /compatibility/v1 that returns the canonical
+    // { choices: [{ message: { content: "..." } }] } shape, so we route
+    // through it instead of needing a Cohere-specific response translator.
+    baseUrl: "https://api.cohere.com/compatibility/v1/chat/completions",
+    modelsUrl: "https://api.cohere.com/compatibility/v1/models",
     authType: "apikey",
     authHeader: "bearer",
     models: [
@@ -2347,20 +2559,11 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "hf",
     format: "openai",
     executor: "default",
-    // HuggingFace Inference API — OpenAI-compatible endpoint
-    // Users must set their provider-specific baseUrl (model endpoint) in providerSpecificData.baseUrl
-    // or use a fixed model like: https://router.huggingface.co/ngc/nvidia/llama-3_1-nemotron-51b-instruct
-    baseUrl:
-      "https://router.huggingface.co/hf-inference/models/meta-llama/Meta-Llama-3.1-70B-Instruct/v1/chat/completions",
+    baseUrl: "https://router.huggingface.co/v1/chat/completions",
+    modelsUrl: "https://router.huggingface.co/v1/models",
     authType: "apikey",
     authHeader: "bearer",
-    models: [
-      { id: "meta-llama/Meta-Llama-3.1-70B-Instruct", name: "Llama 3.1 70B Instruct" },
-      { id: "meta-llama/Meta-Llama-3.1-8B-Instruct", name: "Llama 3.1 8B Instruct" },
-      { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
-      { id: "mistralai/Mistral-7B-Instruct-v0.3", name: "Mistral 7B v0.3" },
-      { id: "microsoft/Phi-3.5-mini-instruct", name: "Phi-3.5 Mini" },
-    ],
+    models: [],
   },
 
   synthetic: {
@@ -2654,6 +2857,57 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qwen3.6:27b", name: "Qwen3 Coder 27B (🆓 Free)" },
       { id: "gemma4:31b", name: "Gemma 4 31B (🆓 Free)" },
     ],
+  },
+
+  replicate: {
+    id: "replicate",
+    alias: "rep",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://openai-proxy.replicate.com/v1/chat/completions",
+    modelsUrl: "https://openai-proxy.replicate.com/v1/models",
+    authType: "apikey",
+    authHeader: "Authorization",
+    authPrefix: "Bearer",
+    passthroughModels: true,
+    defaultContextLength: 128000,
+    models: [
+      {
+        id: "meta/meta-llama-3.1-405b-instruct",
+        name: "Llama 3.1 405B Instruct (Free)",
+        contextLength: 128000,
+      },
+      {
+        id: "meta/meta-llama-3.1-70b-instruct",
+        name: "Llama 3.1 70B Instruct (Free)",
+        contextLength: 128000,
+      },
+      {
+        id: "mistralai/mixtral-8x7b-instruct-v0.1",
+        name: "Mixtral 8x7B Instruct (Free)",
+        contextLength: 32768,
+      },
+      {
+        id: "deepseek-ai/deepseek-r1",
+        name: "DeepSeek R1 (Free)",
+        contextLength: 65536,
+        supportsReasoning: true,
+      },
+    ],
+  },
+
+  hackclub: {
+    id: "hackclub",
+    alias: "hc",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ai.hackclub.com/proxy/v1/chat/completions",
+    modelsUrl: "https://ai.hackclub.com/proxy/v1/models",
+    authType: "optional",
+    authHeader: "bearer",
+    passthroughModels: true,
+    defaultContextLength: 128000,
+    models: [],
   },
 
   deepinfra: {
@@ -3039,6 +3293,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authType: "apikey",
     authHeader: "bearer",
     models: CHAT_OPENAI_COMPAT_MODELS.bytez,
+  },
+
+  // Issue #2361: LLM7.io was visible in the dashboard provider list
+  // (entry in `src/shared/constants/providers.ts`) but missing from the
+  // executor registry, so test-connection and chat requests had no
+  // baseUrl / authType to route to and returned a credential error.
+  // The provider exposes a standard OpenAI-compatible v1 endpoint with
+  // an optional bearer token (set the literal string "unused" when no
+  // key is configured, per upstream docs).
+  llm7: {
+    id: "llm7",
+    alias: "llm7",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.llm7.io/v1/chat/completions",
+    modelsUrl: "https://api.llm7.io/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "gpt-4o-mini-2024-07-18", name: "GPT-4o mini (LLM7)" },
+      { id: "gpt-4.1-nano-2025-04-14", name: "GPT-4.1 nano (LLM7)" },
+      { id: "deepseek-r1-0528", name: "DeepSeek R1 (LLM7)" },
+      { id: "qwen2.5-coder-32b-instruct", name: "Qwen2.5 Coder 32B (LLM7)" },
+    ],
   },
 
   aimlapi: {

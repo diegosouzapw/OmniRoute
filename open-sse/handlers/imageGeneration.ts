@@ -17,6 +17,9 @@ import { randomUUID } from "crypto";
  */
 
 import { getImageProvider, parseImageModel } from "../config/imageRegistry.ts";
+import { HTTP_STATUS } from "../config/constants.ts";
+import { applyAntigravityClientProfileHeaders } from "../services/antigravityClientProfile.ts";
+import { getAntigravityEnvelopeUserAgent } from "../services/antigravityIdentity.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { mapImageSize } from "../translator/image/sizeMapper.ts";
 import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.ts";
@@ -38,6 +41,7 @@ import {
   extractComfyOutputFiles,
 } from "../utils/comfyuiClient.ts";
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 
 interface KieImageOptions {
   model: string;
@@ -79,6 +83,32 @@ const OPENAI_IMAGE_TO_IMAGE_MODELS = new Set([
   "flux-kontext-pro",
   "qwen-image",
 ]);
+
+const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
+
+function normalizeImageAspectRatio(value: unknown, fallbackSize: unknown): string {
+  if (typeof value === "string") {
+    const trimmedValue = value.trim();
+    if (IMAGE_ASPECT_RATIO_PATTERN.test(trimmedValue)) return trimmedValue;
+  }
+  return mapImageSize(typeof fallbackSize === "string" ? fallbackSize : null);
+}
+
+function parseJsonOrNull(value: string): unknown | null {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeImageProviderError(errorText: string): unknown {
+  const parsed = parseJsonOrNull(errorText);
+  if (parsed !== null) {
+    return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
+  }
+  return sanitizeErrorMessage(errorText);
+}
 
 const BFL_MODEL_ENDPOINTS = {
   "flux-2-max": "/v1/flux-2-max",
@@ -372,6 +402,30 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "haiper-image") {
+    return handleHaiperImageGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+  if (providerConfig.format === "leonardo-image") {
+    return handleLeonardoImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+  if (providerConfig.format === "ideogram-image") {
+    return handleIdeogramImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
   return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
 }
 
@@ -577,42 +631,75 @@ async function handleKieImageGeneration({
  */
 async function handleGeminiImageGeneration({ model, providerConfig, body, credentials, log }) {
   const startTime = Date.now();
-  const url = `${providerConfig.baseUrl}/${model}:generateContent`;
+  const url = providerConfig.baseUrl;
   const provider = "antigravity";
+  const credentialRecord = credentials || {};
+  const token = credentialRecord.accessToken || credentialRecord.apiKey;
+  const providerSpecificData = credentialRecord.providerSpecificData;
+  const providerSpecificProjectId =
+    providerSpecificData && typeof providerSpecificData === "object"
+      ? (providerSpecificData as Record<string, unknown>).projectId
+      : null;
+  const credentialProjectId =
+    typeof credentialRecord.projectId === "string" ? credentialRecord.projectId.trim() : "";
+  const providerProjectId =
+    typeof providerSpecificProjectId === "string" ? providerSpecificProjectId.trim() : "";
+  const projectId = credentialProjectId || providerProjectId || null;
+  const candidateCount =
+    typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
+  const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
 
   // Summarized request for call log
   const logRequestBody = {
     model: body.model,
-    prompt:
-      typeof body.prompt === "string"
-        ? body.prompt.slice(0, 200)
-        : String(body.prompt ?? "").slice(0, 200),
+    prompt: promptText.slice(0, 200),
     size: body.size || "default",
-    n: body.n || 1,
+    n: candidateCount,
   };
 
-  const geminiBody = {
-    contents: [
-      {
-        parts: [{ text: body.prompt }],
+  if (!projectId || typeof projectId !== "string") {
+    return saveImageErrorResult({
+      provider,
+      model,
+      status: 400,
+      startTime,
+      error:
+        "Missing Google projectId for Antigravity account. Please reconnect OAuth in Providers so OmniRoute can fetch your Cloud Code project.",
+      requestBody: logRequestBody,
+    });
+  }
+
+  const antigravityBody = {
+    project: projectId,
+    requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
+    request: {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: promptText }],
+        },
+      ],
+      generationConfig: {
+        candidateCount,
+        imageConfig: {
+          aspectRatio: normalizeImageAspectRatio(body.aspect_ratio, body.size),
+        },
       },
-    ],
-    generationConfig: {
-      responseModalities: ["TEXT", "IMAGE"],
     },
+    model,
+    userAgent: getAntigravityEnvelopeUserAgent(credentialRecord),
+    requestType: "image_gen",
   };
 
-  const token = credentials.accessToken || credentials.apiKey;
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`,
   };
+  applyAntigravityClientProfileHeaders(headers, credentialRecord, antigravityBody);
+  delete headers["x-goog-user-project"];
 
   if (log) {
-    const promptPreview =
-      typeof body.prompt === "string"
-        ? body.prompt.slice(0, 60)
-        : String(body.prompt ?? "").slice(0, 60);
+    const promptPreview = promptText.slice(0, 60);
     log.info(
       "IMAGE",
       `antigravity/${model} (gemini) | prompt: "${promptPreview}..." | format: gemini-image`
@@ -623,13 +710,16 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     const response = await fetch(url, {
       method: "POST",
       headers,
-      body: JSON.stringify(geminiBody),
+      body: JSON.stringify(antigravityBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      const safeError = sanitizeImageProviderError(errorText);
+      const safeErrorLog =
+        typeof safeError === "string" ? safeError : JSON.stringify(safeError ?? {});
       if (log) {
-        log.error("IMAGE", `antigravity error ${response.status}: ${errorText.slice(0, 200)}`);
+        log.error("IMAGE", `antigravity error ${response.status}: ${safeErrorLog.slice(0, 200)}`);
       }
 
       saveCallLog({
@@ -639,25 +729,26 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
         model: `antigravity/${model}`,
         provider,
         duration: Date.now() - startTime,
-        error: errorText.slice(0, 500),
+        error: safeErrorLog.slice(0, 500),
         requestBody: logRequestBody,
       }).catch(() => {});
 
-      return { success: false, status: response.status, error: errorText };
+      return { success: false, status: response.status, error: safeError };
     }
 
     const data = await response.json();
+    const responseBody = data.response || data;
 
-    // Extract image data from Gemini response
+    // Extract image data from Antigravity's wrapped Gemini response.
     const images = [];
-    const candidates = data.candidates || [];
+    const candidates = responseBody.candidates || [];
     for (const candidate of candidates) {
       const parts = candidate.content?.parts || [];
       for (const part of parts) {
         if (part.inlineData) {
           images.push({
             b64_json: part.inlineData.data,
-            revised_prompt: parts.find((p) => p.text)?.text || body.prompt,
+            revised_prompt: parts.find((p) => p.text)?.text || promptText,
           });
         }
       }
@@ -698,7 +789,11 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       requestBody: logRequestBody,
     }).catch(() => {});
 
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
   }
 }
 
@@ -1277,7 +1372,7 @@ async function handleFalAIImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     });
   }
 }
@@ -1467,7 +1562,7 @@ async function handleStabilityAIImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     });
   }
 }
@@ -1586,7 +1681,7 @@ async function handleBlackForestLabsImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     });
   }
 }
@@ -1661,7 +1756,7 @@ async function handleRecraftImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     });
   }
 }
@@ -1749,7 +1844,7 @@ async function handleTopazImageGeneration({
       model,
       status: 502,
       startTime,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     });
   }
 }
@@ -2329,7 +2424,7 @@ async function fetchImageEndpoint(url, headers, body, provider, log) {
     return {
       success: false,
       status: 502,
-      error: `Image provider error: ${err.message}`,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     };
   }
 }
@@ -2424,7 +2519,11 @@ async function handleHyperbolicImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
   }
 }
 
@@ -2678,7 +2777,11 @@ async function handleNanoBananaImageGeneration({
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
   }
 }
 
@@ -2870,7 +2973,11 @@ async function handleSDWebUIImageGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
   }
 }
 
@@ -2972,7 +3079,345 @@ async function handleComfyUIImageGeneration({ model, provider, providerConfig, b
       duration: Date.now() - startTime,
       error: err.message,
     }).catch(() => {});
-    return { success: false, status: 502, error: `Image provider error: ${err.message}` };
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
+  }
+}
+
+async function handleHaiperImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const token = credentials?.apiKey || "";
+  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  if (log) {
+    log.info("IMAGE", `${provider}/${model} (haiper) | prompt: "${prompt.slice(0, 60)}..."`);
+  }
+  try {
+    const res = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", HAIPER_KEY: token },
+      body: JSON.stringify({ prompt, aspect_ratio: body.aspect_ratio || "16:9" }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: res.status,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText.slice(0, 500),
+      }).catch(() => {});
+      return { success: false, status: res.status, error: errorText };
+    }
+    const { job_id } = await res.json();
+    const deadline = Date.now() + 300000;
+    while (Date.now() < deadline) {
+      await sleep(5000);
+      const statusRes = await fetch(`${providerConfig.statusUrl}/${job_id}`, {
+        headers: { HAIPER_KEY: token },
+      });
+      const status = await statusRes.json();
+      if (status.status === "completed" || status.status === "succeeded") {
+        const imgUrl = status.creation_url || status.output?.image_url;
+        if (imgUrl) {
+          const imgRes = await fetch(imgUrl);
+          if (!imgRes.ok) {
+            return {
+              success: false,
+              status: imgRes.status,
+              error: `Failed to download image: ${imgRes.status}`,
+            };
+          }
+          const buf = await imgRes.arrayBuffer();
+          saveCallLog({
+            method: "POST",
+            path: "/v1/images/generations",
+            status: 200,
+            model: `${provider}/${model}`,
+            provider,
+            duration: Date.now() - startTime,
+          }).catch(() => {});
+          return {
+            success: true,
+            data: {
+              created: Math.floor(Date.now() / 1000),
+              data: [{ b64_json: Buffer.from(buf).toString("base64") }],
+            },
+          };
+        }
+      }
+      if (status.status === "failed") {
+        saveCallLog({
+          method: "POST",
+          path: "/v1/images/generations",
+          status: 502,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          error: "Haiper image generation failed",
+        }).catch(() => {});
+        return { success: false, status: 502, error: "Haiper image generation failed" };
+      }
+    }
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 504,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: "Haiper image generation timed out",
+    }).catch(() => {});
+    return { success: false, status: 504, error: "Haiper image generation timed out" };
+  } catch (err) {
+    if (log) log.error("IMAGE", `${provider} haiper error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
+  }
+}
+
+async function handleLeonardoImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const token = credentials?.apiKey || "";
+  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  if (log) {
+    log.info("IMAGE", `${provider}/${model} (leonardo) | prompt: "${prompt.slice(0, 60)}..."`);
+  }
+  try {
+    const res = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        modelId: model || "phoenix",
+        prompt,
+        width: body.width || 1024,
+        height: body.height || 1024,
+        num_images: 1,
+      }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: res.status,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText.slice(0, 500),
+      }).catch(() => {});
+      return { success: false, status: res.status, error: errorText };
+    }
+    const { sdGenerationJob } = await res.json();
+    const genId = sdGenerationJob?.generationId;
+    if (!genId) {
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 502,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: "No generation ID returned",
+      }).catch(() => {});
+      return { success: false, status: 502, error: "No generation ID returned" };
+    }
+    const deadline = Date.now() + 300000;
+    while (Date.now() < deadline) {
+      await sleep(5000);
+      const statusRes = await fetch(`${providerConfig.baseUrl}/${genId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const status = await statusRes.json();
+      const gen = status.generations_by_pk || status;
+      if (gen.status === "COMPLETE") {
+        const imgUrl = gen.generated_images?.[0]?.url;
+        if (imgUrl) {
+          const imgRes = await fetch(imgUrl);
+          if (!imgRes.ok) {
+            return {
+              success: false,
+              status: imgRes.status,
+              error: `Failed to download image: ${imgRes.status}`,
+            };
+          }
+          const buf = await imgRes.arrayBuffer();
+          saveCallLog({
+            method: "POST",
+            path: "/v1/images/generations",
+            status: 200,
+            model: `${provider}/${model}`,
+            provider,
+            duration: Date.now() - startTime,
+          }).catch(() => {});
+          return {
+            success: true,
+            data: {
+              created: Math.floor(Date.now() / 1000),
+              data: [{ b64_json: Buffer.from(buf).toString("base64") }],
+            },
+          };
+        }
+      }
+      if (gen.status === "FAILED") {
+        saveCallLog({
+          method: "POST",
+          path: "/v1/images/generations",
+          status: 502,
+          model: `${provider}/${model}`,
+          provider,
+          duration: Date.now() - startTime,
+          error: "Leonardo image generation failed",
+        }).catch(() => {});
+        return { success: false, status: 502, error: "Leonardo image generation failed" };
+      }
+    }
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 504,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: "Leonardo image generation timed out",
+    }).catch(() => {});
+    return { success: false, status: 504, error: "Leonardo image generation timed out" };
+  } catch (err) {
+    if (log) log.error("IMAGE", `${provider} leonardo error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
+  }
+}
+
+async function handleIdeogramImageGeneration({
+  model,
+  provider,
+  providerConfig,
+  body,
+  credentials,
+  log,
+}) {
+  const startTime = Date.now();
+  const token = credentials?.apiKey || "";
+  const prompt = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  if (log) {
+    log.info("IMAGE", `${provider}/${model} (ideogram) | prompt: "${prompt.slice(0, 60)}..."`);
+  }
+  try {
+    const res = await fetch(providerConfig.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Api-Key": token },
+      body: JSON.stringify({ prompt, aspect_ratio: "ASPECT_16_9", model: model || "V_3" }),
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: res.status,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+        error: errorText.slice(0, 500),
+      }).catch(() => {});
+      return { success: false, status: res.status, error: errorText };
+    }
+    const data = await res.json();
+    if (data.data && data.data.length > 0) {
+      const imgUrl = data.data[0].url;
+      const imgRes = await fetch(imgUrl);
+      if (!imgRes.ok) {
+        return {
+          success: false,
+          status: imgRes.status,
+          error: `Failed to download image: ${imgRes.status}`,
+        };
+      }
+      const buf = await imgRes.arrayBuffer();
+      saveCallLog({
+        method: "POST",
+        path: "/v1/images/generations",
+        status: 200,
+        model: `${provider}/${model}`,
+        provider,
+        duration: Date.now() - startTime,
+      }).catch(() => {});
+      return {
+        success: true,
+        data: {
+          created: Math.floor(Date.now() / 1000),
+          data: [{ b64_json: Buffer.from(buf).toString("base64") }],
+        },
+      };
+    }
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: "No images returned from Ideogram",
+    }).catch(() => {});
+    return { success: false, status: 502, error: "No images returned from Ideogram" };
+  } catch (err) {
+    if (log) log.error("IMAGE", `${provider} ideogram error: ${err.message}`);
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 502,
+      model: `${provider}/${model}`,
+      provider,
+      duration: Date.now() - startTime,
+      error: err.message,
+    }).catch(() => {});
+    return {
+      success: false,
+      status: 502,
+      error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
+    };
   }
 }
 

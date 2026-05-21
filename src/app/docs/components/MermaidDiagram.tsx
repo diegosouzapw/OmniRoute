@@ -20,7 +20,10 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         mermaid.initialize({
           startOnLoad: false,
           theme: "default",
-          securityLevel: "loose",
+          // "strict" (Mermaid's default) sanitizes rendered SVG via its bundled
+          // DOMPurify before we assign it to innerHTML, blocking XSS from any
+          // untrusted diagram source. Avoid "loose" (allows HTML/click in labels).
+          securityLevel: "strict",
           fontFamily: "inherit",
         });
 

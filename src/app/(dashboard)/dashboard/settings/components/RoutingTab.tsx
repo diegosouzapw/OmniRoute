@@ -38,6 +38,26 @@ const OPENWEBUI_PARAGRAPH_ANCHORS = [
   "docs.openwebui.com",
 ];
 
+// Mirrors of ccBridgeTransforms.ts constants used by the native `claude` and
+// CC-bridge default pipelines.
+const DEFAULT_PARAGRAPH_REMOVAL_ANCHORS = [
+  "github.com/anomalyco/opencode",
+  "opencode.ai/docs",
+  "github.com/cline/cline",
+  "github.com/getcursor/cursor",
+  "continue.dev",
+];
+
+const DEFAULT_IDENTITY_PREFIXES = ["You are OpenCode"];
+
+const DEFAULT_TEXT_REPLACEMENTS = [
+  { match: "if OpenCode honestly", replacement: "if the assistant honestly" },
+  {
+    match: "Here is some useful information about the environment you are running in:",
+    replacement: "Environment context you are running in:",
+  },
+];
+
 const DEFAULT_OBFUSCATE_WORDS = [
   "opencode",
   "open-code",
@@ -61,16 +81,22 @@ const DEFAULT_OBFUSCATE_WORDS = [
 const DEFAULT_SYSTEM_TRANSFORMS_CLIENT = {
   providers: {
     [PROVIDER_CLAUDE]: {
-      enabled: false,
+      enabled: true,
       pipeline: [
         {
           kind: "drop_paragraph_if_contains",
-          needles: [...OPENWEBUI_PARAGRAPH_ANCHORS],
+          needles: [...DEFAULT_PARAGRAPH_REMOVAL_ANCHORS, ...OPENWEBUI_PARAGRAPH_ANCHORS],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: ["You are Open WebUI"],
+          prefixes: [...DEFAULT_IDENTITY_PREFIXES, "You are Open WebUI"],
         },
+        ...DEFAULT_TEXT_REPLACEMENTS.map((r) => ({
+          kind: "replace_text" as const,
+          match: r.match,
+          replacement: r.replacement,
+          allOccurrences: true,
+        })),
         {
           kind: "obfuscate_words",
           words: [...DEFAULT_OBFUSCATE_WORDS],
@@ -277,6 +303,7 @@ function StringListEditor({
   onChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("settings");
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs font-medium text-text-main">{label}</span>
@@ -298,7 +325,7 @@ function StringListEditor({
             size="sm"
             icon="close"
             disabled={disabled}
-            aria-label="Remove entry"
+            aria-label={t("routingRemoveEntry")}
             onClick={() => {
               const next = [...items];
               next.splice(idx, 1);
@@ -330,6 +357,7 @@ function OpEditor({
   onChange: (next: any) => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("settings");
   const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
   const kind = op?.kind as TransformOpKind | undefined;
   const opDescription = kind ? OP_KIND_DESCRIPTIONS[kind] : null;
@@ -350,14 +378,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Needles (substrings to match)"
+            label={t("routingNeedlesSubstrings")}
             hint={FIELD_HINTS.needles}
             items={op.needles || []}
             onChange={(next) => updateField("needles", next)}
             disabled={disabled}
           />
           <Toggle
-            label="Case sensitive"
+            label={t("routingCaseSensitive")}
             description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
@@ -370,14 +398,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Prefixes"
+            label={t("routingPrefixes")}
             hint={FIELD_HINTS.prefixes}
             items={op.prefixes || []}
             onChange={(next) => updateField("prefixes", next)}
             disabled={disabled}
           />
           <Toggle
-            label="Case sensitive"
+            label={t("routingCaseSensitive")}
             description={FIELD_HINTS.caseSensitive}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
@@ -390,21 +418,21 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Match"
+            label={t("routingMatch")}
             hint={FIELD_HINTS.matchLiteral}
             value={op.match || ""}
             disabled={disabled}
             onChange={(e) => updateField("match", e.target.value)}
           />
           <Input
-            label="Replacement"
+            label={t("routingReplacement")}
             hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
           />
           <Toggle
-            label="Replace all occurrences"
+            label={t("routingReplaceAllOccurrences")}
             description={FIELD_HINTS.allOccurrences}
             checked={op.allOccurrences !== false}
             onChange={(c) => updateField("allOccurrences", c)}
@@ -417,21 +445,21 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Pattern (regex)"
+            label={t("routingPatternRegex")}
             hint={FIELD_HINTS.pattern}
             value={op.pattern || ""}
             disabled={disabled}
             onChange={(e) => updateField("pattern", e.target.value)}
           />
           <Input
-            label="Flags"
+            label={t("routingFlags")}
             hint={FIELD_HINTS.regexFlags}
             value={op.flags || "g"}
             disabled={disabled}
             onChange={(e) => updateField("flags", e.target.value)}
           />
           <Input
-            label="Replacement"
+            label={t("routingReplacement")}
             hint={FIELD_HINTS.replacementText}
             value={op.replacement || ""}
             disabled={disabled}
@@ -442,7 +470,7 @@ function OpEditor({
     case "drop_block_if_contains":
       return wrap(
         <StringListEditor
-          label="Needles"
+          label={t("routingNeedles")}
           hint={FIELD_HINTS.needles}
           items={op.needles || []}
           onChange={(next) => updateField("needles", next)}
@@ -454,7 +482,7 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-text-main">Block text</label>
+            <label className="text-sm font-medium text-text-main">{t("routingBlockText")}</label>
             <textarea
               rows={3}
               value={op.text || ""}
@@ -465,7 +493,7 @@ function OpEditor({
             <p className="text-xs text-text-muted">{FIELD_HINTS.blockText}</p>
           </div>
           <Input
-            label="Idempotency key"
+            label={t("routingIdempotencyKey")}
             hint={FIELD_HINTS.idempotencyKey}
             value={op.idempotencyKey || ""}
             disabled={disabled}
@@ -477,14 +505,14 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <Input
-            label="Entrypoint"
+            label={t("routingEntrypoint")}
             hint={FIELD_HINTS.billingEntrypoint}
             value={op.entrypoint || "sdk-cli"}
             disabled={disabled}
             onChange={(e) => updateField("entrypoint", e.target.value)}
           />
           <Select
-            label="Version format"
+            label={t("routingVersionFormat")}
             hint={FIELD_HINTS.billingVersionFormat}
             value={op.versionFormat || "ex-machina"}
             disabled={disabled}
@@ -495,7 +523,7 @@ function OpEditor({
             ]}
           />
           <Select
-            label="CCH algorithm"
+            label={t("routingCchAlgorithm")}
             hint={FIELD_HINTS.billingCchAlgo}
             value={op.cchAlgo || "sha256-first-user"}
             disabled={disabled}
@@ -512,7 +540,7 @@ function OpEditor({
       return wrap(
         <div className="flex flex-col gap-2">
           <StringListEditor
-            label="Words to obfuscate (ZWJ inserted after first char)"
+            label={t("routingWordsToObfuscate")}
             hint={FIELD_HINTS.obfuscateWords}
             items={op.words || []}
             onChange={(next) => updateField("words", next)}
@@ -968,7 +996,7 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Antigravity Signature Cache Mode</h3>
+            <h3 className="text-lg font-semibold">{t("routingAntigravitySignatureTitle")}</h3>
             <p className="text-sm text-text-muted">
               Control whether OmniRoute reuses only stored Gemini thought signatures or accepts
               validated client-provided signatures in Antigravity-compatible tool-call flows.
@@ -1042,7 +1070,7 @@ export default function RoutingTab() {
         </div>
 
         <div className="mb-5">
-          <h4 className="text-sm font-semibold mb-2">Header fingerprint (per provider)</h4>
+          <h4 className="text-sm font-semibold mb-2">{t("routingHeaderFingerprintTitle")}</h4>
           <p className="text-xs text-text-muted mb-2">
             {t("cliFingerprintEnabled", { count: cliCompatProviderSet.size })}
           </p>
@@ -1202,7 +1230,7 @@ export default function RoutingTab() {
                     role="alert"
                     className="mb-3 rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-300"
                   >
-                    <span className="font-medium">⚠ Server rejected save:</span>{" "}
+                    <span className="font-medium">{t("routingServerRejectedSave")}</span>{" "}
                     <span className="break-words font-mono">{providerSaveErrors[providerId]}</span>
                     <p className="mt-1 text-[11px] text-red-200/80">
                       Your local edits are kept. Fix the field above and the next change will
@@ -1273,7 +1301,7 @@ export default function RoutingTab() {
                 {/* Add op row */}
                 <div className="flex items-end gap-2 mb-3">
                   <Select
-                    label="Add a transform op"
+                    label={t("routingAddTransformOp")}
                     className="flex-1"
                     value={selectedKind}
                     onChange={(e) =>
@@ -1372,7 +1400,7 @@ export default function RoutingTab() {
             </span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Client Cache Control</h3>
+            <h3 className="text-lg font-semibold">{t("routingClientCacheControlTitle")}</h3>
             <p className="text-sm text-text-muted">
               Configure whether OmniRoute preserves client-provided cache_control markers
             </p>
@@ -1440,7 +1468,7 @@ export default function RoutingTab() {
               </span>
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Zero-Config Auto-Routing</h3>
+              <h3 className="text-lg font-semibold">{t("routingZeroConfigTitle")}</h3>
               <p className="text-sm text-text-muted mt-1">
                 Enable automatic provider selection using the auto/ prefix. When enabled, requests
                 to auto, auto/coding, auto/fast, etc. will dynamically route across all connected
@@ -1462,7 +1490,7 @@ export default function RoutingTab() {
           </div>
         </div>
         <div className="mt-4 pt-4 border-t border-border/30">
-          <label className="block text-sm font-medium mb-2">Default Auto Variant</label>
+          <label className="block text-sm font-medium mb-2">{t("routingDefaultAutoVariant")}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
               { value: "lkgp", label: "LKGP", desc: "Last Known Good Provider" },

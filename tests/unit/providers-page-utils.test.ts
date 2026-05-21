@@ -189,6 +189,19 @@ test("configured-only preference parser only enables explicit true values", () =
   assert.equal(providerPageStorage.parseConfiguredOnlyPreference(undefined), false);
 });
 
+test("configured-only filter is ignored before the first provider is connected", () => {
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 0), false);
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(false, 0), false);
+  assert.equal(providerPageUtils.shouldApplyConfiguredOnlyFilter(true, 1), true);
+});
+
+test("first-provider hint is shown only when no providers are connected and search is empty", () => {
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, ""), true);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, "   "), true);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(0, "codex"), false);
+  assert.equal(providerPageUtils.shouldShowFirstProviderHint(1, ""), false);
+});
+
 test("configured-only preference storage round-trips correctly", () => {
   const storage = new Map();
   const mockStorage = {
@@ -374,6 +387,9 @@ test("managed provider connection ids include supported static categories and ex
   assert.equal(providerCatalog.isManagedProviderConnectionId("youcom-search"), true);
   assert.equal(providerCatalog.isManagedProviderConnectionId("cliproxyapi"), false);
   assert.equal(providerCatalog.isManagedProviderConnectionId("claude"), false);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("jules"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("devin"), true);
+  assert.equal(providerCatalog.isManagedProviderConnectionId("codex-cloud"), true);
 });
 
 test("grok-web taxonomy stays web-cookie only and does not leak into api-key entries", () => {

@@ -1,233 +1,414 @@
-# CLAUDE.md — AI Agent Session Bootstrap (Slovenčina)
+# CLAUDE.md (Slovenčina)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+Tento súbor poskytuje pokyny pre Claude Code (claude.ai/code) pri práci s kódom v tomto repozitári.
 
 ## Rýchly štart
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # Nainštalujte závislosti (automaticky generuje .env z .env.example)
+npm run dev                    # Vývojový server na http://localhost:20128
+npm run build                  # Produkčná zostava (Next.js 16 samostatne)
+npm run lint                   # ESLint (očakáva sa 0 chýb; varovania sú predchádzajúce)
+npm run typecheck:core         # Kontrola TypeScript (mala by byť čistá)
+npm run typecheck:noimplicit:core  # Prísna kontrola (žiadne implicitné any)
+npm run test:coverage          # Jednotkové testy + pokrytie (75/75/75/70 — vyhlásenia/riadky/funkcie/vetvy)
+npm run check                  # kombinácia lint + test
+npm run check:cycles           # Detekcia cyklických závislostí
 ```
 
-### Running a Single Test
+### Spúšťanie testov
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Jediný testovací súbor (nativný testovací bežec Node.js — väčšina testov)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
+
+# Všetky sady
+npm run test:all
 ```
+
+Pre úplnú testovaciu maticu pozrite `CONTRIBUTING.md` → "Spúšťanie testov". Pre hlbokú architektúru pozrite `AGENTS.md`.
 
 ---
 
-## Prehľad
+## Projekt na prvý pohľad
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. Jeden koncový bod, 160+ poskytovateľov LLM, automatické zálohovanie.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Vrstva        | Umiestnenie             | Účel                                                                          |
+| ------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — vstupné body                                             |
+| Handlers      | `open-sse/handlers/`    | Spracovanie požiadaviek (chat, embeddings, atď.)                              |
+| Executors     | `open-sse/executors/`   | HTTP dispatch špecifický pre poskytovateľa                                    |
+| Translators   | `open-sse/translator/`  | Konverzia formátu (OpenAI↔Claude↔Gemini)                                      |
+| Transformer   | `open-sse/transformer/` | API odpovedí ↔ Chat Completions                                               |
+| Services      | `open-sse/services/`    | Kombinované smerovanie, obmedzenia rýchlosti, caching, atď.                   |
+| Database      | `src/lib/db/`           | SQLite doménové moduly (45+ súborov, 55 migrácií)                             |
+| Domain/Policy | `src/domain/`           | Engin politiky, pravidlá nákladov, logika zálohovania                         |
+| MCP Server    | `open-sse/mcp-server/`  | 37 nástrojov (30 základných + 3 pamäť + 4 zručnosti), 3 prenosy, ~13 rozsahov |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protokol                                                   |
+| Skills        | `src/lib/skills/`       | Rozšíriteľný rámec zručností                                                  |
+| Memory        | `src/lib/memory/`       | Trvalá konverzačná pamäť                                                      |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (Next.js 16 aplikácia), `open-sse/` (pracovisko streaming engine), `electron/` (desktopová aplikácia), `tests/`, `bin/` (CLI vstupný bod).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Žiadosť Pipeline
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Klient → /v1/chat/completions (Next.js trasa)
+  → CORS → Zod validácia → autentifikácia? → kontrola politiky → ochrana proti injekcii promptu
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → kontrola cache → limitovanie požiadaviek → combo routing?
+      → resolveComboTargets() → handleSingleModel() pre cieľ
     → translateRequest() → getExecutor() → executor.execute()
       → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+    → preklad odpovede → SSE stream alebo JSON
+    → Ak Responses API: responsesTransformer.ts TransformStream
 ```
+
+API trasy nasledujú konzistentný vzor: `Trasa → CORS preflight → Zod validácia tela → Voliteľná autentifikácia (extractApiKey/isValidApiKey) → Vynucovanie politiky API kľúča → Delegovanie handlera (open-sse)`. Žiadne globálne Next.js middleware — interceptácia je špecifická pre trasu.
+
+**Combo routing** (`open-sse/services/combo.ts`): 14 stratégií (priorita, vážené, fill-first, round-robin, P2C, náhodné, najmenej používané, optimalizované náklady, reset-aware, strict-random, auto, lkgp, optimalizované pre kontext, kontext-relay). Každý cieľ volá `handleSingleModel()`, ktorý obalí `handleChatCore()` s chybovým spracovaním pre každý cieľ a kontrolami obvodu. Pozrite sa na `docs/routing/AUTO-COMBO.md` pre 9-faktorové hodnotenie Auto-Combo a `docs/architecture/RESILIENCE_GUIDE.md` pre 3 vrstvy odolnosti.
 
 ---
 
-## Key Conventions
+## Stav odolnosti v čase behu
 
-### Code Style
+OmniRoute má tri súvisiace, ale odlišné mechanizmy dočasného zlyhania. Udržujte ich
+rozsah oddelený pri ladení správania routingu. Pozrite sa na
+[diagram odolnosti s 3 vrstvami](./docs/diagrams/exported/resilience-3layers.svg)
+(zdroj: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+pre rýchly prehľad.
 
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
+### Obvod poskytovateľa
 
-### Database Access
+**Rozsah**: celý poskytovateľ, napr. `glm`, `openai`, `anthropic`.
 
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
+**Účel**: zastaviť posielanie prevádzky k poskytovateľovi, ktorý opakovane zlyháva na
+úrovni upstream/služby, aby jeden nezdravý poskytovateľ nezpomalil každú požiadavku.
 
-### Error Handling
+**Implementácia**:
 
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
+- Hlavná trieda: `src/shared/utils/circuitBreaker.ts`
+- Chat gate/exekučné zapojenie: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- API stavu behu: `src/app/api/monitoring/health/route.ts`
+- Zdieľané obaly: `open-sse/services/accountFallback.ts`
+- Persistovaná stavová tabuľka: `domain_circuit_breakers`
+
+**Stavy**:
+
+- `CLOSED`: normálna prevádzka je povolená.
+- `OPEN`: poskytovateľ je dočasne zablokovaný; volajúci dostanú odpoveď provider-circuit-open
+  alebo combo routing preskočí na iný cieľ.
+- `HALF_OPEN`: uplynul časový limit resetu; povoliť probe požiadavku. Úspech uzatvára
+  obvod, zlyhanie ho opäť otvára.
+
+**Predvolené hodnoty** (`open-sse/config/constants.ts`):
+
+- OAuth poskytovatelia: prah `3`, reset timeout `60s`.
+- API-kľúč poskytovatelia: prah `5`, reset timeout `30s`.
+- Lokálni poskytovatelia: prah `2`, reset timeout `15s`.
+
+Iba stavy zlyhania na úrovni poskytovateľa by mali spustiť obvod poskytovateľa:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Nespúšťajte obvod celého poskytovateľa pre normálne chyby účtu/kľúča/modelu ako väčšina
+`401`, `403`, alebo `429` prípadov. Tieto zvyčajne patrí do cooldown pripojenia alebo
+uzamknutia modelu. Generický API-kľúč poskytovateľa `403` by mal byť obnoviteľný, pokiaľ nie je klasifikovaný
+ako terminálna chyba poskytovateľa/účtu.
+
+Obvod používa lenivú obnovu, nie časovač na pozadí. Keď `OPEN` vyprší, čítania ako
+`getStatus()`, `canExecute()`, a `getRetryAfterMs()` obnovujú stav na
+`HALF_OPEN`, takže panely a stavitelia kandidátov na combo nebudú navždy vylučovať vypršaného poskytovateľa.
+
+### Cooldown pripojenia
+
+**Rozsah**: jedno pripojenie účtu/kľúča poskytovateľa.
+
+**Účel**: dočasne preskočiť jeden zlý kľúč/účet, zatiaľ čo ostatné pripojenia pre
+rovnakého poskytovateľa môžu pokračovať v obsluhe požiadaviek.
+
+**Implementácia**:
+
+- Cesta zápisu/aktualizácie: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Výber/filtrácia účtu: `src/sse/services/auth.ts::getProviderCredentials...`
+- Výpočet cooldownu: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Nastavenia: `src/lib/resilience/settings.ts`
+
+Dôležité polia na pripojeniach poskytovateľa:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+Počas výberu účtu je pripojenie preskočené, keď:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Cooldowny sú tiež lenivé: keď je `rateLimitedUntil` v minulosti, pripojenie sa opäť stáva
+oprávneným. Pri úspešnom použití `clearAccountError()` vymaže `testStatus`,
+`rateLimitedUntil`, chybové polia a `backoffLevel`.
+
+Predvolené správanie cooldownu pripojenia:
+
+- Základný cooldown OAuth: `5s`.
+- Základný cooldown API-kľúča: `3s`.
+- API-kľúč `429` by mal uprednostniť upstream retry hints (`Retry-After`, reset hlavičky, alebo
+  analyzovateľný reset text) keď sú k dispozícii.
+- Opakované obnoviteľné zlyhania používajú exponenciálne backoff:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+Ochrana proti hromadnému zlyhaniu zabraňuje súbežným zlyhaniam na rovnakom pripojení od
+opakovaného predlžovania cooldownu alebo dvojitého zvyšovania `backoffLevel`.
+
+Terminálne stavy nie sú cooldowny. `banned`, `expired`, a `credits_exhausted` sú
+určené na to, aby zostali nedostupné, kým sa nezmenia poverenia/nastavenia alebo kým ich operátor
+neobnoví. Neprepisujte terminálne stavy do prechodného cooldown stavu.
+
+### Uzamknutie modelu
+
+**Rozsah**: poskytovateľ + pripojenie + model.
+
+**Účel**: vyhnúť sa deaktivácii celého pripojenia, keď je nedostupný iba jeden model alebo
+kvótovo obmedzený pre to pripojenie.
+
+Príklady:
+
+- Poskytovatelia s kvótou na model, ktorí vracajú `429`.
+- Lokálni poskytovatelia vracajúci `404` pre jeden chýbajúci model.
+- Zlyhania povolenia režimu/modelu špecifické pre poskytovateľa, ako sú vybrané režimy Grok.
+
+Uzamknutie modelu žije v `open-sse/services/accountFallback.ts` a umožňuje rovnakému
+pripojeniu pokračovať v obsluhe iných modelov.
+
+### Pokyny na ladenie
+
+- Ak sú všetky kľúče pre poskytovateľa preskočené, skontrolujte stav obvodu poskytovateľa a každý
+  stav `rateLimitedUntil`/`testStatus`.
+- Ak sa poskytovateľ zdá byť trvalo vylúčený po resetovom okne, skontrolujte, či kód
+  číta surový `state` namiesto používania `getStatus()`/`canExecute()`.
+- Ak jeden kľúč poskytovateľa zlyhá, ale ostatné by mali fungovať, uprednostnite cooldown pripojenia pred
+  obvodom poskytovateľa.
+- Ak zlyhá iba jeden model, uprednostnite uzamknutie modelu pred cooldownom pripojenia.
+- Ak by sa mal stav sám obnoviť, mal by mať budúci časový pečiatok/reset timeout a
+  čítaciu cestu, ktorá obnovuje vypršaný stav. Trvalé stavy vyžadujú manuálne zmeny poverení
+  alebo konfigurácie.
+
+## Kľúčové konvencie
+
+### Štýl kódu
+
+- **2 medzery**, bodkočiarky, dvojité úvodzovky, šírka 100 znakov, es5 koncové čiarky (vynútené lint-staged cez Prettier)
+- **Importy**: externé → interné (`@/`, `@omniroute/open-sse`) → relatívne
+- **Názvy**: súbory=camelCase/kebab, komponenty=PascalCase, konštanty=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = chyba všade; `no-explicit-any` = varovanie v `open-sse/` a `tests/`
+- **TypeScript**: `strict: false`, cieľ ES2022, modul esnext, rozlíšenie bundler. Preferujte explicitné typy.
+
+### Databáza
+
+- **Vždy** prechádzajte cez `src/lib/db/` doménové moduly — **nikdy** nepíšte surové SQL v trasách alebo obslužných funkciách
+- **Nikdy** nepridávajte logiku do `src/lib/localDb.ts` (iba re-exportná vrstva)
+- **Nikdy** neimportujte z `localDb.ts` — namiesto toho importujte konkrétne `db/` moduly
+- DB singleton: `getDbInstance()` z `src/lib/db/core.ts` (WAL žurnálovanie)
+- Migrácie: `src/lib/db/migrations/` — verzionované SQL súbory, idempotentné, spúšťané v transakciách
+
+### Správa chýb
+
+- try/catch so špecifickými typmi chýb, logujte s kontextom pino
+- Nikdy nezahŕňajte chyby v SSE prúdoch — použite signály na zrušenie na vyčistenie
+- Vráťte správne HTTP stavové kódy (4xx/5xx)
 
 ### Bezpečnosť
 
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+- **Nikdy** nepoužívajte `eval()`, `new Function()`, alebo implicitné eval
+- Validujte všetky vstupy pomocou Zod schém
+- Šifrujte poverenia v pokoji (AES-256-GCM)
+- Zoznam hlavičiek na zamietnutie: `src/shared/constants/upstreamHeaders.ts` — udržujte sanitáciu, Zod schémy a jednotkové testy v súlade pri úpravách
+- **Verejné upstream poverenia** (Gemini/Antigravity/Windsurf-style OAuth client_id/secret + Firebase Web kľúče extrahované z verejných CLI): **MUSIA** byť vložené cez `resolvePublicCred()` z `open-sse/utils/publicCreds.ts` — **nikdy** ako reťazcové literály. Pozrite `docs/security/PUBLIC_CREDS.md` pre povinný vzor.
+- **Odpovede na chyby** (HTTP / SSE / executor / MCP obslužná funkcia): **MUSIA** prechádzať cez `buildErrorBody()` alebo `sanitizeErrorMessage()` z `open-sse/utils/error.ts` — **nikdy** nevkladajte surové `err.stack` alebo `err.message` do tela odpovede. Pozrite `docs/security/ERROR_SANITIZATION.md`.
+- **Shell príkazy vytvorené z premenných**: pri volaní `exec()`/`spawn()` so skriptom, ktorý potrebuje hodnoty za behu, preneste ich cez možnosť `env` (automaticky shell-escaped) — **nikdy** neinterpolujte nespoľahlivé/externe cesty do tela skriptu. Referencia: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Knižnice zabezpečené predvolene** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): uprednostnite Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink pred vlastnými implementáciami vždy, keď pridávate nové povrchy citlivé na bezpečnosť.
 
 ---
 
-## Common Modification Scenarios
+## Bežné scenáre úprav
 
-### Adding a New Provider
+### Pridanie nového poskytovateľa
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+1. Zaregistrujte v `src/shared/constants/providers.ts` (Zod-validated pri načítaní)
+2. Pridajte executor v `open-sse/executors/`, ak je potrebná vlastná logika (rozšírte `BaseExecutor`)
+3. Pridajte prekladateľa v `open-sse/translator/`, ak nie je vo formáte OpenAI
+4. Pridajte OAuth konfiguráciu v `src/lib/oauth/constants/oauth.ts`, ak je založená na OAuth — ak upstream CLI dodáva verejný client_id/secret, vložte cez `resolvePublicCred()` (pozrite `docs/security/PUBLIC_CREDS.md`), **nikdy** ako literál
+5. Zaregistrujte modely v `open-sse/config/providerRegistry.ts`
+6. Napíšte testy v `tests/unit/` (zahrňte asertáciu tvaru publicCreds, ak ste pridali nový vložený predvolený)
 
-### Adding a New API Route
+### Pridanie novej API trasy
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+1. Vytvorte adresár pod `src/app/api/v1/your-route/`
+2. Vytvorte `route.ts` s obslužnými funkciami `GET`/`POST`
+3. Dodržujte vzor: CORS → Zod validácia tela → voliteľná autentifikácia → delegácia obslužnej funkcie
+4. Obslužná funkcia ide do `open-sse/handlers/` (importujte odtiaľ, nie inline)
+5. Odpovede na chyby používajú `buildErrorBody()` / `errorResponse()` z `open-sse/utils/error.ts` (automaticky sanitizované — nikdy nevkladajte surové `err.stack` alebo `err.message` do tela). Pozrite `docs/security/ERROR_SANITIZATION.md`.
+6. Pridajte testy — vrátane aspoň jednej asertácie, že odpovede na chyby neunikajú stopy zásobníka (`!body.error.message.includes("at /")`)
 
-### Adding a New DB Module
+### Pridanie nového DB modulu
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+1. Vytvorte `src/lib/db/yourModule.ts` — importujte `getDbInstance` z `./core.ts`
+2. Exportujte CRUD funkcie pre vaše doménové tabuľky
+3. Pridajte migráciu v `src/lib/db/migrations/`, ak sú potrebné nové tabuľky
+4. Re-exportujte z `src/lib/localDb.ts` (pridajte iba do zoznamu re-exportov)
+5. Napíšte testy
 
-### Adding a New MCP Tool
+### Pridanie nového MCP nástroja
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+1. Pridajte definíciu nástroja v `open-sse/mcp-server/tools/` so Zod vstupnou schémou + asynchrónnou obslužnou funkciou
+2. Zaregistrujte v súbore nástrojov (prepojené cez `createMcpServer()`)
+3. Priraďte k príslušným rozsahom
+4. Napíšte testy (vyvolanie nástroja sa zaznamenáva do tabuľky `mcp_audit`)
 
-### Adding a New A2A Skill
+### Pridanie novej A2A zručnosti
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+1. Vytvorte zručnosť v `src/lib/a2a/skills/` (už existujú 5: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. Zručnosť prijíma kontext úlohy (správy, metadata) → vracia štruktúrovaný výsledok
+3. Zaregistrujte v `A2A_SKILL_HANDLERS` v `src/lib/a2a/taskExecution.ts`
+4. Exponujte v `src/app/.well-known/agent.json/route.ts` (Agent Card)
+5. Napíšte testy v `tests/unit/`
+6. Dokumentujte v `docs/frameworks/A2A-SERVER.md` tabuľku zručností
 
----
+### Pridanie nového cloud agenta
 
-## Testing Cheat Sheet
+1. Vytvorte triedu agenta v `src/lib/cloudAgent/agents/` rozširujúcu `CloudAgentBase` (už existujú 3: codex-cloud, devin, jules)
+2. Implementujte `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Zaregistrujte v `src/lib/cloudAgent/registry.ts`
+4. Pridajte spracovanie OAuth/poverenia, ak je to potrebné (`src/lib/oauth/providers/`)
+5. Testy + dokumentujte v `docs/frameworks/CLOUD_AGENT.md`
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+### Pridanie nového guardrailu / eval / zručnosti / webhook udalosti
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+- Guardrail: `src/lib/guardrails/` → dokumenty: `docs/security/GUARDRAILS.md`
+- Eval súprava: `src/lib/evals/` → dokumenty: `docs/frameworks/EVALS.md`
+- Zručnosť (sandbox): `src/lib/skills/` → dokumenty: `docs/frameworks/SKILLS.md`
+- Webhook udalosť: `src/lib/webhookDispatcher.ts` → dokumenty: `docs/frameworks/WEBHOOKS.md`
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+## Referenčná dokumentácia
+
+Pre akúkoľvek netriviálnu zmenu si najprv prečítajte zodpovedajúci hĺbkový pohľad:
+
+| Oblasť                                            | Dokument                                                          |
+| ------------------------------------------------- | ----------------------------------------------------------------- |
+| Navigácia v repozitári                            | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Architektúra                                      | `docs/architecture/ARCHITECTURE.md`                               |
+| Referencia inžinierstva                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (9-faktorové hodnotenie, 14 stratégií) | `docs/routing/AUTO-COMBO.md`                                      |
+| Odolnosť (3 mechanizmy)                           | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Opakovanie uvažovania                             | `docs/routing/REASONING_REPLAY.md`                                |
+| Rámec zručností                                   | `docs/frameworks/SKILLS.md`                                       |
+| Systém pamäte (FTS5 + Qdrant)                     | `docs/frameworks/MEMORY.md`                                       |
+| Cloudové agenti                                   | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Ochranné opatrenia (PII / injekcia / vízia)       | `docs/security/GUARDRAILS.md`                                     |
+| Verejné poverenia upstream (Gemini/atď.)          | `docs/security/PUBLIC_CREDS.md`                                   |
+| Sanitizácia chybových hlásení                     | `docs/security/ERROR_SANITIZATION.md`                             |
+| Vyhodnotenia                                      | `docs/frameworks/EVALS.md`                                        |
+| Dodržiavanie / audit                              | `docs/security/COMPLIANCE.md`                                     |
+| Webhooky                                          | `docs/frameworks/WEBHOOKS.md`                                     |
+| Autorizačný pipeline                              | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Neviditeľnosť (TLS / odtlačok)                    | `docs/security/STEALTH_GUIDE.md`                                  |
+| Protokoly agentov (A2A / ACP / Cloud)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                        | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                        | `docs/frameworks/A2A-SERVER.md`                                   |
+| Referencia API + OpenAPI                          | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Katalóg poskytovateľov (automaticky generovaný)   | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Tok vydania                                       | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+
+## Testovanie
+
+| Čo                      | Príkaz                                                                  |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Jednotkové testy        | `npm run test:unit`                                                     |
+| Jediný súbor            | `node --import tsx/esm --test tests/unit/file.test.ts`                  |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                   |
+| E2E (Playwright)        | `npm run test:e2e`                                                      |
+| Protokol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                            |
+| Ekosystém               | `npm run test:ecosystem`                                                |
+| Pokrytie                | `npm run test:coverage` (75/75/75/70 — vyhlásenia/riadky/funkcie/vetvy) |
+| Správa pokrytia         | `npm run coverage:report`                                               |
+
+**PR pravidlo**: Ak zmeníte produkčný kód v `src/`, `open-sse/`, `electron/` alebo `bin/`, musíte zahrnúť alebo aktualizovať testy v tej istej PR.
+
+**Preferencia testovacej vrstvy**: najprv jednotkové → integrácia (multi-modulový alebo DB stav) → e2e (iba UI/workflow). Kódy reprodukcií chýb zakódujte ako automatizované testy pred alebo spolu s opravou.
+
+**Politika pokrytia Copilot**: Keď PR mení produkčný kód a pokrytie je pod 75% (vyhlásenia/riadky/funkcie) alebo 70% (vetvy), nehláste len — pridajte alebo aktualizujte testy, znovu spustite pokrytie, potom požiadajte o potvrdenie. Zahrňte spustené príkazy, zmenené testovacie súbory a konečný výsledok pokrytia v správe PR.
 
 ---
 
 ## Git Workflow
 
 ```bash
-# Never commit directly to main
+# Nikdy nekomitujte priamo do main
 git checkout -b feat/your-feature
-# ... make changes ...
-git commit -m "feat: describe your change"
+git commit -m "feat: popíšte svoju zmenu"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Prefixy vetiev**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Formát commitu** (Conventional Commits): `feat(db): pridať obvodový spínač` — rozsahy: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky hooky**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## Prostredie
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES moduly
+- **TypeScript**: 5.9+, cieľ ES2022, modul esnext, rozlíšenie bundler
+- **Cestné aliasy**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Predvolený port**: 20128 (API + dashboard na rovnakom porte)
+- **Adresár dát**: `DATA_DIR` env var, predvolene `~/.omniroute/`
+- **Kľúčové env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Nastavenie: `cp .env.example .env` potom vygenerujte `JWT_SECRET` (`openssl rand -base64 48`) a `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Tvrdé pravidlá
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. Nikdy nekomitujte tajomstvá alebo poverenia
+2. Nikdy nepridávajte logiku do `localDb.ts`
+3. Nikdy nepoužívajte `eval()` / `new Function()` / implicitné eval
+4. Nikdy nekomitujte priamo do `main`
+5. Nikdy nepíšte surové SQL v trasách — používajte moduly `src/lib/db/`
+6. Nikdy ticho nezachytávajte chyby v SSE prúdoch
+7. Vždy validujte vstupy pomocou Zod schém
+8. Vždy zahrňte testy pri zmene produkčného kódu
+9. Pokrytie musí zostať ≥75% (vyhlásenia, riadky, funkcie) / ≥70% (vetvy). Aktuálne merané: ~82%.
+10. Nikdy neobchádzajte Husky hooky (`--no-verify`, `--no-gpg-sign`) bez explicitného schválenia operátora.
+11. Nikdy nezahŕňajte verejné upstream OAuth client_id/secret alebo Firebase Web kľúče ako reťazcové literály — vždy prechádzajte cez `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Pozrite `docs/security/PUBLIC_CREDS.md`.
+12. Nikdy nevracajte surové `err.stack` / `err.message` v HTTP / SSE / executor odpovediach — vždy prechádzajte cez `buildErrorBody()` alebo `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Pozrite `docs/security/ERROR_SANITIZATION.md`.
+13. Nikdy neinterpolujte externé cesty alebo hodnoty runtime do shell skriptov odovzdaných do `exec()`/`spawn()` — namiesto toho ich odovzdajte cez možnosť `env`. Referencia: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Nikdy neignorujte upozornenie CodeQL / Secret-Scanning bez (a) najprv skontrolovania dokumentov vzoru vyššie, aby ste zistili, či sa pomocník uplatňuje, a (b) zaznamenania technického odôvodnenia v komentári o zamietnutí. Precedens: `js/stack-trace-exposure` vyvolané na miestach volania, ktoré už prechádzajú cez `sanitizeErrorMessage()` je známa obmedzenie CodeQL (vlastné sanitizéry nie sú rozpoznané) — zamietnite ako `false positive` s odkazom na `docs/security/ERROR_SANITIZATION.md`.
+15. Nikdy nezverejňujte trasy, ktoré spúšťajú podprocesy (`/api/mcp/`, `/api/cli-tools/runtime/`) bez klasifikácie `isLocalOnlyPath()` v `src/server/authz/routeGuard.ts`. Presadzovanie loopback sa deje bezpodmienečne pred akoukoľvek autentifikačnou kontrolou — uniknutý JWT cez tunel nemôže spustiť proces. Pozrite `docs/security/ROUTE_GUARD_TIERS.md`.
+16. Nikdy nezahŕňajte `Co-Authored-By` prívesy v správach commitov. Commity musia byť zobrazené výlučne pod Git identitou vlastníka repozitára (`diegosouzapw`). Riadok `Co-Authored-By: Claude …` spôsobuje, že GitHub pripisuje commity účtu `claude` Anthropic, čím skrýva skutočného autora v histórii PR.

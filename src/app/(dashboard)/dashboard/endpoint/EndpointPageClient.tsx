@@ -8,6 +8,7 @@ import { useDisplayBaseUrl } from "@/shared/hooks";
 import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
 import { getProviderDisplayName } from "@/lib/display/names";
 import { useTranslations } from "next-intl";
+import TokenSaverCard from "./components/TokenSaverCard";
 
 const BUILD_TIME_CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL || null;
 const CLOUD_ACTION_TIMEOUT_MS = 15000;
@@ -1280,7 +1281,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-sm font-medium">Local Server</span>
+                <span className="text-sm font-medium">{t("localServer")}</span>
                 {resolvedMachineId && (
                   <span className="text-xs text-text-muted">· {resolvedMachineId.slice(0, 8)}</span>
                 )}
@@ -1334,7 +1335,7 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
               cloud
             </span>
             <div className="flex-1 min-w-0">
-              <span className="text-sm font-medium">Cloud OmniRoute</span>
+              <span className="text-sm font-medium">{t("cloudOmniroute")}</span>
             </div>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border shrink-0 ${
@@ -1720,6 +1721,8 @@ export default function APIPageClient({ machineId }: Readonly<APIPageClientProps
           )}
         </div>
       </Card>
+
+      <TokenSaverCard />
 
       <Card>
         <div className="flex items-center justify-between mb-5">
@@ -2384,7 +2387,7 @@ function EndpointCard({
         <button
           onClick={() => void copy(fullUrl, copyId)}
           className="shrink-0 flex items-center justify-center size-6 rounded hover:bg-sidebar transition-colors"
-          title="Copy URL"
+          title={t("copyUrl")}
         >
           <span className="material-symbols-outlined text-[12px] text-text-muted">
             {copied === copyId ? "check" : "content_copy"}

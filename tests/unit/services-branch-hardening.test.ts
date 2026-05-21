@@ -36,7 +36,7 @@ test.afterEach(() => {
   comboMetrics.resetAllComboMetrics();
 });
 
-test("gemini thought signature store handles invalid input, TTL expiry and max-size pruning", () => {
+test("gemini thought signature store handles invalid input, memory TTL and max-size pruning", () => {
   signatureStore.storeGeminiThoughtSignature("", "sig");
   signatureStore.storeGeminiThoughtSignature("call-empty", "");
   assert.equal(signatureStore.getGeminiThoughtSignature(""), null);
@@ -49,7 +49,8 @@ test("gemini thought signature store handles invalid input, TTL expiry and max-s
   assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), "sig-live");
 
   now += 60 * 60 * 1000 + 1;
-  assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), null);
+  assert.equal(signatureStore.getGeminiThoughtSignatureMemorySizeForTests(), 0);
+  assert.equal(signatureStore.getGeminiThoughtSignature("call-live"), "sig-live");
 
   now = 10_000;
   for (let index = 0; index < 1002; index++) {
@@ -57,7 +58,8 @@ test("gemini thought signature store handles invalid input, TTL expiry and max-s
     now += 1;
   }
 
-  assert.equal(signatureStore.getGeminiThoughtSignature("call-0"), null);
+  assert.equal(signatureStore.getGeminiThoughtSignatureMemorySizeForTests(), 1000);
+  assert.equal(signatureStore.getGeminiThoughtSignature("call-0"), "sig-0");
   assert.equal(signatureStore.getGeminiThoughtSignature("call-1001"), "sig-1001");
 });
 

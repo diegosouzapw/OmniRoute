@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -89,6 +90,7 @@ function getLatestPoints(points: ProviderUtilizationPoint[]) {
 }
 
 export default function ProviderUtilizationTab() {
+  const t = useTranslations("analytics");
   const [range, setRange] = useState<UtilizationTimeRange>("24h");
   const [aggregateBy, setAggregateBy] = useState<"provider" | "connection">("provider");
   const [data, setData] = useState<ProviderUtilizationResponse | null>(null);
@@ -191,7 +193,7 @@ export default function ProviderUtilizationTab() {
   return (
     <div className="flex flex-col gap-6">
       <Card
-        title="Provider utilization"
+        title={t("providerUtilizationTitle")}
         subtitle={RANGE_LABELS[range]}
         icon="monitoring"
         action={
@@ -236,7 +238,9 @@ export default function ProviderUtilizationTab() {
           <div className="flex min-h-80 flex-col items-center justify-center gap-4 text-center">
             <span className="material-symbols-outlined text-[32px] text-error">error</span>
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-text-main">Failed to load utilization data</p>
+              <p className="text-sm font-medium text-text-main">
+                {t("providerUtilizationFailedToLoad")}
+              </p>
               <p className="text-sm text-text-muted">{error}</p>
             </div>
             <button
@@ -266,13 +270,15 @@ export default function ProviderUtilizationTab() {
               timeline
             </span>
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-text-main">No utilization data available</p>
+              <p className="text-sm font-medium text-text-main">{t("providerUtilizationNoData")}</p>
               <p className="max-w-md text-sm text-text-muted">
                 Provider quota snapshots will appear here after utilization data is collected.
               </p>
             </div>
             <div className="rounded-lg border border-black/5 bg-black/[0.02] p-4 dark:border-white/5 dark:bg-white/[0.02]">
-              <p className="text-xs font-medium text-text-main">Getting started</p>
+              <p className="text-xs font-medium text-text-main">
+                {t("providerUtilizationGettingStarted")}
+              </p>
               <ul className="mt-2 text-left text-xs text-text-muted">
                 <li className="flex items-start gap-2">
                   <span className="material-symbols-outlined text-[14px] text-primary">
@@ -369,7 +375,9 @@ export default function ProviderUtilizationTab() {
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-text-main">{point.provider}</p>
-                          <p className="text-xs text-text-muted">Latest quota snapshot</p>
+                          <p className="text-xs text-text-muted">
+                            {t("providerUtilizationLatestSnapshot")}
+                          </p>
                         </div>
                       </div>
                       <span
@@ -390,7 +398,9 @@ export default function ProviderUtilizationTab() {
                         <p className="text-3xl font-bold text-text-main">
                           {point.remainingPct.toFixed(point.remainingPct < 10 ? 1 : 0)}%
                         </p>
-                        <p className="mt-1 text-xs text-text-muted">Remaining capacity</p>
+                        <p className="mt-1 text-xs text-text-muted">
+                          {t("providerUtilizationRemainingCapacity")}
+                        </p>
                       </div>
                       <div className="text-right text-xs text-text-muted">
                         <p>{formatTooltipTimestamp(point.timestamp, range)}</p>

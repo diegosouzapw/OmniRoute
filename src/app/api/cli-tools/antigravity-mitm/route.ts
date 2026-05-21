@@ -3,6 +3,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { cliMitmStartSchema, cliMitmStopSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -25,7 +26,7 @@ export async function GET(request) {
       hasCachedPassword: !!getCachedPassword(),
     });
   } catch (error) {
-    console.log("Error getting MITM status:", error.message);
+    console.log("Error getting MITM status:", sanitizeErrorMessage(error));
     return NextResponse.json({ error: "Failed to get MITM status" }, { status: 500 });
   }
 }
@@ -81,9 +82,9 @@ export async function POST(request) {
       pid: result.pid,
     });
   } catch (error) {
-    console.log("Error starting MITM:", error.message);
+    console.log("Error starting MITM:", sanitizeErrorMessage(error));
     return NextResponse.json(
-      { error: error.message || "Failed to start MITM proxy" },
+      { error: sanitizeErrorMessage(error) || "Failed to start MITM proxy" },
       { status: 500 }
     );
   }
@@ -130,9 +131,9 @@ export async function DELETE(request) {
 
     return NextResponse.json({ success: true, running: false });
   } catch (error) {
-    console.log("Error stopping MITM:", error.message);
+    console.log("Error stopping MITM:", sanitizeErrorMessage(error));
     return NextResponse.json(
-      { error: error.message || "Failed to stop MITM proxy" },
+      { error: sanitizeErrorMessage(error) || "Failed to stop MITM proxy" },
       { status: 500 }
     );
   }

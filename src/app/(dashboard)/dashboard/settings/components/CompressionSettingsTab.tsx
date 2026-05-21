@@ -340,7 +340,9 @@ export default function CompressionSettingsTab() {
             </label>
 
             <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">Auto trigger mode</span>
+              <span className="text-sm text-text-muted">
+                {t("compressionSettingsAutoTriggerMode")}
+              </span>
               <select
                 value={config.autoTriggerMode ?? "lite"}
                 onChange={(e) => save({ autoTriggerMode: e.target.value as CompressionMode })}
@@ -386,7 +388,9 @@ export default function CompressionSettingsTab() {
             </label>
 
             <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">MCP description compression</span>
+              <span className="text-sm text-text-muted">
+                {t("compressionSettingsMcpDescriptionCompression")}
+              </span>
               <button
                 onClick={() =>
                   save({
@@ -484,7 +488,9 @@ export default function CompressionSettingsTab() {
                   </label>
 
                   <label className="flex items-center justify-between">
-                    <span className="text-sm text-text-muted">Caveman intensity</span>
+                    <span className="text-sm text-text-muted">
+                      {t("compressionSettingsCavemanIntensity")}
+                    </span>
                     <select
                       value={config.cavemanConfig.intensity}
                       onChange={(e) =>
@@ -556,7 +562,9 @@ export default function CompressionSettingsTab() {
           <div className="space-y-3 pt-4 border-t border-border/30">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-medium text-text-main">Caveman output mode</h4>
+                <h4 className="text-sm font-medium text-text-main">
+                  {t("compressionSettingsCavemanOutputMode")}
+                </h4>
                 <p className="text-xs text-text-muted mt-0.5">
                   Injects terse response instructions without rewriting provider output.
                 </p>
@@ -583,7 +591,9 @@ export default function CompressionSettingsTab() {
             </div>
 
             <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">Output intensity</span>
+              <span className="text-sm text-text-muted">
+                {t("compressionSettingsOutputIntensity")}
+              </span>
               <select
                 value={config.cavemanOutputMode.intensity}
                 onChange={(e) =>
@@ -603,7 +613,9 @@ export default function CompressionSettingsTab() {
             </label>
 
             <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">Auto clarity bypass</span>
+              <span className="text-sm text-text-muted">
+                {t("compressionSettingsAutoClarityBypass")}
+              </span>
               <button
                 onClick={() =>
                   save({

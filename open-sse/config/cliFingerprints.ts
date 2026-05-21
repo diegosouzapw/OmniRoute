@@ -174,17 +174,18 @@ export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
   },
   antigravity: {
     headerOrder: [
-      "Host",
-      "Content-Type",
+      "Accept",
+      "Accept-Encoding",
       "Authorization",
+      "Content-Type",
       "User-Agent",
+      "x-goog-api-client",
       "x-client-name",
       "x-client-version",
       "x-machine-id",
       "x-vscode-sessionid",
-      "x-goog-user-project",
-      "Accept",
-      "Accept-Encoding",
+      "Host",
+      "Connection",
     ],
     bodyFieldOrder: [
       "project",

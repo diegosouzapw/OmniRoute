@@ -65,8 +65,8 @@ export function TierCoverageWidget() {
     <div className="rounded-xl border border-white/[0.06] bg-surface p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-sm">Tier coverage</h3>
-          <p className="text-xs text-text-muted mt-0.5">Providers configured per fallback tier</p>
+          <h3 className="font-semibold text-sm">{t("tierCoverageTitle")}</h3>
+          <p className="text-xs text-text-muted mt-0.5">{t("tierCoverageSubtitle")}</p>
         </div>
         <Link
           href="/dashboard/providers"

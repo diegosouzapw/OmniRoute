@@ -60,6 +60,28 @@
     },
     "metric_single": {
       "description": "Get a single metric value for a specific connection"
+    },
+    "rotate": {
+      "description": "Rotate the upstream API key for a provider connection",
+      "newKeyOpt": "New API key value (avoid: prefer --from-env)",
+      "fromEnvOpt": "Read new key from environment variable VAR",
+      "oauthOpt": "Trigger OAuth re-authentication flow instead",
+      "skipTestOpt": "Skip post-rotation connectivity test",
+      "dryRunOpt": "Print what would change without writing",
+      "confirmPrompt": "Replace API key for connection \"{name}\" ({id})? [y/N] ",
+      "dryRunResult": "[dry-run] Would rotate key for \"{name}\" ({id}). No changes made.",
+      "oauthHint": "OAuth connection — run: omniroute oauth {provider}",
+      "envVarEmpty": "Environment variable {var} is not set or is empty.",
+      "success": "Key rotated for \"{name}\". Run `providers test {id}` to verify.",
+      "testPassed": "Post-rotation test passed.",
+      "testFailed": "Post-rotation test failed: {error}"
+    },
+    "status": {
+      "description": "Show key health for all provider connections (age, expiry, cooldown)",
+      "providerOpt": "Filter by provider name",
+      "header": "ID         Provider       Name                     Expiry Status  Test Status  Cooldown Until",
+      "noData": "No provider connection data available.",
+      "requiresServer": "providers status requires the OmniRoute server to be running."
     }
   },
   "keys": {

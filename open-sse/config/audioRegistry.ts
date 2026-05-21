@@ -67,6 +67,27 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     ],
   },
 
+  pollinations: {
+    id: "pollinations",
+    baseUrl: "https://gen.pollinations.ai/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [{ id: "whisper", name: "Pollinations Whisper (Free)" }],
+  },
+
+  together: {
+    id: "together",
+    baseUrl: "https://api.together.xyz/v1/audio/transcriptions",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "openai/whisper-large-v3", name: "Whisper Large v3" },
+      { id: "openai/whisper-large-v3-turbo", name: "Whisper Large v3 Turbo" },
+    ],
+  },
+
   assemblyai: {
     id: "assemblyai",
     baseUrl: "https://api.assemblyai.com/v2/transcript",
@@ -99,8 +120,8 @@ export const AUDIO_TRANSCRIPTION_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "huggingface-asr",
     models: [
+      { id: "openai/whisper-large-v3-turbo", name: "Whisper Large v3 Turbo (HF)" },
       { id: "openai/whisper-large-v3", name: "Whisper Large v3 (HF)" },
-      { id: "openai/whisper-small", name: "Whisper Small (HF)" },
     ],
   },
 
@@ -192,8 +213,9 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
     authHeader: "bearer",
     format: "huggingface-tts",
     models: [
-      { id: "facebook/mms-tts-eng", name: "MMS TTS English" },
-      { id: "microsoft/speecht5_tts", name: "SpeechT5 TTS" },
+      { id: "canopylabs/orpheus-3b-0.1-ft", name: "Orpheus 3B" },
+      { id: "ResembleAI/chatterbox", name: "Chatterbox" },
+      { id: "hexgrad/Kokoro-82M", name: "Kokoro TTS" },
     ],
   },
 
@@ -301,6 +323,37 @@ export const AUDIO_SPEECH_PROVIDERS: Record<string, AudioProvider> = {
       { id: "generative", name: "Polly Generative" },
     ],
   },
+  pollinations: {
+    id: "pollinations",
+    baseUrl: "https://gen.pollinations.ai/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [{ id: "default", name: "Pollinations TTS (Free)" }],
+  },
+
+  minimax: {
+    id: "minimax",
+    baseUrl: "https://api.minimax.io/v1/t2a_v2",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "minimax-tts",
+    models: [{ id: "speech-2.8-hd", name: "Speech 2.8 HD" }],
+  },
+
+  together: {
+    id: "together",
+    baseUrl: "https://api.together.xyz/v1/audio/speech",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "openai",
+    models: [
+      { id: "cartesia/sonic-2", name: "Cartesia Sonic 2" },
+      { id: "hexgrad/Kokoro-82M", name: "Kokoro 82M" },
+      { id: "canopylabs/orpheus-3b-0.1-ft", name: "Orpheus 3B" },
+    ],
+  },
+
   "xiaomi-mimo": {
     id: "xiaomi-mimo",
     baseUrl: "https://api.xiaomimimo.com/v1/chat/completions",

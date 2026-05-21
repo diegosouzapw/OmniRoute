@@ -1,233 +1,390 @@
-# CLAUDE.md — AI Agent Session Bootstrap (தமிழ்)
+# CLAUDE.md (தமிழ்)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+இந்த கோப்பு இந்த சேமிப்பகத்தில் குறியீட்டுடன் வேலை செய்யும் போது Claude Code (claude.ai/code) க்கு வழிகாட்டுதலை வழங்குகிறது.
 
-## Inicio Rápido
+## விரைவான தொடக்கம்
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # சார்புகளை நிறுவவும் (.env.example இலிருந்து .env ஐ தானாக உருவாக்குகிறது)
+npm run dev                    # http://localhost:20128 இல் டெவ் சர்வர்
+npm run build                  # உற்பத்தி கட்டமைப்பு (Next.js 16 தனித்தனி)
+npm run lint                   # ESLint (0 பிழைகள் எதிர்பார்க்கப்படுகின்றன; எச்சரிக்கைகள் முன்னதாகவே உள்ளன)
+npm run typecheck:core         # TypeScript சரிபார்ப்பு (சுத்தமாக இருக்க வேண்டும்)
+npm run typecheck:noimplicit:core  # கடுமையான சரிபார்ப்பு (எந்த implicit any இல்லை)
+npm run test:coverage          # யூனிட் சோதனைகள் + கவரேஜ் கேட் (75/75/75/70 — அறிக்கைகள்/வரிசைகள்/செயல்பாடுகள்/கிளைகள்)
+npm run check                  # lint + சோதனை ஒன்றிணைக்கப்பட்டது
+npm run check:cycles           # சுற்றுப்பாதை சார்ந்த சார்புகளை கண்டறியவும்
 ```
 
-### Running a Single Test
+### சோதனைகளை இயக்குதல்
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# ஒற்றை சோதனை கோப்பு (Node.js உள்ளூர் சோதனை இயக்கி — பெரும்பாலான சோதனைகள்)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest (MCP சர்வர், autoCombo, cache)
 npm run test:vitest
+
+# அனைத்து சோதனைகள்
+npm run test:all
 ```
+
+முழு சோதனை மேட்ரிக்ஸ் க்காக, `CONTRIBUTING.md` → "சோதனைகளை இயக்குதல்" ஐப் பார்க்கவும். ஆழமான கட்டமைப்பிற்காக, `AGENTS.md` ஐப் பார்க்கவும்.
 
 ---
 
-## Resumen
+## திட்டம் ஒரு பார்வையில்
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — ஒருங்கிணைந்த AI பிராக்சி/ரூட்டர். ஒரு முடிவிடம், 160+ LLM வழங்குநர்கள், தானாகவே fallback.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| அடுக்கு       | இடம்                    | நோக்கம்                                                                         |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js ஆப் ரூட்டர் — நுழைவு புள்ளிகள்                                          |
+| Handlers      | `open-sse/handlers/`    | கோரிக்கைகளை செயலாக்குதல் (சாட், எம்பெட்டிங்ஸ், மற்றும் பிற)                     |
+| Executors     | `open-sse/executors/`   | வழங்குநர்-சிறப்பு HTTP அனுப்புதல்                                               |
+| Translators   | `open-sse/translator/`  | வடிவ மாற்றம் (OpenAI↔Claude↔Gemini)                                             |
+| Transformer   | `open-sse/transformer/` | பதில்கள் API ↔ சாட் முழுமைகள்                                                   |
+| Services      | `open-sse/services/`    | காம்போ ரூட்டிங், விகித வரம்புகள், கச்சா, மற்றும் பிற                            |
+| Database      | `src/lib/db/`           | SQLite டொமைன் மாடுல்கள் (45+ கோப்புகள், 55 மைக்ரேஷன்கள்)                        |
+| Domain/Policy | `src/domain/`           | கொள்கை இயந்திரம், செலவுக் கட்டுப்பாடுகள், fallback உள்கட்டமைப்பு                |
+| MCP Server    | `open-sse/mcp-server/`  | 37 கருவிகள் (30 அடிப்படை + 3 நினைவகம் + 4 திறன்கள்), 3 போக்குகள், ~13 பரப்புகள் |
+| A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 முகவர் புரொட்டோக்கால்                                              |
+| Skills        | `src/lib/skills/`       | விரிவாக்கத்திற்குரிய திறன் கட்டமைப்பு                                           |
+| Memory        | `src/lib/memory/`       | நிலையான உரையாடல் நினைவகம்                                                       |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (Next.js 16 ஆப்), `open-sse/` (ஸ்ட்ரீமிங் இயந்திர வேலைப்பாடு), `electron/` (டெஸ்க்டாப் ஆப்), `tests/`, `bin/` (CLI நுழைவு புள்ளி).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## கோரிக்கை குழாய்
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Client → /v1/chat/completions (Next.js பாதை)
+  → CORS → Zod சரிபார்ப்பு → அங்கீகாரம்? → கொள்கை சரிபார்ப்பு → முன்மொழிவு ஊடுருவல் பாதுகாப்பு
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → கச்சா சரிபார்ப்பு → விகிதம் வரம்பு → கம்போ வழிமுறை?
+      → resolveComboTargets() → handleSingleModel() ஒவ்வொரு இலக்கத்திற்கும்
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+      → fetch() மேல்நிலை → மீண்டும் முயற்சி w/ backoff
+    → பதில்கள் மொழிபெயர்ப்பு → SSE ஓட்டம் அல்லது JSON
+    → பதில்கள் API: responsesTransformer.ts TransformStream
 ```
 
----
+API பாதைகள் ஒரே மாதிரியான வடிவத்தை பின்பற்றுகின்றன: `Route → CORS முன்பார்வை → Zod உடல் சரிபார்ப்பு → விருப்ப அங்கீகாரம் (extractApiKey/isValidApiKey) → API விசை கொள்கை அமலாக்கம் → கைப்பற்றுதல் ஒப்படைப்பு (open-sse)`. உலகளாவிய Next.js மிடில்வேர் இல்லை — இடைமுகம் பாதை-சிறப்பு.
 
-## Key Conventions
-
-### Code Style
-
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
-
-### Database Access
-
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
-
-### Error Handling
-
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
-
-### Seguridad
-
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+**கம்போ வழிமுறை** (`open-sse/services/combo.ts`): 14 உத்திகள் (முதன்மை, எடை, நிரப்புதல்-முதல், சுற்று-ரொபின், P2C, சீரற்ற, குறைந்த-பயன்பாடு, செலவுக்கேற்ப, மீட்டமைப்பு-அறிவு, கடுமையான-சீரற்ற, தானாக, lkgp, சூழல்-சீரமைக்கப்பட்ட, சூழல்-மாற்று). ஒவ்வொரு இலக்கமும் `handleSingleModel()` ஐ அழைக்கிறது, இது `handleChatCore()` ஐ ஒவ்வொரு இலக்கத்திற்கும் பிழை கையாளுதல் மற்றும் சுற்று முறையீட்டு சரிபார்ப்புடன் சுற்றி விடுகிறது. 9-உயர்தர Auto-Combo மதிப்பீட்டிற்கான `docs/routing/AUTO-COMBO.md` ஐப் பார்க்கவும் மற்றும் 3 நிலைத்தன்மை அடுக்குகளுக்கான `docs/architecture/RESILIENCE_GUIDE.md` ஐப் பார்க்கவும்.
 
 ---
 
-## Common Modification Scenarios
+## நிலைத்தன்மை இயக்கநிலை நிலை
 
-### Adding a New Provider
+OmniRoute இல் மூன்று தொடர்புடைய ஆனால் தனித்துவமான தற்காலிக-தவறுகள் முறைமைகள் உள்ளன. வழிமுறை நடத்தை பிழைகளை சரிசெய்யும் போது அவற்றின் பரப்பை தனியாக வைத்திருக்கவும். ஒரு பார்வையில் வரைபடத்திற்கான
+[3-அடுக்கு நிலைத்தன்மை வரைபடம்](./docs/diagrams/exported/resilience-3layers.svg)
+(மூல: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)) ஐப் பார்க்கவும்.
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+### வழங்குநர் சுற்று முறையீட்டு
 
-### Adding a New API Route
+**பரப்பு**: முழு வழங்குநர், உதாரணமாக `glm`, `openai`, `anthropic`.
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+**நோக்கம்**: மேல்நிலை/சேவைக் கட்டத்தில் மீண்டும் மீண்டும் தோல்வியுறும் வழங்குநருக்கு போக்குவரத்தை அனுப்புவதை நிறுத்தவும், எனவே ஒரு ஆரோக்கியமற்ற வழங்குநர் ஒவ்வொரு கோரிக்கையையும் மெதுவாக்காது.
 
-### Adding a New DB Module
+**அமலாக்கம்**:
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+- மைய வகுப்பு: `src/shared/utils/circuitBreaker.ts`
+- உரையாடல் வாயில்/செயலாக்க இணைப்பு: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- இயக்கநிலை நிலை API: `src/app/api/monitoring/health/route.ts`
+- பகிரப்பட்ட மூடியங்கள்: `open-sse/services/accountFallback.ts`
+- நிலைத்த நிலை அட்டவணை: `domain_circuit_breakers`
 
-### Adding a New MCP Tool
+**நிலைகள்**:
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+- `CLOSED`: சாதாரண போக்குவரத்து அனுமதிக்கப்படுகிறது.
+- `OPEN`: வழங்குநர் தற்காலிகமாக தடைக்கப்பட்டுள்ளது; அழைப்பாளர்கள் வழங்குநர்-சுற்று-திறந்த பதிலைப் பெறுகிறார்கள் அல்லது கம்போ வழிமுறை மற்றொரு இலக்கத்திற்கு தவிர்க்கிறது.
+- `HALF_OPEN`: மீட்டமைப்பு காலம் முடிந்தது; ஒரு சோதனை கோரிக்கையை அனுமதிக்கவும். வெற்றி சுற்று முறையீட்டை மூடுகிறது, தோல்வி அதை மீண்டும் திறக்கிறது.
 
-### Adding a New A2A Skill
+**இயல்புகள்** (`open-sse/config/constants.ts`):
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+- OAuth வழங்குநர்கள்: தற்காலிகம் `3`, மீட்டமைப்பு காலம் `60s`.
+- API-விசை வழங்குநர்கள்: தற்காலிகம் `5`, மீட்டமைப்பு காலம் `30s`.
+- உள்ளூர் வழங்குநர்கள்: தற்காலிகம் `2`, மீட்டமைப்பு காலம் `15s`.
+
+மட்டுமே வழங்குநர்-நிலை தோல்வி நிலைகள் வழங்குநர் சுற்று முறையீட்டைத் தூண்ட வேண்டும்:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+சாதாரண கணக்கு/விசை/மாதிரி பிழைகள் போன்ற `401`, `403`, அல்லது `429` வழக்கங்களுக்கு முழு-வழங்குநர் சுற்று முறையீட்டைத் தூண்ட வேண்டாம். அவை பொதுவாக இணைப்பு குளிர்ச்சி அல்லது மாதிரி பூட்டுதலுக்குச் சொந்தமாகும். ஒரு பொதுவான API-விசை வழங்குநர் `403` மீண்டும் பெறக்கூடியதாக இருக்க வேண்டும், அது இறுதி வழங்குநர்/கணக்கு பிழையாக வகைப்படுத்தப்படவில்லை.
+
+சுற்று முறையீடு சோம்பல் மீட்பு பயன்படுத்துகிறது, பின்னணி நேரம் அல்ல. `OPEN` காலம் முடிந்தவுடன், `getStatus()`, `canExecute()`, மற்றும் `getRetryAfterMs()` போன்ற வாசிப்புகள் நிலையை `HALF_OPEN` ஆக புதுப்பிக்கின்றன, எனவே டாஷ்போர்டுகள் மற்றும் கம்போ வேட்பாளர் கட்டுப்படுத்திகள் காலாவதியான வழங்குநரை எப்போதும் தவிர்க்கவில்லை.
+
+### இணைப்பு குளிர்ச்சி
+
+**பரப்பு**: ஒரு வழங்குநர் இணைப்பு/கணக்கு/விசை.
+
+**நோக்கம்**: ஒரே மோசமான விசை/கணக்கை தற்காலிகமாக தவிர்க்கவும், அதே வழங்குநருக்கான பிற இணைப்புகளை கோரிக்கைகளை சேவையளிக்க தொடர அனுமதிக்கவும்.
+
+**அமலாக்கம்**:
+
+- எழுத/புதுப்பிக்க பாதை: `src/sse/services/auth.ts::markAccountUnavailable()`
+- கணக்கு தேர்வு/வடிகட்டி: `src/sse/services/auth.ts::getProviderCredentials...`
+- குளிர்ச்சி கணக்கீடு: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- அமைப்புகள்: `src/lib/resilience/settings.ts`
+
+வழங்குநர் இணைப்பில் முக்கியமான புலங்கள்:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+கணக்கு தேர்வின் போது, ஒரு இணைப்பு தவிர்க்கப்படுகிறது:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+குளிர்ச்சிகள் சோம்பல் ஆகவும் உள்ளன: `rateLimitedUntil` கடந்த காலத்தில் இருந்தால், இணைப்பு மீண்டும் தகுதியானதாக மாறுகிறது. வெற்றிகரமாகப் பயன்படுத்தும் போது, `clearAccountError()` `testStatus`, `rateLimitedUntil`, பிழை புலங்கள், மற்றும் `backoffLevel` ஐ அழிக்கிறது.
+
+இயல்பான இணைப்பு குளிர்ச்சி நடத்தை:
+
+- OAuth அடிப்படை குளிர்ச்சி: `5s`.
+- API-விசை அடிப்படை குளிர்ச்சி: `3s`.
+- API-விசை `429` கிடைக்கும்போது மேல்நிலை மீண்டும் முயற்சி குறிப்பு (`Retry-After`, மீட்டமைப்பு தலைப்புகள், அல்லது வாசிக்கக்கூடிய மீட்டமைப்பு உரை) என்பவற்றை முன்னுரிமை அளிக்க வேண்டும்.
+- மீண்டும் பெறக்கூடிய தோல்விகள் எக்ஸ்போனென்ஷியல் பின்வாங்குதலைப் பயன்படுத்துகின்றன:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+எதிர்மறை-தூண்டுதல்-மூடுபனி பாதுகாப்பு ஒரே இணைப்பில் ஒரே நேரத்தில் தோல்விகளை மீண்டும் மீண்டும் குளிர்ச்சியை நீட்டிக்கவோ அல்லது `backoffLevel` ஐ இரட்டிப்பாக அதிகரிக்கவோ தடுக்கும்.
+
+இறுதி நிலைகள் குளிர்ச்சிகள் அல்ல. `banned`, `expired`, மற்றும் `credits_exhausted` ஆகியவை சான்றிதழ்கள்/அமைப்புகள் மாறும் வரை அல்லது ஒரு செயல்பாட்டாளர் அவற்றை மீட்டமைக்கும் வரை கிடைக்காதவையாக இருக்க வேண்டும். தற்காலிக குளிர்ச்சி நிலை மூலம் இறுதி நிலைகளை மீட்டமைக்க வேண்டாம்.
+
+### மாதிரி பூட்டுதல்
+
+**பரப்பு**: வழங்குநர் + இணைப்பு + மாதிரி.
+
+**நோக்கம்**: ஒரு மாதிரி கிடைக்காத அல்லது அந்த இணைப்புக்கான அளவீட்டு-கட்டுப்பாட்டில் உள்ள போது முழு இணைப்பை முடக்காமல் இருக்கவும்.
+
+உதாரணங்கள்:
+
+- மாதிரி-அளவீட்டு வழங்குநர்கள் `429` ஐ திருப்பி அனுப்புவது.
+- ஒரு காணாமல் போன மாதிரிக்காக உள்ளூர் வழங்குநர்கள் `404` ஐ திருப்பி அனுப்புவது.
+- தேர்ந்தெடுக்கப்பட்ட Grok முறைகள் போன்ற வழங்குநர்-சிறப்பு முறை/மாதிரி அனுமதி தோல்விகள்.
+
+மாதிரி பூட்டுதல் `open-sse/services/accountFallback.ts` இல் வாழ்கிறது மற்றும் அதே இணைப்பை மற்ற மாதிரிகளை சேவையளிக்க தொடர அனுமதிக்கிறது.
+
+### பிழைதிருத்த வழிகாட்டுதல்
+
+- ஒரு வழங்குநருக்கான அனைத்து விசைகளும் தவிர்க்கப்பட்டால், வழங்குநர் சுற்று முறையீட்டு நிலை மற்றும் ஒவ்வொரு இணைப்பின் `rateLimitedUntil`/`testStatus` ஐப் பரிசீலிக்கவும்.
+- மீட்டமைப்பு ஜன்னலுக்குப் பிறகு ஒரு வழங்குநர் நிரந்தரமாக தவிர்க்கப்பட்டதாக தோன்றினால், குறியீடு `getStatus()`/`canExecute()` ஐப் பயன்படுத்துவதற்குப் பதிலாக கச்சா `state` ஐப் படிக்கிறதா என்பதைச் சரிபார்க்கவும்.
+- ஒரு வழங்குநர் விசை தோல்வியுறும் ஆனால் மற்றவை வேலை செய்ய வேண்டும் என்றால், வழங்குநர் சுற்று முறையீட்டுக்கு பதிலாக இணைப்பு குளிர்ச்சியை முன்னுரிமை அளிக்கவும்.
+- ஒரே மாதிரி தோல்வியுறும் போது, மாதிரி பூட்டுதலுக்கு பதிலாக இணைப்பு குளிர்ச்சியை முன்னுரிமை அளிக்கவும்.
+- ஒரு நிலை தானாக மீண்டும் பெற வேண்டும் என்றால், அதில் எதிர்கால காலம்/மீட்டமைப்பு காலம் மற்றும் காலாவதியான நிலையை புதுப்பிக்கும் வாசிப்பு பாதை இருக்க வேண்டும். நிரந்தர நிலைகள் கையேடு சான்றிதழ் அல்லது கட்டமைப்பு மாற்றங்களை தேவைப்படுத்துகின்றன.
+
+## முக்கிய ஒழுங்குகள்
+
+### குறியீட்டு பாணி
+
+- **2 இடங்கள்**, செமிகோலன், இரட்டை மேற்கோள்கள், 100 எழுத்து அகலம், es5 பின்னணி கமா (lint-staged மூலம் Prettier மூலம் கட்டாயமாக்கப்பட்டது)
+- **இறக்குமதிகள்**: வெளிப்புறம் → உள்ளகம் (`@/`, `@omniroute/open-sse`) → தொடர்புடைய
+- **பெயரிடுதல்**: கோப்புகள்=camelCase/kebab, கூறுகள்=PascalCase, நிலையானவை=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = எங்கு வேண்டுமானாலும் பிழை; `no-explicit-any` = `open-sse/` மற்றும் `tests/` இல் எச்சரிக்கை
+- **TypeScript**: `strict: false`, இலக்கு ES2022, தொகுப்பு esnext, தீர்வு bundler. தெளிவான வகைகளை முன்னுரிமை கொடுக்கவும்.
+
+### தரவுத்தளம்
+
+- **எப்போதும்** `src/lib/db/` டொமைன் மாடுல்களைப் பயன்படுத்தவும் — **எப்போதும்** வழிகளில் அல்லது கையாளர்களில் கச்சித SQL எழுத வேண்டாம்
+- **எப்போதும்** `src/lib/localDb.ts` இல் தரவுத்தொகுப்புகளைச் சேர்க்க வேண்டாம் (மறு-வெளியீட்டு அடுக்கு மட்டும்)
+- **எப்போதும்** `localDb.ts` இல் இருந்து ப barrel-import செய்ய வேண்டாம் — குறிப்பிட்ட `db/` மாடுல்களைப் பயன்படுத்தவும்
+- DB ஒரே மாதிரியானது: `getDbInstance()` `src/lib/db/core.ts` இல் இருந்து (WAL பதிவேற்றம்)
+- மைக்ரேஷன்கள்: `src/lib/db/migrations/` — பதிப்பு கொண்ட SQL கோப்புகள், idempotent, பரிவர்த்தனைகளில் இயக்கவும்
+
+### பிழை கையாளுதல்
+
+- குறிப்பிட்ட பிழை வகைகளுடன் try/catch, pino சூழ்நிலையுடன் பதிவு செய்யவும்
+- SSE ஓட்டங்களில் பிழைகளை அடிக்கடி அடிக்க வேண்டாம் — சுத்தம் செய்ய abort சிக்னல்களைப் பயன்படுத்தவும்
+- சரியான HTTP நிலை குறியீடுகளை திருப்பவும் (4xx/5xx)
+
+### பாதுகாப்பு
+
+- **எப்போதும்** `eval()`, `new Function()`, அல்லது குறிக்கோள் மதிப்பீடு பயன்படுத்த வேண்டாம்
+- அனைத்து உள்ளீடுகளையும் Zod வடிவமைப்புகளுடன் சரிபார்க்கவும்
+- ஓய்வில் உள்ள அங்கீகாரங்களை குறியாக்கிக்கொள்ளவும் (AES-256-GCM)
+- மேல்நிலை தலைப்பு மறுக்கப்பட்ட பட்டியல்: `src/shared/constants/upstreamHeaders.ts` — திருத்தும்போது சுத்தமாக்கவும், Zod வடிவமைப்புகள் மற்றும் யூனிட் சோதனைகளை ஒத்திசைக்கவும்
+- **பொது மேல்நிலை அங்கீகாரங்கள்** (Gemini/Antigravity/Windsurf-பாணி OAuth client_id/secret + Firebase வலை விசைகள் பொதுவான CLIs இல் இருந்து எடுக்கப்பட்டவை): **கட்டாயமாக** `resolvePublicCred()` மூலம் இணைக்கப்பட வேண்டும் `open-sse/utils/publicCreds.ts` — **எப்போதும்** உரை இலக்கணமாக அல்ல. கட்டாய மாதிரி குறித்து `docs/security/PUBLIC_CREDS.md` ஐப் பார்க்கவும்.
+- **பிழை பதில்கள்** (HTTP / SSE / executor / MCP கையாளி): **கட்டாயமாக** `buildErrorBody()` அல்லது `sanitizeErrorMessage()` மூலம் வழிமொழிய வேண்டும் `open-sse/utils/error.ts` — **எப்போதும்** கச்சித `err.stack` அல்லது `err.message` ஐ பதில் உடலில் வைக்க வேண்டாம். `docs/security/ERROR_SANITIZATION.md` ஐப் பார்க்கவும்.
+- **மாறிலிகள் மூலம் உருவாக்கப்பட்ட ஷெல் கட்டளைகள்**: `exec()`/`spawn()` ஐ இயக்கும் போது, இயக்க நேர மதிப்புகளை தேவைப்படும் ஸ்கிரிப்டுடன், `env` விருப்பத்தின் மூலம் அனுப்பவும் (ஷெல்-எஸ்கேப் தானாகவே) — **எப்போதும்** நம்பமுடியாத/வெளியுறுப்புகளை ஸ்கிரிப்ட் உடலில் உரை-இணைக்க வேண்டாம். குறிப்புரை: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **பாதுகாப்பான-முதலில் நூலகங்கள்** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): புதிய பாதுகாப்பு-அனுபவங்களைச் சேர்க்கும்போது Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink ஐ தனிப்பயனாக்கப்பட்ட செயல்பாடுகளை விட முன்னுரிமை கொடுக்கவும்.
 
 ---
 
-## Testing Cheat Sheet
+## பொதுவான திருத்த நிலைகள்
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+### புதிய வழங்குநரைச் சேர்க்க
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+1. `src/shared/constants/providers.ts` இல் பதிவு செய்யவும் (ஏற்றுமதி செய்யும் போது Zod-சரிபார்க்கப்பட்டது)
+2. தனிப்பயன் தரவுகளை தேவைப்பட்டால் `open-sse/executors/` இல் செயல்பாட்டைச் சேர்க்கவும் ( `BaseExecutor` ஐ விரிவாக்கவும்)
+3. OpenAI வடிவமைப்புக்கு அல்லாதால் `open-sse/translator/` இல் மொழிபெயர்ப்பாளர் சேர்க்கவும்
+4. OAuth அடிப்படையிலானது என்றால் `src/lib/oauth/constants/oauth.ts` இல் OAuth அமைப்பைச் சேர்க்கவும் — மேல்நிலை CLI ஒரு பொது client_id/secret ஐ வழங்கினால், `resolvePublicCred()` மூலம் இணைக்கவும் ( `docs/security/PUBLIC_CREDS.md` ஐப் பார்க்கவும்), **எப்போதும்** உரை இலக்கணமாக அல்ல
+5. `open-sse/config/providerRegistry.ts` இல் மாதிரிகளை பதிவு செய்யவும்
+6. `tests/unit/` இல் சோதனைகளை எழுதவும் (புதிய இணைக்கப்பட்ட அடிப்படையைச் சேர்த்தால் publicCreds வடிவமைப்பைச் சேர்க்கவும்)
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+### புதிய API வழியைச் சேர்க்க
+
+1. `src/app/api/v1/your-route/` இல் அடைவை உருவாக்கவும்
+2. `GET`/`POST` கையாளர்களுடன் `route.ts` உருவாக்கவும்
+3. மாதிரியைப் பின்பற்றவும்: CORS → Zod உடல் சரிபார்ப்பு → விருப்ப auth → கையாளல் ஒப்படைப்பு
+4. கையாளல் `open-sse/handlers/` இல் செல்ல வேண்டும் (அங்கு இறக்குமதி செய்யவும், உள்ளடக்கமாக அல்ல)
+5. பிழை பதில்கள் `buildErrorBody()` / `errorResponse()` ஐப் பயன்படுத்த வேண்டும் `open-sse/utils/error.ts` (தானாக சுத்தமாக்கப்பட்டது — எப்போதும் `err.stack` அல்லது `err.message` கச்சிதமாக உடலில் வைக்க வேண்டாம்). `docs/security/ERROR_SANITIZATION.md` ஐப் பார்க்கவும்.
+6. சோதனைகளைச் சேர்க்கவும் — பிழை பதில்கள் குவியல் தடங்களை வெளியிடாததை உறுதி செய்யும் குறைந்தது ஒரு உறுதிப்படுத்தலுடன் (`!body.error.message.includes("at /")`)
+
+### புதிய DB மாடுல் சேர்க்க
+
+1. `src/lib/db/yourModule.ts` உருவாக்கவும் — `./core.ts` இல் இருந்து `getDbInstance` ஐ இறக்குமதி செய்யவும்
+2. உங்கள் டொமைன் அட்டவணைக்கான CRUD செயல்பாடுகளை வெளியிடவும்
+3. புதிய அட்டவணைகள் தேவைப்பட்டால் `src/lib/db/migrations/` இல் மைக்ரேஷன் சேர்க்கவும்
+4. `src/lib/localDb.ts` இல் இருந்து மீண்டும் வெளியிடவும் (மீண்டும் வெளியீட்டு பட்டியலில் மட்டும் சேர்க்கவும்)
+5. சோதனைகளை எழுதவும்
+
+### புதிய MCP கருவியைச் சேர்க்க
+
+1. Zod உள்ளீட்டு வடிவமைப்புடன் `open-sse/mcp-server/tools/` இல் கருவி வரையறையைச் சேர்க்கவும் + அசிங்க கையாளல்
+2. கருவி தொகுப்பில் பதிவு செய்யவும் ( `createMcpServer()` மூலம் இணைக்கப்பட்டது)
+3. உரிய அளவுகளில் ஒதுக்கவும்
+4. சோதனைகளை எழுதவும் (கருவி அழைப்புகள் `mcp_audit` அட்டவணையில் பதிவு செய்யப்படும்)
+
+### புதிய A2A திறனைச் சேர்க்க
+
+1. `src/lib/a2a/skills/` இல் திறனை உருவாக்கவும் (5 ஏற்கனவே உள்ளன: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. திறன் பணியாளர் சூழ்நிலையைப் பெறுகிறது (செய்திகள், மெட்டாடேட்டா) → கட்டமைக்கப்பட்ட முடிவை திருப்புகிறது
+3. `src/lib/a2a/taskExecution.ts` இல் `A2A_SKILL_HANDLERS` இல் பதிவு செய்யவும்
+4. `src/app/.well-known/agent.json/route.ts` இல் வெளிப்படுத்தவும் (ஏஜென்ட் கார்ட்)
+5. `tests/unit/` இல் சோதனைகளை எழுதவும்
+6. `docs/frameworks/A2A-SERVER.md` திறன் அட்டவணையில் ஆவணமாக்கவும்
+
+### புதிய கிளவுட் ஏஜென்டைச் சேர்க்க
+
+1. `src/lib/cloudAgent/agents/` இல் `CloudAgentBase` ஐ விரிவாக்கும் ஏஜென்ட் வகுப்பை உருவாக்கவும் (3 ஏற்கனவே உள்ளன: codex-cloud, devin, jules)
+2. `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources` ஐ செயல்படுத்தவும்
+3. `src/lib/cloudAgent/registry.ts` இல் பதிவு செய்யவும்
+4. தேவைப்பட்டால் OAuth/அங்கீகாரங்களை கையாளவும் (`src/lib/oauth/providers/`)
+5. சோதனைகள் + `docs/frameworks/CLOUD_AGENT.md` இல் ஆவணமாக்கவும்
+
+### புதிய காப்புறுப்பு / மதிப்பீடு / திறன் / வலைப்பின்னல் நிகழ்வு சேர்க்க
+
+- காப்புறுப்பு: `src/lib/guardrails/` → ஆவணங்கள்: `docs/security/GUARDRAILS.md`
+- மதிப்பீட்டு தொகுப்பு: `src/lib/evals/` → ஆவணங்கள்: `docs/frameworks/EVALS.md`
+- திறன் (சேதம்): `src/lib/skills/` → ஆவணங்கள்: `docs/frameworks/SKILLS.md`
+- வலைப்பின்னல் நிகழ்வு: `src/lib/webhookDispatcher.ts` → ஆவணங்கள்: `docs/frameworks/WEBHOOKS.md`
+
+## குறிப்பு ஆவணம்
+
+எந்தவொரு முக்கியமான மாற்றத்திற்காக, முதலில் பொருத்தமான ஆழமான ஆய்வைப் படிக்கவும்:
+
+| பகுதி                                        | ஆவணம்                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------- |
+| ரெப்போ நவீனமயமாக்கல்                         | `docs/architecture/REPOSITORY_MAP.md`                             |
+| கட்டமைப்பு                                   | `docs/architecture/ARCHITECTURE.md`                               |
+| பொறியியல் குறிப்பு                           | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| ஆட்டோ-கொம்போ (9-கூறு மதிப்பீடு, 14 உத்திகள்) | `docs/routing/AUTO-COMBO.md`                                      |
+| நிலைத்தன்மை (3 முறைமைகள்)                    | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| காரணம் மீண்டும் விளக்கம்                     | `docs/routing/REASONING_REPLAY.md`                                |
+| திறன்கள் கட்டமைப்பு                          | `docs/frameworks/SKILLS.md`                                       |
+| நினைவகம் அமைப்பு (FTS5 + Qdrant)             | `docs/frameworks/MEMORY.md`                                       |
+| மேக முகவர்கள்                                | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| பாதுகாப்பு (PII / ஊட்டம் / பார்வை)           | `docs/security/GUARDRAILS.md`                                     |
+| பொது மேல்நிலை அங்கீகாரங்கள் (Gemini/etc.)    | `docs/security/PUBLIC_CREDS.md`                                   |
+| பிழை செய்தி சுத்திகரிப்பு                    | `docs/security/ERROR_SANITIZATION.md`                             |
+| மதிப்பீடுகள்                                 | `docs/frameworks/EVALS.md`                                        |
+| ஒத்திசைவு / ஆய்வு                            | `docs/security/COMPLIANCE.md`                                     |
+| வலைக்குறிகள்                                 | `docs/frameworks/WEBHOOKS.md`                                     |
+| அங்கீகார குழாய்                              | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| மறைமுகம் (TLS / கையொப்பம்)                   | `docs/security/STEALTH_GUIDE.md`                                  |
+| முகவர் நெறிமுறைகள் (A2A / ACP / Cloud)       | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP சேவையகம்                                 | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A சேவையகம்                                 | `docs/frameworks/A2A-SERVER.md`                                   |
+| API குறிப்பு + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| வழங்குநர் பட்டியல் (தானாக உருவாக்கப்பட்டது)  | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| வெளியீட்டு ஓட்டம்                            | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+
+## சோதனை
+
+| என்ன                       | கட்டளை                                                                           |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| யூனிட் சோதனைகள்            | `npm run test:unit`                                                              |
+| ஒற்றை கோப்பு               | `node --import tsx/esm --test tests/unit/file.test.ts`                           |
+| Vitest (MCP, autoCombo)    | `npm run test:vitest`                                                            |
+| E2E (Playwright)           | `npm run test:e2e`                                                               |
+| புரோட்டோகால் E2E (MCP+A2A) | `npm run test:protocols:e2e`                                                     |
+| சூழல்                      | `npm run test:ecosystem`                                                         |
+| கவரேஜ் கேட்                | `npm run test:coverage` (75/75/75/70 — அறிக்கைகள்/வரிசைகள்/செயல்பாடுகள்/கிளைகள்) |
+| கவரேஜ் அறிக்கை             | `npm run coverage:report`                                                        |
+
+**PR விதி**: நீங்கள் `src/`, `open-sse/`, `electron/`, அல்லது `bin/` இல் உற்பத்தி குறியீட்டை மாற்றினால், அதே PR இல் சோதனைகளை சேர்க்க அல்லது புதுப்பிக்க வேண்டும்.
+
+**சோதனை அடுக்கு முன்னுரிமை**: யூனிட் முதலில் → ஒருங்கிணைப்பு (பல-மாடுல் அல்லது DB நிலை) → e2e (UI/செயல்முறை மட்டும்). பிழை மறுபடியும் உருவாக்கங்களை சரிசெய்யும் சோதனைகளாக குறியீடு செய்யவும்.
+
+**Copilot கவரேஜ் கொள்கை**: ஒரு PR உற்பத்தி குறியீட்டை மாற்றும் போது மற்றும் கவரேஜ் 75% (அறிக்கைகள்/வரிசைகள்/செயல்பாடுகள்) அல்லது 70% (கிளைகள்) க்குக் கீழே இருந்தால், வெறும் அறிக்கையிடாதீர்கள் — சோதனைகளை சேர்க்க அல்லது புதுப்பிக்கவும், கவரேஜ் கேட்டை மீண்டும் இயக்கவும், பின்னர் உறுதிப்படுத்தவும் கேளுங்கள். இயக்கப்பட்ட கட்டளைகள், மாற்றப்பட்ட சோதனை கோப்புகள், மற்றும் இறுதி கவரேஜ் முடிவுகளை PR அறிக்கையில் சேர்க்கவும்.
 
 ---
 
-## Git Workflow
+## Git வேலைப்பாடு
 
 ```bash
-# Never commit directly to main
+# எப்போதும் நேரடியாக முக்கியத்தில் கமிட் செய்யாதீர்கள்
 git checkout -b feat/your-feature
-# ... make changes ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**கிளை முன்னுரிமைகள்**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**கமிட் வடிவம்** (சாதாரண கமிட்): `feat(db): add circuit breaker` — வரம்புகள்: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky ஹூக்குகள்**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## சூழல்
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **இயக்க நேரம்**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **TypeScript**: 5.9+, இலக்கு ES2022, மாடுல் esnext, தீர்வு bundler
+- **பாதை அலியாஸ்**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **இயல்புநிலை போர்ட்**: 20128 (API + dashboard ஒரே போர்டில்)
+- **தரவியல் அடைவு**: `DATA_DIR` env var, இயல்பாக `~/.omniroute/`
+- **முக்கிய env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- அமைப்பு: `cp .env.example .env` பின்னர் `JWT_SECRET` (`openssl rand -base64 48`) மற்றும் `API_KEY_SECRET` (`openssl rand -hex 32`) உருவாக்கவும்
 
 ---
 
-## Hard Rules (Never Violate)
+## கடுமையான விதிகள்
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. ரகசியங்கள் அல்லது சான்றிதழ்களை எப்போதும் கமிட் செய்யாதீர்கள்
+2. `localDb.ts` இல் லாஜிக்கை எப்போதும் சேர்க்காதீர்கள்
+3. `eval()` / `new Function()` / குறிக்கோள் eval ஐ எப்போதும் பயன்படுத்தாதீர்கள்
+4. எப்போதும் நேரடியாக `main` இல் கமிட் செய்யாதீர்கள்
+5. வழிகளில் கச்சிதமான SQL எழுதாதீர்கள் — `src/lib/db/` மாடுல்களைப் பயன்படுத்தவும்
+6. SSE ஓடுகளில் பிழைகளை மௌனமாக உறிஞ்சாதீர்கள்
+7. எப்போதும் Zod ஸ்கீமாஸ் மூலம் உள்ளீடுகளை சரிபார்க்கவும்
+8. உற்பத்தி குறியீட்டை மாற்றும் போது எப்போதும் சோதனைகளை சேர்க்கவும்
+9. கவரேஜ் ≥75% (அறிக்கைகள், வரிசைகள், செயல்பாடுகள்) / ≥70% (கிளைகள்) ஆக இருக்க வேண்டும். தற்போதைய அளவீடு: ~82%.
+10. தெளிவான இயக்குனர் அனுமதி இல்லாமல் Husky ஹூக்குகளை ( `--no-verify`, `--no-gpg-sign`) எப்போதும் தவிர்க்காதீர்கள்.
+11. பொதுவான மேல்நிலை OAuth client_id/secret அல்லது Firebase Web விசைகளை சரம் எழுத்துக்களாக எப்போதும் உள்ளடக்காதீர்கள் — எப்போதும் `resolvePublicCred()` மூலம் செல்லவும் (`open-sse/utils/publicCreds.ts`). `docs/security/PUBLIC_CREDS.md` ஐப் பார்க்கவும்.
+12. HTTP / SSE / செயல்பாட்டாளர் பதில்களில் கச்சிதமான `err.stack` / `err.message` ஐ எப்போதும் திருப்பாதீர்கள் — எப்போதும் `buildErrorBody()` அல்லது `sanitizeErrorMessage()` மூலம் வழி நடத்தவும் (`open-sse/utils/error.ts`). `docs/security/ERROR_SANITIZATION.md` ஐப் பார்க்கவும்.
+13. `exec()`/`spawn()` க்கு வழங்கப்படும் ஷெல் ஸ்கிரிப்ட்களில் வெளிப்புற பாதைகள் அல்லது இயக்க நேர மதிப்புகளை எப்போதும் சரம் இடைவெளி செய்யாதீர்கள் — `env` விருப்பத்தின் மூலம் வழங்கவும். குறிப்புரை: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. CodeQL / Secret-Scanning எச்சரிக்கையை (a) மேலே உள்ள மாதிரி ஆவணங்களை முதலில் சரிபார்க்காமல் மற்றும் (b) நீக்கம் கருத்தில் தொழில்நுட்ப காரணத்தை பதிவு செய்யாமல் எப்போதும் மறுக்காதீர்கள். முன்னணி: `js/stack-trace-exposure` என்பது ஏற்கனவே `sanitizeErrorMessage()` மூலம் வழி நடத்தப்படும் அழைப்பிடங்களில் எழுப்பப்பட்டது என்பது ஒரு அறியப்பட்ட CodeQL வரம்பு (சாதாரண சுத்திகரிப்புகள் அடையாளம் காணப்படவில்லை) — `docs/security/ERROR_SANITIZATION.md` ஐ மேற்கோள் காட்டி `false positive` ஆக மறுக்கவும்.
+15. குழந்தை செயல்முறைகளை உருவாக்கும் வழிகளை ( `/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` இல் `isLocalOnlyPath()` வகைப்படுத்தலின்றி எப்போதும் வெளிப்படுத்தாதீர்கள். எந்த அங்கீகார சோதனைக்கும் முன் கட்டாயமாக லூப்பேக் அமலாக்கம் நடைபெறும் — குழாயில் ஊடுருவிய JWT செயல்முறை உருவாக்கத்தை தூண்ட முடியாது. `docs/security/ROUTE_GUARD_TIERS.md` ஐப் பார்க்கவும்.
+16. கமிட் செய்திகளில் `Co-Authored-By` டிரெய்லர்களை எப்போதும் சேர்க்காதீர்கள். கமிட்கள் repository உரிமையாளரின் Git அடையாளத்தில் மட்டுமே தோன்ற வேண்டும் (`diegosouzapw`). `Co-Authored-By: Claude …` வரி GitHub கமிட்களை `claude` Anthropic கணக்கிற்கு ஒதுக்குகிறது, PR வரலாற்றில் உண்மையான ஆசிரியரை மறைக்கிறது.

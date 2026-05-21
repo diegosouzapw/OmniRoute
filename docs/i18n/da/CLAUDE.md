@@ -1,233 +1,416 @@
-# CLAUDE.md — AI Agent Session Bootstrap (Dansk)
+# CLAUDE.md (Dansk)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+Denne fil giver vejledning til Claude Code (claude.ai/code) når der arbejdes med kode i dette repository.
 
-## Kom hurtigt i gang
+## Hurtig Start
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # Installer afhængigheder (auto-genererer .env fra .env.example)
+npm run dev                    # Dev server på http://localhost:20128
+npm run build                  # Produktionsbygning (Next.js 16 standalone)
+npm run lint                   # ESLint (0 fejl forventet; advarsler er forudgående)
+npm run typecheck:core         # TypeScript tjek (skal være rent)
+npm run typecheck:noimplicit:core  # Streng tjek (ingen implicit any)
+npm run test:coverage          # Enhedstest + dækning gate (75/75/75/70 — udsagn/linjer/funktioner/grene)
+npm run check                  # lint + test kombineret
+npm run check:cycles           # Registrer cirkulære afhængigheder
 ```
 
-### Running a Single Test
+### Kørsel af Tests
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Enkelt testfil (Node.js native test runner — de fleste tests)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest
+
+# Alle sæt
+npm run test:all
 ```
+
+For fuld testmatrix, se `CONTRIBUTING.md` → "Kørsel af Tests". For dyb arkitektur, se `AGENTS.md`.
 
 ---
 
-## Overblik
+## Projektet i Et Overblik
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — samlet AI proxy/router. Én endpoint, 160+ LLM udbydere, auto-fallback.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Lag            | Placering               | Formål                                                                               |
+| -------------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| API Ruter      | `src/app/api/v1/`       | Next.js App Router — indgangspunkt                                                   |
+| Handlere       | `open-sse/handlers/`    | Anmodningsbehandling (chat, indlejring, osv.)                                        |
+| Udførere       | `open-sse/executors/`   | Udbyder-specifik HTTP dispatch                                                       |
+| Oversættere    | `open-sse/translator/`  | Format konvertering (OpenAI↔Claude↔Gemini)                                           |
+| Transformer    | `open-sse/transformer/` | Svar API ↔ Chat Fuldførelser                                                         |
+| Tjenester      | `open-sse/services/`    | Combo routing, hastighedsbegrænsninger, caching, osv.                                |
+| Database       | `src/lib/db/`           | SQLite domænemoduler (45+ filer, 55 migrationer)                                     |
+| Domæne/Politik | `src/domain/`           | Politisk motor, omkostningsregler, fallback logik                                    |
+| MCP Server     | `open-sse/mcp-server/`  | 37 værktøjer (30 base + 3 hukommelse + 4 færdigheder), 3 transportformer, ~13 scopes |
+| A2A Server     | `src/lib/a2a/`          | JSON-RPC 2.0 agentprotokol                                                           |
+| Færdigheder    | `src/lib/skills/`       | Udvidelig færdighedsramme                                                            |
+| Hukommelse     | `src/lib/memory/`       | Vedholdende samtalehukommelse                                                        |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (Next.js 16 app), `open-sse/` (streaming engine arbejdsområde), `electron/` (desktop app), `tests/`, `bin/` (CLI indgangspunkt).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Anmodningspipeline
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Klient → /v1/chat/completions (Next.js rute)
+  → CORS → Zod validering → auth? → politik kontrol → prompt injektionsbeskyttelse
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → cache kontrol → rate limit → combo routing?
+      → resolveComboTargets() → handleSingleModel() pr. mål
     → translateRequest() → getExecutor() → executor.execute()
       → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+    → respons oversættelse → SSE stream eller JSON
+    → Hvis Responses API: responsesTransformer.ts TransformStream
 ```
+
+API-ruter følger et konsistent mønster: `Rute → CORS preflight → Zod body validering → Valgfri auth (extractApiKey/isValidApiKey) → API-nøgle politik håndhævelse → Handler delegation (open-sse)`. Ingen global Next.js middleware — interception er rute-specifik.
+
+**Combo routing** (`open-sse/services/combo.ts`): 14 strategier (prioritet, vægtet, fyld-først, round-robin, P2C, tilfældig, mindst-brugt, omkostningsoptimeret, reset-bevidst, strengt-tilfældig, auto, lkgp, kontekst-optimeret, kontekst-relais). Hvert mål kalder `handleSingleModel()`, som indkapsler `handleChatCore()` med mål-specifik fejlbehandling og circuit breaker tjek. Se `docs/routing/AUTO-COMBO.md` for de 9-faktor Auto-Combo scoring og `docs/architecture/RESILIENCE_GUIDE.md` for de 3 modstandsdygtighedslag.
 
 ---
 
-## Key Conventions
+## Modstandsdygtighed Runtime Tilstand
 
-### Code Style
+OmniRoute har tre relaterede, men distinkte mekanismer til midlertidige fejl. Hold deres
+omfang adskilt, når du fejlfinder routing adfærd. Se
+[3-lags modstandsdygtighed diagram](./docs/diagrams/exported/resilience-3layers.svg)
+(kilde: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+for et hurtigt overblik.
 
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
+### Udbyder Circuit Breaker
 
-### Database Access
+**Omfang**: hele udbyderen, f.eks. `glm`, `openai`, `anthropic`.
 
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
+**Formål**: stop med at sende trafik til en udbyder, der gentagne gange fejler på
+upstream/service niveau, så en usund udbyder ikke bremser hver anmodning.
 
-### Error Handling
+**Implementering**:
 
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
+- Kerneklasse: `src/shared/utils/circuitBreaker.ts`
+- Chat gate/udførelses wiring: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- Runtime status API: `src/app/api/monitoring/health/route.ts`
+- Delte wrappers: `open-sse/services/accountFallback.ts`
+- Vedholdt tilstandstabel: `domain_circuit_breakers`
+
+**Tilstande**:
+
+- `CLOSED`: normal trafik er tilladt.
+- `OPEN`: udbyderen er midlertidigt blokeret; kaldere får et provider-circuit-open svar
+  eller combo routing springer til et andet mål.
+- `HALF_OPEN`: reset timeout er udløbet; tillad en probe-anmodning. Succes lukker
+  breaker'en, fejl åbner den igen.
+
+**Standarder** (`open-sse/config/constants.ts`):
+
+- OAuth udbydere: tærskel `3`, reset timeout `60s`.
+- API-nøgle udbydere: tærskel `5`, reset timeout `30s`.
+- Lokale udbydere: tærskel `2`, reset timeout `15s`.
+
+Kun udbyder-niveau fejlstatusser bør udløse udbyder breaker:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Udløs ikke hele-udbyder breaker for normale konto/nøgle/model fejl som de fleste
+`401`, `403`, eller `429` tilfælde. Disse tilhører normalt forbindelseskøling eller model
+lockout. En generisk API-nøgle udbyder `403` bør være genoprettelig, medmindre den klassificeres
+som en terminal udbyder/konto fejl.
+
+Breaker'en bruger lazy recovery, ikke en baggrundstimer. Når `OPEN` udløber, læser som
+`getStatus()`, `canExecute()`, og `getRetryAfterMs()` opdaterer tilstanden til
+`HALF_OPEN`, så dashboards og combo kandidatbyggere ikke fortsætter med at udelukke en
+udløbet udbyder for evigt.
+
+### Forbindelseskøling
+
+**Omfang**: én udbyder forbindelse/konto/nøgle.
+
+**Formål**: midlertidigt springe en dårlig nøgle/konto over, mens andre forbindelser for
+den samme udbyder fortsætter med at betjene anmodninger.
+
+**Implementering**:
+
+- Skriv/opdateringsvej: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Kontoselektion/filtrering: `src/sse/services/auth.ts::getProviderCredentials...`
+- Køling beregning: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Indstillinger: `src/lib/resilience/settings.ts`
+
+Vigtige felter på udbyder forbindelser:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+Under kontoselektion springes en forbindelse over, mens:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Kølinger er også lazy: når `rateLimitedUntil` er i fortiden, bliver forbindelsen
+berettiget igen. Ved succesfuld brug, `clearAccountError()` rydder `testStatus`,
+`rateLimitedUntil`, fejl felter, og `backoffLevel`.
+
+Standard forbindelse køling adfærd:
+
+- OAuth basis køling: `5s`.
+- API-nøgle basis køling: `3s`.
+- API-nøgle `429` bør foretrække upstream retry hints (`Retry-After`, reset headers, eller
+  parseable reset text) når tilgængelig.
+- Gentagne genoprettelige fejl bruger eksponentiel backoff:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+Anti-thundering-herd beskyttelsen forhindrer samtidige fejl på den samme forbindelse i
+gentagne gange at forlænge kølingen eller dobbelt-øge `backoffLevel`.
+
+Terminal tilstande er ikke kølinger. `banned`, `expired`, og `credits_exhausted` er
+beregnet til at forblive utilgængelige, indtil legitimationsoplysninger/indstillinger ændres eller en operatør nulstiller dem. Overskriv ikke terminal tilstande med midlertidig køling tilstand.
+
+### Model Lockout
+
+**Omfang**: udbyder + forbindelse + model.
+
+**Formål**: undgå at deaktivere en hel forbindelse, når kun én model er utilgængelig eller
+kvote-begrænset for den forbindelse.
+
+Eksempler:
+
+- Per-model kvote udbydere, der returnerer `429`.
+- Lokale udbydere, der returnerer `404` for én manglende model.
+- Udbyder-specifikke mode/model tilladelsesfejl som valgte Grok modes.
+
+Model lockout lever i `open-sse/services/accountFallback.ts` og lader den samme
+forbindelse fortsætte med at betjene andre modeller.
+
+### Fejlfinding Vejledning
+
+- Hvis alle nøgler for en udbyder springes over, inspicer både udbyder breaker tilstand og hver
+  forbindelses `rateLimitedUntil`/`testStatus`.
+- Hvis en udbyder ser permanent udelukket ud efter resetvinduet, skal du kontrollere, om koden
+  læser rå `state` i stedet for at bruge `getStatus()`/`canExecute()`.
+- Hvis én udbyder nøgle fejler, men andre bør fungere, foretræk forbindelseskøling over
+  udbyder breaker.
+- Hvis kun én model fejler, foretræk model lockout over forbindelseskøling.
+- Hvis en tilstand skal selv-genoprette, skal den have et fremtidigt tidsstempel/reset timeout og en
+  læsevej, der opdaterer udløbet tilstand. Permanente statusser kræver manuelle legitimationsoplysninger
+  eller konfigurationsændringer.
+
+## Nøglekonventioner
+
+### Kode Stil
+
+- **2 mellemrum**, semikolon, dobbelte citationstegn, 100 tegn bredde, es5 trailing commas (håndhævet af lint-staged via Prettier)
+- **Imports**: ekstern → intern (`@/`, `@omniroute/open-sse`) → relativ
+- **Navngivning**: filer=camelCase/kebab, komponenter=PascalCase, konstanter=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = fejl overalt; `no-explicit-any` = advarsel i `open-sse/` og `tests/`
+- **TypeScript**: `strict: false`, mål ES2022, modul esnext, opløsning bundler. Foretræk eksplicitte typer.
+
+### Database
+
+- **Gå altid** gennem `src/lib/db/` domænemoduler — **skriv aldrig** rå SQL i ruter eller håndterere
+- **Tilføj aldrig** logik til `src/lib/localDb.ts` (kun re-export lag)
+- **Barrel-import aldrig** fra `localDb.ts` — importer specifikke `db/` moduler i stedet
+- DB singleton: `getDbInstance()` fra `src/lib/db/core.ts` (WAL journaling)
+- Migrationer: `src/lib/db/migrations/` — versionerede SQL-filer, idempotente, kørsel i transaktioner
+
+### Fejlhåndtering
+
+- try/catch med specifikke fejlkategorier, log med pino kontekst
+- Svæl aldrig fejl i SSE streams — brug abort signaler til oprydning
+- Returner korrekte HTTP statuskoder (4xx/5xx)
 
 ### Sikkerhed
 
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+- **Brug aldrig** `eval()`, `new Function()`, eller implicit eval
+- Valider alle input med Zod skemaer
+- Krypter legitimationsoplysninger i hvile (AES-256-GCM)
+- Upstream header denylist: `src/shared/constants/upstreamHeaders.ts` — hold sanitere, Zod skemaer, og enhedstest i overensstemmelse når du redigerer
+- **Offentlige upstream legitimationsoplysninger** (Gemini/Antigravity/Windsurf-stil OAuth client_id/secret + Firebase Web nøgler udtrukket fra offentlige CLIs): **SKAL** indlejres via `resolvePublicCred()` fra `open-sse/utils/publicCreds.ts` — **aldeles** ikke som strenglitteraler. Se `docs/security/PUBLIC_CREDS.md` for den obligatoriske skabelon.
+- **Fejlrespons** (HTTP / SSE / executor / MCP håndterer): **SKAL** rutes gennem `buildErrorBody()` eller `sanitizeErrorMessage()` fra `open-sse/utils/error.ts` — **aldeles** ikke putte rå `err.stack` eller `err.message` i en responskrop. Se `docs/security/ERROR_SANITIZATION.md`.
+- **Shell-kommandoer bygget fra variabler**: når du kalder `exec()`/`spawn()` med et script, der har brug for runtime værdier, send dem via `env` optionen (shell-escaped automatisk) — **aldeles** ikke string-interpolere ikke-betroede/eksterne stier ind i scriptkroppen. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Sikre-bygge-biblioteker** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): foretræk Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink over brugerdefinerede implementeringer, når du tilføjer nye sikkerhedsfølsomme overflader.
 
 ---
 
-## Common Modification Scenarios
+## Almindelige Modifikationsscenarier
 
-### Adding a New Provider
+### Tilføjelse af en Ny Udbyder
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+1. Registrer i `src/shared/constants/providers.ts` (Zod-valideret ved indlæsning)
+2. Tilføj executor i `open-sse/executors/` hvis brugerdefineret logik er nødvendig (udvid `BaseExecutor`)
+3. Tilføj oversætter i `open-sse/translator/` hvis ikke-OpenAI format
+4. Tilføj OAuth konfiguration i `src/lib/oauth/constants/oauth.ts` hvis OAuth-baseret — hvis den upstream CLI leverer en offentlig client_id/secret, indlejres via `resolvePublicCred()` (se `docs/security/PUBLIC_CREDS.md`), **aldeles** ikke som en literal
+5. Registrer modeller i `open-sse/config/providerRegistry.ts`
+6. Skriv tests i `tests/unit/` (inkluder publicCreds form assertion hvis du har tilføjet en ny indlejret standard)
 
-### Adding a New API Route
+### Tilføjelse af en Ny API Rute
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+1. Opret mappe under `src/app/api/v1/your-route/`
+2. Opret `route.ts` med `GET`/`POST` håndterere
+3. Følg mønster: CORS → Zod body validering → valgfri auth → håndterer delegation
+4. Håndterer går i `open-sse/handlers/` (importer derfra, ikke inline)
+5. Fejlrespons bruger `buildErrorBody()` / `errorResponse()` fra `open-sse/utils/error.ts` (auto-sanitized — sæt aldrig `err.stack` eller `err.message` rå i kroppen). Se `docs/security/ERROR_SANITIZATION.md`.
+6. Tilføj tests — inklusive mindst én assertion om, at fejlrespons ikke lækker stakspor (`!body.error.message.includes("at /")`)
 
-### Adding a New DB Module
+### Tilføjelse af et Nyt DB Modul
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+1. Opret `src/lib/db/yourModule.ts` — importer `getDbInstance` fra `./core.ts`
+2. Eksporter CRUD funktioner for dine domænetabeller
+3. Tilføj migration i `src/lib/db/migrations/` hvis nye tabeller er nødvendige
+4. Re-export fra `src/lib/localDb.ts` (tilføj kun til re-export listen)
+5. Skriv tests
 
-### Adding a New MCP Tool
+### Tilføjelse af et Nyt MCP Værktøj
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+1. Tilføj værktøjsdefinition i `open-sse/mcp-server/tools/` med Zod input skema + asynkron håndterer
+2. Registrer i værktøjssættet (forbundet af `createMcpServer()`)
+3. Tildel til passende omfang(e)
+4. Skriv tests (værktøjsinvokation logget til `mcp_audit` tabellen)
 
-### Adding a New A2A Skill
+### Tilføjelse af en Ny A2A Færdighed
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+1. Opret færdighed i `src/lib/a2a/skills/` (5 eksisterer allerede: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. Færdigheden modtager opgavekontekst (beskeder, metadata) → returnerer struktureret resultat
+3. Registrer i `A2A_SKILL_HANDLERS` i `src/lib/a2a/taskExecution.ts`
+4. Eksponer i `src/app/.well-known/agent.json/route.ts` (Agent Card)
+5. Skriv tests i `tests/unit/`
+6. Dokumenter i `docs/frameworks/A2A-SERVER.md` færdighedstabel
+
+### Tilføjelse af en Ny Cloud Agent
+
+1. Opret agentklasse i `src/lib/cloudAgent/agents/` der udvider `CloudAgentBase` (3 eksisterer allerede: codex-cloud, devin, jules)
+2. Implementer `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Registrer i `src/lib/cloudAgent/registry.ts`
+4. Tilføj OAuth/legitimationshåndtering hvis nødvendigt (`src/lib/oauth/providers/`)
+5. Tests + dokumenter i `docs/frameworks/CLOUD_AGENT.md`
+
+### Tilføjelse af en Ny Guardrail / Eval / Færdighed / Webhook begivenhed
+
+- Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
+- Eval suite: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
+- Færdighed (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
+- Webhook begivenhed: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
+
+## Reference Dokumentation
+
+For enhver ikke-trivial ændring, læs den matchende dybdegående først:
+
+| Område                                                     | Dokument                                                          |
+| ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| Repo navigation                                            | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Arkitektur                                                 | `docs/architecture/ARCHITECTURE.md`                               |
+| Ingeniør reference                                         | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (9-faktor scoring, 14 strategier)               | `docs/routing/AUTO-COMBO.md`                                      |
+| Resiliens (3 mekanismer)                                   | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Reasoning replay                                           | `docs/routing/REASONING_REPLAY.md`                                |
+| Færdigheder rammeværk                                      | `docs/frameworks/SKILLS.md`                                       |
+| Hukommelsessystem (FTS5 + Qdrant)                          | `docs/frameworks/MEMORY.md`                                       |
+| Cloud agenter                                              | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Guardrails (PII / injektion / vision)                      | `docs/security/GUARDRAILS.md`                                     |
+| Offentlige upstream legitimationsoplysninger (Gemini/etc.) | `docs/security/PUBLIC_CREDS.md`                                   |
+| Fejlmeddelelse sanitering                                  | `docs/security/ERROR_SANITIZATION.md`                             |
+| Evals                                                      | `docs/frameworks/EVALS.md`                                        |
+| Overholdelse / revision                                    | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                                   | `docs/frameworks/WEBHOOKS.md`                                     |
+| Autorisationspipeline                                      | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / fingeraftryk)                               | `docs/security/STEALTH_GUIDE.md`                                  |
+| Agentprotokoller (A2A / ACP / Cloud)                       | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP server                                                 | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A server                                                 | `docs/frameworks/A2A-SERVER.md`                                   |
+| API reference + OpenAPI                                    | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Udbyderkatalog (auto-genereret)                            | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Udgivelsesflow                                             | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
-## Testing Cheat Sheet
+## Testning
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+| Hvad                    | Kommando                                                               |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Enhedstest              | `npm run test:unit`                                                    |
+| Enkeltfil               | `node --import tsx/esm --test tests/unit/file.test.ts`                 |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                  |
+| E2E (Playwright)        | `npm run test:e2e`                                                     |
+| Protokol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                           |
+| Økosystem               | `npm run test:ecosystem`                                               |
+| Dækningsgrænse          | `npm run test:coverage` (75/75/75/70 — udsagn/linjer/funktioner/grene) |
+| Dækningsrapport         | `npm run coverage:report`                                              |
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+**PR-regel**: Hvis du ændrer produktionskode i `src/`, `open-sse/`, `electron/` eller `bin/`, skal du inkludere eller opdatere tests i den samme PR.
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+**Testlag præference**: enhed først → integration (multi-modul eller DB-tilstand) → e2e (UI/arbejdsgang kun). Kod bug-reproduktioner som automatiserede tests før eller sammen med rettelsen.
+
+**Copilot dækningspolitik**: Når en PR ændrer produktionskode, og dækningen er under 75% (udsagn/linjer/funktioner) eller 70% (grene), rapporter ikke bare — tilføj eller opdater tests, kør dækningsgrænsen igen, og bed om bekræftelse. Inkluder kørte kommandoer, ændrede testfiler og det endelige dækningsresultat i PR-rapporten.
 
 ---
 
 ## Git Workflow
 
 ```bash
-# Never commit directly to main
+# Forpligt dig aldrig direkte til main
 git checkout -b feat/your-feature
-# ... make changes ...
-git commit -m "feat: describe your change"
+git commit -m "feat: beskriv din ændring"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Branch præfikser**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Commit format** (Conventional Commits): `feat(db): tilføj circuit breaker` — scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky hooks**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## Miljø
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES-moduler
+- **TypeScript**: 5.9+, mål ES2022, modul esnext, opløsning bundler
+- **Sti aliaser**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Standardport**: 20128 (API + dashboard på samme port)
+- **Data katalog**: `DATA_DIR` miljøvariabel, standard til `~/.omniroute/`
+- **Nøgle miljøvariabler**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Opsætning: `cp .env.example .env` og generer derefter `JWT_SECRET` (`openssl rand -base64 48`) og `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Hårde regler
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. Forpligt dig aldrig til hemmeligheder eller legitimationsoplysninger
+2. Tilføj aldrig logik til `localDb.ts`
+3. Brug aldrig `eval()` / `new Function()` / implicit eval
+4. Forpligt dig aldrig direkte til `main`
+5. Skriv aldrig rå SQL i ruter — brug `src/lib/db/` moduler
+6. Sluk aldrig stille fejl i SSE-strømme
+7. Valider altid input med Zod-skemaer
+8. Inkluder altid tests, når du ændrer produktionskode
+9. Dækningen skal forblive ≥75% (udsagn, linjer, funktioner) / ≥70% (grene). Nuværende målt: ~82%.
+10. Omgå aldrig Husky hooks (`--no-verify`, `--no-gpg-sign`) uden eksplicit godkendelse fra operatøren.
+11. Indsæt aldrig offentlige upstream OAuth client_id/secret eller Firebase Web-nøgler som strenglitteraler — gå altid gennem `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Se `docs/security/PUBLIC_CREDS.md`.
+12. Returner aldrig rå `err.stack` / `err.message` i HTTP / SSE / executor svar — rute altid gennem `buildErrorBody()` eller `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Se `docs/security/ERROR_SANITIZATION.md`.
+13. Indsæt aldrig string-interpolerede eksterne stier eller runtime-værdier i shell-scripts, der sendes til `exec()`/`spawn()` — send i stedet via `env`-muligheden. Reference: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Afvis aldrig en CodeQL / Secret-Scanning advarsel uden (a) først at tjekke mønsterdokumentationen ovenfor for at se, om hjælperen gælder, og (b) optage den tekniske begrundelse i afvisningskommentaren. Præcedens: `js/stack-trace-exposure` rejst på callsites, der allerede ruter gennem `sanitizeErrorMessage()` er en kendt CodeQL begrænsning (tilpassede saniteringsmetoder ikke genkendt) — afvis som `false positive` med reference til `docs/security/ERROR_SANITIZATION.md`.
+15. Udsæt aldrig ruter, der starter børneprocesser (`/api/mcp/`, `/api/cli-tools/runtime/`) uden `isLocalOnlyPath()` klassifikation i `src/server/authz/routeGuard.ts`. Loopback håndhævelse sker ubetinget før enhver godkendelseskontrol — lækket JWT via tunnel kan ikke udløse processtart. Se `docs/security/ROUTE_GUARD_TIERS.md`.
+16. Inkluder aldrig `Co-Authored-By` trailers i commit-beskeder. Commits skal kun fremstå under repository-ejerens Git-identitet (`diegosouzapw`). Linjen `Co-Authored-By: Claude …` får GitHub til at tilskrive commits til `claude` Anthropic-kontoen, hvilket skjuler den reelle forfatter i PR-historikken.

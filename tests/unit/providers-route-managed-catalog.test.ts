@@ -281,6 +281,16 @@ test("providers route accepts managed local, audio, web-cookie and search provid
       },
     },
     {
+      provider: "llama-cpp",
+      body: {
+        provider: "llama-cpp",
+        name: "llama.cpp Local",
+        providerSpecificData: {
+          baseUrl: "http://127.0.0.1:8080/v1",
+        },
+      },
+    },
+    {
       provider: "triton",
       body: {
         provider: "triton",
@@ -399,6 +409,14 @@ test("providers route accepts managed local, audio, web-cookie and search provid
         providerSpecificData: {
           baseUrl: "http://localhost:8888/search",
         },
+      },
+    },
+    {
+      provider: "jules",
+      body: {
+        provider: "jules",
+        apiKey: "jules-test-key",
+        name: "Jules API",
       },
     },
   ];

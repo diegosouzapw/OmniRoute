@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 function relativeTime(ts: number): string {
   const diffMs = Date.now() - ts * 1000;
@@ -135,6 +136,7 @@ function formatTs(ts: number | null | undefined): string {
 }
 
 export default function BatchDetailModal({ batch, files, onClose }: BatchDetailModalProps) {
+  const t = useTranslations("common");
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -182,7 +184,7 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
                     navigator.clipboard.writeText(batch.id);
                   }}
                   className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] transition-colors"
-                  title="Copy ID"
+                  title={t("batchDetailCopyId")}
                 >
                   <span className="material-symbols-outlined text-[12px]">content_copy</span>
                 </button>
@@ -191,7 +193,7 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("batchDetailClose")}
             className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-alt)] transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -208,11 +210,11 @@ export default function BatchDetailModal({ batch, files, onClose }: BatchDetailM
               </span>
               <StatusBadge batch={batch} />
             </div>
-            <Field label="Endpoint" value={batch.endpoint} />
-            {batch.model && <Field label="Model" value={batch.model} />}
-            <Field label="Window" value={batch.completionWindow} />
+            <Field label={t("batchDetailEndpoint")} value={batch.endpoint} />
+            {batch.model && <Field label={t("batchDetailModel")} value={batch.model} />}
+            <Field label={t("batchDetailWindow")} value={batch.completionWindow} />
             <Field
-              label="Created"
+              label={t("batchDetailCreated")}
               value={<span title={formatTs(batch.createdAt)}>{relativeTime(batch.createdAt)}</span>}
             />
           </div>

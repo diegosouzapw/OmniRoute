@@ -8,7 +8,11 @@ export function generateClaudeConfig(options: {
   apiKey: string;
   model?: string;
 }): string {
-  const base = options.baseUrl.replace(/\/+$/, "").replace(/\/v1$/, "");
+  let base = options.baseUrl;
+  let end = base.length;
+  while (end > 0 && base[end - 1] === "/") end--;
+  base = end < base.length ? base.slice(0, end) : base;
+  if (base.endsWith("/v1")) base = base.slice(0, -3);
   const model = options.model || "claude-3-5-sonnet-20241022";
 
   const config = {

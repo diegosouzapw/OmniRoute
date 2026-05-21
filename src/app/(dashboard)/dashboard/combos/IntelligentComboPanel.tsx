@@ -287,7 +287,9 @@ export default function IntelligentComboPanel({
 
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div className="rounded-lg border border-black/8 bg-white/60 p-3 dark:border-white/8 dark:bg-white/[0.03]">
-                <p className="text-[11px] uppercase tracking-wide text-text-muted">Mode Pack</p>
+                <p className="text-[11px] uppercase tracking-wide text-text-muted">
+                  {t("modePack")}
+                </p>
                 <p className="mt-1 text-sm font-semibold text-text-main">
                   {normalizedConfig.modePack}
                 </p>

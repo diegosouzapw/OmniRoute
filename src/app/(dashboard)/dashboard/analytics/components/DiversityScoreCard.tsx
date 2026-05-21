@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Card } from "@/shared/components";
 
@@ -15,6 +16,7 @@ interface DiversityReport {
 }
 
 export default function DiversityScoreCard() {
+  const t = useTranslations("analytics");
   const [data, setData] = useState<DiversityReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,7 @@ export default function DiversityScoreCard() {
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px] text-primary">pie_chart</span>
-          <h3 className="font-semibold text-text-main">Provider Diversity</h3>
+          <h3 className="font-semibold text-text-main">{t("diversityScoreTitle")}</h3>
           <span className="text-xs text-text-muted hidden sm:inline">
             — Provider concentration snapshot for the recent traffic window.
           </span>

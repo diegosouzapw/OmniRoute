@@ -6,7 +6,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "endpoints",
   "providers",
   "combos",
-  "limits",
+  "quota",
   // OmniProxy > Compression Context
   "context-caveman",
   "context-rtk",
@@ -37,9 +37,11 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "logs-console",
   "logs-activity",
   "health",
+  "runtime",
   // Monitoring > Costs Parameters
   "costs-pricing",
   "costs-budget",
+  "costs-quota-share",
   // Monitoring > Audit
   "audit",
   "audit-mcp",
@@ -54,6 +56,10 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "agent-skills",
   "mcp",
   "a2a",
+  // Gamification
+  "leaderboard",
+  "profile",
+  "tokens",
   // Other Features — flat
   "media",
   // Other Features > Batch
@@ -68,6 +74,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-resilience",
   "settings-advanced",
   "settings-security",
+  "settings-feature-flags",
   // Help
   "docs",
   "issues",
@@ -128,7 +135,14 @@ export function getSectionItems(
 // ─── Item arrays ────────────────────────────────────────────────────────────
 
 const HOME_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "home", href: "/home", i18nKey: "home", icon: "home", exact: true },
+  {
+    id: "home",
+    href: "/home",
+    i18nKey: "home",
+    subtitleKey: "homeSubtitle",
+    icon: "home",
+    exact: true,
+  },
 ];
 
 const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
@@ -146,7 +160,13 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "apiManagerSubtitle",
     icon: "vpn_key",
   },
-  { id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
+  {
+    id: "providers",
+    href: "/dashboard/providers",
+    i18nKey: "providers",
+    subtitleKey: "providersSubtitle",
+    icon: "dns",
+  },
   {
     id: "combos",
     href: "/dashboard/combos",
@@ -154,7 +174,13 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "combosSubtitle",
     icon: "layers",
   },
-  { id: "limits", href: "/dashboard/limits", i18nKey: "quotaTracker", icon: "tune" },
+  {
+    id: "quota",
+    href: "/dashboard/quota",
+    i18nKey: "providerQuota",
+    subtitleKey: "providerQuotaSubtitle",
+    icon: "tune",
+  },
 ];
 
 const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
@@ -181,6 +207,7 @@ const COMPRESSION_CONTEXT_GROUP: SidebarItemGroup = {
       id: "context-combos",
       href: "/dashboard/context/combos",
       i18nKey: "contextCombos",
+      subtitleKey: "contextCombosSubtitle",
       icon: "hub",
     },
   ],
@@ -192,9 +219,27 @@ const TOOLS_GROUP: SidebarItemGroup = {
   titleKey: "toolsGroup",
   titleFallback: "Tools",
   items: [
-    { id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliTools", icon: "terminal" },
-    { id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
-    { id: "cloud-agents", href: "/dashboard/cloud-agents", i18nKey: "cloudAgents", icon: "cloud" },
+    {
+      id: "cli-tools",
+      href: "/dashboard/cli-tools",
+      i18nKey: "cliTools",
+      subtitleKey: "cliToolsSubtitle",
+      icon: "terminal",
+    },
+    {
+      id: "agents",
+      href: "/dashboard/agents",
+      i18nKey: "agents",
+      subtitleKey: "agentsSubtitle",
+      icon: "smart_toy",
+    },
+    {
+      id: "cloud-agents",
+      href: "/dashboard/cloud-agents",
+      i18nKey: "cloudAgents",
+      subtitleKey: "cloudAgentsSubtitle",
+      icon: "cloud",
+    },
   ],
 };
 
@@ -204,7 +249,13 @@ const INTEGRATIONS_GROUP: SidebarItemGroup = {
   titleKey: "integrationsGroup",
   titleFallback: "Integrations",
   items: [
-    { id: "api-endpoints", href: "/dashboard/api-endpoints", i18nKey: "apiEndpoints", icon: "api" },
+    {
+      id: "api-endpoints",
+      href: "/dashboard/api-endpoints",
+      i18nKey: "apiEndpoints",
+      subtitleKey: "apiEndpointsSubtitle",
+      icon: "api",
+    },
     {
       id: "webhooks",
       href: "/dashboard/webhooks",
@@ -221,59 +272,132 @@ const PROXY_GROUP: SidebarItemGroup = {
   titleKey: "proxyGroup",
   titleFallback: "Proxy",
   items: [
-    { id: "proxy", href: "/dashboard/system/proxy", i18nKey: "proxy", icon: "dns" },
-    { id: "mitm-proxy", href: "/dashboard/system/mitm-proxy", i18nKey: "mitmProxy", icon: "lan" },
-    { id: "1proxy", href: "/dashboard/system/1proxy", i18nKey: "oneProxy", icon: "public" },
+    {
+      id: "proxy",
+      href: "/dashboard/system/proxy",
+      i18nKey: "proxy",
+      subtitleKey: "proxySubtitle",
+      icon: "dns",
+    },
+    {
+      id: "mitm-proxy",
+      href: "/dashboard/system/mitm-proxy",
+      i18nKey: "mitmProxy",
+      subtitleKey: "mitmProxySubtitle",
+      icon: "lan",
+    },
+    {
+      id: "1proxy",
+      href: "/dashboard/system/1proxy",
+      i18nKey: "oneProxy",
+      subtitleKey: "oneProxySubtitle",
+      icon: "public",
+    },
   ],
 };
 
 const ANALYTICS_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "analytics", href: "/dashboard/analytics", i18nKey: "usage", icon: "analytics" },
+  {
+    id: "analytics",
+    href: "/dashboard/analytics",
+    i18nKey: "usage",
+    subtitleKey: "usageSubtitle",
+    icon: "analytics",
+  },
   {
     id: "analytics-combo-health",
     href: "/dashboard/analytics/combo-health",
     i18nKey: "analyticsComboHealth",
+    subtitleKey: "analyticsComboHealthSubtitle",
     icon: "monitor_heart",
   },
   {
     id: "analytics-utilization",
     href: "/dashboard/analytics/utilization",
     i18nKey: "analyticsUtilization",
+    subtitleKey: "analyticsUtilizationSubtitle",
     icon: "bar_chart",
   },
-  { id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
-  { id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
+  {
+    id: "costs",
+    href: "/dashboard/costs",
+    i18nKey: "costs",
+    subtitleKey: "costsSubtitle",
+    icon: "account_balance_wallet",
+  },
+  {
+    id: "cache",
+    href: "/dashboard/cache",
+    i18nKey: "cache",
+    subtitleKey: "cacheSubtitle",
+    icon: "cached",
+  },
   {
     id: "analytics-compression",
     href: "/dashboard/analytics/compression",
     i18nKey: "analyticsCompression",
-    icon: "data_compression",
+    subtitleKey: "analyticsCompressionSubtitle",
+    icon: "compress",
   },
   {
     id: "analytics-search",
     href: "/dashboard/analytics/search",
     i18nKey: "analyticsSearch",
+    subtitleKey: "analyticsSearchSubtitle",
     icon: "manage_search",
   },
   {
     id: "analytics-evals",
     href: "/dashboard/analytics/evals",
     i18nKey: "analyticsEvals",
+    subtitleKey: "analyticsEvalsSubtitle",
     icon: "labs",
   },
 ];
 
 const MONITORING_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "logs", href: "/dashboard/logs", i18nKey: "logs", icon: "description" },
-  { id: "logs-proxy", href: "/dashboard/logs/proxy", i18nKey: "logsProxy", icon: "lan" },
-  { id: "logs-console", href: "/dashboard/logs/console", i18nKey: "consoleLogs", icon: "terminal" },
+  {
+    id: "logs",
+    href: "/dashboard/logs",
+    i18nKey: "logs",
+    subtitleKey: "logsSubtitle",
+    icon: "description",
+  },
+  {
+    id: "logs-proxy",
+    href: "/dashboard/logs/proxy",
+    i18nKey: "logsProxy",
+    subtitleKey: "logsProxySubtitle",
+    icon: "lan",
+  },
+  {
+    id: "logs-console",
+    href: "/dashboard/logs/console",
+    i18nKey: "consoleLogs",
+    subtitleKey: "consoleLogsSubtitle",
+    icon: "terminal",
+  },
   {
     id: "logs-activity",
     href: "/dashboard/logs/activity",
     i18nKey: "logsActivity",
+    subtitleKey: "logsActivitySubtitle",
     icon: "history",
   },
-  { id: "health", href: "/dashboard/health", i18nKey: "health", icon: "health_and_safety" },
+  {
+    id: "health",
+    href: "/dashboard/health",
+    i18nKey: "health",
+    subtitleKey: "healthSubtitle",
+    icon: "health_and_safety",
+  },
+  {
+    id: "runtime",
+    href: "/dashboard/runtime",
+    i18nKey: "runtime",
+    subtitleKey: "runtimeSubtitle",
+    icon: "bolt",
+  },
 ];
 
 const COSTS_PARAMS_GROUP: SidebarItemGroup = {
@@ -286,13 +410,22 @@ const COSTS_PARAMS_GROUP: SidebarItemGroup = {
       id: "costs-pricing",
       href: "/dashboard/costs/pricing",
       i18nKey: "costsPricing",
+      subtitleKey: "costsPricingSubtitle",
       icon: "price_change",
     },
     {
       id: "costs-budget",
       href: "/dashboard/costs/budget",
       i18nKey: "costsBudget",
+      subtitleKey: "costsBudgetSubtitle",
       icon: "savings",
+    },
+    {
+      id: "costs-quota-share",
+      href: "/dashboard/costs/quota-share",
+      i18nKey: "costsQuotaShare",
+      subtitleKey: "costsQuotaShareSubtitle",
+      icon: "pie_chart",
     },
   ],
 };
@@ -303,19 +436,50 @@ const AUDIT_GROUP: SidebarItemGroup = {
   titleKey: "auditGroup",
   titleFallback: "Audit",
   items: [
-    { id: "audit", href: "/dashboard/audit", i18nKey: "auditLog", icon: "policy" },
-    { id: "audit-mcp", href: "/dashboard/audit/mcp", i18nKey: "auditMcp", icon: "security" },
-    { id: "audit-a2a", href: "/dashboard/audit/a2a", i18nKey: "auditA2a", icon: "device_hub" },
+    {
+      id: "audit",
+      href: "/dashboard/audit",
+      i18nKey: "auditLog",
+      subtitleKey: "auditLogSubtitle",
+      icon: "policy",
+    },
+    {
+      id: "audit-mcp",
+      href: "/dashboard/audit/mcp",
+      i18nKey: "auditMcp",
+      subtitleKey: "auditMcpSubtitle",
+      icon: "security",
+    },
+    {
+      id: "audit-a2a",
+      href: "/dashboard/audit/a2a",
+      i18nKey: "auditA2a",
+      subtitleKey: "auditA2aSubtitle",
+      icon: "device_hub",
+    },
   ],
 };
 
 const DEVTOOLS_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "translator", href: "/dashboard/translator", i18nKey: "translator", icon: "translate" },
-  { id: "playground", href: "/dashboard/playground", i18nKey: "playground", icon: "science" },
+  {
+    id: "translator",
+    href: "/dashboard/translator",
+    i18nKey: "translator",
+    subtitleKey: "translatorSubtitle",
+    icon: "translate",
+  },
+  {
+    id: "playground",
+    href: "/dashboard/playground",
+    i18nKey: "playground",
+    subtitleKey: "playgroundSubtitle",
+    icon: "science",
+  },
   {
     id: "search-tools",
     href: "/dashboard/search-tools",
     i18nKey: "searchTools",
+    subtitleKey: "searchToolsSubtitle",
     icon: "manage_search",
   },
 ];
@@ -325,19 +489,87 @@ const MCP_GROUP: SidebarItemGroup = {
   id: "mcp",
   titleKey: "mcp",
   titleFallback: "MCP Server",
-  items: [{ id: "mcp", href: "/dashboard/mcp", i18nKey: "mcp", icon: "hub" }],
+  items: [
+    {
+      id: "mcp",
+      href: "/dashboard/mcp",
+      i18nKey: "mcp",
+      subtitleKey: "mcpSubtitle",
+      icon: "hub",
+    },
+  ],
 };
 
 const AGENTIC_FEATURES_ITEMS: readonly SidebarSectionChild[] = [
-  { id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
-  { id: "skills", href: "/dashboard/skills", i18nKey: "omniSkills", icon: "auto_fix_high" },
-  { id: "agent-skills", href: "/dashboard/agent-skills", i18nKey: "agentSkills", icon: "share" },
+  {
+    id: "memory",
+    href: "/dashboard/memory",
+    i18nKey: "memory",
+    subtitleKey: "memorySubtitle",
+    icon: "psychology",
+  },
+  {
+    id: "skills",
+    href: "/dashboard/skills",
+    i18nKey: "omniSkills",
+    subtitleKey: "omniSkillsSubtitle",
+    icon: "auto_fix_high",
+  },
+  {
+    id: "agent-skills",
+    href: "/dashboard/agent-skills",
+    i18nKey: "agentSkills",
+    subtitleKey: "agentSkillsSubtitle",
+    icon: "share",
+  },
   MCP_GROUP,
-  { id: "a2a", href: "/dashboard/a2a", i18nKey: "a2a", icon: "device_hub" },
+  {
+    id: "a2a",
+    href: "/dashboard/a2a",
+    i18nKey: "a2a",
+    subtitleKey: "a2aSubtitle",
+    icon: "device_hub",
+  },
 ];
 
+const GAMIFICATION_GROUP: SidebarItemGroup = {
+  type: "group",
+  id: "gamification",
+  titleKey: "gamificationGroup",
+  titleFallback: "Gamification",
+  items: [
+    {
+      id: "leaderboard",
+      href: "/dashboard/leaderboard",
+      i18nKey: "leaderboard",
+      subtitleKey: "leaderboardSubtitle",
+      icon: "emoji_events",
+    },
+    {
+      id: "profile",
+      href: "/dashboard/profile",
+      i18nKey: "profile",
+      subtitleKey: "profileSubtitle",
+      icon: "person",
+    },
+    {
+      id: "tokens",
+      href: "/dashboard/tokens",
+      i18nKey: "tokens",
+      subtitleKey: "tokensSubtitle",
+      icon: "toll",
+    },
+  ],
+};
+
 const OTHER_FEATURES_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
+  {
+    id: "media",
+    href: "/dashboard/cache/media",
+    i18nKey: "media",
+    subtitleKey: "mediaSubtitle",
+    icon: "perm_media",
+  },
 ];
 
 const BATCH_GROUP: SidebarItemGroup = {
@@ -353,66 +585,106 @@ const BATCH_GROUP: SidebarItemGroup = {
       subtitleKey: "batchSubtitle",
       icon: "view_list",
     },
-    { id: "batch-files", href: "/dashboard/batch/files", i18nKey: "batchFiles", icon: "folder" },
+    {
+      id: "batch-files",
+      href: "/dashboard/batch/files",
+      i18nKey: "batchFiles",
+      subtitleKey: "batchFilesSubtitle",
+      icon: "folder",
+    },
   ],
 };
 
 const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "settings", href: "/dashboard/settings", i18nKey: "settings", icon: "settings" },
+  {
+    id: "settings",
+    href: "/dashboard/settings",
+    i18nKey: "settings",
+    subtitleKey: "settingsSubtitle",
+    icon: "settings",
+  },
   {
     id: "settings-general",
     href: "/dashboard/settings/general",
     i18nKey: "settingsGeneral",
+    subtitleKey: "settingsGeneralSubtitle",
     icon: "tune",
   },
   {
     id: "settings-appearance",
     href: "/dashboard/settings/appearance",
     i18nKey: "settingsAppearance",
+    subtitleKey: "settingsAppearanceSubtitle",
     icon: "palette",
   },
   {
     id: "settings-ai",
     href: "/dashboard/settings/ai",
     i18nKey: "settingsAi",
+    subtitleKey: "settingsAiSubtitle",
     icon: "auto_awesome",
   },
   {
     id: "settings-routing",
     href: "/dashboard/settings/routing",
     i18nKey: "globalRouting",
+    subtitleKey: "globalRoutingSubtitle",
     icon: "route",
   },
   {
     id: "settings-resilience",
     href: "/dashboard/settings/resilience",
     i18nKey: "settingsResilience",
+    subtitleKey: "settingsResilienceSubtitle",
     icon: "health_and_safety",
   },
   {
     id: "settings-advanced",
     href: "/dashboard/settings/advanced",
     i18nKey: "settingsAdvanced",
+    subtitleKey: "settingsAdvancedSubtitle",
     icon: "engineering",
   },
   {
     id: "settings-security",
     href: "/dashboard/settings/security",
     i18nKey: "settingsSecurity",
+    subtitleKey: "settingsSecuritySubtitle",
     icon: "shield",
+  },
+  {
+    id: "settings-feature-flags",
+    href: "/dashboard/settings/feature-flags",
+    i18nKey: "settingsFeatureFlags",
+    subtitleKey: "settingsFeatureFlagsSubtitle",
+    icon: "flag",
   },
 ];
 
 const HELP_ITEMS: readonly SidebarItemDefinition[] = [
-  { id: "docs", href: "/docs", i18nKey: "docs", icon: "menu_book", external: true },
+  {
+    id: "docs",
+    href: "/docs",
+    i18nKey: "docs",
+    subtitleKey: "docsSubtitle",
+    icon: "menu_book",
+    external: true,
+  },
   {
     id: "issues",
     href: "https://github.com/diegosouzapw/OmniRoute/issues",
     i18nKey: "issues",
+    subtitleKey: "issuesSubtitle",
     icon: "bug_report",
     external: true,
   },
-  { id: "changelog", href: "/dashboard/changelog", i18nKey: "changelog", icon: "campaign" },
+  {
+    id: "changelog",
+    href: "/dashboard/changelog",
+    i18nKey: "changelog",
+    subtitleKey: "changelogSubtitle",
+    icon: "campaign",
+  },
 ];
 
 // ─── Sections ────────────────────────────────────────────────────────────────
@@ -467,7 +739,7 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
     id: "other-features",
     titleKey: "otherFeaturesSection",
     titleFallback: "Other Features",
-    children: [...OTHER_FEATURES_ITEMS, BATCH_GROUP],
+    children: [GAMIFICATION_GROUP, ...OTHER_FEATURES_ITEMS, BATCH_GROUP],
   },
   {
     id: "configuration",

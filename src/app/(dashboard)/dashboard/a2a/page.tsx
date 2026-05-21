@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import A2ADashboardPage from "../endpoint/components/A2ADashboard";
 
@@ -118,6 +119,7 @@ function DisabledPanel() {
 }
 
 export default function A2APage() {
+  const t = useTranslations("a2aDashboard");
   const [a2aStatus, setA2aStatus] = useState<ServiceStatus>({ online: false, loading: true });
   const [a2aEnabled, setA2aEnabled] = useState(false);
   const [a2aToggling, setA2aToggling] = useState(false);
@@ -192,19 +194,19 @@ export default function A2APage() {
                 Discover the agent card at <code className="text-xs">/.well-known/agent.json</code>.
               </li>
               <li>
-                Send JSON-RPC to <code className="text-xs">POST /a2a</code> using{" "}
-                <code className="text-xs">message/send</code> or{" "}
-                <code className="text-xs">message/stream</code>.
+                Send JSON-RPC to <code className="text-xs">{t("rpcEndpoint")}</code> using{" "}
+                <code className="text-xs">{t("rpcMethodSend")}</code> or{" "}
+                <code className="text-xs">{t("rpcMethodStream")}</code>.
               </li>
               <li>
-                Track and cancel tasks with <code className="text-xs">tasks/get</code> and{" "}
-                <code className="text-xs">tasks/cancel</code>.
+                Track and cancel tasks with <code className="text-xs">{t("rpcMethodGet")}</code> and{" "}
+                <code className="text-xs">{t("rpcMethodCancel")}</code>.
               </li>
             </ol>
           </div>
           <div className="shrink-0">
             <ServiceToggle
-              label="A2A"
+              label={t("serviceLabel")}
               status={a2aStatus}
               enabled={a2aEnabled}
               onToggle={() => void toggleA2a()}

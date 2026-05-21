@@ -402,15 +402,36 @@ test("idempotency: full claude pipeline running twice does not duplicate blocks"
 const UI_DEFAULTS_SNAPSHOT = {
   providers: {
     claude: {
-      enabled: false,
+      enabled: true,
       pipeline: [
         {
           kind: "drop_paragraph_if_contains",
-          needles: ["github.com/open-webui/open-webui", "openwebui.com", "docs.openwebui.com"],
+          needles: [
+            "github.com/anomalyco/opencode",
+            "opencode.ai/docs",
+            "github.com/cline/cline",
+            "github.com/getcursor/cursor",
+            "continue.dev",
+            "github.com/open-webui/open-webui",
+            "openwebui.com",
+            "docs.openwebui.com",
+          ],
         },
         {
           kind: "drop_paragraph_if_starts_with",
-          prefixes: ["You are Open WebUI"],
+          prefixes: ["You are OpenCode", "You are Open WebUI"],
+        },
+        {
+          kind: "replace_text",
+          match: "if OpenCode honestly",
+          replacement: "if the assistant honestly",
+          allOccurrences: true,
+        },
+        {
+          kind: "replace_text",
+          match: "Here is some useful information about the environment you are running in:",
+          replacement: "Environment context you are running in:",
+          allOccurrences: true,
         },
         {
           kind: "obfuscate_words",

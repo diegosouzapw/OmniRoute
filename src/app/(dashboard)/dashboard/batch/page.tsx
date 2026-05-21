@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import BatchListTab from "./BatchListTab";
 import { FileRecord } from "@/lib/db/files";
 import { BatchRecord } from "@/lib/db/batches";
 import { mapBatchApiToRecord, mapFileApiToRecord } from "./batch-utils";
 
 export default function BatchPage() {
+  const t = useTranslations("common");
   const [batches, setBatches] = useState<BatchRecord[]>([]);
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [batchesTotal, setBatchesTotal] = useState(0);
@@ -174,7 +176,7 @@ export default function BatchPage() {
           onRefresh={() => fetchData(false)}
         />
         {loadingMore && batchesCount > 0 && (
-          <div className="text-center text-sm">Loading more…</div>
+          <div className="text-center text-sm">{t("batchPageLoadingMore")}</div>
         )}
         <div ref={bottomRefBatches} className="h-10" />
       </div>

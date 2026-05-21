@@ -36,6 +36,7 @@ import {
   isQuotaPreflightEnabled,
 } from "@omniroute/open-sse/services/quotaPreflight.ts";
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
+import { syncHealthFromDB, type KeyHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import {
   classifyProviderError,
   PROVIDER_ERROR_TYPES,
@@ -794,7 +795,7 @@ export async function getProviderCredentials(
     // noAuth free providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if (FREE_PROVIDERS[resolvedId]?.noAuth) {
+    if ((FREE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth) {
       return {
         apiKey: null,
         accessToken: null,
@@ -885,6 +886,28 @@ export async function getProviderCredentials(
             `  → ${c.id?.slice(0, 8)} | isActive=${c.isActive} | rateLimitedUntil=${c.rateLimitedUntil || "none"} | testStatus=${c.testStatus}`
           );
         });
+
+        // If every existing connection is in a terminal state (expired/banned/
+        // credits_exhausted), surface that as a re-auth signal instead of the
+        // generic "No credentials" 400. The classic case is AWS SSO/Kiro
+        // refresh tokens hitting their 90-day TTL: all connections flip to
+        // is_active=0 with testStatus=banned|expired, and without this branch
+        // the dashboard sees a misleading "bad_request" code.
+        const terminalConnections = allConnections.filter(isTerminalConnectionStatus);
+        if (terminalConnections.length === allConnections.length) {
+          const statusCounts = new Map<string, number>();
+          for (const c of terminalConnections) {
+            const key = normalizeStatus(c.testStatus) || "expired";
+            statusCounts.set(key, (statusCounts.get(key) || 0) + 1);
+          }
+          const dominantStatus =
+            [...statusCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "expired";
+          return {
+            allExpired: true,
+            expiredCount: terminalConnections.length,
+            expiredStatus: dominantStatus,
+          };
+        }
       }
       log.warn("AUTH", `No credentials for ${provider}`);
       return null;
@@ -1294,6 +1317,13 @@ export async function getProviderCredentials(
       connection = orderedConnections[0];
     }
 
+    const apiKeyHealth = connection.providerSpecificData?.apiKeyHealth as
+      | Record<string, KeyHealth>
+      | undefined;
+    if (apiKeyHealth) {
+      syncHealthFromDB(connection.id, apiKeyHealth);
+    }
+
     return {
       apiKey: connection.apiKey,
       accessToken: connection.accessToken,
@@ -1390,7 +1420,7 @@ export async function getProviderCredentialsWithQuotaPreflight(
       return null;
     }
 
-    if (credentials.allRateLimited) {
+    if (credentials.allRateLimited || credentials.allExpired) {
       return credentials;
     }
 
@@ -1567,8 +1597,14 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
-    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
-      const reason = status === 404 ? "not_found" : "rate_limited";
+    if (
+      isPerModelQuotaProvider &&
+      provider &&
+      model &&
+      (status === 404 || status === 429 || status >= 500)
+    ) {
+      const reason =
+        status === 404 ? "not_found" : status === 429 ? "rate_limited" : "server_error";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

@@ -1,233 +1,411 @@
-# CLAUDE.md — AI Agent Session Bootstrap (Bahasa Indonesia)
+# CLAUDE.md (Bahasa Indonesia)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+File ini memberikan panduan untuk Claude Code (claude.ai/code) saat bekerja dengan kode di repositori ini.
 
-## Mulai Cepat
+## Memulai dengan Cepat
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # Instal deps (secara otomatis menghasilkan .env dari .env.example)
+npm run dev                    # Server dev di http://localhost:20128
+npm run build                  # Build produksi (Next.js 16 standalone)
+npm run lint                   # ESLint (0 kesalahan yang diharapkan; peringatan sudah ada sebelumnya)
+npm run typecheck:core         # Pemeriksaan TypeScript (harus bersih)
+npm run typecheck:noimplicit:core  # Pemeriksaan ketat (tidak ada implicit any)
+npm run test:coverage          # Unit tests + coverage gate (75/75/75/70 — pernyataan/garis/fungsi/cabang)
+npm run check                  # lint + test digabungkan
+npm run check:cycles           # Deteksi ketergantungan melingkar
 ```
 
-### Running a Single Test
+### Menjalankan Tes
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# File tes tunggal (penguji native Node.js — sebagian besar tes)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest (server MCP, autoCombo, cache)
 npm run test:vitest
+
+# Semua suite
+npm run test:all
 ```
+
+Untuk matriks tes lengkap, lihat `CONTRIBUTING.md` → "Menjalankan Tes". Untuk arsitektur mendalam, lihat `AGENTS.md`.
 
 ---
 
-## Ikhtisar
+## Proyek Sekilas
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — proxy/router AI terpadu. Satu endpoint, 160+ penyedia LLM, auto-fallback.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Lapisan       | Lokasi                  | Tujuan                                                                      |
+| ------------- | ----------------------- | --------------------------------------------------------------------------- |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — titik masuk                                            |
+| Handlers      | `open-sse/handlers/`    | Pemrosesan permintaan (chat, embeddings, dll)                               |
+| Executors     | `open-sse/executors/`   | Pengiriman HTTP spesifik penyedia                                           |
+| Translators   | `open-sse/translator/`  | Konversi format (OpenAI↔Claude↔Gemini)                                      |
+| Transformer   | `open-sse/transformer/` | API Respons ↔ Penyelesaian Chat                                             |
+| Services      | `open-sse/services/`    | Routing combo, batasan laju, caching, dll                                   |
+| Database      | `src/lib/db/`           | Modul domain SQLite (45+ file, 55 migrasi)                                  |
+| Domain/Policy | `src/domain/`           | Mesin kebijakan, aturan biaya, logika fallback                              |
+| MCP Server    | `open-sse/mcp-server/`  | 37 alat (30 dasar + 3 memori + 4 keterampilan), 3 transportasi, ~13 lingkup |
+| A2A Server    | `src/lib/a2a/`          | Protokol agen JSON-RPC 2.0                                                  |
+| Skills        | `src/lib/skills/`       | Kerangka keterampilan yang dapat diperluas                                  |
+| Memory        | `src/lib/memory/`       | Memori percakapan yang persisten                                            |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (aplikasi Next.js 16), `open-sse/` (workspace mesin streaming), `electron/` (aplikasi desktop), `tests/`, `bin/` (titik masuk CLI).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Jalur Permintaan
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Klien → /v1/chat/completions (rute Next.js)
+  → CORS → validasi Zod → otentikasi? → pemeriksaan kebijakan → penjaga injeksi prompt
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
+    → pemeriksaan cache → batasan laju → routing combo?
       → resolveComboTargets() → handleSingleModel() per target
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+      → fetch() upstream → coba lagi dengan backoff
+    → terjemahan respons → aliran SSE atau JSON
+    → Jika API Respons: responsesTransformer.ts TransformStream
 ```
+
+Rute API mengikuti pola yang konsisten: `Rute → CORS preflight → validasi body Zod → Otentikasi opsional (extractApiKey/isValidApiKey) → penegakan kebijakan kunci API → Delegasi Handler (open-sse)`. Tidak ada middleware global Next.js — intersepsi bersifat spesifik rute.
+
+**Routing combo** (`open-sse/services/combo.ts`): 14 strategi (prioritas, berbobot, isi-pertama, round-robin, P2C, acak, paling-sedikit-digunakan, dioptimalkan-biaya, sadar-reset, acak-ketat, otomatis, lkgp, dioptimalkan-konteks, relay-konteks). Setiap target memanggil `handleSingleModel()` yang membungkus `handleChatCore()` dengan penanganan kesalahan per-target dan pemeriksaan pemutus sirkuit. Lihat `docs/routing/AUTO-COMBO.md` untuk penilaian Auto-Combo 9-faktor dan `docs/architecture/RESILIENCE_GUIDE.md` untuk 3 lapisan ketahanan.
 
 ---
 
-## Key Conventions
+## Status Runtime Ketahanan
 
-### Code Style
+OmniRoute memiliki tiga mekanisme kegagalan sementara yang terkait tetapi berbeda. Jaga agar ruang lingkup mereka terpisah saat melakukan debug perilaku routing. Lihat
+[diagram ketahanan 3-lapisan](./docs/diagrams/exported/resilience-3layers.svg)
+(sumber: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+untuk peta sekilas.
 
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
+### Pemutus Sirkuit Penyedia
 
-### Database Access
+**Ruang Lingkup**: seluruh penyedia, misalnya `glm`, `openai`, `anthropic`.
 
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
+**Tujuan**: menghentikan pengiriman lalu lintas ke penyedia yang terus-menerus gagal di tingkat upstream/layanan, sehingga satu penyedia yang tidak sehat tidak memperlambat setiap permintaan.
 
-### Error Handling
+**Implementasi**:
 
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
+- Kelas inti: `src/shared/utils/circuitBreaker.ts`
+- Pengaturan gate/eksekusi chat: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- API status runtime: `src/app/api/monitoring/health/route.ts`
+- Pembungkus bersama: `open-sse/services/accountFallback.ts`
+- Tabel status yang dipersistenkan: `domain_circuit_breakers`
+
+**Status**:
+
+- `CLOSED`: lalu lintas normal diizinkan.
+- `OPEN`: penyedia diblokir sementara; pemanggil mendapatkan respons pemutus-sirkuit-penyedia-terbuka
+  atau routing combo melewati ke target lain.
+- `HALF_OPEN`: waktu tunggu reset telah berlalu; izinkan permintaan probe. Keberhasilan menutup
+  pemutus, kegagalan membukanya lagi.
+
+**Defaults** (`open-sse/config/constants.ts`):
+
+- Penyedia OAuth: ambang `3`, waktu tunggu reset `60s`.
+- Penyedia kunci API: ambang `5`, waktu tunggu reset `30s`.
+- Penyedia lokal: ambang `2`, waktu tunggu reset `15s`.
+
+Hanya status kegagalan tingkat penyedia yang harus memicu pemutus penyedia:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Jangan memicu pemutus seluruh-penyedia untuk kesalahan akun/kunci/model normal seperti kebanyakan
+kasus `401`, `403`, atau `429`. Itu biasanya termasuk dalam cooldown koneksi atau penguncian model. Kunci API penyedia generik `403` harus dapat dipulihkan kecuali diklasifikasikan
+sebagai kesalahan penyedia/akun terminal.
+
+Pemutus menggunakan pemulihan malas, bukan timer latar belakang. Ketika `OPEN` kedaluwarsa, pembacaan seperti
+`getStatus()`, `canExecute()`, dan `getRetryAfterMs()` menyegarkan status menjadi
+`HALF_OPEN`, sehingga dasbor dan pembangun kandidat combo tidak terus mengecualikan penyedia yang kedaluwarsa selamanya.
+
+### Cooldown Koneksi
+
+**Ruang Lingkup**: satu koneksi/akun/kunci penyedia.
+
+**Tujuan**: sementara melewatkan satu kunci/akun yang buruk sambil memungkinkan koneksi lain untuk
+penyedia yang sama terus melayani permintaan.
+
+**Implementasi**:
+
+- Jalur tulis/perbarui: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Pemilihan/filtering akun: `src/sse/services/auth.ts::getProviderCredentials...`
+- Perhitungan cooldown: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Pengaturan: `src/lib/resilience/settings.ts`
+
+Bidang penting pada koneksi penyedia:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+Selama pemilihan akun, koneksi dilewati sementara:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Cooldown juga bersifat malas: ketika `rateLimitedUntil` berada di masa lalu, koneksi menjadi
+layak lagi. Pada penggunaan yang berhasil, `clearAccountError()` menghapus `testStatus`,
+`rateLimitedUntil`, bidang kesalahan, dan `backoffLevel`.
+
+Perilaku default cooldown koneksi:
+
+- Cooldown dasar OAuth: `5s`.
+- Cooldown dasar kunci API: `3s`.
+- Kunci API `429` harus lebih memilih petunjuk coba lagi upstream (`Retry-After`, header reset, atau
+  teks reset yang dapat dianalisis) jika tersedia.
+- Kegagalan yang dapat dipulihkan berulang menggunakan backoff eksponensial:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+Penjaga anti-thundering-herd mencegah kegagalan bersamaan pada koneksi yang sama dari
+berulang kali memperpanjang cooldown atau menggandakan `backoffLevel`.
+
+Status terminal bukanlah cooldown. `banned`, `expired`, dan `credits_exhausted` dimaksudkan untuk tetap tidak tersedia hingga kredensial/pengaturan berubah atau operator meresetnya. Jangan menimpa status terminal dengan status cooldown sementara.
+
+### Penguncian Model
+
+**Ruang Lingkup**: penyedia + koneksi + model.
+
+**Tujuan**: menghindari menonaktifkan seluruh koneksi ketika hanya satu model yang tidak tersedia atau
+terbatas kuota untuk koneksi tersebut.
+
+Contoh:
+
+- Penyedia kuota per-model yang mengembalikan `429`.
+- Penyedia lokal yang mengembalikan `404` untuk satu model yang hilang.
+- Kegagalan izin mode/model spesifik penyedia seperti mode Grok yang dipilih.
+
+Penguncian model berada di `open-sse/services/accountFallback.ts` dan memungkinkan koneksi yang sama
+terus melayani model lain.
+
+### Panduan Debugging
+
+- Jika semua kunci untuk penyedia dilewati, periksa status pemutus penyedia dan setiap
+  koneksi `rateLimitedUntil`/`testStatus`.
+- Jika penyedia tampak secara permanen dikecualikan setelah jendela reset, periksa apakah kode
+  membaca `state` mentah alih-alih menggunakan `getStatus()`/`canExecute()`.
+- Jika satu kunci penyedia gagal tetapi yang lain seharusnya berfungsi, lebih baik menggunakan cooldown koneksi daripada
+  pemutus penyedia.
+- Jika hanya satu model yang gagal, lebih baik menggunakan penguncian model daripada cooldown koneksi.
+- Jika suatu status seharusnya pulih sendiri, itu harus memiliki cap waktu/reset waktu depan dan jalur
+  baca yang menyegarkan status yang kedaluwarsa. Status permanen memerlukan perubahan kredensial
+  atau konfigurasi secara manual.
+
+## Konvensi Kunci
+
+### Gaya Kode
+
+- **2 spasi**, titik koma, tanda kutip ganda, lebar 100 karakter, koma trailing es5 (ditegakkan oleh lint-staged melalui Prettier)
+- **Impor**: eksternal → internal (`@/`, `@omniroute/open-sse`) → relatif
+- **Penamaan**: file=camelCase/kebab, komponen=PascalCase, konstanta=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = kesalahan di mana saja; `no-explicit-any` = peringatan di `open-sse/` dan `tests/`
+- **TypeScript**: `strict: false`, target ES2022, module esnext, resolusi bundler. Utamakan tipe eksplisit.
+
+### Basis Data
+
+- **Selalu** melalui modul domain `src/lib/db/` — **jangan pernah** menulis SQL mentah di rute atau pengendali
+- **Jangan pernah** menambahkan logika ke `src/lib/localDb.ts` (hanya lapisan re-ekspor)
+- **Jangan pernah** barrel-import dari `localDb.ts` — impor modul `db/` tertentu sebagai gantinya
+- Singleton DB: `getDbInstance()` dari `src/lib/db/core.ts` (jurnal WAL)
+- Migrasi: `src/lib/db/migrations/` — file SQL versi, idempotent, dijalankan dalam transaksi
+
+### Penanganan Kesalahan
+
+- coba/tangkap dengan tipe kesalahan spesifik, log dengan konteks pino
+- Jangan pernah menelan kesalahan dalam aliran SSE — gunakan sinyal abort untuk pembersihan
+- Kembalikan kode status HTTP yang tepat (4xx/5xx)
 
 ### Keamanan
 
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+- **Jangan pernah** menggunakan `eval()`, `new Function()`, atau eval implisit
+- Validasi semua input dengan skema Zod
+- Enkripsi kredensial saat tidak aktif (AES-256-GCM)
+- Daftar penolakan header upstream: `src/shared/constants/upstreamHeaders.ts` — jaga sanitasi, skema Zod, dan pengujian unit tetap selaras saat mengedit
+- **Kredensial upstream publik** (Gemini/Antigravity/Windsurf-style OAuth client_id/secret + kunci Web Firebase yang diambil dari CLI publik): **HARUS** disematkan melalui `resolvePublicCred()` dari `open-sse/utils/publicCreds.ts` — **jangan pernah** sebagai literal string. Lihat `docs/security/PUBLIC_CREDS.md` untuk pola yang wajib.
+- **Respon kesalahan** (HTTP / SSE / eksekutor / pengendali MCP): **HARUS** diarahkan melalui `buildErrorBody()` atau `sanitizeErrorMessage()` dari `open-sse/utils/error.ts` — **jangan pernah** menempatkan `err.stack` atau `err.message` mentah dalam tubuh respon. Lihat `docs/security/ERROR_SANITIZATION.md`.
+- **Perintah shell yang dibangun dari variabel**: saat memanggil `exec()`/`spawn()` dengan skrip yang membutuhkan nilai runtime, kirimkan melalui opsi `env` (secara otomatis di-escape shell) — **jangan pernah** menginterpolasi string jalur yang tidak tepercaya/eksternal ke dalam tubuh skrip. Referensi: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Perpustakaan aman secara default** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): lebih suka Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink daripada implementasi kustom kapan pun menambahkan permukaan yang sensitif terhadap keamanan baru.
 
 ---
 
-## Common Modification Scenarios
+## Skenario Modifikasi Umum
 
-### Adding a New Provider
+### Menambahkan Penyedia Baru
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+1. Daftarkan di `src/shared/constants/providers.ts` (divalidasi Zod saat dimuat)
+2. Tambahkan eksekutor di `open-sse/executors/` jika logika kustom diperlukan (perluas `BaseExecutor`)
+3. Tambahkan penerjemah di `open-sse/translator/` jika format bukan OpenAI
+4. Tambahkan konfigurasi OAuth di `src/lib/oauth/constants/oauth.ts` jika berbasis OAuth — jika CLI upstream mengirimkan client_id/secret publik, sematkan melalui `resolvePublicCred()` (lihat `docs/security/PUBLIC_CREDS.md`), **jangan pernah** sebagai literal
+5. Daftarkan model di `open-sse/config/providerRegistry.ts`
+6. Tulis pengujian di `tests/unit/` (sertakan pernyataan bentuk publicCreds jika Anda menambahkan default yang disematkan baru)
 
-### Adding a New API Route
+### Menambahkan Rute API Baru
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+1. Buat direktori di bawah `src/app/api/v1/your-route/`
+2. Buat `route.ts` dengan pengendali `GET`/`POST`
+3. Ikuti pola: CORS → validasi tubuh Zod → otentikasi opsional → delegasi pengendali
+4. Pengendali masuk di `open-sse/handlers/` (impor dari sana, bukan inline)
+5. Respon kesalahan menggunakan `buildErrorBody()` / `errorResponse()` dari `open-sse/utils/error.ts` (otomatis disanitasi — jangan pernah menempatkan `err.stack` atau `err.message` mentah dalam tubuh). Lihat `docs/security/ERROR_SANITIZATION.md`.
+6. Tambahkan pengujian — termasuk setidaknya satu pernyataan bahwa respon kesalahan tidak membocorkan jejak tumpukan (`!body.error.message.includes("at /")`)
 
-### Adding a New DB Module
+### Menambahkan Modul DB Baru
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+1. Buat `src/lib/db/yourModule.ts` — impor `getDbInstance` dari `./core.ts`
+2. Ekspor fungsi CRUD untuk tabel domain Anda
+3. Tambahkan migrasi di `src/lib/db/migrations/` jika tabel baru diperlukan
+4. Re-ekspor dari `src/lib/localDb.ts` (tambahkan ke daftar re-ekspor saja)
+5. Tulis pengujian
 
-### Adding a New MCP Tool
+### Menambahkan Alat MCP Baru
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+1. Tambahkan definisi alat di `open-sse/mcp-server/tools/` dengan skema input Zod + pengendali asinkron
+2. Daftarkan dalam set alat (terhubung oleh `createMcpServer()`)
+3. Tetapkan ke ruang lingkup yang sesuai
+4. Tulis pengujian (panggilan alat dicatat ke tabel `mcp_audit`)
 
-### Adding a New A2A Skill
+### Menambahkan Keterampilan A2A Baru
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+1. Buat keterampilan di `src/lib/a2a/skills/` (5 sudah ada: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. Keterampilan menerima konteks tugas (pesan, metadata) → mengembalikan hasil terstruktur
+3. Daftarkan di `A2A_SKILL_HANDLERS` di `src/lib/a2a/taskExecution.ts`
+4. Ekspos di `src/app/.well-known/agent.json/route.ts` (Kartu Agen)
+5. Tulis pengujian di `tests/unit/`
+6. Dokumentasikan di tabel keterampilan `docs/frameworks/A2A-SERVER.md`
+
+### Menambahkan Agen Cloud Baru
+
+1. Buat kelas agen di `src/lib/cloudAgent/agents/` yang memperluas `CloudAgentBase` (3 sudah ada: codex-cloud, devin, jules)
+2. Implementasikan `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Daftarkan di `src/lib/cloudAgent/registry.ts`
+4. Tambahkan penanganan OAuth/kredensial jika diperlukan (`src/lib/oauth/providers/`)
+5. Pengujian + dokumentasikan di `docs/frameworks/CLOUD_AGENT.md`
+
+### Menambahkan Guardrail / Eval / Keterampilan / Acara Webhook Baru
+
+- Guardrail: `src/lib/guardrails/` → dokumen: `docs/security/GUARDRAILS.md`
+- Suite Eval: `src/lib/evals/` → dokumen: `docs/frameworks/EVALS.md`
+- Keterampilan (sandbox): `src/lib/skills/` → dokumen: `docs/frameworks/SKILLS.md`
+- Acara Webhook: `src/lib/webhookDispatcher.ts` → dokumen: `docs/frameworks/WEBHOOKS.md`
+
+## Dokumentasi Referensi
+
+Untuk setiap perubahan yang tidak sepele, baca penjelasan mendalam yang sesuai terlebih dahulu:
+
+| Area                                          | Dok                                                               |
+| --------------------------------------------- | ----------------------------------------------------------------- |
+| Navigasi repo                                 | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Arsitektur                                    | `docs/architecture/ARCHITECTURE.md`                               |
+| Referensi teknik                              | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (skor 9 faktor, 14 strategi)       | `docs/routing/AUTO-COMBO.md`                                      |
+| Ketahanan (3 mekanisme)                       | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Pemutaran penalaran                           | `docs/routing/REASONING_REPLAY.md`                                |
+| Kerangka keterampilan                         | `docs/frameworks/SKILLS.md`                                       |
+| Sistem memori (FTS5 + Qdrant)                 | `docs/frameworks/MEMORY.md`                                       |
+| Agen cloud                                    | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Pengaman (PII / injeksi / visi)               | `docs/security/GUARDRAILS.md`                                     |
+| Kredensial publik hulu (Gemini/dll.)          | `docs/security/PUBLIC_CREDS.md`                                   |
+| Sanitasi pesan kesalahan                      | `docs/security/ERROR_SANITIZATION.md`                             |
+| Evaluasi                                      | `docs/frameworks/EVALS.md`                                        |
+| Kepatuhan / audit                             | `docs/security/COMPLIANCE.md`                                     |
+| Webhook                                       | `docs/frameworks/WEBHOOKS.md`                                     |
+| Jalur otorisasi                               | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Stealth (TLS / sidik jari)                    | `docs/security/STEALTH_GUIDE.md`                                  |
+| Protokol agen (A2A / ACP / Cloud)             | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| Server MCP                                    | `docs/frameworks/MCP-SERVER.md`                                   |
+| Server A2A                                    | `docs/frameworks/A2A-SERVER.md`                                   |
+| Referensi API + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Katalog penyedia (dihasilkan secara otomatis) | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Alur rilis                                    | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
-## Testing Cheat Sheet
+## Pengujian
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+| Apa                     | Perintah                                                               |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Uji unit                | `npm run test:unit`                                                    |
+| File tunggal            | `node --import tsx/esm --test tests/unit/file.test.ts`                 |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                  |
+| E2E (Playwright)        | `npm run test:e2e`                                                     |
+| Protokol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                           |
+| Ekosistem               | `npm run test:ecosystem`                                               |
+| Gerbang cakupan         | `npm run test:coverage` (75/75/75/70 — pernyataan/garis/fungsi/cabang) |
+| Laporan cakupan         | `npm run coverage:report`                                              |
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+**Aturan PR**: Jika Anda mengubah kode produksi di `src/`, `open-sse/`, `electron/`, atau `bin/`, Anda harus menyertakan atau memperbarui pengujian dalam PR yang sama.
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+**Preferensi lapisan pengujian**: unit pertama → integrasi (multi-modul atau status DB) → e2e (UI/workflow saja). Kodekan reproduksi bug sebagai pengujian otomatis sebelum atau bersamaan dengan perbaikan.
+
+**Kebijakan cakupan Copilot**: Ketika PR mengubah kode produksi dan cakupan di bawah 75% (pernyataan/garis/fungsi) atau 70% (cabang), jangan hanya melaporkan — tambahkan atau perbarui pengujian, jalankan kembali gerbang cakupan, lalu minta konfirmasi. Sertakan perintah yang dijalankan, file pengujian yang diubah, dan hasil cakupan akhir dalam laporan PR.
 
 ---
 
-## Git Workflow
+## Alur Kerja Git
 
 ```bash
-# Never commit directly to main
+# Jangan pernah melakukan commit langsung ke main
 git checkout -b feat/your-feature
-# ... make changes ...
-git commit -m "feat: describe your change"
+git commit -m "feat: deskripsikan perubahan Anda"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Awalan cabang**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Format commit** (Conventional Commits): `feat(db): tambahkan circuit breaker` — ruang lingkup: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Hook Husky**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## Lingkungan
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Runtime**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES Modules
+- **TypeScript**: 5.9+, target ES2022, module esnext, resolution bundler
+- **Alias jalur**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Port default**: 20128 (API + dashboard di port yang sama)
+- **Direktori data**: variabel env `DATA_DIR`, default ke `~/.omniroute/`
+- **Variabel env kunci**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Setup: `cp .env.example .env` lalu hasilkan `JWT_SECRET` (`openssl rand -base64 48`) dan `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Aturan Keras
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. Jangan pernah melakukan commit rahasia atau kredensial
+2. Jangan pernah menambahkan logika ke `localDb.ts`
+3. Jangan pernah menggunakan `eval()` / `new Function()` / eval tersirat
+4. Jangan pernah melakukan commit langsung ke `main`
+5. Jangan pernah menulis SQL mentah di rute — gunakan modul `src/lib/db/`
+6. Jangan pernah menelan kesalahan secara diam-diam di aliran SSE
+7. Selalu validasi input dengan skema Zod
+8. Selalu sertakan pengujian saat mengubah kode produksi
+9. Cakupan harus tetap ≥75% (pernyataan, garis, fungsi) / ≥70% (cabang). Saat ini terukur: ~82%.
+10. Jangan pernah melewati hook Husky (`--no-verify`, `--no-gpg-sign`) tanpa persetujuan operator yang eksplisit.
+11. Jangan pernah menyematkan client_id/secret OAuth upstream publik atau kunci Web Firebase sebagai literal string — selalu melalui `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Lihat `docs/security/PUBLIC_CREDS.md`.
+12. Jangan pernah mengembalikan `err.stack` / `err.message` mentah dalam respons HTTP / SSE / eksekutor — selalu rute melalui `buildErrorBody()` atau `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Lihat `docs/security/ERROR_SANITIZATION.md`.
+13. Jangan pernah melakukan interpolasi string jalur eksternal atau nilai runtime ke dalam skrip shell yang diteruskan ke `exec()`/`spawn()` — teruskan melalui opsi `env` sebagai gantinya. Referensi: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Jangan pernah mengabaikan peringatan CodeQL / Secret-Scanning tanpa (a) terlebih dahulu memeriksa dokumen pola di atas untuk melihat apakah pembantu berlaku, dan (b) mencatat justifikasi teknis dalam komentar pengabaian. Preseden: `js/stack-trace-exposure` yang muncul di callsites yang sudah rute melalui `sanitizeErrorMessage()` adalah batasan CodeQL yang diketahui (pembersih kustom tidak dikenali) — abaikan sebagai `false positive` yang merujuk pada `docs/security/ERROR_SANITIZATION.md`.
+15. Jangan pernah mengekspos rute yang memunculkan proses anak (`/api/mcp/`, `/api/cli-tools/runtime/`) tanpa klasifikasi `isLocalOnlyPath()` di `src/server/authz/routeGuard.ts`. Penegakan loopback terjadi tanpa syarat sebelum pemeriksaan otentikasi — JWT yang bocor melalui terowongan tidak dapat memicu pemunculan proses. Lihat `docs/security/ROUTE_GUARD_TIERS.md`.
+16. Jangan pernah menyertakan trailer `Co-Authored-By` dalam pesan commit. Commit harus muncul hanya di bawah identitas Git pemilik repositori (`diegosouzapw`). Baris `Co-Authored-By: Claude …` menyebabkan GitHub mengatribusikan commit ke akun `claude` Anthropic, menyembunyikan penulis sebenarnya dalam riwayat PR.

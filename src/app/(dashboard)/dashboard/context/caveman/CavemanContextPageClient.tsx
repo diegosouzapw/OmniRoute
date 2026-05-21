@@ -28,9 +28,16 @@ type OutputModeConfig = {
   autoClarity: boolean;
 };
 
+type InputModeConfig = {
+  enabled: boolean;
+  intensity: "lite" | "full" | "ultra";
+};
+
 type CompressionSettings = {
+  enabled?: boolean;
   languageConfig?: LanguageConfig;
   cavemanOutputMode?: OutputModeConfig;
+  cavemanConfig?: InputModeConfig & Record<string, unknown>;
 };
 
 type LanguagePack = { language: string; ruleCount: number; categories?: string[] };
@@ -74,9 +81,14 @@ export default function CavemanContextPageClient() {
   };
   const outputMode: OutputModeConfig = settings?.cavemanOutputMode ?? {
     enabled: false,
-    intensity: "full",
+    intensity: "lite",
     autoClarity: true,
   };
+  const inputMode: InputModeConfig = {
+    enabled: settings?.cavemanConfig?.enabled ?? false,
+    intensity: (settings?.cavemanConfig?.intensity as InputModeConfig["intensity"]) ?? "lite",
+  };
+  const masterEnabled = settings?.enabled ?? false;
 
   const saveSettings = async (patch: Partial<CompressionSettings>) => {
     setSaving(true);
@@ -94,6 +106,11 @@ export default function CavemanContextPageClient() {
 
   const updateLanguageConfig = (patch: Partial<LanguageConfig>) => {
     saveSettings({ languageConfig: { ...languageConfig, ...patch } });
+  };
+
+  const updateInputMode = (patch: Partial<InputModeConfig>) => {
+    const current = settings?.cavemanConfig ?? {};
+    saveSettings({ cavemanConfig: { ...current, ...inputMode, ...patch } });
   };
 
   const updateOutputMode = (patch: Partial<OutputModeConfig>) => {
@@ -202,6 +219,46 @@ export default function CavemanContextPageClient() {
               />
             </label>
           ))}
+        </div>
+      </section>
+
+      {!masterEnabled && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300 flex items-start gap-2">
+          <span className="material-symbols-outlined text-[18px]">info</span>
+          <p>
+            Token Saver master switch is OFF — these settings will not affect requests until you
+            turn it on from the Endpoint page or change it here.
+          </p>
+        </div>
+      )}
+
+      <section className="rounded-lg border border-border bg-surface p-4">
+        <h2 className="text-sm font-semibold text-text-main">Input compression</h2>
+        <p className="mt-1 text-xs text-text-muted">
+          Rewrite chat history with shorter wording. Reduces input tokens by ~50%.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-4 text-sm text-text-main">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={inputMode.enabled}
+              disabled={saving}
+              onChange={(event) => updateInputMode({ enabled: event.target.checked })}
+            />
+            {t("enabled")}
+          </label>
+          <select
+            value={inputMode.intensity}
+            disabled={saving}
+            onChange={(event) =>
+              updateInputMode({ intensity: event.target.value as InputModeConfig["intensity"] })
+            }
+            className="rounded-lg border border-border bg-bg px-3 py-2 text-sm"
+          >
+            <option value="lite">lite</option>
+            <option value="full">full</option>
+            <option value="ultra">ultra</option>
+          </select>
         </div>
       </section>
 

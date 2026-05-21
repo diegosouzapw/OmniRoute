@@ -23,6 +23,9 @@ import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFal
 
 const LS_GROUP_BY = "omniroute:limits:groupBy";
 const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
+const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
+const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
+const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
@@ -71,6 +74,96 @@ const TIER_FILTERS = [
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
+
+type PurchaseTypeKey = "all" | "oauth-free" | "oauth-sub" | "apikey";
+type StatusKey = "all" | "critical" | "alert" | "ok" | "empty";
+
+const PURCHASE_TYPES: Array<{ key: PurchaseTypeKey; labelKey: string; fallback: string }> = [
+  { key: "all", labelKey: "purchaseAll", fallback: "All" },
+  { key: "oauth-sub", labelKey: "purchaseOauthSub", fallback: "Subscription" },
+  { key: "oauth-free", labelKey: "purchaseOauthFree", fallback: "OAuth Free" },
+  { key: "apikey", labelKey: "purchaseApiKey", fallback: "API Key" },
+];
+
+// Classify a connection into a purchase-type bucket. Free/unknown tiers on
+// OAuth are treated as "oauth-free"; all other OAuth as "oauth-sub".
+function getPurchaseType(authType: string | undefined, tierKey: string): PurchaseTypeKey {
+  if (authType === "apikey") return "apikey";
+  if (authType === "oauth") {
+    if (tierKey === "free" || tierKey === "unknown") return "oauth-free";
+    return "oauth-sub";
+  }
+  return "oauth-free";
+}
+
+// Worst-case status across a connection's quotas. "empty" only when there are
+// no quota windows at all (covers credit-only providers via the isCredits
+// branch separately).
+function getWorstStatus(quotas: any[] | undefined): StatusKey {
+  if (!quotas || quotas.length === 0) return "empty";
+  let worst: "ok" | "alert" = "ok";
+  for (const q of quotas) {
+    const pct = q.unlimited ? 100 : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+    if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "critical";
+    if (pct <= QUOTA_BAR_GREEN_THRESHOLD && worst === "ok") worst = "alert";
+  }
+  return worst;
+}
+
+// Soonest upcoming reset timestamp across a connection's quotas. Used to
+// sort "expiring first". Returns Infinity when nothing is scheduled.
+function getSoonestResetMs(quotas: any[] | undefined): number {
+  if (!quotas || quotas.length === 0) return Number.POSITIVE_INFINITY;
+  const now = Date.now();
+  let soonest = Number.POSITIVE_INFINITY;
+  for (const q of quotas) {
+    if (!q?.resetAt) continue;
+    const ts = new Date(q.resetAt).getTime();
+    if (Number.isFinite(ts) && ts > now && ts < soonest) soonest = ts;
+  }
+  return soonest;
+}
+
+const STATUS_TONE: Record<
+  StatusKey,
+  { bar: string; text: string; bg: string; ring: string; dot: string }
+> = {
+  all: {
+    bar: "var(--color-text-muted)",
+    text: "var(--color-text-main)",
+    bg: "var(--color-bg-subtle)",
+    ring: "var(--color-border)",
+    dot: "var(--color-text-muted)",
+  },
+  critical: {
+    bar: "#ef4444",
+    text: "#ef4444",
+    bg: "rgba(239,68,68,0.10)",
+    ring: "rgba(239,68,68,0.40)",
+    dot: "#ef4444",
+  },
+  alert: {
+    bar: "#eab308",
+    text: "#eab308",
+    bg: "rgba(234,179,8,0.10)",
+    ring: "rgba(234,179,8,0.40)",
+    dot: "#eab308",
+  },
+  ok: {
+    bar: "#22c55e",
+    text: "#22c55e",
+    bg: "rgba(34,197,94,0.10)",
+    ring: "rgba(34,197,94,0.40)",
+    dot: "#22c55e",
+  },
+  empty: {
+    bar: "var(--color-text-muted)",
+    text: "var(--color-text-muted)",
+    bg: "var(--color-bg-subtle)",
+    ring: "var(--color-border)",
+    dot: "var(--color-text-muted)",
+  },
+};
 
 // Get bar color based on remaining percentage
 function getBarColor(remainingPercentage) {
@@ -143,6 +236,27 @@ export default function ProviderLimits() {
     } catch {
       return new Set();
     }
+  });
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
+    if (typeof window === "undefined") return "all";
+    const saved = localStorage.getItem(LS_PURCHASE_FILTER) as PurchaseTypeKey | null;
+    return saved && PURCHASE_TYPES.some((p) => p.key === saved) ? saved : "all";
+  });
+  const [statusFilter, setStatusFilter] = useState<StatusKey>(() => {
+    if (typeof window === "undefined") return "all";
+    const saved = localStorage.getItem(LS_STATUS_FILTER) as StatusKey | null;
+    if (saved === "all" || saved === "critical" || saved === "alert" || saved === "ok")
+      return saved;
+    return "all";
   });
 
   const lastFetchTimeRef = useRef({});
@@ -431,12 +545,91 @@ export default function ProviderLimits() {
     return counts;
   }, [sortedConnections, tierByConnection]);
 
+  const purchaseTypeByConnection = useMemo(() => {
+    const out: Record<string, PurchaseTypeKey> = {};
+    for (const conn of sortedConnections) {
+      const tierKey = tierByConnection[conn.id]?.key || "unknown";
+      out[conn.id] = getPurchaseType(conn.authType, tierKey);
+    }
+    return out;
+  }, [sortedConnections, tierByConnection]);
+
+  const statusByConnection = useMemo(() => {
+    const out: Record<string, StatusKey> = {};
+    for (const conn of sortedConnections) {
+      out[conn.id] = getWorstStatus(quotaData[conn.id]?.quotas);
+    }
+    return out;
+  }, [sortedConnections, quotaData]);
+
+  const purchaseTypeCounts = useMemo(() => {
+    const counts: Record<PurchaseTypeKey, number> = {
+      all: sortedConnections.length,
+      "oauth-sub": 0,
+      "oauth-free": 0,
+      apikey: 0,
+    };
+    for (const conn of sortedConnections) {
+      const key = purchaseTypeByConnection[conn.id];
+      if (key && key !== "all") counts[key] = (counts[key] || 0) + 1;
+    }
+    return counts;
+  }, [sortedConnections, purchaseTypeByConnection]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<StatusKey, number> = {
+      all: sortedConnections.length,
+      critical: 0,
+      alert: 0,
+      ok: 0,
+      empty: 0,
+    };
+    for (const conn of sortedConnections) {
+      const key = statusByConnection[conn.id] || "empty";
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    return counts;
+  }, [sortedConnections, statusByConnection]);
+
+  // Apply tier + purchase-type + status filters together, then sort with
+  // "expiring first" so critical accounts surface at the top regardless of
+  // alphabetical/priority ordering.
   const visibleConnections = useMemo(() => {
-    if (tierFilter === "all") return sortedConnections;
-    return sortedConnections.filter(
-      (conn) => (tierByConnection[conn.id]?.key || "unknown") === tierFilter
-    );
-  }, [sortedConnections, tierByConnection, tierFilter]);
+    const filtered = sortedConnections.filter((conn) => {
+      const tierKey = tierByConnection[conn.id]?.key || "unknown";
+      if (tierFilter !== "all" && tierKey !== tierFilter) return false;
+      if (purchaseTypeFilter !== "all" && purchaseTypeByConnection[conn.id] !== purchaseTypeFilter)
+        return false;
+      if (statusFilter !== "all" && statusByConnection[conn.id] !== statusFilter) return false;
+      return true;
+    });
+
+    // Sort: critical → alert → ok → empty; within tier, soonest reset first.
+    const statusRank: Record<StatusKey, number> = {
+      critical: 0,
+      alert: 1,
+      ok: 2,
+      empty: 3,
+      all: 4,
+    };
+    return [...filtered].sort((a, b) => {
+      const sa = statusRank[statusByConnection[a.id] || "empty"];
+      const sb = statusRank[statusByConnection[b.id] || "empty"];
+      if (sa !== sb) return sa - sb;
+      const ra = getSoonestResetMs(quotaData[a.id]?.quotas);
+      const rb = getSoonestResetMs(quotaData[b.id]?.quotas);
+      return ra - rb;
+    });
+  }, [
+    sortedConnections,
+    tierByConnection,
+    tierFilter,
+    purchaseTypeFilter,
+    purchaseTypeByConnection,
+    statusFilter,
+    statusByConnection,
+    quotaData,
+  ]);
 
   const groupedConnections = useMemo(() => {
     if (groupBy !== "environment") return null;
@@ -472,6 +665,37 @@ export default function ProviderLimits() {
       return next;
     });
   };
+
+  const toggleRow = useCallback((connectionId: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
+      try {
+        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
+      } catch {
+        /* localStorage may be unavailable; persistence is best-effort */
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
+    setPurchaseTypeFilter(value);
+    try {
+      localStorage.setItem(LS_PURCHASE_FILTER, value);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleSetStatusFilter = useCallback((value: StatusKey) => {
+    setStatusFilter(value);
+    try {
+      localStorage.setItem(LS_STATUS_FILTER, value);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   // Default inteligente: se não há preferência salva e há connections com grupo, abre em Por Ambiente
   useEffect(() => {
@@ -574,8 +798,86 @@ export default function ProviderLimits() {
         </div>
       </div>
 
+      {/* Summary Stats — clickable filters by status */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {(["all", "critical", "alert", "ok"] as StatusKey[]).map((key) => {
+          const tone = STATUS_TONE[key];
+          const labelMap: Record<string, string> = {
+            all: tr("statTotal", "Total"),
+            critical: tr("statCritical", "Crítico"),
+            alert: tr("statAlert", "Alerta"),
+            ok: tr("statHealthy", "Saudável"),
+          };
+          const active = statusFilter === key;
+          const count = statusCounts[key] || 0;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => handleSetStatusFilter(key)}
+              className="text-left rounded-lg px-3 py-2.5 border transition-colors cursor-pointer"
+              style={{
+                background: active ? tone.bg : "var(--color-surface)",
+                borderColor: active ? tone.ring : "var(--color-border)",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+                  {labelMap[key]}
+                </span>
+                {key !== "all" && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: tone.dot }}
+                    aria-hidden
+                  />
+                )}
+              </div>
+              <div
+                className="mt-0.5 text-2xl font-bold tabular-nums"
+                style={{ color: key === "all" ? "var(--color-text-main)" : tone.text }}
+              >
+                {count}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Purchase Type Filter */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+          {tr("filterPurchaseTypeLabel", "Tipo")}
+        </span>
+        {PURCHASE_TYPES.map((type) => {
+          const count = purchaseTypeCounts[type.key] || 0;
+          if (type.key !== "all" && count === 0) return null;
+          const active = purchaseTypeFilter === type.key;
+          return (
+            <button
+              key={type.key}
+              onClick={() => handleSetPurchaseFilter(type.key)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
+              style={{
+                border: active
+                  ? "1px solid var(--color-primary, #E54D5E)"
+                  : "1px solid var(--color-border)",
+                background: active ? "rgba(229,77,94,0.1)" : "transparent",
+                color: active ? "var(--color-primary, #E54D5E)" : "var(--color-text-muted)",
+              }}
+            >
+              <span>{tr(type.labelKey, type.fallback)}</span>
+              <span className="opacity-85">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Tier Filters */}
       <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
+          {tr("filterTierLabel", "Tier")}
+        </span>
         {TIER_FILTERS.map((tier) => {
           if (tier.key !== "all" && !tierCounts[tier.key]) return null;
           const active = tierFilter === tier.key;
@@ -599,29 +901,165 @@ export default function ProviderLimits() {
         })}
       </div>
 
-      {/* Account rows */}
+      {/* Account rows — expandable */}
       <div className="rounded-xl border border-border overflow-hidden bg-surface">
-        {/* Table header */}
-        <div
-          className="items-center px-4 py-2.5 border-b border-border text-[11px] font-semibold uppercase tracking-wider text-text-muted"
-          style={{ display: "grid", gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS }}
-        >
-          <div>{t("account")}</div>
-          <div>{t("modelQuotas")}</div>
-          <div className="text-center">{t("lastUsed")}</div>
-          <div
-            className="text-center truncate"
-            title={tr(
-              "quotaCutoffsColumnHelp",
-              "Stop requests when remaining quota falls to this percentage or below."
-            )}
-          >
-            {tr("quotaThresholdLabel", "Min left")}
-          </div>
-          <div className="text-center">{t("actions")}</div>
-        </div>
-
         {(() => {
+          // Compact "chip" representation of a quota for the collapsed row.
+          // Keeps the row visually predictable regardless of how many quotas
+          // a provider exposes (DeepSeek 1 chip vs Antigravity 3 chips).
+          const renderQuotaChips = (quotas: any[]) => {
+            const MAX = 5;
+            const visible = quotas.slice(0, MAX);
+            const extras = quotas.length - visible.length;
+            return (
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                {visible.map((q, i) => {
+                  if (q.isCredits) {
+                    const colors = getBarColor(q.remainingPercentage ?? 0);
+                    const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
+                    const amount = (q.creditCount ?? q.remaining ?? 0).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    });
+                    return (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold py-0.5 px-2 rounded tabular-nums"
+                        style={{ background: colors.bg, color: colors.text }}
+                        title={`${formatQuotaLabel(q.name)} balance`}
+                      >
+                        🪙 {sym}
+                        {amount}
+                      </span>
+                    );
+                  }
+                  const pctRaw = q.unlimited
+                    ? 100
+                    : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+                  const pct = Math.round(pctRaw);
+                  const colors = getBarColor(pct);
+                  const shortName = q.displayName || formatQuotaLabel(q.name);
+                  return (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold py-0.5 px-2 rounded tabular-nums"
+                      style={{ background: colors.bg, color: colors.text }}
+                      title={`${shortName} — ${pct}% remaining`}
+                    >
+                      <span className="opacity-80 font-medium">{shortName}</span>
+                      <span>{pct}%</span>
+                    </span>
+                  );
+                })}
+                {extras > 0 && (
+                  <span className="text-[11px] text-text-muted font-medium">+{extras}</span>
+                )}
+              </div>
+            );
+          };
+
+          // Full quota bar for the expanded panel: large, with countdown and
+          // a status badge. Reused for credits via a branch on isCredits.
+          const renderQuotaDetail = (q: any, i: number) => {
+            if (q.isCredits) {
+              const colors = getBarColor(q.remainingPercentage ?? 0);
+              const sym = CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? "";
+              const amount = (q.creditCount ?? q.remaining ?? 0).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+              return (
+                <div
+                  key={i}
+                  className="rounded-md border border-border bg-bg/40 px-3 py-2.5 flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="material-symbols-outlined text-[18px]"
+                      style={{ color: colors.text }}
+                    >
+                      paid
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-[12px] font-semibold text-text-main">
+                        {formatQuotaLabel(q.name) || tr("creditsLabel", "Credits")}
+                      </div>
+                      <div className="text-[10px] text-text-muted">
+                        {tr("creditBalanceHint", "Saldo restante")}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="text-[16px] font-bold tabular-nums"
+                    style={{ color: colors.text }}
+                  >
+                    {sym}
+                    {amount}
+                  </div>
+                </div>
+              );
+            }
+            const pctRaw = q.unlimited
+              ? 100
+              : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+            const pct = Math.round(pctRaw);
+            const colors = getBarColor(pct);
+            const cd = formatCountdown(q.resetAt);
+            const shortName = q.displayName || formatQuotaLabel(q.name);
+            const staleAfterReset = q.staleAfterReset === true;
+            const usedNum = Number(q.used || 0);
+            const totalNum = Number(q.total || 0);
+            const showUsage = totalNum > 0 && !q.unlimited;
+            return (
+              <div key={i} className="rounded-md border border-border bg-bg/40 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="text-[12px] font-semibold py-0.5 px-2 rounded"
+                      style={{ background: colors.bg, color: colors.text }}
+                      title={q.modelKey || q.name}
+                    >
+                      {shortName}
+                    </span>
+                    {q.unlimited && (
+                      <span className="text-[10px] text-text-muted">
+                        {tr("unlimitedLabel", "Unlimited")}
+                      </span>
+                    )}
+                    {showUsage && (
+                      <span className="text-[10px] text-text-muted tabular-nums">
+                        {usedNum.toLocaleString()} / {totalNum.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {staleAfterReset ? (
+                      <span className="text-[10px] text-text-muted">
+                        ⟳ {tr("refreshing", "Refreshing")}
+                      </span>
+                    ) : cd ? (
+                      <span className="text-[10px] text-text-muted">
+                        ⏱ {tr("resetsIn", "reset em")} {cd}
+                      </span>
+                    ) : null}
+                    <span
+                      className="text-[13px] font-bold tabular-nums min-w-[40px] text-right"
+                      style={{ color: colors.text }}
+                    >
+                      {pct}%
+                    </span>
+                  </div>
+                </div>
+                <div className="h-2 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full rounded-sm transition-[width] duration-300 ease-out"
+                    style={{ width: `${Math.min(pct, 100)}%`, background: colors.bar }}
+                  />
+                </div>
+              </div>
+            );
+          };
+
           const renderRow = (conn, isLast) => {
             const quota = quotaData[conn.id];
             const isLoading = loading[conn.id];
@@ -633,279 +1071,287 @@ export default function ProviderLimits() {
             const tierMeta = tierByConnection[conn.id] || normalizePlanTier(null);
             const resolvedPlan = resolvedPlanByConnection[conn.id];
             const refreshedAt = lastRefreshedAt[conn.id];
+            const isExpanded = expandedRows.has(conn.id);
+            const status = statusByConnection[conn.id] || "empty";
+            const statusTone = STATUS_TONE[status];
+
+            const overrides = (conn.quotaWindowThresholds || null) as Record<string, number> | null;
+            const hasOverrides = overrides && Object.keys(overrides).length > 0;
+            const connectionWindows = (quota?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            const connectionHasWindows = connectionWindows.length > 0;
+            let cutoffLabel: string = tr("quotaCutoffsButtonDefault", "Default");
+            if (hasOverrides && overrides) {
+              const entries = Object.entries(overrides);
+              const visible = entries
+                .slice(0, 2)
+                .map(([k, v]) => `${shortWindowLabel(k)}:${v}%`)
+                .join(" · ");
+              cutoffLabel = entries.length > 2 ? `${visible} +${entries.length - 2}` : visible;
+            }
 
             return (
               <div
                 key={conn.id}
-                className="items-center px-4 py-3.5 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02]"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: LIMITS_GRID_TEMPLATE_COLUMNS,
-                  borderBottom: !isLast ? "1px solid var(--color-border)" : "none",
+                  borderBottom: !isLast || isExpanded ? "1px solid var(--color-border)" : "none",
                 }}
               >
-                {/* Account Info */}
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                    <ProviderIcon
-                      providerId={conn.provider}
-                      size={32}
-                      type="color"
-                      className="object-contain"
-                    />
+                {/* Collapsed row — clickable to expand. Uses div+role=button
+                    because the row hosts other interactive controls (cutoff
+                    button, refresh, etc.) which would be invalid HTML nested
+                    inside a real <button>. */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => toggleRow(conn.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleRow(conn.id);
+                    }
+                  }}
+                  className="w-full text-left items-center px-3 py-3 transition-[background] duration-150 hover:bg-black/[0.03] dark:hover:bg-white/[0.02] cursor-pointer"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "28px minmax(220px,280px) minmax(160px,1fr) 96px 110px 36px",
+                    gap: "8px",
+                    borderLeft: `3px solid ${status === "all" || status === "empty" ? "transparent" : statusTone.dot}`,
+                  }}
+                  aria-expanded={isExpanded}
+                >
+                  {/* Chevron + status dot */}
+                  <div className="flex justify-center">
+                    <span className="material-symbols-outlined text-[18px] text-text-muted">
+                      {isExpanded ? "expand_less" : "expand_more"}
+                    </span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-text-main truncate">
-                      {pickDisplayValue(
-                        [conn.name, conn.displayName, conn.email],
-                        emailsVisible,
-                        config.label
-                      )}
+
+                  {/* Account Info */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                      <ProviderIcon
+                        providerId={conn.provider}
+                        size={32}
+                        type="color"
+                        className="object-contain"
+                      />
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1 min-h-5">
-                      <span
-                        title={
-                          resolvedPlan
-                            ? t("rawPlanWithValue", { plan: resolvedPlan })
-                            : t("noPlanFromProvider")
-                        }
-                        className="inline-flex items-center shrink-0"
-                      >
-                        <Badge
-                          variant={tierMeta.variant}
-                          size="sm"
-                          dot
-                          className="h-5 leading-none"
-                        >
-                          {tierMeta.label}
-                        </Badge>
-                      </span>
-                      <span className="text-[11px] leading-none text-text-muted">
-                        {config.label}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quota Bars */}
-                <div className="flex flex-wrap gap-x-3 gap-y-1.5 pr-3">
-                  {isLoading ? (
-                    <div className="flex items-center gap-1.5 text-text-muted text-xs">
-                      <span className="material-symbols-outlined animate-spin text-[14px]">
-                        progress_activity
-                      </span>
-                      {t("loadingQuotas")}
-                    </div>
-                  ) : error ? (
-                    <div className="flex items-center gap-1.5 text-xs text-red-500">
-                      <span className="material-symbols-outlined text-[14px]">error</span>
-                      <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
-                        {error}
-                      </span>
-                    </div>
-                  ) : quota?.message && (!quota.quotas || quota.quotas.length === 0) ? (
-                    <div className="text-xs text-text-muted italic">{quota.message}</div>
-                  ) : quota?.quotas?.length > 0 ? (
-                    quota.quotas.map((q, i) => {
-                      const remainingPercentageRaw = q.unlimited
-                        ? 100
-                        : (q.remainingPercentage ?? calculatePercentage(q.used, q.total));
-                      const remainingPercentage = Math.round(remainingPercentageRaw);
-                      const colors = getBarColor(remainingPercentage);
-                      const cd = formatCountdown(q.resetAt);
-                      const shortName = q.displayName || formatQuotaLabel(q.name);
-                      const staleAfterReset = q.staleAfterReset === true;
-                      const details = Array.isArray(q.details)
-                        ? q.details.filter((detail) => detail && detail.used > 0)
-                        : [];
-
-                      return (
-                        <div
-                          key={i}
-                          className={`flex items-center gap-1.5 shrink-0 ${
-                            i > 0 ? "border-l border-border/80 pl-3 ml-1" : ""
-                          }`}
-                        >
-                          {q.isCredits ? (
-                            /* ── AI Credits / Balance counter ── */
-                            <>
-                              <span
-                                className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap"
-                                style={{ background: colors.bg, color: colors.text }}
-                              >
-                                🪙 {formatQuotaLabel(q.name)}
-                              </span>
-                              <span
-                                className="text-[12px] font-bold tabular-nums"
-                                style={{ color: colors.text }}
-                              >
-                                {CURRENCY_SYMBOLS[q.currency] ?? q.currency ?? ""}
-                                {(q.creditCount ?? q.remaining).toLocaleString(undefined, {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </span>
-                            </>
-                          ) : (
-                            /* ── Standard quota bar ── */
-                            <>
-                              {/* Model label */}
-                              <span
-                                title={q.modelKey || q.name}
-                                className="text-[11px] font-semibold py-0.5 px-2 rounded whitespace-nowrap min-w-[60px] text-center"
-                                style={{ background: colors.bg, color: colors.text }}
-                              >
-                                {shortName}
-                              </span>
-
-                              {details.length > 0 ? (
-                                <span className="text-[10px] text-text-muted whitespace-nowrap">
-                                  {details
-                                    .map(
-                                      (detail) => `${formatQuotaLabel(detail.name)} ${detail.used}`
-                                    )
-                                    .join(" · ")}
-                                </span>
-                              ) : null}
-
-                              {/* Countdown */}
-                              {staleAfterReset ? (
-                                <span className="text-[10px] text-text-muted whitespace-nowrap">
-                                  ⟳ Refreshing...
-                                </span>
-                              ) : cd ? (
-                                <span className="text-[10px] text-text-muted whitespace-nowrap">
-                                  ⏱ {cd}
-                                </span>
-                              ) : null}
-
-                              {/* Progress bar */}
-                              <div className="flex-1 h-1.5 rounded-sm bg-black/[0.06] dark:bg-white/[0.06] min-w-[60px] overflow-hidden">
-                                <div
-                                  className="h-full rounded-sm transition-[width] duration-300 ease-out"
-                                  style={{
-                                    width: `${Math.min(remainingPercentage, 100)}%`,
-                                    background: colors.bar,
-                                  }}
-                                />
-                              </div>
-
-                              {/* Percentage */}
-                              <span
-                                className="text-[11px] font-semibold min-w-[32px] text-right"
-                                style={{ color: colors.text }}
-                              >
-                                {remainingPercentage}%
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
-                  )}
-                </div>
-
-                {/* Last Refreshed */}
-                <div className="text-center text-[11px]">
-                  {(() => {
-                    const stale = quota?.stale;
-                    const displayTime = stale?.since || refreshedAt;
-                    if (!displayTime) return <span className="text-text-muted">-</span>;
-                    const formatted = new Date(displayTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      hour12: false,
-                    });
-                    if (stale) {
-                      return (
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-text-main truncate">
+                        {pickDisplayValue(
+                          [conn.name, conn.displayName, conn.email],
+                          emailsVisible,
+                          config.label
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-0.5 min-h-5">
                         <span
-                          className="text-amber-500 cursor-help"
-                          title={t("staleQuotaTooltip")}
-                          aria-label={t("staleQuotaTooltip")}
+                          title={
+                            resolvedPlan
+                              ? t("rawPlanWithValue", { plan: resolvedPlan })
+                              : t("noPlanFromProvider")
+                          }
+                          className="inline-flex items-center shrink-0"
                         >
-                          {formatted}
+                          <Badge
+                            variant={tierMeta.variant}
+                            size="sm"
+                            dot
+                            className="h-5 leading-none"
+                          >
+                            {tierMeta.label}
+                          </Badge>
                         </span>
-                      );
-                    }
-                    return <span className="text-text-muted">{formatted}</span>;
-                  })()}
-                </div>
+                        <span className="text-[11px] leading-none text-text-muted">
+                          {config.label}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                {/* Quota Threshold Cutoff — button opens modal */}
-                <div className="flex justify-center items-center">
-                  {(() => {
-                    const overrides = (conn.quotaWindowThresholds || null) as Record<
-                      string,
-                      number
-                    > | null;
-                    const hasOverrides = overrides && Object.keys(overrides).length > 0;
-                    // Window list comes from the connection's own quota cache
-                    // (the same data that drives the Model Quotas bars), so the
-                    // button works for every provider with usage data — not
-                    // just providers that registered with quotaPreflight.
-                    const connectionWindows = (quota?.quotas || []).filter(
-                      (q: any) => q && typeof q.name === "string" && !q.isCredits
-                    );
-                    const connectionHasWindows = connectionWindows.length > 0;
-                    // Summary: up to 2 entries with short labels; "+N" for the rest.
-                    let label: string = tr("quotaCutoffsButtonDefault", "Default");
-                    if (hasOverrides && overrides) {
-                      const entries = Object.entries(overrides);
-                      const visible = entries
-                        .slice(0, 2)
-                        .map(([k, v]) => `${shortWindowLabel(k)}:${v}%`)
-                        .join(" · ");
-                      label = entries.length > 2 ? `${visible} +${entries.length - 2}` : visible;
-                    }
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => {
+                  {/* Compact quota chips */}
+                  <div className="min-w-0 pr-2">
+                    {isLoading ? (
+                      <div className="flex items-center gap-1.5 text-text-muted text-xs">
+                        <span className="material-symbols-outlined animate-spin text-[14px]">
+                          progress_activity
+                        </span>
+                        {t("loadingQuotas")}
+                      </div>
+                    ) : error ? (
+                      <div className="flex items-center gap-1.5 text-xs text-red-500">
+                        <span className="material-symbols-outlined text-[14px]">error</span>
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
+                          {error}
+                        </span>
+                      </div>
+                    ) : quota?.message && (!quota.quotas || quota.quotas.length === 0) ? (
+                      <div className="text-xs text-text-muted italic">{quota.message}</div>
+                    ) : quota?.quotas?.length > 0 ? (
+                      renderQuotaChips(quota.quotas)
+                    ) : (
+                      <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
+                    )}
+                  </div>
+
+                  {/* Last Refreshed */}
+                  <div className="text-center text-[11px]">
+                    {(() => {
+                      const stale = quota?.stale;
+                      const displayTime = stale?.since || refreshedAt;
+                      if (!displayTime) return <span className="text-text-muted">-</span>;
+                      const formatted = new Date(displayTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false,
+                      });
+                      if (stale) {
+                        return (
+                          <span
+                            className="text-amber-500"
+                            title={t("staleQuotaTooltip")}
+                            aria-label={t("staleQuotaTooltip")}
+                          >
+                            {formatted}
+                          </span>
+                        );
+                      }
+                      return <span className="text-text-muted">{formatted}</span>;
+                    })()}
+                  </div>
+
+                  {/* Cutoff button — opens modal; stop propagation so row doesn't toggle */}
+                  <div className="flex justify-center items-center">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!connectionHasWindows) return;
+                        setCutoffModalWindows(connectionWindows);
+                        setCutoffModalConn(conn);
+                      }}
+                      role="button"
+                      tabIndex={connectionHasWindows ? 0 : -1}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (!connectionHasWindows) return;
                           setCutoffModalWindows(connectionWindows);
                           setCutoffModalConn(conn);
-                        }}
-                        disabled={!connectionHasWindows}
-                        title={
-                          connectionHasWindows
-                            ? tr(
-                                "quotaCutoffsButtonHelp",
-                                "Edit minimum remaining quota cutoffs for this account."
-                              )
-                            : tr(
-                                "quotaCutoffsButtonDisabled",
-                                "No quota windows are available for this account yet."
-                              )
                         }
-                        className={`block w-full max-w-[70px] truncate px-1.5 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-                          hasOverrides
-                            ? "border-primary/40 text-primary bg-primary/5"
-                            : "border-border text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
-                        }`}
+                      }}
+                      title={
+                        connectionHasWindows
+                          ? tr(
+                              "quotaCutoffsButtonHelp",
+                              "Edit minimum remaining quota cutoffs for this account."
+                            )
+                          : tr(
+                              "quotaCutoffsButtonDisabled",
+                              "No quota windows are available for this account yet."
+                            )
+                      }
+                      className={`block w-full max-w-[100px] truncate text-center px-2 py-1 rounded-md border text-[11px] font-medium tabular-nums transition-colors ${
+                        !connectionHasWindows ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
+                      } ${
+                        hasOverrides
+                          ? "border-primary/40 text-primary bg-primary/5"
+                          : "border-border text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"
+                      }`}
+                    >
+                      {cutoffLabel}
+                    </span>
+                  </div>
+
+                  {/* Refresh — stop propagation */}
+                  <div className="flex justify-center gap-0.5">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isLoading) return;
+                        refreshProvider(conn.id, conn.provider);
+                      }}
+                      role="button"
+                      tabIndex={isLoading ? -1 : 0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (isLoading) return;
+                          refreshProvider(conn.id, conn.provider);
+                        }
+                      }}
+                      title={t("refreshQuota")}
+                      className={`p-1 rounded-md flex items-center justify-center transition-opacity duration-150 ${
+                        isLoading
+                          ? "cursor-not-allowed opacity-30"
+                          : "cursor-pointer opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[16px] text-text-muted ${isLoading ? "animate-spin" : ""}`}
                       >
-                        {label}
-                      </button>
-                    );
-                  })()}
+                        refresh
+                      </span>
+                    </span>
+                  </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex justify-center gap-0.5">
-                  <button
-                    onClick={() => refreshProvider(conn.id, conn.provider)}
-                    disabled={isLoading}
-                    title={t("refreshQuota")}
-                    className="p-1 rounded-md border-none bg-transparent cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 opacity-60 hover:opacity-100 flex items-center justify-center transition-opacity duration-150"
-                  >
-                    <span
-                      className={`material-symbols-outlined text-[16px] text-text-muted ${isLoading ? "animate-spin" : ""}`}
-                    >
-                      refresh
-                    </span>
-                  </button>
-                </div>
+                {/* Expanded panel */}
+                {isExpanded && (
+                  <div className="px-12 py-3 bg-bg-subtle/30 border-t border-border space-y-2">
+                    {isLoading ? (
+                      <div className="text-xs text-text-muted flex items-center gap-1.5">
+                        <span className="material-symbols-outlined animate-spin text-[14px]">
+                          progress_activity
+                        </span>
+                        {t("loadingQuotas")}
+                      </div>
+                    ) : error ? (
+                      <div className="text-xs text-red-500 flex items-start gap-1.5">
+                        <span className="material-symbols-outlined text-[14px]">error</span>
+                        <span>{error}</span>
+                      </div>
+                    ) : quota?.quotas?.length > 0 ? (
+                      <>
+                        {quota.quotas.map((q: any, i: number) => renderQuotaDetail(q, i))}
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                          <button
+                            type="button"
+                            disabled={!connectionHasWindows}
+                            onClick={() => {
+                              setCutoffModalWindows(connectionWindows);
+                              setCutoffModalConn(conn);
+                            }}
+                            className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">tune</span>
+                            {tr("editCutoffs", "Editar Cutoffs")}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLoading}
+                            onClick={() => refreshProvider(conn.id, conn.provider)}
+                            className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <span
+                              className={`material-symbols-outlined text-[14px] ${isLoading ? "animate-spin" : ""}`}
+                            >
+                              refresh
+                            </span>
+                            {tr("forceRefresh", "Refresh agora")}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-xs text-text-muted italic">{t("noQuotaData")}</div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           };

@@ -46,6 +46,14 @@ import {
   isEmptyContentResponse,
 } from "../services/errorClassifier.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
+import {
+  recordKeyFailure,
+  recordKeySuccess,
+  getInvalidKeyCount,
+  trackConnectionExtraKeys,
+  connectionHasExtraKeys,
+  type KeyHealth,
+} from "../services/apiKeyRotator.ts";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import {
   getCallLogPipelineCaptureStreamChunks,
@@ -91,6 +99,10 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
+import {
+  CPA_FORCE_FAST_MODE_HEADER,
+  shouldRequestClaudeFastMode,
+} from "@/lib/providers/claudeFastMode";
 import {
   getCodexRequestDefaults,
   normalizeCodexServiceTier,
@@ -420,6 +432,36 @@ export function shouldUseNativeCodexPassthrough({
   while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
   const segments = normalizedEndpoint.split("/");
   return segments.includes("responses");
+}
+
+export function isClaudeCodeSemanticPassthroughRequest({
+  provider,
+  sourceFormat,
+  targetFormat,
+  headers,
+  userAgent,
+}: {
+  provider?: string | null;
+  sourceFormat?: string | null;
+  targetFormat?: string | null;
+  headers?: Record<string, unknown> | Headers | null;
+  userAgent?: string | null;
+}): boolean {
+  const isDirectClaudeCodeProvider =
+    provider === "claude" || isClaudeCodeCompatibleProvider(provider);
+  if (!isDirectClaudeCodeProvider) return false;
+  if (sourceFormat !== FORMATS.CLAUDE) return false;
+  if (targetFormat !== FORMATS.CLAUDE) return false;
+
+  const headerUserAgent = getHeaderValueCaseInsensitive(headers, "user-agent");
+  const ua = `${userAgent || ""} ${headerUserAgent || ""}`.toLowerCase();
+  if (ua.includes("claude-code") || ua.includes("claude-cli")) return true;
+
+  const appHeader = getHeaderValueCaseInsensitive(headers, "x-app");
+  if (typeof appHeader === "string" && appHeader.trim().toLowerCase() === "cli") return true;
+
+  const sessionId = getHeaderValueCaseInsensitive(headers, "x-claude-code-session-id");
+  return typeof sessionId === "string" && sessionId.trim().length > 0;
 }
 
 function buildClaudePassthroughToolNameMap(body: Record<string, unknown> | null | undefined) {
@@ -1220,6 +1262,7 @@ export async function handleChatCore({
   comboExecutionKey = null,
   disableEmergencyFallback = false,
   cachedSettings = null,
+  skipUpstreamRetry = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // apiFormat is an optional custom-model marker injected by getModelInfo for
@@ -1277,6 +1320,63 @@ export async function handleChatCore({
       apiKeyName: apiKeyInfo?.name || undefined,
       serviceTier: effectiveServiceTier,
     }).catch(() => {});
+  };
+
+  const recordKeyHealthStatus = (
+    status: number,
+    creds: Record<string, unknown> | null | undefined
+  ): void => {
+    const connId = creds?.connectionId as string | undefined;
+    if (!connId) return;
+
+    const psd = creds.providerSpecificData as Record<string, unknown> | undefined;
+    const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
+    const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
+    const currentKeyId = (psd?.selectedKeyId as string | undefined) ?? "primary";
+
+    trackConnectionExtraKeys(connId, extraKeys);
+
+    if (status === 401) {
+      const updatedHealth = recordKeyFailure(connId, currentKeyId);
+      log?.warn?.(
+        "AUTH",
+        `401 on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
+      );
+
+      // Persist health status to DB on every failure (not just invalid transitions)
+      // This ensures in-memory state survives process restarts
+      const prevStatus = health?.[currentKeyId]?.status;
+      const prevFailures = health?.[currentKeyId]?.failures ?? 0;
+      if (updatedHealth.status !== prevStatus || updatedHealth.failures !== prevFailures) {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    } else if (status >= 200 && status < 300) {
+      const updatedHealth = recordKeySuccess(connId, currentKeyId);
+      const prevStatus = health?.[currentKeyId]?.status;
+      if (prevStatus === "warning" || prevStatus === "invalid") {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    }
   };
 
   const persistCodexQuotaState = async (
@@ -1656,6 +1756,22 @@ export async function handleChatCore({
       }
     }
 
+    // Claude Fast Mode opt-in. When the user has enabled this in
+    // Settings > AI AND the target provider is the canonical Anthropic
+    // `claude` provider (Claude Code-compatible CPA bridges are excluded
+    // since they already select their own entrypoint) AND the model id
+    // matches the configured list, signal to a paired CLIProxyAPI build to
+    // rewrite the cc_entrypoint so the request can reach Anthropic Fast
+    // Mode (speed:"fast"). CPA builds that do not understand the header
+    // forward it harmlessly.
+    if (
+      provider === "claude" &&
+      typeof settings !== "undefined" &&
+      shouldRequestClaudeFastMode(settings, modelToCall)
+    ) {
+      upstreamHeaders[CPA_FORCE_FAST_MODE_HEADER] = "1";
+    }
+
     return upstreamHeaders;
   };
 
@@ -1683,12 +1799,18 @@ export async function handleChatCore({
 
   // Codex /responses/compact is JSON-only: Codex CLI does not send stream=false,
   // so route shape must override the usual Accept/header fallback.
+  // sourceFormat="claude" applies the Anthropic Messages spec default (stream=false
+  // when body omits stream), preventing STREAM_EARLY_EOF on /v1/messages when
+  // clients send Accept: */* without an explicit stream flag.
   const stream =
     nativeCodexPassthrough && isCompactResponsesEndpoint(endpointPath)
       ? false
-      : resolveStreamFlag(body?.stream, acceptHeader);
+      : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
   const settings = cachedSettings ?? (await getCachedSettings());
-  credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
+  credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
+    model: requestedModel,
+    body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
+  });
   effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
@@ -2405,6 +2527,13 @@ export async function handleChatCore({
   let translatedBody = body;
   const isClaudePassthrough = sourceFormat === FORMATS.CLAUDE && targetFormat === FORMATS.CLAUDE;
   const isClaudeCodeCompatible = isClaudeCodeCompatibleProvider(provider);
+  const isClaudeCodeSemanticPassthrough = isClaudeCodeSemanticPassthroughRequest({
+    provider,
+    sourceFormat,
+    targetFormat,
+    headers: clientRawRequest?.headers,
+    userAgent,
+  });
   const upstreamStream = stream || isClaudeCodeCompatible;
   let ccSessionId: string | null = null;
   const stripTypes = getStripTypesForProviderModel(provider || "", model || "");
@@ -2565,7 +2694,9 @@ export async function handleChatCore({
 
       // Claude Code-compatible providers expect Anthropic Messages-shaped payloads,
       // but we extract only role/text/max_tokens/effort from an OpenAI-like view first.
-      if (sourceFormat !== FORMATS.OPENAI) {
+      if (sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough) {
+        log?.debug?.("FORMAT", "claude-code semantic passthrough enabled for compatible bridge");
+      } else if (sourceFormat !== FORMATS.OPENAI) {
         const normalizeToolCallId = getModelNormalizeToolCallId(
           provider || "",
           model || "",
@@ -2600,6 +2731,7 @@ export async function handleChatCore({
         cwd: process.cwd(),
         now: new Date(),
         preserveCacheControl,
+        preserveClaudeMessages: sourceFormat === FORMATS.CLAUDE && isClaudeCodeSemanticPassthrough,
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
     } else if (isClaudePassthrough) {
@@ -2610,7 +2742,11 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (!isClaudeCodeSemanticPassthrough) {
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      } else {
+        log?.debug?.("FORMAT", "claude-code semantic passthrough enabled");
+      }
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
@@ -2707,7 +2843,12 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+        {
+          normalizeToolCallId,
+          preserveDeveloperRole,
+          preserveCacheControl,
+          signatureNamespace: connectionId,
+        }
       );
     }
   } catch (error) {
@@ -2958,10 +3099,10 @@ export async function handleChatCore({
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
     onDisconnect,
-    log,
     provider,
     model,
     connectionId,
+    clientResponseFormat,
   });
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };
@@ -2971,6 +3112,8 @@ export async function handleChatCore({
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
       const executionCredentials = getExecutionCredentials();
+      // Track execution credentials for key health recording (to capture selectedKeyId)
+      let lastExecCreds = executionCredentials;
       const accountSemaphoreMaxConcurrency =
         resolveAccountSemaphoreMaxConcurrency(executionCredentials);
       const accountSemaphoreKey = resolveAccountSemaphoreKey({
@@ -3102,19 +3245,25 @@ export async function handleChatCore({
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
+              const execCreds = getExecutionCredentials();
               const res = await executor.execute({
                 model: modelToCall,
                 body: bodyToSend,
                 stream: upstreamStream,
-                credentials: getExecutionCredentials(),
+                credentials: execCreds,
                 signal: streamController.signal,
                 log,
                 extendedContext,
                 upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
                 clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
                 onCredentialsRefreshed,
+                skipUpstreamRetry,
               });
               trace("post_executor", { status: res?.response?.status });
+
+              if (res.response.status === 401 && execCreds?.connectionId) {
+                recordKeyHealthStatus(401, execCreds);
+              }
 
               // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
               if (
@@ -3241,6 +3390,7 @@ export async function handleChatCore({
 
                 return {
                   ...res,
+                  _executionCredentials: execCreds,
                   response: new Response(
                     wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
                     {
@@ -3253,7 +3403,10 @@ export async function handleChatCore({
                 };
               }
 
-              return res;
+              return {
+                ...res,
+                _executionCredentials: execCreds,
+              };
             }
           },
           streamController.signal
@@ -3265,6 +3418,15 @@ export async function handleChatCore({
 
         // Non-stream: release semaphore immediately after reading full response body.
         const status = rawResult.response.status;
+
+        // Use execution credentials captured during request processing
+        if (
+          rawResult._executionCredentials?.connectionId &&
+          rawResult._executionCredentials?.apiKey
+        ) {
+          recordKeyHealthStatus(status, rawResult._executionCredentials);
+        }
+
         const statusText = rawResult.response.statusText;
         const headers = new Headers(rawResult.response.headers);
         stripStaleForwardingHeaders(headers);
@@ -3510,6 +3672,7 @@ export async function handleChatCore({
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
           clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
           onCredentialsRefreshed,
+          skipUpstreamRetry: isCombo,
         });
 
         if (retryResult.response.ok) {
@@ -3593,17 +3756,38 @@ export async function handleChatCore({
             );
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-          await updateProviderConnection(connectionId, {
-            isActive: false,
-            testStatus: "deactivated",
-            lastErrorType: errorType,
-            lastError: message,
-            errorCode: statusCode,
-          });
-          if (process.env.NODE_ENV !== "production") {
-            console.warn(
-              `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
-            );
+          // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
+          // Single-key connections still get disabled as before.
+          if (
+            connectionHasExtraKeys(
+              connectionId,
+              (credentials?.providerSpecificData as Record<string, unknown> | undefined)
+                ?.extraApiKeys as string[] | undefined
+            )
+          ) {
+            await updateProviderConnection(connectionId, {
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+            });
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                `[provider] Node ${connectionId} account deactivated (${statusCode}) — has extra keys, keeping connection active`
+              );
+            }
+          } else {
+            await updateProviderConnection(connectionId, {
+              isActive: false,
+              testStatus: "deactivated",
+              lastErrorType: errorType,
+              lastError: message,
+              errorCode: statusCode,
+            });
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                `[provider] Node ${connectionId} account deactivated (${statusCode}) — disabling permanently`
+              );
+            }
           }
         } else if (errorType === PROVIDER_ERROR_TYPES.QUOTA_EXHAUSTED) {
           // Providers with per-model quotas — lock the model only, not the connection
@@ -3769,7 +3953,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -3787,7 +3972,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -3805,7 +3991,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
@@ -3847,7 +4034,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -3865,7 +4053,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -3883,7 +4072,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else {
@@ -3972,7 +4162,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     }
@@ -4385,6 +4576,20 @@ export async function handleChatCore({
       recordCost(apiKeyInfo.id, estimatedCost);
     }
 
+    // ── Gamification event (fire-and-forget) ──
+    if (apiKeyInfo?.id) {
+      try {
+        const { emitGamificationEvent } = await import("@/lib/gamification/events");
+        emitGamificationEvent({
+          apiKeyId: apiKeyInfo.id,
+          action: "request",
+          metadata: { model, provider },
+        });
+      } catch (_) {
+        /* gamification optional */
+      }
+    }
+
     return {
       success: true,
       response: new Response(JSON.stringify(translatedResponse), {
@@ -4705,6 +4910,20 @@ export async function handleChatCore({
       shape: shapeForClientFormat(clientResponseFormat),
     })
   );
+
+  // ── Gamification event (fire-and-forget) ──
+  if (apiKeyInfo?.id) {
+    try {
+      const { emitGamificationEvent } = await import("@/lib/gamification/events");
+      emitGamificationEvent({
+        apiKeyId: apiKeyInfo.id,
+        action: "request",
+        metadata: { model, provider },
+      });
+    } catch (_) {
+      /* gamification optional */
+    }
+  }
 
   return {
     success: true,

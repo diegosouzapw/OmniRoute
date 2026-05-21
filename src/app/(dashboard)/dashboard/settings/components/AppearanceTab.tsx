@@ -492,7 +492,7 @@ export default function AppearanceTab() {
                 {(settings.customLogoUrl || settings.customLogoBase64) && (
                   <img
                     src={settings.customLogoBase64 || settings.customLogoUrl}
-                    alt="Logo preview"
+                    alt={t("appearanceLogoPreviewAlt")}
                     className="h-10 w-10 rounded border border-border object-contain bg-surface"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -562,7 +562,7 @@ export default function AppearanceTab() {
                   <p className="text-xs text-text-muted mb-2">{t("logoPreview")}</p>
                   <img
                     src={settings.customLogoBase64 || settings.customLogoUrl}
-                    alt="Logo preview"
+                    alt={t("appearanceLogoPreviewAlt")}
                     className="h-12 w-auto max-w-full rounded"
                   />
                 </div>
@@ -586,7 +586,7 @@ export default function AppearanceTab() {
                 {(settings.customFaviconUrl || settings.customFaviconBase64) && (
                   <img
                     src={settings.customFaviconBase64 || settings.customFaviconUrl}
-                    alt="Favicon preview"
+                    alt={t("appearanceFaviconPreviewAlt")}
                     className="h-10 w-10 rounded border border-border object-contain bg-surface"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -658,7 +658,7 @@ export default function AppearanceTab() {
                   <p className="text-xs text-text-muted mb-2">{t("faviconPreview")}</p>
                   <img
                     src={settings.customFaviconBase64 || settings.customFaviconUrl}
-                    alt="Favicon preview"
+                    alt={t("appearanceFaviconPreviewAlt")}
                     className="h-8 w-8 rounded"
                   />
                 </div>

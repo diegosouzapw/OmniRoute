@@ -123,6 +123,50 @@ test("#2257 — invalid bearer + REQUIRE_API_KEY=false → anonymous (with warni
   }
 });
 
+test("#2257 — invalid x-api-key + REQUIRE_API_KEY=false → anonymous (with warning log)", async () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (msg: string) => warnings.push(String(msg));
+  try {
+    const policy = await loadPolicy();
+    const headers = new Headers({ "x-api-key": "sk-stub-bogus" });
+    const out = await policy.evaluate(ctx(headers));
+    assert.equal(out.allow, true);
+    if (out.allow) {
+      assert.equal(out.subject.kind, "anonymous");
+      assert.equal(out.subject.id, "local");
+    }
+    assert.ok(
+      warnings.some((w) => w.includes("[clientApiPolicy]") && w.includes("REQUIRE_API_KEY=false")),
+      "expected a warning about the fallback"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
+test("#2257 — fallback warning masks the x-api-key (only last-4 in log)", async () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (msg: string) => warnings.push(String(msg));
+  try {
+    const policy = await loadPolicy();
+    const headers = new Headers({ "x-api-key": "sk-secretprefix-secretmiddle-XYZW" });
+    const out = await policy.evaluate(ctx(headers));
+    assert.equal(out.allow, true);
+    assert.ok(
+      warnings.every((w) => !w.includes("secretprefix") && !w.includes("secretmiddle")),
+      "warning leaked the full bearer; only masked key id should be logged"
+    );
+    assert.ok(
+      warnings.some((w) => w.includes("key_XYZW")),
+      "expected masked key id (last-4) in the warning"
+    );
+  } finally {
+    console.warn = originalWarn;
+  }
+});
+
 test("#2257 — fallback warning masks the bearer (only last-4 in log)", async () => {
   const originalWarn = console.warn;
   const warnings: string[] = [];

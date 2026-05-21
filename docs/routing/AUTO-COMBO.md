@@ -1,6 +1,6 @@
 ---
 title: "OmniRoute Auto-Combo Engine"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-13
 ---
 
@@ -87,17 +87,17 @@ The Auto-Combo Engine dynamically selects the best provider/model for each reque
 
 > Source: [diagrams/auto-combo-9factor.mmd](../diagrams/auto-combo-9factor.mmd)
 
-| Factor             | Default Weight | Description                                                             |
-| :----------------- | :------------- | :---------------------------------------------------------------------- |
-| `health`           | 0.22           | Health score from circuit breaker (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0) |
-| `quota`            | 0.17           | Remaining quota / rate-limit headroom [0..1]                            |
-| `costInv`          | 0.17           | Inverse cost normalized to pool — cheaper = higher score                |
-| `latencyInv`       | 0.13           | Inverse p95 latency normalized to pool — faster = higher score          |
-| `taskFit`          | 0.08           | Task-type fitness (coding, review, planning, analysis, debugging, docs) |
-| `specificityMatch` | 0.08           | Match between request specificity (manifest hint) and model tier        |
-| `stability`        | 0.05           | Variance-based stability (low latency stdDev / error rate)              |
-| `tierPriority`     | 0.05           | Account-tier priority — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0    |
-| `tierAffinity`     | 0.05           | Affinity between the candidate's tier and the manifest-recommended tier |
+| Factor             | Default Weight | Description                                                                                        |
+| :----------------- | :------------- | :------------------------------------------------------------------------------------------------- |
+| `health`           | 0.22           | Health score from circuit breaker (CLOSED=1.0, HALF_OPEN=0.5, OPEN=0.0)                            |
+| `quota`            | 0.17           | Remaining quota / rate-limit headroom [0..1]                                                       |
+| `costInv`          | 0.17           | Inverse **blended** cost (60% input + 40% output token price, normalized) — cheaper = higher score |
+| `latencyInv`       | 0.13           | Inverse p95 latency normalized to pool — faster = higher score                                     |
+| `taskFit`          | 0.08           | Task-type fitness (coding, review, planning, analysis, debugging, docs)                            |
+| `specificityMatch` | 0.08           | Match between request specificity (manifest hint) and model tier                                   |
+| `stability`        | 0.05           | Variance-based stability (low latency stdDev / error rate)                                         |
+| `tierPriority`     | 0.05           | Account-tier priority — Ultra=1.0, Pro=0.67, Standard=0.33, Free=0.0                               |
+| `tierAffinity`     | 0.05           | Affinity between the candidate's tier and the manifest-recommended tier                            |
 
 **Sum:** `0.22 + 0.17 + 0.17 + 0.13 + 0.08 + 0.08 + 0.05 + 0.05 + 0.05 = 1.0` (validated by `validateWeights()`).
 
@@ -210,16 +210,16 @@ Including the bare `auto` (default) plus the 6 `AutoVariant` values declared in 
 The 9-factor scoring function (`open-sse/services/autoCombo/scoring.ts`) treats tier
 membership as one signal via the `tierPriority` weight. Default weights (from `DEFAULT_WEIGHTS`):
 
-| Factor                   | Default weight | Notes                             |
-| ------------------------ | -------------- | --------------------------------- |
-| Tier priority            | 0.05           | Tier 1 premium → higher score     |
-| Latency (p50 inverse)    | 0.35           | Fastest wins                      |
-| Cost ($/1M inverse)      | 0.20           | Cheapest wins                     |
-| Recent health/error rate | 0.15           | Unhealthy deprioritized           |
-| Quota remaining          | 0.10           | Near-exhausted deprioritized      |
-| Context window match     | 0.08           | Penalizes short windows           |
-| Task fitness             | 0.10           | Coding → coding-specialist models |
-| Stability                | 0.00           | Disabled by default               |
+| Factor                   | Default weight | Notes                                                          |
+| ------------------------ | -------------- | -------------------------------------------------------------- |
+| Tier priority            | 0.05           | Tier 1 premium → higher score                                  |
+| Latency (p50 inverse)    | 0.35           | Fastest wins                                                   |
+| Cost ($/1M inverse)      | 0.20           | Cheapest **blended** price wins (60% input + 40% output ratio) |
+| Recent health/error rate | 0.15           | Unhealthy deprioritized                                        |
+| Quota remaining          | 0.10           | Near-exhausted deprioritized                                   |
+| Context window match     | 0.08           | Penalizes short windows                                        |
+| Task fitness             | 0.10           | Coding → coding-specialist models                              |
+| Stability                | 0.00           | Disabled by default                                            |
 
 Tier alone does **not** force Tier 1 first — if Tier 1 latency is bad or
 cost-vs-quality is suboptimal, Tier 2 wins. To force tier ordering, use combo

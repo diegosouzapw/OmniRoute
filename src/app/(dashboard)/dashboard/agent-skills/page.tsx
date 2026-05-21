@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   AGENT_SKILLS,
   AGENT_SKILLS_REPO_URL,
@@ -10,6 +11,7 @@ import {
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 function CopyButton({ url }: { url: string }) {
+  const t = useTranslations("agents");
   const { copied, copy } = useCopyToClipboard();
   const isCopied = copied === url;
 
@@ -21,17 +23,18 @@ function CopyButton({ url }: { url: string }) {
           ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
           : "bg-bg-subtle text-text-muted hover:text-text-main"
       }`}
-      title="Copy raw URL to clipboard"
+      title={t("copyRawUrlTitle")}
     >
       <span className="material-symbols-outlined text-[14px]">
         {isCopied ? "check" : "content_copy"}
       </span>
-      {isCopied ? "Copied!" : "Copy URL"}
+      {isCopied ? t("copied") : t("copyUrl")}
     </button>
   );
 }
 
 function SkillRow({ skill }: { skill: AgentSkill }) {
+  const t = useTranslations("agents");
   const rawUrl = getAgentSkillRawUrl(skill.id);
   const blobUrl = getAgentSkillBlobUrl(skill.id);
 
@@ -46,12 +49,12 @@ function SkillRow({ skill }: { skill: AgentSkill }) {
           <span className="text-sm font-semibold text-text-main">{skill.name}</span>
           {skill.isEntry && (
             <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-              Start Here
+              {t("startHere")}
             </span>
           )}
           {skill.isNew && (
             <span className="rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400">
-              New
+              {t("badgeNew")}
             </span>
           )}
           {skill.endpoint && (
@@ -69,7 +72,7 @@ function SkillRow({ skill }: { skill: AgentSkill }) {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-main"
-          title="View on GitHub"
+          title={t("viewOnGithub")}
         >
           <span className="material-symbols-outlined text-[14px]">open_in_new</span>
         </a>
@@ -109,6 +112,7 @@ function SkillSection({
 }
 
 export default function AgentSkillsPage() {
+  const t = useTranslations("agents");
   const apiSkills = AGENT_SKILLS.filter((s) => s.category === "api");
   const cliSkills = AGENT_SKILLS.filter((s) => s.category === "cli");
 
@@ -118,12 +122,12 @@ export default function AgentSkillsPage() {
       <div className="rounded-xl border border-border bg-bg-subtle/50 p-4">
         <div className="mb-2 flex items-center gap-2">
           <span className="material-symbols-outlined text-[18px] text-primary">info</span>
-          <span className="text-sm font-semibold text-text-main">How to use</span>
+          <span className="text-sm font-semibold text-text-main">{t("howToUse")}</span>
         </div>
         <ol className="space-y-1 text-xs text-text-muted">
           <li>
-            1. Click <strong className="text-text-main">Copy URL</strong> on the skill you want your
-            agent to know about.
+            1. Click <strong className="text-text-main">{t("copyUrl")}</strong> on the skill you
+            want your agent to know about.
           </li>
           <li>
             2. In your AI agent (Claude, Cursor, Cline…), say:
@@ -144,20 +148,20 @@ export default function AgentSkillsPage() {
           className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
         >
           <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-          Browse all skills on GitHub
+          {t("browseAllSkillsOnGithub")}
         </a>
       </div>
 
       {/* Two-column grid: API Skills | CLI Skills */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SkillSection
-          title="API Skills"
+          title={t("apiSkills")}
           subtitle={`${apiSkills.length} skills — control OmniRoute via REST / HTTP`}
           icon="api"
           skills={apiSkills}
         />
         <SkillSection
-          title="CLI Skills"
+          title={t("cliSkills")}
           subtitle={`${cliSkills.length} skills — control OmniRoute via the omniroute terminal binary`}
           icon="terminal"
           skills={cliSkills}

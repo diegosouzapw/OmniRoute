@@ -489,6 +489,14 @@ export function shouldMarkAccountExhaustedFrom429(
 }
 
 /**
+ * Clear all in-memory model lockouts and failure state (for tests / full reset).
+ */
+export function clearAllModelLockouts(): void {
+  modelLockouts.clear();
+  modelFailureState.clear();
+}
+
+/**
  * Check if a specific model on a specific account is locked
  * @returns {boolean}
  */
@@ -698,6 +706,25 @@ export function isProviderFailureCode(status: number): boolean {
   return PROVIDER_FAILURE_ERROR_CODES.has(status);
 }
 
+/**
+ * Returns true when a checkFallbackError result signals that the entire provider
+ * quota is exhausted for this request, so the combo router can skip remaining
+ * targets from the same provider (#1731).
+ *
+ * Covers:
+ *  - reason === "quota_exhausted"  (subscription, daily, credits)
+ *  - creditsExhausted flag
+ *  - dailyQuotaExhausted flag
+ */
+export function isProviderExhaustedReason(result: {
+  reason?: string;
+  creditsExhausted?: boolean;
+  dailyQuotaExhausted?: boolean;
+}): boolean {
+  if (result.creditsExhausted || result.dailyQuotaExhausted) return true;
+  return result.reason === RateLimitReason.QUOTA_EXHAUSTED;
+}
+
 // ─── Retry-After Parsing ────────────────────────────────────────────────────
 
 /**
@@ -786,6 +813,21 @@ function parseDelayString(value: unknown): number | null {
 export function parseRetryFromErrorText(errorText: unknown): number | null {
   if (!errorText || typeof errorText !== "string") return null;
 
+  // Issue #2321: Anthropic OAuth occasionally embeds an absolute ISO 8601
+  // timestamp instead of a relative duration (e.g. "Try again at
+  // 2026-05-17T10:00:00Z" or "Please wait until 2026-05-17T10:00:00.000Z").
+  // Convert to a future-duration in milliseconds if it parses.
+  const isoMatch = errorText.match(
+    /\b(?:try again at|wait until|reset(?:s)? at|available at|retry after)\s+(\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/i
+  );
+  if (isoMatch) {
+    const parsedTs = Date.parse(isoMatch[1]);
+    if (Number.isFinite(parsedTs)) {
+      const waitMs = parsedTs - Date.now();
+      if (waitMs > 0) return waitMs;
+    }
+  }
+
   const match = errorText.match(/reset after (\d+h)?(\d+m)?(\d+s)?/i);
   if (!match) {
     // Also try the variant without "reset after": "will reset after XhYmZs"
@@ -824,7 +866,17 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
     lower.includes("your quota will reset") ||
     lower.includes("quota has been exceeded") ||
     lower.includes("hour quota") ||
-    lower.includes("billing")
+    lower.includes("billing") ||
+    // Issue #2321: Anthropic OAuth (Claude Code Pro/Team) 429 bodies surface
+    // the subscription quota with phrases that contain neither "quota" nor
+    // "billing". Without these patterns the error was classified as a
+    // transient RATE_LIMIT_EXCEEDED (~5s base cooldown), which cascades all
+    // Pro accounts into a tight retry loop until the 5h window resets.
+    lower.includes("usage limit reached") ||
+    lower.includes("usage limit has been") ||
+    lower.includes("claude pro usage limit") ||
+    lower.includes("you've reached your usage limit") ||
+    lower.includes("you have reached your usage limit")
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
@@ -1102,6 +1154,38 @@ export function checkFallbackError(
         cooldownMs,
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         dailyQuotaExhausted: true,
+      };
+    }
+
+    // Issue #2321: Anthropic OAuth (Claude Pro/Team) returns 429 with
+    // "Usage Limit Reached" for the 5-hour subscription quota. The
+    // pattern-based classifier now flags these as QUOTA_EXHAUSTED, but
+    // without a dedicated branch the request would still fall through to
+    // the generic 429 retry path (~5s base cooldown). Honor any
+    // upstream retry hint (Retry-After header or ISO timestamp in the
+    // body) when present, otherwise apply a 1h cooldown so all Pro
+    // accounts on the same subscription tier stop cycling through tight
+    // retries until the window genuinely resets. (We deliberately do not
+    // use COOLDOWN_MS.paymentRequired here — that constant is 2 minutes,
+    // which is shorter than the recovery time of a subscription quota.)
+    if (
+      shouldUseQuotaSignal &&
+      !isCreditsExhausted(errorStr) &&
+      !isDailyQuotaExhausted(errorStr) &&
+      classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
+    ) {
+      // For a quota error the upstream reset hint (Retry-After header or
+      // ISO timestamp embedded in the body) is the most accurate wait.
+      // We honor it even when the resilience profile does not opt-in to
+      // generic upstream retry hints — a subscription quota has a
+      // definite recovery time, not a best-effort transient backoff.
+      const hintMs = getUpstreamRetryHintMs() ?? parseRetryFromErrorText(errorStr) ?? null;
+      const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+      return {
+        shouldFallback: true,
+        cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        usedUpstreamRetryHint: Boolean(hintMs),
       };
     }
 

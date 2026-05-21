@@ -8,6 +8,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface CompressionAnalyticsSummary {
   totalRequests: number;
@@ -116,6 +117,7 @@ function ProviderBar({
 }
 
 export default function CompressionAnalyticsTab() {
+  const t = useTranslations("analytics");
   const [stats, setStats] = useState<CompressionAnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -192,25 +194,33 @@ export default function CompressionAnalyticsTab() {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         <StatCard
           icon="compress"
-          label="Total Requests"
+          label={t("compressionAnalyticsTotalRequests")}
           value={stats.totalRequests.toLocaleString()}
         />
         <StatCard
           icon="token"
-          label="Tokens Saved"
+          label={t("compressionAnalyticsTokensSaved")}
           value={stats.totalTokensSaved.toLocaleString()}
         />
-        <StatCard icon="percent" label="Avg Savings" value={`${stats.avgSavingsPct}%`} />
-        <StatCard icon="timer" label="Avg Duration" value={`${stats.avgDurationMs}ms`} />
+        <StatCard
+          icon="percent"
+          label={t("compressionAnalyticsAvgSavings")}
+          value={`${stats.avgSavingsPct}%`}
+        />
+        <StatCard
+          icon="timer"
+          label={t("compressionAnalyticsAvgDuration")}
+          value={`${stats.avgDurationMs}ms`}
+        />
         <StatCard
           icon="receipt_long"
-          label="Receipts"
+          label={t("compressionAnalyticsReceipts")}
           value={stats.realUsage.requestsWithReceipts.toLocaleString()}
           sub={`${stats.realUsage.totalTokens.toLocaleString()} real tokens`}
         />
         <StatCard
           icon="verified"
-          label="Fallbacks"
+          label={t("compressionAnalyticsFallbacks")}
           value={stats.validationFallbacks.toLocaleString()}
           sub="validation restores"
         />
@@ -224,25 +234,25 @@ export default function CompressionAnalyticsTab() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
             <div>
-              <div className="text-text-muted">Prompt tokens</div>
+              <div className="text-text-muted">{t("compressionAnalyticsPromptTokens")}</div>
               <div className="text-lg font-semibold text-text">
                 {stats.realUsage.promptTokens.toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-text-muted">Completion tokens</div>
+              <div className="text-text-muted">{t("compressionAnalyticsCompletionTokens")}</div>
               <div className="text-lg font-semibold text-text">
                 {stats.realUsage.completionTokens.toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-text-muted">Total tokens</div>
+              <div className="text-text-muted">{t("compressionAnalyticsTotalTokens")}</div>
               <div className="text-lg font-semibold text-text">
                 {stats.realUsage.totalTokens.toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-text-muted">Cache tokens</div>
+              <div className="text-text-muted">{t("compressionAnalyticsCacheTokens")}</div>
               <div className="text-lg font-semibold text-text">
                 {(
                   (stats.realUsage.cacheReadTokens ?? 0) + (stats.realUsage.cacheWriteTokens ?? 0)
@@ -345,7 +355,7 @@ export default function CompressionAnalyticsTab() {
           <span className="material-symbols-outlined text-[48px] mb-3 block text-primary opacity-50">
             compress
           </span>
-          <p className="font-medium text-text">No compression data yet</p>
+          <p className="font-medium text-text">{t("compressionAnalyticsNoDataYet")}</p>
           <p className="text-sm mt-1">
             Use <code className="bg-bg-muted px-1 rounded">POST /v1/chat/completions</code> with
             compression configuration to start tracking compression analytics.

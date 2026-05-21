@@ -292,3 +292,43 @@ test("extractUsage reads OpenAI streaming chunk with prompt_tokens_details", () 
   assert.equal(usage.cached_tokens, 50);
   assert.equal(usage.reasoning_tokens, 20);
 });
+
+// ── Flat field extraction tests (Xiaomi MiMo-style providers) ──
+
+test("extractUsageFromResponse reads flat cached_tokens and reasoning_tokens from OpenAI-compatible usage", () => {
+  const usage = extractUsageFromResponse(
+    {
+      usage: {
+        prompt_tokens: 258,
+        completion_tokens: 50,
+        total_tokens: 308,
+        cached_tokens: 192,
+        reasoning_tokens: 49,
+      },
+    },
+    "xiaomi-mimo"
+  );
+
+  assert.deepEqual(usage, {
+    prompt_tokens: 258,
+    completion_tokens: 50,
+    cached_tokens: 192,
+    reasoning_tokens: 49,
+  });
+});
+
+test("extractUsage reads flat cached_tokens and reasoning_tokens from streaming chunk", () => {
+  const usage = extractUsage({
+    choices: [{ delta: {}, finish_reason: "stop" }],
+    usage: {
+      prompt_tokens: 258,
+      completion_tokens: 50,
+      total_tokens: 308,
+      cached_tokens: 192,
+      reasoning_tokens: 49,
+    },
+  });
+
+  assert.equal(usage.cached_tokens, 192);
+  assert.equal(usage.reasoning_tokens, 49);
+});

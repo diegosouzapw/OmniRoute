@@ -44,16 +44,18 @@ export async function POST(request: Request) {
     if (isValidationFailure(validation)) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { refreshToken } = validation.data;
+    const { refreshToken, region } = validation.data;
 
     const kiroService = new KiroService();
 
     // Resolve proxy for this provider (provider-level → global → direct)
     const proxy = await resolveProxyForProvider(targetProvider);
 
-    // Validate and refresh token (through proxy if configured)
+    // Validate and refresh token (through proxy if configured).
+    // validateImportToken also calls registerClient() to obtain a per-connection OIDC
+    // client pair so multiple Kiro accounts do not share a single backend session (#2328).
     const tokenData = await runWithProxyContext(proxy, () =>
-      kiroService.validateImportToken(refreshToken.trim())
+      kiroService.validateImportToken(refreshToken.trim(), region)
     );
 
     // Extract email from JWT if available
@@ -71,6 +73,16 @@ export async function POST(request: Request) {
         profileArn: tokenData.profileArn,
         authMethod: "imported",
         provider: "Imported",
+        ...(tokenData.clientId
+          ? {
+              clientId: tokenData.clientId,
+              clientSecret: tokenData.clientSecret,
+              region,
+              ...(tokenData.clientSecretExpiresAt
+                ? { clientSecretExpiresAt: tokenData.clientSecretExpiresAt }
+                : {}),
+            }
+          : {}),
       },
       testStatus: "active",
     });

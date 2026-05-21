@@ -36,7 +36,8 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   costs: "costsDescription",
   analytics: "analyticsDescription",
   cache: "cacheDescription",
-  limits: "limitsDescription",
+  quota: "limitsDescription",
+  runtime: "runtimeDescription",
   media: "mediaDescription",
   agents: "agentsDescription",
   "cloud-agents": "cloudAgentsDescription",
@@ -90,10 +91,6 @@ const HEADER_DESCRIPTIONS: Partial<Record<HideableSidebarItemId, string>> = {
   "1proxy": "oneProxyDescription",
   // OmniProxy items
   "cli-tools": "cliToolsDescription",
-  agents: "agentsDescription",
-  "cloud-agents": "cloudAgentsDescription",
-  "api-endpoints": "apiEndpointsDescription",
-  webhooks: "webhooksDescription",
 };
 
 // Build href → sidebar item lookup (non-external items only)

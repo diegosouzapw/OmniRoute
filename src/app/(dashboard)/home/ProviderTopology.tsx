@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   ReactFlow,
   Handle,
@@ -280,6 +281,7 @@ export default function ProviderTopology({
   lastProvider = "",
   errorProvider = "",
 }: Props) {
+  const t = useTranslations("common");
   const activeKey = useMemo(
     () =>
       activeRequests
@@ -377,7 +379,7 @@ export default function ProviderTopology({
       {providers.length === 0 ? (
         <div className="h-full flex flex-col items-center justify-center gap-2 text-text-muted">
           <span className="material-symbols-outlined text-[32px]">device_hub</span>
-          <p className="text-sm">No providers connected yet</p>
+          <p className="text-sm">{t("providerTopologyEmpty")}</p>
         </div>
       ) : (
         <ReactFlow

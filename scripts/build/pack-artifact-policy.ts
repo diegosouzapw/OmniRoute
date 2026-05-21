@@ -78,15 +78,19 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/postinstall.mjs",
   "scripts/build/postinstallSupport.mjs",
+  "scripts/build/sync-env.mjs",
   "scripts/dev/responses-ws-proxy.mjs",
   "scripts/dev/sync-env.mjs",
+  "scripts/postinstall.mjs",
   "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
+  "@omniroute/opencode-provider/",
   "bin/cli/",
   "open-sse/mcp-server/schemas/",
   "open-sse/mcp-server/tools/",
+  "src/lib/cli-helper/",
   "src/shared/contracts/",
 ];
 

@@ -372,7 +372,7 @@ export default function SkillsPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Filter skills by name, description, or tag"
+                placeholder={t("filterSkillsPlaceholder")}
                 className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
               <select
@@ -380,7 +380,7 @@ export default function SkillsPage() {
                 onChange={(e) => setModeFilter(e.target.value as "all" | "on" | "off" | "auto")}
                 className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               >
-                <option value="all">All modes</option>
+                <option value="all">{t("allModes")}</option>
                 <option value="on">On</option>
                 <option value="auto">Auto</option>
                 <option value="off">Off</option>
@@ -659,7 +659,7 @@ export default function SkillsPage() {
       {activeTab === "marketplace" && (
         <div className="grid gap-4">
           <Card>
-            <h3 className="font-semibold mb-2">Skills Marketplace</h3>
+            <h3 className="font-semibold mb-2">{t("skillsMarketplace")}</h3>
             <p className="text-sm text-text-muted mb-4">
               Active provider:{" "}
               <span className="font-medium">
@@ -775,7 +775,7 @@ export default function SkillsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-lg mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Install Skill</h2>
+              <h2 className="text-lg font-semibold">{t("installSkill")}</h2>
               <button
                 onClick={() => {
                   setShowInstallModal(false);

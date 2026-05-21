@@ -7,6 +7,7 @@
 
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 interface SearchStats {
@@ -76,6 +77,7 @@ function ProviderBar({
 }
 
 export default function SearchAnalyticsTab() {
+  const t = useTranslations("analytics");
   const [stats, setStats] = useState<SearchStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -122,25 +124,25 @@ export default function SearchAnalyticsTab() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon="manage_search"
-          label="Total Searches"
+          label={t("searchAnalyticsTotalSearches")}
           value={stats.total.toLocaleString()}
           sub={`${stats.today} today`}
         />
         <StatCard
           icon="cached"
-          label="Cache Hit Rate"
+          label={t("searchAnalyticsCacheHitRate")}
           value={`${stats.cacheHitRate}%`}
           sub={`${stats.cached} cached requests`}
         />
         <StatCard
           icon="attach_money"
-          label="Total Cost"
+          label={t("searchAnalyticsTotalCost")}
           value={`$${stats.totalCostUsd.toFixed(4)}`}
           sub="search API costs"
         />
         <StatCard
           icon="timer"
-          label="Avg Response"
+          label={t("searchAnalyticsAvgResponse")}
           value={`${stats.avgDurationMs}ms`}
           sub={stats.errors > 0 ? `${stats.errors} errors` : "No errors"}
         />
@@ -173,7 +175,7 @@ export default function SearchAnalyticsTab() {
           <span className="material-symbols-outlined text-[48px] mb-3 block text-primary opacity-50">
             travel_explore
           </span>
-          <p className="font-medium text-text">No searches yet</p>
+          <p className="font-medium text-text">{t("searchAnalyticsNoSearchesYet")}</p>
           <p className="text-sm mt-1">
             Use <code className="bg-bg-muted px-1 rounded">POST /v1/search</code> to start routing
             web searches.

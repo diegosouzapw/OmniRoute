@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,6 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
-import { TierCoverageWidget } from "./TierCoverageWidget";
 
 type UpdateStep = {
   step: string;
@@ -79,9 +78,11 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
 }
 
 export default function HomePageClient({ machineId }: HomePageClientProps) {
+  const router = useRouter();
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
+  const tp = useTranslations("providers");
   const [providerConnections, setProviderConnections] = useState([]);
   const [models, setModels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,6 +135,94 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // T07: Check for unhealthy API keys and show notification (once per session)
+  const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const checkApiKeyHealth = () => {
+      const newUnhealthyKeys = new Set<string>();
+      const unhealthyProviderIds = new Set<string>();
+      const unhealthyConnections: string[] = [];
+      let firstUnhealthyProviderId: string | null = null;
+      let hasWarning = false;
+
+      for (const conn of providerConnections) {
+        const health = conn.providerSpecificData?.apiKeyHealth as
+          | Record<
+              string,
+              {
+                status: "active" | "warning" | "invalid";
+                failures: number;
+                lastFailure: string | null;
+              }
+            >
+          | undefined;
+        if (!health) continue;
+
+        // Defense-in-depth: skip stale extra_N health entries whose index
+        // is out of range of the current extraApiKeys list.
+        // The backend cleans this up on PATCH, but existing stale data from
+        // before the fix or other code paths could still have orphan entries.
+        const extras: string[] = conn.providerSpecificData?.extraApiKeys ?? [];
+        const extraKeyCount = Array.isArray(extras) ? extras.length : 0;
+
+        const unhealthyKeys = Object.entries(health).filter(([keyId, h]) => {
+          if (h.status !== "invalid" && h.status !== "warning") return false;
+          // extra_N entries: only flag if the index is still within bounds
+          if (keyId.startsWith("extra_")) {
+            const idx = parseInt(keyId.slice(6), 10);
+            if (isNaN(idx) || idx >= extraKeyCount) return false;
+          }
+          return true;
+        });
+
+        if (unhealthyKeys.length > 0) {
+          for (const [, h] of unhealthyKeys) {
+            if (h.status === "warning") hasWarning = true;
+            break;
+          }
+          for (const [keyId] of unhealthyKeys) {
+            newUnhealthyKeys.add(`${conn.id}:${keyId}`);
+          }
+          if (firstUnhealthyProviderId === null) {
+            firstUnhealthyProviderId = conn.provider;
+          }
+          unhealthyConnections.push(conn.name || conn.id);
+          unhealthyProviderIds.add(conn.provider);
+        }
+      }
+
+      // Only notify for newly unhealthy keys (not already notified)
+      const hasNewUnhealthy = Array.from(newUnhealthyKeys).some(
+        (k) => !notifiedUnhealthyKeys.current.has(k)
+      );
+      if (hasNewUnhealthy) {
+        const navigateTo =
+          newUnhealthyKeys.size === 1 && firstUnhealthyProviderId
+            ? `/dashboard/providers/${firstUnhealthyProviderId}`
+            : `/dashboard/providers?search=${encodeURIComponent(Array.from(unhealthyProviderIds).join(" "))}`;
+
+        const notificationType = hasWarning ? "warning" : "error";
+
+        useNotificationStore.getState().addNotification({
+          type: notificationType,
+          message: tp(hasWarning ? "apiKeyWarningAlert" : "apiKeyInvalidAlert", {
+            count: newUnhealthyKeys.size,
+            connections: unhealthyConnections.join(", "),
+          }),
+          title: tp(hasWarning ? "apiKeyWarningAlertTitle" : "apiKeyInvalidAlertTitle"),
+          duration: 10000,
+          onClick: () => router.push(navigateTo),
+        });
+        // Mark all current unhealthy keys as notified
+        newUnhealthyKeys.forEach((k) => notifiedUnhealthyKeys.current.add(k));
+      }
+    };
+
+    if (providerConnections.length > 0) {
+      checkApiKeyHealth();
+    }
+  }, [providerConnections, t, tp, router]);
 
   const providerStats = useMemo(() => {
     return Object.entries(AI_PROVIDERS).map(([providerId, providerInfo]) => {
@@ -538,7 +627,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                     {updateSteps.find((s) => s.step === "complete")?.message || "Update complete!"}
                   </p>
-                  <p className="text-xs text-text-muted mt-1">Reloading page automatically...</p>
+                  <p className="text-xs text-text-muted mt-1">{t("reloadingPageAutomatically")}</p>
                 </div>
               )}
             </div>
@@ -719,14 +808,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
       </Card>
 
-      {/* Tier Coverage */}
-      <TierCoverageWidget />
-
       {/* Provider Topology */}
       <Card>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-base font-semibold">Provider Topology</h2>
+            <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
             <p className="text-xs text-text-muted">
               Connected providers routing through OmniRoute in real time
             </p>

@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { Badge } from "@/shared/components";
-
-const Editor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+import Editor from "@/shared/components/MonacoEditor";
 
 interface SearchResult {
   title: string;

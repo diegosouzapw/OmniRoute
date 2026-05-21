@@ -14,16 +14,12 @@
  */
 
 import { createInterface } from "node:readline";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
-import bcrypt from "bcryptjs";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { resolveDataDir, resolveStoragePath } from "./cli/data-dir.mjs";
+import { readManagementPasswordState, resetManagementPassword } from "./cli/sqlite.mjs";
 
 // Resolve data directory — same logic as the server
-const DATA_DIR = process.env.DATA_DIR || resolve(__dirname, "..", "data");
-const DB_PATH = resolve(DATA_DIR, "settings.db");
+const DATA_DIR = resolveDataDir();
+const DB_PATH = resolveStoragePath(DATA_DIR);
 
 const rl = createInterface({
   input: process.stdin,
@@ -34,37 +30,19 @@ function ask(question) {
   return new Promise((resolve) => rl.question(question, resolve));
 }
 
-function generateSecretDigest(input) {
-  // Use bcrypt with a salt round of 10 to match login/route.ts expectations
-  // and resolve CodeQL js/insufficient-password-hash warning.
-  return bcrypt.hashSync(input, 10);
-}
-
 console.log("\n🔑 OmniRoute — Password Reset\n");
 
 async function main() {
   // Check if database exists
-  if (!existsSync(DB_PATH)) {
+  const passwordState = await readManagementPasswordState(DB_PATH);
+  if (!passwordState.exists) {
     console.error(`❌ Database not found at: ${DB_PATH}`);
     console.error(`   Make sure OmniRoute has been started at least once.`);
     console.error(`   Or set DATA_DIR env var to your data directory.\n`);
     process.exit(1);
   }
 
-  let Database;
-  try {
-    Database = (await import("better-sqlite3")).default;
-  } catch {
-    console.error("❌ better-sqlite3 not installed. Run: npm install");
-    process.exit(1);
-  }
-
-  const db = new Database(DB_PATH);
-
-  // Check current settings
-  const row = db.prepare("SELECT value FROM settings WHERE key = 'password'").get();
-
-  if (row) {
+  if (passwordState.hasPassword) {
     console.log("ℹ️  A password is currently set.");
   } else {
     console.log("ℹ️  No password is currently set.");
@@ -74,7 +52,6 @@ async function main() {
 
   if (!password || password.length < 8) {
     console.error("\n❌ Password must be at least 8 characters.\n");
-    db.close();
     rl.close();
     process.exit(1);
   }
@@ -83,28 +60,11 @@ async function main() {
 
   if (password !== confirm) {
     console.error("\n❌ Passwords do not match.\n");
-    db.close();
     rl.close();
     process.exit(1);
   }
 
-  const hashed = generateSecretDigest(password);
-
-  // Upsert the password
-  const stmt = db.prepare(`
-    INSERT INTO settings (key, value) VALUES ('password', ?)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value
-  `);
-  stmt.run(hashed);
-
-  // Also ensure requireLogin is true
-  const loginStmt = db.prepare(`
-    INSERT INTO settings (key, value) VALUES ('requireLogin', 'true')
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value
-  `);
-  loginStmt.run();
-
-  db.close();
+  await resetManagementPassword(password, DB_PATH);
   rl.close();
 
   console.log("\n✅ Password reset successfully!");

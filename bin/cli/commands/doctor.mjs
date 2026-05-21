@@ -7,6 +7,7 @@ import { pathToFileURL } from "node:url";
 import { resolveDataDir, resolveStoragePath } from "../data-dir.mjs";
 import { printHeading } from "../io.mjs";
 import { t } from "../i18n.mjs";
+import { readDatabaseHealth, readEncryptedCredentialSamples } from "../sqlite.mjs";
 
 const STATIC_SALT = "omniroute-field-encryption-v1";
 const KEY_LENGTH = 32;
@@ -78,14 +79,6 @@ function checkConfig(dataDir) {
   return ok("Config", `.env found at ${envFile}`, { envFile });
 }
 
-async function loadBetterSqlite() {
-  try {
-    return (await import("better-sqlite3")).default;
-  } catch (error) {
-    return { error };
-  }
-}
-
 function resolveMigrationsDir(rootDir) {
   const configured = process.env.OMNIROUTE_MIGRATIONS_DIR;
   const candidates = [
@@ -115,18 +108,9 @@ async function checkDatabase(dbPath, rootDir) {
     return warn("Database", `SQLite database not found at ${dbPath}`, { dbPath });
   }
 
-  const Database = await loadBetterSqlite();
-  if (Database.error) {
-    return fail("Database", "better-sqlite3 could not be loaded", {
-      error: Database.error instanceof Error ? Database.error.message : String(Database.error),
-    });
-  }
-
-  let db;
   try {
-    db = new Database(dbPath, { readonly: true, fileMustExist: true });
-    const quickCheck = db.prepare("PRAGMA quick_check").get();
-    const quickCheckValue = Object.values(quickCheck || {})[0];
+    const { quickCheckValue, hasMigrationTable, appliedMigrationVersions } =
+      await readDatabaseHealth(dbPath);
     if (quickCheckValue !== "ok") {
       return fail("Database", `SQLite quick_check failed: ${quickCheckValue}`, { dbPath });
     }
@@ -137,18 +121,11 @@ async function checkDatabase(dbPath, rootDir) {
       return ok("Database", "SQLite quick_check passed", { dbPath, migrations: "not_checked" });
     }
 
-    const table = db
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-      .get("_omniroute_migrations");
-    if (!table) {
+    if (!hasMigrationTable) {
       return warn("Database", "SQLite is readable, but migration table is missing", { dbPath });
     }
 
-    const appliedRows = db
-      .prepare("SELECT version FROM _omniroute_migrations")
-      .all()
-      .map((row) => row.version);
-    const applied = new Set(appliedRows);
+    const applied = new Set(appliedMigrationVersions);
     const pending = migrationFiles.filter((migration) => !applied.has(migration.version));
 
     if (pending.length > 0) {
@@ -164,8 +141,6 @@ async function checkDatabase(dbPath, rootDir) {
       dbPath,
       error: error instanceof Error ? error.message : String(error),
     });
-  } finally {
-    if (db) db.close();
   }
 }
 
@@ -203,41 +178,13 @@ async function checkStorageEncryption(dbPath) {
       : warn("Storage/encryption", "No STORAGE_ENCRYPTION_KEY configured; passthrough mode");
   }
 
-  const Database = await loadBetterSqlite();
-  if (Database.error) {
-    return fail("Storage/encryption", "Could not inspect encrypted credentials", {
-      error: Database.error instanceof Error ? Database.error.message : String(Database.error),
-    });
-  }
-
-  let db;
   try {
-    db = new Database(dbPath, { readonly: true, fileMustExist: true });
-    const hasProviderTable = db
-      .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-      .get("provider_connections");
+    const { hasProviderTable, encryptedValues } = await readEncryptedCredentialSamples(dbPath);
     if (!hasProviderTable) {
       return secret
         ? ok("Storage/encryption", "Encryption key is configured; provider table not initialized")
         : warn("Storage/encryption", "No STORAGE_ENCRYPTION_KEY configured; passthrough mode");
     }
-
-    const rows = db
-      .prepare(
-        `SELECT api_key, access_token, refresh_token, id_token
-         FROM provider_connections
-         WHERE api_key LIKE 'enc:v1:%'
-            OR access_token LIKE 'enc:v1:%'
-            OR refresh_token LIKE 'enc:v1:%'
-            OR id_token LIKE 'enc:v1:%'
-         LIMIT 20`
-      )
-      .all();
-    const encryptedValues = rows.flatMap((row) =>
-      ["api_key", "access_token", "refresh_token", "id_token"]
-        .filter((key) => typeof row[key] === "string" && row[key].startsWith("enc:v1:"))
-        .map((key) => row[key])
-    );
 
     if (encryptedValues.length === 0) {
       return secret
@@ -268,8 +215,6 @@ async function checkStorageEncryption(dbPath) {
     return fail("Storage/encryption", "Encrypted credential check failed", {
       error: error instanceof Error ? error.message : String(error),
     });
-  } finally {
-    if (db) db.close();
   }
 }
 

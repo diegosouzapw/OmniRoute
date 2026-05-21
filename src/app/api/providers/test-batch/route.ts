@@ -10,6 +10,7 @@ import {
   SEARCH_PROVIDERS,
   AUDIO_ONLY_PROVIDERS,
   CLOUD_AGENT_PROVIDERS,
+  IDE_PROVIDER_IDS,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -103,6 +104,8 @@ export async function POST(request) {
       );
     } else if (mode === "cloud-agent") {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "cloud-agent");
+    } else if (mode === "ide") {
+      connectionsToTest = allConnections.filter((c) => IDE_PROVIDER_IDS.has(c.provider));
     } else if (mode === "compatible") {
       connectionsToTest = allConnections.filter((c) => isCompatibleProvider(c.provider));
     } else if (mode === "all") {
@@ -111,7 +114,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent",
+            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide",
         },
         { status: 400 }
       );

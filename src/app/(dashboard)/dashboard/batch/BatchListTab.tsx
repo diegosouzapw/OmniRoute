@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import BatchDetailModal from "./BatchDetailModal";
 
 function relativeTime(ts: number): string {
@@ -131,6 +132,7 @@ export default function BatchListTab({
   loading,
   onRefresh,
 }: Readonly<BatchListTabProps>) {
+  const t = useTranslations("common");
   const [selectedBatch, setSelectedBatch] = useState<BatchRecord | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -199,7 +201,7 @@ export default function BatchListTab({
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <input
           type="text"
-          placeholder="Search by ID, endpoint, model…"
+          placeholder={t("batchListSearchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 min-w-[200px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
@@ -219,7 +221,7 @@ export default function BatchListTab({
           onClick={handleRemoveCompleted}
           disabled={removingCompleted}
           className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-          title="Delete all completed batches"
+          title={t("batchListDeleteAllCompletedTitle")}
         >
           <span className="material-symbols-outlined text-[16px]">
             {removingCompleted ? "hourglass_empty" : "delete_sweep"}
@@ -230,7 +232,7 @@ export default function BatchListTab({
 
       {/* Table */}
       <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm" role="table" aria-label="Batches">
+        <table className="w-full text-sm" role="table" aria-label={t("batchListBatchesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
@@ -338,7 +340,7 @@ export default function BatchListTab({
                           onClick={(e) => handleDeleteBatch(e, batch)}
                           disabled={deletingId === batch.id}
                           className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors whitespace-nowrap disabled:opacity-50"
-                          title="Delete batch and its files"
+                          title={t("batchListDeleteBatchTitle")}
                         >
                           <span className="material-symbols-outlined text-[13px]">
                             {deletingId === batch.id ? "hourglass_empty" : "delete"}

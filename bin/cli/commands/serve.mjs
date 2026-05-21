@@ -6,6 +6,7 @@ import { platform } from "node:os";
 import { t } from "../i18n.mjs";
 import { writePidFile, cleanupPidFile, waitForServer } from "../utils/pid.mjs";
 import { ServerSupervisor, detectMitmCrash } from "../runtime/processSupervisor.mjs";
+import { isTermux } from "../../../scripts/build/postinstallSupport.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..", "..", "..");
@@ -330,7 +331,7 @@ async function onReady(dashboardPort, apiPort, noOpen) {
   \x1b[2m  Press Ctrl+C to stop\x1b[0m
   `);
 
-  if (!noOpen) {
+  if (!noOpen && !isTermux()) {
     try {
       const open = await import("open");
       await open.default(dashboardUrl);

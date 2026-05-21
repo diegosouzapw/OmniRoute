@@ -1,6 +1,6 @@
 ---
 title: "OmniRoute Architecture"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-13
 ---
 
@@ -17,7 +17,7 @@ It provides a single OpenAI-compatible endpoint (`/v1/*`) and routes traffic acr
 
 Core capabilities:
 
-- OpenAI-compatible API surface for CLI/tools (177 providers, 31 executors)
+- OpenAI-compatible API surface for CLI/tools (177 providers, 38 executors)
 - Request/response translation across provider formats
 - Model combo fallback (multi-model sequence)
 - Structured combo steps (`provider + model + connection`) with runtime ordering by `compositeTiers`

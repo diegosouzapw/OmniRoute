@@ -67,6 +67,47 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+// Generate STORAGE_ENCRYPTION_KEY if not set (persisted to ~/.omniroute/.env)
+// This ensures the key survives across upgrades and is not regenerated on each install.
+// See: https://github.com/diegosouzapw/OmniRoute/issues/1622
+{
+  const { randomBytes } = await import("node:crypto");
+  const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { homedir } = await import("node:os");
+
+  if (!process.env.STORAGE_ENCRYPTION_KEY) {
+    const dataDir = join(homedir(), ".omniroute");
+    const envPath = join(dataDir, ".env");
+
+    // Ensure data directory exists
+    if (!existsSync(dataDir)) {
+      mkdirSync(dataDir, { recursive: true });
+    }
+
+    const key = randomBytes(32).toString("hex");
+
+    // Read existing .env content or start fresh
+    let content = "";
+    if (existsSync(envPath)) {
+      content = readFileSync(envPath, "utf-8");
+    }
+
+    // Append key if not already present
+    if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
+      const separator = content.trim() ? "\n" : "";
+      const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
+      writeFileSync(envPath, newContent + "\n", "utf-8");
+      console.log(
+        "  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ~/.omniroute/.env\x1b[0m"
+      );
+    }
+
+    // Set in process.env for immediate use
+    process.env.STORAGE_ENCRYPTION_KEY = key;
+  }
+}
+
 // Apply --lang before Commander parses (program descriptions call t() during setup)
 {
   const langIdx = process.argv.findIndex((a) => a === "--lang");

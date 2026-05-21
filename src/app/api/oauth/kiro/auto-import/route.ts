@@ -222,6 +222,26 @@ async function saveAndRespond(
     if (result.region) providerSpecificData.region = result.region;
     if (profileArn) providerSpecificData.profileArn = profileArn;
 
+    // For the SSO-cache fallback path the token came from ~/.aws/sso/cache and has no
+    // per-connection OIDC client. Register one now so this connection gets an isolated
+    // refresh session (#2328). The SQLite path already sets result.clientId.
+    if (!result.clientId) {
+      try {
+        const reg = await runWithProxyContext(proxy, () => kiroService.registerClient());
+        providerSpecificData.clientId = reg.clientId;
+        providerSpecificData.clientSecret = reg.clientSecret;
+        providerSpecificData.region = "us-east-1";
+        if (reg.clientSecretExpiresAt) {
+          providerSpecificData.clientSecretExpiresAt = reg.clientSecretExpiresAt;
+        }
+      } catch (err) {
+        console.warn(
+          "[kiro auto-import] registerClient failed, continuing without isolated client:",
+          err
+        );
+      }
+    }
+
     // Refresh token to get a fresh access token and confirm it works
     const refreshed = await runWithProxyContext(proxy, () =>
       kiroService.refreshToken(refreshToken, providerSpecificData)

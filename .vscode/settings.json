@@ -1,4 +1,5 @@
 {
+  "workbench.sideBar.location": "left",
   "css.lint.unknownAtRules": "ignore",
   "sonarlint.rules": {
     "css:S4662": {

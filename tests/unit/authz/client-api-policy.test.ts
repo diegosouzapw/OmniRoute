@@ -151,3 +151,17 @@ test("clientApiPolicy: environment API key remains accepted for client API route
     assert.equal(out.subject.kind, "client_api_key");
   }
 });
+
+test("clientApiPolicy: x-api-key header is accepted as client_api_key subject", async () => {
+  const created = await apiKeysDb.createApiKey("policy-test-xkey", "machine-xkey-1234");
+  assert.ok(created?.key, "createApiKey must return a key");
+
+  const policy = await loadPolicy();
+  const headers = new Headers({ "x-api-key": created.key });
+  const out = await policy.evaluate(ctx(headers));
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "client_api_key");
+    assert.match(out.subject.id, /^key_/);
+  }
+});

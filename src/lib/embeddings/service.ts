@@ -11,7 +11,8 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
 import { getProviderCredentials, clearRecoveredProviderState } from "@/sse/services/auth";
-import { getProviderNodes } from "@/lib/localDb";
+import { getProviderNodes, getComboByName, getCombos, getDatabaseSettings } from "@/lib/localDb";
+import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 
@@ -30,6 +31,42 @@ export async function createEmbeddingResponse(
   body: ValidatedEmbeddingBody,
   options: EmbeddingHandlerOptions = {}
 ): Promise<Response> {
+  const modelStr = body.model;
+
+  if (!modelStr.includes("/")) {
+    try {
+      const combo = await getComboByName(modelStr);
+      if (combo) {
+        let allCombos = [];
+        try {
+          allCombos = await getCombos();
+        } catch {}
+
+        let settings = {};
+        try {
+          settings = getDatabaseSettings();
+        } catch {}
+
+        return handleComboChat({
+          body,
+          combo,
+          handleSingleModel: async (reqBody: any, targetModelStr: string, target?: any) => {
+            const newBody = { ...reqBody, model: targetModelStr };
+            return createEmbeddingResponse(newBody, {
+              ...options,
+              connectionId: target?.connectionId || options.connectionId,
+            });
+          },
+          log,
+          settings,
+          allCombos,
+          signal: undefined,
+        });
+      }
+    } catch (err) {
+      log.error("EMBED", `Combo resolution failed for ${modelStr}: ${err}`);
+    }
+  }
   let dynamicProviders: ReturnType<typeof buildDynamicEmbeddingProvider>[] = [];
   try {
     const nodes = (await getProviderNodes()) as unknown as EmbeddingProviderNodeRow[];

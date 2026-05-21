@@ -80,7 +80,7 @@ test("AntigravityExecutor.buildHeaders includes native headers without OmniRoute
 
   assert.equal(headers.Authorization, "Bearer ag-token");
   assert.equal(headers.Accept, "text/event-stream");
-  assert.match(headers["User-Agent"], /^Antigravity\/4\.1\.33 /);
+  assert.match(headers["User-Agent"], /^Antigravity\/4\.2\.0 /);
   assert.equal(headers["X-OmniRoute-Source"], undefined);
 });
 

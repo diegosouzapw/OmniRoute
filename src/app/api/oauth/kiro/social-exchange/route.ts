@@ -44,6 +44,20 @@ export async function POST(request: Request) {
     // Exchange code for tokens (redirect_uri handled internally)
     const tokenData = await kiroService.exchangeSocialCode(code, codeVerifier);
 
+    // Register an independent OIDC client for this connection so multiple Kiro accounts
+    // do not share a single backend session (#2328). Failure is non-fatal; the
+    // connection will degrade to the shared social-auth refresh path.
+    let oidcRegistration: {
+      clientId?: string;
+      clientSecret?: string;
+      clientSecretExpiresAt?: number;
+    } = {};
+    try {
+      oidcRegistration = await kiroService.registerClient();
+    } catch (err) {
+      console.warn("[kiro social-exchange] registerClient failed, continuing without it:", err);
+    }
+
     // Extract email from JWT if available
     const email = kiroService.extractEmailFromJWT(tokenData.accessToken);
 
@@ -59,6 +73,16 @@ export async function POST(request: Request) {
         profileArn: tokenData.profileArn,
         authMethod: provider, // "google" or "github"
         provider: provider.charAt(0).toUpperCase() + provider.slice(1),
+        ...(oidcRegistration.clientId
+          ? {
+              clientId: oidcRegistration.clientId,
+              clientSecret: oidcRegistration.clientSecret,
+              region: "us-east-1",
+              ...(oidcRegistration.clientSecretExpiresAt
+                ? { clientSecretExpiresAt: oidcRegistration.clientSecretExpiresAt }
+                : {}),
+            }
+          : {}),
       },
       testStatus: "active",
     });

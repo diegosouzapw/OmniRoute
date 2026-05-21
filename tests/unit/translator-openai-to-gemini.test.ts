@@ -620,6 +620,75 @@ test("OpenAI -> Antigravity wraps Gemini requests in a Cloud Code envelope", () 
   });
 });
 
+test("OpenAI -> Antigravity Gemini stringifies signature-less historical tool calls", () => {
+  const result = openaiToAntigravityRequest(
+    "gemini-3.5-flash-low",
+    {
+      messages: [
+        { role: "user", content: "Update todo" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_synthetic_1",
+              type: "function",
+              function: { name: "default_api:todowrite_ide", arguments: '{"todos":[]}' },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_synthetic_1",
+          content: "[]",
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "default_api:todowrite_ide",
+            parameters: { type: "object", properties: {} },
+          },
+        },
+      ],
+    },
+    false,
+    { projectId: "proj-antigravity-gemini" } as any
+  );
+
+  const modelTurn = result.request.contents.find((content) => content.role === "model");
+  assert.ok(modelTurn, "expected a model turn");
+  assert.ok(
+    modelTurn.parts.some(
+      (part) =>
+        typeof part.text === "string" &&
+        part.text.includes("[Tool call: default_api:todowrite_ide]")
+    ),
+    "expected signature-less tool call to be preserved as text"
+  );
+  assert.equal(
+    modelTurn.parts.some((part) => part.functionCall),
+    false,
+    "signature-less historical call must not be emitted as native functionCall"
+  );
+
+  const toolTurn = result.request.contents.find(
+    (content) =>
+      content.role === "user" &&
+      content.parts.some(
+        (part) =>
+          typeof part.text === "string" &&
+          part.text.includes("[Tool response: default_api:todowrite_ide]")
+      )
+  );
+  assert.ok(toolTurn, "expected signature-less tool response to be preserved as text");
+  assert.equal(
+    toolTurn.parts.some((part) => part.functionResponse),
+    false,
+    "signature-less historical response must not be emitted as native functionResponse"
+  );
+});
+
 test("OpenAI -> Antigravity maps Claude-family models to Gemini-compatible schema", () => {
   const result = openaiToAntigravityRequest(
     "claude-3-7-sonnet",

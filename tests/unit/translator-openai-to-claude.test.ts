@@ -237,6 +237,9 @@ test("OpenAI -> Claude maps tool_choice and injects response_format instructions
 });
 
 test("OpenAI -> Claude turns reasoning settings into thinking budgets and expands max tokens", () => {
+  // `claude-4-sonnet` is a fixture that doesn't match any spec → default cap = 8192.
+  // fitThinkingToMaxTokens floors response room at MIN_RESPONSE_ROOM (1024)
+  // and targets max_tokens = responseRoom + budget capped at modelCap.
   const effortResult = openaiToClaudeRequest(
     "claude-4-sonnet",
     {
@@ -248,7 +251,8 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
   );
 
   assert.deepEqual(effortResult.thinking, { type: "enabled", budget_tokens: 1024 });
-  assert.equal(effortResult.max_tokens, 9216);
+  // responseRoom=max(10,1024)=1024; target=min(1024+1024, 8192)=2048
+  assert.equal(effortResult.max_tokens, 2048);
 
   const explicitThinkingResult = openaiToClaudeRequest(
     "claude-4-sonnet",
@@ -265,7 +269,8 @@ test("OpenAI -> Claude turns reasoning settings into thinking budgets and expand
     budget_tokens: 2000,
     max_tokens: 3000,
   });
-  assert.equal(explicitThinkingResult.max_tokens, 10192);
+  // responseRoom=max(1000,1024)=1024; target=min(1024+2000, 8192)=3024
+  assert.equal(explicitThinkingResult.max_tokens, 3024);
 });
 
 test("OpenAI -> Claude preserves xhigh only for Claude models that expose it", () => {
@@ -290,9 +295,40 @@ test("OpenAI -> Claude preserves xhigh only for Claude models that expose it", (
 
   assert.deepEqual(preserved.thinking, { type: "adaptive" });
   assert.deepEqual(preserved.output_config, { effort: "xhigh" });
-  assert.deepEqual(downgraded.thinking, { type: "enabled", budget_tokens: 131072 });
+  // standardModel (claude-opus-4-6) has output cap 128000.
+  // Requested budget 131072 is cap-fitted: target=min(1024+131072, 128000)=128000;
+  // fittedBudget=128000-1024=126976. budget shrinks to fit within model cap
+  // rather than producing invalid max_tokens=139264 that Anthropic rejects with 400.
+  assert.deepEqual(downgraded.thinking, { type: "enabled", budget_tokens: 126976 });
   assert.equal(downgraded.output_config, undefined);
-  assert.equal(downgraded.max_tokens, 139264);
+  assert.equal(downgraded.max_tokens, 128000);
+});
+
+test("OpenAI -> Claude fits thinking budget within Opus 4.7 output cap (regression)", () => {
+  // Real-world OpenCode scenario: caller asks for max_tokens=32000 with high effort.
+  // High effort maps to budget=131072. The previous naive
+  // `budget + 8192 = 139264` exceeded Opus 4.7's 128000 output cap and caused
+  // HTTP 400 "max_tokens > 128000".
+  // fitThinkingToMaxTokens must preserve caller's 32000 response room and
+  // shrink budget to (128000 - 32000) = 96000.
+  const result = openaiToClaudeRequest(
+    "claude-opus-4-7",
+    {
+      messages: [{ role: "user", content: "Reason about something hard" }],
+      max_tokens: 32000,
+      reasoning_effort: "high",
+    },
+    false
+  );
+
+  assert.equal(result.max_tokens, 128000, "max_tokens must equal model cap, not 139264");
+  assert.ok(result.thinking, "thinking should remain enabled");
+  assert.equal((result.thinking as { type: string }).type, "enabled");
+  assert.equal(
+    (result.thinking as { budget_tokens: number }).budget_tokens,
+    96000,
+    "budget must shrink to (cap - caller max_tokens) to preserve response room"
+  );
 });
 
 test("OpenAI -> Claude can disable OAuth prefixes and Antigravity strips Claude-only prompting", () => {
@@ -461,4 +497,33 @@ test("OpenAI -> Claude handles assistant tool call messages without reasoning_co
   const toolUseBlock = assistantMsg.content.find((b) => b.type === "tool_use");
   assert.ok(toolUseBlock, "expected tool_use block to be preserved");
   assert.equal(toolUseBlock.name, `${CLAUDE_OAUTH_TOOL_PREFIX}do_thing`);
+});
+
+test("OpenAI -> Claude treats developer role as system (fix for Responses API → Claude path)", () => {
+  const MARKER = "MAGIC_IDENTITY_847261";
+  const result = openaiToClaudeRequest(
+    "claude-sonnet-4-6",
+    {
+      messages: [
+        { role: "developer", content: `You are ${MARKER}` },
+        { role: "user", content: "What is your identity?" },
+      ],
+    },
+    true
+  );
+
+  // developer content must appear in the system field, not as an assistant turn
+  const systemText =
+    typeof result.system === "string" ? result.system : JSON.stringify(result.system);
+  assert.ok(systemText.includes(MARKER), "developer content must appear in Claude system field");
+
+  // No message in the messages array should contain the marker
+  for (const msg of result.messages) {
+    const msgStr = JSON.stringify(msg);
+    assert.ok(!msgStr.includes(MARKER), "developer content must NOT appear in messages array");
+  }
+
+  // Exactly one user message
+  const userMessages = result.messages.filter((m) => m.role === "user");
+  assert.equal(userMessages.length, 1, "expected exactly one user message");
 });

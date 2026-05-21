@@ -17,6 +17,7 @@ Object.assign(process.env, {
 const providersModule = await import("../../src/lib/oauth/providers/index.ts");
 const oauthModule = await import("../../src/lib/oauth/constants/oauth.ts");
 const registryModule = await import("../../open-sse/config/providerRegistry.ts");
+const antigravityHeadersModule = await import("../../open-sse/services/antigravityHeaders.ts");
 
 const PROVIDERS = providersModule.default;
 const {
@@ -38,6 +39,7 @@ const {
   WINDSURF_CONFIG,
 } = oauthModule;
 const { REGISTRY } = registryModule;
+const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
 const originalFetch = globalThis.fetch;
 
@@ -432,24 +434,32 @@ test("Gemini and Antigravity run mocked browser OAuth exchanges and post-exchang
     jsonResponse({ cloudaicompanionProject: { id: "gemini-project" } }),
     jsonResponse({ access_token: "anti-access", refresh_token: "anti-refresh", expires_in: 7200 }),
     jsonResponse({ email: "anti@example.com" }),
-    (_url, init = {}) => {
+    (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
       assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
       assert.equal(init.headers["X-Goog-Api-Client"], undefined);
-      assert.equal(init.headers["Client-Metadata"], undefined);
-      assert.deepEqual(JSON.parse(String(init.body)).metadata, { ideType: "ANTIGRAVITY" });
+      assert.deepEqual(
+        JSON.parse(String(init.body)).metadata,
+        getAntigravityLoadCodeAssistMetadata()
+      );
+      assert.equal(JSON.parse(String(init.body)).cloudaicompanionProject, undefined);
       return jsonResponse({
         cloudaicompanionProject: { id: "anti-project" },
         allowedTiers: [{ id: "tier-default", isDefault: true }],
       });
     },
-    (_url, init = {}) => {
+    (_url, init: any = {}) => {
       assert.equal(init.method, "POST");
       assert.equal(init.headers.Authorization, "Bearer anti-access");
       assert.match(init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
       assert.equal(init.headers["X-Goog-Api-Client"], undefined);
-      assert.deepEqual(JSON.parse(String(init.body)).metadata, { ideType: "ANTIGRAVITY" });
+      assert.deepEqual(
+        JSON.parse(String(init.body)).metadata,
+        getAntigravityLoadCodeAssistMetadata()
+      );
+      assert.equal(JSON.parse(String(init.body)).tier_id, "tier-default");
+      assert.equal(JSON.parse(String(init.body)).cloudaicompanionProject, undefined);
       return jsonResponse({
         done: true,
         response: { cloudaicompanionProject: { id: "anti-project-final" } },

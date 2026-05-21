@@ -37,6 +37,12 @@ interface ImageModelAliasEntry {
 }
 
 const IMAGE_MODEL_ALIASES: Record<string, ImageModelAliasEntry> = {
+  "gemini-3.1-flash-image-preview": {
+    provider: "antigravity",
+    model: "gemini-3.1-flash-image",
+    name: "Gemini 3.1 Flash Image",
+    listInCatalog: false,
+  },
   "flux-kontext": {
     provider: "black-forest-labs",
     model: "flux-kontext-pro",
@@ -223,11 +229,11 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
 
   antigravity: {
     id: "antigravity",
-    baseUrl: "https://generativelanguage.googleapis.com/v1beta/models",
+    baseUrl: "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent",
     authType: "oauth",
     authHeader: "bearer",
     format: "gemini-image", // Special format: uses Gemini generateContent API
-    models: [],
+    models: [{ id: "gemini-3.1-flash-image", name: "Gemini 3.1 Flash Image" }],
     supportedSizes: ["1024x1024"],
   },
 
@@ -317,6 +323,40 @@ export const IMAGE_PROVIDERS: Record<string, ImageProviderConfig> = {
     supportedSizes: ["1:1", "16:9", "9:16", "4:3", "3:4"],
   },
 
+  haiper: {
+    id: "haiper",
+    baseUrl: "https://api.haiper.ai/v1/jobs/gen2/text2image",
+    statusUrl: "https://api.haiper.ai/v1/jobs",
+    authType: "apikey",
+    authHeader: "HAIPER_KEY",
+    format: "haiper-image",
+    models: [{ id: "gen2", name: "Gen 2 Image" }],
+    supportedSizes: ["16:9", "9:16", "1:1", "4:3", "3:4"],
+  },
+  leonardo: {
+    id: "leonardo",
+    baseUrl: "https://cloud.leonardo.ai/api/rest/v1/generations",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "leonardo-image",
+    models: [
+      { id: "phoenix", name: "Phoenix" },
+      { id: "sdxl", name: "SDXL" },
+    ],
+    supportedSizes: ["1024x1024", "1024x576", "576x1024"],
+  },
+  ideogram: {
+    id: "ideogram",
+    baseUrl: "https://api.ideogram.ai/generate",
+    authType: "apikey",
+    authHeader: "Api-Key",
+    format: "ideogram-image",
+    models: [
+      { id: "V_3", name: "Ideogram V3" },
+      { id: "V_2A", name: "Ideogram V2A" },
+    ],
+    supportedSizes: ["1024x1024", "1024x1792", "1792x1024"],
+  },
   sdwebui: {
     id: "sdwebui",
     baseUrl: "http://localhost:7860/sdapi/v1/txt2img",

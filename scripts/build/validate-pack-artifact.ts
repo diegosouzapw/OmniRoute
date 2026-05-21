@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,22 +18,29 @@ const __dirname: string = dirname(__filename);
 const ROOT: string = join(__dirname, "..", "..");
 const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function runPackDryRun(): any {
+function runNpm(args: string[], stdio: "inherit" | "pipe" = "pipe"): string {
   const npmExecPath = process.env.npm_execpath;
   const command = npmExecPath ? process.execPath : npmCommand;
-  const args = [
-    ...(npmExecPath ? [npmExecPath] : []),
-    "pack",
-    "--dry-run",
-    "--json",
-    "--ignore-scripts",
-  ];
-
-  const output = execFileSync(command, args, {
+  return execFileSync(command, [...(npmExecPath ? [npmExecPath] : []), ...args], {
     cwd: ROOT,
     encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: stdio === "inherit" ? "inherit" : ["ignore", "pipe", "pipe"],
   });
+}
+
+function ensureAppStagingReady(): void {
+  const missingAppRequiredPaths = PACK_ARTIFACT_REQUIRED_PATHS.filter((requiredPath) =>
+    requiredPath.startsWith("app/")
+  ).filter((requiredPath) => !existsSync(join(ROOT, requiredPath)));
+
+  if (missingAppRequiredPaths.length === 0) return;
+
+  console.log("📦 app/ staging is missing required runtime files; running npm run build:cli...");
+  runNpm(["run", "build:cli"], "inherit");
+}
+
+function runPackDryRun(): any {
+  const output = runNpm(["pack", "--dry-run", "--json", "--ignore-scripts"]);
 
   const jsonStart = output.indexOf("[");
   const jsonEnd = output.lastIndexOf("]");
@@ -66,6 +74,7 @@ function formatBytes(bytes: number): string {
 }
 
 try {
+  ensureAppStagingReady();
   const packReport = runPackDryRun();
   const artifactPaths: string[] = packReport.files.map((file: any) => file.path);
   const unexpectedPaths: string[] = findUnexpectedArtifactPaths(artifactPaths, {

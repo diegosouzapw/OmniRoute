@@ -3,6 +3,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { upsertSemanticMemoryPoint, deleteSemanticMemoryPoint } from "./qdrant";
 import { Memory, MemoryType } from "./types";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
@@ -144,6 +145,24 @@ export async function createMemory(
       key: memory.key,
     });
 
+    // Best-effort re-sync to Qdrant after update
+    upsertSemanticMemoryPoint({
+      id: String(existing.id),
+      apiKeyId: memory.apiKeyId || "",
+      sessionId: memory.sessionId || "",
+      key: memory.key || "",
+      content: memory.content,
+      metadata: updatedMetadata || {},
+      createdAt: String(existing.created_at),
+      expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+    })
+      .then((r) => {
+        if (r.ok) log.debug?.("qdrant.upsert.ok", { id: existing.id, latencyMs: r.latencyMs });
+        else if (r.error && r.error !== "not_configured")
+          log.warn?.("qdrant.upsert.fail", { id: existing.id, error: r.error });
+      })
+      .catch((e) => log.warn?.("qdrant.upsert.error", { id: existing.id, error: String(e) }));
+
     return updatedMemory;
   }
 
@@ -186,6 +205,24 @@ export async function createMemory(
   _memoryCache.set(id, { value: createdMemory, timestamp: Date.now() });
 
   log.info("memory.stored", { apiKeyId: memory.apiKeyId, type: memory.type, id });
+
+  // Best-effort sync to semantic memory store (Qdrant). Failures do not block the SQLite write.
+  upsertSemanticMemoryPoint({
+    id,
+    apiKeyId: memory.apiKeyId || "",
+    sessionId: memory.sessionId || "",
+    key: memory.key || "",
+    content: memory.content,
+    metadata: memory.metadata || {},
+    createdAt: now,
+    expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+  })
+    .then((r) => {
+      if (r.ok) log.debug?.("qdrant.upsert.ok", { id, latencyMs: r.latencyMs });
+      else if (r.error && r.error !== "not_configured")
+        log.warn?.("qdrant.upsert.fail", { id, error: r.error });
+    })
+    .catch((e) => log.warn?.("qdrant.upsert.error", { id, error: String(e) }));
 
   return createdMemory;
 }

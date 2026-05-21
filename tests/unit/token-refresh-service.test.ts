@@ -535,6 +535,60 @@ test("refreshKiroToken falls back to the social-auth refresh endpoint", async ()
   });
 });
 
+// Issue #2328 — once a social-auth token has clientId/clientSecret stored
+// (because it was imported after v3.8.0), refreshKiroToken must use the AWS OIDC
+// endpoint, not the shared social-auth endpoint, even though authMethod is "google".
+test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is present (#2328)", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-social-refresh",
+        {
+          authMethod: "google",
+          clientId: "isolated-client-id",
+          clientSecret: "isolated-client-secret",
+          region: "us-east-1",
+        },
+        log
+      );
+
+      assert.deepEqual(result, {
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    }
+  );
+
+  // Must call the AWS OIDC endpoint — not the shared social-auth tokenUrl
+  assert.ok(
+    calls[0].url.includes("oidc.us-east-1.amazonaws.com/token"),
+    `expected AWS OIDC endpoint but got ${calls[0].url}`
+  );
+  assert.notEqual(
+    calls[0].url,
+    PROVIDERS.kiro.tokenUrl,
+    "should not call the shared social-auth endpoint when clientId is set"
+  );
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    clientId: "isolated-client-id",
+    clientSecret: "isolated-client-secret",
+    refreshToken: "kiro-social-refresh",
+    grantType: "refresh_token",
+  });
+});
+
 test("refreshQoderToken uses basic auth once qoder oauth settings are configured", async () => {
   const log = createLog();
   const calls: any[] = [];
