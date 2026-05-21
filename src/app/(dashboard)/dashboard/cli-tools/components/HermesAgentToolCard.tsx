@@ -80,7 +80,7 @@ export default function HermesAgentToolCard({
       setPreviewYaml(null);
       setFirstSetupAt(null);
     }
-  }, [isExpanded, batchStatus]);
+  }, [isExpanded, batchStatus, currentRoles]);
 
   const loadCurrentConfig = async () => {
     setIsLoading(true);
