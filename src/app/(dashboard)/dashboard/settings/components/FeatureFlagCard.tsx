@@ -39,8 +39,9 @@ const SOURCE_STYLES: Record<
   default: { bg: "bg-slate-500/20", text: "text-slate-400", label: "DEF" },
 };
 
+// toggles always write "true"/"false"; "1"/"yes" resolution happens in the API
 function isEnabled(value: string): boolean {
-  return value === "true" || value === "1" || value === "yes";
+  return value === "true";
 }
 
 function Spinner() {
@@ -67,7 +68,7 @@ export default function FeatureFlagCard({ flag, onToggle, onReset, saving = fals
   return (
     <div
       role="group"
-      aria-label={flag.description}
+      aria-label={flag.label}
       className={`backdrop-blur-xl bg-black/60 border rounded-xl p-4 transition-all duration-200 hover:-translate-y-px hover:shadow-xl hover:border-white/15 ${cardBorder} ${cardOpacity}`}
     >
       {/* Top row: category badge + toggle/select */}
