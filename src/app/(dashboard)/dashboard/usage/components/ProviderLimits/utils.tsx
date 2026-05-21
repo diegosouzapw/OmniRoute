@@ -45,12 +45,17 @@ function toRecord(value: unknown): Record<string, unknown> {
     : {};
 }
 
+function isClaudeOrganizationTypeLabel(value: string) {
+  return /^default_claude(?:_ai)?$/i.test(value.trim());
+}
+
 function normalizePlanCandidate(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
   if (trimmed.toLowerCase() === "unknown") return null;
   if (PROVIDER_PLAN_FALLBACKS.has(trimmed.toLowerCase())) return null;
+  if (isClaudeOrganizationTypeLabel(trimmed)) return null;
   return trimmed;
 }
 
@@ -413,6 +418,7 @@ export function resolvePlanValue(plan, providerSpecificData) {
     psd.accountTier,
     // Claude OAuth bootstrap: rate_limit_tier has the Max 5x/20x multiplier.
     psd.organizationRateLimitTier,
+    psd.rateLimitTier,
     psd.organizationType,
   ];
 
@@ -443,7 +449,7 @@ export function normalizePlanTier(plan) {
 
   // Match Anthropic bootstrap strings (claude_max, default_claude_max_20x, etc.)
   // before the generic PRO/TEAM checks so underscored values don't fall through.
-  const claudeMatch = upper.match(/CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
+  const claudeMatch = upper.match(/(?:DEFAULT_)?CLAUDE_(MAX|PRO|TEAM|ENTERPRISE|FREE)(?:_(\d+X))?/);
   if (claudeMatch) {
     const family = claudeMatch[1];
     const multiplier = claudeMatch[2] ? ` ${claudeMatch[2].toLowerCase()}` : "";
@@ -489,12 +495,16 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Ultra", variant: "success", rank: 4, raw };
   }
 
-  if (upper.includes("MAX")) {
+  if (/(?:^|[^A-Z])MAX(?:[^A-Z]|$)/.test(upper)) {
     return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
   }
 
   if (upper.includes("PRO") || upper.includes("PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
+  }
+
+  if (upper.includes("STARTER")) {
+    return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
   }
 
   if (upper.includes("LITE") || upper.includes("LIGHT")) {

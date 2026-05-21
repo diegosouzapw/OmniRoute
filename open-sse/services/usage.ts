@@ -213,6 +213,63 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
+function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed) return trimmed;
+  }
+  return undefined;
+}
+
+function inferMiniMaxPlanLabelFromTotals(models: JsonRecord[]): string | null {
+  const maxSessionTotal = models.reduce(
+    (maxTotal, model) => Math.max(maxTotal, getMiniMaxSessionTotal(model)),
+    0
+  );
+
+  if (maxSessionTotal >= 15_000) return "Max";
+  if (maxSessionTotal >= 4_500) return "Plus";
+  if (maxSessionTotal >= 1_500) return "Starter";
+  return null;
+}
+
+function getMiniMaxPlanLabel(payload: JsonRecord, models: JsonRecord[] = []): string {
+  const raw = pickFirstNonEmptyString(
+    getFieldValue(payload, "current_subscribe_title", "currentSubscribeTitle"),
+    getFieldValue(payload, "plan_name", "planName"),
+    getFieldValue(payload, "plan", "plan"),
+    getFieldValue(payload, "current_plan_title", "currentPlanTitle"),
+    getFieldValue(payload, "combo_title", "comboTitle")
+  );
+
+  if (!raw) return inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
+
+  const cleaned = raw
+    .replace(/^minimax\s+/i, "")
+    .replace(/\bcoding\s+plan\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return cleaned || inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
+}
+
+function getClaudePlanLabel(...candidates: Array<string | null | undefined>): string | null {
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const trimmed = candidate.trim();
+    if (
+      !trimmed ||
+      trimmed.toLowerCase() === "claude code" ||
+      trimmed.toLowerCase() === "unknown"
+    ) {
+      continue;
+    }
+    return trimmed;
+  }
+  return null;
+}
+
 function createQuotaFromUsage(
   usedValue: unknown,
   totalValue: unknown,
@@ -353,16 +410,16 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
         getFieldValue(baseResp, "status_msg", "statusMsg") ?? ""
       ).trim();
       const combinedMessage = `${apiStatusMessage} ${rawText}`.trim();
-      const authLikeMessage =
+      const authLikeStatusMessage =
         /token plan|coding plan|invalid api key|invalid key|unauthorized|inactive/i;
 
       if (
         response.status === 401 ||
         response.status === 403 ||
         apiStatusCode === 1004 ||
-        authLikeMessage.test(combinedMessage)
+        authLikeStatusMessage.test(apiStatusMessage)
       ) {
-        return { message: getMiniMaxAuthErrorMessage(combinedMessage) };
+        return { message: getMiniMaxAuthErrorMessage(apiStatusMessage || combinedMessage) };
       }
 
       if (!response.ok) {
@@ -461,7 +518,7 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
         return { message: "MiniMax connected. Unable to extract text quota usage." };
       }
 
-      return { quotas };
+      return { plan: getMiniMaxPlanLabel(payload, textModels), quotas };
     } catch (error) {
       lastErrorMessage = (error as Error).message;
       if (!canFallback) {
@@ -2043,21 +2100,20 @@ async function getClaudeUsage(accessToken?: string) {
         }
       }
 
-      // Try to extract plan tier from the OAuth response
-      const planRaw =
-        typeof data.tier === "string"
-          ? data.tier
-          : typeof data.plan === "string"
-            ? data.plan
-            : typeof data.subscription_type === "string"
-              ? data.subscription_type
-              : null;
+      const bootstrap = await bootstrapPromise;
+      const plan =
+        getClaudePlanLabel(
+          typeof data.tier === "string" ? data.tier : null,
+          typeof data.plan === "string" ? data.plan : null,
+          typeof data.subscription_type === "string" ? data.subscription_type : null,
+          bootstrap?.organization_rate_limit_tier
+        ) ?? undefined;
 
       return {
-        plan: planRaw || "Claude Code",
+        ...(plan ? { plan } : {}),
         quotas,
         extraUsage: data.extra_usage ?? null,
-        bootstrap: await bootstrapPromise,
+        bootstrap,
       };
     }
 
@@ -2551,4 +2607,6 @@ export const __testing = {
   inferGitHubPlanName,
   getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
+  getMiniMaxPlanLabel,
+  inferMiniMaxPlanLabelFromTotals,
 };
