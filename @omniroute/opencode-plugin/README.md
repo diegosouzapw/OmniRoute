@@ -4,8 +4,18 @@ First-class OpenCode plugin for the [OmniRoute AI Gateway](https://github.com/di
 
 ## Install
 
+Once published to npm:
+
 ```sh
 npm install @omniroute/opencode-plugin
+```
+
+Until then (or for local development), reference the built artifact directly. Either extract the package into your OpenCode plugins dir and point at the extracted `dist/index.js`:
+
+```sh
+# from inside the OmniRoute repo
+cd @omniroute/opencode-plugin && npm run build && npm pack
+# then extract into ~/.config/opencode/plugins/omniroute-opencode-plugin/
 ```
 
 Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
@@ -29,9 +39,11 @@ Peer dep: `@opencode-ai/plugin` (managed by your OpenCode install).
 ```
 
 ```sh
-opencode connect omniroute
+opencode auth login --provider omniroute
 # prompts for the OmniRoute API key, writes to ~/.local/share/opencode/auth.json
 ```
+
+> ⚠ Use the `--provider` flag explicitly. `opencode auth login omniroute` is parsed as a positional `url` argument by current OC releases (≤1.15.5) and fails with `fetch() URL is invalid`. Tracked upstream.
 
 Restart OpenCode. `/models` lists the full live catalog. Variants (`-low`, `-medium`, `-high`, `-thinking`) and combos appear as first-class IDs — OmniRoute is the source of truth, no client-side synthesis.
 
@@ -60,11 +72,13 @@ Restart OpenCode. `/models` lists the full live catalog. Variants (`-low`, `-med
 ```
 
 ```sh
-opencode connect omniroute
-opencode connect omniroute-preprod
+opencode auth login --provider omniroute
+opencode auth login --provider omniroute-preprod
 ```
 
 Each entry gets its own provider id, its own model picker entry, and its own slot in `auth.json`. Closures are isolated per plugin instance — no cross-talk.
+
+> ⚠ Multi-instance currently relies on OpenCode loading each plugin entry as a distinct module. Some OC versions (≤1.15.5) dedupe plugin loads by absolute module path, so two entries pointing at the same `dist/index.js` collapse into one (the last-listed options win). If you hit this, install the plugin twice into separate directories or wait for the v0.2.x `instances: [...]` shape (tracked).
 
 ## Features
 
@@ -142,7 +156,7 @@ If you want a narrower-scoped Bearer for MCP (different from the chat/inference 
 
 ## Comparison vs `@omniroute/opencode-provider`
 
-[`@omniroute/opencode-provider`](../opencode-provider) is the existing config-generator package — it writes a frozen `provider.<id>` block into `opencode.json` at build time. This plugin is the runtime integration.
+[`@omniroute/opencode-provider`](https://github.com/diegosouzapw/OmniRoute/tree/main/%40omniroute/opencode-provider) is the existing config-generator package — it writes a frozen `provider.<id>` block into `opencode.json` at build time. This plugin is the runtime integration.
 
 |                   | `@omniroute/opencode-plugin` (this) | `@omniroute/opencode-provider`    |
 | ----------------- | ----------------------------------- | --------------------------------- |
@@ -158,7 +172,9 @@ Both can coexist; pick the one that fits your environment.
 ## Requirements
 
 - Node `>=22.22.3` (per `engines.node`); tested on Node 22 and 24.
-- OpenCode peer: `@opencode-ai/plugin` `>=1.14.49` for the full feature set (provider hook surfaces models in `/models`). On `<=1.14.48`, the plugin falls back to its `config` hook, writing a static catalog snapshot into `config.provider[id]` so models still appear.
+- OpenCode: verified end-to-end against `opencode@1.15.5` with `@opencode-ai/plugin@1.15.6`.
+- OC plugin peer (`@opencode-ai/plugin`) `>=1.14.49` for the full feature set (provider hook surfaces models in `/models`). On `<=1.14.48`, the plugin falls back to its `config` hook, writing a static catalog snapshot into `config.provider[id]` so models still appear.
+- The plugin uses the OC v1 plugin shape (`default: { id, server }`) — older OC releases that only walk named exports will reject it. Stay on OC ≥1.15.
 
 ## License
 
