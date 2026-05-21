@@ -291,7 +291,24 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   };
 };
 
-export default OmniRoutePlugin;
+/**
+ * v1 plugin shape per OC plugin loader (`packages/opencode/src/plugin/shared.ts:readV1Plugin`).
+ * OC checks the default export for an object with `{id, server}` shape FIRST.
+ * If that fails it falls back to legacy `getLegacyPlugins` which walks every
+ * named export and rejects any non-function value — our package has
+ * constants (OMNIROUTE_PROVIDER_KEY, DEFAULT_MODEL_CACHE_TTL_MS) + types +
+ * schemas as named exports, so the legacy path always fails for us.
+ *
+ * Using v1 shape skips the legacy walk entirely. The `id` field is the
+ * plugin MODULE identifier (one per published package); per-instance
+ * `providerId` still flows through `options.providerId` as before.
+ */
+const OmniRouteV1Plugin = {
+  id: "@omniroute/opencode-plugin",
+  server: OmniRoutePlugin,
+};
+
+export default OmniRouteV1Plugin;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Provider hook (T-03) — /v1/models pass-through with TTL cache

@@ -18,9 +18,11 @@ test("scaffold: exports public surface", () => {
   assert.equal(DEFAULT_MODEL_CACHE_TTL_MS, 300_000);
 });
 
-test("scaffold: default export equals named OmniRoutePlugin", async () => {
+test("scaffold: default export is v1 plugin shape { id, server: OmniRoutePlugin }", async () => {
   const mod = await import("../src/index.js");
-  assert.equal(mod.default, mod.OmniRoutePlugin);
+  assert.equal(typeof mod.default, "object");
+  assert.equal(mod.default.id, "@omniroute/opencode-plugin");
+  assert.equal(mod.default.server, mod.OmniRoutePlugin);
 });
 
 test("resolveOmniRoutePluginOptions: defaults", () => {
@@ -61,10 +63,11 @@ test("OmniRoutePlugin: returns an empty hooks object (scaffold)", async () => {
   assert.notEqual(hooks, null);
 });
 
-test("scaffold: CJS default export resolves via require()", () => {
+test("scaffold: CJS default export resolves via require() with v1 shape", () => {
   const require_ = createRequire(import.meta.url);
   const cjs = require_("../dist/index.cjs");
   // after cjsInterop:true, default export is on cjs.default
-  assert.strictEqual(typeof cjs.default, "function");
-  assert.strictEqual(cjs.default.name, "OmniRoutePlugin");
+  assert.strictEqual(typeof cjs.default, "object");
+  assert.strictEqual(cjs.default.id, "@omniroute/opencode-plugin");
+  assert.strictEqual(typeof cjs.default.server, "function");
 });
