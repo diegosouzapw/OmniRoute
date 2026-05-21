@@ -6,6 +6,8 @@ import AlibabaMonoIcon from "@lobehub/icons/es/Alibaba/components/Mono";
 import AnthropicMonoIcon from "@lobehub/icons/es/Anthropic/components/Mono";
 import AntigravityColorIcon from "@lobehub/icons/es/Antigravity/components/Color";
 import AntigravityMonoIcon from "@lobehub/icons/es/Antigravity/components/Mono";
+import ArceeColorIcon from "@lobehub/icons/es/Arcee/components/Color";
+import ArceeMonoIcon from "@lobehub/icons/es/Arcee/components/Mono";
 import AssemblyAIColorIcon from "@lobehub/icons/es/AssemblyAI/components/Color";
 import AssemblyAIMonoIcon from "@lobehub/icons/es/AssemblyAI/components/Mono";
 import AutomaticColorIcon from "@lobehub/icons/es/Automatic/components/Color";
@@ -74,6 +76,7 @@ import KiloCodeMonoIcon from "@lobehub/icons/es/KiloCode/components/Mono";
 import KimiColorIcon from "@lobehub/icons/es/Kimi/components/Color";
 import KimiMonoIcon from "@lobehub/icons/es/Kimi/components/Mono";
 import LambdaMonoIcon from "@lobehub/icons/es/Lambda/components/Mono";
+import LiquidMonoIcon from "@lobehub/icons/es/Liquid/components/Mono";
 import LmStudioMonoIcon from "@lobehub/icons/es/LmStudio/components/Mono";
 import LongCatColorIcon from "@lobehub/icons/es/LongCat/components/Color";
 import LongCatMonoIcon from "@lobehub/icons/es/LongCat/components/Mono";
@@ -171,6 +174,7 @@ const LOBE_ICON_COMPONENTS = {
   Alibaba: { mono: AlibabaMonoIcon, color: AlibabaColorIcon },
   Anthropic: { mono: AnthropicMonoIcon },
   Antigravity: { mono: AntigravityMonoIcon, color: AntigravityColorIcon },
+  Arcee: { mono: ArceeMonoIcon, color: ArceeColorIcon },
   AssemblyAI: { mono: AssemblyAIMonoIcon, color: AssemblyAIColorIcon },
   Automatic: { mono: AutomaticMonoIcon, color: AutomaticColorIcon },
   Aws: { mono: AwsMonoIcon, color: AwsColorIcon },
@@ -212,6 +216,7 @@ const LOBE_ICON_COMPONENTS = {
   KiloCode: { mono: KiloCodeMonoIcon },
   Kimi: { mono: KimiMonoIcon, color: KimiColorIcon },
   Lambda: { mono: LambdaMonoIcon },
+  Liquid: { mono: LiquidMonoIcon },
   LmStudio: { mono: LmStudioMonoIcon },
   LongCat: { mono: LongCatMonoIcon, color: LongCatColorIcon },
   Meta: { mono: MetaMonoIcon, color: MetaColorIcon },
@@ -285,6 +290,7 @@ const LOBE_PROVIDER_ALIASES = {
   cerebras: "Cerebras",
   "chatgpt-web": "OpenAI",
   claude: "ClaudeCode",
+  "claude-web": "HuggingFace",
   cline: "Cline",
   cloudflare: "Cloudflare",
   "cloudflare-ai": "WorkersAI",
@@ -334,6 +340,7 @@ const LOBE_PROVIDER_ALIASES = {
   "kimi-coding-apikey": "Kimi",
   lambda: "Lambda",
   "lambda-ai": "Lambda",
+  liquid: "Liquid",
   "lm-studio": "LmStudio",
   lmstudio: "LmStudio",
   longcat: "LongCat",

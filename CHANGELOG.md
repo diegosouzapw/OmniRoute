@@ -1,8 +1,42 @@
-# Changelog
+## [3.8.2] — 2026-05-21
 
-## [Unreleased]
+### ✨ New Features
+
+- **feat(providers):** add 7 free-tier providers (Wave 1) — Arcee AI, InclusionAI, Krutrim, Liquid AI, MonsterAPI, Nomic, and Poolside now available as new API-key providers with provider icons, model specs, and full routing support. ([#2479](https://github.com/diegosouzapw/OmniRoute/pull/2479) — thanks @oyi77)
+- **feat(providers):** add Astraflow provider support with global + China endpoints — new provider with dual-region base URLs for global and mainland China access. ([#2486](https://github.com/diegosouzapw/OmniRoute/pull/2486) — thanks @ucloudnb666)
+- **feat(providers):** add `claude-web` provider — cookie-based Claude Web chat access without OAuth. ([#2476](https://github.com/diegosouzapw/OmniRoute/pull/2476) — thanks @oyi77)
+
+### 🔧 Bug Fixes
+
+- **fix(claude):** extract system/developer role messages in Claude Code semantic passthrough paths — moves `role:"system"` / `role:"developer"` messages from the `messages[]` array to the top-level `system` parameter before sending to Anthropic, which rejects them inside messages. Fixes memory injection context being silently dropped. ([#2497](https://github.com/diegosouzapw/OmniRoute/pull/2497) — thanks @unitythemaker)
+- **fix(vision-bridge):** auto-route non-standard provider models through OmniRoute self-loop — vision-bridge now detects when a model doesn't natively support vision and automatically re-routes the image through OmniRoute's own endpoint for format translation. ([#2487](https://github.com/diegosouzapw/OmniRoute/pull/2487) — thanks @herjarsa)
+- **fix(mitm):** add IPv6 DNS redirect, modular antigravity target, improved logging — MITM DNS handler now correctly redirects IPv6 (AAAA) queries alongside IPv4, adds a dedicated `antigravity.ts` target module, and enhances DNS/TLS logging for debugging. ([#2514](https://github.com/diegosouzapw/OmniRoute/pull/2514) — thanks @herjarsa)
+- **fix(usage):** improve Claude and MiniMax plan label detection — better tier name resolution for Claude OAuth usage (tier/plan/subscription_type/org fields) and new MiniMax plan label inference from quota totals. ([#2498](https://github.com/diegosouzapw/OmniRoute/pull/2498) — thanks @Gi99lin)
+- **fix(codex):** fan out image `n` requests in parallel — when Codex requests `n > 1` images, the image-generation handler now dispatches them concurrently instead of sequentially, significantly reducing total latency. ([#2499](https://github.com/diegosouzapw/OmniRoute/pull/2499) — thanks @nmime)
+- **fix(embeddings):** strip stale `Content-Encoding` headers from upstream response — prevents clients from receiving gzip-encoded responses with `identity` encoding declared, which caused silent data corruption. ([#2477](https://github.com/diegosouzapw/OmniRoute/pull/2477) — thanks @lordavadon2)
+- **fix(model):** return clear error instead of silent OpenAI default for unrecognized models — previously, an unrecognized model silently fell back to OpenAI; now returns a 404 with a descriptive message listing known providers. ([#2492](https://github.com/diegosouzapw/OmniRoute/pull/2492) — thanks @herjarsa)
+- **fix(dark-mode):** correct background token on Compression Override select — the combo compression override `<select>` was using a hard-coded white background that was invisible in dark mode. ([#2513](https://github.com/diegosouzapw/OmniRoute/pull/2513) — thanks @apoapostolov)
+- **fix(antigravity):** align subscription tier detection with Antigravity Manager — `extractCodeAssistSubscriptionTier` now parses the correct nested field from the `loadCodeAssist` response, and a new `extractCodeAssistOnboardTierId` fallback handles the onboarding flow. Subscription info is cached per access-token with 5-min TTL. ([#2496](https://github.com/diegosouzapw/OmniRoute/pull/2496) — thanks @Gi99lin)
+- **fix(opencode-zen):** add `opencode` provider alias and sync model list with live API — `opencode-zen` and `opencode-go` are now also reachable via the shorter `opencode` alias, and the default model list is kept in sync with the live `/v1/models` catalog. ([#2508](https://github.com/diegosouzapw/OmniRoute/pull/2508) — thanks @herjarsa)
+- **fix(combo):** clarify log message when combo target is skipped due to unavailable credentials — previously logged a misleading "provider not found" message; now says "skipped: credentials unavailable". ([#2494](https://github.com/diegosouzapw/OmniRoute/pull/2494) — thanks @herjarsa)
+- **fix(security):** replace `Math.random` with `crypto.randomUUID` in `generateTaskId`/`ActivityId` and fix URL hostname check in test — eliminates weak PRNG usage flagged by CodeQL. ([#2489](https://github.com/diegosouzapw/OmniRoute/pull/2489))
+- **fix(electron):** downgrade to Electron 41.x for better-sqlite3 V8 compatibility — Electron 42.x shipped a V8 version that broke `better-sqlite3` native bindings at runtime; pinning to 41.x restores stability.
+- **fix(@omniroute/opencode-provider):** include `limit.context` in model entries for OpenCode context window detection — OpenCode reads `limit.context` to determine usable context length for compaction and overflow detection.
+- **fix(providers):** make `gitlawb/gitlawb-gmi` model entry optional — prevents provider initialization failure when the model is not available in the catalog. ([#2476](https://github.com/diegosouzapw/OmniRoute/pull/2476) — thanks @oyi77)
+- **fix(translator):** inject `omniroute_web_search` in the Responses-API flat tool shape (`{ type, name }`) when the target provider speaks the Responses API — previously it was always emitted in the Chat Completions nested shape, so Codex/relay upstreams rejected the request. ([#2390](https://github.com/diegosouzapw/OmniRoute/issues/2390))
+- **fix(kiro):** serialize non-string `role:"tool"` message content before sending to CodeWhisperer — structured/array tool output was collapsing to `content:[{ text: "" }]`, which Kiro rejects with `400 Improperly formed request`. ([#2446](https://github.com/diegosouzapw/OmniRoute/issues/2446))
+- **fix(claude):** gate the heavy-agent beta headers (`context-1m`, `effort`, `advanced-tool-use`) on Opus/Sonnet only — Haiku with OAuth was receiving `context-1m` and rejecting it with 400. Also sanitizes historical `thinking` block signatures in passthrough. ([#2454](https://github.com/diegosouzapw/OmniRoute/issues/2454) — thanks @havockdev)
+- **fix(perplexity-web):** route requests through a Firefox-148 TLS-impersonating client so Perplexity's Cloudflare edge stops rejecting VPS/datacenter IPs with a 403 challenge. ([#2459](https://github.com/diegosouzapw/OmniRoute/issues/2459) — thanks @havockdev)
+- **fix(validation):** guard `apiKey`/`modelsUrl` against non-string values before calling `.startsWith()` / `.trim()` in the provider connection-test path. ([#2463](https://github.com/diegosouzapw/OmniRoute/issues/2463))
+
+### 📝 Maintenance
+
+- **chore:** remove Akamai VPS deploy from release workflow and skills.
+- **chore:** ignore `.claude/worktrees` from git tracking.
 
 ---
+
+
 
 ## [3.8.1] — 2026-05-21
 
