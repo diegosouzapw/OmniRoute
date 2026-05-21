@@ -109,6 +109,7 @@ interface ApiKeyView extends JsonRecord {
   isActive: boolean;
   accessSchedule: AccessSchedule | null;
   rateLimits: RateLimitRule[] | null;
+  scopes: string[];
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -379,6 +380,7 @@ export async function getApiKeys() {
     camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
     camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
+    camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -400,6 +402,7 @@ export async function getApiKeyById(id: string) {
   camelRow.accessSchedule = parseAccessSchedule(camelRow.accessSchedule);
   camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
+  camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -762,9 +765,22 @@ export async function updateApiKeyPermissions(
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
+  const nextScopes: string[] = Array.isArray(scopesUpdate)
+    ? (scopesUpdate as unknown[]).filter((s): s is string => typeof s === "string")
+    : [];
+  // Capture previous scopes BEFORE the UPDATE so we can compare for the audit
+  // event below. We only fetch when the caller is actually changing scopes —
+  // a privileged change ("manage" grants management API surface access) that
+  // must always leave an audit trail per OWASP A09 / SOC2 CC7.2.
+  let previousScopes: string[] = [];
   if (scopesUpdate !== undefined) {
     updates.push("scopes = @scopes");
-    params.scopes = JSON.stringify(Array.isArray(scopesUpdate) ? scopesUpdate : []);
+    params.scopes = JSON.stringify(nextScopes);
+
+    const prevRow = db
+      .prepare<{ scopes: string | null }>("SELECT scopes FROM api_keys WHERE id = ?")
+      .get(id);
+    previousScopes = parseStringList(prevRow?.scopes ?? null);
   }
 
   const result = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
@@ -785,6 +801,38 @@ export async function updateApiKeyPermissions(
       action: normalized.isActive ? "apiKey.activate" : "apiKey.deactivate",
       target: id,
     });
+  }
+
+  if (scopesUpdate !== undefined) {
+    // Compare prev vs next scope sets and emit a dedicated audit event when
+    // the privileged "manage" scope is granted or revoked. Other scope
+    // mutations also emit a generic "apiKey.scopes.update" so the audit log
+    // captures the full change history (action + details).
+    const hadManage = previousScopes.includes("manage");
+    const hasManage = nextScopes.includes("manage");
+    if (!hadManage && hasManage) {
+      logAuditEvent({
+        action: "apiKey.scopes.grant",
+        target: id,
+        details: { scopes: nextScopes, previous: previousScopes },
+      });
+    } else if (hadManage && !hasManage) {
+      logAuditEvent({
+        action: "apiKey.scopes.revoke",
+        target: id,
+        details: { scopes: nextScopes, previous: previousScopes },
+      });
+    } else if (
+      previousScopes.length !== nextScopes.length ||
+      previousScopes.some((s) => !nextScopes.includes(s)) ||
+      nextScopes.some((s) => !previousScopes.includes(s))
+    ) {
+      logAuditEvent({
+        action: "apiKey.scopes.update",
+        target: id,
+        details: { scopes: nextScopes, previous: previousScopes },
+      });
+    }
   }
 
   if (normalized.noLog !== undefined) {
@@ -985,6 +1033,28 @@ export async function getApiKeyMetadata(
 
   // persistent env-var key support (persistent passthrough keys) (#1350)
   if (isConfiguredEnvApiKey(key)) {
+    // ─── Env-key management-scope bypass ──────────────────────────────────
+    // The deployment-time env key (`OMNIROUTE_API_KEY` / `ROUTER_API_KEY`)
+    // is granted the "manage" scope unconditionally. This is intentional:
+    //
+    //   1. The env key never exists in the SQLite `api_keys` table, so the
+    //      DB-backed scopes column does not apply. We synthesize the
+    //      metadata record here.
+    //   2. The operator who set the env var is presumed to be the deployment
+    //      owner; rotating (or unsetting) the env var is the only way to
+    //      rotate this privilege. There is no UI to change it.
+    //   3. Management API access via the env key still passes through
+    //      `requireManagementAuth` → `hasManageScope`, so policy decisions
+    //      remain centralised in `src/server/authz/*`.
+    //   4. Requests authenticated by the env key are tagged with
+    //      `id: "env-key"` for downstream audit-log emitters, making it
+    //      possible to distinguish env-key activity from user-created keys
+    //      that happen to also hold "manage".
+    //
+    // DO NOT remove "manage" from this list — that would break the
+    // deployment-time bootstrap path that operators rely on for headless
+    // / CI / first-boot scenarios. If you need to disable env-key access,
+    // unset the env var instead.
     return {
       id: "env-key",
       name: "Environment Key",
