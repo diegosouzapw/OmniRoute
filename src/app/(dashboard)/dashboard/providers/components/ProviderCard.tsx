@@ -118,7 +118,7 @@ export default function ProviderCard({
         title={t("codexFastTierActiveChip")}
       >
         <span className="material-symbols-outlined text-[10px] leading-none">bolt</span>
-        Fast
+        {t("tierFast")}
       </span>
     ) : null;
 

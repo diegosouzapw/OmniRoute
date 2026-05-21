@@ -140,6 +140,8 @@ test("dashboard i18n keys used by OrFallback helpers exist in en.json", () => {
     ["cache", "loadingCacheAria"],
     ["costs", "legacyFreeLabel"],
     ["contextCaveman", "inputCompressionTitle"],
+    ["contextCaveman", "inputCompressionDesc"],
+    ["providers", "tierFast"],
   ];
 
   for (const [ns, key] of required) {
