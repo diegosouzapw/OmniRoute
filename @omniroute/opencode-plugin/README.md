@@ -87,6 +87,58 @@ Each entry gets its own provider id, its own model picker entry, and its own slo
 | `displayName`   | `string` | `"OmniRoute"` or `OmniRoute (<id>)`        | Label in the OC UI                                         |
 | `modelCacheTtl` | `number` | `300000` (5 min)                           | `/v1/models` TTL in ms                                     |
 | `baseURL`       | `string` | resolved from `auth.json` after `/connect` | Override OmniRoute base URL                                |
+| `features`      | `object` | see below                                  | Feature toggles (all opt-in/out, defaults preserve v0.1.0) |
+
+### `features` block
+
+Every field is optional. Defaults mirror v0.1.0 behaviour so existing `opencode.json` files do not need to change.
+
+| Feature               | Type      | Default | What it does                                                                                                                                                            |
+| --------------------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `combos`              | `boolean` | `true`  | Discover `/api/combos` and surface them as pseudo-models with LCD capabilities                                                                                          |
+| `enrichment`          | `boolean` | `true`  | Pull display names + per-million-token pricing from `/api/pricing/models` and overlay them onto the live catalog (so the UI shows `Claude 4.7 Opus` instead of raw IDs) |
+| `compressionMetadata` | `boolean` | `false` | Pull `/api/context/combos` so combo names get tagged with their compression pipeline, e.g. `claude-primary [rtk:standard → caveman:full]`                               |
+| `geminiSanitization`  | `boolean` | `true`  | Strip `$schema`/`$ref`/`additionalProperties` from tool params when the model id matches `gemini`                                                                       |
+| `mcpAutoEmit`         | `boolean` | `false` | Auto-write an `mcp.<providerId>` remote entry into the OC config pointing at `<baseURL>/api/mcp/stream` with the resolved Bearer token                                  |
+| `mcpToken`            | `string`  | _unset_ | Optional separate Bearer for the auto-emitted MCP entry. Falls back to the provider's `apiKey` (from `auth.json`) when unset                                            |
+| `fetchInterceptor`    | `boolean` | `true`  | Inject `Authorization: Bearer` + default `Content-Type` on every outbound request targeting `baseURL` (suffix-spoof guarded)                                            |
+
+#### Example — enrichment + compression tags + MCP auto-emit
+
+```jsonc
+{
+  "plugin": [
+    [
+      "@omniroute/opencode-plugin",
+      {
+        "providerId": "omniroute",
+        "baseURL": "https://or.example.com",
+        "features": {
+          "combos": true,
+          "enrichment": true,
+          "compressionMetadata": true,
+          "mcpAutoEmit": true,
+        },
+      },
+    ],
+  ],
+}
+```
+
+With `mcpAutoEmit: true`, the plugin synthesises an `mcp.omniroute` entry equivalent to a manual:
+
+```jsonc
+"mcp": {
+  "omniroute": {
+    "type": "remote",
+    "url": "https://or.example.com/api/mcp/stream",
+    "enabled": true,
+    "headers": { "Authorization": "Bearer <apiKey-from-auth.json>" }
+  }
+}
+```
+
+If you want a narrower-scoped Bearer for MCP (different from the chat/inference key), set `features.mcpToken`. Operator overrides win: if you already set `mcp.omniroute` in `opencode.json`, the plugin will not overwrite it.
 
 ## Comparison vs `@omniroute/opencode-provider`
 

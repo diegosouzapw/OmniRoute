@@ -75,6 +75,51 @@ import { z } from "zod";
  *                     absent, the loader falls back to a credential-attached
  *                     baseURL set by `/connect`.
  */
+/**
+ * Optional feature toggles. Every field is opt-in/out per call; defaults
+ * mirror the v0.1.0 behaviour so existing opencode.json files do not need
+ * to change.
+ *
+ *  - `combos`               Discover `/api/combos` and surface them as
+ *                           pseudo-models with LCD capabilities. Default true.
+ *  - `enrichment`           Pull display names + pricing from
+ *                           `/api/pricing/models` and overlay them onto the
+ *                           ModelV2 entries derived from `/v1/models`. Solves
+ *                           the "raw id in UI" complaint without client-side
+ *                           heuristics. Default true.
+ *  - `compressionMetadata`  Pull `/api/context/combos` so combo entries can
+ *                           be tagged with their compression pipeline
+ *                           (e.g. `rtk:standard → caveman:full`). Off by
+ *                           default — adds one network call per refresh and
+ *                           the data is only useful for combo entries.
+ *  - `geminiSanitization`   Strip `$schema`/`$ref`/`additionalProperties`
+ *                           from `tools[].function.parameters` when the
+ *                           model id contains "gemini". Default true.
+ *  - `mcpAutoEmit`          Auto-write an `mcp.<providerId>` remote entry
+ *                           into the OC config pointing at
+ *                           `<baseURL>/api/mcp/stream` with the resolved
+ *                           Bearer token. Default false — keeps opencode.json
+ *                           in control unless explicitly opted in.
+ *  - `mcpToken`             Optional separate Bearer token to use in the
+ *                           auto-emitted MCP entry. Falls back to the
+ *                           provider's API key (from auth.json) when unset.
+ *                           Useful when a narrower-scoped MCP-only key is
+ *                           preferred over the chat/inference key.
+ *  - `fetchInterceptor`     Inject Authorization: Bearer + Content-Type on
+ *                           every outbound request to baseURL. Default true.
+ */
+const featuresSchema = z
+  .object({
+    combos: z.boolean().optional(),
+    enrichment: z.boolean().optional(),
+    compressionMetadata: z.boolean().optional(),
+    geminiSanitization: z.boolean().optional(),
+    mcpAutoEmit: z.boolean().optional(),
+    mcpToken: z.string().min(1).optional(),
+    fetchInterceptor: z.boolean().optional(),
+  })
+  .strict();
+
 const optionsSchema = z
   .object({
     providerId: z
@@ -85,6 +130,7 @@ const optionsSchema = z
     displayName: z.string().min(1).optional(),
     modelCacheTtl: z.number().positive().optional(),
     baseURL: z.string().url().optional(),
+    features: featuresSchema.optional(),
   })
   .strict();
 
@@ -109,7 +155,7 @@ export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 export function resolveOmniRoutePluginOptions(
   opts?: OmniRoutePluginOptions
 ): Required<Pick<OmniRoutePluginOptions, "providerId" | "displayName" | "modelCacheTtl">> &
-  Pick<OmniRoutePluginOptions, "baseURL"> {
+  Pick<OmniRoutePluginOptions, "baseURL" | "features"> {
   const providerId = opts?.providerId ?? OMNIROUTE_PROVIDER_KEY;
   const displayName =
     opts?.displayName ??
@@ -123,6 +169,7 @@ export function resolveOmniRoutePluginOptions(
     displayName,
     modelCacheTtl,
     baseURL: opts?.baseURL,
+    features: opts?.features,
   };
 }
 
@@ -284,6 +331,11 @@ export const OmniRoutePlugin: Plugin = async (_input, options) => {
   // Each `OmniRoutePlugin(...)` invocation gets its OWN cache via closure,
   // so prod + preprod side-by-side instances do NOT collide.
   const sharedCache: OmniRouteFetchCache = new Map();
+  // Debug breadcrumb: confirm server() invocation + resolved options.
+  // Useful when diagnosing "is the plugin even running" from OC logs.
+  console.warn(
+    `[omniroute-plugin] initialized providerId=${resolved.providerId} displayName="${resolved.displayName}" baseURL=${resolved.baseURL ?? "(from auth.json)"} modelCacheTtl=${resolved.modelCacheTtl}ms`
+  );
   return {
     auth: createOmniRouteAuthHook(resolved),
     provider: createOmniRouteProviderHook(resolved, { cache: sharedCache }),
@@ -474,6 +526,7 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
  *      emit it when OmniRoute supplies `max_input_tokens` — keeps the
  *      shape clean for combo entries that only carry context_length.
  */
+
 export function mapRawModelToModelV2(
   raw: OmniRouteRawModelEntry,
   ctx: { providerId: string; baseURL: string }
@@ -484,13 +537,13 @@ export function mapRawModelToModelV2(
 
   return {
     id: raw.id,
-    providerID: ctx.providerId,
-    api: {
-      id: "openai-compatible",
-      url: ctx.baseURL,
-      npm: "@ai-sdk/openai-compatible",
-    },
-    name: raw.id, // OmniRoute /v1/models has no separate display name; id IS the label
+    /**
+     * Display name. Falls back to raw.id when no enrichment is available;
+     * the caller (`createOmniRouteProviderHook`) overlays
+     * `/api/pricing/models` data via `applyEnrichment` when
+     * `features.enrichment` is true.
+     */
+    name: raw.id,
     capabilities: {
       temperature: caps.temperature ?? true,
       reasoning: Boolean(caps.reasoning || caps.thinking),
@@ -526,6 +579,12 @@ export function mapRawModelToModelV2(
     options: {},
     headers: {},
     release_date: raw.release_date ?? "",
+    providerID: ctx.providerId,
+    api: {
+      id: "openai-compatible",
+      url: ctx.baseURL,
+      npm: "@ai-sdk/openai-compatible",
+    },
   };
 }
 
@@ -784,6 +843,250 @@ export function mapComboToModelV2(
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// ENRICHMENT — pull display names + pricing from /api/pricing/models so
+// the UI doesn't have to render raw model ids. Gated by features.enrichment.
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Per-model enrichment overlay derived from OmniRoute's
+ * `/api/pricing/models` endpoint. The endpoint returns a per-provider
+ * catalog with curated `name` strings (e.g. `Claude 4.7 Opus`,
+ * `GPT 5.5 Pro`, `Gemini 3.1 Pro`) and per-million-token pricing
+ * (`pricing.input`, `pricing.output`, `pricing.cacheRead`,
+ * `pricing.cacheWrite`). These overlay the ModelV2 entries produced by
+ * `mapRawModelToModelV2`.
+ */
+export interface OmniRouteEnrichmentEntry {
+  /** Human-readable display name. Replaces ModelV2.name when present. */
+  name?: string;
+  /** Per-million-token cost overlay onto ModelV2.cost. */
+  pricing?: {
+    input?: number;
+    output?: number;
+    cacheRead?: number;
+    cacheWrite?: number;
+  };
+}
+
+/** Map keyed by full model id (possibly namespaced, e.g. `cc/claude-sonnet-4-6`). */
+export type OmniRouteEnrichmentMap = Map<string, OmniRouteEnrichmentEntry>;
+
+export type OmniRouteEnrichmentFetcher = (
+  baseURL: string,
+  apiKey: string,
+  timeoutMs?: number
+) => Promise<OmniRouteEnrichmentMap>;
+
+/**
+ * Default enrichment fetcher — calls `GET /api/pricing/models`.
+ * Tolerates two shapes:
+ *  - `{ providers: { [providerId]: { models: [{ id, name, custom, pricing? }] } } }`
+ *  - `{ [providerId]: { models: [...] } }` (legacy direct shape)
+ * Returns a Map<id, {name, pricing}> ready to overlay onto ModelV2.
+ * Soft-fails (returns empty Map) on non-2xx or parse errors.
+ */
+export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = async (
+  baseURL,
+  apiKey,
+  timeoutMs = 10_000
+) => {
+  const out: OmniRouteEnrichmentMap = new Map();
+  if (!baseURL || !apiKey) return out;
+  const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
+  const url = `${root}/api/pricing/models`;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: ac.signal,
+    });
+    if (!res.ok) return out;
+    const body = (await res.json()) as unknown;
+    const providers =
+      (body as { providers?: Record<string, { models?: unknown[] }> })?.providers ??
+      (body as Record<string, { models?: unknown[] }>);
+    if (!providers || typeof providers !== "object") return out;
+    for (const [providerId, slot] of Object.entries(providers)) {
+      if (!slot || typeof slot !== "object") continue;
+      const models = (slot as { models?: unknown[] }).models;
+      if (!Array.isArray(models)) continue;
+      for (const m of models) {
+        if (!m || typeof m !== "object") continue;
+        const id = (m as { id?: unknown }).id;
+        if (typeof id !== "string" || id.length === 0) continue;
+        const name = (m as { name?: unknown }).name;
+        const pricing = (m as { pricing?: unknown }).pricing;
+        const entry: OmniRouteEnrichmentEntry = {};
+        if (typeof name === "string" && name.trim().length > 0) entry.name = name;
+        if (pricing && typeof pricing === "object") {
+          const p = pricing as Record<string, unknown>;
+          const parsed: NonNullable<OmniRouteEnrichmentEntry["pricing"]> = {};
+          if (typeof p.input === "number") parsed.input = p.input;
+          if (typeof p.output === "number") parsed.output = p.output;
+          if (typeof p.cacheRead === "number") parsed.cacheRead = p.cacheRead;
+          if (typeof p.cacheWrite === "number") parsed.cacheWrite = p.cacheWrite;
+          if (Object.keys(parsed).length > 0) entry.pricing = parsed;
+        }
+        // Store under namespaced id and bare id so collision-avoidance still
+        // catches the entry regardless of how callers refer to it.
+        const namespaced = `${providerId}/${id}`;
+        if (!out.has(namespaced)) out.set(namespaced, entry);
+        if (!out.has(id)) out.set(id, entry);
+      }
+    }
+  } catch {
+    // Network error / abort — return whatever we collected (probably empty).
+  } finally {
+    clearTimeout(timer);
+  }
+  return out;
+};
+
+/**
+ * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
+ * passed entry for convenience.
+ */
+export function applyEnrichment(
+  model: ModelV2,
+  enrichment: OmniRouteEnrichmentEntry | undefined
+): ModelV2 {
+  if (!enrichment) return model;
+  if (enrichment.name && enrichment.name.trim().length > 0) {
+    model.name = enrichment.name;
+  }
+  if (enrichment.pricing) {
+    if (typeof enrichment.pricing.input === "number") {
+      model.cost.input = enrichment.pricing.input;
+    }
+    if (typeof enrichment.pricing.output === "number") {
+      model.cost.output = enrichment.pricing.output;
+    }
+    if (typeof enrichment.pricing.cacheRead === "number") {
+      model.cost.cache.read = enrichment.pricing.cacheRead;
+    }
+    if (typeof enrichment.pricing.cacheWrite === "number") {
+      model.cost.cache.write = enrichment.pricing.cacheWrite;
+    }
+  }
+  return model;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// COMPRESSION METADATA — pull /api/context/combos so combo entries can be
+// tagged with their compression pipeline. Gated by
+// features.compressionMetadata (off by default).
+// ─────────────────────────────────────────────────────────────────────────
+
+/** Single step in a compression combo's pipeline. */
+export interface OmniRouteCompressionStep {
+  engine: string; // "rtk" | "caveman" | "aggressive" | ...
+  intensity?: string; // "minimal" | "lite" | "standard" | "full" | "ultra" | "aggressive"
+}
+
+/** Compression combo as returned by /api/context/combos. */
+export interface OmniRouteCompressionCombo {
+  id: string;
+  name?: string;
+  description?: string;
+  pipeline: OmniRouteCompressionStep[];
+  isDefault?: boolean;
+}
+
+export type OmniRouteCompressionMetaFetcher = (
+  baseURL: string,
+  apiKey: string,
+  timeoutMs?: number
+) => Promise<OmniRouteCompressionCombo[]>;
+
+/**
+ * Default compression-metadata fetcher — calls `GET /api/context/combos`.
+ * Tolerates envelope shapes `{ combos: [...] }`, `[...]`, or
+ * `{ data: [...] }`. Soft-fails (returns []) on non-2xx or parse errors.
+ */
+export const defaultOmniRouteCompressionMetaFetcher: OmniRouteCompressionMetaFetcher = async (
+  baseURL,
+  apiKey,
+  timeoutMs = 10_000
+) => {
+  const empty: OmniRouteCompressionCombo[] = [];
+  if (!baseURL || !apiKey) return empty;
+  const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
+  const url = `${root}/api/context/combos`;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      signal: ac.signal,
+    });
+    if (!res.ok) return empty;
+    const body = (await res.json()) as unknown;
+    const list = Array.isArray(body)
+      ? body
+      : Array.isArray((body as { combos?: unknown[] })?.combos)
+        ? (body as { combos: unknown[] }).combos
+        : Array.isArray((body as { data?: unknown[] })?.data)
+          ? (body as { data: unknown[] }).data
+          : [];
+    const out: OmniRouteCompressionCombo[] = [];
+    for (const raw of list) {
+      if (!raw || typeof raw !== "object") continue;
+      const id = (raw as { id?: unknown }).id;
+      const pipeline = (raw as { pipeline?: unknown }).pipeline;
+      if (typeof id !== "string" || id.length === 0) continue;
+      if (!Array.isArray(pipeline)) continue;
+      const steps: OmniRouteCompressionStep[] = [];
+      for (const step of pipeline) {
+        if (!step || typeof step !== "object") continue;
+        const engine = (step as { engine?: unknown }).engine;
+        if (typeof engine !== "string" || engine.length === 0) continue;
+        const intensity = (step as { intensity?: unknown }).intensity;
+        const entry: OmniRouteCompressionStep = { engine };
+        if (typeof intensity === "string" && intensity.length > 0) {
+          entry.intensity = intensity;
+        }
+        steps.push(entry);
+      }
+      const combo: OmniRouteCompressionCombo = { id, pipeline: steps };
+      const name = (raw as { name?: unknown }).name;
+      if (typeof name === "string" && name.length > 0) combo.name = name;
+      const description = (raw as { description?: unknown }).description;
+      if (typeof description === "string") combo.description = description;
+      const isDefault = (raw as { isDefault?: unknown }).isDefault;
+      if (typeof isDefault === "boolean") combo.isDefault = isDefault;
+      out.push(combo);
+    }
+    return out;
+  } catch {
+    return empty;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/**
+ * Format a compression pipeline as a short human-readable string for combo
+ * `name` decoration. Example: `[rtk:standard → caveman:full]`.
+ */
+export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]): string {
+  if (!pipeline || pipeline.length === 0) return "";
+  return (
+    "[" +
+    pipeline.map((s) => (s.intensity ? `${s.engine}:${s.intensity}` : s.engine)).join(" → ") +
+    "]"
+  );
+}
+
 /**
  * Internal cache key: `${baseURL}::sha256(apiKey)`. We hash the apiKey so
  * the key is safe to log / inspect via debugger without leaking the secret.
@@ -819,6 +1122,10 @@ function modelsCacheKey(baseURL: string, apiKey: string): string {
 export interface OmniRouteFetchCacheEntry {
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
+  /** Display-name + pricing overlay from /api/pricing/models. Empty Map when feature is disabled or fetch failed. */
+  rawEnrichment: OmniRouteEnrichmentMap;
+  /** Compression combos from /api/context/combos. Empty array when feature is disabled or fetch failed. */
+  rawCompressionCombos: OmniRouteCompressionCombo[];
   expiresAt: number;
 }
 
@@ -873,6 +1180,8 @@ export function createOmniRouteProviderHook(
   deps: {
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
+    enrichmentFetcher?: OmniRouteEnrichmentFetcher;
+    compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     now?: () => number;
     cache?: OmniRouteFetchCache;
   } = {}
@@ -884,6 +1193,14 @@ export function createOmniRouteProviderHook(
   // reference resolves at hook-invocation time, not at hook-construction
   // time, so source-order beyond hoisting rules has no semantic effect.
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
+  const compressionMetaFetcher =
+    deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
+  // Features defaults (mirror v0.1.0 behavior when unset).
+  const features = resolved.features ?? {};
+  const wantCombos = features.combos !== false;
+  const wantEnrichment = features.enrichment !== false;
+  const wantCompressionMeta = features.compressionMetadata === true;
   const now = deps.now ?? Date.now;
   // T-07: cache holds RAW fetch results (not pre-derived ModelV2) so that
   // the config-shim hook can share the same cache and derive its stripped
@@ -931,36 +1248,80 @@ export function createOmniRouteProviderHook(
 
       let rawModels: OmniRouteRawModelEntry[];
       let rawCombos: OmniRouteRawCombo[];
+      let rawEnrichment: OmniRouteEnrichmentMap;
+      let rawCompressionCombos: OmniRouteCompressionCombo[];
       if (cached && cached.expiresAt > t) {
         rawModels = cached.rawModels;
         rawCombos = cached.rawCombos;
+        rawEnrichment = cached.rawEnrichment;
+        rawCompressionCombos = cached.rawCompressionCombos;
       } else {
         // Models fetch is required (no catalog otherwise → silent provider
         // disappearance). We do NOT wrap this in a try; let the error
         // propagate to OC's UI.
         rawModels = await fetcher(baseURL, apiKey, 10_000);
 
-        // T-05: combos fetch is best-effort. Soft-fail on any error: emit a
-        // console.warn and fall back to a models-only catalog. Rationale:
-        // /api/combos requires a management-scoped key and OmniRoute may
-        // not have any combos provisioned (preprod returned `{combos:[]}`
-        // at probe time). Hard-failing the catalog when combos are optional
-        // would silently hide the whole provider from OC's picker.
+        // T-05: combos fetch is best-effort, gated by features.combos.
+        // Soft-fail on any error: emit a console.warn and fall back to a
+        // models-only catalog. Rationale: /api/combos requires a
+        // management-scoped key and OmniRoute may not have any combos
+        // provisioned. Hard-failing when combos are optional would
+        // silently hide the whole provider from OC's picker.
         rawCombos = [];
-        try {
-          rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
-        } catch (err) {
-          console.warn(
-            "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
-            err
-          );
+        if (wantCombos) {
+          try {
+            rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+          } catch (err) {
+            console.warn(
+              "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
+              err
+            );
+          }
+        }
+
+        // Enrichment fetch (nice names + pricing). Best-effort, gated by
+        // features.enrichment. Soft-fails to empty map.
+        rawEnrichment = new Map();
+        if (wantEnrichment) {
+          try {
+            rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+          } catch (err) {
+            console.warn(
+              "[omniroute-plugin] enrichment fetch failed, falling back to raw ids",
+              err
+            );
+          }
+        }
+
+        // Compression metadata fetch. Off by default, gated by
+        // features.compressionMetadata. Soft-fails to empty array.
+        rawCompressionCombos = [];
+        if (wantCompressionMeta) {
+          try {
+            rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+          } catch (err) {
+            console.warn("[omniroute-plugin] compression-metadata fetch failed", err);
+          }
         }
 
         cache.set(cacheKey, {
           rawModels,
           rawCombos,
+          rawEnrichment,
+          rawCompressionCombos,
           expiresAt: t + resolved.modelCacheTtl,
         });
+
+        // Debug breadcrumb: surface fetch result so operators can confirm
+        // the dynamic pipeline fired and how much catalog OmniRoute returned.
+        // Emitted once per cache miss (TTL refresh) — quiet on cache hits.
+        console.warn(
+          `[omniroute-plugin] catalog refreshed for providerId=${resolved.providerId} baseURL=${baseURL}: ` +
+            `${rawModels.length} models + ${rawCombos.length} combos + ` +
+            `${rawEnrichment.size} enrichment entries + ` +
+            `${rawCompressionCombos.length} compression combos ` +
+            `(TTL=${resolved.modelCacheTtl}ms)`
+        );
       }
 
       // Lookup index for LCD member resolution: O(1) per member lookup.
@@ -971,15 +1332,28 @@ export function createOmniRouteProviderHook(
         if (entry.id) rawModelById.set(entry.id, entry);
       }
 
-      // Map raw models → ModelV2 keyed by id.
+      // Map raw models → ModelV2 keyed by id. When enrichment data is
+      // present (features.enrichment, default on), overlay the nicer
+      // display name + pricing from /api/pricing/models. The enrichment
+      // map keys on both namespaced (`<provider>/<id>`) and bare ids so
+      // we just try the bare id first, then fall back.
       const models: Record<string, ModelV2> = {};
       for (const entry of rawModels) {
         if (!entry.id) continue;
-        models[entry.id] = mapRawModelToModelV2(entry, {
+        const model = mapRawModelToModelV2(entry, {
           providerId: resolved.providerId,
           baseURL,
         });
+        applyEnrichment(model, rawEnrichment.get(entry.id));
+        models[entry.id] = model;
       }
+
+      // Default compression combo (used to decorate ALL combo names when
+      // compression metadata is present). OmniRoute returns at most one
+      // entry with `isDefault: true` per /api/context/combos.
+      const defaultCompression = wantCompressionMeta
+        ? rawCompressionCombos.find((c) => c.isDefault === true)
+        : undefined;
 
       // T-05: map raw combos → ModelV2. Skip hidden combos (operator
       // preference — provisioned but intentionally not surfaced).
@@ -1004,6 +1378,21 @@ export function createOmniRouteProviderHook(
         }
 
         const mapped = mapComboToModelV2(combo, memberEntries, resolved.providerId, baseURL);
+
+        // Apply enrichment overlay to combos too (OmniRoute's
+        // /api/pricing/models surfaces combos alongside provider-scoped
+        // models with curated names).
+        applyEnrichment(mapped, rawEnrichment.get(combo.id));
+
+        // Optionally decorate combo name with its compression pipeline.
+        // Only fires when features.compressionMetadata: true and OmniRoute
+        // returned at least one default compression combo.
+        if (defaultCompression && defaultCompression.pipeline.length > 0) {
+          const tag = formatCompressionPipeline(defaultCompression.pipeline);
+          if (tag.length > 0 && !mapped.name.includes(tag)) {
+            mapped.name = `${mapped.name} ${tag}`;
+          }
+        }
 
         // Collision policy: combos win. Warn ONCE per (cacheKey, comboId)
         // when overwriting a same-id raw model so the operator can spot
@@ -1861,9 +2250,16 @@ export function createOmniRouteConfigHook(
 
       // Cache even partial results — a subsequent provider-hook call should
       // not re-burn the timeout window on the same broken endpoint.
+      // Config-hook never fetches enrichment/compression directly: the
+      // static block doesn't surface them today (sibling shape is name+
+      // capability only). Provider-hook may fetch them later and write
+      // back into the same cache key; we seed empty values so the cache
+      // entry shape remains consistent.
       cache.set(cacheKey, {
         rawModels,
         rawCombos,
+        rawEnrichment: new Map(),
+        rawCompressionCombos: [],
         expiresAt: t + resolved.modelCacheTtl,
       });
     }
@@ -1879,5 +2275,46 @@ export function createOmniRouteConfigHook(
       inputWithProvider.provider = {};
     }
     inputWithProvider.provider[resolved.providerId] = block;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // MCP auto-emit — opt-in via features.mcpAutoEmit. When enabled, writes
+    // an `input.mcp[<providerId>]` remote entry pointing at
+    // `<baseURL>/api/mcp/stream` with the resolved Bearer token. Token
+    // resolution: features.mcpToken wins if set; otherwise falls back to
+    // the same apiKey used for chat. Operator overrides win (same posture
+    // as provider-block emit): if input.mcp[providerId] is already set,
+    // we leave it alone.
+    // ─────────────────────────────────────────────────────────────────────
+    const features = resolved.features ?? {};
+    if (features.mcpAutoEmit === true) {
+      const mcpKey = features.mcpToken ?? apiKey;
+      if (!mcpKey) {
+        logger.warn(
+          `[omniroute-plugin] mcp auto-emit skipped: no Bearer token for providerId=${resolved.providerId}`
+        );
+      } else {
+        const inputWithMcp = input as { mcp?: Record<string, unknown> };
+        if (!inputWithMcp.mcp) {
+          inputWithMcp.mcp = {};
+        }
+        if (inputWithMcp.mcp[resolved.providerId] !== undefined) {
+          logger.warn(
+            `[omniroute-plugin] mcp auto-emit skipped: mcp.${resolved.providerId} already set by user`
+          );
+        } else {
+          // Strip a trailing `/v1` from baseURL when present so we land on
+          // the MCP transport at /api/mcp/stream, not /v1/api/mcp/stream.
+          const mcpRoot = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
+          inputWithMcp.mcp[resolved.providerId] = {
+            type: "remote",
+            url: `${mcpRoot}/api/mcp/stream`,
+            enabled: true,
+            headers: {
+              Authorization: `Bearer ${mcpKey}`,
+            },
+          };
+        }
+      }
+    }
   };
 }
