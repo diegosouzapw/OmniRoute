@@ -9,18 +9,13 @@ import {
   removeFeatureFlagOverride,
   clearAllFeatureFlagOverrides,
 } from "@/lib/db/featureFlags";
-import { resolveAllFeatureFlags, resolveFeatureFlag } from "@/shared/utils/featureFlags";
+import { resolveAllFeatureFlags } from "@/shared/utils/featureFlags";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const ACTIVE_VALUES = new Set(["true", "1", "yes"]);
 
 function isActive(value: string): boolean {
   return ACTIVE_VALUES.has(value);
-}
-
-function buildFlagSource(key: string): "db" | "env" | "default" {
-  const allFlags = resolveAllFeatureFlags();
-  return allFlags.find((f) => f.key === key)?.source ?? "default";
 }
 
 /**
@@ -61,7 +56,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: sanitizeErrorMessage(error instanceof Error ? error.message : "Failed to load feature flags") },
+      { error: sanitizeErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -120,8 +115,10 @@ export async function PUT(request: NextRequest) {
 
   try {
     // Capture previous state before modifying
-    const previousSource = buildFlagSource(key);
-    const previousValue = resolveFeatureFlag(key);
+    const allFlagsBefore = resolveAllFeatureFlags();
+    const prevFlag = allFlagsBefore.find((f) => f.key === key);
+    const previousValue = prevFlag?.effectiveValue ?? definition.defaultValue;
+    const previousSource = prevFlag?.source ?? "default";
 
     if (value === undefined) {
       removeFeatureFlagOverride(key);
@@ -129,8 +126,11 @@ export async function PUT(request: NextRequest) {
       setFeatureFlagOverride(key, value);
     }
 
-    const newSource = buildFlagSource(key);
-    const newEffectiveValue = resolveFeatureFlag(key);
+    // After write — get new effective value
+    const allFlagsAfter = resolveAllFeatureFlags();
+    const updatedFlag = allFlagsAfter.find((f) => f.key === key);
+    const newEffectiveValue = updatedFlag?.effectiveValue ?? definition.defaultValue;
+    const newSource = updatedFlag?.source ?? "default";
 
     return NextResponse.json({
       key,
@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: sanitizeErrorMessage(error instanceof Error ? error.message : "Failed to update feature flag") },
+      { error: sanitizeErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -169,7 +169,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: sanitizeErrorMessage(error instanceof Error ? error.message : "Failed to clear feature flag overrides") },
+      { error: sanitizeErrorMessage(error) },
       { status: 500 }
     );
   }
