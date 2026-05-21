@@ -2042,11 +2042,11 @@ export async function handleComboChat({
         continue;
       }
 
-      // Pre-check: skip models where all accounts are in cooldown
+      // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
       if (isModelAvailable) {
         const available = await isModelAvailable(modelStr, target);
         if (!available) {
-          log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
+          log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
           continue;
         }
@@ -2450,7 +2450,7 @@ async function handleRoundRobinCombo({
     if (isModelAvailable) {
       const available = await isModelAvailable(modelStr, target);
       if (!available) {
-        log.info("COMBO-RR", `Skipping ${modelStr} (all accounts in cooldown)`);
+        log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
         if (offset > 0) fallbackCount++;
         continue;
       }

@@ -163,3 +163,4 @@ scripts/i18n/_pending-keys.json
 .agents/workflows/implement-features-ag.md
 .agents/skills/implement-features/
 .claude/commands/implement-features-cc.md
+.claude/worktrees/

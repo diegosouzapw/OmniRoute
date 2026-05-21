@@ -639,7 +639,12 @@ function cloneClaudeCodeCompatibleMessagesFromClaude(
   preserveCacheControl: boolean
 ) {
   const cloned = Array.isArray(messages)
-    ? messages.map((message) => cloneValue(message) as MessageLike)
+    ? messages
+        .map((message) => cloneValue(message) as MessageLike)
+        .filter((message) => {
+          const role = String(message?.role || "").toLowerCase();
+          return role !== "system" && role !== "developer";
+        })
     : [];
 
   if (!preserveCacheControl) {
@@ -832,11 +837,22 @@ function prepareClaudeCodeCompatibleBody(
 }
 
 function prepareClaudeCodeCompatibleSemanticBody(claudeBody: Record<string, unknown>) {
+  const rawMessages = Array.isArray(claudeBody.messages)
+    ? (claudeBody.messages as MessageLike[])
+    : [];
+
+  const systemBlocks = normalizeClaudeSystemInput(claudeBody.system);
+  const systemFromMessages = extractCustomSystemBlocks(rawMessages);
+  const mergedSystem = [...systemBlocks, ...systemFromMessages];
+
+  const normalizedMessages = rawMessages.filter((message) => {
+    const role = String(message?.role || "").toLowerCase();
+    return role !== "system" && role !== "developer";
+  });
+
   const prepared: Record<string, unknown> = {
-    system: normalizeClaudeSystemInput(claudeBody.system),
-    messages: Array.isArray(claudeBody.messages)
-      ? (claudeBody.messages as Array<Record<string, unknown>>)
-      : [],
+    system: mergedSystem,
+    messages: normalizedMessages,
     tools: normalizeClaudeToolInput(claudeBody.tools),
     thinking: (readRecord(cloneValue(claudeBody.thinking)) || null) as Record<
       string,
