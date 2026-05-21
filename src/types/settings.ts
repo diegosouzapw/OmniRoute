@@ -25,6 +25,8 @@ export interface Settings {
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
   pinProviderQuotaToHome?: boolean;
+  showQuickStartOnHome?: boolean;
+  showProviderTopologyOnHome?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
 }

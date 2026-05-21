@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
-const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
+const ProviderLimits = dynamic(() => import("./usage/components/ProviderLimits"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
@@ -96,20 +96,30 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [updateSteps, setUpdateSteps] = useState<UpdateStep[]>([]);
   const [updatePhase, setUpdatePhase] = useState<"idle" | "running" | "done" | "failed">("idle");
 
-  // Appearance setting: whether to pin Provider Quota widget to this Home page
+  // Appearance settings for home page pinning
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
+  const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
+  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
 
   useEffect(() => {
-    // Fetch the pin setting (lightweight, only the one key we care about)
+    // Fetch the pin settings (lightweight)
     fetch("/api/settings")
       .then((r) => (r.ok ? r.json() : {}))
       .then((data) => {
-        if (data && typeof data.pinProviderQuotaToHome === "boolean") {
-          setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
+        if (data) {
+          if (typeof data.pinProviderQuotaToHome === "boolean") {
+            setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
+          }
+          if (typeof data.showQuickStartOnHome === "boolean") {
+            setShowQuickStartOnHome(data.showQuickStartOnHome);
+          }
+          if (typeof data.showProviderTopologyOnHome === "boolean") {
+            setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
+          }
         }
       })
       .catch(() => {
-        /* ignore — default stays false */
+        /* ignore — defaults stay */
       });
   }, []);
 
@@ -739,27 +749,30 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
         </div>
       )}
 
-      {/* Pinned Provider Quota widget (controlled by Appearance setting) */}
+      {/* Pinned Provider Quota Limits (compact, no filters) */}
       {pinProviderQuotaToHome && (
-        <ProviderQuotaWidget />
+        <Suspense fallback={<CardSkeleton />}>
+          <ProviderLimits showFilters={false} />
+        </Suspense>
       )}
 
-      {/* Quick Start */}
-      <Card>
-        <div className="flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
-              <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
+      {/* Quick Start (controlled by Appearance setting, default on) */}
+      {showQuickStartOnHome && (
+        <Card>
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">{t("quickStart")}</h2>
+                <p className="text-sm text-text-muted">{t("quickStartDesc")}</p>
+              </div>
+              <Link
+                href="/docs"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+              >
+                <span className="material-symbols-outlined text-[14px]">menu_book</span>
+                {t("fullDocs")}
+              </Link>
             </div>
-            <Link
-              href="/docs"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">menu_book</span>
-              {t("fullDocs")}
-            </Link>
-          </div>
 
           <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
@@ -830,34 +843,37 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           </ol>
         </div>
       </Card>
+      )}
 
-      {/* Provider Topology */}
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
-            <p className="text-xs text-text-muted">
-              Connected providers routing through OmniRoute in real time
-            </p>
+      {/* Provider Topology (controlled by Appearance setting, default on) */}
+      {showProviderTopologyOnHome && (
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-base font-semibold">{t("providerTopology")}</h2>
+              <p className="text-xs text-text-muted">
+                Connected providers routing through OmniRoute in real time
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-[11px] text-text-muted">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-green-500" /> Active
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-amber-500" /> Recent
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-red-500" /> Error
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-green-500" /> Active
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-amber-500" /> Recent
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-red-500" /> Error
-            </span>
-          </div>
-        </div>
-        <ProviderTopology
-          providers={providerStats
-            .filter((p) => p.total > 0)
-            .map((p) => ({ id: p.id, provider: p.id, name: p.provider.name }))}
-        />
-      </Card>
+          <ProviderTopology
+            providers={providerStats
+              .filter((p) => p.total > 0)
+              .map((p) => ({ id: p.id, provider: p.id, name: p.provider.name }))}
+          />
+        </Card>
+      )}
 
       {/* Provider Models Modal */}
       {selectedProvider && (
