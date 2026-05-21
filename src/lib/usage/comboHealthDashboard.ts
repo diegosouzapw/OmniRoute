@@ -6,15 +6,9 @@ import { buildComboScoringInspectorResponse } from "@/lib/usage/comboScoringInsp
 import type {
   ComboForecastHorizon,
   ComboHealthDashboardResponse,
+  ComboRecord,
   UtilizationTimeRange,
 } from "@/shared/types/utilization";
-
-type ComboRecord = {
-  id?: string;
-  name?: string;
-  strategy?: string;
-  models?: unknown[];
-};
 
 export interface ComboHealthDashboardOptions {
   range: UtilizationTimeRange;
@@ -29,13 +23,26 @@ export async function buildComboHealthDashboardResponse(
   options: ComboHealthDashboardOptions
 ): Promise<ComboHealthDashboardResponse> {
   const allCombos = options.combos ?? ((await getCombos()) as ComboRecord[]);
-  const health = await buildComboHealthResponse({
-    range: options.range,
-    comboId: options.comboId,
-    now: options.now,
-    combos: allCombos,
-  });
   const errors: ComboHealthDashboardResponse["errors"] = {};
+  const [health, forecast] = await Promise.all([
+    buildComboHealthResponse({
+      range: options.range,
+      comboId: options.comboId,
+      now: options.now,
+      combos: allCombos,
+    }),
+    buildComboForecastResponse({
+      range: options.range,
+      horizon: options.horizon,
+      comboId: options.comboId,
+      now: options.now,
+      combos: allCombos,
+    }).catch((error) => {
+      console.error("[ComboHealthDashboard] Forecast build failed:", error);
+      errors.forecast = "Failed to fetch combo forecast data";
+      return null;
+    }),
+  ]);
 
   if (options.comboId && health.combos.length === 0) {
     return {
@@ -45,20 +52,6 @@ export async function buildComboHealthDashboardResponse(
       scoring: null,
       errors,
     };
-  }
-
-  let forecast: ComboHealthDashboardResponse["forecast"] = null;
-  try {
-    forecast = await buildComboForecastResponse({
-      range: options.range,
-      horizon: options.horizon,
-      comboId: options.comboId,
-      now: options.now,
-      combos: allCombos,
-    });
-  } catch (error) {
-    console.error("[ComboHealthDashboard] Forecast build failed:", error);
-    errors.forecast = "Failed to fetch combo forecast data";
   }
 
   let autopilot: ComboHealthDashboardResponse["autopilot"] = null;
@@ -96,6 +89,7 @@ export async function buildComboHealthDashboardResponse(
         healthResponse: health,
         forecastResponse: forecast,
         autopilotReport: autopilot ?? undefined,
+        skipAutopilot: Boolean(errors.autopilot),
       });
     } catch (error) {
       console.error("[ComboHealthDashboard] Scoring inspector build failed:", error);

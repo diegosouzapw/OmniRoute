@@ -195,6 +195,87 @@ test("scoring inspector marks non-auto combos as explanatory recompute", async (
   );
 });
 
+test("scoring inspector skipAutopilot avoids rebuilding autopilot report", async () => {
+  const options: Parameters<typeof inspector.buildComboScoringInspectorResponse>[0] = {
+    range: "24h",
+    horizon: "7d",
+    healthResponse: {
+      timeRange: "24h",
+      combos: [
+        {
+          comboId: "combo-skip-autopilot",
+          comboName: "combo-skip-autopilot",
+          strategy: "auto",
+          models: [],
+          cost: { totalUsd: 0, avgPerRequestUsd: 0, byModel: [] },
+          quotaHealth: { providers: [], worstRemainingPct: 0 },
+          usageSkew: { modelDistribution: [], giniCoefficient: 0 },
+          performance: { avgLatencyMs: 0, successRate: 0, totalRequests: 0 },
+          targetHealth: [],
+        },
+      ],
+    },
+    forecastResponse: {
+      asOf: "2024-01-01T00:00:00.000Z",
+      timeRange: "24h",
+      horizon: "7d",
+      method: "linear_history",
+      combos: [
+        {
+          comboId: "combo-skip-autopilot",
+          comboName: "combo-skip-autopilot",
+          strategy: "auto",
+          targets: [],
+          history: {
+            requests: 0,
+            inputTokens: 0,
+            outputTokens: 0,
+            cacheReadTokens: 0,
+            cacheCreationTokens: 0,
+            reasoningTokens: 0,
+            totalTokens: 0,
+            costUsd: 0,
+            avgDailyCostUsd: 0,
+            daysWithTraffic: 0,
+            windowDays: 1,
+          },
+          forecast: {
+            projectedRequests: 0,
+            projectedTokens: 0,
+            projectedCostUsd: 0,
+          },
+          quotaRisk: {
+            level: "unknown",
+            projectedWorstRemainingPct: null,
+            timeToExhaustDays: null,
+            worstTargetExecutionKey: null,
+          },
+          confidence: "no_data",
+          dataQuality: {
+            pricingCoveragePct: 0,
+            quotaCoverage: "none",
+            notes: [],
+          },
+        },
+      ],
+    },
+    skipAutopilot: true,
+  };
+  Object.defineProperty(options, "combos", {
+    get() {
+      throw new Error("autopilot should not read combos when skipped");
+    },
+  });
+
+  const response = await inspector.buildComboScoringInspectorResponse(options);
+
+  assert.equal(response.combos.length, 1);
+  assert.equal(
+    response.combos[0].warnings.includes("Combo has no inspectable execution targets."),
+    true
+  );
+});
+
 test("scoring inspector route requires auth, validates query, and returns 404", async () => {
   await enableManagementAuth();
   const { combo } = await seedAutoCombo();

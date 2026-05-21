@@ -8,10 +8,7 @@ import { buildErrorBody } from "@omniroute/open-sse/utils/error.ts";
 const querySchema = z.object({
   range: z.enum(["1h", "24h", "7d", "30d"]).default("24h"),
   horizon: z.enum(["24h", "7d", "30d"]).default("30d"),
-  comboId: z
-    .string()
-    .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-    .optional(),
+  comboId: z.string().uuid().optional(),
   taskType: z.string().trim().min(1).max(64).optional(),
 });
 

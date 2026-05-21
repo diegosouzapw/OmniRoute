@@ -20,6 +20,7 @@ import type {
   ComboForecastTarget,
   ComboHealthMetrics,
   ComboHealthResponse,
+  ComboRecord,
   ComboScoringInspectorCombo,
   ComboScoringInspectorFactor,
   ComboScoringInspectorFactorKey,
@@ -39,14 +40,8 @@ export interface ComboScoringInspectorOptions {
   healthResponse?: ComboHealthResponse;
   forecastResponse?: ComboForecastResponse;
   autopilotReport?: ComboAutopilotReport;
+  skipAutopilot?: boolean;
 }
-
-type ComboRecord = {
-  id?: string;
-  name?: string;
-  strategy?: string;
-  models?: unknown[];
-};
 
 type TargetHealth = NonNullable<ComboHealthMetrics["targetHealth"]>[number];
 
@@ -79,6 +74,24 @@ function roundNumber(value: number, digits = 4): number {
 
 function normalizeTaskType(taskType: string | undefined): string {
   return typeof taskType === "string" && taskType.trim().length > 0 ? taskType.trim() : "default";
+}
+
+function buildEmptyAutopilotReport(options: ComboScoringInspectorOptions): ComboAutopilotReport {
+  return {
+    status: "healthy",
+    checkedAt: new Date(options.now ?? Date.now()).toISOString(),
+    timeRange: options.range,
+    horizon: options.horizon,
+    summary: {
+      comboCount: 0,
+      healthyCount: 0,
+      degradedCount: 0,
+      downCount: 0,
+      issueCount: 0,
+      actionableCount: 0,
+    },
+    combos: [],
+  };
 }
 
 function forecastRiskAffinity(risk: ComboForecastRiskLevel | null | undefined): number {
@@ -333,17 +346,19 @@ export async function buildComboScoringInspectorResponse(
   ]);
   const autopilot =
     options.autopilotReport ??
-    (await buildComboHealthAutopilotReport({
-      range: options.range,
-      horizon: options.horizon,
-      comboId: options.comboId,
-      includeHealthy: true,
-      includeActions: false,
-      now: options.now,
-      combos: options.combos,
-      healthResponse: health,
-      forecastResponse: forecast,
-    }));
+    (options.skipAutopilot
+      ? buildEmptyAutopilotReport(options)
+      : await buildComboHealthAutopilotReport({
+          range: options.range,
+          horizon: options.horizon,
+          comboId: options.comboId,
+          includeHealthy: true,
+          includeActions: false,
+          now: options.now,
+          combos: options.combos,
+          healthResponse: health,
+          forecastResponse: forecast,
+        }));
 
   const forecastByComboId = new Map(forecast.combos.map((combo) => [combo.comboId, combo]));
   const autopilotByComboId = new Map(autopilot.combos.map((combo) => [combo.comboId, combo]));

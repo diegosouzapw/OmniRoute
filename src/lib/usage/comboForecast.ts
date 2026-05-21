@@ -5,6 +5,7 @@ import { getQuotaSnapshots } from "@/lib/db/quotaSnapshots";
 import { computeCostFromPricing, normalizeModelName } from "@/lib/usage/costCalculator";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import type {
+  ComboRecord,
   ComboForecastHorizon,
   ComboForecastMetrics,
   ComboForecastQuotaRisk,
@@ -16,13 +17,6 @@ import type {
 } from "@/shared/types/utilization";
 
 type JsonRecord = Record<string, unknown>;
-
-type ComboRecord = {
-  id?: string;
-  name?: string;
-  strategy?: string;
-  models?: unknown[];
-};
 
 type ResolvedComboTargetView = {
   stepId: string;

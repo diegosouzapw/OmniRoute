@@ -4,18 +4,12 @@ import { getQuotaSnapshots } from "@/lib/db/quotaSnapshots";
 import { getComboMetrics } from "@omniroute/open-sse/services/comboMetrics.ts";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import type {
+  ComboRecord,
   ComboHealthMetrics,
   ComboHealthResponse,
   QuotaSnapshotRow,
   UtilizationTimeRange,
 } from "@/shared/types/utilization";
-
-type ComboRecord = {
-  id?: string;
-  name?: string;
-  strategy?: string;
-  models?: unknown[];
-};
 
 type ModelUsageRow = {
   model: string | null;
@@ -355,7 +349,7 @@ function getHistoricalTargetMetrics(
            COALESCE(NULLIF(combo_execution_key, ''), NULLIF(combo_step_id, '')) AS executionKey,
            NULLIF(combo_step_id, '') AS stepId,
            status,
-           COALESCE(duration, 0) AS duration,
+           duration,
            timestamp
          FROM call_logs
          WHERE combo_name = ?

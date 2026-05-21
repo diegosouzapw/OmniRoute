@@ -18,17 +18,11 @@ import type {
   ComboForecastRiskLevel,
   ComboHealthMetrics,
   ComboHealthResponse,
+  ComboRecord,
   UtilizationTimeRange,
 } from "@/shared/types/utilization";
 
 type JsonRecord = Record<string, unknown>;
-
-type ComboRecord = {
-  id?: string;
-  name?: string;
-  strategy?: string;
-  models?: unknown[];
-};
 
 export interface ComboHealthAutopilotOptions {
   range: UtilizationTimeRange;

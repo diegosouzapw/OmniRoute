@@ -308,6 +308,10 @@ test("combo health route aggregates target history without changing latest targe
       comboExecutionKey: step.id,
     });
   }
+  core
+    .getDbInstance()
+    .prepare("UPDATE call_logs SET duration = NULL WHERE id = ?")
+    .run("combo-aggregate-1");
 
   const response = await route.GET(
     new Request(`http://localhost/api/usage/combo-health?range=24h&comboId=${combo.id}`)
@@ -319,7 +323,7 @@ test("combo health route aggregates target history without changing latest targe
   assert.equal(target.executionKey, step.id);
   assert.equal(target.requests, 3);
   assert.equal(target.successRate, 67);
-  assert.equal(target.avgLatencyMs, 200);
+  assert.equal(target.avgLatencyMs, 150);
   assert.equal(target.lastStatus, "ok");
   assert.equal(target.lastUsedAt, timestamps[2]);
 });
