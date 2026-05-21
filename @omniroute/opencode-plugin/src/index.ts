@@ -238,10 +238,18 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         return {
           apiKey,
           baseURL: resolvedBaseURL,
-          fetch: createOmniRouteFetchInterceptor({
-            apiKey,
-            baseURL: resolvedBaseURL,
-          }),
+          // Composition: sanitise Gemini tool schemas FIRST (T-06), then
+          // inject Bearer (T-04). Both layers are pure with respect to the
+          // other's concern (body vs headers) so order is logically free;
+          // wrapping the pure body-transform around the header-injecting
+          // interceptor reads cleaner and keeps T-06 testable in isolation
+          // against any inner fetch (real or stub).
+          fetch: createGeminiSanitizingFetch(
+            createOmniRouteFetchInterceptor({
+              apiKey,
+              baseURL: resolvedBaseURL,
+            })
+          ),
         };
       }
       return {};
