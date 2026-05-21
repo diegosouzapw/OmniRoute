@@ -28,6 +28,12 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
   }
   ALIAS_TO_PROVIDER_ID[alias] = id;
 }
+// Manual alias overrides — maps slug-style prefixes to canonical provider IDs.
+// These live outside the registry because they represent multiple providers
+// or backward-compatible slug changes, not a single provider's display name.
+// opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
+ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
+
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.

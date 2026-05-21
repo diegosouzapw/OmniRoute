@@ -235,6 +235,7 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
     if (typeof merged.reasoning === "boolean") entry.reasoning = merged.reasoning;
     if (typeof merged.temperature === "boolean") entry.temperature = merged.temperature;
     if (typeof merged.tool_call === "boolean") entry.tool_call = merged.tool_call;
+
     models[id] = entry;
   }
 
