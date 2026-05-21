@@ -13,6 +13,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
+const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
@@ -94,6 +95,23 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [updating, setUpdating] = useState(false);
   const [updateSteps, setUpdateSteps] = useState<UpdateStep[]>([]);
   const [updatePhase, setUpdatePhase] = useState<"idle" | "running" | "done" | "failed">("idle");
+
+  // Appearance setting: whether to pin Provider Quota widget to this Home page
+  const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
+
+  useEffect(() => {
+    // Fetch the pin setting (lightweight, only the one key we care about)
+    fetch("/api/settings")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((data) => {
+        if (data && typeof data.pinProviderQuotaToHome === "boolean") {
+          setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
+        }
+      })
+      .catch(() => {
+        /* ignore — default stays false */
+      });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -719,6 +737,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Pinned Provider Quota widget (controlled by Appearance setting) */}
+      {pinProviderQuotaToHome && (
+        <ProviderQuotaWidget />
       )}
 
       {/* Quick Start */}

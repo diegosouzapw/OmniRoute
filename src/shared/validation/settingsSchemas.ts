@@ -34,6 +34,7 @@ export const updateSettingsSchema = z.object({
   hideEndpointCloudflaredTunnel: z.boolean().optional(),
   hideEndpointTailscaleFunnel: z.boolean().optional(),
   hideEndpointNgrokTunnel: z.boolean().optional(),
+  pinProviderQuotaToHome: z.boolean().optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),

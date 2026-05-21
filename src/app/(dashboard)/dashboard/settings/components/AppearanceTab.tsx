@@ -19,6 +19,7 @@ import {
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -40,6 +41,7 @@ export default function AppearanceTab() {
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
   const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
+  const pinProviderQuotaToHome = settings[PIN_PROVIDER_QUOTA_TO_HOME_KEY] === true;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -382,6 +384,28 @@ export default function AppearanceTab() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Pin Provider Quota widget to Home page */}
+        <div className="pt-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">
+                {getSettingsLabel("pinProviderQuotaToHome", "Pin Information to Home Page")}
+              </p>
+              <p className="text-sm text-text-muted">
+                {getSettingsLabel(
+                  "pinProviderQuotaToHomeDesc",
+                  "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
+                )}
+              </p>
+            </div>
+            <Toggle
+              checked={pinProviderQuotaToHome}
+              onChange={() => updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, !pinProviderQuotaToHome)}
+              disabled={loading}
+            />
           </div>
         </div>
 
