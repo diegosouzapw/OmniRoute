@@ -212,7 +212,7 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
               }
             }
 
-            // response/fragments path (incremental updates)
+            // response/fragments path (array of fragments)
             if ((data as any)?.p === "response/fragments" && Array.isArray((data as any)?.v)) {
               if (!emittedRole) {
                 emittedRole = true;
@@ -227,6 +227,36 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
                   }
                 }
               }
+            }
+
+            // Incremental APPEND to fragment content (expert/pro mode)
+            const p = (data as any)?.p;
+            const o = (data as any)?.o;
+            if (
+              typeof p === "string" &&
+              p.includes("/content") &&
+              o === "APPEND" &&
+              typeof (data as any)?.v === "string"
+            ) {
+              if (!emittedRole) {
+                emittedRole = true;
+                chunk({ role: "assistant", content: "" });
+              }
+              const isThink = p.includes("thinking") || p.includes("think");
+              if (isThink) {
+                chunk({ reasoning_content: (data as any).v });
+              } else {
+                chunk({ content: (data as any).v });
+              }
+            }
+
+            // Bare string tokens: {"v": "word"} with no "p" field
+            if (typeof (data as any)?.v === "string" && !p && !o) {
+              if (!emittedRole) {
+                emittedRole = true;
+                chunk({ role: "assistant", content: "" });
+              }
+              chunk({ content: (data as any).v });
             }
 
             if ((data as any)?.p === "response/status" && (data as any)?.v === "FINISHED") {
@@ -286,6 +316,19 @@ async function collectSSEContent(deepseekStream: ReadableStream): Promise<string
             if (typeof frag.content === "string") parts.push(frag.content);
           }
         }
+        // APPEND to fragment content
+        if (
+          typeof data?.p === "string" &&
+          data.p.includes("/content") &&
+          data?.o === "APPEND" &&
+          typeof data?.v === "string"
+        ) {
+          parts.push(data.v);
+        }
+        // Bare string tokens
+        if (typeof data?.v === "string" && !data?.p && !data?.o) {
+          parts.push(data.v);
+        }
       } catch {
         // skip
       }
@@ -293,6 +336,44 @@ async function collectSSEContent(deepseekStream: ReadableStream): Promise<string
   }
 
   return parts.join("");
+}
+
+// ── Prompt builder (DeepSeek native format, matches Chat2API) ────────────
+
+function messagesToPrompt(messages: Array<{ role: string; content: string }>): string {
+  const extractText = (content: unknown): string => {
+    if (Array.isArray(content)) {
+      return (content as any[])
+        .filter((item: any) => item.type === "text")
+        .map((item: any) => item.text)
+        .join("\n");
+    }
+    return String(content || "");
+  };
+
+  if (messages.length === 0) return "";
+
+  // Collect system prompt(s) and find the last user message
+  const systemParts: string[] = [];
+  let lastUserContent = "";
+  for (const m of messages) {
+    if (m.role === "system") {
+      const text = extractText(m.content).trim();
+      if (text) systemParts.push(text);
+    } else if (m.role === "user") {
+      lastUserContent = extractText(m.content).trim();
+    }
+  }
+
+  const parts: string[] = [];
+  if (systemParts.length > 0) {
+    parts.push(systemParts.join("\n\n"));
+  }
+  if (lastUserContent) {
+    parts.push(lastUserContent);
+  }
+
+  return parts.join("\n\n").replace(/!\[.+\]\(.+\)/g, "");
 }
 
 // ── DeepSeek API calls (Bearer token auth, like Chat2API) ───────────────
@@ -324,6 +405,11 @@ async function acquireAccessToken(
   }
 
   const json = await resp.json();
+  if (json?.code && json.code !== 0) {
+    const errMsg = json.msg || json?.data?.biz_msg || `error code ${json.code}`;
+    tokenCache.delete(userToken);
+    throw new Error(`DeepSeek rejected token: ${errMsg}`);
+  }
   const bizData = json?.data?.biz_data || json?.biz_data;
   if (!bizData?.token) {
     const errMsg = json?.msg || json?.data?.biz_msg || "Unknown error";
@@ -462,14 +548,8 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const powAnswer = await solvePow(powChallenge);
       log?.info?.("DEEPSEEK-WEB", `PoW solved in ${Date.now() - t0}ms`);
 
-      // 5. Build prompt from messages
-      const prompt = messages
-        .map((m) => {
-          if (m.role === "system") return `[System]: ${m.content}`;
-          if (m.role === "assistant") return `[Assistant]: ${m.content}`;
-          return m.content;
-        })
-        .join("\n");
+      // 5. Build prompt from messages (DeepSeek native chat markers, matching Chat2API)
+      const prompt = messagesToPrompt(messages);
 
       // 6. Resolve model type, thinking, and search from model name + body flags
       const { modelType, thinkingEnabled, searchEnabled } = resolveModelOptions(
@@ -522,6 +602,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         let errMsg = `DeepSeek API error (${status})`;
         if (status === 401 || status === 403) {
           tokenCache.delete(userToken);
+          sessionCache.delete((rawCreds.connectionId as string) || "");
           errMsg = "DeepSeek token expired — get a fresh userToken from localStorage.";
         } else if (status === 429) {
           errMsg = "DeepSeek rate limited. Wait and retry.";
@@ -554,7 +635,10 @@ export class DeepSeekWebExecutor extends BaseExecutor {
             const errMsg = `DeepSeek error ${json.code}: ${json.msg}`;
             log?.warn?.("DEEPSEEK-WEB", errMsg);
             const status = json.code === 40003 ? 401 : json.code === 40002 ? 429 : 502;
-            if (json.code === 40003) tokenCache.delete(userToken);
+            if (json.code === 40003) {
+              tokenCache.delete(userToken);
+              sessionCache.delete((rawCreds.connectionId as string) || "");
+            }
             return {
               response: errorResponse(status, errMsg, json.code),
               url: COMPLETION_URL,
