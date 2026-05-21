@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const { OpencodeExecutor } = await import("../../open-sse/executors/opencode.ts");
+const { DefaultExecutor } = await import("../../open-sse/executors/default.ts");
 const { PROVIDER_MODELS } = await import("../../open-sse/config/providerModels.ts");
 
 function createMockResponse() {
@@ -359,6 +360,37 @@ describe("OpencodeExecutor", () => {
       });
       assert.equal(headers["x-opencode-session"], "sess-noauth");
       assert.equal(headers["Authorization"], undefined);
+    });
+  });
+});
+
+describe("DefaultExecutor", () => {
+  let defaultExecutor;
+
+  beforeEach(() => {
+    defaultExecutor = new DefaultExecutor("openai-compatible-test");
+  });
+
+  describe("buildHeaders", () => {
+    it("forwards x-opencode-* headers from clientHeaders", () => {
+      const headers = defaultExecutor.buildHeaders({ apiKey: "test-key" }, true, {
+        "x-opencode-session": "sess-abc",
+        "x-opencode-request": "req-xyz",
+        "x-opencode-project": "proj-5",
+        "x-opencode-client": "tui",
+      });
+      assert.equal(headers["x-opencode-session"], "sess-abc");
+      assert.equal(headers["x-opencode-request"], "req-xyz");
+      assert.equal(headers["x-opencode-project"], "proj-5");
+      assert.equal(headers["x-opencode-client"], "tui");
+    });
+
+    it("preserves existing behavior when clientHeaders is null", () => {
+      const headers = defaultExecutor.buildHeaders({ apiKey: "test-key" }, true, null);
+      assert.equal(headers["x-opencode-session"], undefined);
+      assert.equal(headers["Content-Type"], "application/json");
+      assert.equal(headers["Accept"], "text/event-stream");
+      assert.equal(headers["Authorization"], "Bearer test-key");
     });
   });
 });
