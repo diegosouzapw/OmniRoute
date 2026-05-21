@@ -27,7 +27,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PUBLISHED_BUILD_ARCH, PUBLISHED_BUILD_PLATFORM } from "./native-binary-compat.mjs";
-import { hasStandaloneAppBundle } from "./postinstallSupport.mjs";
+import { hasStandaloneAppBundle, isTermux } from "./postinstallSupport.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -136,7 +136,7 @@ async function fixBetterSqliteBinary() {
     const { execSync } = await import("node:child_process");
 
     // On Android/Termux, rebuild from source with --build-from-source flag
-    const isAndroid = process.platform === "android";
+    const isAndroid = process.platform === "android" || isTermux();
     const rebuildCmd = isAndroid
       ? "npm install better-sqlite3 --build-from-source --force"
       : "npm rebuild better-sqlite3";
@@ -196,8 +196,13 @@ async function fixBetterSqliteBinary() {
  * Fixes: https://github.com/diegosouzapw/OmniRoute/issues/1634
  */
 async function fixWreqJsBinary() {
-  if (process.platform === "android") {
-    console.log("  [postinstall] wreq-js: skipped on android (unsupported platform)");
+  // wreq-js native module is not loadable in Termux (libgcc path mismatch).
+  // The runtime already falls back gracefully when wreq-js is unavailable.
+  if (process.platform === "android" || isTermux()) {
+    console.log(
+      "  [postinstall] wreq-js: skipped on Termux/Android " +
+        "(libgcc not available — OAuth TLS fingerprinting will use the fallback path)"
+    );
     return;
   }
 

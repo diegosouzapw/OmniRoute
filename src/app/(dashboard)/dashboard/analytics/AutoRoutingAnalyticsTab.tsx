@@ -59,7 +59,7 @@ export default function AutoRoutingAnalyticsTab() {
               <span className="material-symbols-outlined text-[20px]">auto_awesome</span>
             </div>
             <div>
-              <p className="text-sm text-text-muted">Total Auto Requests</p>
+              <p className="text-sm text-text-muted">{t("autoRoutingTotalAutoRequests")}</p>
               <p className="text-2xl font-bold">{stats.totalRequests.toLocaleString()}</p>
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function AutoRoutingAnalyticsTab() {
               <span className="material-symbols-outlined text-[20px]">target</span>
             </div>
             <div>
-              <p className="text-sm text-text-muted">Avg Selection Score</p>
+              <p className="text-sm text-text-muted">{t("autoRoutingAvgSelectionScore")}</p>
               <p className="text-2xl font-bold">{(stats.avgSelectionScore * 100).toFixed(1)}%</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export default function AutoRoutingAnalyticsTab() {
               <span className="material-symbols-outlined text-[20px]">explore</span>
             </div>
             <div>
-              <p className="text-sm text-text-muted">Exploration Rate</p>
+              <p className="text-sm text-text-muted">{t("autoRoutingExplorationRate")}</p>
               <p className="text-2xl font-bold">{(stats.explorationRate * 100).toFixed(1)}%</p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function AutoRoutingAnalyticsTab() {
               <span className="material-symbols-outlined text-[20px]">history</span>
             </div>
             <div>
-              <p className="text-sm text-text-muted">LKGP Hit Rate</p>
+              <p className="text-sm text-text-muted">{t("autoRoutingLkgpHitRate")}</p>
               <p className="text-2xl font-bold">{(stats.lkgpHitRate * 100).toFixed(1)}%</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export default function AutoRoutingAnalyticsTab() {
 
       {/* Variant Breakdown */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Requests by Variant</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("autoRoutingRequestsByVariant")}</h3>
         <div className="space-y-3">
           {Object.entries(stats.variantBreakdown).map(([variant, count]) => {
             const percentage = stats.totalRequests > 0 ? (count / stats.totalRequests) * 100 : 0;
@@ -128,7 +128,7 @@ export default function AutoRoutingAnalyticsTab() {
 
       {/* Top Providers */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Top Routed Providers</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("autoRoutingTopRoutedProviders")}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

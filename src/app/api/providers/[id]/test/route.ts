@@ -22,6 +22,7 @@ import {
   resolveGitLabOAuthBaseUrl,
 } from "@/lib/oauth/gitlab";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
+import { removeConnectionHealth } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 
 // OAuth provider test endpoints
 const OAUTH_TEST_CONFIG = {
@@ -676,6 +677,16 @@ export async function testSingleConnection(connectionId: string, validationModel
 
   if (result.valid) {
     updateData.backoffLevel = 0;
+
+    const psd = connection?.providerSpecificData as Record<string, unknown> | undefined;
+    updateData.providerSpecificData = {
+      ...(psd || {}),
+      apiKeyHealth: {},
+    };
+
+    try {
+      removeConnectionHealth(connectionId);
+    } catch {}
   }
 
   // If token was refreshed, update tokens in DB

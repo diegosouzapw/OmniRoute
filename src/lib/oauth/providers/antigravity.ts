@@ -5,6 +5,20 @@ import {
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 
+async function fetchFirstOk(endpoints: string[], init: RequestInit) {
+  let lastError: unknown = null;
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, init);
+      if (response.ok) return response;
+      lastError = new Error(`${response.status} ${await response.text()}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("No Antigravity endpoints configured");
+}
+
 export const antigravity = {
   config: ANTIGRAVITY_CONFIG,
   flowType: "authorization_code",
@@ -61,20 +75,18 @@ export const antigravity = {
     let projectId = "";
     let tierId = "legacy-tier";
     try {
-      const loadRes = await fetch(ANTIGRAVITY_CONFIG.loadCodeAssistEndpoint, {
+      const loadRes = await fetchFirstOk(ANTIGRAVITY_CONFIG.loadCodeAssistEndpoints, {
         method: "POST",
         headers,
         body: JSON.stringify({ metadata }),
       });
-      if (loadRes.ok) {
-        const data = await loadRes.json();
-        projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
-        if (Array.isArray(data.allowedTiers)) {
-          for (const tier of data.allowedTiers) {
-            if (tier.isDefault && tier.id) {
-              tierId = tier.id.trim();
-              break;
-            }
+      const data = await loadRes.json();
+      projectId = data.cloudaicompanionProject?.id || data.cloudaicompanionProject || "";
+      if (Array.isArray(data.allowedTiers)) {
+        for (const tier of data.allowedTiers) {
+          if (tier.isDefault && tier.id) {
+            tierId = tier.id.trim();
+            break;
           }
         }
       }
@@ -85,23 +97,19 @@ export const antigravity = {
     if (projectId) {
       try {
         for (let i = 0; i < 10; i++) {
-          const onboardRes = await fetch(ANTIGRAVITY_CONFIG.onboardUserEndpoint, {
+          const onboardRes = await fetchFirstOk(ANTIGRAVITY_CONFIG.onboardUserEndpoints, {
             method: "POST",
             headers,
-            body: JSON.stringify({ tierId, metadata, cloudaicompanionProject: projectId }),
+            body: JSON.stringify({ tier_id: tierId, metadata }),
           });
-          if (onboardRes.ok) {
-            const result = await onboardRes.json();
-            if (result.done === true) {
-              if (result.response?.cloudaicompanionProject) {
-                const respProject = result.response.cloudaicompanionProject;
-                projectId =
-                  typeof respProject === "string"
-                    ? respProject.trim()
-                    : respProject.id || projectId;
-              }
-              break;
+          const result = await onboardRes.json();
+          if (result.done === true) {
+            if (result.response?.cloudaicompanionProject) {
+              const respProject = result.response.cloudaicompanionProject;
+              projectId =
+                typeof respProject === "string" ? respProject.trim() : respProject.id || projectId;
             }
+            break;
           }
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }

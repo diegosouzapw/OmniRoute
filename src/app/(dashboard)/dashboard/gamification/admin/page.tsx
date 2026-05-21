@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 interface Anomaly {
@@ -10,6 +11,7 @@ interface Anomaly {
 }
 
 export default function GamificationAdminPage() {
+  const t = useTranslations("common");
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,24 +35,24 @@ export default function GamificationAdminPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Gamification Admin</h1>
-        <p className="text-sm text-text-muted mt-1">Monitor anomalies and system health</p>
+        <h1 className="text-2xl font-bold">{t("gamificationAdmin")}</h1>
+        <p className="text-sm text-text-muted mt-1">{t("monitorAnomaliesAndHealth")}</p>
       </div>
 
       <Card>
-        <h2 className="text-lg font-semibold mb-3">Flagged Anomalies</h2>
+        <h2 className="text-lg font-semibold mb-3">{t("flaggedAnomalies")}</h2>
         {loading ? (
           <div className="text-text-muted">Loading...</div>
         ) : anomalies.length === 0 ? (
-          <div className="text-text-muted">No anomalies detected</div>
+          <div className="text-text-muted">{t("noAnomaliesDetected")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left p-2 font-medium text-text-muted">API Key</th>
-                  <th className="text-right p-2 font-medium text-text-muted">XP (1h)</th>
-                  <th className="text-right p-2 font-medium text-text-muted">Z-Score</th>
+                  <th className="text-left p-2 font-medium text-text-muted">{t("apiKey")}</th>
+                  <th className="text-right p-2 font-medium text-text-muted">{t("xpLastHour")}</th>
+                  <th className="text-right p-2 font-medium text-text-muted">{t("zScore")}</th>
                   <th className="text-center p-2 font-medium text-text-muted">Status</th>
                 </tr>
               </thead>

@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-13
 ---
 
@@ -133,6 +133,26 @@ OmniRoute auto-refreshes tokens. If issues persist:
 
 1. Dashboard → Provider → Reconnect
 2. Delete and re-add the provider connection
+
+### Kiro multi-account: second account invalidates the first
+
+**Cause:** Kiro's backend enforces a single active session per OIDC client registration.
+When two accounts share the same registered client (connections imported before v3.8.0),
+refreshing one account's token invalidates the other's refresh token.
+
+**Fix (v3.8.0+):** Re-import affected connections.
+Starting with v3.8.0, every new Kiro connection created via **Import Token**,
+**Google/GitHub social login**, or **Auto-Import** automatically registers its own
+dedicated OIDC client. The connection is therefore fully isolated and refreshing one
+account has no effect on any other account.
+
+Connections that were imported _before_ v3.8.0 do not carry a per-connection client
+registration. Those connections continue to use the shared social-auth refresh endpoint.
+To gain isolation, delete the old connection from Dashboard → Providers and re-add it
+via any of the three import flows.
+
+For full details and step-by-step instructions for adding two Kiro accounts side by side,
+see [`docs/guides/KIRO_SETUP.md`](./KIRO_SETUP.md).
 
 ---
 

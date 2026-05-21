@@ -50,6 +50,8 @@ const eslintConfig = [
       "bin/**",
       // Dependencies
       "node_modules/**",
+      ".worktrees/**",
+      ".omnivscodeagent/**",
       // VS Code extension and its large test fixtures
       "vscode-extension/**",
       "_references/**",

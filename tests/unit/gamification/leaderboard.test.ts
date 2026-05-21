@@ -1,12 +1,12 @@
-import { describe, it, beforeEach, after } from "node:test";
+import { describe, it, after } from "node:test";
 import assert from "node:assert/strict";
 import {
   updateScore,
   getRank,
   getTopN,
   getNeighbors,
-  rotateScope,
 } from "../../../src/lib/gamification/leaderboard";
+import { getDbInstance } from "../../../src/lib/db/core";
 
 describe("Leaderboard Engine", () => {
   const testKey = `test-lb-${Date.now()}`;
@@ -14,7 +14,6 @@ describe("Leaderboard Engine", () => {
   after(() => {
     // Cleanup
     try {
-      const { getDbInstance } = require("../../../src/lib/db/core");
       const db = getDbInstance();
       db.prepare("DELETE FROM leaderboard WHERE api_key_id LIKE ?").run("test-lb-%");
     } catch {}
@@ -57,6 +56,37 @@ describe("Leaderboard Engine", () => {
     it("respects limit", async () => {
       const entries = await getTopN("global", 5);
       assert.ok(entries.length <= 5);
+    });
+
+    it("returns different results with offset", async () => {
+      // Seed multiple entries with distinct scores
+      const keys: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const key = `test-offset-${Date.now()}-${i}`;
+        keys.push(key);
+        await updateScore(key, "global", (10 - i) * 100);
+      }
+
+      const page1 = await getTopN("global", 5, 0);
+      const page2 = await getTopN("global", 5, 5);
+
+      // Pages should not be identical
+      const page1Ids = page1.map((e: any) => e.apiKeyId || e.api_key_id);
+      const page2Ids = page2.map((e: any) => e.apiKeyId || e.api_key_id);
+      const overlap = page1Ids.filter((id: string) => page2Ids.includes(id));
+      assert.equal(overlap.length, 0, "Pages should not overlap");
+
+      // Cleanup
+      const db = getDbInstance();
+      for (const key of keys) {
+        db.prepare("DELETE FROM leaderboard WHERE api_key_id = ?").run(key);
+      }
+    });
+
+    it("offset 0 returns same as no offset", async () => {
+      const withOffset = await getTopN("global", 5, 0);
+      const withoutOffset = await getTopN("global", 5);
+      assert.equal(withOffset.length, withoutOffset.length);
     });
   });
 

@@ -573,7 +573,7 @@ export default function PlaygroundMode() {
                 </div>
                 {compressionResult.techniquesUsed.length > 0 && (
                   <div className="text-xs text-text-muted">
-                    <span className="font-semibold">Techniques:</span>{" "}
+                    <span className="font-semibold">{t("techniques")}</span>{" "}
                     {compressionResult.techniquesUsed.join(", ")}
                   </div>
                 )}

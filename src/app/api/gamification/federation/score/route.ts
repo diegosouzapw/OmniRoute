@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { updateScore } from "@/lib/gamification/leaderboard";
 import { z } from "zod";
+import crypto from "crypto";
 
 export async function OPTIONS() {
   return handleCorsOptions();
@@ -19,10 +20,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate token against connected community servers
   const token = authHeader.slice(7);
-  const crypto = await import("crypto");
-  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const tokenHash = crypto
+    .pbkdf2Sync(token, "omniroute-federation-salt", 120000, 32, "sha256")
+    .toString("hex");
   const { getDbInstance } = await import("@/lib/db/core");
   const db = getDbInstance();
   const server = db

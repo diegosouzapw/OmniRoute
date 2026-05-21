@@ -6,6 +6,7 @@
  */
 
 import { getDbInstance } from "./core";
+import { calculateLevel } from "../gamification/xp";
 
 // ──────────────── Types ────────────────
 
@@ -130,13 +131,13 @@ export function getRank(apiKeyId: string, scope: string): number {
   return rankRow.rank;
 }
 
-export function getTopN(scope: string, limit: number): LeaderboardRow[] {
+export function getTopN(scope: string, limit: number, offset: number = 0): LeaderboardRow[] {
   const rows = db()
     .prepare(
       `SELECT api_key_id, scope, score, updated_at FROM leaderboard
-     WHERE scope = ? ORDER BY score DESC LIMIT ?`
+     WHERE scope = ? ORDER BY score DESC LIMIT ? OFFSET ?`
     )
-    .all(scope, limit) as Array<{
+    .all(scope, limit, offset) as Array<{
     api_key_id: string;
     scope: string;
     score: number;
@@ -163,11 +164,11 @@ export function addXp(apiKeyId: string, action: string, amount: number, metadata
   db()
     .prepare(
       `INSERT INTO user_levels (api_key_id, total_xp, current_level, updated_at)
-     VALUES (?, ?, 1, datetime('now'))
+     VALUES (?, ?, ?, datetime('now'))
      ON CONFLICT(api_key_id)
      DO UPDATE SET total_xp = total_xp + excluded.total_xp, updated_at = datetime('now')`
     )
-    .run(apiKeyId, amount);
+    .run(apiKeyId, amount, calculateLevel(amount));
 }
 
 export function getXp(apiKeyId: string): UserLevelRow | null {

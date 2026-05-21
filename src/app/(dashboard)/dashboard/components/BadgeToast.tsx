@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 
 interface BadgeUnlockEvent {
   badgeId: string;
@@ -20,6 +21,7 @@ const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 
 export function BadgeToast({ apiKeyId }: { apiKeyId: string }) {
+  const t = useTranslations("common");
   const [toasts, setToasts] = useState<BadgeUnlockEvent[]>([]);
   const timeoutIds = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
@@ -92,7 +94,7 @@ export function BadgeToast({ apiKeyId }: { apiKeyId: string }) {
         >
           <span className="text-2xl">🏆</span>
           <div>
-            <div className="font-semibold text-white">Badge Unlocked!</div>
+            <div className="font-semibold text-white">{t("badgeToastUnlocked")}</div>
             <div className="text-sm text-text-muted">{toast.badgeName}</div>
           </div>
         </div>

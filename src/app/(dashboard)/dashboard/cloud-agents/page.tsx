@@ -328,14 +328,14 @@ export default function CloudAgentsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Repository name"
+              label={t("repositoryName")}
               placeholder="omniroute"
               value={newTask.repoName}
               onChange={(e) => setNewTask({ ...newTask, repoName: e.target.value })}
               required
             />
             <Input
-              label="Repository URL"
+              label={t("repositoryUrl")}
               placeholder="https://github.com/owner/repo"
               value={newTask.repoUrl}
               onChange={(e) => setNewTask({ ...newTask, repoUrl: e.target.value })}
@@ -344,7 +344,7 @@ export default function CloudAgentsPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Branch"
+              label={t("branch")}
               placeholder="main"
               value={newTask.branch}
               onChange={(e) => setNewTask({ ...newTask, branch: e.target.value })}

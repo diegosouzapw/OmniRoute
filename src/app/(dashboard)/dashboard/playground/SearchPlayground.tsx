@@ -175,7 +175,7 @@ export default function SearchPlayground() {
               <button
                 onClick={() => navigator.clipboard.writeText(requestBody)}
                 className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                title="Copy"
+                title={t("copy")}
               >
                 <span className="material-symbols-outlined text-[16px]">content_copy</span>
               </button>
@@ -194,7 +194,7 @@ export default function SearchPlayground() {
                   )
                 }
                 className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
-                title="Reset to default"
+                title={t("resetToDefault")}
               >
                 <span className="material-symbols-outlined text-[16px]">restart_alt</span>
               </button>

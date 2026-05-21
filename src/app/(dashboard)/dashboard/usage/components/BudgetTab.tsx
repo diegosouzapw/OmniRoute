@@ -461,26 +461,29 @@ export default function BudgetTab() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-2">
-          <KpiBlock label="Today" value={formatCurrency(stats.today)} />
-          <KpiBlock label="This month" value={formatCurrency(stats.month)} />
+          <KpiBlock label={t("budgetKpiToday")} value={formatCurrency(stats.today)} />
+          <KpiBlock label={t("budgetKpiThisMonth")} value={formatCurrency(stats.month)} />
           <KpiBlock
-            label="Proj EOM"
+            label={t("budgetKpiProjEom")}
             value={formatCurrency(stats.projectionEom)}
             tone={projectionOverBudget ? "amber" : undefined}
             hint={projectionOverBudget ? "above limit ⚠" : "on track"}
           />
           <KpiBlock
-            label="Blocked"
+            label={t("budgetKpiBlocked")}
             value={String(stats.counts.blocked)}
             tone={stats.counts.blocked > 0 ? "red" : undefined}
           />
           <KpiBlock
-            label="At risk"
+            label={t("budgetKpiAtRisk")}
             value={String(stats.counts.alerting)}
             tone={stats.counts.alerting > 0 ? "amber" : undefined}
             hint="≥ warning"
           />
-          <KpiBlock label="Active keys" value={`${stats.counts.active} / ${rows.length}`} />
+          <KpiBlock
+            label={t("budgetKpiActiveKeys")}
+            value={`${stats.counts.active} / ${rows.length}`}
+          />
         </div>
       </Card>
 
@@ -493,7 +496,7 @@ export default function BudgetTab() {
             </span>
             <input
               type="text"
-              placeholder="Search keys..."
+              placeholder={t("budgetSearchKeysPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-2 bg-bg-base border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
@@ -504,10 +507,10 @@ export default function BudgetTab() {
             onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
             className="bg-bg-base border border-border rounded-md px-2 py-1.5 text-xs text-text-main cursor-pointer"
           >
-            <option value="usedDesc">Sort: % Used ↓</option>
-            <option value="todayDesc">Sort: Today $ ↓</option>
-            <option value="monthDesc">Sort: Month $ ↓</option>
-            <option value="name">Sort: Name (A–Z)</option>
+            <option value="usedDesc">{t("budgetSortPctUsed")}</option>
+            <option value="todayDesc">{t("budgetSortTodayDollar")}</option>
+            <option value="monthDesc">{t("budgetSortMonthDollar")}</option>
+            <option value="name">{t("budgetSortNameAZ")}</option>
           </select>
         </div>
 
@@ -601,14 +604,14 @@ export default function BudgetTab() {
           <div>Key</div>
           <div className="text-right">Today</div>
           <div className="text-right">Month</div>
-          <div className="text-right">Daily lim</div>
-          <div className="text-right">Monthly lim</div>
-          <div className="text-right">Used %</div>
+          <div className="text-right">{t("budgetColDailyLim")}</div>
+          <div className="text-right">{t("budgetColMonthlyLim")}</div>
+          <div className="text-right">{t("budgetColUsedPct")}</div>
           <div className="text-center">Status</div>
         </div>
 
         {visibleRows.length === 0 ? (
-          <div className="py-10 text-center text-text-muted text-sm">No keys match filters</div>
+          <div className="py-10 text-center text-text-muted text-sm">{t("budgetNoKeysMatch")}</div>
         ) : (
           visibleRows.map((row, idx) => (
             <BudgetRow
@@ -853,16 +856,16 @@ function BudgetRowExpanded({
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
               Projection
             </h4>
-            <span className="text-[10px] text-text-muted">linear extrapolation</span>
+            <span className="text-[10px] text-text-muted">{t("budgetLinearExtrapolation")}</span>
           </div>
           <div className="flex items-baseline gap-3">
             <div>
-              <div className="text-[10px] text-text-muted">This month so far</div>
+              <div className="text-[10px] text-text-muted">{t("budgetThisMonthSoFar")}</div>
               <div className="text-lg font-bold tabular-nums">{formatCurrency(month)}</div>
             </div>
             <span className="text-text-muted">→</span>
             <div>
-              <div className="text-[10px] text-text-muted">Projected end of month</div>
+              <div className="text-[10px] text-text-muted">{t("budgetProjectedEndOfMonth")}</div>
               <div
                 className={`text-lg font-bold tabular-nums ${
                   projectionOver ? "text-amber-400" : "text-emerald-400"
@@ -882,12 +885,14 @@ function BudgetRowExpanded({
             <h4 className="text-[11px] uppercase tracking-wide font-bold text-text-muted">
               Cost breakdown (30d)
             </h4>
-            <span className="text-[10px] text-text-muted">by provider</span>
+            <span className="text-[10px] text-text-muted">{t("budgetByProvider")}</span>
           </div>
           {breakdown === undefined ? (
-            <div className="text-[11px] text-text-muted py-2 animate-pulse">Loading…</div>
+            <div className="text-[11px] text-text-muted py-2 animate-pulse">
+              {t("budgetLoading")}
+            </div>
           ) : breakdown.length === 0 ? (
-            <div className="text-[11px] text-text-muted py-2">No spend in last 30 days</div>
+            <div className="text-[11px] text-text-muted py-2">{t("noSpendLast30Days")}</div>
           ) : (
             <div className="space-y-1.5">
               {breakdown.slice(0, 5).map((b) => (
@@ -918,7 +923,7 @@ function BudgetRowExpanded({
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
           <Input
-            label="Daily $"
+            label={t("budgetDailyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -927,7 +932,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, dailyLimitUsd: e.target.value })}
           />
           <Input
-            label="Weekly $"
+            label={t("budgetWeeklyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -936,7 +941,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, weeklyLimitUsd: e.target.value })}
           />
           <Input
-            label="Monthly $"
+            label={t("budgetMonthlyDollar")}
             type="number"
             step="0.01"
             min="0"
@@ -945,7 +950,7 @@ function BudgetRowExpanded({
             onChange={(e) => setForm({ ...form, monthlyLimitUsd: e.target.value })}
           />
           <Input
-            label="Warn at %"
+            label={t("budgetWarnAtPct")}
             type="number"
             min="1"
             max="100"
@@ -955,7 +960,7 @@ function BudgetRowExpanded({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="text-[11px] text-text-muted block mb-1">Reset interval</label>
+            <label className="text-[11px] text-text-muted block mb-1">{t("resetInterval")}</label>
             <select
               value={form.resetInterval}
               onChange={(e) =>
@@ -969,7 +974,7 @@ function BudgetRowExpanded({
             </select>
           </div>
           <Input
-            label="Reset time (UTC)"
+            label={t("resetTimeUtc")}
             type="time"
             value={form.resetTime}
             onChange={(e) => setForm({ ...form, resetTime: e.target.value })}

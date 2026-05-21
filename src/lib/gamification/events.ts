@@ -151,7 +151,9 @@ async function checkActionCountBadges(apiKeyId: string, action: string): Promise
 
   // Count total actions of this type
   const row = db
-    .prepare("COALESCE(COUNT(*), 0) AS count FROM xp_audit_log WHERE api_key_id = ? AND action = ?")
+    .prepare(
+      "SELECT COALESCE(COUNT(*), 0) AS count FROM xp_audit_log WHERE api_key_id = ? AND action = ?"
+    )
     .get(apiKeyId, action) as { count: number };
 
   const count = row.count;

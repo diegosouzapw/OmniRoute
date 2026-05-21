@@ -206,12 +206,12 @@
       }
     },
     "docs/architecture/ARCHITECTURE.md": {
-      "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
+      "source_hash": "a065bbff5e461cca6cd1a81d2923626040548c3b3af98ecb2a69a99709bd8059",
       "locales": {
         "pt-BR": {
-          "source_hash": "7e691870a4f6f25a535a023206cff5ef88aed619c9734851ebdacdd3a3bafcc8",
-          "target_hash": "3e2a58f341f20b29cf245330b094bec40ffeede43526b4d416c660c37abca8db",
-          "updated_at": "2026-05-13T22:58:05.984Z"
+          "source_hash": "a065bbff5e461cca6cd1a81d2923626040548c3b3af98ecb2a69a99709bd8059",
+          "target_hash": "7ee10dc8cba2668fd279af64ecca3a1760e974b6dc9672aee81e69c63ee41175",
+          "updated_at": "2026-05-20T05:34:41.826Z"
         }
       }
     }

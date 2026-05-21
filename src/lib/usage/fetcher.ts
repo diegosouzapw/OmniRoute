@@ -7,10 +7,8 @@ import {
   getGitHubCopilotInternalUserHeaders,
   getKiroServiceHeaders,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-import {
-  getAntigravityHeaders,
-  antigravityUserAgent,
-} from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { applyAntigravityClientProfileHeaders } from "@omniroute/open-sse/services/antigravityClientProfile.ts";
+import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import {
   getAntigravityFetchAvailableModelsUrls,
   ANTIGRAVITY_BASE_URLS,
@@ -21,12 +19,9 @@ import {
 } from "@omniroute/open-sse/executors/antigravity.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
 import {
-  deriveAntigravityMachineId,
   generateAntigravityRequestId,
   getAntigravitySessionId,
-  getAntigravityVscodeSessionId,
 } from "@omniroute/open-sse/services/antigravityIdentity.ts";
-import { getCachedAntigravityVersion } from "@omniroute/open-sse/services/antigravityVersion.ts";
 
 /**
  * Get usage data for a provider connection
@@ -182,7 +177,8 @@ async function getGeminiUsage(accessToken) {
 async function probeAntigravityCreditBalance(
   accessToken: string,
   accountId: string,
-  projectId?: string | null
+  projectId?: string | null,
+  providerSpecificData: Record<string, unknown> = {}
 ): Promise<number | null> {
   try {
     if (!projectId) return null; // Can't call streamGenerateContent without a projectId
@@ -205,17 +201,16 @@ async function probeAntigravityCreditBalance(
       },
     };
 
-    const headers = {
+    const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
-      "User-Agent": antigravityUserAgent(),
-      "x-client-name": "antigravity",
-      "x-client-version": getCachedAntigravityVersion(),
-      "x-machine-id": deriveAntigravityMachineId({ connectionId: accountId, projectId }),
-      "x-vscode-sessionid": getAntigravityVscodeSessionId(),
-      "x-goog-user-project": projectId,
       Accept: "text/event-stream",
     };
+    applyAntigravityClientProfileHeaders(
+      headers,
+      { connectionId: accountId, projectId, providerSpecificData },
+      body
+    );
 
     const res = await fetch(url, {
       method: "POST",
@@ -286,7 +281,12 @@ async function getAntigravityUsage(
     // If no cached balance and credits mode is enabled, fire a minimal probe
     const creditsMode = getCreditsMode();
     if (creditBalance === null && creditsMode !== "off") {
-      creditBalance = await probeAntigravityCreditBalance(accessToken, accountId, projectId);
+      creditBalance = await probeAntigravityCreditBalance(
+        accessToken,
+        accountId,
+        projectId,
+        providerSpecificData
+      );
     }
 
     // fetchAvailableModels — resolves project from token, no projectId needed

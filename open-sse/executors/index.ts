@@ -30,6 +30,7 @@ import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
+import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -84,6 +85,8 @@ const executors = {
   copilot: new CopilotWebExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
   "veo-free": new VeoAIFreeWebExecutor(), // Alias
+  "t3-web": new T3ChatWebExecutor(),
+  t3chat: new T3ChatWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -132,3 +135,4 @@ export { CopilotWebExecutor } from "./copilot-web.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+export { T3ChatWebExecutor } from "./t3-chat-web.ts";

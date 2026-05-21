@@ -38,9 +38,9 @@ export async function getRank(apiKeyId: string, scope: LeaderboardScope): Promis
 /**
  * Get top N entries for a scope.
  */
-export async function getTopN(scope: LeaderboardScope, limit: number = 50, _offset: number = 0) {
+export async function getTopN(scope: LeaderboardScope, limit: number = 50, offset: number = 0) {
   const { getTopN: dbGetTopN } = await import("../db/gamification");
-  return dbGetTopN(scope, limit);
+  return dbGetTopN(scope, limit, offset);
 }
 
 /**

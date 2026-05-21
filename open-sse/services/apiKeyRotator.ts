@@ -18,10 +18,6 @@
 // In-memory round-robin index per connection
 const _keyIndexes = new Map<string, number>();
 
-// Tracks the last keyId selected by getValidApiKey() for a connection.
-// Used by chatCore.ts to know which key to record failures/successes against.
-const _lastUsedKeyId = new Map<string, string>();
-
 // Tracks which connections have extra API keys (for A3 guard in chatCore.ts)
 // Used to prevent disabling an entire connection when only one key fails.
 const _connectionExtraKeys = new Map<string, boolean>();
@@ -60,7 +56,7 @@ interface KeyHealth {
 
 const _keyHealth = new Map<string, KeyHealth>();
 
-const FAILURE_THRESHOLD = 3; // Mark as invalid after 3 consecutive failures
+const FAILURE_THRESHOLD = 2; // Mark as invalid after 2 consecutive failures
 
 /**
  * Get or create health status for a specific key within a connection scope.
@@ -95,7 +91,7 @@ export function getValidApiKey(
   primaryKey: string,
   extraKeys: string[] = [],
   health?: Record<string, KeyHealth>
-): string | null {
+): { key: string; keyId: string } | null {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
 
   // Build list of all keys with their IDs
@@ -106,6 +102,10 @@ export function getValidApiKey(
     const primaryHealth = health?.["primary"] || getOrCreateHealth(connectionId, "primary");
     if (primaryHealth.status !== "invalid") {
       allKeys.push({ key: primaryKey, keyId: "primary" });
+    } else {
+      console.warn(
+        `[KeyRotator] Skipping invalid primary key for connection ${connectionId.slice(0, 8)}`
+      );
     }
   }
 
@@ -120,8 +120,7 @@ export function getValidApiKey(
 
   if (allKeys.length === 0) return null;
   if (allKeys.length === 1) {
-    _lastUsedKeyId.set(connectionId, allKeys[0].keyId);
-    return allKeys[0].key;
+    return { key: allKeys[0].key, keyId: allKeys[0].keyId };
   }
 
   // Round-robin among valid keys only
@@ -129,16 +128,7 @@ export function getValidApiKey(
   const idx = current % allKeys.length;
   _keyIndexes.set(connectionId, current + 1);
 
-  _lastUsedKeyId.set(connectionId, allKeys[idx].keyId);
-  return allKeys[idx].key;
-}
-
-/**
- * Get the keyId that was last selected by getValidApiKey() for a connection.
- * Used by chatCore.ts to record failures/successes against the correct key.
- */
-export function getLastUsedKeyId(connectionId: string): string | undefined {
-  return _lastUsedKeyId.get(connectionId);
+  return { key: allKeys[idx].key, keyId: allKeys[idx].keyId };
 }
 
 /**
@@ -297,6 +287,55 @@ export function resetRotationIndex(connectionId: string): void {
 export function getApiKeyCount(primaryKey: string, extraKeys: string[] = []): number {
   const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
   return (primaryKey ? 1 : 0) + validExtras.length;
+}
+
+/**
+ * Resolve the API key and its health status for an ongoing request.
+ *
+ * Unlike getValidApiKey() (which does round-robin for every call), this
+ * method re-uses the previously selected keyId when available — ensuring
+ * that a multi-turn request stream keeps using the same key. If no key
+ * was selected yet or the stored key is no longer valid, it falls back
+ * to fresh round-robin via getValidApiKey().
+ *
+ * @returns The resolved key+keyId, or null if no valid keys remain.
+ */
+export function resolveKeyForRequest(
+  connectionId: string,
+  primaryKey: string,
+  extraKeys: string[],
+  selectedKeyId: string | null
+): { key: string; keyId: string } | null {
+  if (selectedKeyId) {
+    const health = getOrCreateHealth(connectionId, selectedKeyId);
+    if (health.status !== "invalid") {
+      if (selectedKeyId === "primary" && primaryKey) {
+        return { key: primaryKey, keyId: "primary" };
+      }
+      const match = /^extra_(\d+)$/.exec(selectedKeyId);
+      if (match) {
+        const idx = Number.parseInt(match[1], 10);
+        if (idx >= 0 && idx < extraKeys.length && extraKeys[idx].trim().length > 0) {
+          return { key: extraKeys[idx], keyId: selectedKeyId };
+        }
+      }
+    }
+  }
+
+  return getValidApiKey(connectionId, primaryKey, extraKeys);
+}
+
+export function removeConnectionHealth(connectionId: string): void {
+  for (const key of _keyHealth.keys()) {
+    if (key.startsWith(`${connectionId}:`)) {
+      _keyHealth.delete(key);
+    }
+  }
+}
+
+export function removeConnectionIndex(connectionId: string): void {
+  _keyIndexes.delete(connectionId);
+  _connectionExtraKeys.delete(connectionId);
 }
 
 export type { KeyHealth };

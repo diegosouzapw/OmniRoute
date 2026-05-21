@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
+const { getAntigravityLoadCodeAssistMetadata } =
+  await import("../../open-sse/services/antigravityHeaders.ts");
 
 const originalFetch = globalThis.fetch;
 const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
@@ -296,7 +298,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
             "gemini-unlimited": {
               quotaInfo: {},
             },
-            "gemini-3.1-pro-high": {
+            "gemini-pro-agent": {
               quotaInfo: { remainingFraction: 1 },
             },
             "internal-model": {
@@ -318,18 +320,19 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-3.1-pro-high"]);
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-pro-agent"]);
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
+  assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
   assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
   assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
   assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
   assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
-  assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
-    ideType: "ANTIGRAVITY",
-  });
+  assert.deepEqual(
+    JSON.parse(loadCodeAssistCall?.init.body).metadata,
+    getAntigravityLoadCodeAssistMetadata()
+  );
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {

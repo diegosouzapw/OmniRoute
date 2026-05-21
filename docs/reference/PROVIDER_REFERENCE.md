@@ -1,6 +1,6 @@
 ---
 title: "Provider Reference"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-17
 ---
 
@@ -57,16 +57,17 @@ Use the dashboard at `/dashboard/providers` to enable, configure, and test each 
 | `kimi-coding` | `kmc`        | Kimi Coding          | OAuth | —                                                                         | —                                                                                                                                                                     |
 | `windsurf`    | `ws`         | Windsurf (Devin CLI) | OAuth | [link](https://windsurf.com)                                              | Sign in at windsurf.com to get your token. Visit windsurf.com/show-auth-token after logging in and paste it here, or use the device-code login flow.                  |
 
-## Web Cookie Providers (6)
+## Web Cookie Providers (7)
 
-| ID               | Alias      | Name                        | Tags       | Website                           | Notes                                                                                       |
-| ---------------- | ---------- | --------------------------- | ---------- | --------------------------------- | ------------------------------------------------------------------------------------------- |
-| `blackbox-web`   | `bb-web`   | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai)   | Paste your \_\_Secure-authjs.session-token value or full cookie header from app.blackbox.ai |
-| `chatgpt-web`    | `cgpt-web` | ChatGPT Web (Plus/Pro)      | Web cookie | [link](https://chatgpt.com)       | Paste your \_\_Secure-next-auth.session-token cookie value from chatgpt.com                 |
-| `deepseek-web`   | `ds-web`   | DeepSeek Web                | Web cookie | [link](https://chat.deepseek.com) | Paste your ds_session_id cookie from chat.deepseek.com                                      |
-| `grok-web`       | `gw`       | Grok Web (Subscription)     | Web cookie | [link](https://grok.com)          | Paste your sso= cookie value from grok.com                                                  |
-| `muse-spark-web` | `ms-web`   | Muse Spark Web (Meta AI)    | Web cookie | [link](https://www.meta.ai)       | Paste your abra_sess value or full cookie header from meta.ai                               |
-| `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max)    | Web cookie | [link](https://www.perplexity.ai) | Paste your \_\_Secure-next-auth.session-token cookie value from perplexity.ai               |
+| ID               | Alias      | Name                        | Tags       | Website                           | Notes                                                                                                                                                                                    |
+| ---------------- | ---------- | --------------------------- | ---------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blackbox-web`   | `bb-web`   | Blackbox Web (Subscription) | Web cookie | [link](https://app.blackbox.ai)   | Paste your \_\_Secure-authjs.session-token value or full cookie header from app.blackbox.ai                                                                                              |
+| `chatgpt-web`    | `cgpt-web` | ChatGPT Web (Plus/Pro)      | Web cookie | [link](https://chatgpt.com)       | Paste your \_\_Secure-next-auth.session-token cookie value from chatgpt.com                                                                                                              |
+| `deepseek-web`   | `ds-web`   | DeepSeek Web                | Web cookie | [link](https://chat.deepseek.com) | Paste your ds_session_id cookie from chat.deepseek.com                                                                                                                                   |
+| `grok-web`       | `gw`       | Grok Web (Subscription)     | Web cookie | [link](https://grok.com)          | Paste your sso= cookie value from grok.com                                                                                                                                               |
+| `muse-spark-web` | `ms-web`   | Muse Spark Web (Meta AI)    | Web cookie | [link](https://www.meta.ai)       | Paste your abra_sess value or full cookie header from meta.ai                                                                                                                            |
+| `perplexity-web` | `pplx-web` | Perplexity Web (Pro/Max)    | Web cookie | [link](https://www.perplexity.ai) | Paste your \_\_Secure-next-auth.session-token cookie value from perplexity.ai                                                                                                            |
+| `t3-web`         | `t3chat`   | t3.chat (Pro/Free)          | Web cookie | [link](https://t3.chat)           | Pro: $8/mo, 50+ models. Free tier: limited models. Requires Cookie header + convex-session-id from DevTools. **Skeleton — endpoint URL not yet confirmed (TODO post-devtools-capture).** |
 
 ## API Key Providers (paid / paid-with-free-credits) (122)
 

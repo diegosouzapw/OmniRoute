@@ -240,27 +240,47 @@ export class KiroService {
   }
 
   /**
-   * Validate and import refresh token
+   * Validate and import refresh token.
+   * Registers a dedicated OIDC client so this connection has an isolated refresh session.
+   * If registerClient() fails (network issue, OIDC service down), the import still
+   * succeeds and the connection falls back to the shared social-auth refresh path.
    */
-  async validateImportToken(refreshToken: string) {
+  async validateImportToken(refreshToken: string, region: string = "us-east-1") {
     // Validate token format
     if (!refreshToken.startsWith("aorAAAAAG")) {
       throw new Error("Invalid token format. Token should start with aorAAAAAG...");
     }
 
     // Try to refresh to validate
+    let result: Awaited<ReturnType<typeof this.refreshToken>>;
     try {
-      const result = await this.refreshToken(refreshToken);
-      return {
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken || refreshToken,
-        profileArn: result.profileArn,
-        expiresIn: result.expiresIn,
-        authMethod: "imported",
-      };
+      result = await this.refreshToken(refreshToken);
     } catch (error: any) {
       throw new Error(`Token validation failed: ${error.message}`);
     }
+
+    // Register an independent OIDC client for this connection so multiple accounts
+    // do not share a single Kiro backend session (issue #2328).
+    let clientId: string | undefined;
+    let clientSecret: string | undefined;
+    let clientSecretExpiresAt: number | undefined;
+    try {
+      const registration = await this.registerClient(region);
+      clientId = registration.clientId;
+      clientSecret = registration.clientSecret;
+      clientSecretExpiresAt = registration.clientSecretExpiresAt;
+    } catch (err: any) {
+      console.warn("[kiro import] registerClient failed, continuing without isolated client:", err);
+    }
+
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken || refreshToken,
+      profileArn: result.profileArn,
+      expiresIn: result.expiresIn,
+      authMethod: "imported",
+      ...(clientId ? { clientId, clientSecret, clientSecretExpiresAt } : {}),
+    };
   }
 
   /**

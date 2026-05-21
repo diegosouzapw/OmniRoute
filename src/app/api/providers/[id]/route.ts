@@ -207,6 +207,57 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.providerSpecificData =
         normalizeProviderSpecificData(existing.provider, mergedPsd) || {};
 
+      const psd = updateData.providerSpecificData as Record<string, any>;
+      if (psd.apiKeyHealth) {
+        const health = psd.apiKeyHealth as Record<string, any>;
+
+        // If the primary API key was explicitly replaced in this request,
+        // clear stale health.primary — it no longer corresponds to the
+        // current key. The next health check will regenerate it.
+        if (updateData.apiKey !== undefined && updateData.apiKey !== existing.apiKey) {
+          delete health.primary;
+        }
+
+        // Stale primary guard: no valid primary key → no primary health.
+        const currentApiKey = updateData.apiKey ?? existing.apiKey ?? null;
+        if (typeof currentApiKey !== "string" || currentApiKey.length === 0) {
+          delete health.primary;
+        }
+
+        // Detect whether the extras list was explicitly changed by the caller.
+        // The index-based mapping (extra_0, extra_1, …) drifts when a key is
+        // inserted or removed mid-list, so we clear ALL extra health entries
+        // when the list actually changes and let the next health check regen.
+        const existingExtras = existingPsd.extraApiKeys;
+        const incomingExtras = incomingPsd?.extraApiKeys;
+        const extrasChanged =
+          Array.isArray(incomingExtras) &&
+          (!Array.isArray(existingExtras) ||
+            existingExtras.length !== incomingExtras.length ||
+            existingExtras.some((v: string, i: number) => v !== incomingExtras[i]));
+
+        const extras = psd.extraApiKeys;
+        const maxExtraIdx = Array.isArray(extras) ? extras.length : 0;
+        for (const key of Object.keys(health)) {
+          if (key.startsWith("extra_")) {
+            if (extrasChanged) {
+              // Extras modified — index drift possible. Clear all to be safe.
+              delete health[key];
+            } else {
+              // Extras unchanged: only clean out-of-range indices.
+              const idx = parseInt(key.slice(6), 10);
+              if (isNaN(idx) || idx >= maxExtraIdx) {
+                delete health[key];
+              }
+            }
+          }
+        }
+
+        if (Object.keys(health).length === 0) {
+          delete psd.apiKeyHealth;
+        }
+      }
+
       if (!isClaudeExtraUsageBlockEnabled(existing.provider, updateData.providerSpecificData)) {
         const clearExtraUsageUpdate = buildClaudeExtraUsageStateClearUpdate({
           provider: existing.provider,

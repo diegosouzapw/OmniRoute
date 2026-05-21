@@ -21,5 +21,13 @@ describe("Anti-Cheat", () => {
       const anomalies = await getAnomalies();
       assert.ok(Array.isArray(anomalies));
     });
+
+    it("returns entries with numeric zScore (not hardcoded 0)", async () => {
+      const anomalies = await getAnomalies();
+      for (const a of anomalies) {
+        assert.equal(typeof a.zScore, "number");
+        assert.ok(!Number.isNaN(a.zScore));
+      }
+    });
   });
 });

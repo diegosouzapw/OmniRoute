@@ -1,9 +1,20 @@
-import { execSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { t } from "../i18n.mjs";
 import { emit } from "../output.mjs";
 import { discoverPlugins } from "../plugins.mjs";
+
+// Run npm with an explicit argument array and no shell. Passing args this way
+// (instead of string-interpolating into `execSync`) prevents a malicious plugin
+// name like `foo; rm -rf ~` or `` foo`id` `` from being interpreted by the shell.
+function runNpm(args) {
+  const res = spawnSync("npm", args, { stdio: "inherit", shell: false });
+  if (res.error) throw res.error;
+  if (typeof res.status === "number" && res.status !== 0) {
+    throw new Error(`npm exited with code ${res.status}`);
+  }
+}
 
 const TEMPLATE_INDEX = `export const meta = {
   name: "PLUGIN_NAME",
@@ -69,7 +80,7 @@ export function registerPlugin(program) {
       }
 
       try {
-        execSync(`npm install -g ${pkgName}`, { stdio: "inherit" });
+        runNpm(["install", "-g", pkgName]);
         process.stdout.write(`\n✓ Installed: ${pkgName}\n`);
       } catch {
         process.stderr.write(`✗ Failed to install ${pkgName}\n`);
@@ -91,7 +102,7 @@ export function registerPlugin(program) {
         }
       }
       try {
-        execSync(`npm uninstall -g ${pkgName}`, { stdio: "inherit" });
+        runNpm(["uninstall", "-g", pkgName]);
         process.stdout.write(`✓ Removed: ${pkgName}\n`);
       } catch {
         process.stderr.write(`✗ Failed to remove ${pkgName}\n`);
@@ -144,10 +155,26 @@ export function registerPlugin(program) {
     .command("update [name]")
     .description(t("plugin.update") || "Update installed plugin(s)")
     .action(async (name) => {
-      const pkg = name ? `omniroute-cmd-${name}` : "omniroute-cmd-*";
       try {
-        execSync(`npm update -g ${pkg}`, { stdio: "inherit" });
-        process.stdout.write(`✓ Updated: ${pkg}\n`);
+        if (name) {
+          const pkg = `omniroute-cmd-${name}`;
+          runNpm(["update", "-g", pkg]);
+          process.stdout.write(`✓ Updated: ${pkg}\n`);
+          return;
+        }
+        // No name → update every installed plugin. Enumerate them explicitly
+        // instead of relying on a shell glob (`omniroute-cmd-*`), which never
+        // expands without a shell and would otherwise update nothing.
+        const plugins = await discoverPlugins();
+        const names = plugins
+          .map((p) => p.name)
+          .filter((n) => typeof n === "string" && n.startsWith("omniroute-cmd-"));
+        if (names.length === 0) {
+          process.stdout.write("No plugins installed to update.\n");
+          return;
+        }
+        runNpm(["update", "-g", ...names]);
+        process.stdout.write(`✓ Updated: ${names.join(", ")}\n`);
       } catch {
         process.stderr.write(`✗ Update failed\n`);
         process.exit(1);

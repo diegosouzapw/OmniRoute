@@ -85,14 +85,55 @@ export async function getAnomalies(): Promise<AnomalyFlag[]> {
     )
     .all() as Array<{ api_key_id: string; hourly_total: number }>;
 
-  return rows.map((r) => ({
-    apiKeyId: r.api_key_id,
-    xpLastHour: r.hourly_total,
-    zScore: 0, // Simplified for now
-  }));
+  const results: AnomalyFlag[] = [];
+  for (const r of rows) {
+    const z = await computeZScore(r.api_key_id);
+    results.push({
+      apiKeyId: r.api_key_id,
+      xpLastHour: r.hourly_total,
+      zScore: z ?? 0,
+    });
+  }
+  return results;
 }
 
 // ─── Internal Helpers ────────────────────────────────────────────────────────
+
+/**
+ * Compute the z-score for a user's hourly XP against the global distribution.
+ * Returns null if insufficient data.
+ */
+async function computeZScore(apiKeyId: string): Promise<number | null> {
+  const d = db();
+
+  const userRow = d
+    .prepare(
+      `SELECT COALESCE(SUM(xp_earned), 0) AS total
+       FROM xp_audit_log
+       WHERE api_key_id = ? AND created_at > datetime('now', '-1 hour')`
+    )
+    .get(apiKeyId) as { total: number };
+
+  const statsRow = d
+    .prepare(
+      `SELECT AVG(hourly_total) AS mean,
+              CASE WHEN AVG(hourly_total) = 0 THEN 1
+                   ELSE AVG(hourly_total * hourly_total) - AVG(hourly_total) * AVG(hourly_total)
+              END AS variance
+       FROM (
+         SELECT api_key_id, SUM(xp_earned) AS hourly_total
+         FROM xp_audit_log
+         WHERE created_at > datetime('now', '-1 hour')
+         GROUP BY api_key_id
+       )`
+    )
+    .get() as { mean: number; variance: number } | undefined;
+
+  if (!statsRow || statsRow.variance <= 0) return null;
+
+  const stdDev = Math.sqrt(statsRow.variance);
+  return (userRow.total - statsRow.mean) / stdDev;
+}
 
 /**
  * Get total XP earned in the last N milliseconds.
@@ -114,37 +155,6 @@ async function getRecentXp(apiKeyId: string, windowMs: number): Promise<number> 
  * Detect anomalous XP velocity using z-score.
  */
 async function detectAnomaly(apiKeyId: string): Promise<boolean> {
-  const d = db();
-
-  // Get user's XP in last hour
-  const userRow = d
-    .prepare(
-      `SELECT COALESCE(SUM(xp_earned), 0) AS total
-       FROM xp_audit_log
-       WHERE api_key_id = ? AND created_at > datetime('now', '-1 hour')`
-    )
-    .get(apiKeyId) as { total: number };
-
-  // Get global stats
-  const statsRow = d
-    .prepare(
-      `SELECT AVG(hourly_total) AS mean,
-              CASE WHEN AVG(hourly_total) = 0 THEN 1
-                   ELSE AVG(hourly_total * hourly_total) - AVG(hourly_total) * AVG(hourly_total)
-              END AS variance
-       FROM (
-         SELECT api_key_id, SUM(xp_earned) AS hourly_total
-         FROM xp_audit_log
-         WHERE created_at > datetime('now', '-1 hour')
-         GROUP BY api_key_id
-       )`
-    )
-    .get() as { mean: number; variance: number } | undefined;
-
-  if (!statsRow || statsRow.variance <= 0) return false;
-
-  const stdDev = Math.sqrt(statsRow.variance);
-  const zScore = (userRow.total - statsRow.mean) / stdDev;
-
-  return zScore > ANOMALY_Z_THRESHOLD;
+  const z = await computeZScore(apiKeyId);
+  return z !== null && z > ANOMALY_Z_THRESHOLD;
 }

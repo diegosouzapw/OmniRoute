@@ -59,6 +59,7 @@ import {
   isUserCallableAntigravityModelId,
   toClientAntigravityModelId,
 } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
+import { normalizeAntigravityClientProfile } from "@/shared/constants/antigravityClientProfile";
 import { getEmbeddingProvider } from "@omniroute/open-sse/config/embeddingRegistry.ts";
 import { getRerankProvider } from "@omniroute/open-sse/config/rerankRegistry.ts";
 import {
@@ -225,15 +226,21 @@ function mapAntigravityModelForClient(model: { id: string; name: string }): {
 async function fetchAntigravityDiscoveryModelsCached(
   accessToken: string,
   connectionId: string,
-  proxy: unknown
+  proxy: unknown,
+  providerSpecificData?: unknown
 ): Promise<Array<{ id: string; name: string }>> {
-  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}`;
+  const profile = normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile);
+  const cacheKey = `${connectionId}:${accessToken.substring(0, 16)}:${profile}`;
   const inflight = antigravityDiscoveryInflight.get(cacheKey);
   if (inflight) return inflight;
 
   const promise = (async () => {
     await resolveAntigravityVersion();
-    await ensureAntigravityProjectAssigned(accessToken);
+    await ensureAntigravityProjectAssigned(
+      accessToken,
+      fetch,
+      normalizeAntigravityClientProfile(asRecord(providerSpecificData).clientProfile)
+    );
 
     for (const discoveryUrl of [
       ...getAntigravityFetchAvailableModelsUrls(),
@@ -1747,7 +1754,8 @@ export async function GET(
       const remoteModels = await fetchAntigravityDiscoveryModelsCached(
         accessToken,
         connectionId,
-        proxy
+        proxy,
+        connection.providerSpecificData
       );
       if (remoteModels.length > 0) {
         return buildApiDiscoveryResponse(remoteModels);

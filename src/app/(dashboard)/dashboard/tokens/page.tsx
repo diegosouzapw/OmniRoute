@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 interface TokenLedgerEntry {
@@ -34,6 +35,7 @@ interface ServerConnection {
 }
 
 export default function TokensPage() {
+  const t = useTranslations("common");
   // Balance & History
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState<TokenLedgerEntry[]>([]);
@@ -239,7 +241,7 @@ export default function TokensPage() {
       <Card>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-text-muted">Token Balance</p>
+            <p className="text-sm text-text-muted">{t("tokensTokenBalance")}</p>
             <p className="text-4xl font-bold mt-1">{balance.toLocaleString()}</p>
           </div>
           <div className="text-6xl opacity-20">🪙</div>
@@ -247,15 +249,17 @@ export default function TokensPage() {
       </Card>
 
       {/* Transfer Form */}
-      <Card title="Send Tokens" icon="send">
+      <Card title={t("tokensSendTokens")} icon="send">
         <form onSubmit={handleTransfer} className="grid gap-4">
           <div>
-            <label className="block text-sm text-text-muted mb-1">Recipient API Key ID</label>
+            <label className="block text-sm text-text-muted mb-1">
+              {t("tokensRecipientApiKeyId")}
+            </label>
             <input
               type="text"
               value={toApiKeyId}
               onChange={(e) => setToApiKeyId(e.target.value)}
-              placeholder="Enter recipient API key ID"
+              placeholder={t("tokensRecipientApiKeyIdPlaceholder")}
               required
               className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
             />
@@ -274,12 +278,14 @@ export default function TokensPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-text-muted mb-1">Reason (optional)</label>
+              <label className="block text-sm text-text-muted mb-1">
+                {t("tokensReasonOptional")}
+              </label>
               <input
                 type="text"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g. bonus, reward"
+                placeholder={t("tokensReasonPlaceholder")}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
@@ -306,11 +312,11 @@ export default function TokensPage() {
       </Card>
 
       {/* Transaction History */}
-      <Card title="Transaction History" icon="history">
+      <Card title={t("tokensTransactionHistory")} icon="history">
         {historyLoading ? (
           <div className="text-center py-8 text-text-muted">Loading...</div>
         ) : history.length === 0 ? (
-          <div className="text-center py-8 text-text-muted">No transactions yet</div>
+          <div className="text-center py-8 text-text-muted">{t("tokensNoTransactionsYet")}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -364,11 +370,11 @@ export default function TokensPage() {
       </Card>
 
       {/* Invite Panel */}
-      <Card title="Invite Codes" icon="mail">
+      <Card title={t("tokensInviteCodes")} icon="mail">
         <div className="flex flex-col gap-4">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Max Uses</label>
+              <label className="block text-sm text-text-muted mb-1">{t("tokensMaxUses")}</label>
               <input
                 type="number"
                 value={inviteMaxUses}
@@ -398,12 +404,12 @@ export default function TokensPage() {
             className="flex items-end gap-3 border-t border-border pt-4"
           >
             <div className="flex-1">
-              <label className="block text-sm text-text-muted mb-1">Redeem Code</label>
+              <label className="block text-sm text-text-muted mb-1">{t("tokensRedeemCode")}</label>
               <input
                 type="text"
                 value={redeemCode}
                 onChange={(e) => setRedeemCode(e.target.value)}
-                placeholder="Enter invite code"
+                placeholder={t("tokensRedeemCodePlaceholder")}
                 required
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
@@ -432,7 +438,7 @@ export default function TokensPage() {
           {/* Active Invites */}
           {invites.length > 0 && (
             <div className="border-t border-border pt-4">
-              <p className="text-sm text-text-muted mb-3">Your Active Invites</p>
+              <p className="text-sm text-text-muted mb-3">{t("tokensYourActiveInvites")}</p>
               <div className="space-y-2">
                 {invites.map((inv) => (
                   <div
@@ -463,7 +469,7 @@ export default function TokensPage() {
       </Card>
 
       {/* Server Panel */}
-      <Card title="Community Servers" icon="dns">
+      <Card title={t("tokensCommunityServers")} icon="dns">
         <div className="flex flex-col gap-4">
           <form onSubmit={handleConnectServer} className="grid gap-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -471,7 +477,7 @@ export default function TokensPage() {
                 type="text"
                 value={serverName}
                 onChange={(e) => setServerName(e.target.value)}
-                placeholder="Server name"
+                placeholder={t("tokensServerNamePlaceholder")}
                 required
                 className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
@@ -487,7 +493,7 @@ export default function TokensPage() {
                 type="password"
                 value={serverApiKey}
                 onChange={(e) => setServerApiKey(e.target.value)}
-                placeholder="API key"
+                placeholder={t("tokensApiKeyPlaceholder")}
                 required
                 className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />

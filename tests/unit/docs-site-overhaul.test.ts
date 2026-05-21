@@ -259,6 +259,53 @@ test("SEARCH_INDEX entries have non-empty content", () => {
 });
 
 // ──────────────────────────────────────────────
+// Frontmatter type coercion (gray-matter parses
+// unquoted YAML dates as Date, numbers as Number)
+// ──────────────────────────────────────────────
+
+test("gray-matter parses unquoted YAML date as Date object", async () => {
+  const matter = (await import("gray-matter")).default;
+  const { data } = matter("---\nlastUpdated: 2026-05-13\n---\nBody");
+  assert.ok(data.lastUpdated instanceof Date, "unquoted YAML date should be a Date instance");
+});
+
+test("gray-matter keeps semver-like version as string", async () => {
+  const matter = (await import("gray-matter")).default;
+  const { data } = matter("---\nversion: 3.8.0\n---\nBody");
+  assert.equal(typeof data.version, "string", "3.8.0 stays a string (two dots = not a number)");
+});
+
+test("gray-matter parses single-dot version as number", async () => {
+  const matter = (await import("gray-matter")).default;
+  const { data } = matter("---\nversion: 3.8\n---\nBody");
+  assert.equal(typeof data.version, "number", "3.8 is parsed as a float");
+});
+
+test("frontmatter Date coercion produces YYYY-MM-DD string", () => {
+  const d = new Date("2026-05-13T00:00:00.000Z");
+  const result = d instanceof Date ? d.toISOString().slice(0, 10) : String(d);
+  assert.equal(result, "2026-05-13");
+});
+
+test("frontmatter String() coercion handles number version", () => {
+  const version = 3.8;
+  const result = version ? String(version) : null;
+  assert.equal(result, "3.8");
+  assert.equal(typeof result, "string");
+});
+
+test("frontmatter falsy values fall back correctly", () => {
+  const title = String(undefined || "Fallback Title");
+  assert.equal(title, "Fallback Title");
+
+  const emptyTitle = String("" || "Fallback Title");
+  assert.equal(emptyTitle, "Fallback Title");
+
+  const version = null ? String(null) : null;
+  assert.equal(version, null);
+});
+
+// ──────────────────────────────────────────────
 // Mermaid extraction
 // ──────────────────────────────────────────────
 

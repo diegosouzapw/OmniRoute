@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { VISION_BRIDGE_DEFAULTS } from "@/shared/constants/visionBridgeDefaults";
 
@@ -13,6 +14,7 @@ type SettingsState = {
 };
 
 export default function VisionBridgeSettingsTab() {
+  const t = useTranslations("settings");
   const [settings, setSettings] = useState<SettingsState>({
     visionBridgeEnabled: VISION_BRIDGE_DEFAULTS.enabled,
     visionBridgeModel: VISION_BRIDGE_DEFAULTS.model,
@@ -63,7 +65,7 @@ export default function VisionBridgeSettingsTab() {
           </span>
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Vision Bridge</h3>
+          <h3 className="text-lg font-semibold">{t("visionBridge")}</h3>
           <p className="text-sm text-text-muted">
             Run an automatic vision-to-text fallback before routing image requests to text-only
             models.
@@ -88,7 +90,7 @@ export default function VisionBridgeSettingsTab() {
 
         <div className="pt-4 border-t border-border space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Bridge Model</label>
+            <label className="block text-sm font-medium mb-1">{t("visionBridgeModel")}</label>
             <input
               type="text"
               value={settings.visionBridgeModel}
@@ -97,7 +99,7 @@ export default function VisionBridgeSettingsTab() {
               }
               onBlur={() => updateSetting({ visionBridgeModel: settings.visionBridgeModel.trim() })}
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
-              placeholder="openai/gpt-4o-mini"
+              placeholder={t("visionBridgeModelPlaceholder")}
             />
             <p className="text-xs text-text-muted mt-1">
               Any OmniRoute model ID that supports vision can be used here.
@@ -105,7 +107,7 @@ export default function VisionBridgeSettingsTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Bridge Prompt</label>
+            <label className="block text-sm font-medium mb-1">{t("visionBridgePrompt")}</label>
             <textarea
               value={settings.visionBridgePrompt}
               onChange={(e) =>
@@ -115,7 +117,7 @@ export default function VisionBridgeSettingsTab() {
                 updateSetting({ visionBridgePrompt: settings.visionBridgePrompt.trim() })
               }
               className="min-h-[100px] w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
-              placeholder="Describe this image concisely."
+              placeholder={t("visionBridgePromptPlaceholder")}
             />
             <p className="text-xs text-text-muted mt-1">
               Sent to the vision model before the extracted description is injected back into the
@@ -125,7 +127,7 @@ export default function VisionBridgeSettingsTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Timeout (ms)</label>
+              <label className="block text-sm font-medium mb-1">{t("visionBridgeTimeoutMs")}</label>
               <input
                 type="number"
                 min={1000}
@@ -152,7 +154,9 @@ export default function VisionBridgeSettingsTab() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Max Images Per Request</label>
+              <label className="block text-sm font-medium mb-1">
+                {t("visionBridgeMaxImagesPerRequest")}
+              </label>
               <input
                 type="number"
                 min={1}

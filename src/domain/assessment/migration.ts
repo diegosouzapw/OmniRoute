@@ -1,4 +1,3 @@
-import Database from "better-sqlite3";
 import { mkdirSync, existsSync } from "node:fs";
 import { dirname } from "node:path";
 
@@ -82,13 +81,16 @@ CREATE INDEX IF NOT EXISTS idx_heal_actions_combo_id ON heal_actions(combo_id);
 CREATE INDEX IF NOT EXISTS idx_heal_actions_timestamp ON heal_actions(timestamp);
 `;
 
-export function runAssessmentMigration(dbPath: string): void {
+export async function runAssessmentMigration(dbPath: string): Promise<void> {
   const dir = dirname(dbPath);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
 
-  const db = new Database(dbPath);
+  const { tryOpenSync } = await import("@/lib/db/adapters/driverFactory");
+  const db = tryOpenSync(dbPath);
+  if (!db) throw new Error("No SQLite driver available for assessment migration");
+
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
 

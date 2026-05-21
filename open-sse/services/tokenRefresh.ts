@@ -194,7 +194,10 @@ export async function refreshWindsurfToken(
       expiresIn,
     };
   } catch (error) {
-    log?.error?.("TOKEN_REFRESH", `Network error refreshing Windsurf token: ${error.message}`);
+    log?.error?.(
+      "TOKEN_REFRESH",
+      `Network error refreshing Windsurf token: ${error instanceof Error ? error.message : String(error)}`
+    );
     return null;
   }
 }

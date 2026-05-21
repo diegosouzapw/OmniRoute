@@ -19,25 +19,27 @@ const ICONS = {
   info: "ℹ",
 };
 
+const BG_DARK = "rgba(30, 30, 30, 0.95)";
+
 const COLORS = {
   success: {
-    bg: "rgba(16, 185, 129, 0.15)",
-    border: "rgba(16, 185, 129, 0.4)",
+    bg: BG_DARK,
+    border: "rgba(16, 185, 129, 0.6)",
     icon: "#10b981",
   },
   error: {
-    bg: "rgba(239, 68, 68, 0.15)",
-    border: "rgba(239, 68, 68, 0.4)",
+    bg: BG_DARK,
+    border: "rgba(239, 68, 68, 0.6)",
     icon: "#ef4444",
   },
   warning: {
-    bg: "rgba(40, 28, 0, 0.92)",
-    border: "rgba(245, 158, 11, 0.7)",
+    bg: BG_DARK,
+    border: "rgba(245, 158, 11, 0.6)",
     icon: "#fbbf24",
   },
   info: {
-    bg: "rgba(59, 130, 246, 0.15)",
-    border: "rgba(59, 130, 246, 0.4)",
+    bg: BG_DARK,
+    border: "rgba(59, 130, 246, 0.6)",
     icon: "#3b82f6",
   },
 };
@@ -114,7 +116,10 @@ function Toast({ notification, onDismiss }) {
       </div>
       {notification.dismissible && (
         <button
-          onClick={handleDismiss}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDismiss();
+          }}
           aria-label="Dismiss notification"
           style={{
             background: "none",

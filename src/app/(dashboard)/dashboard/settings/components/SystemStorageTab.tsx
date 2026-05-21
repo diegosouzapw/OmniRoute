@@ -551,7 +551,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Logs Settings</p>
+            <p className="text-sm font-medium text-text-main">{t("logsSettingsTitle")}</p>
             <p className="text-xs text-text-muted">
               Configure detailed logging and call log pipeline settings
             </p>
@@ -560,26 +560,26 @@ export default function SystemStorageTab() {
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Detailed Logs Enabled</span>
-              <p className="text-xs text-text-muted">Enable detailed request/response logging</p>
+              <span className="font-medium">{t("detailedLogsLabel")}</span>
+              <p className="text-xs text-text-muted">{t("detailedLogsDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Call Log Pipeline</span>
-              <p className="text-xs text-text-muted">Enable call log processing pipeline</p>
+              <span className="font-medium">{t("callLogPipelineLabel")}</span>
+              <p className="text-xs text-text-muted">{t("callLogPipelineDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Max Detail Size (KB)</span>
-              <p className="text-xs text-text-muted">Maximum size for detailed log entries</p>
+              <span className="font-medium">{t("maxDetailSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("maxDetailSizeDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Ring Buffer Size</span>
-              <p className="text-xs text-text-muted">Size of the ring buffer for logs</p>
+              <span className="font-medium">{t("ringBufferSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("ringBufferSizeDesc")}</p>
             </label>
           </div>
         </div>
@@ -589,7 +589,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Cache Settings</p>
+            <p className="text-sm font-medium text-text-main">{t("cacheSettings")}</p>
             <p className="text-xs text-text-muted">
               Configure semantic and prompt caching behavior
             </p>
@@ -598,7 +598,7 @@ export default function SystemStorageTab() {
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache Enabled</span>
+              <span className="font-medium">{t("semanticCacheEnabledLabel")}</span>
               <p className="text-xs text-text-muted">
                 Enable semantic caching for similar requests
               </p>
@@ -606,13 +606,13 @@ export default function SystemStorageTab() {
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache Max Size</span>
-              <p className="text-xs text-text-muted">Maximum number of semantic cache entries</p>
+              <span className="font-medium">{t("semanticCacheMaxSizeLabel")}</span>
+              <p className="text-xs text-text-muted">{t("semanticCacheMaxSizeDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Semantic Cache TTL</span>
+              <span className="font-medium">{t("semanticCacheTTLLabel")}</span>
               <p className="text-xs text-text-muted">
                 Time-to-live for semantic cache entries (ms)
               </p>
@@ -620,20 +620,20 @@ export default function SystemStorageTab() {
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Prompt Cache Enabled</span>
-              <p className="text-xs text-text-muted">Enable prompt caching</p>
+              <span className="font-medium">{t("promptCacheEnabledLabel")}</span>
+              <p className="text-xs text-text-muted">{t("promptCacheEnabledDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Prompt Cache Strategy</span>
-              <p className="text-xs text-text-muted">Strategy for prompt caching</p>
+              <span className="font-medium">{t("promptCacheStrategyLabel")}</span>
+              <p className="text-xs text-text-muted">{t("promptCacheStrategyDesc")}</p>
             </label>
           </div>
           <div className="flex items-center justify-between">
             <label className="text-sm">
-              <span className="font-medium">Always Preserve Client Cache</span>
-              <p className="text-xs text-text-muted">Client cache preservation policy</p>
+              <span className="font-medium">{t("alwaysPreserveClientCacheLabel")}</span>
+              <p className="text-xs text-text-muted">{t("alwaysPreserveClientCacheDesc")}</p>
             </label>
           </div>
         </div>
@@ -642,7 +642,7 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-sm font-medium text-text-main">Log retention policy</p>
+            <p className="text-sm font-medium text-text-main">{t("logRetentionPolicyTitle")}</p>
             <p className="text-xs text-text-muted">
               Request logs retain up to <code>CALL_LOGS_TABLE_MAX_ROWS</code> rows (default:
               100,000). Proxy logs retain up to <code>PROXY_LOGS_TABLE_MAX_ROWS</code> rows. Older
@@ -666,7 +666,9 @@ export default function SystemStorageTab() {
       <div className="p-3 rounded-lg bg-bg border border-border mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
           <div>
-            <p className="text-sm font-medium text-text-main">Database backup retention</p>
+            <p className="text-sm font-medium text-text-main">
+              {t("storageDatabaseBackupRetention")}
+            </p>
             <p className="text-xs text-text-muted">
               Automatic SQLite backups are stored in <code>db_backups</code>. Configure how many
               snapshots to keep and optionally delete backups older than N days.
@@ -1050,7 +1052,7 @@ export default function SystemStorageTab() {
               >
                 delete_forever
               </span>
-              <p className="font-medium">Purge Data</p>
+              <p className="font-medium">{t("storagePurgeData")}</p>
             </div>
             <p className="text-xs text-text-muted">
               Immediately delete all records (no retention check). Use with caution.
@@ -1389,7 +1391,9 @@ export default function SystemStorageTab() {
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-text-muted mb-1">Quota Snapshots (days)</label>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionQuotaSnapshots")}
+              </label>
               <input
                 type="number"
                 min="1"
@@ -1429,7 +1433,7 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">MCP Audit (days)</label>
+              <label className="block text-xs text-text-muted mb-1">{t("retentionMcpAudit")}</label>
               <input
                 type="number"
                 min="1"
@@ -1448,7 +1452,9 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">A2A Events (days)</label>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionA2aEvents")}
+              </label>
               <input
                 type="number"
                 min="1"
@@ -1467,7 +1473,7 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">Call Logs (days)</label>
+              <label className="block text-xs text-text-muted mb-1">{t("retentionCallLogs")}</label>
               <input
                 type="number"
                 min="1"
@@ -1486,7 +1492,9 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">Usage History (days)</label>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionUsageHistory")}
+              </label>
               <input
                 type="number"
                 min="1"
@@ -1505,7 +1513,9 @@ export default function SystemStorageTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-muted mb-1">Memory Entries (days)</label>
+              <label className="block text-xs text-text-muted mb-1">
+                {t("retentionMemoryEntries")}
+              </label>
               <input
                 type="number"
                 min="1"
@@ -1633,7 +1643,9 @@ export default function SystemStorageTab() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-text-muted mb-1">Auto Vacuum Mode</label>
+                <label className="block text-xs text-text-muted mb-1">
+                  {t("storageAutoVacuumMode")}
+                </label>
                 <select
                   value={dbSettings.optimization.autoVacuumMode}
                   onChange={(e) =>
@@ -1653,7 +1665,9 @@ export default function SystemStorageTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-text-muted mb-1">Scheduled Vacuum</label>
+                <label className="block text-xs text-text-muted mb-1">
+                  {t("storageScheduledVacuum")}
+                </label>
                 <select
                   value={dbSettings.optimization.scheduledVacuum}
                   onChange={(e) =>
@@ -1674,7 +1688,9 @@ export default function SystemStorageTab() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-text-muted mb-1">Vacuum Hour (0-23)</label>
+                <label className="block text-xs text-text-muted mb-1">
+                  {t("storageVacuumHour")}
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -1693,7 +1709,7 @@ export default function SystemStorageTab() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-text-muted mb-1">Page Size (bytes)</label>
+                <label className="block text-xs text-text-muted mb-1">{t("storagePageSize")}</label>
                 <input
                   type="number"
                   min="512"
@@ -1790,23 +1806,23 @@ export default function SystemStorageTab() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Database Size</p>
+              <p className="text-xs text-text-muted mb-1">{t("storageDatabaseSize")}</p>
               <p className="text-sm font-semibold">
                 {formatBytes(dbSettings.stats.databaseSizeBytes)}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Page Count</p>
+              <p className="text-xs text-text-muted mb-1">{t("storagePageCount")}</p>
               <p className="text-sm font-semibold">{dbSettings.stats.pageCount.toLocaleString()}</p>
             </div>
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Freelist Count</p>
+              <p className="text-xs text-text-muted mb-1">{t("storageFreelistCount")}</p>
               <p className="text-sm font-semibold">
                 {dbSettings.stats.freelistCount.toLocaleString()}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Last Vacuum</p>
+              <p className="text-xs text-text-muted mb-1">{t("storageLastVacuum")}</p>
               <p className="text-sm font-semibold">
                 {dbSettings.stats.lastVacuumAt
                   ? new Date(dbSettings.stats.lastVacuumAt).toLocaleString(locale)
@@ -1814,7 +1830,7 @@ export default function SystemStorageTab() {
               </p>
             </div>
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Last Optimization</p>
+              <p className="text-xs text-text-muted mb-1">{t("storageLastOptimization")}</p>
               <p className="text-sm font-semibold">
                 {dbSettings.stats.lastOptimizationAt
                   ? new Date(dbSettings.stats.lastOptimizationAt).toLocaleString(locale)
@@ -1822,12 +1838,12 @@ export default function SystemStorageTab() {
               </p>
             </div>
             <div className="p-3 rounded-lg bg-black/[0.02] dark:bg-white/[0.02]">
-              <p className="text-xs text-text-muted mb-1">Integrity Check</p>
+              <p className="text-xs text-text-muted mb-1">{t("storageIntegrityCheck")}</p>
               <p className="text-sm font-semibold">
                 {dbSettings.stats.integrityCheck === "ok" ? (
-                  <span className="text-green-500">✓ OK</span>
+                  <span className="text-green-500">{t("storageIntegrityOk")}</span>
                 ) : dbSettings.stats.integrityCheck === "error" ? (
-                  <span className="text-red-500">✗ Error</span>
+                  <span className="text-red-500">{t("storageIntegrityError")}</span>
                 ) : (
                   "Not checked"
                 )}
@@ -1866,7 +1882,7 @@ export default function SystemStorageTab() {
               pin
             </span>
             <div>
-              <p className="font-medium">Usage Token Buffer</p>
+              <p className="font-medium">{t("storageUsageTokenBuffer")}</p>
               <p className="text-sm text-text-muted mt-1">
                 Extra tokens added to reported usage to account for system prompt overhead. Set to 0
                 to report raw provider token counts. Default: 2000.

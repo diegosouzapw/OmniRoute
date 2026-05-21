@@ -224,7 +224,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#4D6BFE",
     textIcon: "DS",
     website: "https://chat.deepseek.com",
-    authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
+    authHint:
+      "Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken",
   },
   "copilot-web": {
     id: "copilot-web",
@@ -248,6 +249,21 @@ export const WEB_COOKIE_PROVIDERS = {
     hasFree: true,
     freeNote: "Free video generation — VEO 3.1, Seedance. 6 requests/hour.",
     authHint: "No auth required. Rate limited to 6 requests/hour per IP.",
+  },
+  "t3-web": {
+    id: "t3-web",
+    alias: "t3chat",
+    name: "t3.chat (Pro/Free)",
+    icon: "auto_awesome",
+    color: "#7C3AED",
+    textIcon: "T3",
+    website: "https://t3.chat",
+    hasFree: true,
+    freeNote: "Free tier gives limited model access. Pro ($8/month) unlocks 50+ models.",
+    authHint:
+      "Open t3.chat in your browser, log in, then open DevTools → Application → Local Storage → https://t3.chat. " +
+      "Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. " +
+      "Paste both values here. See provider setup docs for a step-by-step guide.",
   },
 };
 
@@ -1815,6 +1831,19 @@ export const LOCAL_PROVIDERS = {
     localDefault: "http://127.0.0.1:8080/v1",
     passthroughModels: true,
   },
+  "llama-cpp": {
+    id: "llama-cpp",
+    alias: "llamacpp",
+    name: "llama.cpp",
+    icon: "memory",
+    color: "#795548",
+    textIcon: "LC",
+    website: "https://github.com/ggml-org/llama.cpp",
+    authHint:
+      "API key optional (use any value, e.g. sk-no-key-required). Configure the llama-server OpenAI-compatible base URL (default: http://127.0.0.1:8080/v1). Note: if Llamafile is also installed, both default to port 8080 — run only one at a time or override the port.",
+    localDefault: "http://127.0.0.1:8080/v1",
+    passthroughModels: true,
+  },
   triton: {
     id: "triton",
     alias: "triton",
@@ -2156,6 +2185,7 @@ export const SELF_HOSTED_CHAT_PROVIDER_IDS = new Set([
   "vllm",
   "lemonade",
   "llamafile",
+  "llama-cpp",
   "triton",
   "docker-model-runner",
   "xinference",

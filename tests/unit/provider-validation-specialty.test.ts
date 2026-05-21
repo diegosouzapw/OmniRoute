@@ -863,21 +863,28 @@ test("local OpenAI-style providers validate without sending Authorization when a
       provider: "lemonade",
       providerSpecificData: { baseUrl: "http://localhost:13305/api/v1" },
     });
+    const llamaCpp = await validateProviderApiKey({
+      provider: "llama-cpp",
+      providerSpecificData: { baseUrl: "http://127.0.0.1:8080/v1" },
+    });
 
     assert.equal(lmStudio.valid, true);
     assert.equal(vllm.valid, true);
     assert.equal(lemonade.valid, true);
+    assert.equal(llamaCpp.valid, true);
     assert.deepEqual(
       calls.map((call) => call.url),
       [
         "http://localhost:1234/v1/models",
         "http://localhost:8000/v1/models",
         "http://localhost:13305/api/v1/models",
+        "http://127.0.0.1:8080/v1/models",
       ]
     );
     assert.equal(calls[0].headers.Authorization, undefined);
     assert.equal(calls[1].headers.Authorization, undefined);
     assert.equal(calls[2].headers.Authorization, undefined);
+    assert.equal(calls[3].headers.Authorization, undefined);
   } finally {
     if (originalAllowPrivateProviderUrls === undefined) {
       delete process.env.OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS;
@@ -1980,4 +1987,13 @@ test("validateCommandCodeProvider rejects auth failures and provider outages", a
     valid: false,
     error: "Provider unavailable (500)",
   });
+});
+
+test("llama-cpp is classified as a self-hosted chat provider", async () => {
+  const { isSelfHostedChatProvider, isLocalProvider, providerAllowsOptionalApiKey } =
+    await import("../../src/shared/constants/providers.ts");
+
+  assert.equal(isSelfHostedChatProvider("llama-cpp"), true);
+  assert.equal(isLocalProvider("llama-cpp"), true);
+  assert.equal(providerAllowsOptionalApiKey("llama-cpp"), true);
 });

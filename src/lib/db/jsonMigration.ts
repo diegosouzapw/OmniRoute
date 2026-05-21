@@ -11,10 +11,10 @@
  * here, so this function never touches authentication configuration.
  */
 
-import type Database from "better-sqlite3";
+import type { SqliteAdapter } from "./adapters/types";
 import { normalizeRoutingStrategy } from "@/shared/constants/routingStrategies";
 
-type SqliteDatabase = InstanceType<typeof Database>;
+type SqliteDatabase = SqliteAdapter;
 
 export interface LegacyJsonData {
   providerConnections?: Record<string, unknown>[];

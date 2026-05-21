@@ -62,7 +62,7 @@ export default function IdempotencyLayer({
               <button
                 onClick={onRetry}
                 className="self-start text-sm px-3 py-1 rounded bg-surface/50 hover:bg-surface/80 transition-colors"
-                aria-label="Retry"
+                aria-label={t("retry")}
               >
                 Retry
               </button>

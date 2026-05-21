@@ -14,10 +14,17 @@ import {
 } from "@/lib/cloudAgent/api";
 import { z } from "zod";
 import pino from "pino";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const logger = pino({ name: "cloud-agents-api" });
 
-createCloudAgentTaskTable();
+let _tableInit = false;
+function ensureTable() {
+  if (!_tableInit) {
+    createCloudAgentTaskTable();
+    _tableInit = true;
+  }
+}
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, { headers: getCloudAgentCorsHeaders(request) });
@@ -51,6 +58,7 @@ function cloudAgentCredentialsRequiredResponse(providerId: string, request: Next
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
@@ -97,7 +105,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     );
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error:
+          sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error") ||
+          "Internal server error",
+      },
       { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }
@@ -105,6 +117,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
@@ -172,7 +185,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   } catch (error) {
     logger.error({ err: error }, "Failed to process task action");
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error:
+          sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error") ||
+          "Internal server error",
+      },
       { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }
@@ -183,6 +200,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    ensureTable();
     const authError = await requireCloudAgentManagementAuth(request);
     if (authError) return authError;
 
@@ -199,7 +217,11 @@ export async function DELETE(
     return NextResponse.json({ success: true }, { headers: getCloudAgentCorsHeaders(request) });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
+      {
+        error:
+          sanitizeErrorMessage(error instanceof Error ? error.message : "Unknown error") ||
+          "Internal server error",
+      },
       { status: 500, headers: getCloudAgentCorsHeaders(request) }
     );
   }

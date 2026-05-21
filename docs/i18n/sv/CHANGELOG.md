@@ -6,6 +6,34 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **fix(translator):** inject `omniroute_web_search` in the Responses-API flat tool shape (`{ type, name }`) when the target provider speaks the Responses API — previously it was always emitted in the Chat Completions nested shape (`{ type, function: { name } }`), and on the Responses→Responses passthrough path nothing flattened it, so Codex/relay upstreams rejected the request with `[400]: Missing required parameter: 'tools[0].name'.` ([#2390](https://github.com/diegosouzapw/OmniRoute/issues/2390))
+- **fix(kiro):** serialize non-string `role:"tool"` message content before sending to CodeWhisperer — structured/array tool output was collapsing to `content:[{ text: "" }]`, which Kiro rejects with `400 Improperly formed request`. Now reuses the shared `serializeToolResultContent`. ([#2446](https://github.com/diegosouzapw/OmniRoute/issues/2446))
+- **fix(claude):** gate heavy-agent beta headers (`context-1m-2025-08-07`, `effort-2025-11-24`, `advanced-tool-use-2025-11-20`) on Opus/Sonnet only and stop deleting Haiku's `thinking` config — Haiku with OAuth was rejecting `context-1m` with `[400]: This authentication style is incompatible with the long context beta header`. Also sanitizes historical `thinking` block signatures in Claude OAuth passthrough, fixing `[400]: Invalid signature in thinking block` on mid-session model switches. ([#2454](https://github.com/diegosouzapw/OmniRoute/issues/2454) — thanks @havockdev)
+- **fix(perplexity-web):** route requests through a Firefox-148 TLS-impersonating client so Perplexity's Cloudflare edge stops rejecting VPS/datacenter IPs with a 403 challenge — mirrors the existing `chatgpt-web` approach. Validation/execution now distinguish a Cloudflare block from an invalid session cookie. New env vars `OMNIROUTE_PPLX_TLS_TIMEOUT_MS` / `OMNIROUTE_PPLX_TLS_GRACE_MS`. ([#2459](https://github.com/diegosouzapw/OmniRoute/issues/2459) — thanks @havockdev)
+- **fix(validation):** guard `apiKey`/`modelsUrl` against non-string values before calling `.startsWith()` / `.trim()` in the provider connection-test path — a corrupted or mis-typed credential could throw `TypeError: ... is not a function` mid-validation instead of returning a clean result. ([#2463](https://github.com/diegosouzapw/OmniRoute/issues/2463))
+
+## [3.8.1] — 2026-05-20
+
+### 🔧 Bug Fixes & Refactors
+
+- **fix(translator):** treat `developer` role as system in OpenAI → Claude translation — `openAIToClaude` now extracts `developer`-role messages into `systemParts` (same as `system`) and filters them from the non-system message list, preventing identity context injected via the Responses API `developer` role from silently becoming an assistant turn when routing to a Claude-format provider. ([#2407](https://github.com/diegosouzapw/OmniRoute/issues/2407))
+- **fix(antigravity):** deduplicate `removeHeaderCaseInsensitive` — export canonical implementation from `antigravityClientProfile.ts` and remove the local copy in `antigravity.ts`; export `AntigravityCredentialsLike` type for cross-module use. (#2433 — thanks @Gi99lin)
+
+### 🔒 Security Fixes
+
+- **fix(security):** replace execSync string-template with spawnSync arg-array in plugin.mjs — eliminates shell command injection.
+- **fix(security):** gate Electron CSP unsafe-eval on !app.isPackaged — was leaking unsafe-eval into production builds.
+- **fix(api):** add requireManagementAuth to /api/usage/budget/bulk and /api/resilience/reset.
+- **fix(security):** route catch-block error messages through sanitizeErrorMessage() in executors and API routes.
+- **fix(codex):** refreshCredentials returns null on token refresh failure.
+- **fix(tokenRefresh):** safe unknown-error access in catch block.
+- **fix(combo):** reset exhaustedProviders set at start of each set-retry iteration.
+- **fix(circuitBreaker):** persist and restore lastFailureKind via options JSON column.
+
+---
+
 ## [3.8.0] — 2026-05-06
 
 ### ✨ New Features

@@ -29,6 +29,7 @@ import {
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
 import { extractCookieValue, normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
+import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import { getGigachatAccessToken } from "@omniroute/open-sse/services/gigachatAuth.ts";
 import { validateQoderCliPat } from "@omniroute/open-sse/services/qoderCli.ts";
 import {
@@ -303,7 +304,10 @@ async function validateOpenAILikeProvider({
   isLocal = false,
 }: any) {
   try {
-    const customModelsUrl = modelsUrl?.trim() || "";
+    // Guard against a non-string modelsUrl reaching .trim()/.startsWith() — a malformed
+    // providerSpecificData / registry value would otherwise throw a TypeError mid-validation
+    // ("trim is not a function" / "startsWith is not a function"). See #2463 class.
+    const customModelsUrl = (typeof modelsUrl === "string" ? modelsUrl.trim() : "") || "";
     const endpointUrl = customModelsUrl
       ? customModelsUrl.startsWith("http")
         ? customModelsUrl
@@ -753,7 +757,7 @@ async function validateGeminiLikeProvider({
 
     if (authType === "header" || authType === "apikey") {
       headers["x-goog-api-key"] = apiKey;
-    } else if (authType === "oauth" || apiKey.startsWith("ya29.")) {
+    } else if (authType === "oauth" || (typeof apiKey === "string" && apiKey.startsWith("ya29."))) {
       headers["Authorization"] = `Bearer ${apiKey}`;
     }
 
@@ -1178,7 +1182,7 @@ async function validateSnowflakeProvider({ apiKey, providerSpecificData = {} }: 
     return { valid: false, error: "Missing base URL" };
   }
 
-  const usesProgrammaticAccessToken = apiKey.startsWith("pat/");
+  const usesProgrammaticAccessToken = typeof apiKey === "string" && apiKey.startsWith("pat/");
   return validateDirectChatProvider({
     url: normalizeSnowflakeChatUrl(baseUrl),
     headers: {
@@ -2642,6 +2646,58 @@ function buildMetaAiValidationBody() {
   };
 }
 
+async function validateDeepSeekWebProvider({ apiKey }: any) {
+  if (!apiKey) {
+    return {
+      valid: false,
+      error:
+        "Missing userToken — paste the value from DevTools → Application → Local Storage → chat.deepseek.com → userToken",
+    };
+  }
+  let token = apiKey;
+  try {
+    const parsed = JSON.parse(token);
+    if (typeof parsed?.value === "string") token = parsed.value;
+  } catch {
+    // not JSON, use as-is
+  }
+
+  try {
+    const resp = await fetch("https://chat.deepseek.com/api/v0/users/current", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "*/*",
+        Origin: "https://chat.deepseek.com",
+        Referer: "https://chat.deepseek.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "X-App-Version": "20241129.1",
+        "X-Client-Platform": "web",
+      },
+    });
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error: "userToken is invalid or expired — get a fresh one from localStorage",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `DeepSeek returned HTTP ${resp.status}` };
+    }
+    const json = await resp.json();
+    const bizData = json?.data?.biz_data || json?.biz_data;
+    if (!bizData?.token) {
+      return {
+        valid: false,
+        error: `DeepSeek did not return an access token: ${json?.msg || "unknown error"}`,
+      };
+    }
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -2895,8 +2951,9 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
         Accept: "text/event-stream",
         Origin: "https://www.perplexity.ai",
         Referer: "https://www.perplexity.ai/",
+        // Firefox 148 — must match the firefox_148 TLS profile of perplexityTlsClient (issue #2459).
         "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/136.0.0.0",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
         "X-App-ApiClient": "default",
         "X-App-ApiVersion": "client-1.11.0",
         ...(bearerToken
@@ -2908,32 +2965,60 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
       providerSpecificData
     );
 
-    const response = await validationWrite("https://www.perplexity.ai/rest/sse/perplexity_ask", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        query_str: "test",
-        params: {
+    // Perplexity is behind Cloudflare Enterprise which pins JA3/JA4 to a real
+    // browser handshake — plain fetch is challenged with a 403 page from
+    // VPS/datacenter IPs even with a valid cookie. Use the Firefox-fingerprinted
+    // TLS client so the validator's verdict reflects the cookie, not the IP (issue #2459).
+    const { tlsFetchPerplexity, isCloudflareChallenge, TlsClientUnavailableError } =
+      await import("@omniroute/open-sse/services/perplexityTlsClient.ts");
+
+    let response: { status: number; text: string | null };
+    try {
+      response = await tlsFetchPerplexity("https://www.perplexity.ai/rest/sse/perplexity_ask", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
           query_str: "test",
-          search_focus: "internet",
-          mode: "concise",
-          model_preference: "default",
-          sources: ["web"],
-          attachments: [],
-          frontend_uuid: crypto.randomUUID(),
-          frontend_context_uuid: crypto.randomUUID(),
-          version: "client-1.11.0",
-          language: "en-US",
-          timezone,
-          search_recency_filter: null,
-          is_incognito: true,
-          use_schematized_api: true,
-          last_backend_uuid: null,
-        },
-      }),
-    });
+          params: {
+            query_str: "test",
+            search_focus: "internet",
+            mode: "concise",
+            model_preference: "default",
+            sources: ["web"],
+            attachments: [],
+            frontend_uuid: crypto.randomUUID(),
+            frontend_context_uuid: crypto.randomUUID(),
+            version: "client-1.11.0",
+            language: "en-US",
+            timezone,
+            search_recency_filter: null,
+            is_incognito: true,
+            use_schematized_api: true,
+            last_backend_uuid: null,
+          },
+        }),
+        timeoutMs: 30_000,
+      });
+    } catch (err) {
+      if (err instanceof TlsClientUnavailableError) {
+        return {
+          valid: false,
+          error: `${err.message} perplexity-web requires it — without it Cloudflare blocks every request.`,
+        };
+      }
+      throw err;
+    }
 
     if (response.status === 401 || response.status === 403) {
+      if (isCloudflareChallenge(response.text)) {
+        return {
+          valid: false,
+          error:
+            "Cloudflare is blocking connections from this server's IP (TLS fingerprint rejected). " +
+            "The session cookie may still be valid — install tls-client-node's native binary or route " +
+            "perplexity-web through a residential proxy.",
+        };
+      }
       return {
         valid: false,
         error:
@@ -2941,7 +3026,7 @@ async function validatePerplexityWebProvider({ apiKey, providerSpecificData = {}
       };
     }
 
-    if (response.ok || (response.status >= 400 && response.status < 500)) {
+    if (response.status === 200 || (response.status >= 400 && response.status < 500)) {
       return { valid: true, error: null };
     }
 
@@ -3129,6 +3214,34 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+/** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
+async function validateJulesProvider({ apiKey }: { apiKey: string }) {
+  try {
+    const response = await validationWrite(buildJulesApiUrl("/sources"), {
+      method: "GET",
+      headers: {
+        "X-Goog-Api-Key": apiKey,
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, error: "Invalid API key" };
+    }
+
+    if (response.ok) {
+      return { valid: true, error: null };
+    }
+
+    const errorText = await response.text().catch(() => "");
+    return {
+      valid: false,
+      error: errorText.trim() || `Jules API returned ${response.status}`,
+    };
+  } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3162,6 +3275,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 
   // ── Specialty provider validation ──
   const SPECIALTY_VALIDATORS = {
+    jules: validateJulesProvider,
     qoder: ({ apiKey, providerSpecificData }: any) =>
       validateQoderCliPat({ apiKey, providerSpecificData }),
     "command-code": validateCommandCodeProvider,
@@ -3222,6 +3336,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,

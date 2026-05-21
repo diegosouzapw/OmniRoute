@@ -1,4 +1,8 @@
 import {
+  ANTIGRAVITY_BASE_URLS,
+  getAntigravityFetchAvailableModelsUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
   ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   getAntigravityLoadCodeAssistClientMetadata,
@@ -157,13 +161,16 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com",
+  apiEndpoint: ANTIGRAVITY_BASE_URLS[0],
   apiVersion: "v1internal",
-  loadCodeAssistEndpoint:
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
-  onboardUserEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:onboardUser",
-  fetchAvailableModelsEndpoint:
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+  loadCodeAssistEndpoints: ANTIGRAVITY_BASE_URLS.map(
+    (baseUrl) => `${baseUrl}/v1internal:loadCodeAssist`
+  ),
+  onboardUserEndpoints: ANTIGRAVITY_BASE_URLS.map((baseUrl) => `${baseUrl}/v1internal:onboardUser`),
+  fetchAvailableModelsEndpoints: getAntigravityFetchAvailableModelsUrls(),
+  loadCodeAssistEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:loadCodeAssist`,
+  onboardUserEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:onboardUser`,
+  fetchAvailableModelsEndpoint: getAntigravityFetchAvailableModelsUrls()[0],
   loadCodeAssistUserAgent: ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   loadCodeAssistApiClient: ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),

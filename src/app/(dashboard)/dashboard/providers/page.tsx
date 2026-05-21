@@ -22,7 +22,7 @@ import {
   isClaudeCodeCompatibleProvider,
   CLOUD_AGENT_PROVIDERS,
 } from "@/shared/constants/providers";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
@@ -142,11 +142,19 @@ export default function ProvidersPage() {
   const tc = useTranslations("common");
   const ccCompatibleLabel = t("ccCompatibleLabel");
   const addCcCompatibleLabel = t("addCcCompatible");
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setShowConfiguredOnly(readConfiguredOnlyPreference());
     setConfiguredOnlyPreferenceReady(true);
   }, []);
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get("search");
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -282,9 +290,19 @@ export default function ProvidersPage() {
           getCodexEffectiveFastServiceTier(connection.providerSpecificData, false)
         ));
 
+    // Count API keys in "warning" state across all connections
+    const warning = providerConnections.reduce((warnCount, conn) => {
+      const health = (conn as any).providerSpecificData?.apiKeyHealth as
+        | Record<string, { status: string }>
+        | undefined;
+      if (!health) return warnCount;
+      return warnCount + Object.values(health).filter((h) => h.status === "warning").length;
+    }, 0);
+
     return {
       connected,
       error,
+      warning,
       total,
       errorCode,
       errorTime,

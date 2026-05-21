@@ -142,7 +142,7 @@ export default function QuotaTable({ quotas = [] }) {
                 {/* Reset Time */}
                 <td className="py-2 px-3">
                   {staleAfterReset ? (
-                    <div className="text-xs text-text-muted">⟳ Refreshing...</div>
+                    <div className="text-xs text-text-muted">{t("quotaTableRefreshing")}</div>
                   ) : countdown !== t("notAvailableSymbol") || resetDisplay ? (
                     <div className="space-y-0.5">
                       {countdown !== t("notAvailableSymbol") && (

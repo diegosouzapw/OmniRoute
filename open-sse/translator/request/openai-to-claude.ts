@@ -206,16 +206,20 @@ export function openaiToClaudeRequest(model, body, stream) {
 
   if (body.messages && Array.isArray(body.messages)) {
     // Extract system messages (T15: handle both string and array content)
+    // Also treat "developer" role as system — OpenAI Responses API uses developer role
+    // for system-level instructions, and it must reach the Claude system field, not become an assistant turn.
     for (const msg of body.messages) {
-      if (msg.role === "system") {
+      if (msg.role === "system" || msg.role === "developer") {
         systemParts.push(
           typeof msg.content === "string" ? msg.content : normalizeContentToString(msg.content)
         );
       }
     }
 
-    // Filter out system messages for separate processing
-    const nonSystemMessages = body.messages.filter((m) => m.role !== "system");
+    // Filter out system/developer messages for separate processing
+    const nonSystemMessages = body.messages.filter(
+      (m) => m.role !== "system" && m.role !== "developer"
+    );
 
     // Process messages with merging logic
     // CRITICAL: tool_result must be in separate message immediately after tool_use

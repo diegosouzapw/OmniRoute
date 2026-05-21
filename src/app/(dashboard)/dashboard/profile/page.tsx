@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Badge } from "@/shared/components";
 import {
   xpForLevel,
@@ -57,6 +58,7 @@ const RARITY_COLORS: Record<string, string> = {
 };
 
 export default function ProfilePage() {
+  const t = useTranslations("common");
   const [userLevel, setUserLevel] = useState<UserLevel | null>(null);
   const [allBadges, setAllBadges] = useState<BadgeDef[]>([]);
   const [earnedBadges, setEarnedBadges] = useState<UserBadge[]>([]);
@@ -99,7 +101,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-text-muted">Loading profile...</div>
+        <div className="text-text-muted">{t("profileLoading")}</div>
       </div>
     );
   }
@@ -269,7 +271,7 @@ export default function ProfilePage() {
 
             {selectedBadge.criteria && (
               <div className="p-3 rounded-lg bg-surface/50 border border-border/50">
-                <p className="text-xs font-medium text-text-muted mb-1">How to earn</p>
+                <p className="text-xs font-medium text-text-muted mb-1">{t("profileHowToEarn")}</p>
                 <p className="text-sm">{selectedBadge.criteria}</p>
               </div>
             )}

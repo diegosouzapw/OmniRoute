@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 import McpDashboardPage from "../endpoint/components/MCPDashboard";
@@ -98,6 +99,7 @@ function TransportSelector({
   disabled: boolean;
   baseUrl: string;
 }) {
+  const t = useTranslations("mcpDashboard");
   const options: { value: McpTransport; label: string; desc: string }[] = [
     { value: "stdio", label: "stdio", desc: "Local — IDE spawns process via omniroute --mcp" },
     { value: "sse", label: "SSE", desc: "Remote — Server-Sent Events over HTTP" },
@@ -181,7 +183,7 @@ function TransportSelector({
             className="ml-auto text-xs px-2 py-0.5 rounded border hover:opacity-80 transition-opacity"
             style={{ borderColor: "var(--color-border)", color: "var(--color-text-muted)" }}
             onClick={() => void copyToClipboard(urlMap[value])}
-            title="Copy URL"
+            title={t("mcpDashboardCopyUrl")}
           >
             Copy
           </button>

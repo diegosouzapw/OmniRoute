@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 
 type LeaderboardScope = "global" | "weekly" | "monthly" | "tokens_shared";
@@ -26,6 +27,7 @@ const MEDAL_COLORS = [
 const MEDAL_EMOJI = ["🥇", "🥈", "🥉"];
 
 export default function LeaderboardPage() {
+  const t = useTranslations("common");
   const [scope, setScope] = useState<LeaderboardScope>("global");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
@@ -110,7 +112,7 @@ export default function LeaderboardPage() {
         <Card>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-text-muted">Your Rank</p>
+              <p className="text-sm text-text-muted">{t("leaderboardYourRank")}</p>
               <p className="text-3xl font-bold mt-1">#{myRank}</p>
             </div>
             <div className="text-right">
@@ -125,7 +127,7 @@ export default function LeaderboardPage() {
 
       {loading ? (
         <div className="flex items-center justify-center min-h-[200px]">
-          <div className="text-text-muted">Loading leaderboard...</div>
+          <div className="text-text-muted">{t("leaderboardLoading")}</div>
         </div>
       ) : (
         <>

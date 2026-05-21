@@ -17,6 +17,7 @@ import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/
 import { refreshWithRetry, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
+import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
 import {
   getStripTypesForProviderModel,
   stripIncompatibleMessageContent,
@@ -49,7 +50,6 @@ import { updateProviderConnection } from "@/lib/db/providers";
 import {
   recordKeyFailure,
   recordKeySuccess,
-  getLastUsedKeyId,
   getInvalidKeyCount,
   trackConnectionExtraKeys,
   connectionHasExtraKeys,
@@ -100,6 +100,10 @@ import {
 } from "../utils/cacheControlPolicy.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { applyCodexGlobalFastServiceTier } from "@/lib/providers/codexFastTier";
+import {
+  CPA_FORCE_FAST_MODE_HEADER,
+  shouldRequestClaudeFastMode,
+} from "@/lib/providers/claudeFastMode";
 import {
   getCodexRequestDefaults,
   normalizeCodexServiceTier,
@@ -429,6 +433,36 @@ export function shouldUseNativeCodexPassthrough({
   while (normalizedEndpoint.endsWith("/")) normalizedEndpoint = normalizedEndpoint.slice(0, -1);
   const segments = normalizedEndpoint.split("/");
   return segments.includes("responses");
+}
+
+/**
+ * Convert all historical `thinking` / `redacted_thinking` blocks in assistant
+ * messages to `redacted_thinking` carrying a synthetic default signature.
+ *
+ * A thinking block's `signature` is cryptographically bound to the auth token
+ * that generated it. In Anthropic-native Claude OAuth passthrough, when a session
+ * starts on one model (token A) and then switches model or falls over (token B),
+ * Anthropic rejects every historical signature with 400 "Invalid signature in
+ * thinking block" (issue #2454). `redacted_thinking` bypasses signature validation.
+ *
+ * ALL assistant turns are converted, including the last — under a different token
+ * every signature is invalid, so there is no "preserve latest" exception. Returns a
+ * new messages array (original is not mutated) only touching messages that changed.
+ */
+export function redactPassthroughThinkingSignatures(messages: unknown, signature: string): unknown {
+  if (!Array.isArray(messages)) return messages;
+  return (messages as Record<string, unknown>[]).map((msg) => {
+    if (!msg || msg.role !== "assistant" || !Array.isArray(msg.content)) return msg;
+    let modified = false;
+    const newContent = (msg.content as Record<string, unknown>[]).map((block) => {
+      if (block && (block.type === "thinking" || block.type === "redacted_thinking")) {
+        modified = true;
+        return { type: "redacted_thinking", data: signature };
+      }
+      return block;
+    });
+    return modified ? { ...msg, content: newContent } : msg;
+  });
 }
 
 export function isClaudeCodeSemanticPassthroughRequest({
@@ -1259,6 +1293,7 @@ export async function handleChatCore({
   comboExecutionKey = null,
   disableEmergencyFallback = false,
   cachedSettings = null,
+  skipUpstreamRetry = false,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // apiFormat is an optional custom-model marker injected by getModelInfo for
@@ -1316,6 +1351,63 @@ export async function handleChatCore({
       apiKeyName: apiKeyInfo?.name || undefined,
       serviceTier: effectiveServiceTier,
     }).catch(() => {});
+  };
+
+  const recordKeyHealthStatus = (
+    status: number,
+    creds: Record<string, unknown> | null | undefined
+  ): void => {
+    const connId = creds?.connectionId as string | undefined;
+    if (!connId) return;
+
+    const psd = creds.providerSpecificData as Record<string, unknown> | undefined;
+    const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
+    const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
+    const currentKeyId = (psd?.selectedKeyId as string | undefined) ?? "primary";
+
+    trackConnectionExtraKeys(connId, extraKeys);
+
+    if (status === 401) {
+      const updatedHealth = recordKeyFailure(connId, currentKeyId);
+      log?.warn?.(
+        "AUTH",
+        `401 on connection ${connId.slice(0, 8)} - key marked as failed (failure #${updatedHealth.failures})`
+      );
+
+      // Persist health status to DB on every failure (not just invalid transitions)
+      // This ensures in-memory state survives process restarts
+      const prevStatus = health?.[currentKeyId]?.status;
+      const prevFailures = health?.[currentKeyId]?.failures ?? 0;
+      if (updatedHealth.status !== prevStatus || updatedHealth.failures !== prevFailures) {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    } else if (status >= 200 && status < 300) {
+      const updatedHealth = recordKeySuccess(connId, currentKeyId);
+      const prevStatus = health?.[currentKeyId]?.status;
+      if (prevStatus === "warning" || prevStatus === "invalid") {
+        updateProviderConnection(connId, {
+          providerSpecificData: {
+            ...psd,
+            apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
+          },
+        }).catch((err: unknown) => {
+          log?.error?.(
+            "DB",
+            `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
+          );
+        });
+      }
+    }
   };
 
   const persistCodexQuotaState = async (
@@ -1695,6 +1787,22 @@ export async function handleChatCore({
       }
     }
 
+    // Claude Fast Mode opt-in. When the user has enabled this in
+    // Settings > AI AND the target provider is the canonical Anthropic
+    // `claude` provider (Claude Code-compatible CPA bridges are excluded
+    // since they already select their own entrypoint) AND the model id
+    // matches the configured list, signal to a paired CLIProxyAPI build to
+    // rewrite the cc_entrypoint so the request can reach Anthropic Fast
+    // Mode (speed:"fast"). CPA builds that do not understand the header
+    // forward it harmlessly.
+    if (
+      provider === "claude" &&
+      typeof settings !== "undefined" &&
+      shouldRequestClaudeFastMode(settings, modelToCall)
+    ) {
+      upstreamHeaders[CPA_FORCE_FAST_MODE_HEADER] = "1";
+    }
+
     return upstreamHeaders;
   };
 
@@ -1730,7 +1838,10 @@ export async function handleChatCore({
       ? false
       : resolveStreamFlag(body?.stream, acceptHeader, sourceFormat);
   const settings = cachedSettings ?? (await getCachedSettings());
-  credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings);
+  credentials = applyCodexGlobalFastServiceTier(provider, credentials, settings, {
+    model: requestedModel,
+    body: body && typeof body === "object" ? (body as Record<string, unknown>) : null,
+  });
   effectiveServiceTier = resolveEffectiveServiceTier(body);
   setGeminiThoughtSignatureMode(settings.antigravitySignatureCacheMode);
   const semanticCacheEnabled = settings.semanticCacheEnabled !== false;
@@ -2662,6 +2773,17 @@ export async function handleChatCore({
       // regardless of combo strategy or cache_control settings.
       translatedBody = { ...body };
       translatedBody._disableToolPrefix = true;
+
+      // Sanitize historical thinking-block signatures for Anthropic-native Claude OAuth.
+      // Only Anthropic's first-party API validates these signatures (token-bound); third-party
+      // Claude-shape providers do not. See redactPassthroughThinkingSignatures + issue #2454.
+      if (provider === "claude") {
+        translatedBody.messages = redactPassthroughThinkingSignatures(
+          translatedBody.messages,
+          DEFAULT_THINKING_CLAUDE_SIGNATURE
+        ) as typeof translatedBody.messages;
+      }
+
       if (!isClaudeCodeSemanticPassthrough) {
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
       } else {
@@ -2763,7 +2885,12 @@ export async function handleChatCore({
         credentials,
         provider,
         reqLogger,
-        { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+        {
+          normalizeToolCallId,
+          preserveDeveloperRole,
+          preserveCacheControl,
+          signatureNamespace: connectionId,
+        }
       );
     }
   } catch (error) {
@@ -3014,7 +3141,6 @@ export async function handleChatCore({
   // Create stream controller for disconnect detection
   const streamController = createStreamController({
     onDisconnect,
-    log,
     provider,
     model,
     connectionId,
@@ -3028,6 +3154,8 @@ export async function handleChatCore({
   const executeProviderRequest = async (modelToCall = effectiveModel, allowDedup = false) => {
     const execute = async () => {
       const executionCredentials = getExecutionCredentials();
+      // Track execution credentials for key health recording (to capture selectedKeyId)
+      let lastExecCreds = executionCredentials;
       const accountSemaphoreMaxConcurrency =
         resolveAccountSemaphoreMaxConcurrency(executionCredentials);
       const accountSemaphoreKey = resolveAccountSemaphoreKey({
@@ -3159,55 +3287,24 @@ export async function handleChatCore({
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
+              const execCreds = getExecutionCredentials();
               const res = await executor.execute({
                 model: modelToCall,
                 body: bodyToSend,
                 stream: upstreamStream,
-                credentials: getExecutionCredentials(),
+                credentials: execCreds,
                 signal: streamController.signal,
                 log,
                 extendedContext,
                 upstreamExtraHeaders: buildUpstreamHeadersForExecute(modelToCall),
                 clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
                 onCredentialsRefreshed,
+                skipUpstreamRetry,
               });
               trace("post_executor", { status: res?.response?.status });
 
-              // T07: Handle 401 authentication errors with API key health tracking
-              if (res.response.status === 401 && credentials?.connectionId) {
-                const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
-                const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
-                const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
-
-                // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
-                trackConnectionExtraKeys(credentials.connectionId, extraKeys);
-
-                const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-
-                // Record failure for the current key
-                const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
-                log?.warn?.(
-                  "AUTH",
-                  `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/${3})`
-                );
-
-                // Persist health status to DB if key is now invalid
-                if (
-                  updatedHealth.status === "invalid" &&
-                  health?.[currentKeyId]?.status !== "invalid"
-                ) {
-                  updateProviderConnection(credentials.connectionId, {
-                    providerSpecificData: {
-                      ...psd,
-                      apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                    },
-                  }).catch((err) => {
-                    log?.error?.(
-                      "DB",
-                      `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                    );
-                  });
-                }
+              if (res.response.status === 401 && execCreds?.connectionId) {
+                recordKeyHealthStatus(401, execCreds);
               }
 
               // Qwen 429 strict quota backoff (wait 1.5s, 3s and retry)
@@ -3335,6 +3432,7 @@ export async function handleChatCore({
 
                 return {
                   ...res,
+                  _executionCredentials: execCreds,
                   response: new Response(
                     wrapReadableStreamWithFinalize(originalBody, acquireAccountSemaphoreRelease),
                     {
@@ -3347,7 +3445,10 @@ export async function handleChatCore({
                 };
               }
 
-              return res;
+              return {
+                ...res,
+                _executionCredentials: execCreds,
+              };
             }
           },
           streamController.signal
@@ -3360,62 +3461,12 @@ export async function handleChatCore({
         // Non-stream: release semaphore immediately after reading full response body.
         const status = rawResult.response.status;
 
-        // T07: Record API key health status
-        if (credentials?.connectionId && credentials?.apiKey) {
-          const psd = credentials.providerSpecificData as Record<string, unknown> | undefined;
-          const extraKeys = (psd?.extraApiKeys as string[] | undefined) ?? [];
-          const health = psd?.apiKeyHealth as Record<string, KeyHealth> | undefined;
-
-          if (status === 401) {
-            // Track extra keys for A3 guard (prevents disabling entire connection on single-key failure)
-            trackConnectionExtraKeys(credentials.connectionId, extraKeys);
-
-            // Authentication failed - mark current key as failed
-            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-            const updatedHealth = recordKeyFailure(credentials.connectionId, currentKeyId);
-            log?.warn?.(
-              "AUTH",
-              `401 on connection ${credentials.connectionId.slice(0, 8)} - key marked as failed (${updatedHealth.failures}/3)`
-            );
-
-            // Persist to DB if status changed to invalid
-            if (
-              updatedHealth.status === "invalid" &&
-              health?.[currentKeyId]?.status !== "invalid"
-            ) {
-              updateProviderConnection(credentials.connectionId, {
-                providerSpecificData: {
-                  ...psd,
-                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                },
-              }).catch((err) => {
-                log?.error?.(
-                  "DB",
-                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                );
-              });
-            }
-          } else if (status >= 200 && status < 300) {
-            // Success - mark current key as successful
-            const currentKeyId = getLastUsedKeyId(credentials.connectionId) || "primary";
-            const updatedHealth = recordKeySuccess(credentials.connectionId, currentKeyId);
-
-            // Persist to DB if status was warning/invalid and now active
-            const prevStatus = health?.[currentKeyId]?.status;
-            if (prevStatus === "warning" || prevStatus === "invalid") {
-              updateProviderConnection(credentials.connectionId, {
-                providerSpecificData: {
-                  ...psd,
-                  apiKeyHealth: { ...health, [currentKeyId]: updatedHealth },
-                },
-              }).catch((err) => {
-                log?.error?.(
-                  "DB",
-                  `Failed to persist apiKeyHealth: ${err instanceof Error ? err.message : String(err)}`
-                );
-              });
-            }
-          }
+        // Use execution credentials captured during request processing
+        if (
+          rawResult._executionCredentials?.connectionId &&
+          rawResult._executionCredentials?.apiKey
+        ) {
+          recordKeyHealthStatus(status, rawResult._executionCredentials);
         }
 
         const statusText = rawResult.response.statusText;
@@ -3661,6 +3712,7 @@ export async function handleChatCore({
           upstreamExtraHeaders: buildUpstreamHeadersForExecute(retryModelId),
           clientHeaders: buildExecutorClientHeaders(clientRawRequest?.headers, userAgent),
           onCredentialsRefreshed,
+          skipUpstreamRetry: isCombo,
         });
 
         if (retryResult.response.ok) {
@@ -3744,7 +3796,13 @@ export async function handleChatCore({
         } else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
           // Plan A: if connection has extra API keys, don't disable — only the failing key is affected.
           // Single-key connections still get disabled as before.
-          if (connectionHasExtraKeys(connectionId)) {
+          if (
+            connectionHasExtraKeys(
+              connectionId,
+              (credentials?.providerSpecificData as Record<string, unknown> | undefined)
+                ?.extraApiKeys as string[] | undefined
+            )
+          ) {
             await updateProviderConnection(connectionId, {
               lastErrorType: errorType,
               lastError: message,
@@ -3915,7 +3973,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -3933,7 +3992,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -3951,7 +4011,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else if (isContextOverflowError(statusCode, message)) {
@@ -3993,7 +4054,8 @@ export async function handleChatCore({
               errMsg,
               retryAfterMs,
               upstreamErrorCode,
-              upstreamErrorType
+              upstreamErrorType,
+              upstreamErrorBody
             );
           }
         } catch {
@@ -4011,7 +4073,8 @@ export async function handleChatCore({
             errMsg,
             retryAfterMs,
             upstreamErrorCode,
-            upstreamErrorType
+            upstreamErrorType,
+            upstreamErrorBody
           );
         }
       } else {
@@ -4029,7 +4092,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     } else {
@@ -4118,7 +4182,8 @@ export async function handleChatCore({
           errMsg,
           retryAfterMs,
           upstreamErrorCode,
-          upstreamErrorType
+          upstreamErrorType,
+          upstreamErrorBody
         );
       }
     }

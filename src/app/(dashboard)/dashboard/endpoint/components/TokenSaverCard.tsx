@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Card, Toggle } from "@/shared/components";
 import { useNotificationStore } from "@/store/notificationStore";
 
@@ -111,6 +112,7 @@ function EngineRow({
 }
 
 export default function TokenSaverCard() {
+  const t = useTranslations("endpoint");
   const notify = useNotificationStore();
   const [config, setConfig] = useState<CompressionConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -182,14 +184,14 @@ export default function TokenSaverCard() {
               </span>
             )}
           </h2>
-          <p className="text-sm text-text-muted mt-1">Spend less tokens on every request.</p>
+          <p className="text-sm text-text-muted mt-1">{t("tokenSaverSubtitle")}</p>
         </div>
         <Toggle size="md" checked={masterEnabled} onChange={(v) => save({ enabled: v })} />
       </div>
 
       <div className="divide-y divide-border mt-4">
         <EngineRow
-          title="Tool output"
+          title={t("tokenSaverToolOutput")}
           badge="RTK"
           href="/dashboard/context/rtk"
           description="git/grep/ls/tree/logs cleaner → 60-90% fewer input tokens"
@@ -206,7 +208,7 @@ export default function TokenSaverCard() {
           }
         />
         <EngineRow
-          title="LLM output"
+          title={t("tokenSaverLlmOutput")}
           badge="Caveman"
           href="/dashboard/context/caveman"
           description="Terse-style system prompt → ~65% fewer output tokens (up to 87%)"
@@ -223,7 +225,7 @@ export default function TokenSaverCard() {
           }
         />
         <EngineRow
-          title="Input compression"
+          title={t("tokenSaverInputCompression")}
           badge="Caveman"
           href="/dashboard/context/caveman"
           description="Rewrite chat history → ~50% fewer input tokens"

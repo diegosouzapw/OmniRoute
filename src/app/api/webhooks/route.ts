@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getWebhooks, createWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ webhooks: masked });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to list webhooks" },
+      { error: sanitizeErrorMessage(error) || "Failed to list webhooks" },
       { status: 500 }
     );
   }
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ webhook }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to create webhook" },
+      { error: sanitizeErrorMessage(error) || "Failed to create webhook" },
       { status: 500 }
     );
   }

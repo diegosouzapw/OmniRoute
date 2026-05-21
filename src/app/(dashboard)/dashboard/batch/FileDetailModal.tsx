@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 
 function relativeTime(ts: number): string {
@@ -69,6 +70,7 @@ export default function FileDetailModal({
   batches,
   onClose,
 }: Readonly<FileDetailModalProps>) {
+  const t = useTranslations("common");
   const [copied, setCopied] = useState(false);
 
   const relatedBatches = (batches ?? []).filter(
@@ -140,7 +142,7 @@ export default function FileDetailModal({
                     navigator.clipboard.writeText(file.id);
                   }}
                   className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] transition-colors"
-                  title="Copy ID"
+                  title={t("batchFileDetailCopyId")}
                 >
                   <span className="material-symbols-outlined text-[12px]">content_copy</span>
                 </button>
@@ -149,7 +151,7 @@ export default function FileDetailModal({
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("batchFileDetailClose")}
             className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-alt)] transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -266,7 +268,7 @@ export default function FileDetailModal({
                   <span className="material-symbols-outlined text-[40px] mb-2 opacity-20">
                     find_in_page
                   </span>
-                  <p className="text-sm">Failed to load file contents</p>
+                  <p className="text-sm">{t("batchFileDetailFailedToLoad")}</p>
                 </div>
               )}
             </div>

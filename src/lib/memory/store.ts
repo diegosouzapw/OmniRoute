@@ -3,8 +3,8 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { upsertSemanticMemoryPoint, deleteSemanticMemoryPoint } from "./qdrant";
 import { Memory, MemoryType } from "./types";
-import { deleteSemanticMemoryPoint, upsertSemanticMemoryPoint } from "./qdrant";
 import { logger } from "../../../open-sse/utils/logger.ts";
 
 const log = logger("MEMORY_STORE");
@@ -145,6 +145,24 @@ export async function createMemory(
       key: memory.key,
     });
 
+    // Best-effort re-sync to Qdrant after update
+    upsertSemanticMemoryPoint({
+      id: String(existing.id),
+      apiKeyId: memory.apiKeyId || "",
+      sessionId: memory.sessionId || "",
+      key: memory.key || "",
+      content: memory.content,
+      metadata: updatedMetadata || {},
+      createdAt: String(existing.created_at),
+      expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+    })
+      .then((r) => {
+        if (r.ok) log.debug?.("qdrant.upsert.ok", { id: existing.id, latencyMs: r.latencyMs });
+        else if (r.error && r.error !== "not_configured")
+          log.warn?.("qdrant.upsert.fail", { id: existing.id, error: r.error });
+      })
+      .catch((e) => log.warn?.("qdrant.upsert.error", { id: existing.id, error: String(e) }));
+
     return updatedMemory;
   }
 
@@ -188,23 +206,23 @@ export async function createMemory(
 
   log.info("memory.stored", { apiKeyId: memory.apiKeyId, type: memory.type, id });
 
-  // Optional external semantic index (Qdrant). Best-effort: never block the main write.
-  if (createdMemory.type === "semantic") {
-    void upsertSemanticMemoryPoint({
-      id: createdMemory.id,
-      apiKeyId: createdMemory.apiKeyId,
-      sessionId: createdMemory.sessionId,
-      key: createdMemory.key,
-      content: createdMemory.content,
-      metadata: createdMemory.metadata ?? {},
-      createdAt: createdMemory.createdAt.toISOString(),
-      expiresAt: createdMemory.expiresAt ? createdMemory.expiresAt.toISOString() : null,
-    }).then((res) => {
-      if (!res.ok) {
-        log.debug("memory.qdrant.upsert_failed", { id: createdMemory.id, error: res.error });
-      }
-    });
-  }
+  // Best-effort sync to semantic memory store (Qdrant). Failures do not block the SQLite write.
+  upsertSemanticMemoryPoint({
+    id,
+    apiKeyId: memory.apiKeyId || "",
+    sessionId: memory.sessionId || "",
+    key: memory.key || "",
+    content: memory.content,
+    metadata: memory.metadata || {},
+    createdAt: now,
+    expiresAt: memory.expiresAt ? memory.expiresAt.toISOString() : null,
+  })
+    .then((r) => {
+      if (r.ok) log.debug?.("qdrant.upsert.ok", { id, latencyMs: r.latencyMs });
+      else if (r.error && r.error !== "not_configured")
+        log.warn?.("qdrant.upsert.fail", { id, error: r.error });
+    })
+    .catch((e) => log.warn?.("qdrant.upsert.error", { id, error: String(e) }));
 
   return createdMemory;
 }
@@ -316,9 +334,6 @@ export async function deleteMemory(id: string): Promise<boolean> {
   invalidateMemoryCache(id);
 
   log.info("memory.deleted", { id });
-
-  // Best-effort cleanup in Qdrant (if enabled).
-  void deleteSemanticMemoryPoint(id).catch(() => {});
 
   return true;
 }

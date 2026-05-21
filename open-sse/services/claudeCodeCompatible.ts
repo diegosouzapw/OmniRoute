@@ -378,7 +378,11 @@ export async function buildAndSignClaudeCodeRequest(
     if (Array.isArray(b.messages)) {
       const fixed = fixToolPairs(b.messages as Record<string, unknown>[]);
       const adjacent = fixToolAdjacency(fixed);
-      b.messages = stripTrailingAssistantOrphanToolUse(adjacent);
+      // fixToolAdjacency can leave orphan tool_result blocks behind when it
+      // strips a tool_use whose tool_result wasn't in the next message.
+      // Re-pair to drop those orphans (discussion #2410).
+      const cleaned = fixToolPairs(adjacent);
+      b.messages = stripTrailingAssistantOrphanToolUse(cleaned);
     }
   }
 
@@ -1158,7 +1162,9 @@ function readNestedString(
     if (!current || typeof current !== "object" || Array.isArray(current)) {
       return null;
     }
-    current = (current as Record<string, unknown>)[key];
+    if (key === "__proto__" || key === "constructor" || key === "prototype") return null;
+    if (!Object.prototype.hasOwnProperty.call(current, key)) return null;
+    current = Reflect.get(current as object, key);
   }
   return toNonEmptyString(current);
 }

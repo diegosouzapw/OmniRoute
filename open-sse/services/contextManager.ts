@@ -267,6 +267,9 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
     let candidate = [...system, ...nonSystem.slice(-keep)];
     candidate = fixToolPairs(candidate);
     candidate = fixToolAdjacency(candidate);
+    // Re-run pair fix: fixToolAdjacency may have stripped tool_use blocks, leaving
+    // orphan tool_results that Claude rejects ("tool_result without preceding tool_use").
+    candidate = fixToolPairs(candidate);
     candidate = stripTrailingAssistantOrphanToolUse(candidate);
     const tokens = estimateTokens(JSON.stringify(candidate));
     if (tokens <= targetTokens) break;
@@ -276,6 +279,9 @@ function purifyHistory(messages: Record<string, unknown>[], targetTokens: number
   let result = [...system, ...nonSystem.slice(-keep)];
   result = fixToolPairs(result);
   result = fixToolAdjacency(result);
+  // Re-run pair fix to drop any tool_result whose matching tool_use was removed by
+  // fixToolAdjacency (discussion #2410 — orphan tool_result -> upstream 400).
+  result = fixToolPairs(result);
   result = stripTrailingAssistantOrphanToolUse(result);
 
   // Add summary of dropped messages

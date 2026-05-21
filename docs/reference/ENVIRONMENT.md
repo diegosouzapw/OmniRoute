@@ -1,6 +1,6 @@
 ---
 title: "Environment Variables Reference"
-version: 3.8.0
+version: 3.8.1
 lastUpdated: 2026-05-13
 ---
 
@@ -410,11 +410,11 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 
 | Variable                 | Default Value                                 | When to Update                                                |
 | ------------------------ | --------------------------------------------- | ------------------------------------------------------------- |
-| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.143 (external, cli)`          | When Anthropic releases a new CLI version                     |
-| `CODEX_USER_AGENT`       | `codex-cli/0.131.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
+| `CLAUDE_USER_AGENT`      | `claude-cli/2.1.145 (external, cli)`          | When Anthropic releases a new CLI version                     |
+| `CODEX_USER_AGENT`       | `codex-cli/0.132.0 (Windows 10.0.26200; x64)` | When OpenAI updates the Codex CLI                             |
 | `CODEX_CLIENT_VERSION`   | `0.131.0`                                     | Override Codex client version independently of full UA string |
 | `GITHUB_USER_AGENT`      | `GitHubCopilotChat/0.45.1`                    | When GitHub Copilot Chat updates                              |
-| `ANTIGRAVITY_USER_AGENT` | `antigravity/1.23.2 darwin/arm64`             | When Antigravity IDE updates                                  |
+| `ANTIGRAVITY_USER_AGENT` | `antigravity/2.0.1 darwin/arm64`              | When Antigravity IDE updates                                  |
 | `KIRO_USER_AGENT`        | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                         |
 | `QODER_USER_AGENT`       | `Qoder-Cli`                                   | When Qoder CLI updates                                        |
 | `QWEN_USER_AGENT`        | `QwenCode/0.15.9 (linux; x64)`                | When Qwen Code updates                                        |
@@ -528,6 +528,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_CHATGPT_TLS_GRACE_MS`         | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 | `OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS`        | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`claudeTlsClient.ts`).      |
 | `OMNIROUTE_CLAUDE_TLS_GRACE_MS`          | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
+| `OMNIROUTE_PPLX_TLS_TIMEOUT_MS`          | `30000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`perplexityTlsClient.ts`).  |
+| `OMNIROUTE_PPLX_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 
 ### Circuit Breaker Thresholds
 

@@ -60,6 +60,28 @@
     },
     "metric_single": {
       "description": "Obter um único valor de métrica para uma conexão específica"
+    },
+    "rotate": {
+      "description": "Rotacionar a chave de API upstream de uma conexão de provedor",
+      "newKeyOpt": "Novo valor de chave de API (evite: prefira --from-env)",
+      "fromEnvOpt": "Ler nova chave da variável de ambiente VAR",
+      "oauthOpt": "Iniciar fluxo de reautenticação OAuth",
+      "skipTestOpt": "Pular teste de conectividade pós-rotação",
+      "dryRunOpt": "Exibir o que seria alterado sem gravar",
+      "confirmPrompt": "Substituir a chave de API da conexão \"{name}\" ({id})? [s/N] ",
+      "dryRunResult": "[dry-run] Rotacionaria a chave para \"{name}\" ({id}). Nenhuma alteração feita.",
+      "oauthHint": "Conexão OAuth — execute: omniroute oauth {provider}",
+      "envVarEmpty": "A variável de ambiente {var} não está definida ou está vazia.",
+      "success": "Chave rotacionada para \"{name}\". Execute `providers test {id}` para verificar.",
+      "testPassed": "Teste pós-rotação aprovado.",
+      "testFailed": "Teste pós-rotação falhou: {error}"
+    },
+    "status": {
+      "description": "Exibir saúde das chaves de todas as conexões de provedores (idade, validade, cooldown)",
+      "providerOpt": "Filtrar por nome do provedor",
+      "header": "ID         Provedor       Nome                     Validade Status  Status Teste  Cooldown Até",
+      "noData": "Nenhum dado de conexão de provedor disponível.",
+      "requiresServer": "providers status requer o servidor OmniRoute em execução."
     }
   },
   "keys": {

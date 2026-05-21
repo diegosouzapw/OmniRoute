@@ -1,4 +1,4 @@
-import { apiFetch } from "../api.mjs";
+import { apiFetch, isServerUp } from "../api.mjs";
 import { emit } from "../output.mjs";
 import { printHeading } from "../io.mjs";
 import { getAvailableProviderCategories, loadAvailableProviders } from "../provider-catalog.mjs";
@@ -7,8 +7,10 @@ import {
   findProviderConnection,
   getProviderApiKey,
   listProviderConnections,
+  updateProviderApiKey,
   updateProviderTestResult,
 } from "../provider-store.mjs";
+import { encryptCredential } from "../encryption.mjs";
 import { openOmniRouteDb } from "../sqlite.mjs";
 import { t } from "../i18n.mjs";
 
@@ -301,6 +303,198 @@ export async function runValidateCommand(opts = {}) {
   }
 }
 
+export async function runProvidersRotateCommand(selector, opts = {}) {
+  if (!selector) {
+    console.error("Provider connection id or name is required.");
+    return 2;
+  }
+
+  // --- Resolve connection ---
+  const { db } = await openOmniRouteDb();
+  let connection;
+  try {
+    connection = findProviderConnection(db, selector);
+  } finally {
+    db.close();
+  }
+
+  if (!connection) {
+    console.error(`Provider connection not found: ${selector}`);
+    return 2;
+  }
+
+  // --- OAuth short-circuit ---
+  if (opts.oauth || connection.authType !== "apikey") {
+    console.log(t("providers.rotate.oauthHint", { provider: connection.provider }));
+    return 0;
+  }
+
+  // --- Source new key ---
+  let newKey;
+  if (opts.fromEnv) {
+    newKey = process.env[opts.fromEnv];
+    if (!newKey) {
+      console.error(t("providers.rotate.envVarEmpty", { var: opts.fromEnv }));
+      return 2;
+    }
+  } else if (opts.newKey) {
+    newKey = opts.newKey;
+  } else {
+    // Interactive prompt (echo-off not strictly needed for a key value, but best practice)
+    const readline = await import("node:readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    newKey = await new Promise((resolve) =>
+      rl.question(`New API key for ${connection.name}: `, (a) => {
+        rl.close();
+        resolve(a.trim());
+      })
+    );
+    if (!newKey) {
+      console.error("No key provided.");
+      return 2;
+    }
+  }
+
+  // --- Dry-run ---
+  if (opts.dryRun) {
+    console.log(
+      t("providers.rotate.dryRunResult", { name: connection.name, id: connection.id.slice(0, 8) })
+    );
+    return 0;
+  }
+
+  // --- Confirm ---
+  if (!opts.yes) {
+    const readline = await import("node:readline");
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const answer = await new Promise((resolve) =>
+      rl.question(
+        t("providers.rotate.confirmPrompt", {
+          name: connection.name,
+          id: connection.id.slice(0, 8),
+        }),
+        resolve
+      )
+    );
+    rl.close();
+    if (!/^y(es|s)?$/i.test(answer)) {
+      console.log(t("common.cancelled"));
+      return 0;
+    }
+  }
+
+  // --- Write ---
+  const serverUp = await isServerUp();
+  if (serverUp) {
+    try {
+      const res = await apiFetch(`/api/providers/${encodeURIComponent(connection.id)}`, {
+        method: "PATCH",
+        body: {
+          apiKey: newKey,
+          testStatus: "unknown",
+          lastError: null,
+          rateLimitedUntil: null,
+          backoffLevel: 0,
+        },
+        retry: false,
+        acceptNotOk: true,
+      });
+      if (!res.ok) {
+        console.error(t("common.error", { message: `HTTP ${res.status}` }));
+        return 1;
+      }
+    } catch {
+      // Fall through to direct DB write
+      const { db: db2 } = await openOmniRouteDb();
+      try {
+        updateProviderApiKey(db2, connection.id, encryptCredential(newKey));
+      } finally {
+        db2.close();
+      }
+    }
+  } else {
+    const { db: db2 } = await openOmniRouteDb();
+    try {
+      updateProviderApiKey(db2, connection.id, encryptCredential(newKey));
+    } finally {
+      db2.close();
+    }
+  }
+
+  console.log(
+    t("providers.rotate.success", { name: connection.name, id: connection.id.slice(0, 8) })
+  );
+
+  // --- Post-rotation test ---
+  if (!opts.skipTest) {
+    const { db: db3 } = await openOmniRouteDb();
+    try {
+      const fresh = findProviderConnection(db3, connection.id);
+      if (fresh) {
+        const result = await runProviderTest(db3, fresh);
+        if (result.valid) {
+          console.log(t("providers.rotate.testPassed"));
+        } else {
+          console.error(t("providers.rotate.testFailed", { error: result.error }));
+        }
+      }
+    } finally {
+      db3.close();
+    }
+  }
+
+  return 0;
+}
+
+export async function runProvidersStatusCommand(opts = {}) {
+  const serverUp = await isServerUp();
+  if (!serverUp) {
+    console.error(t("providers.status.requiresServer"));
+    return 3;
+  }
+
+  const res = await apiFetch("/api/providers/expiration", { acceptNotOk: true, retry: false });
+  if (!res.ok) {
+    console.error(t("common.error", { message: `HTTP ${res.status}` }));
+    return 1;
+  }
+
+  const data = await res.json();
+  const list = data.list || [];
+
+  // Optional provider filter
+  const filter = opts.provider ? String(opts.provider).toLowerCase() : null;
+  const rows = filter ? list.filter((item) => item.provider?.toLowerCase().includes(filter)) : list;
+
+  if (opts.json || opts.output === "json") {
+    console.log(JSON.stringify({ count: rows.length, connections: rows }, null, 2));
+    return 0;
+  }
+
+  if (rows.length === 0) {
+    console.log(t("providers.status.noData"));
+    return 0;
+  }
+
+  console.log(t("providers.status.header"));
+  for (const item of rows) {
+    const shortId = (item.connectionId || item.id || "").slice(0, 8);
+    const expiry = item.expiresAt ? new Date(item.expiresAt).toLocaleDateString() : "-";
+    const expiryStatus = item.status || "unknown";
+    const testStatus = item.testStatus || "unknown";
+    const cooldown = item.rateLimitedUntil ? new Date(item.rateLimitedUntil).toLocaleString() : "-";
+    const expiryColor = statusColor(expiryStatus);
+    const testColor = statusColor(testStatus);
+    console.log(
+      `${shortId.padEnd(10)} ${String(item.provider || "").padEnd(14)} ${String(item.name || "").padEnd(24)} ` +
+        `${expiry.padEnd(12)} ${expiryColor}${expiryStatus.padEnd(8)}\x1b[0m ` +
+        `${testColor}${testStatus.padEnd(12)}\x1b[0m ${cooldown}`
+    );
+  }
+
+  return 0;
+}
+
 export function registerProviders(program) {
   const providers = program.command("providers").description(t("providers.title"));
 
@@ -354,6 +548,35 @@ export function registerProviders(program) {
     .action(async (opts, cmd) => {
       const globalOpts = cmd.parent.optsWithGlobals();
       const exitCode = await runValidateCommand({ ...opts, output: globalOpts.output });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("rotate <idOrName>")
+    .description(t("providers.rotate.description"))
+    .option("--new-key <key>", t("providers.rotate.newKeyOpt"))
+    .option("--from-env <VAR>", t("providers.rotate.fromEnvOpt"))
+    .option("--oauth", t("providers.rotate.oauthOpt"))
+    .option("--yes", t("common.yesOpt"))
+    .option("--skip-test", t("providers.rotate.skipTestOpt"))
+    .option("--dry-run", t("providers.rotate.dryRunOpt"))
+    .action(async (idOrName, opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runProvidersRotateCommand(idOrName, {
+        ...opts,
+        output: globalOpts.output,
+      });
+      if (exitCode !== 0) process.exit(exitCode);
+    });
+
+  providers
+    .command("status")
+    .description(t("providers.status.description"))
+    .option("--provider <name>", t("providers.status.providerOpt"))
+    .option("--json", "Print machine-readable JSON")
+    .action(async (opts, cmd) => {
+      const globalOpts = cmd.parent.optsWithGlobals();
+      const exitCode = await runProvidersStatusCommand({ ...opts, output: globalOpts.output });
       if (exitCode !== 0) process.exit(exitCode);
     });
 

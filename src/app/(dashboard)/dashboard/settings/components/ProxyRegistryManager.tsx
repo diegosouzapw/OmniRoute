@@ -849,7 +849,7 @@ export default function ProxyRegistryManager() {
         onClose={() => {
           if (!bulkSaving) setBulkOpen(false);
         }}
-        title="Bulk Proxy Assignment"
+        title={t("bulkProxyAssignment")}
         maxWidth="lg"
       >
         <div className="flex flex-col gap-3">
@@ -874,7 +874,7 @@ export default function ProxyRegistryManager() {
                 value={bulkProxyId}
                 onChange={(e) => setBulkProxyId(e.target.value)}
               >
-                <option value="">(clear assignment)</option>
+                <option value="">{t("clearAssignment")}</option>
                 {items.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name} ({item.type}://{item.host}:{item.port})

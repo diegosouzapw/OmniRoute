@@ -649,8 +649,8 @@ openai_base_url = "${getEffectiveBaseUrl()}"
                     onChange={(e) => setWireApi(e.target.value)}
                     className="flex-1 px-2 py-1.5 bg-surface rounded text-xs border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                   >
-                    <option value="chat">Chat Completions (/chat/completions)</option>
-                    <option value="responses">Responses API (/responses)</option>
+                    <option value="chat">{t("wireApiChatCompletions")}</option>
+                    <option value="responses">{t("wireApiResponses")}</option>
                   </select>
                 </div>
 

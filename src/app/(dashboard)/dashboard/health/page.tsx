@@ -255,7 +255,7 @@ export default function HealthPage() {
                 <span className="material-symbols-outlined text-[18px]">database</span>
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-text-main">Database Health</h2>
+                <h2 className="text-lg font-semibold text-text-main">{t("databaseHealth")}</h2>
                 <p className="text-sm text-text-muted">
                   Diagnose and repair stale quota/domain rows and broken combo references.
                 </p>
@@ -417,13 +417,13 @@ export default function HealthPage() {
           </div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
-              <div className="text-xs text-text-muted">Sticky-bound sessions</div>
+              <div className="text-xs text-text-muted">{t("stickyBoundSessions")}</div>
               <div className="text-2xl font-semibold text-text-main mt-1">
                 {sessions?.stickyBoundCount ?? 0}
               </div>
             </div>
             <div className="rounded-xl border border-border/40 bg-surface/30 p-3">
-              <div className="text-xs text-text-muted">Sessions by API key</div>
+              <div className="text-xs text-text-muted">{t("sessionsByApiKey")}</div>
               <div className="text-2xl font-semibold text-text-main mt-1">
                 {Object.keys(sessions?.byApiKey || {}).length}
               </div>
@@ -453,7 +453,7 @@ export default function HealthPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">No active sessions tracked yet.</p>
+            <p className="text-sm text-text-muted">{t("noActiveSessionsTracked")}</p>
           )}
         </Card>
 
@@ -532,14 +532,14 @@ export default function HealthPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-text-muted">No session quota monitors active.</p>
+            <p className="text-sm text-text-muted">{t("noSessionQuotaMonitorsActive")}</p>
           )}
         </Card>
       </div>
 
       {/* Graceful Degradation Status */}
       {degradation && degradation.features && degradation.features.length > 0 && (
-        <Card className="p-5" role="region" aria-label="Graceful Degradation Status">
+        <Card className="p-5" role="region" aria-label={t("gracefulDegradationStatus")}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
               <span className="material-symbols-outlined text-[20px] text-primary">healing</span>

@@ -23,10 +23,7 @@ import {
 } from "../services/antigravityCredits.ts";
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
-import {
-  getCachedAntigravityVersion,
-  resolveAntigravityVersion,
-} from "../services/antigravityVersion.ts";
+import { resolveAntigravityVersion } from "../services/antigravityVersion.ts";
 import { resolveAntigravityModelId } from "../config/antigravityModelAliases.ts";
 import { cloakAntigravityToolPayload } from "../config/toolCloaking.ts";
 import {
@@ -35,11 +32,13 @@ import {
 } from "../services/cloudCodeThinking.ts";
 import { buildGeminiTools } from "../translator/helpers/geminiToolsSanitizer.ts";
 import {
-  deriveAntigravityMachineId,
+  applyAntigravityClientProfileHeaders,
+  removeHeaderCaseInsensitive,
+} from "../services/antigravityClientProfile.ts";
+import {
   generateAntigravityRequestId,
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
-  getAntigravityVscodeSessionId,
 } from "../services/antigravityIdentity.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
@@ -295,40 +294,6 @@ function attachToolNameMap<T>(payload: T, toolNameMap: Map<string, string> | nul
 function getRequestTargetModel(body: Record<string, unknown>): string {
   const target = body.model;
   return typeof target === "string" && target.length > 0 ? target : "unknown";
-}
-
-function getProjectHeaderValue(body: unknown): string | null {
-  const project =
-    body && typeof body === "object" ? (body as Record<string, unknown>).project : null;
-  if (typeof project !== "string" || project.trim().length === 0) return null;
-  if (project === "test-project" || project === "project-id") return null;
-  return project;
-}
-
-function applyAntigravityRuntimeHeaders(
-  headers: Record<string, string>,
-  credentials: Record<string, unknown> | null | undefined,
-  body: unknown
-): void {
-  headers["User-Agent"] = antigravityUserAgent();
-  headers["x-client-name"] = "antigravity";
-  headers["x-client-version"] = getCachedAntigravityVersion();
-  headers["x-machine-id"] = deriveAntigravityMachineId(credentials);
-  headers["x-vscode-sessionid"] = getAntigravityVscodeSessionId();
-
-  const project = getProjectHeaderValue(body);
-  if (project) {
-    headers["x-goog-user-project"] = project;
-  }
-}
-
-function removeHeaderCaseInsensitive(headers: Record<string, string>, name: string): void {
-  const lowerName = name.toLowerCase();
-  for (const key of Object.keys(headers)) {
-    if (key.toLowerCase() === lowerName) {
-      delete headers[key];
-    }
-  }
 }
 
 function applyAntigravityGenerationDefaults(request: Record<string, unknown>): void {
@@ -828,8 +793,6 @@ export class AntigravityExecutor extends BaseExecutor {
         requestToolNameMap = cloaked.toolNameMap;
       }
 
-      applyAntigravityRuntimeHeaders(headers, credentials, transformedBody);
-
       // Credits-first: inject GOOGLE_ONE_AI upfront so we never try the normal
       // quota path. If credits are exhausted / disabled shouldUseCreditsFirst()
       // returns false and we fall back to the legacy retry-on-429 flow.
@@ -850,6 +813,11 @@ export class AntigravityExecutor extends BaseExecutor {
           transformedBody
         );
         let finalHeaders = serializedRequest.headers;
+        const clientProfile = applyAntigravityClientProfileHeaders(
+          finalHeaders,
+          credentials,
+          transformedBody
+        );
 
         log?.debug?.(
           "TELEMETRY",
@@ -874,6 +842,7 @@ export class AntigravityExecutor extends BaseExecutor {
               userAgent: envelope.userAgent,
               requestType: envelope.requestType,
               enabledCreditTypes: envelope.enabledCreditTypes,
+              clientProfile,
               sessionId: requestInner?.sessionId,
               generationConfig: requestInner?.generationConfig,
             })

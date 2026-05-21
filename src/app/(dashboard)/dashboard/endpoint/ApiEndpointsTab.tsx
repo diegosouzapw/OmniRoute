@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { useDisplayBaseUrl } from "@/shared/hooks";
 
@@ -44,6 +45,7 @@ const METHOD_COLORS: Record<string, string> = {
 
 /* ─── Main Component ─────────────────────────────────── */
 export default function ApiEndpointsTab() {
+  const t = useTranslations("endpoint");
   const baseUrl = useDisplayBaseUrl();
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -224,7 +226,9 @@ export default function ApiEndpointsTab() {
               <span className="material-symbols-outlined text-[20px] text-red-500">error</span>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-text-main">API catalog unavailable</h3>
+              <h3 className="text-sm font-semibold text-text-main">
+                {t("apiEndpointsCatalogUnavailable")}
+              </h3>
               <p className="text-xs text-text-muted mt-1">
                 {catalogError || "The OpenAPI specification could not be loaded."}
               </p>
@@ -254,7 +258,7 @@ export default function ApiEndpointsTab() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search endpoints..."
+                placeholder={t("apiEndpointsSearchPlaceholder")}
                 className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10
                            bg-white dark:bg-black/20 focus:outline-none focus:ring-1 focus:ring-primary"
               />
@@ -334,7 +338,7 @@ export default function ApiEndpointsTab() {
                         {ep.security && (
                           <span
                             className="material-symbols-outlined text-[12px] text-amber-500"
-                            title="Requires auth"
+                            title={t("apiEndpointsRequiresAuth")}
                           >
                             lock
                           </span>
@@ -482,7 +486,7 @@ export default function ApiEndpointsTab() {
               <span className="material-symbols-outlined text-[32px] text-text-muted">
                 search_off
               </span>
-              <p className="text-sm text-text-muted mt-2">No endpoints match your filter</p>
+              <p className="text-sm text-text-muted mt-2">{t("apiEndpointsNoMatch")}</p>
             </Card>
           )}
 
