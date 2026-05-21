@@ -842,6 +842,7 @@
     "settingsAi": "AI Settings",
     "settingsSecurity": "Security",
     "settingsFeatureFlags": "Feature Flags",
+    "settingsAuthz": "Authz",
     "settingsRouting": "Routing",
     "settingsResilience": "Resilience",
     "settingsAdvanced": "Advanced",
@@ -913,6 +914,7 @@
     "settingsAdvancedSubtitle": "Power user options",
     "settingsSecuritySubtitle": "Auth and encryption",
     "settingsFeatureFlagsSubtitle": "Toggle system capabilities",
+    "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
     "changelogSubtitle": "Release notes"
@@ -1288,6 +1290,7 @@
     "keyName": "Key Name",
     "keyNamePlaceholder": "e.g. Production Key",
     "keyNameDesc": "Choose a descriptive name to identify this key's purpose",
+    "managementAccessDesc": "Allow this API key to manage OmniRoute configuration.",
     "keyCreated": "API Key Created",
     "keyCreatedSuccess": "Key created successfully!",
     "keyCreatedNote": "Copy and store this key now — it won't be shown again.",
@@ -1625,6 +1628,7 @@
       "amp": "Use when you want Amp shorthand workflows but still need OmniRoute alias and routing rules enforcement.",
       "qwen": "Use when you need Alibaba Qwen Code CLI for coding tasks.",
       "hermes": "Use when you need a lightweight terminal-native AI assistant for quick tasks.",
+      "hermes-agent": "Use when you need Hermes Agent (by Nousresearch) with default, delegation, vision and auxiliary models routed through OmniRoute.",
       "custom": "Use for custom tool implementations or generic OpenAI-compatible configurations."
     },
     "toolDescriptions": {
@@ -1644,6 +1648,7 @@
       "qwen": "Alibaba Qwen Code CLI",
       "amp": "Sourcegraph Amp coding assistant CLI",
       "hermes": "Hermes AI Terminal Assistant",
+      "hermes-agent": "Hermes Agent (by Nousresearch) - Advanced terminal AI with multi-model support (delegation, vision, compression, etc.)",
       "custom": "Generic OpenAI-compatible CLI or SDK configuration generator"
     },
     "guides": {
@@ -2030,6 +2035,17 @@
     "recommendationsApplied": "Recommendations applied to this combo.",
     "intelligentPanelTitle": "Intelligent Routing Dashboard",
     "intelligentPanelDesc": "Real-time scoring and health status for this auto-routing combo.",
+    "configOnlyStatus": "Configuration View",
+    "configOnlyHint": "This panel shows routing inputs only. Live breaker state is available on the Health page.",
+    "routingInputs": "Routing Inputs",
+    "routingInputsHint": "Mode pack and weighting stay here; breaker runtime state stays on the Health page.",
+    "emailVisibilityHint": "Account emails here follow the global privacy toggle.",
+    "emailVisibilityTooltip": "Use the eye icon to reveal or hide account emails globally across combos, providers and quota screens.",
+    "manualModel": "Manual model",
+    "manualModelInvalid": "Enter a model as provider/model.",
+    "manualModelUnknownProvider": "Unknown provider prefix.",
+    "builderDynamicAccountShort": "Dynamic account",
+    "builderNeedValidName": "Define a valid combo name before continuing.",
     "statusOverview": "Status Overview",
     "normalOperation": "Normal Operation",
     "allProvidersHealthy": "Providers are reporting healthy routing conditions.",
@@ -2339,7 +2355,8 @@
     "previousPeriod": "Previous Half",
     "currentPeriod": "Current Half",
     "exportCSV": "Export as CSV",
-    "exportJSON": "Export as JSON"
+    "exportJSON": "Export as JSON",
+    "legacyFreeLabel": "Legacy / Free"
   },
   "endpoint": {
     "title": "API Endpoint",
@@ -3622,6 +3639,12 @@
     "geminiCliProjectIdLabel": "Google Cloud Project ID",
     "geminiCliProjectIdPlaceholder": "my-gcp-project-id",
     "antigravityProjectIdHint": "Optional override for Antigravity Cloud Code requests. Leave blank to use the project discovered during Google OAuth.",
+    "antigravityClientProfileLabel": "Client profile",
+    "antigravityClientProfileHint": "Choose which Antigravity client identity OmniRoute presents to the API.",
+    "antigravityClientProfileIde": "IDE",
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "codexFastTierActiveChip": "Codex Fast tier is active",
+    "tierFast": "Fast",
     "antigravityProjectIdLabel": "Google Cloud Project ID",
     "antigravityProjectIdPlaceholder": "my-gcp-project-id",
     "grokWebCookieHint": "Grok Web Cookie Hint",
@@ -4557,12 +4580,74 @@
     "codexFastTierDesc": "Globally inject service_tier=priority for OpenAI Codex requests.",
     "codexFastTierHint": "When enabled, OmniRoute adds service_tier=priority to outbound Codex requests for connections that don't already specify a tier. Priority tier requires an OpenAI Enterprise API key or the ChatGPT-auth Codex path; other key types will receive a tier-related error from OpenAI. Per-connection settings on the Codex provider page take precedence.",
     "codexFastTierSaveError": "Failed to update Codex Fast Tier setting",
+    "codexFastTierTierLabel": "Service tier",
+    "codexFastTierTierPriority": "Priority",
+    "codexFastTierTierFlex": "Flex",
+    "codexFastTierTierDefault": "Default",
+    "codexFastTierModelsLabel": "Fast-tier models",
+    "codexFastTierModelsHint": "Only checked models receive service_tier when Fast Tier is enabled.",
+    "codexFastTierModelCheckbox": "Enable Fast Tier for {model}",
     "claudeFastModeTitle": "Claude Fast Mode",
     "claudeFastModeDesc": "Opt selected Claude requests into Anthropic Fast Mode (speed:\"fast\").",
     "claudeFastModeHint": "Anthropic does not officially support Fast Mode for SDK-style clients. When enabled, OmniRoute forwards an X-CPA-Force-Fast-Mode header so a paired CLIProxyAPI build can opt-in spoof the entrypoint. Only the listed Opus models are gated by Anthropic's client-side check. Subscription tier, Max plan, and Fast Mode credit balance are still enforced server-side — Anthropic may return out_of_credits even when the toggle is on.",
     "claudeFastModeModelsLabel": "Applied to models ({count})",
     "claudeFastModeModelCheckbox": "Enable Fast Mode for {model}",
-    "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting"
+    "claudeFastModeSaveError": "Failed to update Claude Fast Mode setting",
+    "authz": {
+      "title": "Authz Inventory",
+      "description": "5-tier route classification with live bypass policy. Read shows the full taxonomy; mutations re-prompt for the management password.",
+      "loading": "Loading inventory…",
+      "loadError": "Failed to load authz inventory",
+      "tier": {
+        "LOCAL_ONLY": "Local only",
+        "ALWAYS_PROTECTED": "Always protected",
+        "MANAGEMENT": "Management",
+        "CLIENT_API": "Client API",
+        "PUBLIC": "Public"
+      },
+      "bypass": {
+        "section": "Manage-scope bypass",
+        "kill_switch": {
+          "label": "Bypass kill-switch",
+          "desc": "Master toggle. When off, no LOCAL_ONLY prefix is reachable from non-loopback regardless of the per-prefix list."
+        },
+        "prefix": {
+          "label": "Bypassable prefixes",
+          "desc": "LOCAL_ONLY prefixes that manage-scope API keys (or dashboard sessions) may reach from non-loopback hosts.",
+          "add": "Add prefix",
+          "placeholder": "/api/mcp/v2/",
+          "empty": "No prefixes configured. Bypass effectively off."
+        },
+        "cli_tools_runtime_note": "Spawn-capable prefix. Compile-time deny; cannot be made bypassable. Shown read-only."
+      },
+      "password": {
+        "prompt": {
+          "label": "Current password",
+          "desc": "Re-confirm to apply security-impacting changes."
+        },
+        "placeholder": "Current management password",
+        "cancel": "Cancel",
+        "submit": "Apply"
+      },
+      "save": "Save changes",
+      "saved": "Authz settings updated",
+      "pending": "Unsaved changes",
+      "badge": {
+        "bypassable": "Bypassable via manage scope",
+        "strict": "Strict loopback",
+        "auth_required": "Auth required",
+        "public": "Public",
+        "always_protected": "Always protected",
+        "spawn_capable": "Spawn-capable"
+      },
+      "error": {
+        "PASSWORD_REQUIRED": "Current password required to apply these changes.",
+        "PASSWORD_MISMATCH": "Current password is incorrect.",
+        "INSUFFICIENT_SCOPE": "API key lacks the manage scope.",
+        "BYPASS_PREFIX_NOT_ALLOWED": "One or more prefixes target spawn-capable routes and cannot be bypassed.",
+        "GENERIC": "Failed to update authz settings."
+      }
+    }
   },
   "contextRtk": {
     "title": "RTK Engine",
@@ -4657,6 +4742,8 @@
     "enabled": "Enabled",
     "autoDetect": "Auto-detect language",
     "rulesCount": "{count} rules",
+    "inputCompressionTitle": "Input compression",
+    "inputCompressionDesc": "Rewrite chat history with shorter wording. Reduces input tokens by ~50%.",
     "analyticsTitle": "Compression Analytics",
     "noAnalytics": "No compression analytics yet.",
     "outputMode": "Output Mode",
@@ -5058,7 +5145,25 @@
     "tierPro": "Pro",
     "tierPlus": "Plus",
     "tierFree": "Free",
+    "tierLite": "Lite",
     "tierUnknown": "Unknown",
+    "statTotal": "Total",
+    "statCritical": "Critical",
+    "statAlert": "Alert",
+    "statHealthy": "Healthy",
+    "filterPurchaseTypeLabel": "Type",
+    "filterTierLabel": "Tier",
+    "purchaseAll": "All",
+    "purchaseOauthSub": "Subscription",
+    "purchaseOauthFree": "OAuth Free",
+    "purchaseApiKey": "API Key",
+    "creditsLabel": "Credits",
+    "creditBalanceHint": "Remaining balance",
+    "unlimitedLabel": "Unlimited",
+    "refreshing": "Refreshing",
+    "resetsIn": "Resets in",
+    "editCutoffs": "Edit cutoffs",
+    "forceRefresh": "Refresh now",
     "suiteBuilderSaveFailed": "Failed to save suite",
     "clone": "Clone",
     "exportSuite": "Export",
@@ -5879,6 +5984,7 @@
     "clearError": "Failed to clear cache.",
     "unavailable": "Cache unavailable",
     "unavailableDesc": "Could not fetch cache statistics. Make sure the server is running.",
+    "loadingCacheAria": "Loading cache",
     "promptCache": "Prompt Cache (Provider-Side)",
     "semanticCache": "Semantic Cache",
     "promptCacheSectionDesc": "Shows provider-side prompt caching activity from usage history so you can see where cache control is active and how much input reuse you are getting.",

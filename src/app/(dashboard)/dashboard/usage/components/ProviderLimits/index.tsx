@@ -70,7 +70,7 @@ const TIER_FILTERS = [
   { key: "ultra", labelKey: "tierUltra" },
   { key: "pro", labelKey: "tierPro" },
   { key: "plus", labelKey: "tierPlus" },
-  { key: "lite", label: "Lite" },
+  { key: "lite", labelKey: "tierLite" },
   { key: "free", labelKey: "tierFree" },
   { key: "unknown", labelKey: "tierUnknown" },
 ];
@@ -804,9 +804,9 @@ export default function ProviderLimits() {
           const tone = STATUS_TONE[key];
           const labelMap: Record<string, string> = {
             all: tr("statTotal", "Total"),
-            critical: tr("statCritical", "Crítico"),
-            alert: tr("statAlert", "Alerta"),
-            ok: tr("statHealthy", "Saudável"),
+            critical: tr("statCritical", "Critical"),
+            alert: tr("statAlert", "Alert"),
+            ok: tr("statHealthy", "Healthy"),
           };
           const active = statusFilter === key;
           const count = statusCounts[key] || 0;
@@ -847,7 +847,7 @@ export default function ProviderLimits() {
       {/* Purchase Type Filter */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold mr-1">
-          {tr("filterPurchaseTypeLabel", "Tipo")}
+          {tr("filterPurchaseTypeLabel", "Type")}
         </span>
         {PURCHASE_TYPES.map((type) => {
           const count = purchaseTypeCounts[type.key] || 0;
@@ -985,7 +985,7 @@ export default function ProviderLimits() {
                         {formatQuotaLabel(q.name) || tr("creditsLabel", "Credits")}
                       </div>
                       <div className="text-[10px] text-text-muted">
-                        {tr("creditBalanceHint", "Saldo restante")}
+                        {tr("creditBalanceHint", "Remaining balance")}
                       </div>
                     </div>
                   </div>
@@ -1039,7 +1039,7 @@ export default function ProviderLimits() {
                       </span>
                     ) : cd ? (
                       <span className="text-[10px] text-text-muted">
-                        ⏱ {tr("resetsIn", "reset em")} {cd}
+                        ⏱ {tr("resetsIn", "Resets in")} {cd}
                       </span>
                     ) : null}
                     <span
@@ -1330,7 +1330,7 @@ export default function ProviderLimits() {
                             className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-md border border-border bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
                             <span className="material-symbols-outlined text-[14px]">tune</span>
-                            {tr("editCutoffs", "Editar Cutoffs")}
+                            {tr("editCutoffs", "Edit cutoffs")}
                           </button>
                           <button
                             type="button"
@@ -1343,7 +1343,7 @@ export default function ProviderLimits() {
                             >
                               refresh
                             </span>
-                            {tr("forceRefresh", "Refresh agora")}
+                            {tr("forceRefresh", "Refresh now")}
                           </button>
                         </div>
                       </>

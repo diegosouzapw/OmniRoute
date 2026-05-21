@@ -38,6 +38,10 @@ import {
 import { getCreditsMode } from "./antigravityCredits.ts";
 import { CLAUDE_CODE_VERSION, fetchClaudeBootstrap } from "../executors/claudeIdentity.ts";
 import { generateAntigravityRequestId, getAntigravitySessionId } from "./antigravityIdentity.ts";
+import {
+  extractCodeAssistOnboardTierId,
+  extractCodeAssistSubscriptionTier,
+} from "./codeAssistSubscription.ts";
 
 // Antigravity API config (credentials from PROVIDERS via credential loader)
 const ANTIGRAVITY_CONFIG = {
@@ -213,6 +217,63 @@ function shouldDisplayGitHubQuota(quota: UsageQuota | null): quota is UsageQuota
   return quota.total > 0 || quota.remainingPercentage !== undefined;
 }
 
+function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    const trimmed = value.trim();
+    if (trimmed) return trimmed;
+  }
+  return undefined;
+}
+
+function inferMiniMaxPlanLabelFromTotals(models: JsonRecord[]): string | null {
+  const maxSessionTotal = models.reduce(
+    (maxTotal, model) => Math.max(maxTotal, getMiniMaxSessionTotal(model)),
+    0
+  );
+
+  if (maxSessionTotal >= 15_000) return "Max";
+  if (maxSessionTotal >= 4_500) return "Plus";
+  if (maxSessionTotal >= 1_500) return "Starter";
+  return null;
+}
+
+function getMiniMaxPlanLabel(payload: JsonRecord, models: JsonRecord[] = []): string {
+  const raw = pickFirstNonEmptyString(
+    getFieldValue(payload, "current_subscribe_title", "currentSubscribeTitle"),
+    getFieldValue(payload, "plan_name", "planName"),
+    getFieldValue(payload, "plan", "plan"),
+    getFieldValue(payload, "current_plan_title", "currentPlanTitle"),
+    getFieldValue(payload, "combo_title", "comboTitle")
+  );
+
+  if (!raw) return inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
+
+  const cleaned = raw
+    .replace(/^minimax\s+/i, "")
+    .replace(/\bcoding\s+plan\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return cleaned || inferMiniMaxPlanLabelFromTotals(models) || "Coding Plan";
+}
+
+function getClaudePlanLabel(...candidates: Array<string | null | undefined>): string | null {
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const trimmed = candidate.trim();
+    if (
+      !trimmed ||
+      trimmed.toLowerCase() === "claude code" ||
+      trimmed.toLowerCase() === "unknown"
+    ) {
+      continue;
+    }
+    return trimmed;
+  }
+  return null;
+}
+
 function createQuotaFromUsage(
   usedValue: unknown,
   totalValue: unknown,
@@ -353,16 +414,16 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
         getFieldValue(baseResp, "status_msg", "statusMsg") ?? ""
       ).trim();
       const combinedMessage = `${apiStatusMessage} ${rawText}`.trim();
-      const authLikeMessage =
+      const authLikeStatusMessage =
         /token plan|coding plan|invalid api key|invalid key|unauthorized|inactive/i;
 
       if (
         response.status === 401 ||
         response.status === 403 ||
         apiStatusCode === 1004 ||
-        authLikeMessage.test(combinedMessage)
+        authLikeStatusMessage.test(apiStatusMessage)
       ) {
-        return { message: getMiniMaxAuthErrorMessage(combinedMessage) };
+        return { message: getMiniMaxAuthErrorMessage(apiStatusMessage || combinedMessage) };
       }
 
       if (!response.ok) {
@@ -461,7 +522,7 @@ async function getMiniMaxUsage(apiKey: string, provider: "minimax" | "minimax-cn
         return { message: "MiniMax connected. Unable to extract text quota usage." };
       }
 
-      return { quotas };
+      return { plan: getMiniMaxPlanLabel(payload, textModels), quotas };
     } catch (error) {
       lastErrorMessage = (error as Error).message;
       if (!canFallback) {
@@ -1467,54 +1528,7 @@ async function getGeminiCliSubscriptionInfo(accessToken: string): Promise<unknow
  * Map Gemini CLI subscription tier to display label (same tiers as Antigravity).
  */
 function getGeminiCliPlanLabel(subscriptionInfo: unknown): string {
-  const subscription = toRecord(subscriptionInfo);
-  if (Object.keys(subscription).length === 0) return "Free";
-
-  let tierId = "";
-  if (Array.isArray(subscription.allowedTiers)) {
-    for (const tierValue of subscription.allowedTiers) {
-      const tier = toRecord(tierValue);
-      if (tier.isDefault && typeof tier.id === "string") {
-        tierId = tier.id.trim().toUpperCase();
-        break;
-      }
-    }
-  }
-
-  if (!tierId) {
-    const currentTier = toRecord(subscription.currentTier);
-    tierId = typeof currentTier.id === "string" ? currentTier.id.toUpperCase() : "";
-  }
-
-  if (tierId) {
-    if (tierId.includes("ULTRA")) return "Ultra";
-    if (tierId.includes("PRO")) return "Pro";
-    if (tierId.includes("ENTERPRISE")) return "Enterprise";
-    if (tierId.includes("BUSINESS") || tierId.includes("STANDARD")) return "Business";
-    if (tierId.includes("FREE") || tierId.includes("INDIVIDUAL") || tierId.includes("LEGACY"))
-      return "Free";
-  }
-
-  const tierName = String(
-    getFieldValue(toRecord(subscription.currentTier), "name", "displayName") ||
-      subscription.subscriptionType ||
-      subscription.tier ||
-      ""
-  );
-  const upper = tierName.toUpperCase();
-
-  if (upper.includes("ULTRA")) return "Ultra";
-  if (upper.includes("PRO")) return "Pro";
-  if (upper.includes("ENTERPRISE")) return "Enterprise";
-  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
-  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
-
-  if (toRecord(subscription.currentTier).upgradeSubscriptionType) return "Free";
-  if (tierName) {
-    return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
-  }
-
-  return "Free";
+  return mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
 }
 
 // ── Antigravity subscription info cache ──────────────────────────────────────
@@ -1601,67 +1615,103 @@ async function fetchAntigravityAvailableModelsCached(
   return promise;
 }
 
-/**
- * Map raw loadCodeAssist tier data to short display labels.
- * Extracts tier from allowedTiers[].isDefault (same logic as providers.js postExchange).
- * Falls back to currentTier.id → currentTier.name → "Free".
- */
-function getAntigravityPlanLabel(subscriptionInfo: unknown): string {
+function extractCodeAssistTierId(subscription: JsonRecord): string {
+  const tierId = extractCodeAssistOnboardTierId(subscription);
+  if (tierId === "legacy-tier") return "";
+  const upper = tierId.toUpperCase();
+  return mapCodeAssistTierIdToLabel(upper) ? upper : "";
+}
+
+function mapCodeAssistTierIdToLabel(tierId: string): string | null {
+  const upper = tierId.toUpperCase();
+  if (upper.includes("ULTRA")) return "Ultra";
+  if (
+    upper.includes("PRO") ||
+    upper.includes("PREMIUM") ||
+    upper.includes("GOOGLE_ONE") ||
+    upper.includes("ONE_AI")
+  )
+    return "Pro";
+  if (upper.includes("ENTERPRISE")) return "Enterprise";
+  if (upper.includes("BUSINESS") || upper.includes("STANDARD")) return "Business";
+  if (upper.includes("PLUS")) return "Plus";
+  if (upper.includes("LITE") || upper.includes("LIGHT")) return "Lite";
+  if (upper.includes("FREE") || upper.includes("INDIVIDUAL") || upper.includes("LEGACY"))
+    return "Free";
+  return null;
+}
+
+function mapSubscriptionTierStringToPlanLabel(tierText: string): string | null {
+  const upper = tierText.toUpperCase();
+  if (upper.includes("ULTRA")) return "Ultra";
+  if (upper.includes("PRO") || upper.includes("PREMIUM") || upper.includes("GOOGLE ONE"))
+    return "Pro";
+  if (upper.includes("ENTERPRISE")) return "Enterprise";
+  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
+  if (upper.includes("PLUS")) return "Plus";
+  if (upper.includes("LITE")) return "Lite";
+  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
+  const normalizedId = upper.replace(/\s*\(RESTRICTED\)\s*$/i, "").trim();
+  if (normalizedId) {
+    const mapped = mapCodeAssistTierIdToLabel(normalizedId);
+    if (mapped) return mapped;
+  }
+  return null;
+}
+
+function mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo: unknown): string {
   const subscription = toRecord(subscriptionInfo);
   if (Object.keys(subscription).length === 0) return "Free";
 
-  // 1. Extract tier from allowedTiers (primary source — same as providers.js)
-  let tierId = "";
-  if (Array.isArray(subscription.allowedTiers)) {
-    for (const tierValue of subscription.allowedTiers) {
-      const tier = toRecord(tierValue);
-      if (tier.isDefault && typeof tier.id === "string") {
-        tierId = tier.id.trim().toUpperCase();
-        break;
-      }
+  const subscriptionTier = extractCodeAssistSubscriptionTier(subscriptionInfo);
+  if (subscriptionTier) {
+    const mapped = mapSubscriptionTierStringToPlanLabel(subscriptionTier);
+    if (mapped) return mapped;
+    if (subscriptionTier.toLowerCase() !== "free") {
+      return subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1).toLowerCase();
     }
   }
 
-  // 2. Fall back to currentTier.id
-  if (!tierId) {
-    const currentTier = toRecord(subscription.currentTier);
-    tierId = typeof currentTier.id === "string" ? currentTier.id.toUpperCase() : "";
-  }
-
-  // 3. Map tier ID to display label
-  if (tierId) {
-    if (tierId.includes("ULTRA")) return "Ultra";
-    if (tierId.includes("PRO")) return "Pro";
-    if (tierId.includes("ENTERPRISE")) return "Enterprise";
-    if (tierId.includes("BUSINESS") || tierId.includes("STANDARD")) return "Business";
-    if (tierId.includes("FREE") || tierId.includes("INDIVIDUAL") || tierId.includes("LEGACY"))
-      return "Free";
-  }
-
-  // 4. Try tier name fields as last resort
+  const currentTier = toRecord(subscription.currentTier);
   const tierName = String(
-    getFieldValue(toRecord(subscription.currentTier), "name", "displayName") ||
+    getFieldValue(currentTier, "name", "displayName") ||
       subscription.subscriptionType ||
       subscription.tier ||
       ""
   );
-  const upper = tierName.toUpperCase();
+  const mappedName = tierName ? mapSubscriptionTierStringToPlanLabel(tierName) : null;
+  if (mappedName) return mappedName;
 
-  if (upper.includes("ULTRA")) return "Ultra";
-  if (upper.includes("PRO")) return "Pro";
-  if (upper.includes("ENTERPRISE")) return "Enterprise";
-  if (upper.includes("STANDARD") || upper.includes("BUSINESS")) return "Business";
-  if (upper.includes("INDIVIDUAL") || upper.includes("FREE")) return "Free";
-
-  // 5. If upgradeSubscriptionType exists, account is on free tier
-  if (toRecord(subscription.currentTier).upgradeSubscriptionType) return "Free";
-
-  // 6. If we have a tier name that didn't match known patterns, return it title-cased
-  if (tierName) {
-    return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
+  const tierId = extractCodeAssistTierId(subscription);
+  if (tierId) {
+    const mapped = mapCodeAssistTierIdToLabel(tierId);
+    if (mapped) return mapped;
   }
-
+  if (currentTier.upgradeSubscriptionType) return "Free";
+  if (tierName) return tierName.charAt(0).toUpperCase() + tierName.slice(1).toLowerCase();
   return "Free";
+}
+
+const KNOWN_ANTIGRAVITY_PLAN_LABELS = new Set([
+  "Ultra",
+  "Pro",
+  "Enterprise",
+  "Business",
+  "Plus",
+  "Lite",
+]);
+
+/**
+ * Map raw loadCodeAssist tier data to short display labels (Antigravity Manager parity).
+ */
+function getAntigravityPlanLabel(subscriptionInfo: unknown, fallbackInfo?: unknown): string {
+  const livePlan = mapCodeAssistSubscriptionToPlanLabel(subscriptionInfo);
+  const fallbackPlan = mapCodeAssistSubscriptionToPlanLabel(fallbackInfo);
+
+  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(livePlan)) return livePlan;
+  if (KNOWN_ANTIGRAVITY_PLAN_LABELS.has(fallbackPlan)) return fallbackPlan;
+  if (livePlan !== "Free") return livePlan;
+  return fallbackPlan !== "Free" ? fallbackPlan : livePlan;
 }
 
 /**
@@ -1826,13 +1876,26 @@ async function getAntigravityUsage(
     return { plan: "Free", message: "Antigravity access token not available." };
   }
 
+  let subscriptionInfo: unknown = null;
   try {
-    const subscriptionInfo = await getAntigravitySubscriptionInfoCached(
+    subscriptionInfo = await getAntigravitySubscriptionInfoCached(
       accessToken,
-      providerSpecificData
+      providerSpecificData,
+      options
     );
+    const savedProjectId =
+      typeof providerSpecificData?.projectId === "string" && providerSpecificData.projectId.trim()
+        ? providerSpecificData.projectId.trim()
+        : null;
+    const subscriptionProject = toRecord(subscriptionInfo).cloudaicompanionProject;
     const projectId =
-      connectionProjectId || toRecord(subscriptionInfo).cloudaicompanionProject?.toString() || null;
+      savedProjectId ||
+      connectionProjectId ||
+      (typeof subscriptionProject === "string"
+        ? subscriptionProject
+        : typeof toRecord(subscriptionProject).id === "string"
+          ? (toRecord(subscriptionProject).id as string)
+          : null);
 
     // Derive accountId for credit balance cache.
     // Must match executor key: credentials.connectionId
@@ -1897,7 +1960,7 @@ async function getAntigravityUsage(
     }
 
     return {
-      plan: getAntigravityPlanLabel(subscriptionInfo),
+      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
       quotas: {
         ...quotas,
         ...(creditBalance !== null && {
@@ -1913,7 +1976,11 @@ async function getAntigravityUsage(
       subscriptionInfo,
     };
   } catch (error) {
-    return { message: `Antigravity error: ${(error as Error).message}` };
+    return {
+      plan: getAntigravityPlanLabel(subscriptionInfo, providerSpecificData),
+      subscriptionInfo,
+      message: `Antigravity error: ${(error as Error).message}`,
+    };
   }
 }
 
@@ -1923,18 +1990,25 @@ async function getAntigravityUsage(
  */
 async function getAntigravitySubscriptionInfoCached(
   accessToken: string,
-  providerSpecificData?: JsonRecord
+  providerSpecificData?: JsonRecord,
+  options: AntigravityUsageOptions = {}
 ): Promise<unknown> {
   const profile = getAntigravityClientProfile({ providerSpecificData });
   const cacheKey = `${accessToken.substring(0, 16)}:${profile}`;
-  const cached = _antigravitySubCache.get(cacheKey);
 
-  if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
-    return cached.data;
+  if (options.forceRefresh) {
+    _antigravitySubCache.delete(cacheKey);
+  } else {
+    const cached = _antigravitySubCache.get(cacheKey);
+    if (cached && Date.now() - cached.fetchedAt < ANTIGRAVITY_CACHE_TTL_MS) {
+      return cached.data;
+    }
   }
 
   const data = await getAntigravitySubscriptionInfo(accessToken, providerSpecificData);
-  _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
+  if (data != null) {
+    _antigravitySubCache.set(cacheKey, { data, fetchedAt: Date.now() });
+  }
   return data;
 }
 
@@ -2043,21 +2117,20 @@ async function getClaudeUsage(accessToken?: string) {
         }
       }
 
-      // Try to extract plan tier from the OAuth response
-      const planRaw =
-        typeof data.tier === "string"
-          ? data.tier
-          : typeof data.plan === "string"
-            ? data.plan
-            : typeof data.subscription_type === "string"
-              ? data.subscription_type
-              : null;
+      const bootstrap = await bootstrapPromise;
+      const plan =
+        getClaudePlanLabel(
+          typeof data.tier === "string" ? data.tier : null,
+          typeof data.plan === "string" ? data.plan : null,
+          typeof data.subscription_type === "string" ? data.subscription_type : null,
+          bootstrap?.organization_rate_limit_tier
+        ) ?? undefined;
 
       return {
-        plan: planRaw || "Claude Code",
+        ...(plan ? { plan } : {}),
         quotas,
         extraUsage: data.extra_usage ?? null,
-        bootstrap: await bootstrapPromise,
+        bootstrap,
       };
     }
 
@@ -2551,4 +2624,8 @@ export const __testing = {
   inferGitHubPlanName,
   getGeminiCliPlanLabel,
   getAntigravityPlanLabel,
+  extractCodeAssistSubscriptionTier,
+  extractCodeAssistOnboardTierId,
+  getMiniMaxPlanLabel,
+  inferMiniMaxPlanLabelFromTotals,
 };

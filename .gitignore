@@ -101,6 +101,7 @@ app.log
 # Backup directories
 app.__qa_backup/
 .app-build-backup-*/
+backup/
 
 # Production standalone build (created by scripts/prepublish.mjs)
 # Conflicts with Next.js App Router detection in dev (root app/ shadows src/app/)
@@ -163,3 +164,4 @@ scripts/i18n/_pending-keys.json
 .agents/workflows/implement-features-ag.md
 .agents/skills/implement-features/
 .claude/commands/implement-features-cc.md
+.claude/worktrees/

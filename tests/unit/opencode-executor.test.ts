@@ -56,6 +56,26 @@ describe("OpencodeExecutor", () => {
   });
 
   describe("execute", () => {
+    it('resolves "opencode" executor alias to opencode-zen config', async () => {
+      const aliasExecutor = new OpencodeExecutor("opencode-zen");
+      const result = await aliasExecutor.execute(createInput("deepseek-v4-flash-free"));
+      assert.equal(result.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+    });
+
+    it("routes deepseek-v4-flash-free to chat completions", async () => {
+      const result = await zenExecutor.execute(createInput("deepseek-v4-flash-free"));
+      assert.equal(result.url, "https://opencode.ai/zen/v1/chat/completions");
+      assert.equal(fetchCalls[0].url, "https://opencode.ai/zen/v1/chat/completions");
+    });
+
+    it("includes deepseek-v4-flash-free in opencode-zen PROVIDER_MODELS", () => {
+      const models = PROVIDER_MODELS["opencode-zen"];
+      const model = models?.find((m) => m.id === "deepseek-v4-flash-free");
+      assert.ok(model, "deepseek-v4-flash-free should be in opencode-zen model list");
+      assert.equal(model.name, "DeepSeek V4 Flash Free");
+      assert.equal(model.supportsReasoning, true);
+    });
     it("routes opencode zen default models to chat completions", async () => {
       const minimaxResult = await zenExecutor.execute(createInput("minimax-m2.5-free"));
       assert.equal(minimaxResult.url, "https://opencode.ai/zen/v1/chat/completions");

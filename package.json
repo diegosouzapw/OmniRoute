@@ -34,6 +34,9 @@
     "scripts/dev/sync-env.mjs",
     "scripts/build/native-binary-compat.mjs",
     "scripts/build/build-next-isolated.mjs",
+    "docs/",
+    "!docs/i18n/",
+    "!docs/diagrams/",
     "README.md",
     "LICENSE"
   ],

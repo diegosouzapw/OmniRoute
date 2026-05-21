@@ -2,7 +2,7 @@ import { getSettings } from "@/lib/db/settings";
 
 export type SkillsProvider = "skillsmp" | "skillssh";
 
-export const DEFAULT_SKILLS_PROVIDER: SkillsProvider = "skillsmp";
+export const DEFAULT_SKILLS_PROVIDER: SkillsProvider = "skillssh";
 
 export function normalizeSkillsProvider(value: unknown): SkillsProvider {
   return value === "skillssh" || value === "skillsmp" ? value : DEFAULT_SKILLS_PROVIDER;
