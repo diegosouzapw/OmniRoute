@@ -74,6 +74,14 @@ test("MiniMax coding plan titles map to tier badges", () => {
   const starterTier = providerLimitUtils.normalizePlanTier("Starter");
   assert.equal(starterTier.key, "lite");
   assert.equal(starterTier.label, "Starter");
+
+  const minimaxOnly = providerLimitUtils.normalizePlanTier("MiniMax Coding Plan");
+  assert.notEqual(minimaxOnly.key, "ultra");
+});
+
+test("tier token matching ignores embedded substrings", () => {
+  assert.equal(providerLimitUtils.normalizePlanTier("APPROVE").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("LITERAL").key, "unknown");
 });
 
 test("remaining percentage helpers reflect remaining quota and stale resets refill to 100", () => {
