@@ -13,6 +13,7 @@ import {
   OAUTH_ENDPOINTS,
   HTTP_STATUS,
   STREAM_READINESS_TIMEOUT_MS,
+  ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
 } from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import {
@@ -50,8 +51,6 @@ import {
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
-const ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE = "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT";
-
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
 
 interface AntigravityContent {

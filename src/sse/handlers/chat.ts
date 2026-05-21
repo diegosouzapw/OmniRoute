@@ -19,7 +19,10 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
 import { resolveComboConfig } from "@omniroute/open-sse/services/comboConfig.ts";
 import { injectHandoffIntoBody } from "@omniroute/open-sse/services/contextHandoff.ts";
-import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
+import {
+  HTTP_STATUS,
+  ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
+} from "@omniroute/open-sse/config/constants.ts";
 import { getTargetFormat } from "@omniroute/open-sse/services/provider.ts";
 import {
   getModelTargetFormat,
@@ -91,8 +94,6 @@ import {
   resolveCooldownAwareRetrySettings,
   waitForCooldownAwareRetry,
 } from "../services/cooldownAwareRetry";
-
-const ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE = "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT";
 
 registerCodexQuotaFetcher();
 
@@ -977,8 +978,7 @@ async function handleSingleModelChat(
         provider === "antigravity" &&
         result.status === HTTP_STATUS.GATEWAY_TIMEOUT &&
         (result.errorType === "upstream_timeout" ||
-          result.errorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ||
-          String(result.error || "").includes(ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE));
+          result.errorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE);
 
       if (isAntigravityPreResponseTimeout) {
         const { shouldFallback, cooldownMs } = await markAccountUnavailable(

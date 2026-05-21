@@ -39,6 +39,7 @@ import {
   SSE_HEARTBEAT_INTERVAL_MS,
   STREAM_IDLE_TIMEOUT_MS,
   STREAM_READINESS_TIMEOUT_MS,
+  ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
 } from "../config/constants.ts";
 import {
   classifyProviderError,
@@ -3583,7 +3584,7 @@ export async function handleChatCore({
         : formatProviderError(error, provider, model, failureStatus);
     const upstreamErrorCode = getUpstreamErrorIdentifier(error);
     const upstreamErrorType =
-      upstreamErrorCode === "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT" ? "upstream_timeout" : undefined;
+      upstreamErrorCode === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE ? "upstream_timeout" : undefined;
     appendRequestLog({
       model,
       provider,
