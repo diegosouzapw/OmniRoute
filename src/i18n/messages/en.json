@@ -1288,6 +1288,7 @@
     "keyName": "Key Name",
     "keyNamePlaceholder": "e.g. Production Key",
     "keyNameDesc": "Choose a descriptive name to identify this key's purpose",
+    "managementAccessDesc": "Allow this API key to manage OmniRoute configuration.",
     "keyCreated": "API Key Created",
     "keyCreatedSuccess": "Key created successfully!",
     "keyCreatedNote": "Copy and store this key now — it won't be shown again.",

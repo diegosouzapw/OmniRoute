@@ -860,9 +860,7 @@ export default function ApiManagerPageClient() {
           <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
-              <p className="text-xs text-text-muted">
-                Allow this API key to manage OmniRoute configuration.
-              </p>
+              <p className="text-xs text-text-muted">{t("managementAccessDesc")}</p>
             </div>
             <button
               type="button"
