@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
     // Re-hydrate the in-memory Global System Prompt config — the migration writes it to
     // the DB but the in-memory state would stay stale until a restart otherwise (#2470).
-    const importedSettings = getSettings();
+    const importedSettings = await getSettings();
     if (importedSettings.systemPrompt) {
       setSystemPromptConfig(importedSettings.systemPrompt);
     }
