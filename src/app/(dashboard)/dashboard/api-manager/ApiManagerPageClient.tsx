@@ -1568,31 +1568,6 @@ const PermissionsModal = memo(function PermissionsModal({
             {keyIsBanned ? "Banned" : "Active"}
           </button>
         </div>
-        {/* Management API Access Toggle */}
-        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">{t("managementApiAccess")}</p>
-            <p className="text-xs text-text-muted">
-              Allow this key to call management routes (providers, combos, settings) via{" "}
-              <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={keyIsBanned}
-            onClick={() => setKeyIsBanned((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
-              keyIsBanned
-                ? "bg-red-600 text-white shadow-lg shadow-red-500/20"
-                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">gavel</span>
-            {keyIsBanned ? "BANNED" : "UNBANNED"}
-          </button>
-        </div>
-
         {/* Expiration Date */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
