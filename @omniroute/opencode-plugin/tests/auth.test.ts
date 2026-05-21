@@ -53,26 +53,33 @@ test("createOmniRouteAuthHook: prompts[0] uses key='apiKey' per @opencode-ai/plu
   );
 });
 
-test("loader: valid api auth → {apiKey, baseURL: undefined} when no baseURL option", async () => {
+test("loader: valid api auth → {apiKey} when no baseURL option (T-04: fetch omitted)", async () => {
+  // T-04 changed the loader return shape: without a resolvable baseURL the
+  // interceptor cannot gate-keep requests, so the loader falls back to
+  // apiKey-only and the AI-SDK uses its default fetch. See fetch-interceptor
+  // tests for the wired-fetch branches.
   const hook = createOmniRouteAuthHook();
   assert.ok(hook.loader, "loader must be defined");
   const result = await hook.loader!(
     async () => ({ type: "api", key: "sk-test" }) as never,
     {} as never
   );
-  assert.deepEqual(result, { apiKey: "sk-test", baseURL: undefined });
+  assert.deepEqual(result, { apiKey: "sk-test" });
 });
 
-test("loader: valid api auth → {apiKey, baseURL} when baseURL option set", async () => {
+test("loader: valid api auth → {apiKey, baseURL, fetch} when baseURL option set (T-04)", async () => {
   const hook = createOmniRouteAuthHook({ baseURL: "https://or.example.com/v1" });
   const result = await hook.loader!(
     async () => ({ type: "api", key: "sk-x" }) as never,
     {} as never
   );
-  assert.deepEqual(result, {
-    apiKey: "sk-x",
-    baseURL: "https://or.example.com/v1",
-  });
+  assert.equal((result as { apiKey: string }).apiKey, "sk-x");
+  assert.equal((result as { baseURL: string }).baseURL, "https://or.example.com/v1");
+  assert.equal(
+    typeof (result as { fetch?: unknown }).fetch,
+    "function",
+    "T-04: loader must wire fetch interceptor when baseURL resolves"
+  );
 });
 
 test("loader: null/undefined auth → {} (no creds yet, OC surfaces /connect)", async () => {

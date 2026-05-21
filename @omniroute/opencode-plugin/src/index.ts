@@ -217,10 +217,29 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
         typeof (auth as { key?: unknown }).key === "string" &&
         (auth as { key: string }).key.length > 0
       ) {
+        const apiKey = (auth as { key: string }).key;
+        // baseURL resolution: plugin opts win, then a credential-attached
+        // baseURL (some auth backends stash it alongside the key), else empty.
+        const resolvedBaseURL =
+          baseURL ??
+          (typeof (auth as { baseURL?: unknown }).baseURL === "string"
+            ? (auth as { baseURL: string }).baseURL
+            : "");
+        // Without a baseURL the interceptor can't tell which requests to
+        // intercept (it would either gate-keep nothing or, worse, all
+        // outbound traffic). Fall back to apiKey-only and let the SDK use
+        // its default fetch. The /connect flow + plugin opts should make
+        // this branch unreachable in practice.
+        if (!resolvedBaseURL) {
+          return { apiKey };
+        }
         return {
-          apiKey: (auth as { key: string }).key,
-          baseURL: baseURL ?? undefined,
-          // fetch interceptor wired in T-04
+          apiKey,
+          baseURL: resolvedBaseURL,
+          fetch: createOmniRouteFetchInterceptor({
+            apiKey,
+            baseURL: resolvedBaseURL,
+          }),
         };
       }
       return {};
@@ -575,5 +594,79 @@ export function createOmniRouteProviderHook(
       cache.set(cacheKey, { models, expiresAt: t + resolved.modelCacheTtl });
       return models;
     },
+  };
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Fetch interceptor (T-04) — Bearer + Content-Type injection on outbound
+// provider requests targeting the configured OmniRoute baseURL
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Build a `fetch`-compatible interceptor that injects `Authorization: Bearer`
+ * (and a default `Content-Type`) onto outbound requests targeting the given
+ * `baseURL`. Requests to any other host pass through untouched — the apiKey
+ * is treated as a secret bound to the configured OmniRoute instance and
+ * MUST NOT leak to third-party endpoints (a vector AI-SDKs occasionally
+ * exercise when a tool call rewrites the URL mid-flight).
+ *
+ * Ported from Alph4d0g's `opencode-omniroute-auth@1.2.1` `createFetchInterceptor`
+ * (their `dist/src/plugin.js:477-516`) with these intentional deviations:
+ *
+ *   - **`baseURL` is required** here (no `localhost:20128/v1` fallback). T-04
+ *     callers always have an authoritative baseURL (from plugin opts or
+ *     auth.json); a silent local default would be a footgun.
+ *   - **Content-Type defaulting is gated on `init.body` presence**. Their
+ *     version unconditionally sets `application/json` even on `GET /v1/models`,
+ *     which is harmless but noisy; we only set it when there's a body to
+ *     describe.
+ *   - **Gemini schema sanitisation is NOT applied here** — that's T-06's
+ *     responsibility and will land as a body-transform step inside this
+ *     same function (or as a thin wrapper around it).
+ *   - **Header merge strategy mirrors theirs**: Request-attached headers
+ *     first, then `init.headers` overlay, then our injected
+ *     Authorization/Content-Type — so the apiKey we own ALWAYS wins over
+ *     any caller-supplied Bearer for the same OmniRoute provider.
+ *
+ * @see https://opencode.ai/docs/plugins for the AuthLoaderResult.fetch contract
+ *      (the returned function is invoked by the AI-SDK in lieu of global fetch).
+ */
+export function createOmniRouteFetchInterceptor(config: {
+  apiKey: string;
+  baseURL: string;
+}): typeof fetch {
+  const trimmed = config.baseURL.replace(/\/+$/, "");
+  // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
+  // (e.g. baseURL `https://or.example.com/v1` should NOT match
+  // `https://or.example.com/v1-attacker.evil/...`).
+  const prefix = `${trimmed}/`;
+  return async (input, init = {}) => {
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+
+    const targetsOmniRoute = url === trimmed || url.startsWith(prefix);
+    if (!targetsOmniRoute) {
+      return fetch(input, init);
+    }
+
+    // Merge order: Request-attached headers (when input is a Request) →
+    // init.headers overlay → our injected headers last (so we win).
+    const headers = new Headers(input instanceof Request ? input.headers : undefined);
+    if (init.headers) {
+      const initHeaders = new Headers(init.headers);
+      initHeaders.forEach((value, key) => {
+        headers.set(key, value);
+      });
+    }
+
+    headers.set("Authorization", `Bearer ${config.apiKey}`);
+    // Only default Content-Type when the caller actually has a body AND
+    // hasn't already declared the media type themselves.
+    const hasBody = init.body != null || input instanceof Request;
+    if (!headers.has("Content-Type") && hasBody) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    return fetch(input, { ...init, headers });
   };
 }
