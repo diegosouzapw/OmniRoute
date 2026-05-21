@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Fejl: {message}",
+    "serverOffline": "OmniRoute-serveren er offline. Start med: omniroute serve",
+    "authRequired": "Godkendelse kræves. Sæt OMNIROUTE_API_KEY eller kør: omniroute setup",
+    "rateLimited": "Anmodningsgrænse overskredet. Prøv igen om {seconds}s.",
+    "timeout": "Anmodningen timed ud efter {ms}ms.",
+    "success": "Færdig.",
+    "yes": "ja",
+    "no": "nej",
+    "confirm": "Er du sikker? (ja/nej)",
+    "dryRun": "[simulering] ville: {action}",
+    "cancelled": "Annulleret.",
+    "jsonOpt": "Output som JSON",
+    "yesOpt": "Spring bekræftelse over"
+  },
+  "program": {
+    "description": "OmniRoute — Smart AI-router med automatisk fallback",
+    "version": "Vis version og afslut",
+    "output": "Outputformat (table, json, jsonl, csv)",
+    "quiet": "Undertryk ikke-essentielt output",
+    "no_color": "Deaktiver farvet output",
+    "timeout": "HTTP-anmodnings timeout i millisekunder",
+    "api_key": "API-nøgle til OmniRoute-serveren",
+    "base_url": "OmniRoute-serverens basis-URL",
+    "context": "Server-kontekst/profil til denne kommando",
+    "lang": "Angiv CLI-visningssprog (tilsidesætter OMNIROUTE_LANG)"
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button } from "@/shared/components";
 
 const EMPTY_PAYLOAD_RULES_TEMPLATE = {
@@ -55,6 +56,7 @@ function getErrorMessage(payload: unknown): string {
 }
 
 export default function PayloadRulesTab() {
+  const t = useTranslations("settings");
   const [editorValue, setEditorValue] = useState(EMPTY_PAYLOAD_RULES_TEXT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -162,7 +164,7 @@ export default function PayloadRulesTab() {
             </span>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold">Payload Rules</h3>
+            <h3 className="text-lg font-semibold">{t("payloadRulesTitle")}</h3>
             <p className="text-sm text-text-muted mt-1">
               Configure request payload mutations by model and protocol. Changes are persisted in
               settings and hot reloaded into the runtime immediately after save.

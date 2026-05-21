@@ -174,8 +174,8 @@ test("api keys route covers auth, create, masking, pagination fallback and cloud
 
     assert.equal(unauthenticated.status, 401);
     assert.equal(unauthenticatedBody.error.message, "Authentication required");
-    assert.equal(invalidToken.status, 401);
-    assert.equal(invalidTokenBody.error.message, "Invalid API key");
+    assert.equal(invalidToken.status, 403);
+    assert.equal(invalidTokenBody.error.message, "Invalid management token");
 
     assert.equal(created.status, 201);
     assert.equal(createdBody.name, "Key / Prod #1");
@@ -595,8 +595,8 @@ test("management proxies route covers auth, pagination, lookup, where-used, patc
 
   assert.equal(unauthenticated.status, 401);
   assert.equal(unauthenticatedBody.error.message, "Authentication required");
-  assert.equal(invalidToken.status, 401);
-  assert.equal(invalidTokenBody.error.message, "Invalid API key");
+  assert.equal(invalidToken.status, 403);
+  assert.equal(invalidTokenBody.error.message, "Invalid management token");
   assert.equal(createdResponse.status, 201);
   assert.equal(pagedList.status, 200);
   assert.equal(pagedListBody.page.limit, 200);

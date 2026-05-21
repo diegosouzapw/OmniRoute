@@ -456,6 +456,13 @@ test.describe("Combos flow", () => {
     await comboDialog.locator('[data-testid="combo-manual-model-add"]').click();
     await expect(comboDialog.locator('[data-testid="combo-readiness-panel"]')).toHaveCount(0);
 
+    // New advanced settings: failoverBeforeRetry, maxSetRetries, setRetryDelayMs
+    await comboDialog.locator("#failoverBeforeRetry").check();
+    // maxSetRetries: placeholder "0" is unique (maxRetries uses "1")
+    await comboDialog.locator('input[placeholder="0"]').fill("2");
+    // setRetryDelayMs: placeholder "2000" — last occurrence is the new field
+    await comboDialog.locator('input[placeholder="2000"]').last().fill("1500");
+
     await comboDialog
       .getByRole("button", { name: /create combo|criar combo/i })
       .last()
@@ -476,6 +483,9 @@ test.describe("Combos flow", () => {
         weight: 0,
       },
     ]);
+    expect(state.lastPayload?.config?.failoverBeforeRetry).toBe(true);
+    expect(state.lastPayload?.config?.maxSetRetries).toBe(2);
+    expect(state.lastPayload?.config?.setRetryDelayMs).toBe(1500);
   });
 
   test("allows dragging combo cards to persist manual order", async ({ page }) => {

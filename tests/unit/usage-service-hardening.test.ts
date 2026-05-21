@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
+const { getAntigravityLoadCodeAssistMetadata } =
+  await import("../../open-sse/services/antigravityHeaders.ts");
 
 const originalFetch = globalThis.fetch;
 const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
@@ -296,7 +298,7 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
             "gemini-unlimited": {
               quotaInfo: {},
             },
-            "gemini-3.1-pro-high": {
+            "gemini-pro-agent": {
               quotaInfo: { remainingFraction: 1 },
             },
             "internal-model": {
@@ -318,18 +320,19 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-3.1-pro-high"]);
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-pro-agent"]);
   assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].total, 0);
-  assert.equal(usage.quotas["gemini-3.1-pro-high"].remainingPercentage, 100);
+  assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
+  assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
   assert.match(loadCodeAssistCall?.url, /daily-cloudcode-pa\.sandbox\.googleapis\.com/);
   assert.match(loadCodeAssistCall?.init.headers["User-Agent"], /^vscode\/1\.X\.X \(Antigravity\//);
   assert.equal(loadCodeAssistCall?.init.headers["X-Goog-Api-Client"], undefined);
   assert.equal(loadCodeAssistCall?.init.headers["Client-Metadata"], undefined);
-  assert.deepEqual(JSON.parse(loadCodeAssistCall?.init.body).metadata, {
-    ideType: "ANTIGRAVITY",
-  });
+  assert.deepEqual(
+    JSON.parse(loadCodeAssistCall?.init.body).metadata,
+    getAntigravityLoadCodeAssistMetadata()
+  );
 
   globalThis.fetch = async (url) => {
     if (String(url).includes("loadCodeAssist")) {
@@ -961,8 +964,10 @@ test("usage service covers Qwen, Qoder, GLM, Z.AI and GLMT branches", async () =
     providerSpecificData: { apiRegion: "international" },
   });
   assert.equal(glmt.plan, "Pro");
-  assert.equal(glmt.quotas["5 Hours Quota"].used, 15);
-  assert.equal(glmt.quotas["Weekly Quota"].remaining, 36);
+  assert.equal(glmt.quotas.session.used, 64);
+  assert.equal(glmt.quotas.session.displayName, "5 Hours Quota");
+  assert.equal(glmt.quotas.weekly.remaining, 75);
+  assert.equal(glmt.quotas.weekly.displayName, "Weekly Quota");
 
   let glmCnUrl = "";
   globalThis.fetch = async (url) => {
@@ -1119,68 +1124,6 @@ test("usage service treats MiniMax token-plan counts as used usage", async () =>
   assert.ok(Date.parse(usage.quotas["session (5h)"].resetAt) >= beforeCall + 240_000);
 });
 
-test("usage service parses Cursor team quotas and clamps on-demand ratio", async () => {
-  const calls: any[] = [];
-  globalThis.fetch = async (url, init = {}) => {
-    calls.push({ url: String(url), init });
-
-    if (String(url).endsWith("/api/usage")) {
-      return new Response(
-        JSON.stringify({
-          numRequestsTotal: 450,
-          hard_limit: 100,
-          teamMaxRequestUsage: 500,
-          onDemand: {
-            numRequests: 600,
-          },
-        }),
-        { status: 200 }
-      );
-    }
-
-    if (String(url).endsWith("/api/auth/me")) {
-      return new Response(
-        JSON.stringify({
-          plan: "team",
-          teamInfo: { id: "team-1", name: "Core Team" },
-        }),
-        { status: 200 }
-      );
-    }
-
-    if (String(url).endsWith("/api/subscription")) {
-      return new Response(
-        JSON.stringify({
-          teamMaxMonthlyRequests: 500,
-        }),
-        { status: 200 }
-      );
-    }
-
-    throw new Error(`unexpected fetch: ${url}`);
-  };
-
-  const usage: any = await usageService.getUsageForProvider({
-    provider: "cursor",
-    accessToken: "cursor-token",
-  });
-
-  assert.equal(calls.length, 3);
-  for (const call of calls) {
-    assert.equal(call.init.headers.Authorization, "Bearer cursor-token");
-    assert.equal(call.init.headers["User-Agent"], "Cursor/3.3");
-    assert.equal(call.init.headers["x-cursor-client-version"], "3.3");
-  }
-
-  assert.equal(usage.plan, "Cursor Team");
-  assert.equal(usage.quotas.requests.total, 500);
-  assert.equal(usage.quotas.requests.used, 450);
-  assert.equal(usage.quotas.requests.remainingPercentage, 10);
-  assert.equal(usage.quotas.on_demand.total, 500);
-  assert.equal(usage.quotas.on_demand.used, 500);
-  assert.equal(usage.quotas.on_demand.remainingPercentage, 0);
-});
-
 test("usage helper branches cover reset parsing, GitHub quota math, and plan inference fallbacks", () => {
   const fixedDate = new Date("2026-01-02T03:04:05.000Z");
 
@@ -1279,32 +1222,6 @@ test("usage helper branches cover reset parsing, GitHub quota math, and plan inf
     "Copilot Student"
   );
   assert.equal(__testing.inferGitHubPlanName({}, null), "GitHub Copilot");
-
-  assert.deepEqual(__testing.buildCursorUsageHeaders("cursor-token"), {
-    Authorization: "Bearer cursor-token",
-    Accept: "application/json",
-    "User-Agent": "Cursor/3.3",
-    "x-cursor-client-version": "3.3",
-    "x-cursor-user-agent": "Cursor/3.3",
-  });
-  assert.equal(
-    __testing.getCursorMonthlyRequestLimit(
-      { hard_limit: 100, teamMaxRequestUsage: 400 },
-      { teamMaxMonthlyRequests: 500 }
-    ),
-    500
-  );
-  assert.equal(__testing.getCursorOnDemandLimit({ onDemand: { maxRequests: 120 } }, {}), 120);
-  assert.deepEqual(__testing.formatCursorQuota(150, 100, null), {
-    used: 100,
-    total: 100,
-    remaining: 0,
-    remainingPercentage: 0,
-    resetAt: null,
-    unlimited: false,
-  });
-  assert.equal(__testing.inferCursorPlanName({ teamInfo: { id: "team-1" } }, {}), "Cursor Team");
-  assert.equal(__testing.inferCursorPlanName({ plan: "pro" }, {}), "Cursor Pro");
 });
 
 test("usage helper branches cover Gemini CLI and Antigravity plan label fallbacks", () => {

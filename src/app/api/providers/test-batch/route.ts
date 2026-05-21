@@ -9,6 +9,8 @@ import {
   WEB_COOKIE_PROVIDERS,
   SEARCH_PROVIDERS,
   AUDIO_ONLY_PROVIDERS,
+  CLOUD_AGENT_PROVIDERS,
+  IDE_PROVIDER_IDS,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
 } from "@/shared/constants/providers";
@@ -26,6 +28,7 @@ function getAuthGroup(providerId) {
   if (AUDIO_ONLY_PROVIDERS[providerId]) return "audio";
   if (LOCAL_PROVIDERS[providerId]) return "local";
   if (UPSTREAM_PROXY_PROVIDERS[providerId]) return "upstream-proxy";
+  if (CLOUD_AGENT_PROVIDERS[providerId]) return "cloud-agent";
   if (APIKEY_PROVIDERS[providerId]) return "apikey";
   if (
     typeof providerId === "string" &&
@@ -99,6 +102,10 @@ export async function POST(request) {
       connectionsToTest = allConnections.filter(
         (c) => getAuthGroup(c.provider) === "upstream-proxy"
       );
+    } else if (mode === "cloud-agent") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "cloud-agent");
+    } else if (mode === "ide") {
+      connectionsToTest = allConnections.filter((c) => IDE_PROVIDER_IDS.has(c.provider));
     } else if (mode === "compatible") {
       connectionsToTest = allConnections.filter((c) => isCompatibleProvider(c.provider));
     } else if (mode === "all") {
@@ -107,7 +114,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy",
+            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide",
         },
         { status: 400 }
       );

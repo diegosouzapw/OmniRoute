@@ -8,7 +8,7 @@ interface ToggleProps {
   label?: string;
   description?: string;
   disabled?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   title?: string;
   ariaLabel?: string;
@@ -26,6 +26,11 @@ export default function Toggle({
   ariaLabel,
 }: ToggleProps) {
   const sizes = {
+    xs: {
+      track: "w-6 h-3",
+      thumb: "size-[8px]",
+      translate: "translate-x-3.5",
+    },
     sm: {
       track: "w-8 h-4",
       thumb: "size-3",

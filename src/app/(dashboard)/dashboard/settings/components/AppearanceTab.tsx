@@ -15,6 +15,7 @@ import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SECTIONS,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
+  getSectionItems,
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
@@ -102,7 +103,7 @@ export default function AppearanceTab() {
         }
       }
     } catch (err) {
-      console.error(`Failed to update ${key}:`, err);
+      console.error("Failed to update", key, err);
     }
   };
 
@@ -148,7 +149,7 @@ export default function AppearanceTab() {
   ).map((section) => ({
     ...section,
     title: getSidebarLabel(section.titleKey, section.titleFallback),
-    items: section.items.map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
+    items: getSectionItems(section).map((item) => ({ ...item, label: tSidebar(item.i18nKey) })),
   }));
 
   const toggleSidebarItem = (itemId: HideableSidebarItemId) => {
@@ -491,7 +492,7 @@ export default function AppearanceTab() {
                 {(settings.customLogoUrl || settings.customLogoBase64) && (
                   <img
                     src={settings.customLogoBase64 || settings.customLogoUrl}
-                    alt="Logo preview"
+                    alt={t("appearanceLogoPreviewAlt")}
                     className="h-10 w-10 rounded border border-border object-contain bg-surface"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -561,7 +562,7 @@ export default function AppearanceTab() {
                   <p className="text-xs text-text-muted mb-2">{t("logoPreview")}</p>
                   <img
                     src={settings.customLogoBase64 || settings.customLogoUrl}
-                    alt="Logo preview"
+                    alt={t("appearanceLogoPreviewAlt")}
                     className="h-12 w-auto max-w-full rounded"
                   />
                 </div>
@@ -585,7 +586,7 @@ export default function AppearanceTab() {
                 {(settings.customFaviconUrl || settings.customFaviconBase64) && (
                   <img
                     src={settings.customFaviconBase64 || settings.customFaviconUrl}
-                    alt="Favicon preview"
+                    alt={t("appearanceFaviconPreviewAlt")}
                     className="h-10 w-10 rounded border border-border object-contain bg-surface"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -657,7 +658,7 @@ export default function AppearanceTab() {
                   <p className="text-xs text-text-muted mb-2">{t("faviconPreview")}</p>
                   <img
                     src={settings.customFaviconBase64 || settings.customFaviconUrl}
-                    alt="Favicon preview"
+                    alt={t("appearanceFaviconPreviewAlt")}
                     className="h-8 w-8 rounded"
                   />
                 </div>

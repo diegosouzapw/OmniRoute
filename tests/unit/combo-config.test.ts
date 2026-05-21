@@ -20,6 +20,9 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.handoffThreshold, 0.85);
   assert.equal(first.maxMessagesForSummary, 30);
   assert.deepEqual(first.handoffProviders, ["codex"]);
+  assert.equal(first.failoverBeforeRetry, false);
+  assert.equal(first.maxSetRetries, 0);
+  assert.equal(first.setRetryDelayMs, 2000);
 
   first.strategy = "weighted";
   assert.equal(second.strategy, "priority");
@@ -271,4 +274,95 @@ test("updateComboDefaultsSchema rejects composite tiers in global defaults and p
       },
     ]
   );
+});
+
+test("createComboSchema accepts failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
+  const parsed = createComboSchema.parse({
+    name: "failover-test",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: {
+      failoverBeforeRetry: true,
+      maxSetRetries: 3,
+      setRetryDelayMs: 1500,
+    },
+  });
+
+  assert.equal(parsed.config.failoverBeforeRetry, true);
+  assert.equal(parsed.config.maxSetRetries, 3);
+  assert.equal(parsed.config.setRetryDelayMs, 1500);
+});
+
+test("createComboSchema coerces string numbers for maxSetRetries and setRetryDelayMs", () => {
+  const parsed = createComboSchema.parse({
+    name: "coerce-test",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: {
+      maxSetRetries: "2",
+      setRetryDelayMs: "500",
+    },
+  });
+
+  assert.equal(parsed.config.maxSetRetries, 2);
+  assert.equal(parsed.config.setRetryDelayMs, 500);
+});
+
+test("createComboSchema rejects maxSetRetries out of range", () => {
+  const tooHigh = createComboSchema.safeParse({
+    name: "bad-max",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: { maxSetRetries: 11 },
+  });
+  assert.equal(tooHigh.success, false);
+
+  const negative = createComboSchema.safeParse({
+    name: "bad-max",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: { maxSetRetries: -1 },
+  });
+  assert.equal(negative.success, false);
+});
+
+test("createComboSchema rejects setRetryDelayMs out of range", () => {
+  const tooHigh = createComboSchema.safeParse({
+    name: "bad-delay",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: { setRetryDelayMs: 60001 },
+  });
+  assert.equal(tooHigh.success, false);
+
+  const negative = createComboSchema.safeParse({
+    name: "bad-delay",
+    models: ["openai/gpt-4"],
+    strategy: "priority",
+    config: { setRetryDelayMs: -1 },
+  });
+  assert.equal(negative.success, false);
+});
+
+test("resolveComboConfig cascades failoverBeforeRetry, maxSetRetries and setRetryDelayMs", () => {
+  const result = resolveComboConfig(
+    {
+      config: {
+        failoverBeforeRetry: true,
+        maxSetRetries: 2,
+        setRetryDelayMs: 3000,
+      },
+    },
+    {
+      comboDefaults: {
+        failoverBeforeRetry: false,
+        maxSetRetries: 0,
+        setRetryDelayMs: 2000,
+      },
+    }
+  );
+
+  assert.equal(result.failoverBeforeRetry, true);
+  assert.equal(result.maxSetRetries, 2);
+  assert.equal(result.setRetryDelayMs, 3000);
 });

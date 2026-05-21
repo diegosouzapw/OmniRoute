@@ -180,8 +180,9 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
       activeProviders.map((c) => PROVIDER_ID_TO_ALIAS[c.provider] || c.provider)
     );
     dynamicModels.forEach((dm) => {
-      const modelId = dm.id || dm;
-      if (seenModels.has(modelId)) return;
+      const rawId = dm?.id ?? dm;
+      const modelId = typeof rawId === "string" ? rawId : "";
+      if (!modelId || seenModels.has(modelId)) return;
       // Parse alias/model format
       const slashIdx = modelId.indexOf("/");
       if (slashIdx === -1) return;

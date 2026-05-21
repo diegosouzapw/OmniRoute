@@ -336,7 +336,7 @@ export default function ReasoningCacheTab() {
                 <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
                   <th className="px-4 py-3">Model</th>
                   <th className="px-4 py-3">{t("reasoningEntries")}</th>
-                  <th className="px-4 py-3">Avg Chars</th>
+                  <th className="px-4 py-3">{t("reasoningAvgChars")}</th>
                   <th className="px-4 py-3">{t("reasoningChars")}</th>
                 </tr>
               </thead>

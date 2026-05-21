@@ -1,4 +1,5 @@
 import { PROVIDER_MODELS } from "@/shared/constants/models";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import {
   getAllCustomModels,
   getAllSyncedAvailableModels,
@@ -156,6 +157,6 @@ export async function GET() {
     return Response.json({ models });
   } catch (error: any) {
     console.log("Error fetching models:", error);
-    return Response.json({ error: { message: error.message } }, { status: 500 });
+    return Response.json({ error: { message: sanitizeErrorMessage(error) } }, { status: 500 });
   }
 }

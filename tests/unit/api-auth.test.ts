@@ -155,6 +155,65 @@ test("isAuthenticated rejects bearer API keys on management routes", async () =>
   assert.equal(result, false);
 });
 
+test("verifyAuth accepts bearer API keys with manage scope on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("mcp-management", "machine1234567890", ["manage"]);
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/providers",
+  });
+
+  assert.equal(result, null);
+});
+
+test("verifyAuth accepts bearer API keys with admin scope on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("mcp-admin", "machine1234567890", ["admin"]);
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/settings",
+  });
+
+  assert.equal(result, null);
+});
+
+test("verifyAuth still rejects unscoped bearer API keys on management routes", async () => {
+  const key = await apiKeysDb.createApiKey("integration-no-scope", "machine1234567890");
+  const result = await apiAuth.verifyAuth({
+    cookies: {
+      get() {
+        return undefined;
+      },
+    },
+    headers: new Headers({ authorization: `Bearer ${key.key}` }),
+    url: "https://example.com/api/providers",
+  });
+
+  assert.equal(result, "Invalid management token");
+});
+
+test("isAuthenticated accepts bearer API keys with manage scope on management routes", async () => {
+  process.env.INITIAL_PASSWORD = "bootstrap-password";
+  await localDb.updateSettings({ requireLogin: true, password: "" });
+
+  const key = await apiKeysDb.createApiKey("mcp-management", "machine1234567890", ["manage"]);
+  const request = new Request("https://example.com/api/providers", {
+    headers: { authorization: `Bearer ${key.key}` },
+  });
+
+  const result = await apiAuth.isAuthenticated(request);
+
+  assert.equal(result, true);
+});
+
 test("monitoring health reset route requires dashboard authentication", async () => {
   process.env.INITIAL_PASSWORD = "bootstrap-password";
   await localDb.updateSettings({ requireLogin: true, password: "" });
@@ -278,11 +337,13 @@ test("requireManagementAuth returns 401 with no credentials", async () => {
   assert.equal(res.status, 401);
 });
 
-test("requireManagementAuth returns 401 for an invalid API key", async () => {
+test("requireManagementAuth returns 403 for an invalid management token", async () => {
   await setupAuth();
   const res = await requireManagementAuth(managementRequest("sk-not-a-real-key"));
   assert.ok(res);
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  const body = await res.json();
+  assert.equal(body.error?.message, "Invalid management token");
 });
 
 test("requireManagementAuth returns 403 for valid key without manage scope", async () => {
@@ -314,13 +375,15 @@ test("requireManagementAuth returns null for OMNIROUTE_API_KEY env passthrough",
   }
 });
 
-test("requireManagementAuth returns 401 for revoked key with manage scope", async () => {
+test("requireManagementAuth returns 403 for revoked key with manage scope", async () => {
   await setupAuth();
   const key = await apiKeysDb.createApiKey("revoked-admin", "machine-test", ["manage"]);
   await apiKeysDb.revokeApiKey(key.id);
   const res = await requireManagementAuth(managementRequest(key.key));
   assert.ok(res);
-  assert.equal(res.status, 401);
+  assert.equal(res.status, 403);
+  const body = await res.json();
+  assert.equal(body.error?.message, "Invalid management token");
 });
 
 test("requireManagementAuth returns null for valid JWT cookie", async () => {

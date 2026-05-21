@@ -54,6 +54,21 @@ test("encrypt/decrypt round-trip uses the expected serialized format", async () 
   assert.equal(encryption.encrypt(encrypted), encrypted);
 });
 
+test("decrypt rejects a truncated GCM authentication tag (authTagLength pinned to 16 bytes)", async () => {
+  process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-authtag";
+  const encryption = await importFresh("src/lib/db/encryption.ts");
+
+  const encrypted = encryption.encrypt("forge-me");
+  assert.equal(encryption.decrypt(encrypted), "forge-me");
+
+  // Truncate the trailing auth tag to 1 byte (2 hex chars). With authTagLength
+  // pinned to 16 bytes on createDecipheriv, Node rejects the short tag instead
+  // of verifying a weakened tag, so decrypt must fail closed (null).
+  const [prefix, version, ivHex, encryptedHex] = encrypted.split(":");
+  const truncated = `${prefix}:${version}:${ivHex}:${encryptedHex}:ab`;
+  assert.equal(encryption.decrypt(truncated), null);
+});
+
 test("connection field helpers encrypt and decrypt all supported credential fields", async () => {
   process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-b";
   const encryption = await importFresh("src/lib/db/encryption.ts");

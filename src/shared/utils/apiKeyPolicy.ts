@@ -16,11 +16,10 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 
-const DEFAULT_RATE_LIMITS: RateLimitRule[] = [
-  { limit: 1000, window: 86400 },     // 1000 per day
-  { limit: 5000, window: 604800 },    // 5000 per week
-  { limit: 20000, window: 2592000 }   // 20000 per month
-];
+// Default to no per-key request cap. API keys can still opt into explicit
+// limits via Settings/API Manager, while provider/account quota controls remain
+// responsible for upstream 429 handling and fallback.
+const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
 
 interface AccessSchedule {
   enabled: boolean;
@@ -187,7 +186,10 @@ export async function enforceApiKeyPolicy(
     return {
       apiKey,
       apiKeyInfo,
-      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is banned due to policy violations"),
+      rejection: errorResponse(
+        HTTP_STATUS.FORBIDDEN,
+        "This API key is banned due to policy violations"
+      ),
     };
   }
 
@@ -260,9 +262,10 @@ export async function enforceApiKeyPolicy(
 
   // ── Check 5: Generic Multi-Window Rate Limits ──
   if (apiKeyInfo.id) {
-    const rulesToApply = (apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0)
-      ? [...apiKeyInfo.rateLimits]
-      : [...DEFAULT_RATE_LIMITS];
+    const rulesToApply =
+      apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0
+        ? [...apiKeyInfo.rateLimits]
+        : [...DEFAULT_RATE_LIMITS];
 
     // Combine with legacy limits if they exist and custom rate limits aren't set
     if (!apiKeyInfo.rateLimits || apiKeyInfo.rateLimits.length === 0) {
@@ -276,13 +279,16 @@ export async function enforceApiKeyPolicy(
 
     const rateLimitResult = await checkRateLimit(apiKeyInfo.id, rulesToApply);
     if (!rateLimitResult.allowed) {
-      const failedWindowStr = rateLimitResult.failedWindow 
-        ? ` (${rateLimitResult.failedWindow}s window)` 
+      const failedWindowStr = rateLimitResult.failedWindow
+        ? ` (${rateLimitResult.failedWindow}s window)`
         : "";
       return {
         apiKey,
         apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.RATE_LIMITED, `Request limit exceeded${failedWindowStr}. Please try again later.`),
+        rejection: errorResponse(
+          HTTP_STATUS.RATE_LIMITED,
+          `Request limit exceeded${failedWindowStr}. Please try again later.`
+        ),
       };
     }
   }

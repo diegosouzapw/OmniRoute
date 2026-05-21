@@ -1,233 +1,386 @@
-# CLAUDE.md — AI Agent Session Bootstrap (తెలుగు)
+# CLAUDE.md (తెలుగు)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+ఈ ఫైల్ ఈ రిపోజిటరీలో కోడ్‌తో పనిచేసేటప్పుడు Claude Code (claude.ai/code) కు మార్గదర్శకత్వం అందిస్తుంది.
 
-## Inicio Rápido
+## తక్షణ ప్రారంభం
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # డిపెండెన్సీలు ఇన్‌స్టాల్ చేయండి (.env.example నుండి .env ఆటో-జనరేట్ చేస్తుంది)
+npm run dev                    # http://localhost:20128 వద్ద డెవ్ సర్వర్
+npm run build                  # ఉత్పత్తి నిర్మాణం (Next.js 16 standalone)
+npm run lint                   # ESLint (0 తప్పులు ఆశించబడుతున్నాయి; హెచ్చరికలు ముందుగా ఉన్నాయి)
+npm run typecheck:core         # TypeScript తనిఖీ (స్వచ్ఛంగా ఉండాలి)
+npm run typecheck:noimplicit:core  # కఠినమైన తనిఖీ (ఏదైనా అర్థం లేకుండా లేదు)
+npm run test:coverage          # యూనిట్ పరీక్షలు + కవరేజ్ గేట్ (75/75/75/70 — స్టేట్‌మెంట్‌లు/లైన్లు/ఫంక్షన్‌లు/శాఖలు)
+npm run check                  # lint + పరీక్షలు కలిపి
+npm run check:cycles           # చక్రాకార ఆధారాలను గుర్తించండి
 ```
 
-### Running a Single Test
+### పరీక్షలను నడపడం
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# ఒకే పరీక్ష ఫైల్ (Node.js స్థానిక పరీక్ష రన్నర్ — ఎక్కువ పరీక్షలు)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest (MCP సర్వర్, autoCombo, కాష్)
 npm run test:vitest
+
+# అన్ని సూట్లు
+npm run test:all
 ```
+
+పూర్తి పరీక్ష మ్యాట్రిక్స్ కోసం, `CONTRIBUTING.md` → "పరీక్షలను నడపడం" చూడండి. లోతైన నిర్మాణం కోసం, `AGENTS.md` చూడండి.
 
 ---
 
-## Resumen
+## ప్రాజెక్ట్ ఒక చూపులో
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — ఏకీకృత AI ప్రాక్సీ/రౌటర్. ఒక ఎండ్‌పాయింట్, 160+ LLM ప్రొవైడర్లు, ఆటో-ఫాల్బ్యాక్.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| పొర              | స్థానం                  | ఉద్దేశ్యం                                                                        |
+| ---------------- | ----------------------- | -------------------------------------------------------------------------------- |
+| API రూట్లు       | `src/app/api/v1/`       | Next.js యాప్ రౌటర్ — ప్రవేశ బిందువులు                                            |
+| హ్యాండ్లర్లు     | `open-sse/handlers/`    | అభ్యర్థన ప్రాసెసింగ్ (చాట్, ఎంబెడింగ్స్, మొదలైనవి)                               |
+| ఎగ్జిక్యూటర్లు   | `open-sse/executors/`   | ప్రొవైడర్-స్పెసిఫిక్ HTTP డిస్పాచ్                                               |
+| అనువాదకులు       | `open-sse/translator/`  | ఫార్మాట్ మార్పిడి (OpenAI↔Claude↔Gemini)                                         |
+| ట్రాన్స్‌ఫార్మర్ | `open-sse/transformer/` | స్పందనలు API ↔ చాట్ పూర్తి చేయడం                                                 |
+| సేవలు            | `open-sse/services/`    | కాంబో రౌటింగ్, రేటు పరిమితులు, కాషింగ్, మొదలైనవి                                 |
+| డేటాబేస్         | `src/lib/db/`           | SQLite డొమైన్ మాడ్యూల్స్ (45+ ఫైళ్లు, 55 మైగ్రేషన్స్)                            |
+| డొమైన్/పాలసీ     | `src/domain/`           | పాలసీ ఇంజిన్, ఖర్చు నియమాలు, ఫాల్బ్యాక్ లాజిక్                                   |
+| MCP సర్వర్       | `open-sse/mcp-server/`  | 37 టూల్స్ (30 బేస్ + 3 మెమరీ + 4 నైపుణ్యాలు), 3 ట్రాన్స్‌పోర్ట్‌లు, ~13 స్కోప్స్ |
+| A2A సర్వర్       | `src/lib/a2a/`          | JSON-RPC 2.0 ఏజెంట్ ప్రోటోకాల్                                                   |
+| నైపుణ్యాలు       | `src/lib/skills/`       | విస్తరించదగిన నైపుణ్య ఫ్రేమ్‌వర్క్                                               |
+| మెమరీ            | `src/lib/memory/`       | స్థిరమైన సంభాషణ మెమరీ                                                            |
 
-### Monorepo Layout
+Monorepo: `src/` (Next.js 16 యాప్), `open-sse/` (స్ట్రీమింగ్ ఇంజిన్ వర్క్‌స్పేస్), `electron/` (డెస్క్‌టాప్ యాప్), `tests/`, `bin/` (CLI ప్రవేశ బిందువు).
 
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
-
----
-
-## Request Pipeline (Abbreviated)
+## అభ్యర్థన పైప్‌లైన్
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Client → /v1/chat/completions (Next.js మార్గం)
+  → CORS → Zod ధృవీకరణ → auth? → విధానం తనిఖీ → ప్రాంప్ట్ ఇంజెక్షన్ గార్డ్
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → కాష్ తనిఖీ → రేటు పరిమితి → కాంబో రూటింగ్?
+      → resolveComboTargets() → handleSingleModel() ప్రతి లక్ష్యానికి
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+      → fetch() అప్‌స్ట్రీమ్ → తిరిగి ప్రయత్నించండి w/ బ్యాకాఫ్
+    → స్పందన అనువాదం → SSE స్ట్రీమ్ లేదా JSON
+    → If Responses API: responsesTransformer.ts TransformStream
 ```
 
----
+API మార్గాలు ఒక సుసంగత నమూనాను అనుసరిస్తాయి: `Route → CORS ప్రీఫ్లైట్ → Zod శరీర ధృవీకరణ → ఐచ్ఛిక auth (extractApiKey/isValidApiKey) → API కీ విధానం అమలు → హ్యాండ్లర్ డెలిగేషన్ (open-sse)`. ఏ గ్లోబల్ Next.js మిడ్‌లెయిర్ లేదు — అంతరాయము మార్గానికి ప్రత్యేకంగా ఉంటుంది.
 
-## Key Conventions
-
-### Code Style
-
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
-
-### Database Access
-
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
-
-### Error Handling
-
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
-
-### Seguridad
-
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+**కాంబో రూటింగ్** (`open-sse/services/combo.ts`): 14 వ్యూహాలు (ప్రాధమికత, బరువైన, ఫిల్-ఫస్ట్, రౌండ్-రాబిన్, P2C, యాదృచ్ఛిక, తక్కువ-ఉపయోగించిన, ఖర్చు-ఆప్టిమైజ్డ్, రీసెట్-అవేర్, కఠిన-యాదృచ్ఛిక, ఆటో, lkgp, సందర్భం-ఆప్టిమైజ్డ్, సందర్భం-రిలే). ప్రతి లక్ష్యం `handleSingleModel()`ను పిలుస్తుంది, ఇది `handleChatCore()`ను లక్ష్యానికి ప్రత్యేకమైన పొరపాటు నిర్వహణ మరియు సర్క్యూట్ బ్రేకర్ తనిఖీలతో చుట్టిస్తుంది. 9-ఫ్యాక్టర్ ఆటో-కాంబో స్కోరింగ్ కోసం `docs/routing/AUTO-COMBO.md`ను మరియు 3 స్థిరత్వ పొరల కోసం `docs/architecture/RESILIENCE_GUIDE.md`ను చూడండి.
 
 ---
 
-## Common Modification Scenarios
+## స్థిరత్వం రన్‌టైమ్ స్థితి
 
-### Adding a New Provider
+OmniRouteకు మూడు సంబంధిత కానీ ప్రత్యేక తాత్కాలిక-పరాజయ యంత్రాంగాలు ఉన్నాయి. రూటింగ్ ప్రవర్తనను డీబగ్ చేస్తూ వాటి పరిధిని వేరుగా ఉంచండి. ఒక తక్షణ-చిత్రం మ్యాప్ కోసం [3-పొర స్థిరత్వం చిత్రాన్ని](./docs/diagrams/exported/resilience-3layers.svg) చూడండి (మూలం: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd)).
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+### ప్రొవైడర్ సర్క్యూట్ బ్రేకర్
 
-### Adding a New API Route
+**పరిధి**: మొత్తం ప్రొవైడర్, ఉదా: `glm`, `openai`, `anthropic`.
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+**ఉద్దేశ్యం**: అప్‌స్ట్రీమ్/సేవ స్థాయిలో పునరావృతంగా విఫలమవుతున్న ప్రొవైడర్‌కు ట్రాఫిక్ పంపడం ఆపడం, కాబట్టి ఒక అనారోగ్య ప్రొవైడర్ ప్రతి అభ్యర్థనను నెమ్మదిగా చేయదు.
 
-### Adding a New DB Module
+**అమలు**:
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+- కోర్ క్లాస్: `src/shared/utils/circuitBreaker.ts`
+- చాట్ గేట్/అమలు వైరింగ్: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- రన్‌టైమ్ స్థితి API: `src/app/api/monitoring/health/route.ts`
+- పంచుకున్న రాపర్లు: `open-sse/services/accountFallback.ts`
+- నిల్వ చేసిన స్థితి పట్టిక: `domain_circuit_breakers`
 
-### Adding a New MCP Tool
+**స్థితులు**:
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+- `CLOSED`: సాధారణ ట్రాఫిక్ అనుమతించబడింది.
+- `OPEN`: ప్రొవైడర్ తాత్కాలికంగా బ్లాక్ చేయబడింది; కాలర్‌లు ప్రొవైడర్-సర్క్యూట్-ఓపెన్ స్పందన పొందుతారు లేదా కాంబో రూటింగ్ మరో లక్ష్యానికి దాటిస్తుంది.
+- `HALF_OPEN`: రీసెట్ టైమ్‌ఔట్ ముగిసింది; ఒక ప్రోబ్ అభ్యర్థనను అనుమతించండి. విజయవంతం అయితే బ్రేకర్ మూసివేస్తుంది, విఫలమైతే మళ్లీ తెరుస్తుంది.
 
-### Adding a New A2A Skill
+**డిఫాల్ట్స్** (`open-sse/config/constants.ts`):
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+- OAuth ప్రొవైడర్లు: థ్రెషోల్డ్ `3`, రీసెట్ టైమ్‌ఔట్ `60s`.
+- API-కీ ప్రొవైడర్లు: థ్రెషోల్డ్ `5`, రీసెట్ టైమ్‌ఔట్ `30s`.
+- స్థానిక ప్రొవైడర్లు: థ్రెషోల్డ్ `2`, రీసెట్ టైమ్‌ఔట్ `15s`.
+
+ప్రొవైడర్-స్థాయి విఫలమైన స్థితులు మాత్రమే ప్రొవైడర్ బ్రేకర్‌ను ట్రిప్ చేయాలి:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+సాధారణ ఖాతా/కీ/మోడల్ పొరపాట్ల కోసం మొత్తం-ప్రొవైడర్ బ్రేకర్‌ను ట్రిప్ చేయవద్దు, ఉదా: `401`, `403`, లేదా `429` కేసులు. అవి సాధారణంగా కనెక్షన్ కూల్‌డౌన్ లేదా మోడల్ లాక్‌ఔట్‌కు చెందుతాయి. ఒక సాధారణ API-కీ ప్రొవైడర్ `403` పునరావృతంగా పునరుద్ధరించబడాలి, ఇది ఒక టర్మినల్ ప్రొవైడర్/ఖాతా పొరపాటు అని వర్గీకరించబడకపోతే.
+
+బ్రేకర్ ఆలస్య పునరుద్ధరణను ఉపయోగిస్తుంది, బ్యాక్‌గ్రౌండ్ టైమర్ కాదు. `OPEN` కాలం ముగిసినప్పుడు, `getStatus()`, `canExecute()`, మరియు `getRetryAfterMs()` వంటి చదువులు స్థితిని `HALF_OPEN`గా పునరుద్ధరిస్తాయి, కాబట్టి డాష్‌బోర్డులు మరియు కాంబో అభ్యర్థన నిర్మాణాలు ఒక కాలం ముగిసిన ప్రొవైడర్‌ను ఎప్పటికీ మినహాయించవు.
+
+### కనెక్షన్ కూల్‌డౌన్
+
+**పరిధి**: ఒక ప్రొవైడర్ కనెక్షన్/ఖాతా/కీ.
+
+**ఉద్దేశ్యం**: ఒక చెడు కీ/ఖాతాను తాత్కాలికంగా మినహాయించడం, అదే ప్రొవైడర్ కోసం ఇతర కనెక్షన్లు అభ్యర్థనలను కొనసాగించడానికి అనుమతించడం.
+
+**అమలు**:
+
+- రాయండి/అప్‌డేట్ మార్గం: `src/sse/services/auth.ts::markAccountUnavailable()`
+- ఖాతా ఎంపిక/ఫిల్టరింగ్: `src/sse/services/auth.ts::getProviderCredentials...`
+- కూల్‌డౌన్ లెక్కింపు: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- సెట్టింగులు: `src/lib/resilience/settings.ts`
+
+ప్రొవైడర్ కనెక్షన్లపై ముఖ్యమైన ఫీల్డ్స్:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+ఖాతా ఎంపిక సమయంలో, ఒక కనెక్షన్ మినహాయించబడుతుంది:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+కూల్‌డౌన్లు కూడా ఆలస్యంగా ఉంటాయి: `rateLimitedUntil` గతంలో ఉన్నప్పుడు, కనెక్షన్ మళ్లీ అర్హత పొందుతుంది. విజయవంతమైన ఉపయోగంలో, `clearAccountError()` `testStatus`, `rateLimitedUntil`, పొరపాటు ఫీల్డ్స్, మరియు `backoffLevel`ను క్లియర్ చేస్తుంది.
+
+డిఫాల్ట్ కనెక్షన్ కూల్‌డౌన్ ప్రవర్తన:
+
+- OAuth ప్రాథమిక కూల్‌డౌన్: `5s`.
+- API-కీ ప్రాథమిక కూల్‌డౌన్: `3s`.
+- API-కీ `429` అందుబాటులో ఉన్నప్పుడు అప్‌స్ట్రీమ్ తిరిగి ప్రయత్నం సూచనలను ( `Retry-After`, రీసెట్ హెడ్డర్లు, లేదా పార్సబుల్ రీసెట్ టెక్స్ట్) ప్రాధాన్యం ఇవ్వాలి.
+- పునరావృత పునరుద్ధరణ విఫలమైతే ఎక్స్‌పోనెన్షియల్ బ్యాకాఫ్‌ను ఉపయోగిస్తుంది:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+యాంటీ-థండరింగ్-హెర్డ్ గార్డ్ ఒకే కనెక్షన్‌పై సమకాలిక విఫలాలను కూల్‌డౌన్‌ను పునరావృతంగా పొడిగించడం లేదా `backoffLevel`ను డబుల్-ఇంక్రిమెంట్ చేయడం నుండి నివారిస్తుంది.
+
+టర్మినల్ స్థితులు కూల్‌డౌన్‌లు కాదు. `banned`, `expired`, మరియు `credits_exhausted` క్రెడెన్షియల్స్/సెట్టింగ్స్ మారడం లేదా ఒక ఆపరేటర్ వాటిని రీసెట్ చేయడం వరకు అందుబాటులో ఉండకూడదు. తాత్కాలిక కూల్‌డౌన్ స్థితితో టర్మినల్ స్థితులను మళ్లీ రాయవద్దు.
+
+### మోడల్ లాక్‌ఔట్
+
+**పరిధి**: ప్రొవైడర్ + కనెక్షన్ + మోడల్.
+
+**ఉద్దేశ్యం**: ఒక మోడల్ అందుబాటులో లేకపోతే లేదా ఆ కనెక్షన్ కోసం క్వోటా-పరిమితమైనప్పుడు మొత్తం కనెక్షన్‌ను అచ్ఛాదించడం నివారించండి.
+
+ఉదాహరణలు:
+
+- ప్రతి-మోడల్ క్వోటా ప్రొవైడర్లు `429`ను తిరిగి ఇస్తున్నాయి.
+- ఒక మిస్సింగ్ మోడల్ కోసం `404`ను తిరిగి ఇస్తున్న స్థానిక ప్రొవైడర్లు.
+- ఎంపిక చేసిన గ్రోక్ మోడ్స్ వంటి ప్రొవైడర్-స్పెసిఫిక్ మోడ్/మోడల్ అనుమతి విఫలమవుతాయి.
+
+మోడల్ లాక్‌ఔట్ `open-sse/services/accountFallback.ts`లో ఉంటుంది మరియు అదే కనెక్షన్ ఇతర మోడళ్లను కొనసాగించడానికి అనుమతిస్తుంది.
+
+### డీబగ్ మార్గదర్శకత్వం
+
+- ఒక ప్రొవైడర్ కోసం అన్ని కీలు మినహాయించబడితే, ప్రొవైడర్ బ్రేకర్ స్థితి మరియు ప్రతి కనెక్షన్ యొక్క `rateLimitedUntil`/`testStatus`ను పరిశీలించండి.
+- రీసెట్ విండో తర్వాత ఒక ప్రొవైడర్ శాశ్వతంగా మినహాయించబడినట్లు కనిపిస్తే, కోడ్ `getStatus()`/`canExecute()`ను ఉపయోగించకుండా కచ్చితమైన `state`ను చదువుతున్నదా అని తనిఖీ చేయండి.
+- ఒక ప్రొవైడర్ కీ విఫలమైతే కానీ ఇతరులు పనిచేయాలి, ప్రొవైడర్ బ్రేకర్ కంటే కనెక్షన్ కూల్‌డౌన్‌ను ప్రాధాన్యం ఇవ్వండి.
+- ఒకే మోడల్ విఫలమైతే, కనెక్షన్ కూల్‌డౌన్ కంటే మోడల్ లాక్‌ఔట్‌ను ప్రాధాన్యం ఇవ్వండి.
+- ఒక స్థితి స్వీయ-పునరుద్ధరించాలి అంటే, దానికి భవిష్యత్తు టైమ్‌స్టాంప్/రీసెట్ టైమ్‌ఔట్ మరియు కాలం ముగిసిన స్థితిని పునరుద్ధరించే చదువు మార్గం ఉండాలి. శాశ్వత స్థితులు మాన్యువల్ క్రెడెన్షియల్ లేదా కాన్ఫిగరేషన్ మార్పులు అవసరం.
+
+## కీలక సంప్రదాయాలు
+
+### కోడ్ శైలి
+
+- **2 స్థలాలు**, సెమికోలన్‌లు, డబుల్ కోట్స్, 100 అక్షరాల వెడల్పు, es5 ట్రైలింగ్ కమీలు (lint-staged ద్వారా Prettier ద్వారా అమలు చేయబడింది)
+- **ఇంపోర్ట్స్**: బాహ్య → అంతర్గత (`@/`, `@omniroute/open-sse`) → సంబంధిత
+- **నామకరణం**: ఫైళ్లు=camelCase/kebab, భాగాలు=PascalCase, స్థిరాంకాలు=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = ఎక్కడైనా పొరపాటు; `no-explicit-any` = `open-sse/` మరియు `tests/` లో హెచ్చరిక
+- **TypeScript**: `strict: false`, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్. స్పష్టమైన రకాలపై ప్రాధాన్యత ఇవ్వండి.
+
+### డేటాబేస్
+
+- **ఎప్పుడూ** `src/lib/db/` డొమైన్ మాడ్యూల్‌ల ద్వారా వెళ్లండి — **ఎప్పుడూ** మార్గాలు లేదా హ్యాండ్లర్‌లలో కచ్చితమైన SQL రాయవద్దు
+- **ఎప్పుడూ** `src/lib/localDb.ts` లో లాజిక్ జోడించవద్దు (మరలా-ఎక్స్‌పోర్ట్ పొర మాత్రమే)
+- **ఎప్పుడూ** `localDb.ts` నుండి బారెల్-ఇంపోర్ట్ చేయవద్దు — ప్రత్యేక `db/` మాడ్యూల్‌లను ఇంపోర్ట్ చేయండి
+- DB సింగ్ల్టన్: `getDbInstance()` నుండి `src/lib/db/core.ts` (WAL జర్నలింగ్)
+- మైగ్రేషన్స్: `src/lib/db/migrations/` — వెర్షన్డ్ SQL ఫైళ్లు, ఐడెంపొటెంట్, లావాదేవీలలో నడుస్తాయి
+
+### పొరపాట్ల నిర్వహణ
+
+- ప్రత్యేక పొరపాట్ల రకాలతో try/catch, pino కాంటెక్స్ట్‌తో లాగ్ చేయండి
+- SSE స్ట్రీమ్స్‌లో పొరపాట్లను ఎప్పుడూ మింగవద్దు — శుభ్రపరచడానికి అబార్ట్ సంకేతాలను ఉపయోగించండి
+- సరైన HTTP స్థితి కోడ్‌లను తిరిగి ఇవ్వండి (4xx/5xx)
+
+### భద్రత
+
+- **ఎప్పుడూ** `eval()`, `new Function()`, లేదా సూచించిన eval ఉపయోగించవద్దు
+- Zod స్కీమాలతో అన్ని ఇన్‌పుట్‌లను ధృవీకరించండి
+- విశ్రాంతిలో క్రెడెన్షియల్స్‌ను ఎన్‌క్రిప్ట్ చేయండి (AES-256-GCM)
+- అప్‌స్ట్రీమ్ హెడ్డర్ డెనైల్‌స్టు: `src/shared/constants/upstreamHeaders.ts` — సానిటైజ్, Zod స్కీమాలు, మరియు యూనిట్ పరీక్షలను సవరించినప్పుడు సమానంగా ఉంచండి
+- **ప్రజా అప్‌స్ట్రీమ్ క్రెడెన్షియల్స్** (Gemini/Antigravity/Windsurf-శైలీ OAuth client_id/secret + Firebase వెబ్ కీలు ప్రజా CLIs నుండి తీసుకోబడినవి): **MUST** `resolvePublicCred()` ద్వారా ఎంబెడ్ చేయాలి `open-sse/utils/publicCreds.ts` — **ఎప్పుడూ** స్ట్రింగ్ లిటరల్స్‌గా కాదు. తప్పనిసరిగా నమూనా కోసం `docs/security/PUBLIC_CREDS.md` చూడండి.
+- **పొరపాటు ప్రతిస్పందనలు** (HTTP / SSE / executor / MCP హ్యాండ్లర్): **MUST** `buildErrorBody()` లేదా `sanitizeErrorMessage()` ద్వారా మార్గం చేయాలి `open-sse/utils/error.ts` — **ఎప్పుడూ** కచ్చితమైన `err.stack` లేదా `err.message` ను ప్రతిస్పందన శరీరంలో ఉంచవద్దు. `docs/security/ERROR_SANITIZATION.md` చూడండి.
+- **చర shell కమాండ్లు వేరియబుల్స్ నుండి నిర్మించబడినవి**: `exec()`/`spawn()` ను కాల్ చేసినప్పుడు, రన్‌టైమ్ విలువలను అవసరమైన స్క్రిప్ట్‌తో, `env` ఎంపిక ద్వారా పంపండి (సెల్-ఎస్కేప్ ఆటోమేటిక్‌గా) — **ఎప్పుడూ** అనుమానాస్పద/బాహ్య మార్గాలను స్క్రిప్ట్ శరీరంలో స్ట్రింగ్-ఇంటర్‌పోలేట్ చేయవద్దు. సూచన: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **సురక్షిత-ద్వారా-డిఫాల్ట్ లైబ్రరీలు** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): కొత్త భద్రత-సున్నితమైన ఉపరితలాలను జోడించినప్పుడు Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink పై ప్రాధాన్యత ఇవ్వండి.
 
 ---
 
-## Testing Cheat Sheet
+## సాధారణ సవరణ దృశ్యాలు
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+### కొత్త ప్రొవైడర్‌ను జోడించడం
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+1. `src/shared/constants/providers.ts` లో నమోదు చేయండి (లోడ్ సమయంలో Zod-ధృవీకరించబడింది)
+2. కస్టమ్ లాజిక్ అవసరమైతే `open-sse/executors/` లో ఎక్సిక్యూటర్‌ను జోడించండి ( `BaseExecutor` ను విస్తరించండి)
+3. non-OpenAI ఫార్మాట్ అయితే `open-sse/translator/` లో అనువాదకుడిని జోడించండి
+4. OAuth ఆధారిత అయితే `src/lib/oauth/constants/oauth.ts` లో OAuth కాన్ఫిగరేషన్‌ను జోడించండి — అప్‌స్ట్రీమ్ CLI ప్రజా client_id/secret ను పంపిస్తే, `resolvePublicCred()` ద్వారా ఎంబెడ్ చేయండి ( `docs/security/PUBLIC_CREDS.md` చూడండి), **ఎప్పుడూ** లిటరల్‌గా కాదు
+5. `open-sse/config/providerRegistry.ts` లో మోడల్‌లను నమోదు చేయండి
+6. `tests/unit/` లో పరీక్షలు రాయండి (మీరు కొత్త ఎంబెడెడ్ డిఫాల్ట్‌ను జోడించినట్లయితే publicCreds ఆకారాన్ని ధృవీకరించండి)
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+### కొత్త API మార్గాన్ని జోడించడం
+
+1. `src/app/api/v1/your-route/` కింద డైరెక్టరీని సృష్టించండి
+2. `GET`/`POST` హ్యాండ్లర్‌లతో `route.ts` సృష్టించండి
+3. నమూనాను అనుసరించండి: CORS → Zod శరీర ధృవీకరణ → ఐచ్ఛిక ఆథ్ → హ్యాండ్లర్ డెలిగేషన్
+4. హ్యాండ్లర్ `open-sse/handlers/` లో ఉంటుంది (అక్కడ నుండి ఇంపోర్ట్ చేయండి, ఇన్‌లైన్‌లో కాదు)
+5. పొరపాటు ప్రతిస్పందనలు `buildErrorBody()` / `errorResponse()` ను ఉపయోగిస్తాయి `open-sse/utils/error.ts` (ఆటో-సానిటైజ్డ్ — ఎప్పుడూ `err.stack` లేదా `err.message` ను శరీరంలో కచ్చితంగా ఉంచవద్దు). `docs/security/ERROR_SANITIZATION.md` చూడండి.
+6. పరీక్షలను జోడించండి — పొరపాటు ప్రతిస్పందనలు స్టాక్ ట్రేస్‌లను లీక్ చేయవద్దు అని కనీసం ఒక ధృవీకరణను కలిగి ఉండాలి (`!body.error.message.includes("at /")`)
+
+### కొత్త DB మాడ్యూల్‌ను జోడించడం
+
+1. `src/lib/db/yourModule.ts` ను సృష్టించండి — `./core.ts` నుండి `getDbInstance` ను ఇంపోర్ట్ చేయండి
+2. మీ డొమైన్ పట్టిక(లు) కోసం CRUD ఫంక్షన్‌లను ఎక్స్‌పోర్ట్ చేయండి
+3. కొత్త పట్టికలు అవసరమైతే `src/lib/db/migrations/` లో మైగ్రేషన్‌ను జోడించండి
+4. `src/lib/localDb.ts` నుండి మళ్లీ-ఎక్స్‌పోర్ట్ చేయండి (మళ్లీ-ఎక్స్‌పోర్ట్ జాబితాలో మాత్రమే జోడించండి)
+5. పరీక్షలు రాయండి
+
+### కొత్త MCP టూల్‌ను జోడించడం
+
+1. Zod ఇన్‌పుట్ స్కీమా + అసింక్ హ్యాండ్లర్‌తో `open-sse/mcp-server/tools/` లో టూల్ నిర్వచనాన్ని జోడించండి
+2. టూల్ సెట్‌లో నమోదు చేయండి ( `createMcpServer()` ద్వారా వైర్ చేయబడింది)
+3. సరైన స్కోప్‌లకు కేటాయించండి
+4. పరీక్షలు రాయండి (టూల్ ఆహ్వానం `mcp_audit` పట్టికకు లాగ్ చేయబడింది)
+
+### కొత్త A2A నైపుణ్యాన్ని జోడించడం
+
+1. `src/lib/a2a/skills/` లో నైపుణ్యాన్ని సృష్టించండి (5 ఇప్పటికే ఉన్నాయి: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. నైపుణ్యం పని సందర్భాన్ని (సందేశాలు, మెటాడేటా) పొందుతుంది → నిర్మిత ఫలితాన్ని తిరిగి ఇస్తుంది
+3. `src/lib/a2a/taskExecution.ts` లో `A2A_SKILL_HANDLERS` లో నమోదు చేయండి
+4. `src/app/.well-known/agent.json/route.ts` లో ఎక్స్‌పోజ్ చేయండి (ఏజెంట్ కార్డ్)
+5. `tests/unit/` లో పరీక్షలు రాయండి
+6. `docs/frameworks/A2A-SERVER.md` నైపుణ్య పట్టికలో డాక్యుమెంట్ చేయండి
+
+### కొత్త క్లౌడ్ ఏజెంట్‌ను జోడించడం
+
+1. `CloudAgentBase` ను విస్తరించే `src/lib/cloudAgent/agents/` లో ఏజెంట్ క్లాస్‌ను సృష్టించండి (3 ఇప్పటికే ఉన్నాయి: codex-cloud, devin, jules)
+2. `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources` ను అమలు చేయండి
+3. `src/lib/cloudAgent/registry.ts` లో నమోదు చేయండి
+4. అవసరమైతే OAuth/క్రెడెన్షియల్స్ నిర్వహణను జోడించండి (`src/lib/oauth/providers/`)
+5. పరీక్షలు + `docs/frameworks/CLOUD_AGENT.md` లో డాక్యుమెంట్ చేయండి
+
+### కొత్త గార్డ్రెయిల్ / ఎవాల్ / నైపుణ్యం / వెబ్‌హుక్ ఈవెంట్‌ను జోడించడం
+
+- గార్డ్రెయిల్: `src/lib/guardrails/` → డాక్స్: `docs/security/GUARDRAILS.md`
+- ఎవాల్ సూట్: `src/lib/evals/` → డాక్స్: `docs/frameworks/EVALS.md`
+- నైపుణ్యం (సాండ్‌బాక్స్): `src/lib/skills/` → డాక్స్: `docs/frameworks/SKILLS.md`
+- వెబ్‌హుక్ ఈవెంట్: `src/lib/webhookDispatcher.ts` → డాక్స్: `docs/frameworks/WEBHOOKS.md`
+
+## సూచన డాక్యుమెంటేషన్
+
+ఏదైనా అసాధారణ మార్పు కోసం, మొదట సరిపోయే లోతైన పరిశీలనను చదవండి:
+
+| ప్రాంతం                                              | డాక్యుమెంట్                                                       |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| రెపో నావిగేషన్                                       | `docs/architecture/REPOSITORY_MAP.md`                             |
+| నిర్మాణం                                             | `docs/architecture/ARCHITECTURE.md`                               |
+| ఇంజనీరింగ్ సూచిక                                     | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| ఆటో-కాంబో (9-ఫ్యాక్టర్ స్కోరింగ్, 14 వ్యూహాలు)       | `docs/routing/AUTO-COMBO.md`                                      |
+| ప్రతిఘటన (3 యంత్రాలు)                                | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| కారణం పునరావృతం                                      | `docs/routing/REASONING_REPLAY.md`                                |
+| నైపుణ్యాల ఫ్రేమ్‌వర్క్                               | `docs/frameworks/SKILLS.md`                                       |
+| మెమరీ సిస్టమ్ (FTS5 + Qdrant)                        | `docs/frameworks/MEMORY.md`                                       |
+| క్లౌడ్ ఏజెంట్లు                                      | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| గార్డ్రైల్స్ (PII / ఇంజెక్షన్ / విజన్)               | `docs/security/GUARDRAILS.md`                                     |
+| పబ్లిక్ అప్‌స్ట్రీమ్ క్రెడెన్షియల్స్ (జెమినీ/ఇతరాలు) | `docs/security/PUBLIC_CREDS.md`                                   |
+| పొరపాటు సందేశం శుభ్రపరచడం                            | `docs/security/ERROR_SANITIZATION.md`                             |
+| ఇవాల్స్                                              | `docs/frameworks/EVALS.md`                                        |
+| అనుగుణత / ఆడిట్                                      | `docs/security/COMPLIANCE.md`                                     |
+| వెబ్‌హుక్‌లు                                         | `docs/frameworks/WEBHOOKS.md`                                     |
+| అనుమతి పైప్‌లైన్                                     | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| స్టెల్త్ (TLS / ఫింగర్‌ప్రింట్)                      | `docs/security/STEALTH_GUIDE.md`                                  |
+| ఏజెంట్ ప్రోటోకాల్‌లు (A2A / ACP / క్లౌడ్)            | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| MCP సర్వర్                                           | `docs/frameworks/MCP-SERVER.md`                                   |
+| A2A సర్వర్                                           | `docs/frameworks/A2A-SERVER.md`                                   |
+| API సూచిక + OpenAPI                                  | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| ప్రొవైడర్ కాటలాగ్ (ఆటో-జనరేటెడ్)                     | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| విడుదల ప్రవాహం                                       | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+
+## పరీక్ష
+
+| ఏమిటి                     | ఆదేశం                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| యూనిట్ పరీక్షలు           | `npm run test:unit`                                                              |
+| ఒక్క ఫైల్                 | `node --import tsx/esm --test tests/unit/file.test.ts`                           |
+| విటెస్ట్ (MCP, autoCombo) | `npm run test:vitest`                                                            |
+| E2E (ప్లేవ్రైట్)          | `npm run test:e2e`                                                               |
+| ప్రోటోకాల్ E2E (MCP+A2A)  | `npm run test:protocols:e2e`                                                     |
+| పర్యావరణం                 | `npm run test:ecosystem`                                                         |
+| కవర్ గేట్                 | `npm run test:coverage` (75/75/75/70 — స్టేట్మెంట్స్/లైన్స్/ఫంక్షన్స్/బ్రాంచెస్) |
+| కవర్ నివేదిక              | `npm run coverage:report`                                                        |
+
+**PR నియమం**: మీరు `src/`, `open-sse/`, `electron/`, లేదా `bin/` లో ఉత్పత్తి కోడ్ మార్చినట్లయితే, మీరు అదే PR లో పరీక్షలను చేర్చాలి లేదా నవీకరించాలి.
+
+**పరీక్షా పొర ప్రాధాన్యత**: యూనిట్ మొదట → సమగ్రత (బహుళ-మాడ్యూల్ లేదా DB స్థితి) → e2e (UI/కార్యప్రవాహం మాత్రమే). బగ్ పునరావృతాలను స్వయంచాలక పరీక్షలుగా కోడ్ చేయండి, ఫిక్స్ కు ముందు లేదా దాని పక్కన.
+
+**కోపిలాట్ కవర్ విధానం**: PR ఉత్పత్తి కోడ్ మార్చినప్పుడు మరియు కవర్ 75% (స్టేట్మెంట్స్/లైన్స్/ఫంక్షన్స్) లేదా 70% (బ్రాంచెస్) కంటే తక్కువగా ఉంటే, కేవలం నివేదించకండి — పరీక్షలను చేర్చండి లేదా నవీకరించండి, కవర్ గేట్ ను మళ్లీ నడపండి, తరువాత ధృవీకరణ కోసం అడగండి. PR నివేదికలో నడిపించిన ఆదేశాలు, మారిన పరీక్ష ఫైళ్లు, మరియు తుది కవర్ ఫలితం చేర్చండి.
 
 ---
 
-## Git Workflow
+## గిట్ వర్క్‌ఫ్లో
 
 ```bash
-# Never commit directly to main
+# ప్రధానానికి నేరుగా కమీట్ చేయకండి
 git checkout -b feat/your-feature
-# ... make changes ...
 git commit -m "feat: describe your change"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**బ్రాంచ్ ప్రిఫిక్స్‌లు**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**కమీట్ ఫార్మాట్** (సాంప్రదాయ కమీట్లు): `feat(db): add circuit breaker` — స్కోప్స్: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**హస్కీ హుక్స్**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **ప్రి-కమీట్**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **ప్రి-పుష్**: `npm run test:unit`
 
 ---
 
-## Environment
+## పరిసరాలు
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **రన్‌టైమ్**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, ES మాడ్యూల్స్
+- **TypeScript**: 5.9+, లక్ష్యం ES2022, మాడ్యూల్ esnext, రిజల్యూషన్ బండ్లర్
+- **పాత్ అలియాసులు**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **డిఫాల్ట్ పోర్ట్**: 20128 (API + డాష్‌బోర్డ్ ఒకే పోర్ట్‌లో)
+- **డేటా డైరెక్టరీ**: `DATA_DIR` env var, డిఫాల్ట్ గా `~/.omniroute/`
+- **కీ env vars**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- సెటప్: `cp .env.example .env` తరువాత `JWT_SECRET` (`openssl rand -base64 48`) మరియు `API_KEY_SECRET` (`openssl rand -hex 32`) ను ఉత్పత్తి చేయండి
 
 ---
 
-## Hard Rules (Never Violate)
+## కఠిన నియమాలు
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. రహస్యాలు లేదా క్రెడెన్షియల్స్‌ను ఎప్పుడూ కమీట్ చేయకండి
+2. `localDb.ts` లో లాజిక్‌ను ఎప్పుడూ చేర్చకండి
+3. `eval()` / `new Function()` / సూచించిన eval ను ఎప్పుడూ ఉపయోగించకండి
+4. `main` కు నేరుగా కమీట్ చేయకండి
+5. మార్గాలలో ముడి SQL ను ఎప్పుడూ రాయకండి — `src/lib/db/` మాడ్యూల్స్‌ను ఉపయోగించండి
+6. SSE స్ట్రీమ్స్‌లో పొరపాట్లను ఎప్పుడూ మౌనంగా ఆమోదించకండి
+7. ఎప్పుడూ Zod స్కీమాలతో ఇన్‌పుట్‌లను ధృవీకరించండి
+8. ఉత్పత్తి కోడ్ మార్చినప్పుడు ఎప్పుడూ పరీక్షలను చేర్చండి
+9. కవర్ ≥75% (స్టేట్మెంట్స్, లైన్స్, ఫంక్షన్స్) / ≥70% (బ్రాంచెస్) గా ఉండాలి. ప్రస్తుత కొలత: ~82%.
+10. స్పష్టమైన ఆపరేటర్ ఆమోదం లేకుండా హస్కీ హుక్స్‌ను ఎప్పుడూ దాటించకండి (`--no-verify`, `--no-gpg-sign`).
+11. పబ్లిక్ అప్‌స్ట్రీమ్ OAuth client_id/secret లేదా Firebase వెబ్ కీలు స్ట్రింగ్ లిటరల్స్‌గా ఎప్పుడూ ఎంబెడ్ చేయకండి — ఎప్పుడూ `resolvePublicCred()` ద్వారా వెళ్లండి (`open-sse/utils/publicCreds.ts`). చూడండి `docs/security/PUBLIC_CREDS.md`.
+12. HTTP / SSE / ఎగ్జిక్యూటర్ ప్రతిస్పందనల్లో ముడి `err.stack` / `err.message` ను ఎప్పుడూ తిరిగి ఇవ్వకండి — ఎప్పుడూ `buildErrorBody()` లేదా `sanitizeErrorMessage()` ద్వారా మార్గం చేయండి (`open-sse/utils/error.ts`). చూడండి `docs/security/ERROR_SANITIZATION.md`.
+13. `exec()`/`spawn()` కు పంపబడిన షెల్ స్క్రిప్ట్స్‌లో బాహ్య పాత్‌లు లేదా రన్‌టైమ్ విలువలను ఎప్పుడూ స్ట్రింగ్-ఇంటర్‌పోలేట్ చేయకండి — బదులుగా `env` ఎంపిక ద్వారా పంపండి. సూచన: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. కోడ్‌QL / సీక్రెట్-స్కానింగ్ అలర్ట్‌ను ఎప్పుడూ విస్మరించకండి (a) పై ప్యాటర్న్ డాక్స్‌ను మొదట తనిఖీ చేయడం ద్వారా సహాయాన్ని చూడండి, మరియు (b) విస్మరణ వ్యాఖ్యలో సాంకేతిక న్యాయాన్ని నమోదు చేయండి. ప్రీసిడెంట్: `js/stack-trace-exposure` ఇప్పటికే `sanitizeErrorMessage()` ద్వారా మార్గం చేయబడిన కాల్‌సైట్‌లపై లేవనెత్తబడింది ఇది ఒక తెలిసిన కోడ్‌QL పరిమితి (అనుకూల శుభ్రతలు గుర్తించబడలేదు) — `docs/security/ERROR_SANITIZATION.md` ను సూచిస్తూ `false positive` గా విస్మరించండి.
+15. `isLocalOnlyPath()` వర్గీకరణ లేకుండా పిల్ల ప్రాసెస్‌లను స్పాన్ చేసే మార్గాలను ఎప్పుడూ ప్రదర్శించకండి (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` లో. లూప్‌బ్యాక్ అమలు ఏదైనా ఆథ్ తనిఖీకి ముందు నిర్దిష్టంగా జరుగుతుంది — టన్నెల్ ద్వారా లీకైన JWT ప్రాసెస్ స్పాన్‌ను ప్రేరేపించలదు. చూడండి `docs/security/ROUTE_GUARD_TIERS.md`.
+16. కమీట్ సందేశాలలో `Co-Authored-By` ట్రైలర్లను ఎప్పుడూ చేర్చకండి. కమీట్లు కేవలం రిపాజిటరీ యజమాని యొక్క గిట్ ఐడెంటిటీ (`diegosouzapw`) కింద మాత్రమే కనిపించాలి. `Co-Authored-By: Claude …` పంక్తి GitHub కు కమీట్లను `claude` ఆంత్రోపిక్ ఖాతాకు కేటాయించడానికి కారణమవుతుంది, PR చరిత్రలో నిజమైన రచయితను దాచుతుంది.

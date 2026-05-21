@@ -163,10 +163,10 @@ export default function KiroAuthModal({
               </div>
             </button>
 
-            {/* Google Social Login - HIDDEN */}
+            {/* Google Social Login */}
             <button
-              onClick={() => handleMethodSelect("social-google")}
-              className="hidden w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
+              onClick={() => handleSocialLogin("google")}
+              className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
             >
               <div className="flex items-start gap-3">
                 <span className="material-symbols-outlined text-primary mt-0.5">

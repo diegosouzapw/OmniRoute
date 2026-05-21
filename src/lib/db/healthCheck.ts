@@ -1,6 +1,7 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+import type { SqliteAdapter } from "./adapters/types";
+type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 
 export type DbHealthIssueType =

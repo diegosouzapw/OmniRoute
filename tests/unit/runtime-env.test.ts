@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const childProcess = require("node:child_process");
-const modulePath = path.join(process.cwd(), "scripts/runtime-env.mjs");
+const modulePath = path.join(process.cwd(), "scripts/build/runtime-env.mjs");
 
 const originalSpawn = childProcess.spawn;
 const originalProcessOn = process.on;

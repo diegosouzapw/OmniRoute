@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import os from "node:os";
+import { createRequire } from "node:module";
 
-type AntigravityCredentialsLike = {
+export type AntigravityCredentialsLike = {
   accessToken?: string | null;
   connectionId?: string | null;
   email?: string | null;
@@ -12,6 +12,23 @@ type AntigravityCredentialsLike = {
 const FNV_OFFSET_I64 = -3750763034362895579n;
 const FNV_PRIME_I64 = 1099511628211n;
 const PROCESS_SESSION_ID = crypto.randomUUID();
+const require = createRequire(import.meta.url);
+
+type NodeMachineIdModule = {
+  machineIdSync?: (original?: boolean) => string;
+  default?: {
+    machineIdSync?: (original?: boolean) => string;
+  };
+};
+
+let systemMachineIdSync: ((original?: boolean) => string) | null = null;
+try {
+  const machineIdModule = require("node-machine-id") as NodeMachineIdModule;
+  systemMachineIdSync =
+    machineIdModule.machineIdSync ?? machineIdModule.default?.machineIdSync ?? null;
+} catch {
+  systemMachineIdSync = null;
+}
 
 function toNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -58,12 +75,15 @@ export function generateAntigravityRequestId(): string {
 export function generateAntigravitySessionId(): string {
   const max = 18446744073709551615n; // 2^64 - 1
   const target = 9_000_000_000_000_000_000n;
+  // Rejection sampling: discard values in [limit, max] that would cause modulo bias.
+  // Accepted range [0, limit) divides evenly by target, so value % target is uniform.
   const limit = max - (max % target);
   let value: bigint;
   do {
     value = crypto.randomBytes(8).readBigUInt64BE();
   } while (value >= limit);
-  return `-${(value % target).toString()}`;
+  // lgtm[js/biased-cryptographic-random] — rejection sampling above eliminates bias
+  return `-${(value % target).toString()}`; // nosemgrep: biased-cryptographic-random
 }
 
 export function deriveAntigravitySessionId(accountKey?: string | null): string | null {
@@ -89,23 +109,17 @@ export function getAntigravitySessionId(
   );
 }
 
-const STABLE_MACHINE_ID = crypto
-  .createHash("sha256")
-  .update(`omniroute:machine_id:${os.hostname()}`)
-  .digest("hex");
-
-const FORMATTED_MACHINE_ID = [
-  STABLE_MACHINE_ID.slice(0, 8),
-  STABLE_MACHINE_ID.slice(8, 12),
-  STABLE_MACHINE_ID.slice(12, 16),
-  STABLE_MACHINE_ID.slice(16, 20),
-  STABLE_MACHINE_ID.slice(20, 32),
-].join("-");
-
 export function deriveAntigravityMachineId(
   _credentials?: AntigravityCredentialsLike | null
-): string {
-  return FORMATTED_MACHINE_ID;
+): string | null {
+  try {
+    const systemMachineId = toNonEmptyString(systemMachineIdSync?.(true));
+    if (systemMachineId) return systemMachineId;
+  } catch {
+    // Antigravity Manager omits x-machine-id when machine_uid cannot read the OS id.
+  }
+
+  return null;
 }
 
 export function getAntigravityVscodeSessionId(): string {

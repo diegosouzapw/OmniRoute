@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
+import { getProviderDisplayName } from "@/lib/display/names";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -434,16 +435,19 @@ export default function ApiManagerPageClient() {
   // Debounced search for performance
   const debouncedSearchModel = useDebouncedValue(searchModel, 150);
 
-  // Group models by provider
+  // Group models by provider (issue #2021 — use centralized display helper so
+  // custom OpenAI-/Anthropic-compatible providers don't leak raw synthetic
+  // ids like "openai-compatible-chat-<uuid>" into the grouping label)
   const modelsByProvider = useMemo((): ProviderGroup[] => {
     const grouped: Record<string, Model[]> = {};
     for (const model of allModels) {
-      const provider = model.owned_by || t("unknownProvider");
+      const provider =
+        getProviderDisplayName(model.owned_by) || model.owned_by || t("unknownProvider");
       if (!grouped[provider]) grouped[provider] = [];
       grouped[provider].push(model);
     }
     return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [allModels]);
+  }, [allModels, t]);
 
   // Filter models based on debounced search
   const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
@@ -546,27 +550,6 @@ export default function ApiManagerPageClient() {
         </div>
       )}
 
-      {/* Header Card */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold">{t("keyManagement")}</h2>
-            <p className="text-sm text-text-muted">{t("keyManagementDesc")}</p>
-          </div>
-          <Button
-            icon="add"
-            onClick={() => {
-              setNameError(null);
-              setCreateError(null);
-              clearPageError();
-              setShowAddModal(true);
-            }}
-          >
-            {t("createKey")}
-          </Button>
-        </div>
-      </Card>
-
       {/* Keys List Card */}
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -584,6 +567,17 @@ export default function ApiManagerPageClient() {
               </p>
             </div>
           </div>
+          <Button
+            icon="add"
+            onClick={() => {
+              setNameError(null);
+              setCreateError(null);
+              clearPageError();
+              setShowAddModal(true);
+            }}
+          >
+            {t("createKey")}
+          </Button>
         </div>
 
         <p className="text-sm text-text-muted mb-4">{t("keysSecurityNote")}</p>
@@ -1285,7 +1279,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Max Sessions Limit (T08) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Max Active Sessions</p>
+            <p className="text-sm font-medium text-text-main">{t("maxActiveSessions")}</p>
             <p className="text-xs text-text-muted">
               0 = unlimited. Return 429 when this key exceeds concurrent sticky sessions.
             </p>
@@ -1308,10 +1302,10 @@ const PermissionsModal = memo(function PermissionsModal({
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-text-main">Custom Rate Limits</p>
-              <p className="text-xs text-text-muted">
-                Override global default limits. Leave empty to use defaults.
+              <p className="text-sm font-medium text-text-main">
+                {t("apiManagerCustomRateLimits")}
               </p>
+              <p className="text-xs text-text-muted">{t("apiManagerCustomRateLimitsDesc")}</p>
             </div>
             <button
               type="button"
@@ -1338,9 +1332,11 @@ const PermissionsModal = memo(function PermissionsModal({
                         return next;
                       });
                     }}
-                    placeholder="Requests"
+                    placeholder={t("apiManagerRateLimitRequestsPlaceholder")}
                   />
-                  <span className="text-sm text-text-muted shrink-0">req /</span>
+                  <span className="text-sm text-text-muted shrink-0">
+                    {t("apiManagerRateLimitReqPer")}
+                  </span>
                   <Input
                     type="number"
                     min={1}
@@ -1353,14 +1349,14 @@ const PermissionsModal = memo(function PermissionsModal({
                         return next;
                       });
                     }}
-                    placeholder="Seconds"
+                    placeholder={t("apiManagerRateLimitSecondsPlaceholder")}
                   />
                   <span className="text-sm text-text-muted shrink-0">sec</span>
                   <button
                     type="button"
                     onClick={() => setRateLimits((prev) => prev.filter((_, i) => i !== index))}
                     className="p-2 text-red-500 hover:bg-red-500/10 rounded transition-colors shrink-0"
-                    title="Remove limit"
+                    title={t("apiManagerRemoveLimitTitle")}
                   >
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                   </button>
@@ -1460,7 +1456,7 @@ const PermissionsModal = memo(function PermissionsModal({
                   type="text"
                   value={scheduleTz}
                   onChange={(e) => setScheduleTz(e.target.value)}
-                  placeholder="America/Sao_Paulo"
+                  placeholder={t("apiManagerTimezonePlaceholder")}
                   className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-background text-text-main font-mono"
                 />
                 <p className="text-[10px] text-text-muted mt-1">{t("scheduleTimezoneHint")}</p>
@@ -1472,7 +1468,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Privacy Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">No-Log Payload Privacy</p>
+            <p className="text-sm font-medium text-text-main">{t("noLogPayloadPrivacy")}</p>
             <p className="text-xs text-text-muted">
               Disable request/response payload persistence for this API key.
             </p>
@@ -1522,7 +1518,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Ban Toggle (SECURITY) */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-red-500/20 bg-red-500/5">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-bold text-red-700 dark:text-red-400">Banned Status</p>
+            <p className="text-sm font-bold text-red-700 dark:text-red-400">{t("bannedStatus")}</p>
             <p className="text-xs text-red-600 dark:text-red-300">
               Immediately revoke all access. Used for suspected abuse or compromised keys.
             </p>
@@ -1546,7 +1542,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Management API Access Toggle */}
         <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Management API Access</p>
+            <p className="text-sm font-medium text-text-main">{t("managementApiAccess")}</p>
             <p className="text-xs text-text-muted">
               Allow this key to call management routes (providers, combos, settings) via{" "}
               <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
@@ -1571,7 +1567,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Expiration Date */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Expiration Date</p>
+            <p className="text-sm font-medium text-text-main">{t("expirationDate")}</p>
             <p className="text-xs text-text-muted">
               Key will automatically stop working after this date.
             </p>
@@ -1589,7 +1585,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {/* Management Access */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">Management Access</p>
+            <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
             <p className="text-xs text-text-muted">
               Allow this API key to manage OmniRoute configuration.
             </p>
@@ -1778,7 +1774,7 @@ const PermissionsModal = memo(function PermissionsModal({
         {allConnections.length > 0 && (
           <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-text-main">Allowed Connections</p>
+              <p className="text-sm font-medium text-text-main">{t("allowedConnections")}</p>
               <div className="flex gap-1 p-0.5 bg-surface rounded-md">
                 <button
                   onClick={() => {

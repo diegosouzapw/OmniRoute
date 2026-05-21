@@ -58,7 +58,7 @@ export { COLORS, formatSSE };
 
 type JsonRecord = Record<string, unknown>;
 
-const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
+export const PENDING_REQUEST_CLEARED_MARKER = "__omniroutePendingRequestCleared";
 
 function markPendingRequestCleared(error: Error): Error {
   (error as Error & Record<string, unknown>)[PENDING_REQUEST_CLEARED_MARKER] = true;
@@ -149,6 +149,7 @@ type StreamOptions = {
 type TranslateState = ReturnType<typeof initState> & {
   provider?: string | null;
   toolNameMap?: unknown;
+  signatureNamespace?: string | null;
   usage?: unknown;
   finishReason?: unknown;
   copilotCompatibleReasoning?: boolean;
@@ -544,11 +545,29 @@ export function createSSEStream(options: StreamOptions = {}) {
     onComplete = null,
     onFailure = null,
   } = options;
+  const signatureNamespace = connectionId;
 
   const clientExpectsResponsesStream =
     (mode === STREAM_MODE.PASSTHROUGH
       ? clientResponseFormat === FORMATS.OPENAI_RESPONSES
       : sourceFormat === FORMATS.OPENAI_RESPONSES) === true;
+
+  // Clients whose SSE protocol terminates naturally on the last
+  // provider-shape event (not on a `data: [DONE]` line). Emitting
+  // `[DONE]` to these clients produces a parser error in the SDK and
+  // breaks follow-up turns (Capy/Anthropic SDK: text gets stuck in the
+  // "Thought" area; subsequent /v1/messages calls retry into a corrupt
+  // state). Skip the `[DONE]` for these formats.
+  const clientExpectsClaudeStream =
+    (mode === STREAM_MODE.PASSTHROUGH
+      ? clientResponseFormat === FORMATS.CLAUDE
+      : sourceFormat === FORMATS.CLAUDE) === true;
+
+  // Single source of truth for the [DONE] decision, used at both emission
+  // sites below. Only OpenAI Chat Completions clients expect [DONE];
+  // Responses API and Anthropic SSE terminate on their own protocol events
+  // (response.completed / message_stop respectively).
+  const shouldEmitDoneTerminator = !clientExpectsResponsesStream && !clientExpectsClaudeStream;
 
   let buffer = "";
   let usage: UsageTokenRecord | null = null;
@@ -566,6 +585,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           ...(initState(sourceFormat) as TranslateState),
           provider,
           toolNameMap,
+          signatureNamespace,
           copilotCompatibleReasoning,
           accumulatedContent: "",
         }
@@ -1604,7 +1624,7 @@ export function createSSEStream(options: StreamOptions = {}) {
             if (!doneSent) {
               await emitFinalSseMetadata(controller, usage);
               doneSent = true;
-              if (!clientExpectsResponsesStream) {
+              if (shouldEmitDoneTerminator) {
                 clientPayloadCollector.push({ done: true });
                 const doneOutput = "data: [DONE]\n\n";
                 reqLogger?.appendConvertedChunk?.(doneOutput);
@@ -1800,7 +1820,7 @@ export function createSSEStream(options: StreamOptions = {}) {
           if (!doneSent) {
             await emitFinalSseMetadata(controller, state?.usage as Record<string, unknown> | null);
             doneSent = true;
-            if (!clientExpectsResponsesStream) {
+            if (shouldEmitDoneTerminator) {
               clientPayloadCollector.push({ done: true });
               const doneOutput = "data: [DONE]\n\n";
               reqLogger?.appendConvertedChunk?.(doneOutput);

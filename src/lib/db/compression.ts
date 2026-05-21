@@ -7,6 +7,7 @@ import {
   DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG,
   DEFAULT_COMPRESSION_LANGUAGE_CONFIG,
   DEFAULT_COMPRESSION_CONFIG,
+  DEFAULT_MCP_ACCESSIBILITY_CONFIG,
   DEFAULT_RTK_CONFIG,
   DEFAULT_ULTRA_CONFIG,
   type AggressiveConfig,
@@ -16,6 +17,7 @@ import {
   type CompressionPipelineStep,
   type CompressionConfig,
   type CompressionMode,
+  type McpAccessibilityConfig,
   type RtkConfig,
   type UltraConfig,
 } from "@omniroute/open-sse/services/compression/types.ts";
@@ -488,4 +490,55 @@ export function getDefaultUltraConfig(): UltraConfig {
 
 export function getDefaultRtkConfig(): RtkConfig {
   return { ...DEFAULT_RTK_CONFIG };
+}
+
+function normalizeMcpAccessibilityConfig(value: unknown): McpAccessibilityConfig {
+  const record = toRecord(value);
+  return {
+    ...DEFAULT_MCP_ACCESSIBILITY_CONFIG,
+    ...record,
+    enabled: record.enabled !== false,
+    maxTextChars:
+      typeof record.maxTextChars === "number" && record.maxTextChars > 0
+        ? Math.floor(record.maxTextChars)
+        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.maxTextChars,
+    collapseThreshold:
+      typeof record.collapseThreshold === "number" && record.collapseThreshold > 0
+        ? Math.floor(record.collapseThreshold)
+        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseThreshold,
+    collapseKeepHead:
+      typeof record.collapseKeepHead === "number" && record.collapseKeepHead >= 0
+        ? Math.floor(record.collapseKeepHead)
+        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepHead,
+    collapseKeepTail:
+      typeof record.collapseKeepTail === "number" && record.collapseKeepTail >= 0
+        ? Math.floor(record.collapseKeepTail)
+        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.collapseKeepTail,
+    minLengthToProcess:
+      typeof record.minLengthToProcess === "number" && record.minLengthToProcess > 0
+        ? Math.floor(record.minLengthToProcess)
+        : DEFAULT_MCP_ACCESSIBILITY_CONFIG.minLengthToProcess,
+  };
+}
+
+export async function getMcpAccessibilityConfig(): Promise<McpAccessibilityConfig> {
+  const db = getDbInstance();
+  const row = db
+    .prepare("SELECT value FROM key_value WHERE namespace = ? AND key = ?")
+    .get(NAMESPACE, "mcpAccessibility") as { value: string } | undefined;
+  return normalizeMcpAccessibilityConfig(parseJsonSafe(row?.value ?? null));
+}
+
+export async function setMcpAccessibilityConfig(
+  value: Partial<McpAccessibilityConfig>
+): Promise<void> {
+  const next = normalizeMcpAccessibilityConfig({ ...DEFAULT_MCP_ACCESSIBILITY_CONFIG, ...value });
+  const db = getDbInstance();
+  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    NAMESPACE,
+    "mcpAccessibility",
+    JSON.stringify(next)
+  );
+  compressionSettingsCache = null;
+  invalidateDbCache();
 }

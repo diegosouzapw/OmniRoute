@@ -241,6 +241,42 @@ export function upsertApiKeyProviderConnection(db, input) {
   return connection;
 }
 
+export function removeProviderConnectionByProvider(db, provider) {
+  ensureProviderSchema(db);
+  const result = db
+    .prepare(
+      "DELETE FROM provider_connections WHERE provider = ? AND (auth_type = 'apikey' OR (api_key IS NOT NULL AND api_key != ''))"
+    )
+    .run(provider);
+  return result.changes;
+}
+
+/**
+ * Replace the encrypted API key for a connection and clear any cooldown state.
+ * `encryptedKey` must already be passed through `encryptCredential()`.
+ */
+export function updateProviderApiKey(db, connectionId, encryptedKey) {
+  ensureProviderSchema(db);
+  const now = new Date().toISOString();
+  const result = db
+    .prepare(
+      `UPDATE provider_connections
+         SET api_key = @apiKey,
+             test_status = 'unknown',
+             last_error = NULL,
+             last_error_at = NULL,
+             last_error_type = NULL,
+             last_error_source = NULL,
+             error_code = NULL,
+             rate_limited_until = NULL,
+             backoff_level = 0,
+             updated_at = @updatedAt
+       WHERE id = @id`
+    )
+    .run({ id: connectionId, apiKey: encryptedKey, updatedAt: now });
+  return result.changes;
+}
+
 export function updateProviderTestResult(db, connectionId, result) {
   ensureProviderSchema(db);
   const now = new Date().toISOString();

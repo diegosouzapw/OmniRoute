@@ -1,6 +1,8 @@
 # OmniRoute MCP Server
 
-> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **16 tools** for AI agents.
+> **Model Context Protocol server** that exposes OmniRoute's gateway intelligence as **37 tools** for AI agents.
+>
+> **Source of truth for the full tool catalog and REST surface:** [`docs/frameworks/MCP-SERVER.md`](../../docs/MCP-SERVER.md). This README focuses on architecture, configuration, and integration examples; the catalog below is a summary subset.
 
 The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, custom agents) to **monitor, control, and optimize** the OmniRoute AI gateway programmatically.
 
@@ -18,8 +20,9 @@ The MCP Server allows any AI agent (Claude Desktop, Cursor, VS Code Copilot, cus
 ┌──────────────────────────────────────────────────────────────────┐
 │                      OmniRoute MCP Server                        │
 │  ┌──────────────┐  ┌─────────────────┐  ┌────────────────────┐  │
-│  │ Scope        │  │  16 MCP Tools   │  │   Audit Logger     │  │
-│  │ Enforcement  │──│  (Phase 1 + 2)  │──│   (SHA-256/SQLite) │  │
+│  │ Scope        │  │  37 MCP Tools   │  │   Audit Logger     │  │
+│  │ Enforcement  │──│ (core + memory  │──│   (SHA-256/SQLite) │  │
+│  │              │  │  + skills + …)  │  │                    │  │
 │  └──────────────┘  └────────┬────────┘  └────────────────────┘  │
 └─────────────────────────────┼────────────────────────────────────┘
                               │  HTTP (internal)
@@ -59,7 +62,7 @@ Add to your MCP client configuration:
   "mcpServers": {
     "omniroute": {
       "command": "node",
-      "args": ["path/to/9router/open-sse/mcp-server/server.ts"],
+      "args": ["path/to/omniroute/open-sse/mcp-server/server.ts"],
       "env": {
         "OMNIROUTE_BASE_URL": "http://localhost:20128",
         "OMNIROUTE_API_KEY": "your-key"

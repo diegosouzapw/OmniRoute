@@ -1,0 +1,23 @@
+%% MCP Server tool inventory by category
+%% Reflects: open-sse/mcp-server/tools/* and docs/MCP-SERVER.md
+%% v3.8.0
+flowchart LR
+  MCP["MCP Server<br/>37 tools total"] --> Core["Core (30)"]
+  MCP --> Mem["Memory (3)"]
+  MCP --> Skl["Skills (4)"]
+
+  Core --> Essential["Essential (8)<br/>get_health, list_combos,<br/>switch_combo, check_quota,<br/>route_request, cost_report,<br/>list_models_catalog,<br/>get_combo_metrics"]
+  Core --> Search["Search (1)<br/>web_search"]
+  Core --> Advanced["Advanced (11)<br/>simulate_route, set_budget_guard,<br/>set_routing_strategy,<br/>set_resilience_profile,<br/>test_combo, get_provider_metrics,<br/>best_combo_for_task, explain_route,<br/>get_session_snapshot,<br/>db_health_check, sync_pricing"]
+  Core --> Cache["Cache (2)"]
+  Core --> Compression["Compression (5)"]
+  Core --> Tunnels["1Proxy / Tunnels (3)"]
+
+  Mem --> M1["memory_search"]
+  Mem --> M2["memory_save"]
+  Mem --> M3["memory_delete"]
+
+  Skl --> S1["skill_invoke"]
+  Skl --> S2["skill_list"]
+  Skl --> S3["skill_diagnose"]
+  Skl --> S4["skill_uninstall"]

@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useDisplayBaseUrl } from "@/shared/hooks";
+import { TierTour } from "./steps/TierTour";
 
-const STEP_IDS = ["welcome", "security", "provider", "test", "done"];
-const STEP_ICONS = ["waving_hand", "lock", "dns", "play_circle", "check_circle"];
+const STEP_IDS = ["welcome", "tiers", "security", "provider", "test", "done"];
+const STEP_ICONS = ["waving_hand", "layers", "lock", "dns", "play_circle", "check_circle"];
 
 const COMMON_PROVIDERS = [
   { id: "openai", name: "OpenAI", color: "#10A37F" },
@@ -301,6 +302,9 @@ export default function OnboardingWizard() {
               </div>
             )}
 
+            {/* Tiers */}
+            {currentStep.id === "tiers" && <TierTour />}
+
             {/* Security */}
             {currentStep.id === "security" && (
               <div className="space-y-4">
@@ -463,6 +467,14 @@ export default function OnboardingWizard() {
                   className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
                 >
                   {t("getStarted")}
+                </button>
+              )}
+              {currentStep.id === "tiers" && (
+                <button
+                  onClick={handleNext}
+                  className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
+                >
+                  {t("continue")}
                 </button>
               )}
               {currentStep.id === "security" && (

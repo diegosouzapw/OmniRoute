@@ -34,6 +34,7 @@ import {
   resolveComboBuilderProviderId,
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
+import AutoComboCatalog from "./AutoComboCatalog";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
 import IntelligentComboPanel from "./IntelligentComboPanel";
 import {
@@ -52,8 +53,8 @@ const ProxyConfigModal = dynamic(() => import("@/shared/components/ProxyConfigMo
   ssr: false,
 });
 
-// Validate combo name: letters, numbers, -, _, /, .
-const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.-]+$/;
+// Validate combo name: letters, numbers, spaces, -, _, /, ., [ and ].
+const VALID_NAME_REGEX = /^[a-zA-Z0-9_/.\-\[\] ]+$/;
 
 const STRATEGY_OPTIONS = ROUTING_STRATEGIES.map((strategy) => ({
   value: strategy.value,
@@ -155,6 +156,12 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "Round-robin combo/model limit: max simultaneous requests sent to each model target. This is separate from any provider account-only cap.",
   queueTimeout:
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
+  failoverBeforeRetry:
+    "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
+  maxSetRetries:
+    "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
+  setRetryDelayMs:
+    "Delay between set-level retry attempts, giving transient issues time to resolve.",
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -950,6 +957,7 @@ export default function CombosPage() {
           <h1 className="text-2xl font-semibold">{t("title")}</h1>
           <p className="text-sm text-text-muted mt-1">{t("description")}</p>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] px-2.5 py-1.5">
             <span className="hidden lg:inline text-xs text-text-muted">
@@ -987,6 +995,8 @@ export default function CombosPage() {
           </Button>
         </div>
       </div>
+
+      <AutoComboCatalog />
 
       {showUsageGuide && (
         <ComboUsageGuide
@@ -1423,7 +1433,7 @@ function FieldLabelWithHelp({ label, help, showHelp = true }) {
     <div className="flex items-center gap-1 mb-0.5">
       <label className="text-[10px] text-text-muted">{label}</label>
       {showHelp && (
-        <Tooltip content={help}>
+        <Tooltip position="bottom" content={help}>
           <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
             help
           </span>
@@ -1728,7 +1738,7 @@ function ComboCard({
                 onChange={(e) => handleCompressionOverrideChange(e.target.value)}
                 disabled={isSavingCompression}
                 className="text-xs py-1 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-bg-main text-text-main focus:border-primary focus:outline-none transition-colors disabled:opacity-50 max-w-[130px] md:max-w-none"
-                title="Compression Override"
+                title={t("compressionOverride")}
               >
                 <option value="">Default</option>
                 <option value="off">Off</option>
@@ -3530,6 +3540,94 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           setConfig({
                             ...config,
                             retryDelayMs: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                  {/* failoverBeforeRetry + maxSetRetries + setRetryDelayMs */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5 dark:border-white/5">
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2 py-1">
+                        <input
+                          type="checkbox"
+                          id="failoverBeforeRetry"
+                          checked={!!config.failoverBeforeRetry}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              failoverBeforeRetry: e.target.checked || undefined,
+                            })
+                          }
+                          className="w-3.5 h-3.5 rounded border border-black/20 dark:border-white/20 accent-primary cursor-pointer"
+                        />
+                        <label
+                          htmlFor="failoverBeforeRetry"
+                          className="text-xs text-text-muted cursor-pointer select-none"
+                        >
+                          {t("failoverBeforeRetry")}
+                        </label>
+                        <Tooltip
+                          position="bottom"
+                          content={getI18nOrFallback(
+                            t,
+                            "advancedHelp.failoverBeforeRetry",
+                            ADVANCED_FIELD_HELP_FALLBACK.failoverBeforeRetry
+                          )}
+                        >
+                          <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
+                            help
+                          </span>
+                        </Tooltip>
+                      </div>
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("maxSetRetries")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.maxSetRetries",
+                          ADVANCED_FIELD_HELP_FALLBACK.maxSetRetries
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={config.maxSetRetries ?? ""}
+                        placeholder="0"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            maxSetRetries: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={t("setRetryDelayMs")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.setRetryDelayMs",
+                          ADVANCED_FIELD_HELP_FALLBACK.setRetryDelayMs
+                        )}
+                        showHelp={!isExpertMode}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        max="60000"
+                        step="500"
+                        value={config.setRetryDelayMs ?? ""}
+                        placeholder="2000"
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            setRetryDelayMs: e.target.value ? Number(e.target.value) : undefined,
                           })
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"

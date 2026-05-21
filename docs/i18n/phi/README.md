@@ -190,7 +190,6 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 - **Issues**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
 - **WhatsApp**: [Community Group](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t)
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md), open a PR, or pick a `good first issue`
-- **Original Project**: [9router by decolua](https://github.com/decolua/9router)
 
 ### 🐛 Reporting a Bug?
 
@@ -2267,25 +2266,25 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 ## Dokumentasyon
 
-| Document                                                 | Description                                         |
-| -------------------------------------------------------- | --------------------------------------------------- |
-| [User Guide](docs/USER_GUIDE.md)                         | Providers, combos, CLI integration, deployment      |
-| [API Reference](docs/API_REFERENCE.md)                   | All endpoints with examples                         |
-| [MCP Server](open-sse/mcp-server/README.md)              | 25 MCP tools, IDE configs, Python/TS/Go clients     |
-| [A2A Server](src/lib/a2a/README.md)                      | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
-| [Auto-Combo Engine](docs/AUTO-COMBO.md)                  | 6-factor scoring, mode packs, self-healing          |
-| [Context Relay](docs/features/context-relay.md)          | Session handoff strategy for account rotation       |
-| [Troubleshooting](docs/TROUBLESHOOTING.md)               | Common problems and solutions                       |
-| [Architecture](docs/ARCHITECTURE.md)                     | System architecture and internals                   |
-| [Codebase Documentation](docs/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
-| [Uninstall Guide](docs/UNINSTALL.md)                     | Clean removal for all install methods               |
-| [Environment Config](docs/ENVIRONMENT.md)                | Complete `.env` variables and references            |
-| [Contributing](CONTRIBUTING.md)                          | Development setup and guidelines                    |
-| [OpenAPI Spec](docs/openapi.yaml)                        | OpenAPI 3.0 specification                           |
-| [Security Policy](SECURITY.md)                           | Vulnerability reporting and security practices      |
-| [VM Deployment](docs/VM_DEPLOYMENT_GUIDE.md)             | Complete guide: VM + nginx + Cloudflare setup       |
-| [Features Gallery](docs/FEATURES.md)                     | Visual dashboard tour with screenshots              |
-| [Release Checklist](docs/RELEASE_CHECKLIST.md)           | Pre-release validation steps                        |
+| Document                                                              | Description                                         |
+| --------------------------------------------------------------------- | --------------------------------------------------- |
+| [User Guide](docs/guides/USER_GUIDE.md)                               | Providers, combos, CLI integration, deployment      |
+| [API Reference](docs/reference/API_REFERENCE.md)                      | All endpoints with examples                         |
+| [MCP Server](open-sse/mcp-server/README.md)                           | 25 MCP tools, IDE configs, Python/TS/Go clients     |
+| [A2A Server](src/lib/a2a/README.md)                                   | JSON-RPC 2.0 protocol, skills, streaming, task mgmt |
+| [Auto-Combo Engine](docs/routing/AUTO-COMBO.md)                       | 6-factor scoring, mode packs, self-healing          |
+| [Context Relay](docs/features/context-relay.md)                       | Session handoff strategy for account rotation       |
+| [Troubleshooting](docs/guides/TROUBLESHOOTING.md)                     | Common problems and solutions                       |
+| [Architecture](docs/architecture/ARCHITECTURE.md)                     | System architecture and internals                   |
+| [Codebase Documentation](docs/architecture/CODEBASE_DOCUMENTATION.md) | Beginner-friendly codebase walkthrough              |
+| [Uninstall Guide](docs/guides/UNINSTALL.md)                           | Clean removal for all install methods               |
+| [Environment Config](docs/reference/ENVIRONMENT.md)                   | Complete `.env` variables and references            |
+| [Contributing](CONTRIBUTING.md)                                       | Development setup and guidelines                    |
+| [OpenAPI Spec](docs/reference/openapi.yaml)                           | OpenAPI 3.0 specification                           |
+| [Security Policy](SECURITY.md)                                        | Vulnerability reporting and security practices      |
+| [VM Deployment](docs/ops/VM_DEPLOYMENT_GUIDE.md)                      | Complete guide: VM + nginx + Cloudflare setup       |
+| [Features Gallery](docs/guides/FEATURES.md)                           | Visual dashboard tour with screenshots              |
+| [Release Checklist](docs/ops/RELEASE_CHECKLIST.md)                    | Pre-release validation steps                        |
 
 ---
 
@@ -2358,8 +2357,6 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
 </a>
 
 ## 🙏 Acknowledgments
-
-Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
 
 Special thanks to **[CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)** — the original Go implementation that inspired this JavaScript port.
 

@@ -133,7 +133,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
         }),
       })
     );
-    assert.equal(postAuthRes.status, 401);
+    assert.equal(postAuthRes.status, 403);
 
     const patchAuthRes = await proxyV1Route.PATCH(
       new Request("http://localhost/api/v1/management/proxies", {
@@ -142,7 +142,7 @@ test("v1 management proxies main route covers auth, lookup variants, update and 
         body: JSON.stringify({ id: "proxy-1", notes: "denied" }),
       })
     );
-    assert.equal(patchAuthRes.status, 401);
+    assert.equal(patchAuthRes.status, 403);
 
     const deleteAuthRes = await proxyV1Route.DELETE(
       new Request("http://localhost/api/v1/management/proxies?id=proxy-1", {

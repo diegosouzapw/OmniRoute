@@ -133,11 +133,24 @@ export class GeminiCLIExecutor extends BaseExecutor {
     model?: string
   ) {
     void clientHeaders;
+
+    // Fallback to internal tracker if model not explicitly passed (matches older interface calls)
+    const activeModel = model || this._currentModel || "unknown";
+
     const raw = getGeminiCliHeaders(
-      normalizeGeminiModel(model || "unknown"),
+      normalizeGeminiModel(activeModel),
       credentials.accessToken,
       stream ? "*/*" : "application/json"
     );
+
+    if (credentials.apiKey) {
+      raw["x-goog-api-key"] = credentials.apiKey;
+      // getGeminiCliHeaders adds Authorization: Bearer undefined if accessToken is empty, so we clean it up
+      if (!credentials.accessToken) {
+        delete raw["Authorization"];
+      }
+    }
+
     return scrubProxyAndFingerprintHeaders(raw);
   }
 
@@ -310,13 +323,15 @@ export class GeminiCLIExecutor extends BaseExecutor {
         ? cloneGeminiCliRecord(bodyRecord.request as Record<string, any>)
         : {};
 
+    const storedProject =
+      bodyRecord.project ||
+      credentials.projectId ||
+      (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
+      "";
+
     const envelope: Record<string, any> = {
       model: currentModel,
-      project:
-        bodyRecord.project ||
-        credentials.projectId ||
-        (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
-        "",
+      project: storedProject,
       user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
       request: {
         ...requestRecord,
@@ -330,9 +345,9 @@ export class GeminiCLIExecutor extends BaseExecutor {
       }
     }
 
-    // Refresh the project ID via loadCodeAssist (cached for 30s) only when project not provided
-    // and credentials have an access token
-    if (!envelope.project && credentials.accessToken) {
+    // Native Gemini CLI refreshes the Cloud Code project periodically because
+    // stored project IDs can go stale. Keep the stored value as a fallback.
+    if (credentials.accessToken) {
       const freshProject = await this.refreshProject(credentials.accessToken, currentModel);
       if (freshProject) {
         envelope.project = freshProject;

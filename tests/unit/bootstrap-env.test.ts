@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
 
-import { bootstrapEnv } from "../../scripts/bootstrap-env.mjs";
+import { bootstrapEnv } from "../../scripts/build/bootstrap-env.mjs";
 
 function withTempEnv(fn) {
   const originalCwd = process.cwd();
@@ -70,14 +70,14 @@ test("bootstrapEnv strips matching quotes from env values", () => {
     fs.mkdirSync(dataDir, { recursive: true });
     fs.writeFileSync(
       path.join(dataDir, "server.env"),
-      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.137 (external, cli)"\n',
+      'JWT_SECRET="jwt-from-server-env"\nCLAUDE_USER_AGENT="claude-cli/2.1.145 (external, cli)"\n',
       "utf8"
     );
 
     const env = bootstrapEnv({ quiet: true });
 
     assert.equal(env.JWT_SECRET, "jwt-from-server-env");
-    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.137 (external, cli)");
+    assert.equal(env.CLAUDE_USER_AGENT, "claude-cli/2.1.145 (external, cli)");
   });
 });
 

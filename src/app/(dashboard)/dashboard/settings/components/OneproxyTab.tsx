@@ -140,7 +140,7 @@ export default function OneproxyTab() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-text-main">1proxy Free Proxy Marketplace</h2>
+          <h2 className="text-lg font-semibold text-text-main">{t("oneproxyTitle")}</h2>
           <p className="text-sm text-text-muted mt-1">
             Fetch and rotate free validated proxies from the 1proxy community platform
           </p>
@@ -173,7 +173,7 @@ export default function OneproxyTab() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="p-4">
             <div className="text-2xl font-bold text-text-main">{stats.total}</div>
-            <div className="text-sm text-text-muted">Total Proxies</div>
+            <div className="text-sm text-text-muted">{t("oneproxyTotalProxies")}</div>
           </Card>
           <Card className="p-4">
             <div className="text-2xl font-bold text-green-600">{stats.active}</div>
@@ -183,13 +183,15 @@ export default function OneproxyTab() {
             <div className="text-2xl font-bold text-text-main">
               {stats.avgQuality != null ? `${stats.avgQuality}` : "—"}
             </div>
-            <div className="text-sm text-text-muted">Avg Quality</div>
+            <div className="text-sm text-text-muted">{t("oneproxyAvgQuality")}</div>
           </Card>
           <Card className="p-4">
             <div className="text-2xl font-bold text-text-main">
-              {status?.lastSyncAt ? new Date(status.lastSyncAt).toLocaleTimeString() : "Never"}
+              {status?.lastSyncAt
+                ? new Date(status.lastSyncAt).toLocaleTimeString()
+                : t("oneproxyNever")}
             </div>
-            <div className="text-sm text-text-muted">Last Sync</div>
+            <div className="text-sm text-text-muted">{t("oneproxyLastSync")}</div>
           </Card>
         </div>
       )}
@@ -201,7 +203,7 @@ export default function OneproxyTab() {
             onChange={(e) => setFilterProtocol(e.target.value)}
             className="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 text-text-main text-sm border border-border"
           >
-            <option value="">All Protocols</option>
+            <option value="">{t("oneproxyAllProtocols")}</option>
             <option value="http">HTTP</option>
             <option value="https">HTTPS</option>
             <option value="socks4">SOCKS4</option>
@@ -209,14 +211,14 @@ export default function OneproxyTab() {
           </select>
           <input
             type="text"
-            placeholder="Country code (e.g. US)"
+            placeholder={t("oneproxyCountryCodePlaceholder")}
             value={filterCountry}
             onChange={(e) => setFilterCountry(e.target.value)}
             className="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 text-text-main text-sm border border-border w-40"
           />
           <input
             type="number"
-            placeholder="Min quality"
+            placeholder={t("oneproxyMinQualityPlaceholder")}
             value={minQuality}
             onChange={(e) => setMinQuality(e.target.value)}
             className="px-3 py-2 rounded-lg bg-black/5 dark:bg-white/5 text-text-main text-sm border border-border w-32"
@@ -226,7 +228,7 @@ export default function OneproxyTab() {
 
       <Card className="p-4">
         {loading ? (
-          <div className="text-center py-8 text-text-muted">Loading proxies...</div>
+          <div className="text-center py-8 text-text-muted">{t("oneproxyLoadingProxies")}</div>
         ) : proxies.length === 0 ? (
           <div className="text-center py-8 text-text-muted">
             No 1proxy proxies found. Click &quot;Sync Now&quot; to fetch free proxies.
@@ -300,25 +302,27 @@ export default function OneproxyTab() {
 
       {status && (
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-text-main mb-2">Sync Status</h3>
+          <h3 className="text-sm font-semibold text-text-main mb-2">
+            {t("oneproxySyncStatusTitle")}
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-text-muted">Last sync: </span>
+              <span className="text-text-muted">{t("oneproxyLastSyncLabel")} </span>
               <span className={status.lastSyncSuccess ? "text-green-600" : "text-red-600"}>
-                {status.lastSyncSuccess ? "Success" : "Failed"}
+                {status.lastSyncSuccess ? t("oneproxySuccess") : t("oneproxyFailed")}
               </span>
             </div>
             <div>
-              <span className="text-text-muted">Proxies fetched: </span>
+              <span className="text-text-muted">{t("oneproxyProxiesFetched")} </span>
               <span className="text-text-main">{status.lastSyncCount}</span>
             </div>
             <div>
-              <span className="text-text-muted">Consecutive failures: </span>
+              <span className="text-text-muted">{t("oneproxyConsecutiveFailures")} </span>
               <span className="text-text-main">{status.consecutiveFailures}</span>
             </div>
             {status.lastSyncError && (
               <div className="col-span-full">
-                <span className="text-text-muted">Error: </span>
+                <span className="text-text-muted">{t("oneproxyErrorLabel")} </span>
                 <span className="text-red-600 text-xs">{status.lastSyncError}</span>
               </div>
             )}

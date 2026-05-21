@@ -27,6 +27,12 @@ const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
 
 type JsonRecord = Record<string, unknown>;
 
+const DEEPSEEK_V4_SANITIZER_MODEL_PATTERN = /deepseek[-/]v4/i;
+
+function isDeepSeekV4Model(model: unknown): boolean {
+  return typeof model === "string" && DEEPSEEK_V4_SANITIZER_MODEL_PATTERN.test(model);
+}
+
 function toRecord(value: unknown): JsonRecord | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as JsonRecord;
@@ -108,6 +114,7 @@ export function extractThinkingFromContent(text: string): {
 export function sanitizeOpenAIResponse(body: unknown): unknown {
   const bodyRecord = toRecord(body);
   if (!bodyRecord) return body;
+  const isDeepSeekV4 = isDeepSeekV4Model(bodyRecord.model);
 
   // Build sanitized response with only allowed top-level fields
   const sanitized: JsonRecord = {};
@@ -120,7 +127,9 @@ export function sanitizeOpenAIResponse(body: unknown): unknown {
 
   // Sanitize choices
   if (Array.isArray(bodyRecord.choices)) {
-    sanitized.choices = bodyRecord.choices.map((choice, idx) => sanitizeChoice(choice, idx));
+    sanitized.choices = bodyRecord.choices.map((choice, idx) =>
+      sanitizeChoice(choice, idx, isDeepSeekV4)
+    );
   } else {
     sanitized.choices = [];
   }
@@ -182,7 +191,7 @@ export function sanitizeResponsesApiResponse(body: unknown): unknown {
 /**
  * Sanitize a single choice object.
  */
-function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
+function sanitizeChoice(choice: unknown, defaultIndex: number, isDeepSeekV4 = false): JsonRecord {
   const choiceRecord = toRecord(choice);
   const sanitized: JsonRecord = {
     index: defaultIndex,
@@ -199,7 +208,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
 
   // Sanitize message (non-streaming) or delta (streaming)
   if (choiceRecord?.message !== undefined) {
-    sanitized.message = sanitizeMessage(choiceRecord.message);
+    sanitized.message = sanitizeMessage(choiceRecord.message, isDeepSeekV4);
   }
   if (choiceRecord?.delta !== undefined) {
     sanitized.delta = sanitizeMessage(choiceRecord.delta);
@@ -216,7 +225,7 @@ function sanitizeChoice(choice: unknown, defaultIndex: number): JsonRecord {
 /**
  * Sanitize a message object, extracting <think> tags if present.
  */
-function sanitizeMessage(msg: unknown): unknown {
+function sanitizeMessage(msg: unknown, isDeepSeekV4 = false): unknown {
   const msgRecord = toRecord(msg);
   if (!msgRecord) return msg;
 
@@ -285,7 +294,13 @@ function sanitizeMessage(msg: unknown): unknown {
   // Non-streaming responses should not expose both visible content and reasoning_content.
   // Some clients drop the visible assistant text or render duplicated panels when both fields
   // are present in the final payload. Keep reasoning_content only for reasoning-only messages.
-  if (sanitized.reasoning_content !== undefined && hasVisibleMessageContent(sanitized.content)) {
+  if (
+    sanitized.reasoning_content !== undefined &&
+    hasVisibleMessageContent(sanitized.content) &&
+    !msgRecord.tool_calls &&
+    !msgRecord.function_call &&
+    !isDeepSeekV4
+  ) {
     delete sanitized.reasoning_content;
   }
 

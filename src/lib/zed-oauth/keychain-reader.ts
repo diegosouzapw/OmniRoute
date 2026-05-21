@@ -13,6 +13,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { isRunningInDocker } from "./dockerDetect";
 
 /** Minimal keytar surface (CJS/native; typings may not expose `default`). */
 type KeytarModule = {
@@ -132,7 +133,7 @@ export async function discoverZedCredentials(): Promise<ZedCredential[]> {
         });
       }
     } catch (error: any) {
-      console.debug(`No credentials found for ${pattern}:`, error?.message || error);
+      console.debug("No credentials found for %s:", pattern, error?.message || error);
       // Continue to next pattern
     }
   }
@@ -186,7 +187,7 @@ export async function getZedCredential(provider: string): Promise<ZedCredential 
         }
       }
     } catch (error: any) {
-      console.debug(`Failed to get credential for ${pattern}:`, error?.message || error);
+      console.debug("Failed to get credential for %s:", pattern, error?.message || error);
     }
   }
 

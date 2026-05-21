@@ -19,6 +19,7 @@ process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "omniroute-reasoning-"));
 import {
   cacheReasoningFromAssistantMessage,
   cacheReasoning,
+  cacheReasoningByKey,
   cacheReasoningBatch,
   deleteReasoningCacheEntry,
   getReasoningCacheServiceEntries,
@@ -26,11 +27,13 @@ import {
   recordReplay,
   getReasoningCacheServiceStats,
   clearReasoningCacheAll,
+  isDeepSeekReasoningModel,
   requiresReasoningReplay,
   cleanupReasoningCache,
 } from "../../open-sse/services/reasoningCache.ts";
 import { translateRequest } from "../../open-sse/translator/index.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";
+import { ensureToolCallIds } from "../../open-sse/translator/helpers/toolCallHelper.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
 import { getReasoningCache, setReasoningCache } from "../../src/lib/db/reasoningCache.ts";
 import { DELETE, GET } from "../../src/app/api/cache/reasoning/route.ts";
@@ -124,6 +127,37 @@ describe("Reasoning Replay Cache — Service Layer", () => {
     assert.equal(lookupReasoning("call_capture_2"), "Captured assistant reasoning");
   });
 
+  it("should keep request message cache keys stable when tool call IDs change", () => {
+    clearReasoningCacheAll();
+
+    const requestId = "req_reasoning_stable";
+    const messageIndex = 2;
+    const cacheKey = `${requestId}:${messageIndex}`;
+    const body = {
+      messages: [
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_before_normalization",
+              type: "function",
+              function: { name: "lookup", arguments: { city: "Seoul" } },
+            },
+          ],
+        },
+        { role: "tool", content: "Sunny" },
+      ],
+    };
+
+    cacheReasoning(cacheKey, "deepseek", "deepseek-reasoner", "Stable cached reasoning");
+    const originalToolCallId = body.messages[0].tool_calls[0].id;
+
+    ensureToolCallIds(body, { use9CharId: true });
+
+    assert.notEqual(body.messages[0].tool_calls[0].id, originalToolCallId);
+    assert.equal(lookupReasoning(cacheKey), "Stable cached reasoning");
+  });
+
   it("should capture provider reasoning alias when reasoning_content is absent", () => {
     clearReasoningCacheAll();
 
@@ -139,6 +173,53 @@ describe("Reasoning Replay Cache — Service Layer", () => {
 
     assert.equal(cached, 1);
     assert.equal(lookupReasoning("call_capture_alias"), "Alias reasoning");
+  });
+
+  it("should cache assistant reasoning without tool calls by request and message index", () => {
+    clearReasoningCacheAll();
+
+    const cached = cacheReasoningFromAssistantMessage(
+      {
+        role: "assistant",
+        reasoning_content: "No tool call reasoning",
+      },
+      "deepseek",
+      "deepseek-reasoner",
+      { requestId: "req_no_tools", messageIndex: 3 }
+    );
+
+    assert.equal(cached, 1);
+    assert.equal(lookupReasoning("request:req_no_tools:message:3"), "No tool call reasoning");
+  });
+
+  it("should skip assistant reasoning without tool calls when stable key context is absent", () => {
+    clearReasoningCacheAll();
+
+    const cached = cacheReasoningFromAssistantMessage(
+      {
+        role: "assistant",
+        reasoning_content: "Missing key context",
+      },
+      "deepseek",
+      "deepseek-reasoner"
+    );
+
+    assert.equal(cached, 0);
+    assert.equal(lookupReasoning("request:req_missing:message:0"), null);
+  });
+
+  it("should store arbitrary reasoning cache keys", () => {
+    clearReasoningCacheAll();
+
+    cacheReasoningByKey(
+      "request:req_direct:message:1",
+      "deepseek",
+      "deepseek-reasoner",
+      "Keyed plan"
+    );
+
+    assert.equal(lookupReasoning("request:req_direct:message:1"), "Keyed plan");
+    assert.equal(getReasoningCache("request:req_direct:message:1")?.reasoning, "Keyed plan");
   });
 
   it("should not overwrite if same tool_call_id is cached again", () => {
@@ -311,47 +392,114 @@ describe("Reasoning Replay Cache — Service Layer", () => {
 
 describe("Reasoning Replay Cache — Provider Detection", () => {
   it("should detect deepseek as requiring replay", () => {
-    assert.equal(requiresReasoningReplay("deepseek", "deepseek-chat"), true);
+    assert.equal(requiresReasoningReplay({ provider: "deepseek", model: "deepseek-chat" }), true);
   });
 
   it("should detect opencode-go as requiring replay", () => {
-    assert.equal(requiresReasoningReplay("opencode-go", "some-model"), true);
+    assert.equal(requiresReasoningReplay({ provider: "opencode-go", model: "some-model" }), true);
   });
 
   it("should detect siliconflow as requiring replay", () => {
-    assert.equal(requiresReasoningReplay("siliconflow", "deepseek-r1"), true);
+    assert.equal(requiresReasoningReplay({ provider: "siliconflow", model: "deepseek-r1" }), true);
   });
 
   it("should detect deepseek-r1 model pattern", () => {
-    assert.equal(requiresReasoningReplay("unknown-provider", "deepseek-r1"), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "deepseek-r1" }),
+      true
+    );
   });
 
   it("should detect deepseek-reasoner model pattern", () => {
-    assert.equal(requiresReasoningReplay("unknown-provider", "deepseek-reasoner"), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "deepseek-reasoner" }),
+      true
+    );
+  });
+
+  it("should detect DeepSeek V4 model pattern", () => {
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "deepseek/v4-pro" }),
+      true
+    );
+  });
+
+  it("should detect DeepSeek V4 thinking mode explicitly", () => {
+    assert.equal(
+      isDeepSeekReasoningModel({
+        provider: "unknown-provider",
+        model: "deepseek-v4.flash",
+        thinkingEnabled: true,
+      }),
+      true
+    );
+  });
+
+  it("should NOT detect DeepSeek V4 when thinking mode is disabled", () => {
+    assert.equal(
+      isDeepSeekReasoningModel({
+        provider: "unknown-provider",
+        model: "deepseek-v4.flash",
+        thinkingEnabled: false,
+      }),
+      false
+    );
   });
 
   it("should detect kimi-k2 model pattern", () => {
-    assert.equal(requiresReasoningReplay("unknown-provider", "kimi-k2.5"), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "kimi-k2.5" }),
+      true
+    );
   });
 
   it("should detect qwq model pattern", () => {
-    assert.equal(requiresReasoningReplay("unknown-provider", "qwq-32b-preview"), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "qwq-32b-preview" }),
+      true
+    );
   });
 
   it("should detect qwen-thinking model pattern", () => {
-    assert.equal(requiresReasoningReplay("unknown-provider", "qwen3-thinking-235b"), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "qwen3-thinking-235b" }),
+      true
+    );
   });
 
   it("should detect GLM thinking model pattern", () => {
-    assert.equal(requiresReasoningReplay("glm", "glm-5-thinking"), true);
+    assert.equal(requiresReasoningReplay({ provider: "glm", model: "glm-5-thinking" }), true);
+  });
+
+  it("should detect xiaomi-mimo provider", () => {
+    // MiMo enforces reasoning_content echo on subsequent turns; without
+    // replay the upstream returns 400 "Param Incorrect: The reasoning_content
+    // in the thinking mode must be passed back to the API."
+    assert.equal(
+      requiresReasoningReplay({ provider: "xiaomi-mimo", model: "mimo-v2.5-pro" }),
+      true
+    );
+    assert.equal(requiresReasoningReplay({ provider: "XIAOMI-MIMO", model: "mimo-v2.5" }), true);
+  });
+
+  it("should detect mimo-v* model pattern under any provider id", () => {
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "mimo-v2.5-pro" }),
+      true
+    );
+    assert.equal(requiresReasoningReplay({ provider: "unknown-provider", model: "mimo-v3" }), true);
+    assert.equal(
+      requiresReasoningReplay({ provider: "unknown-provider", model: "MimoV2.5-pro" }),
+      true
+    );
   });
 
   it("should NOT detect a generic openai model", () => {
-    assert.equal(requiresReasoningReplay("openai", "gpt-4o"), false);
+    assert.equal(requiresReasoningReplay({ provider: "openai", model: "gpt-4o" }), false);
   });
 
   it("should NOT detect claude as requiring replay", () => {
-    assert.equal(requiresReasoningReplay("anthropic", "claude-opus-4"), false);
+    assert.equal(requiresReasoningReplay({ provider: "anthropic", model: "claude-opus-4" }), false);
   });
 });
 

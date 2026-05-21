@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Shown when OmniRoute was started with auto-generated secrets (zero-config mode).
  * The banner is dismissable and persists only for the current session.
  */
 export default function BootstrapBanner() {
+  const t = useTranslations("common");
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
@@ -46,7 +48,7 @@ export default function BootstrapBanner() {
       <button
         onClick={() => setDismissed(true)}
         className="shrink-0 text-amber-600/60 hover:text-amber-700 dark:text-amber-400/60 dark:hover:text-amber-300 transition-colors ml-1"
-        aria-label="Dismiss"
+        aria-label={t("bootstrapBannerDismiss")}
       >
         ✕
       </button>

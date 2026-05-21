@@ -5,7 +5,7 @@ import {
   buildSmokeEnv,
   FATAL_LOG_PATTERNS,
   LINUX_EXECUTABLE_NAMES,
-} from "../../scripts/smoke-electron-packaged.mjs";
+} from "../../scripts/dev/smoke-electron-packaged.mjs";
 
 test("electron smoke discovers the default Linux executable name", () => {
   assert.ok(LINUX_EXECUTABLE_NAMES.includes("omniroute-desktop"));

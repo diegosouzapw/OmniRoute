@@ -23,6 +23,7 @@ interface Notification {
   duration: number;
   dismissible: boolean;
   createdAt: number;
+  onClick?: () => void;
 }
 
 interface NotificationStore {
@@ -33,6 +34,7 @@ interface NotificationStore {
     title?: string;
     duration?: number;
     dismissible?: boolean;
+    onClick?: () => void;
   }) => number;
   removeNotification: (id: number) => void;
   clearAll: () => void;
@@ -55,6 +57,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       duration: notification.duration ?? 5000,
       dismissible: notification.dismissible ?? true,
       createdAt: Date.now(),
+      onClick: notification.onClick,
     };
 
     set((s) => ({
@@ -86,7 +89,8 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   error: (message, title) =>
     get().addNotification({ type: "error", message, title, duration: 8000 }),
 
-  warning: (message, title) => get().addNotification({ type: "warning", message, title }),
+  warning: (message, title) =>
+    get().addNotification({ type: "warning", message, title, duration: 10000 }),
 
   info: (message, title) => get().addNotification({ type: "info", message, title }),
 }));

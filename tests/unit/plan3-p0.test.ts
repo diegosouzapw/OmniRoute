@@ -40,8 +40,8 @@ test("getModelInfoCore keeps unprefixed gpt-5.5 on the OpenAI fallback", async (
   assert.equal(info.model, "gpt-5.5");
 });
 
-test("getModelInfoCore keeps explicit gpt-5.5-medium separate from gpt-5.5", async () => {
-  const info = await getModelInfoCore("gpt-5.5-medium", {});
+test("getModelInfoCore keeps explicit cx/gpt-5.5-medium separate from gpt-5.5", async () => {
+  const info = await getModelInfoCore("cx/gpt-5.5-medium", {});
   assert.equal(info.provider, "codex");
   assert.equal(info.model, "gpt-5.5-medium");
 });
@@ -315,6 +315,25 @@ test("CodexExecutor preserves native responses payloads for Codex passthrough", 
   assert.equal(transformed.reasoning.effort, "high");
   assert.equal(transformed.reasoning_effort, undefined);
   assert.ok(!("_nativeCodexPassthrough" in transformed));
+});
+
+test("CodexExecutor gives model reasoning suffix precedence over client defaults", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.5-xhigh",
+    {
+      model: "gpt-5.5-xhigh",
+      input: [],
+      reasoning: { effort: "medium", summary: "auto" },
+      reasoning_effort: "low",
+    },
+    true,
+    {}
+  );
+
+  assert.equal(transformed.model, "gpt-5.5");
+  assert.deepEqual(transformed.reasoning, { effort: "xhigh", summary: "auto" });
+  assert.equal(transformed.reasoning_effort, undefined);
 });
 
 test("CodexExecutor strips streaming fields for compact passthrough", () => {

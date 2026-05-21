@@ -67,6 +67,26 @@ const CLI_TOOLS: Record<string, any> = {
     healthcheckTimeoutMs: 4000,
     paths: {},
   },
+  devin: {
+    defaultCommand: "devin",
+    envBinKey: "CLI_DEVIN_BIN",
+    requiresBinary: true,
+    // devin acp cold-start can take a few seconds on first run
+    healthcheckTimeoutMs: 12000,
+    paths: {
+      // %APPDATA%\devin\config.json  (Windows)
+      // ~/.config/devin/config.json  (Linux/macOS)
+      get config() {
+        return isWindows()
+          ? path.join(
+              process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+              "devin",
+              "config.json"
+            )
+          : path.join(os.homedir(), ".config", "devin", "config.json");
+      },
+    },
+  },
   cline: {
     defaultCommand: "cline",
     envBinKey: "CLI_CLINE_BIN",
@@ -146,6 +166,17 @@ const CLI_TOOLS: Record<string, any> = {
       env: ".qwen/.env",
     },
   },
+  "gemini-cli": {
+    defaultCommand: "gemini",
+    envBinKey: "CLI_GEMINI_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 8000,
+    paths: {
+      auth: ".gemini/oauth_creds.json",
+      accounts: ".gemini/google_accounts.json",
+      settings: ".gemini/settings.json",
+    },
+  },
 };
 
 const isWindows = () => process.platform === "win32";
@@ -187,6 +218,13 @@ const runProcess = (
   } = {}
 ): Promise<any> =>
   new Promise((resolve) => {
+    // Guard: reject commands with shell metacharacters — command comes from
+    // server-controlled env vars/config, not HTTP input, but belt-and-suspenders.
+    if (/[;&|`$<>\n\r]/.test(command)) {
+      resolve({ ok: false, stdout: "", stderr: "rejected: unsafe command path", exitCode: -1 });
+      return;
+    }
+
     let stdout = "";
     let stderr = "";
     let timedOut = false;
@@ -439,6 +477,10 @@ const getKnownToolPaths = (toolId: string): string[] => {
       ["qodercli.cmd", "qodercli"],
       ["qodercli.exe", "qodercli"],
     ],
+    devin: [
+      ["devin.exe", "devin"],
+      ["devin.cmd", "devin"],
+    ],
   };
 
   const bins = toolBins[toolId] || [];
@@ -462,6 +504,11 @@ const getKnownToolPaths = (toolId: string): string[] => {
 
     if (toolId === "droid") {
       paths.push(path.join(home, "bin", "droid.exe"));
+    }
+
+    // Devin CLI installs to %LOCALAPPDATA%\devin\cli\bin\devin.exe
+    if (toolId === "devin" && localAppData) {
+      paths.push(path.join(localAppData, "devin", "cli", "bin", "devin.exe"));
     }
 
     for (const [winName] of bins) {
@@ -500,6 +547,12 @@ const getKnownToolPaths = (toolId: string): string[] => {
       }
       if (toolId === "claude") {
         paths.push(path.join(home, ".claude", "bin", posixName));
+      }
+      // Devin CLI installs to ~/.local/share/devin/bin/devin (Linux)
+      // or via shell installer to ~/.devin/bin/devin
+      if (toolId === "devin") {
+        paths.push(path.join(home, ".local", "share", "devin", "bin", "devin"));
+        paths.push(path.join(home, ".devin", "bin", "devin"));
       }
     }
   }

@@ -355,15 +355,11 @@ export default function McpDashboardPage() {
   const topTools = status?.activity?.topTools || [];
 
   if (loading) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="text-sm text-text-muted">{t("loading")}</div>
-      </div>
-    );
+    return <div className="text-sm text-text-muted">{t("loading")}</div>;
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label={t("processStatus")} value={status?.online ? t("online") : t("offline")} />
         <StatCard label={t("pid")} value={status?.heartbeat?.pid ?? "—"} />

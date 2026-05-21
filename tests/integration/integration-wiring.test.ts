@@ -294,8 +294,8 @@ describe("API Routes — dashboard and tool consumers", () => {
 
   it("keeps legacy usage history and raw request-log APIs explicitly classified", () => {
     const usageStats = readProjectFile("src/shared/components/UsageStats.tsx");
-    const apiReference = readProjectFile("docs/API_REFERENCE.md");
-    const openApi = readProjectFile("docs/openapi.yaml");
+    const apiReference = readProjectFile("docs/reference/API_REFERENCE.md");
+    const openApi = readProjectFile("docs/reference/openapi.yaml");
 
     assert.ok(usageStats, "UsageStats compatibility component should exist");
     assert.ok(apiReference, "API reference should exist");
@@ -343,7 +343,7 @@ describe("Dashboard Wiring — T05 payload rules", () => {
   const payloadRulesTabSrc = readProjectFile(
     "src/app/(dashboard)/dashboard/settings/components/PayloadRulesTab.tsx"
   );
-  const openapiSrc = readProjectFile("docs/openapi.yaml");
+  const openapiSrc = readProjectFile("docs/reference/openapi.yaml");
 
   it("settings page should surface payload rules inside advanced settings", () => {
     assert.ok(settingsPageSrc, "settings page source should exist");
@@ -361,7 +361,7 @@ describe("Dashboard Wiring — T05 payload rules", () => {
   });
 
   it("openapi should document the payload rules management surface", () => {
-    assert.ok(openapiSrc, "docs/openapi.yaml should exist");
+    assert.ok(openapiSrc, "docs/reference/openapi.yaml should exist");
     assert.match(openapiSrc, /\/api\/settings\/payload-rules:/);
     assert.match(openapiSrc, /summary:\s+Get payload rules configuration/);
     assert.match(openapiSrc, /ManagementSessionAuth:/);

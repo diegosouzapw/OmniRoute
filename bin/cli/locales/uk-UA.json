@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Помилка: {message}",
+    "serverOffline": "Сервер OmniRoute відключено. Запустіть: omniroute serve",
+    "authRequired": "Потрібна автентифікація. Встановіть OMNIROUTE_API_KEY або виконайте: omniroute setup",
+    "rateLimited": "Перевищено ліміт запитів. Повторіть через {seconds}с.",
+    "timeout": "Запит завершився через {ms}мс.",
+    "success": "Готово.",
+    "yes": "так",
+    "no": "ні",
+    "confirm": "Ви впевнені? (так/ні)",
+    "dryRun": "[симуляція] виконає: {action}",
+    "cancelled": "Скасовано.",
+    "jsonOpt": "Вивести у форматі JSON",
+    "yesOpt": "Пропустити підтвердження"
+  },
+  "program": {
+    "description": "OmniRoute — Розумний AI-маршрутизатор з автоматичним перемиканням",
+    "version": "Вивести версію та вийти",
+    "output": "Формат виведення (table, json, jsonl, csv)",
+    "quiet": "Приховати несуттєвий вивід",
+    "no_color": "Вимкнути кольоровий вивід",
+    "timeout": "Тайм-аут HTTP-запитів у мілісекундах",
+    "api_key": "API-ключ для сервера OmniRoute",
+    "base_url": "Базовий URL сервера OmniRoute",
+    "context": "Контекст/профіль сервера для цієї команди",
+    "lang": "Встановити мову відображення CLI (замінює OMNIROUTE_LANG)"
+  }
+}

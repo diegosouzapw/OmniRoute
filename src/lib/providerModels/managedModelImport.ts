@@ -240,9 +240,10 @@ export async function importManagedModels({
 
   let syncedAliases = 0;
   if (usesManagedAvailableModels(providerId) && (mode === "merge" || discoveredModels.length > 0)) {
+    const aliasModelIds = mode === "sync" ? syncedAvailableModels : discoveredModels;
     const aliasSync = await syncManagedAvailableModelAliases(
       providerId,
-      discoveredModels.map((model) => model.id),
+      aliasModelIds.map((model) => model.id),
       { pruneMissing: mode === "sync" }
     );
     syncedAliases = aliasSync.assignedAliases.length;

@@ -193,7 +193,7 @@ export default function CopilotToolCard({
             <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
               <span className="material-symbols-outlined text-blue-500 text-lg">info</span>
               <div className="text-sm text-blue-700 dark:text-blue-300">
-                <p className="font-medium">GitHub Copilot Config Generator</p>
+                <p className="font-medium">{t("copilotConfigGenerator")}</p>
                 <p className="mt-1 text-xs opacity-80">
                   Generates the{" "}
                   <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
@@ -226,7 +226,7 @@ export default function CopilotToolCard({
                   >
                     1
                   </div>
-                  <span className="font-medium text-sm">API Key</span>
+                  <span className="font-medium text-sm">{t("copilotApiKey")}</span>
                 </div>
                 <select
                   value={selectedApiKeyId}
@@ -278,7 +278,7 @@ export default function CopilotToolCard({
                   type="text"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  placeholder="Filter models..."
+                  placeholder={t("copilotFilterModelsPlaceholder")}
                   className="w-full px-3 py-1.5 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
                 />
               </div>
@@ -327,7 +327,9 @@ export default function CopilotToolCard({
               </summary>
               <div className="mt-3 grid grid-cols-2 gap-3 pl-6">
                 <div>
-                  <label className="text-xs text-text-muted block mb-1">Max Input Tokens</label>
+                  <label className="text-xs text-text-muted block mb-1">
+                    {t("copilotMaxInputTokens")}
+                  </label>
                   <input
                     type="number"
                     value={maxInputTokens}
@@ -336,7 +338,9 @@ export default function CopilotToolCard({
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-text-muted block mb-1">Max Output Tokens</label>
+                  <label className="text-xs text-text-muted block mb-1">
+                    {t("copilotMaxOutputTokens")}
+                  </label>
                   <input
                     type="number"
                     value={maxOutputTokens}
@@ -351,7 +355,7 @@ export default function CopilotToolCard({
                     onChange={(e) => setToolCalling(e.target.checked)}
                     className="rounded border-border accent-[#1F6FEB]"
                   />
-                  <span className="text-sm">Tool Calling</span>
+                  <span className="text-sm">{t("copilotToolCalling")}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -401,7 +405,7 @@ export default function CopilotToolCard({
                 {/* Usage instructions */}
                 <div className="mt-3 p-3 bg-bg-secondary rounded-lg border border-border">
                   <p className="text-xs text-text-muted">
-                    <span className="font-medium text-text-main">Paste into: </span>
+                    <span className="font-medium text-text-main">{t("copilotPasteInto")} </span>
                     <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10">
                       ~/.config/Code/User/chatLanguageModels.json
                     </code>

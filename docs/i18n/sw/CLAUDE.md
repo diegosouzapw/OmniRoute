@@ -1,233 +1,411 @@
-# CLAUDE.md — AI Agent Session Bootstrap (Kiswahili)
+# CLAUDE.md (Kiswahili)
 
-🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇰🇪 [sw](../sw/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
+🌐 **Languages:** 🇺🇸 [English](../../../CLAUDE.md) · 🇸🇦 [ar](../ar/CLAUDE.md) · 🇦🇿 [az](../az/CLAUDE.md) · 🇧🇬 [bg](../bg/CLAUDE.md) · 🇧🇩 [bn](../bn/CLAUDE.md) · 🇨🇿 [cs](../cs/CLAUDE.md) · 🇩🇰 [da](../da/CLAUDE.md) · 🇩🇪 [de](../de/CLAUDE.md) · 🇪🇸 [es](../es/CLAUDE.md) · 🇮🇷 [fa](../fa/CLAUDE.md) · 🇫🇮 [fi](../fi/CLAUDE.md) · 🇫🇷 [fr](../fr/CLAUDE.md) · 🇮🇳 [gu](../gu/CLAUDE.md) · 🇮🇱 [he](../he/CLAUDE.md) · 🇮🇳 [hi](../hi/CLAUDE.md) · 🇭🇺 [hu](../hu/CLAUDE.md) · 🇮🇩 [id](../id/CLAUDE.md) · 🇮🇩 [in](../in/CLAUDE.md) · 🇮🇹 [it](../it/CLAUDE.md) · 🇯🇵 [ja](../ja/CLAUDE.md) · 🇰🇷 [ko](../ko/CLAUDE.md) · 🇮🇳 [mr](../mr/CLAUDE.md) · 🇲🇾 [ms](../ms/CLAUDE.md) · 🇳🇱 [nl](../nl/CLAUDE.md) · 🇳🇴 [no](../no/CLAUDE.md) · 🇵🇭 [phi](../phi/CLAUDE.md) · 🇵🇱 [pl](../pl/CLAUDE.md) · 🇵🇹 [pt](../pt/CLAUDE.md) · 🇧🇷 [pt-BR](../pt-BR/CLAUDE.md) · 🇷🇴 [ro](../ro/CLAUDE.md) · 🇷🇺 [ru](../ru/CLAUDE.md) · 🇸🇰 [sk](../sk/CLAUDE.md) · 🇸🇪 [sv](../sv/CLAUDE.md) · 🇮🇳 [ta](../ta/CLAUDE.md) · 🇮🇳 [te](../te/CLAUDE.md) · 🇹🇭 [th](../th/CLAUDE.md) · 🇹🇷 [tr](../tr/CLAUDE.md) · 🇺🇦 [uk-UA](../uk-UA/CLAUDE.md) · 🇵🇰 [ur](../ur/CLAUDE.md) · 🇻🇳 [vi](../vi/CLAUDE.md) · 🇨🇳 [zh-CN](../zh-CN/CLAUDE.md)
 
 ---
 
-> Quick-start context for AI coding agents. For deep architecture details, see `AGENTS.md`.
-> For contribution workflow, see `CONTRIBUTING.md`.
+Hii faili inatoa mwongozo kwa Claude Code (claude.ai/code) unapofanya kazi na msimbo katika hifadhi hii.
 
-## Inicio Rápido
+## Mwanzo wa Haraka
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+npm install                    # Sakinisha deps (inasanifisha .env kutoka .env.example)
+npm run dev                    # Seva ya maendeleo katika http://localhost:20128
+npm run build                  # Ujenzi wa uzalishaji (Next.js 16 standalone)
+npm run lint                   # ESLint (makosa 0 yanatarajiwa; onyo ni ya awali)
+npm run typecheck:core         # Ukaguzi wa TypeScript (inapaswa kuwa safi)
+npm run typecheck:noimplicit:core  # Ukaguzi mkali (hakuna implicit any)
+npm run test:coverage          # Jaribio la kitengo + lango la kufunika (75/75/75/70 — taarifa/mstari/funzioni/matengo)
+npm run check                  # lint + jaribio pamoja
+npm run check:cycles           # Gundua utegemezi wa mzunguko
 ```
 
-### Running a Single Test
+### Kuendesha Majaribio
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Faili moja la jaribio (mwanzo wa jaribio la asili la Node.js — majaribio mengi)
+node --import tsx/esm --test tests/unit/your-file.test.ts
 
-# Vitest (MCP server, autoCombo, cache)
+# Vitest (seva ya MCP, autoCombo, cache)
 npm run test:vitest
+
+# Suite zote
+npm run test:all
 ```
+
+Kwa matrix kamili ya majaribio, angalia `CONTRIBUTING.md` → "Kuendesha Majaribio". Kwa usanifu wa kina, angalia `AGENTS.md`.
 
 ---
 
-## Resumen
+## Mradi kwa Muonekano
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 100+ LLM providers, auto-fallback.
+**OmniRoute** — proxy/router ya AI iliyounganishwa. Kipengele kimoja, watoa huduma 160+, auto-fallback.
 
-| Layer           | Location                 | Purpose                                    |
-| --------------- | ------------------------ | ------------------------------------------ |
-| API Routes      | `src/app/api/v1/`        | Next.js App Router — entry points          |
-| Handlers        | `open-sse/handlers/`     | Request processing (chat, embeddings, etc) |
-| Executors       | `open-sse/executors/`    | Provider-specific HTTP dispatch            |
-| Translators     | `open-sse/translator/`   | Format conversion (OpenAI↔Claude↔Gemini)   |
-| Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
-| Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
-| Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
-| A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
-| Skills          | `src/lib/skills/`        | Extensible skill framework                 |
-| Memory          | `src/lib/memory/`        | Persistent conversational memory           |
-| UI Components   | `src/shared/components/` | React components (Tailwind CSS v4)         |
-| Provider Consts | `src/shared/constants/`  | Provider registry (Zod-validated)          |
-| Validation      | `src/shared/validation/` | Zod v4 schemas                             |
-| Tests           | `tests/`                 | Unit, integration, e2e, security, load     |
+| Tabaka        | Mahali                  | Kusudi                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------ |
+| API Routes    | `src/app/api/v1/`       | Next.js App Router — maeneo ya kuingia                                   |
+| Handlers      | `open-sse/handlers/`    | Usindikaji wa maombi (chat, embeddings, nk)                              |
+| Executors     | `open-sse/executors/`   | Usambazaji wa HTTP maalum kwa mtoa huduma                                |
+| Translators   | `open-sse/translator/`  | Mabadiliko ya muundo (OpenAI↔Claude↔Gemini)                              |
+| Transformer   | `open-sse/transformer/` | API za majibu ↔ Kukamilisha Chat                                         |
+| Services      | `open-sse/services/`    | Uelekeo wa combo, mipaka ya viwango, caching, nk                         |
+| Database      | `src/lib/db/`           | Moduli za eneo la SQLite (faili 45+, uhamasishaji 55)                    |
+| Domain/Policy | `src/domain/`           | Injini ya sera, sheria za gharama, mantiki ya fallback                   |
+| MCP Server    | `open-sse/mcp-server/`  | Zana 37 (30 msingi + 3 kumbukumbu + 4 ujuzi), usafirishaji 3, ~13 maeneo |
+| A2A Server    | `src/lib/a2a/`          | Itifaki ya wakala ya JSON-RPC 2.0                                        |
+| Skills        | `src/lib/skills/`       | Mfumo wa ujuzi unaoweza kupanuliwa                                       |
+| Memory        | `src/lib/memory/`       | Kumbukumbu ya mazungumzo ya kudumu                                       |
 
-### Monorepo Layout
-
-```
-OmniRoute/              # Root package
-├── src/                # Next.js 16 app (TypeScript)
-├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
-├── tests/              # All test suites
-├── docs/               # Documentation
-└── bin/                # CLI entry point
-```
+Monorepo: `src/` (programu ya Next.js 16), `open-sse/` (nafasi ya injini ya utiririshaji), `electron/` (programu ya desktop), `tests/`, `bin/` (kiingilio cha CLI).
 
 ---
 
-## Request Pipeline (Abbreviated)
+## Mchakato wa Ombi
 
 ```
-Client → /v1/chat/completions (Next.js route)
-  → CORS → Zod validation → auth? → policy check → prompt injection guard
+Client → /v1/chat/completions (Njia ya Next.js)
+  → CORS → Uthibitisho wa Zod → uthibitisho? → ukaguzi wa sera → ulinzi wa kuingiza maelekezo
   → handleChatCore() [open-sse/handlers/chatCore.ts]
-    → cache check → rate limit → combo routing?
-      → resolveComboTargets() → handleSingleModel() per target
+    → ukaguzi wa cache → kikomo cha kiwango → mwelekeo wa combo?
+      → resolveComboTargets() → handleSingleModel() kwa kila lengo
     → translateRequest() → getExecutor() → executor.execute()
-      → fetch() upstream → retry w/ backoff
-    → response translation → SSE stream or JSON
+      → fetch() upstream → jaribu tena w/ backoff
+    → tafsiri ya majibu → mkondo wa SSE au JSON
+    → Ikiwa ni API za Majibu: responsesTransformer.ts TransformStream
 ```
 
----
+Njia za API zinafuata muundo thabiti: `Njia → CORS preflight → Uthibitisho wa Zod → Uthibitisho wa hiari (extractApiKey/isValidApiKey) → Utekelezaji wa sera ya ufunguo wa API → Delegation ya Handler (open-sse)`. Hakuna middleware ya kimataifa ya Next.js — kukatiza ni maalum kwa njia.
 
-## Key Conventions
-
-### Code Style
-
-- **2 spaces**, semicolons, double quotes, 100 char width, es5 trailing commas
-- **Imports**: external → internal (`@/`, `@omniroute/open-sse`) → relative
-- **Naming**: files=camelCase/kebab, components=PascalCase, constants=UPPER_SNAKE
-
-### Database Access
-
-- **Always** go through `src/lib/db/` domain modules
-- **Never** write raw SQL in routes or handlers
-- **Never** add logic to `src/lib/localDb.ts` (re-export layer only)
-- **Never** barrel-import from `localDb.ts` — import specific `db/` modules
-- DB singleton: `getDbInstance()` from `src/lib/db/core.ts` (WAL journaling)
-- Migrations: `src/lib/db/migrations/` — 21 versioned SQL files
-
-### Error Handling
-
-- try/catch with specific error types, log with pino context
-- Never swallow errors in SSE streams — use abort signals
-- Return proper HTTP status codes (4xx/5xx)
-
-### Seguridad
-
-- **Never** commit secrets/credentials
-- **Never** use `eval()`, `new Function()`, or implied eval
-- Validate all inputs with Zod schemas
-- Encrypt credentials at rest (AES-256-GCM)
+**Mwelekeo wa combo** (`open-sse/services/combo.ts`): mikakati 14 (kipaumbele, uzito, kujaza-kwanza, mzunguko, P2C, nasibu, inayotumika kidogo, iliyoboreshwa kwa gharama, inayojua kurekebisha, nasibu kali, auto, lkgp, iliyoboreshwa kwa muktadha, relay ya muktadha). Kila lengo linaita `handleSingleModel()` ambayo inazunguka `handleChatCore()` na usimamizi wa makosa ya kila lengo na ukaguzi wa circuit breaker. Tazama `docs/routing/AUTO-COMBO.md` kwa alama za Auto-Combo za sababu 9 na `docs/architecture/RESILIENCE_GUIDE.md` kwa tabaka 3 za uhimilivu.
 
 ---
 
-## Common Modification Scenarios
+## Hali ya Uhimilivu wa Wakati
 
-### Adding a New Provider
+OmniRoute ina mitambo mitatu inayohusiana lakini tofauti ya kushindwa kwa muda. Hifadhi upeo wao tofauti unapofanya ufuatiliaji wa tabia ya mwelekeo. Tazama
+[chati ya uhimilivu ya tabaka 3](./docs/diagrams/exported/resilience-3layers.svg)
+(chanzo: [docs/diagrams/resilience-3layers.mmd](./docs/diagrams/resilience-3layers.mmd))
+kwa ramani ya haraka.
 
-1. Register in `src/shared/constants/providers.ts` (Zod-validated at load)
-2. Add executor in `open-sse/executors/` if custom logic needed
-3. Add translator in `open-sse/translator/` if non-OpenAI format
-4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based
-5. Register models in `open-sse/config/providerRegistry.ts`
-6. Write tests in `tests/unit/` (registration, translation, error handling)
+### Mzigo wa Circuit wa Mtoa
 
-### Adding a New API Route
+**Upeo**: mtoa mzima, mfano `glm`, `openai`, `anthropic`.
 
-1. Create directory under `src/app/api/v1/your-route/`
-2. Create `route.ts` with `GET`/`POST` handlers
-3. Follow pattern: CORS → Zod body validation → optional auth → handler delegation
-4. Handler goes in `open-sse/handlers/` (import from there, not inline)
-5. Add tests
+**Madhumuni**: kusitisha kutuma trafiki kwa mtoa ambaye anashindwa mara kwa mara katika
+ngazi ya upstream/service, ili mtoa mmoja asiye na afya usichelewesha kila ombi.
 
-### Adding a New DB Module
+**Utekelezaji**:
 
-1. Create `src/lib/db/yourModule.ts`
-2. Import `getDbInstance` from `./core.ts`
-3. Export CRUD functions for your domain table(s)
-4. Add migration in `src/lib/db/migrations/` if new tables needed
-5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
-6. Write tests
+- Darasa kuu: `src/shared/utils/circuitBreaker.ts`
+- Nyaya za lango la mazungumzo/utekelezaji: `src/sse/handlers/chatHelpers.ts`, `src/sse/handlers/chat.ts`
+- API ya hali ya wakati: `src/app/api/monitoring/health/route.ts`
+- Vifungashio vya pamoja: `open-sse/services/accountFallback.ts`
+- Jedwali la hali lililohifadhiwa: `domain_circuit_breakers`
 
-### Adding a New MCP Tool
+**Hali**:
 
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
+- `CLOSED`: trafiki ya kawaida inaruhusiwa.
+- `OPEN`: mtoa amezuiwa kwa muda; wito hupata jibu la mtoa-circuit-open
+  au mwelekeo wa combo unakosa lengo lingine.
+- `HALF_OPEN`: muda wa kurekebisha umepita; ruhusu ombi la uchunguzi. Mafanikio yanakamilisha
+  breaker, kushindwa kunafungua tena.
 
-### Adding a New A2A Skill
+**Defaults** (`open-sse/config/constants.ts`):
 
-1. Create skill in `src/lib/a2a/skills/`
-2. Skill receives task context (messages, metadata) → returns structured result
-3. Register in the DB-backed skill registry
-4. Write tests
+- Watoa wa OAuth: kigezo `3`, muda wa kurekebisha `60s`.
+- Watoa wa ufunguo wa API: kigezo `5`, muda wa kurekebisha `30s`.
+- Watoa wa ndani: kigezo `2`, muda wa kurekebisha `15s`.
+
+Ni lazima tu hali za kushindwa za kiwango cha mtoa zifanye kazi ya breaker ya mtoa:
+
+```ts
+(408, 500, 502, 503, 504);
+```
+
+Usiweke breaker ya mtoa mzima kwa makosa ya kawaida ya akaunti/ufunguo/model kama vile
+mambo mengi ya `401`, `403`, au `429`. Hayo kwa kawaida yanahusiana na kupoa kwa muunganisho au kufungwa kwa mfano. Mtoa wa ufunguo wa API wa jumla `403` unapaswa kuwa na uwezo wa kupona isipokuwa ikitambulika
+kama kosa la mwisho la mtoa/akaunti.
+
+Breaker hutumia urejeleaji wa polepole, sio kipima muda cha nyuma. Wakati `OPEN` inakoma, kusoma kama
+`getStatus()`, `canExecute()`, na `getRetryAfterMs()` kunarejesha hali kuwa
+`HALF_OPEN`, ili dashibodi na wajenzi wa wagombea wa combo wasiendelee kuondoa mtoa aliyeisha muda milele.
+
+### Kupoa kwa Muunganisho
+
+**Upeo**: muunganisho mmoja wa mtoa/akaunti/ufunguo.
+
+**Madhumuni**: kupita kwa muda ufunguo mmoja mbaya/akaunti huku ikiruhusu muunganisho mingine kwa
+mtoa huyo kuendelea kutumikia maombi.
+
+**Utekelezaji**:
+
+- Njia ya kuandika/update: `src/sse/services/auth.ts::markAccountUnavailable()`
+- Uchaguzi wa akaunti/kuchuja: `src/sse/services/auth.ts::getProviderCredentials...`
+- Hesabu ya kupoa: `open-sse/services/accountFallback.ts::checkFallbackError()`
+- Mipangilio: `src/lib/resilience/settings.ts`
+
+Sehemu muhimu kwenye muunganisho wa mtoa:
+
+```ts
+rateLimitedUntil;
+testStatus: "unavailable";
+lastError;
+lastErrorType;
+errorCode;
+backoffLevel;
+```
+
+Wakati wa uchaguzi wa akaunti, muunganisho unakosa wakati:
+
+```ts
+new Date(rateLimitedUntil).getTime() > Date.now();
+```
+
+Kupoa pia ni polepole: wakati `rateLimitedUntil` iko nyuma, muunganisho unakuwa
+unaweza tena. Kwa matumizi ya mafanikio, `clearAccountError()` inafuta `testStatus`,
+`rateLimitedUntil`, sehemu za makosa, na `backoffLevel`.
+
+Tabia ya msingi ya kupoa muunganisho:
+
+- Msingi wa kupoa wa OAuth: `5s`.
+- Msingi wa kupoa wa ufunguo wa API: `3s`.
+- Ufunguo wa API `429` unapaswa kupendelea vidokezo vya kujaribu tena vya upstream (`Retry-After`, vichwa vya kurekebisha, au
+  maandiko ya kurekebisha yanayoweza kuchambuliwa) inapopatikana.
+- Kushindwa kwa kurudi nyuma mara kwa mara hutumia urejeleaji wa kuongezeka:
+
+```ts
+baseCooldownMs * 2 ** failureIndex;
+```
+
+Mlinzi wa kuzuia thundering-herd unazuia kushindwa kwa wakati mmoja kwenye muunganisho huo huo kutoka
+kuongeza muda wa kupoa mara kwa mara au kuongezeka mara mbili kwa `backoffLevel`.
+
+Hali za mwisho si kupoa. `banned`, `expired`, na `credits_exhausted` zinakusudiwa kubaki zisipatikane hadi
+kuhifadhi au mipangilio kubadilika au opereta akizirekebisha. Usifute hali za mwisho kwa hali ya kupoa ya muda.
+
+### Kufungwa kwa Mfano
+
+**Upeo**: mtoa + muunganisho + mfano.
+
+**Madhumuni**: kuepuka kuzima muunganisho mzima wakati mfano mmoja tu haupatikani au
+umewekwa kikomo kwa muunganisho huo.
+
+Mifano:
+
+- Watoa wa quota kwa mfano wanaorejelea `429`.
+- Watoa wa ndani wanaorejelea `404` kwa mfano mmoja uliokosekana.
+- Kushindwa kwa ruhusa ya mfano/mode maalum wa mtoa kama vile modes za Grok zilizochaguliwa.
+
+Kufungwa kwa mfano kunaishi katika `open-sse/services/accountFallback.ts` na inaruhusu muunganisho huo huo kuendelea kutumikia mifano mingine.
+
+### Mwongozo wa Ufuatiliaji
+
+- Ikiwa funguo zote za mtoa zimeachwa, angalia hali ya breaker ya mtoa na kila
+  muunganisho wa `rateLimitedUntil`/`testStatus`.
+- Ikiwa mtoa anaonekana kuondolewa milele baada ya dirisha la kurekebisha, angalia ikiwa msimbo
+  unasoma `state` halisi badala ya kutumia `getStatus()`/`canExecute()`.
+- Ikiwa funguo moja ya mtoa inashindwa lakini zingine zinapaswa kufanya kazi, pendelea kupoa kwa muunganisho badala ya breaker ya mtoa.
+- Ikiwa mfano mmoja tu unashindwa, pendelea kufungwa kwa mfano badala ya kupoa kwa muunganisho.
+- Ikiwa hali inapaswa kujiokoa yenyewe, inapaswa kuwa na alama ya wakati wa baadaye/muda wa kurekebisha na njia ya
+  kusoma inayorejesha hali iliyokwisha muda. Hali za kudumu zinahitaji mabadiliko ya mikopo
+  au mipangilio kwa mkono.
+
+## Misingi Muhimu
+
+### Mtindo wa Kanuni
+
+- **Spaces 2**, semicolons, double quotes, upana wa herufi 100, es5 trailing commas (inasimamiwa na lint-staged kupitia Prettier)
+- **Maaliko**: nje → ndani (`@/`, `@omniroute/open-sse`) → ya uhusiano
+- **Majina**: faili=camelCase/kebab, vipengele=PascalCase, constants=UPPER_SNAKE
+- **ESLint**: `no-eval`, `no-implied-eval`, `no-new-func` = kosa kila mahali; `no-explicit-any` = onyo katika `open-sse/` na `tests/`
+- **TypeScript**: `strict: false`, lengo ES2022, moduli esnext, resolution bundler. Prefer explicit types.
+
+### Hifadhidata
+
+- **Daima** pitia moduli za eneo `src/lib/db/` — **kamwe** usiandike SQL safi katika njia au wakala
+- **Kamwe** usiongeze mantiki katika `src/lib/localDb.ts` (safi ya re-export tu)
+- **Kamwe** usi-import barrel kutoka `localDb.ts` — badala yake, import moduli maalum za `db/`
+- DB singleton: `getDbInstance()` kutoka `src/lib/db/core.ts` (WAL journaling)
+- Migrations: `src/lib/db/migrations/` — faili za SQL zenye toleo, idempotent, zitekelezwe katika muamala
+
+### Kushughulikia Makosa
+
+- jaribu/catch na aina maalum za makosa, log na muktadha wa pino
+- Kamwe usifanye makosa katika SSE streams — tumia ishara za kukatisha kwa usafishaji
+- Rudisha msimamo sahihi wa HTTP (4xx/5xx)
+
+### Usalama
+
+- **Kamwe** usitumie `eval()`, `new Function()`, au eval iliyodhaniwa
+- Thibitisha kila ingizo kwa kutumia Zod schemas
+- Ficha akidi wakati wa kupumzika (AES-256-GCM)
+- Orodha ya vichwa vya juu ya denylist: `src/shared/constants/upstreamHeaders.ts` — panua sanitize, Zod schemas, na vipimo vya kitengo vinavyolingana unapohariri
+- **Akidi za umma za juu** (Gemini/Antigravity/Windsurf-style OAuth client_id/secret + Firebase Web keys zilizochukuliwa kutoka kwa CLIs za umma): **LAZIMA** ziwe zimeingizwa kupitia `resolvePublicCred()` kutoka `open-sse/utils/publicCreds.ts` — **kamwe** kama maandiko ya herufi. Tazama `docs/security/PUBLIC_CREDS.md` kwa muundo wa lazima.
+- **Majibu ya makosa** (HTTP / SSE / executor / MCP handler): **LAZIMA** ipitie `buildErrorBody()` au `sanitizeErrorMessage()` kutoka `open-sse/utils/error.ts` — **kamwe** usiweke `raw err.stack` au `raw err.message` katika mwili wa majibu. Tazama `docs/security/ERROR_SANITIZATION.md`.
+- **Amri za shell zilizojengwa kutoka kwa mabadiliko**: unapoitisha `exec()`/`spawn()` na skripti inayohitaji thamani za wakati wa kukimbia, zipitisheni kupitia chaguo la `env` (imekimbizwa kiotomatiki) — **kamwe** usiingize mabadiliko yasiyoaminika/ya nje katika mwili wa skripti. Rejelea: `src/mitm/cert/install.ts::updateNssDatabases`.
+- **Maktaba salama kwa default** ([tldrsec/awesome-secure-defaults](https://github.com/tldrsec/awesome-secure-defaults)): pendelea Helmet.js, DOMPurify, ssrf-req-filter, safe-regex, Google Tink kuliko utekelezaji wa kawaida kila wakati unapoongeza uso mpya wa usalama.
 
 ---
 
-## Testing Cheat Sheet
+## Mifano ya Marekebisho ya Kawaida
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+### Kuongeza Mtoa Huduma Mpya
 
-**PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
-you must include or update tests in the same PR.
+1. Jisajili katika `src/shared/constants/providers.ts` (Zod-validated wakati wa kupakia)
+2. Ongeza mtendaji katika `open-sse/executors/` ikiwa mantiki maalum inahitajika (panua `BaseExecutor`)
+3. Ongeza mtafsiri katika `open-sse/translator/` ikiwa si muundo wa OpenAI
+4. Ongeza usanidi wa OAuth katika `src/lib/oauth/constants/oauth.ts` ikiwa ni msingi wa OAuth — ikiwa CLI ya juu inatoa client_id/secret ya umma, ingiza kupitia `resolvePublicCred()` (tazama `docs/security/PUBLIC_CREDS.md`), **kamwe** kama maandiko
+5. Jisajili mifano katika `open-sse/config/providerRegistry.ts`
+6. Andika vipimo katika `tests/unit/` (jumuisha uthibitisho wa umbo la publicCreds ikiwa umeongeza default mpya iliyounganishwa)
 
-**Test layer preference**: unit first → integration (multi-module or DB state) → e2e (UI/workflow only). Encode bug reproductions as automated tests before or alongside the fix.
+### Kuongeza Njia Mpya ya API
+
+1. Unda directory chini ya `src/app/api/v1/your-route/`
+2. Unda `route.ts` na wakala wa `GET`/`POST`
+3. Fuata muundo: CORS → uthibitisho wa mwili wa Zod → uthibitisho wa hiari → ugawaji wa wakala
+4. Wakala huenda katika `open-sse/handlers/` (import kutoka hapo, si inline)
+5. Majibu ya makosa yanatumia `buildErrorBody()` / `errorResponse()` kutoka `open-sse/utils/error.ts` (imekimbizwa kiotomatiki — kamwe usiweke `raw err.stack` au `raw err.message` katika mwili). Tazama `docs/security/ERROR_SANITIZATION.md`.
+6. Ongeza vipimo — ikiwa ni pamoja na angalau uthibitisho mmoja kwamba majibu ya makosa hayavuji nyaraka za stack (`!body.error.message.includes("at /")`)
+
+### Kuongeza Moduli Mpya ya DB
+
+1. Unda `src/lib/db/yourModule.ts` — import `getDbInstance` kutoka `./core.ts`
+2. Export kazi za CRUD kwa ajili ya jedwali lako la eneo
+3. Ongeza uhamasishaji katika `src/lib/db/migrations/` ikiwa jedwali mpya zinahitajika
+4. Re-export kutoka `src/lib/localDb.ts` (ongeza kwenye orodha ya re-export tu)
+5. Andika vipimo
+
+### Kuongeza Zana Mpya ya MCP
+
+1. Ongeza ufafanuzi wa zana katika `open-sse/mcp-server/tools/` na muundo wa ingizo la Zod + wakala wa async
+2. Jisajili katika seti ya zana (imeunganishwa na `createMcpServer()`)
+3. Teua kwa upeo unaofaa
+4. Andika vipimo (kuitisha zana kunarekodiwa kwenye jedwali la `mcp_audit`)
+
+### Kuongeza Ujuzi Mpya wa A2A
+
+1. Unda ujuzi katika `src/lib/a2a/skills/` (5 tayari zipo: smart-routing, quota-management, provider-discovery, cost-analysis, health-report)
+2. Ujuzi unapata muktadha wa kazi (jumbe, metadata) → unarudisha matokeo yaliyoandaliwa
+3. Jisajili katika `A2A_SKILL_HANDLERS` katika `src/lib/a2a/taskExecution.ts`
+4. Funua katika `src/app/.well-known/agent.json/route.ts` (Kadi ya Wakala)
+5. Andika vipimo katika `tests/unit/`
+6. Andika katika `docs/frameworks/A2A-SERVER.md` jedwali la ujuzi
+
+### Kuongeza Wakala Mpya wa Cloud
+
+1. Unda darasa la wakala katika `src/lib/cloudAgent/agents/` ukipanua `CloudAgentBase` (3 tayari zipo: codex-cloud, devin, jules)
+2. Tekeleza `createTask`, `getStatus`, `approvePlan`, `sendMessage`, `listSources`
+3. Jisajili katika `src/lib/cloudAgent/registry.ts`
+4. Ongeza usimamizi wa OAuth/akidi ikiwa inahitajika (`src/lib/oauth/providers/`)
+5. Vipimo + andika katika `docs/frameworks/CLOUD_AGENT.md`
+
+### Kuongeza Guardrail Mpya / Eval / Ujuzi / Tukio la Webhook
+
+- Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
+- Eval suite: `src/lib/evals/` → docs: `docs/frameworks/EVALS.md`
+- Ujuzi (sandbox): `src/lib/skills/` → docs: `docs/frameworks/SKILLS.md`
+- Tukio la Webhook: `src/lib/webhookDispatcher.ts` → docs: `docs/frameworks/WEBHOOKS.md`
+
+## Hati ya Marejeleo
+
+Kwa mabadiliko yoyote yasiyo ya kawaida, soma uchambuzi unaofanana kwanza:
+
+| Eneo                                             | Hati                                                              |
+| ------------------------------------------------ | ----------------------------------------------------------------- |
+| Usafiri wa repo                                  | `docs/architecture/REPOSITORY_MAP.md`                             |
+| Muktadha                                         | `docs/architecture/ARCHITECTURE.md`                               |
+| Marejeleo ya uhandisi                            | `docs/architecture/CODEBASE_DOCUMENTATION.md`                     |
+| Auto-Combo (alama 9, mikakati 14)                | `docs/routing/AUTO-COMBO.md`                                      |
+| Ustahimilivu (mekaniki 3)                        | `docs/architecture/RESILIENCE_GUIDE.md`                           |
+| Kurudi kwa mantiki                               | `docs/routing/REASONING_REPLAY.md`                                |
+| Mfumo wa ujuzi                                   | `docs/frameworks/SKILLS.md`                                       |
+| Mfumo wa kumbukumbu (FTS5 + Qdrant)              | `docs/frameworks/MEMORY.md`                                       |
+| Wakala wa wingu                                  | `docs/frameworks/CLOUD_AGENT.md`                                  |
+| Miongozo (PII / sindikizo / maono)               | `docs/security/GUARDRAILS.md`                                     |
+| Akreditivu za umma za juu (Gemini/n.k.)          | `docs/security/PUBLIC_CREDS.md`                                   |
+| Usafi wa ujumbe wa makosa                        | `docs/security/ERROR_SANITIZATION.md`                             |
+| Tathmini                                         | `docs/frameworks/EVALS.md`                                        |
+| Uzingatiaji / ukaguzi                            | `docs/security/COMPLIANCE.md`                                     |
+| Webhooks                                         | `docs/frameworks/WEBHOOKS.md`                                     |
+| Mchakato waidhinisha                             | `docs/architecture/AUTHZ_GUIDE.md`                                |
+| Usiri (TLS / alama ya vidole)                    | `docs/security/STEALTH_GUIDE.md`                                  |
+| Itifaki za wakala (A2A / ACP / Wingu)            | `docs/frameworks/AGENT_PROTOCOLS_GUIDE.md`                        |
+| Seva ya MCP                                      | `docs/frameworks/MCP-SERVER.md`                                   |
+| Seva ya A2A                                      | `docs/frameworks/A2A-SERVER.md`                                   |
+| Marejeleo ya API + OpenAPI                       | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
+| Katalogi ya wasambazaji (iliyoundwa kiotomatiki) | `docs/reference/PROVIDER_REFERENCE.md`                            |
+| Mchakato wa kutolewa                             | `docs/ops/RELEASE_CHECKLIST.md`                                   |
 
 ---
 
-## Git Workflow
+## Kupima
+
+| Nini                    | Amri                                                                    |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Vipimo vya kitengo      | `npm run test:unit`                                                     |
+| Faili moja              | `node --import tsx/esm --test tests/unit/file.test.ts`                  |
+| Vitest (MCP, autoCombo) | `npm run test:vitest`                                                   |
+| E2E (Playwright)        | `npm run test:e2e`                                                      |
+| Protokali E2E (MCP+A2A) | `npm run test:protocols:e2e`                                            |
+| Mfumo                   | `npm run test:ecosystem`                                                |
+| Lango la kufunika       | `npm run test:coverage` (75/75/75/70 — taarifa/mstari/funzo/mat branch) |
+| Ripoti ya kufunika      | `npm run coverage:report`                                               |
+
+**Kanuni ya PR**: Ikiwa unabadilisha msimbo wa uzalishaji katika `src/`, `open-sse/`, `electron/`, au `bin/`, lazima uweke au uboreshe vipimo katika PR hiyo hiyo.
+
+**Upendeleo wa tabaka la mtihani**: kitengo kwanza → uunganisho (moduli nyingi au hali ya DB) → e2e (UI/mchakato tu). Fanya urekebishaji wa bug kama vipimo vya kiotomatiki kabla au pamoja na suluhisho.
+
+**Sera ya kufunika ya Copilot**: Wakati PR inabadilisha msimbo wa uzalishaji na kufunika iko chini ya 75% (taarifa/mstari/funzo) au 70% (mata branch), usiweke tu ripoti — ongeza au boresha vipimo, rudisha lango la kufunika, kisha omba uthibitisho. Jumuisha amri zilizotekelezwa, faili za mtihani zilizobadilishwa, na matokeo ya mwisho ya kufunika katika ripoti ya PR.
+
+---
+
+## Mchakato wa Git
 
 ```bash
-# Never commit directly to main
+# Kamwe usiweke moja kwa moja kwenye main
 git checkout -b feat/your-feature
-# ... make changes ...
-git commit -m "feat: describe your change"
+git commit -m "feat: eleza mabadiliko yako"
 git push -u origin feat/your-feature
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Viambatisho vya tawi**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
 
-**Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
+**Muundo wa commit** (Conventional Commits): `feat(db): ongeza circuit breaker` — maeneo: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`
 
-```
-feat: add circuit breaker for provider calls
-fix: resolve JWT secret validation edge case
-docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
-refactor(db): consolidate rate limit tables
-```
+**Husky hooks**:
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
-`memory`, `skills`.
+- **pre-commit**: lint-staged + `check-docs-sync` + `check:any-budget:t11`
+- **pre-push**: `npm run test:unit`
 
 ---
 
-## Environment
+## Mazingira
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
-- **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
-- **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
-- **Default port**: 20128 (API + dashboard on same port)
-- **Data directory**: `DATA_DIR` env var, defaults to `~/.omniroute/`
-- **Key env vars**: `PORT`, `JWT_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- **Muda wa kukimbia**: Node.js ≥20.20.2 <21 || ≥22.22.2 <23 || ≥24 <25, Moduli za ES
+- **TypeScript**: 5.9+, lengo ES2022, moduli esnext, ufumbuzi wa bundler
+- **Majina ya njia**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
+- **Bandari ya kawaida**: 20128 (API + dashibodi kwenye bandari moja)
+- **Direktori ya data**: `DATA_DIR` env var, inarudiwa kwa `~/.omniroute/`
+- **Vigezo muhimu vya env**: `PORT`, `JWT_SECRET`, `API_KEY_SECRET`, `INITIAL_PASSWORD`, `REQUIRE_API_KEY`, `APP_LOG_LEVEL`
+- Mipangilio: `cp .env.example .env` kisha tengeneza `JWT_SECRET` (`openssl rand -base64 48`) na `API_KEY_SECRET` (`openssl rand -hex 32`)
 
 ---
 
-## Hard Rules (Never Violate)
+## Kanuni Ngumu
 
-1. Never commit secrets or credentials
-2. Never add logic to `localDb.ts`
-3. Never use `eval()` / `new Function()` / implied eval
-4. Never commit directly to `main`
-5. Never write raw SQL in routes — use `src/lib/db/` modules
-6. Never silently swallow errors in SSE streams
-7. Always validate inputs with Zod schemas
-8. Always include tests when changing production code
-9. Coverage must stay ≥60% (statements, lines, functions, branches)
+1. Kamwe usiweke siri au akidi
+2. Kamwe usiongeze mantiki kwenye `localDb.ts`
+3. Kamwe usitumie `eval()` / `new Function()` / eval iliyodhaniwa
+4. Kamwe usiweke moja kwa moja kwenye `main`
+5. Kamwe usiandike SQL safi katika njia — tumia moduli za `src/lib/db/`
+6. Kamwe usinyamaze makosa kwa kimya katika SSE streams
+7. Daima thibitisha ingizo kwa kutumia Zod schemas
+8. Daima jumuisha vipimo unapobadilisha msimbo wa uzalishaji
+9. Kufunika lazima kubaki ≥75% (taarifa, mistari, funzo) / ≥70% (mata branch). Kiwango cha sasa kilichopimwa: ~82%.
+10. Kamwe usipite Husky hooks (`--no-verify`, `--no-gpg-sign`) bila idhini ya wazi ya opereta.
+11. Kamwe usiweke funguo za umma za OAuth client_id/secret au funguo za Firebase Web kama maandiko ya maandiko — daima pitia `resolvePublicCred()` (`open-sse/utils/publicCreds.ts`). Tazama `docs/security/PUBLIC_CREDS.md`.
+12. Kamwe usirudishe `raw err.stack` / `err.message` katika HTTP / SSE / majibu ya mtendaji — daima pitia kupitia `buildErrorBody()` au `sanitizeErrorMessage()` (`open-sse/utils/error.ts`). Tazama `docs/security/ERROR_SANITIZATION.md`.
+13. Kamwe usiingize njia za nje au thamani za kukimbia katika scripts za shell zinazopitishwa kwa `exec()`/`spawn()` — pitisha kupitia chaguo la `env` badala yake. Kumbuka: `src/mitm/cert/install.ts::updateNssDatabases`.
+14. Kamwe usikatae arifa za CodeQL / Secret-Scanning bila (a) kwanza kuangalia hati za muundo hapo juu kuona kama msaidizi anatumika, na (b) kurekodi sababu ya kiufundi katika maoni ya kukataa. Kiwango: `js/stack-trace-exposure` kilichoinuliwa kwenye maeneo ya wito ambayo tayari yanapitia `sanitizeErrorMessage()` ni ukomo unaojulikana wa CodeQL (wasafishaji wa kawaida hawatambuliwi) — kataa kama `false positive` ukirejelea `docs/security/ERROR_SANITIZATION.md`.
+15. Kamwe usifichue njia zinazozalisha michakato ya watoto (`/api/mcp/`, `/api/cli-tools/runtime/`) bila uainishaji wa `isLocalOnlyPath()` katika `src/server/authz/routeGuard.ts`. Utekelezaji wa loopback unafanyika bila masharti kabla ya ukaguzi wowote wa uthibitisho — JWT iliyovuja kupitia tunnel haiwezi kuanzisha uzalishaji wa mchakato. Tazama `docs/security/ROUTE_GUARD_TIERS.md`.
+16. Kamwe usijumuisha vichwa vya `Co-Authored-By` katika ujumbe wa commit. Commit lazima ionekane pekee chini ya kitambulisho cha Git cha mmiliki wa hazina (`diegosouzapw`). Mstari wa `Co-Authored-By: Claude …` unasababisha GitHub kuhusisha commits na akaunti ya `claude` ya Anthropic, ikificha mwandishi halisi katika historia ya PR.

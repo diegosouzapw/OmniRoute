@@ -535,6 +535,60 @@ test("refreshKiroToken falls back to the social-auth refresh endpoint", async ()
   });
 });
 
+// Issue #2328 — once a social-auth token has clientId/clientSecret stored
+// (because it was imported after v3.8.0), refreshKiroToken must use the AWS OIDC
+// endpoint, not the shared social-auth endpoint, even though authMethod is "google".
+test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is present (#2328)", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-social-refresh",
+        {
+          authMethod: "google",
+          clientId: "isolated-client-id",
+          clientSecret: "isolated-client-secret",
+          region: "us-east-1",
+        },
+        log
+      );
+
+      assert.deepEqual(result, {
+        accessToken: "kiro-isolated-access",
+        refreshToken: "kiro-isolated-refresh-next",
+        expiresIn: 900,
+      });
+    }
+  );
+
+  // Must call the AWS OIDC endpoint — not the shared social-auth tokenUrl
+  assert.ok(
+    calls[0].url.includes("oidc.us-east-1.amazonaws.com/token"),
+    `expected AWS OIDC endpoint but got ${calls[0].url}`
+  );
+  assert.notEqual(
+    calls[0].url,
+    PROVIDERS.kiro.tokenUrl,
+    "should not call the shared social-auth endpoint when clientId is set"
+  );
+  assert.deepEqual(JSON.parse(calls[0].options.body), {
+    clientId: "isolated-client-id",
+    clientSecret: "isolated-client-secret",
+    refreshToken: "kiro-social-refresh",
+    grantType: "refresh_token",
+  });
+});
+
 test("refreshQoderToken uses basic auth once qoder oauth settings are configured", async () => {
   const log = createLog();
   const calls: any[] = [];
@@ -1118,6 +1172,85 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
           assert.equal(second?.accessToken, "access-2");
         }
       );
+    }
+  );
+});
+
+// ─── Unrecoverable error bail-out tests ──────────────────────────────────────
+
+test("refreshWithRetry bails immediately on unrecoverable error without retrying", async () => {
+  const provider = `bail-unrecoverable-${Date.now()}`;
+  const log = createLog();
+  let callCount = 0;
+
+  const result = await refreshWithRetry(
+    async () => {
+      callCount++;
+      return { error: "unrecoverable_refresh_error", code: "http_400" };
+    },
+    3,
+    log,
+    provider
+  );
+
+  assert.equal(callCount, 1, "should only call refreshFn once (no retries)");
+  assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "http_400" });
+  const warnMessages = log.entries.filter((e) => e.level === "warn").map((e) => e.message);
+  assert.ok(
+    warnMessages.some((m) => String(m).includes("Unrecoverable")),
+    "should log an unrecoverable warning"
+  );
+});
+
+test("refreshWithRetry bails immediately on invalid_grant error without retrying", async () => {
+  const provider = `bail-invalid-grant-${Date.now()}`;
+  const log = createLog();
+  let callCount = 0;
+
+  const result = await refreshWithRetry(
+    async () => {
+      callCount++;
+      return { error: "invalid_grant", code: "http_400" };
+    },
+    3,
+    log,
+    provider
+  );
+
+  assert.equal(callCount, 1, "should only call refreshFn once (no retries)");
+  assert.deepEqual(result, { error: "invalid_grant", code: "http_400" });
+});
+
+test("refreshClaudeOAuthToken returns error object for invalid_grant (expired refresh token)", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      new Response(JSON.stringify({ error: "invalid_grant", error_description: "Token expired" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+    async () => {
+      const result = await refreshClaudeOAuthToken("expired-token", log);
+      assert.ok(result && typeof result === "object", "should return error object, not null");
+      assert.equal((result as any).error, "invalid_grant");
+      assert.ok(isUnrecoverableRefreshError(result), "should be detected as unrecoverable");
+    }
+  );
+});
+
+test("refreshClaudeOAuthToken returns null for transient server errors (not unrecoverable)", async () => {
+  const log = createLog();
+
+  await withMockedFetch(
+    async () =>
+      new Response(JSON.stringify({ error: "server_error" }), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      }),
+    async () => {
+      const result = await refreshClaudeOAuthToken("some-token", log);
+      assert.equal(result, null, "transient server errors should return null (retryable)");
     }
   );
 });

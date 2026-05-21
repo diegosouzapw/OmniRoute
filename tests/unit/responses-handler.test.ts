@@ -224,6 +224,45 @@ test("handleResponsesCore transforms upstream OpenAI SSE into Responses API SSE"
   assert.match(sse, /data: \[DONE\]/);
 });
 
+test("handleResponsesCore transforms Command Code executor SSE through Responses shim", async () => {
+  const { call, result } = await invokeResponsesCore({
+    provider: "command-code",
+    model: "gpt-5.4-mini",
+    credentials: { apiKey: "cc_test_key", providerSpecificData: {} },
+    body: {
+      model: "gpt-5.4-mini",
+      input: "hello command code",
+    },
+    responseFactory() {
+      return new Response(
+        [
+          `data: ${JSON.stringify({ type: "text-delta", text: "command" })}`,
+          "",
+          `data: ${JSON.stringify({ type: "reasoning-delta", text: "thinking" })}`,
+          "",
+          `data: ${JSON.stringify({ type: "finish", finishReason: "stop" })}`,
+          "",
+        ].join("\n"),
+        { status: 200, headers: { "Content-Type": "application/x-ndjson" } }
+      );
+    },
+  });
+
+  assert.equal(result.success, true);
+  assert.equal(call.url, "https://api.commandcode.ai/alpha/generate");
+  assert.equal(call.headers.Authorization, "Bearer cc_test_key");
+  assert.equal(call.headers["x-command-code-version"], "0.24.1");
+  assert.equal(call.body.params.model, "gpt-5.4-mini");
+  assert.equal(call.body.params.stream, true);
+
+  const sse = await result.response.text();
+  assert.match(sse, /event: response\.created/);
+  assert.match(sse, /event: response\.output_text\.delta/);
+  assert.match(sse, /command/);
+  assert.match(sse, /event: response\.completed/);
+  assert.match(sse, /data: \[DONE\]/);
+});
+
 test("handleResponsesCore propagates upstream failures from chatCore unchanged", async () => {
   const { result } = await invokeResponsesCore({
     body: {
@@ -267,7 +306,10 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
   );
 });
 
-test("handleResponsesCore injects SSE keepalive comments for Responses streams", async (t) => {
+test("handleResponsesCore injects SSE keepalive frames for Responses streams", async (t) => {
+  // PR #2233 changed the Responses-API heartbeat shape from a SSE comment
+  // (`: keepalive ...`) to a `data: {"type":"response.in_progress"}` frame,
+  // because strict proxies only count `data:` lines as activity.
   t.mock.timers.enable({ apis: ["setInterval"] });
   try {
     const { result } = await invokeResponsesCore({
@@ -282,7 +324,7 @@ test("handleResponsesCore injects SSE keepalive comments for Responses streams",
 
     const sse = await result.response.text();
 
-    assert.match(sse, /^: keepalive .*$/m);
+    assert.match(sse, /data: \{"type":"response\.in_progress"\}/);
     assert.match(sse, /event: response\.created/);
     assert.match(sse, /data: \[DONE\]/);
   } finally {

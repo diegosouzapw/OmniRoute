@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Грешка: {message}",
+    "serverOffline": "Сървърът OmniRoute е офлайн. Стартирайте с: omniroute serve",
+    "authRequired": "Необходима е автентикация. Задайте OMNIROUTE_API_KEY или изпълнете: omniroute setup",
+    "rateLimited": "Превишен лимит на заявки. Опитайте след {seconds}с.",
+    "timeout": "Заявката изтече след {ms}ms.",
+    "success": "Готово.",
+    "yes": "да",
+    "no": "не",
+    "confirm": "Сигурни ли сте? (да/не)",
+    "dryRun": "[симулация] ще извърши: {action}",
+    "cancelled": "Отменено.",
+    "jsonOpt": "Изход като JSON",
+    "yesOpt": "Пропускане на потвърждение"
+  },
+  "program": {
+    "description": "OmniRoute — Интелигентен AI рутер с автоматично превключване",
+    "version": "Покажи версията и излез",
+    "output": "Формат на изхода (table, json, jsonl, csv)",
+    "quiet": "Потисни несъществена информация",
+    "no_color": "Деактивирай цветния изход",
+    "timeout": "Таймаут за HTTP заявки в милисекунди",
+    "api_key": "API ключ за сървъра OmniRoute",
+    "base_url": "Базов URL на сървъра OmniRoute",
+    "context": "Контекст/профил на сървъра за тази команда",
+    "lang": "Задай език на CLI (замества OMNIROUTE_LANG)"
+  }
+}

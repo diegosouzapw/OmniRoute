@@ -31,7 +31,7 @@ import { translateRequest } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { createSSETransformStreamWithLogger } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
-import { STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
+import { STREAM_READINESS_TIMEOUT_MS } from "../config/constants.ts";
 
 type JsonRecord = Record<string, unknown>;
 type GlmExecuteResult = Awaited<ReturnType<DefaultExecutor["execute"]>> & {
@@ -306,7 +306,7 @@ export class GlmExecutor extends DefaultExecutor {
 
     if (input.stream && response.ok) {
       const readiness = await ensureStreamReadiness(response, {
-        timeoutMs: STREAM_IDLE_TIMEOUT_MS,
+        timeoutMs: STREAM_READINESS_TIMEOUT_MS,
         provider: this.provider,
         model: input.model,
         log: input.log,

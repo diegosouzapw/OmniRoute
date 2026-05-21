@@ -82,7 +82,7 @@ export async function getSettings() {
   const db = getDbInstance();
   const rows = db.prepare("SELECT key, value FROM key_value WHERE namespace = 'settings'").all();
   const settings: Record<string, unknown> = {
-    cloudEnabled: false,
+    cloudEnabled: true,
     tailscaleEnabled: false,
     tailscaleUrl: "",
     stickyRoundRobinLimit: 3,
@@ -98,10 +98,12 @@ export async function getSettings() {
     hideEndpointNgrokTunnel: false,
     comboConfigMode: "guided",
     codexServiceTier: { enabled: false },
+    claudeFastMode: { enabled: false, supportedModels: ["claude-opus-4-7", "claude-opus-4-6"] },
     alwaysPreserveClientCache: "auto",
     idempotencyWindowMs: 5000,
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
+    debugMode: true,
   };
   for (const row of rows) {
     const record = toRecord(row);
@@ -271,24 +273,54 @@ export async function getPricingWithSources(): Promise<{
 
 export async function getPricingForModel(provider: string, model: string) {
   const pricing = await getPricing();
-  if (pricing[provider]?.[model]) return pricing[provider][model];
 
-  const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
-  // Check if provider is an ID -> map to ALIAS
-  const alias = PROVIDER_ID_TO_ALIAS[provider];
-  if (alias && pricing[alias]) return pricing[alias][model] || null;
+  const findKeyInsensitive = <T>(
+    obj: Record<string, T> | undefined | null,
+    key: string
+  ): T | undefined => {
+    if (!obj || !key) return undefined;
+    const lowerKey = key.toLowerCase();
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.toLowerCase() === lowerKey) return v;
+    }
+    return undefined;
+  };
 
-  // Check if provider is an ALIAS -> map to ID (search values)
-  for (const [id, mappedAlias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
-    if (mappedAlias === provider && pricing[id]?.[model]) {
-      return pricing[id][model];
+  const pLower = (provider || "").toLowerCase();
+  let providerPricing = findKeyInsensitive<PricingModels>(pricing, pLower);
+
+  if (!providerPricing) {
+    const alias = findKeyInsensitive<string>(PROVIDER_ID_TO_ALIAS, pLower);
+    if (alias) providerPricing = findKeyInsensitive(pricing, alias);
+  }
+
+  if (!providerPricing) {
+    for (const [id, mappedAlias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
+      if (typeof mappedAlias === "string" && mappedAlias.toLowerCase() === pLower) {
+        providerPricing = findKeyInsensitive(pricing, id);
+        if (providerPricing) break;
+      }
     }
   }
 
-  const np = provider?.replace(/-cn$/, "");
-  if (np && np !== provider && pricing[np]) return pricing[np][model] || null;
+  if (!providerPricing) {
+    const np = pLower.replace(/-cn$/, "");
+    if (np && np !== pLower) {
+      providerPricing = findKeyInsensitive(pricing, np);
+    }
+  }
 
-  return null;
+  if (!providerPricing) return null;
+
+  const mLower = (model || "").toLowerCase();
+  let modelPricing = findKeyInsensitive<JsonRecord>(providerPricing, mLower);
+
+  if (!modelPricing) {
+    const hyphenModel = mLower.replace(/\./g, "-");
+    modelPricing = findKeyInsensitive(providerPricing, hyphenModel);
+  }
+
+  return modelPricing || null;
 }
 
 export async function updatePricing(pricingData: PricingByProvider) {
@@ -374,7 +406,12 @@ export async function resetAllPricing() {
 
 // ──────────────── LKGP (Last Known Good Provider) ────────────────
 
-export async function getLKGP(comboName: string, modelId: string): Promise<string | null> {
+export interface LKGPRecord {
+  provider: string;
+  connectionId?: string;
+}
+
+export async function getLKGP(comboName: string, modelId: string): Promise<LKGPRecord | null> {
   const db = getDbInstance();
   const key = `${comboName}:${modelId}`;
   const row = db
@@ -382,18 +419,29 @@ export async function getLKGP(comboName: string, modelId: string): Promise<strin
     .get(key) as { value?: string } | undefined;
   if (!row?.value) return null;
   try {
-    return JSON.parse(row.value);
+    const parsed = JSON.parse(row.value);
+    if (typeof parsed === "object" && parsed !== null && "provider" in parsed) {
+      return parsed as LKGPRecord;
+    }
+    return { provider: String(parsed) };
   } catch {
-    return row.value;
+    return { provider: row.value };
   }
 }
 
-export async function setLKGP(comboName: string, modelId: string, providerId: string) {
+export async function setLKGP(
+  comboName: string,
+  modelId: string,
+  providerId: string,
+  connectionId?: string
+) {
   const db = getDbInstance();
   const key = `${comboName}:${modelId}`;
+  const value: LKGPRecord = { provider: providerId };
+  if (connectionId) value.connectionId = connectionId;
   db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('lkgp', ?, ?)").run(
     key,
-    JSON.stringify(providerId)
+    JSON.stringify(value)
   );
 }
 

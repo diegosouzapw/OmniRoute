@@ -4,9 +4,9 @@ import assert from "node:assert/strict";
 const { normalizeDeveloperRole, normalizeModelRole, normalizeSystemRole, normalizeRoles } =
   await import("../../open-sse/services/roleNormalizer.ts");
 
-test("normalizeDeveloperRole preserves developer for openai by default", () => {
+test("normalizeDeveloperRole preserves developer for official openai provider by default", () => {
   const messages = [{ role: "developer", content: "internal policy" }];
-  const result = normalizeDeveloperRole(messages, "openai");
+  const result = normalizeDeveloperRole(messages, "openai", undefined, "openai");
   assert.deepEqual(result, messages);
 });
 
@@ -15,6 +15,36 @@ test("normalizeDeveloperRole maps developer to system when compatibility mode di
   const result = normalizeDeveloperRole(messages, "openai", false);
 
   assert.deepEqual(result, [{ role: "system", content: "internal policy" }]);
+});
+
+test("#2281 normalizeDeveloperRole maps developer to system for non-openai providers by default", () => {
+  const messages = [{ role: "developer", content: "internal policy" }];
+  // Without explicit preserveDeveloperRole, OpenAI-compatible providers that
+  // reject `developer` (DeepSeek, MiniMax, Mimo, GLM, etc.) should default
+  // to converting it to `system`.
+  for (const provider of ["deepseek", "minimax", "xiaomi-mimo", "glm", "fireworks", "together"]) {
+    const result = normalizeDeveloperRole(messages, "openai", undefined, provider);
+    assert.deepEqual(
+      result,
+      [{ role: "system", content: "internal policy" }],
+      `expected developer→system for provider ${provider}`
+    );
+  }
+});
+
+test("#2281 normalizeDeveloperRole preserves developer for openai-family providers", () => {
+  const messages = [{ role: "developer", content: "internal policy" }];
+  for (const provider of ["openai", "azure-openai", "azure", "github", "azure-openai-gov"]) {
+    const result = normalizeDeveloperRole(messages, "openai", undefined, provider);
+    assert.deepEqual(result, messages, `expected developer preserved for provider ${provider}`);
+  }
+});
+
+test("#2281 explicit preserveDeveloperRole=true overrides provider default", () => {
+  const messages = [{ role: "developer", content: "internal policy" }];
+  const result = normalizeDeveloperRole(messages, "openai", true, "deepseek");
+  // Operator forced preservation via dashboard "Compatibility" toggle.
+  assert.deepEqual(result, messages);
 });
 
 test("normalizeModelRole maps model to assistant case-insensitively", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 
 function relativeTime(ts: number): string {
@@ -44,10 +45,21 @@ interface FileRecord {
   expiresAt?: number | null;
 }
 
+interface BatchRecord {
+  id: string;
+  endpoint: string;
+  status: string;
+  inputFileId: string;
+  outputFileId?: string | null;
+  errorFileId?: string | null;
+  model?: string | null;
+}
+
 interface FileDetailModalProps {
   file: FileRecord;
   contents: string | null;
   loading: boolean;
+  batches?: BatchRecord[];
   onClose: () => void;
 }
 
@@ -55,9 +67,15 @@ export default function FileDetailModal({
   file,
   contents,
   loading,
+  batches,
   onClose,
 }: Readonly<FileDetailModalProps>) {
+  const t = useTranslations("common");
   const [copied, setCopied] = useState(false);
+
+  const relatedBatches = (batches ?? []).filter(
+    (b) => b.inputFileId === file.id || b.outputFileId === file.id || b.errorFileId === file.id
+  );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -84,8 +102,8 @@ export default function FileDetailModal({
     }
   };
 
-  const createdAtTs = file.created_at ?? file.createdAt;
-  const expiresAtTs = file.expires_at ?? file.expiresAt;
+  const createdAtTs = file.createdAt;
+  const expiresAtTs = file.expiresAt;
 
   const lineCount = contents ? contents.split("\n").filter((l) => l.trim()).length : 0;
   const isTruncated = lineCount > 1000;
@@ -124,7 +142,7 @@ export default function FileDetailModal({
                     navigator.clipboard.writeText(file.id);
                   }}
                   className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] transition-colors"
-                  title="Copy ID"
+                  title={t("batchFileDetailCopyId")}
                 >
                   <span className="material-symbols-outlined text-[12px]">content_copy</span>
                 </button>
@@ -133,7 +151,7 @@ export default function FileDetailModal({
           </div>
           <button
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("batchFileDetailClose")}
             className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-bg-alt)] transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -176,6 +194,39 @@ export default function FileDetailModal({
             </div>
           </div>
 
+          {/* Related batches */}
+          {relatedBatches.length > 0 && (
+            <div>
+              <h3 className="text-[11px] uppercase tracking-wider font-medium text-[var(--color-text-muted)] mb-2">
+                Used by {relatedBatches.length} batch{relatedBatches.length > 1 ? "es" : ""}
+              </h3>
+              <div className="space-y-1.5">
+                {relatedBatches.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[var(--color-bg-alt)] border border-[var(--color-border)] text-xs"
+                  >
+                    <span className="material-symbols-outlined text-[14px] text-[var(--color-text-muted)]">
+                      pending_actions
+                    </span>
+                    <span className="font-mono text-[var(--color-text-main)] truncate">{b.id}</span>
+                    <span
+                      className={`ml-auto px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                        b.status === "completed"
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/25"
+                          : b.status === "failed"
+                            ? "bg-red-500/15 text-red-400 border-red-500/25"
+                            : "bg-gray-500/15 text-gray-400 border-gray-500/25"
+                      }`}
+                    >
+                      {b.status.replaceAll("_", " ")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Contents */}
           <div className="flex-1 flex flex-col min-h-[300px]">
             <div className="flex items-center justify-between mb-2">
@@ -217,7 +268,7 @@ export default function FileDetailModal({
                   <span className="material-symbols-outlined text-[40px] mb-2 opacity-20">
                     find_in_page
                   </span>
-                  <p className="text-sm">Failed to load file contents</p>
+                  <p className="text-sm">{t("batchFileDetailFailedToLoad")}</p>
                 </div>
               )}
             </div>

@@ -4,7 +4,13 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import Database from "better-sqlite3";
+import type { SqliteAdapter } from "./adapters/types";
+import {
+  tryOpenSync,
+  getSqlJsAdapter,
+  preInitSqlJs,
+  openDatabaseAsync,
+} from "./adapters/driverFactory";
 import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
@@ -19,7 +25,7 @@ import {
 import { migrateLegacyEncryptedString } from "./encryption";
 import { invalidateDbCache } from "./readCache";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = SqliteAdapter;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 type PreservedTableSnapshot = {
@@ -61,7 +67,12 @@ export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite"
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
 const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
-const SKIP_PRESERVE_NAMESPACES = new Set(["syncedAvailableModels", "providerLimitsCache", "lkgp"]);
+const SKIP_PRESERVE_NAMESPACES = new Set([
+  "syncedAvailableModels",
+  "providerLimitsCache",
+  "lkgp",
+  "gemini_thought_signatures",
+]);
 const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   {
     table: "key_value",
@@ -89,13 +100,20 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
   { table: "webhooks", maxRows: 5_000 },
 ];
 
-function isNativeSqliteLoadError(error: unknown): boolean {
+export function isNativeSqliteLoadError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
+  const code = getErrorCode(error);
   return (
     message.includes("Module did not self-register") ||
     message.includes("NODE_MODULE_VERSION") ||
     message.includes("ERR_DLOPEN_FAILED") ||
-    getErrorCode(error) === "ERR_DLOPEN_FAILED"
+    // bun and similar runtimes that skip the postinstall script never download
+    // the prebuilt *.node binary, so `bindings()` fails with this message
+    // before any DLOPEN even happens (#2358).
+    message.includes("Could not locate the bindings file") ||
+    message.includes("Cannot find module 'better-sqlite3'") ||
+    code === "ERR_DLOPEN_FAILED" ||
+    code === "MODULE_NOT_FOUND"
   );
 }
 
@@ -105,32 +123,19 @@ function getErrorCode(error: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
-function createNativeSqliteLoadError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  const detail =
-    `better-sqlite3 native binding failed to load for Node.js ${process.version}. ` +
-    "This usually happens after switching Node.js versions without rebuilding native modules. " +
-    "Run `npm rebuild better-sqlite3` in the OmniRoute project and start again. " +
-    `Original error: ${message}`;
-  const wrapped = new Error(detail) as Error & { cause?: unknown; code?: string };
-  wrapped.name = "NativeSqliteLoadError";
-  wrapped.cause = error;
-  wrapped.code = getErrorCode(error) || "ERR_DLOPEN_FAILED";
-  return wrapped;
-}
+function openSqliteDatabase(sqliteFile: string, options?: Record<string, unknown>): SqliteDatabase {
+  const adapter = tryOpenSync(sqliteFile, options);
+  if (adapter) return adapter;
 
-function openSqliteDatabase(
-  sqliteFile: string,
-  options?: ConstructorParameters<typeof Database>[1]
-): SqliteDatabase {
-  try {
-    return new Database(sqliteFile, options);
-  } catch (error: unknown) {
-    if (isNativeSqliteLoadError(error)) {
-      throw createNativeSqliteLoadError(error);
-    }
-    throw error;
-  }
+  const sqlJs = getSqlJsAdapter(sqliteFile);
+  if (sqlJs) return sqlJs;
+
+  throw new Error(
+    `[DB] Nenhum driver SQLite disponível para '${sqliteFile}'. ` +
+      "Chame ensureDbInitialized() no startup. " +
+      "Drivers testados: better-sqlite3 (falhou), node:sqlite (indisponível). " +
+      "sql.js WASM ainda não foi pré-inicializado."
+  );
 }
 
 // Ensure data directory exists — with fallback for restricted home directories (#133)
@@ -188,6 +193,7 @@ const SCHEMA_SQL = `
     last_used_at TEXT,
     "group" TEXT,
     max_concurrent INTEGER,
+    quota_window_thresholds_json TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -443,6 +449,16 @@ export function rowToCamel(row: unknown): JsonRecord | null {
       } catch {
         result[camelKey] = v;
       }
+    } else if (camelKey.endsWith("Json") && typeof v === "string") {
+      // Convention: any column with a `_json` suffix is JSON-encoded TEXT.
+      // Surface the parsed object under the friendlier name (key minus the
+      // "Json" suffix) — e.g. quotaWindowThresholdsJson → quotaWindowThresholds.
+      const baseKey = camelKey.slice(0, -"Json".length);
+      try {
+        result[baseKey] = JSON.parse(v);
+      } catch {
+        result[baseKey] = null;
+      }
     } else {
       result[camelKey] = v;
     }
@@ -465,7 +481,7 @@ export function cleanNulls(obj: unknown): JsonRecord {
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+  var __omnirouteDb: SqliteAdapter | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -509,6 +525,10 @@ function ensureProviderConnectionsColumns(db: SqliteDatabase) {
     if (!columnNames.has("max_concurrent")) {
       db.exec("ALTER TABLE provider_connections ADD COLUMN max_concurrent INTEGER");
       console.log("[DB] Added provider_connections.max_concurrent column");
+    }
+    if (!columnNames.has("quota_window_thresholds_json")) {
+      db.exec("ALTER TABLE provider_connections ADD COLUMN quota_window_thresholds_json TEXT");
+      console.log("[DB] Added provider_connections.quota_window_thresholds_json column");
     }
     db.exec(
       "CREATE INDEX IF NOT EXISTS idx_pc_max_concurrent ON provider_connections(provider, max_concurrent)"
@@ -1122,6 +1142,7 @@ export function getDbInstance(): SqliteDatabase {
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
     ensureCallLogsColumns(memoryDb);
+    ensureProviderConnectionsColumns(memoryDb);
     setDb(memoryDb);
     return memoryDb;
   }
@@ -1396,6 +1417,54 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
  */
 export function resetDbInstance() {
   closeDbInstance();
+}
+
+// ──────────────── Runtime Driver Info ────────────────
+
+type DbDriverInfo = { source: string; kind: string };
+let driverInfoCached: DbDriverInfo | null = null;
+
+function setDriverInfo(info: DbDriverInfo) {
+  driverInfoCached = info;
+}
+
+/** Returns how better-sqlite3 was resolved (bundled / runtime / etc.). Null if not yet init. */
+export function getDriverInfo(): DbDriverInfo | null {
+  return driverInfoCached;
+}
+
+/**
+ * Async initializer that pre-resolves the SQLite runtime before first DB access.
+ *
+ * Call this at process startup (before any call to getDbInstance()) so that
+ * if the bundled better-sqlite3 binary is unavailable, the runtime installer
+ * can place it in ~/.omniroute/runtime/ without blocking a synchronous caller.
+ *
+ * Idempotent — safe to call multiple times.
+ */
+export async function ensureDbInitialized(): Promise<void> {
+  if (getDb()) return;
+
+  // Cloud/build: getDbInstance() cria in-memory, sem necessidade de pré-init
+  if (isCloud || isBuildPhase || !SQLITE_FILE) {
+    getDbInstance();
+    return;
+  }
+
+  // Tenta drivers síncronos primeiro
+  const sync = tryOpenSync(SQLITE_FILE);
+  if (sync) {
+    // Drivers síncronos disponíveis — fechar o probe, getDbInstance() vai abrir com setup completo
+    sync.close();
+    getDbInstance();
+    return;
+  }
+
+  // Nenhum driver síncrono — pré-inicializar sql.js (WASM, async)
+  console.warn("[DB] Pré-inicializando sql.js WASM (drivers síncronos indisponíveis)...");
+  await preInitSqlJs(SQLITE_FILE);
+  // Agora getSqlJsAdapter() retornará o adapter, e getDbInstance() vai usá-lo
+  getDbInstance();
 }
 
 // ──────────────── JSON → SQLite Migration ────────────────

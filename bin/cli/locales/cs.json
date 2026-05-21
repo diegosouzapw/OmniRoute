@@ -1,0 +1,29 @@
+{
+  "common": {
+    "error": "Chyba: {message}",
+    "serverOffline": "Server OmniRoute je offline. Spusťte: omniroute serve",
+    "authRequired": "Vyžaduje se ověření. Nastavte OMNIROUTE_API_KEY nebo spusťte: omniroute setup",
+    "rateLimited": "Překročen limit požadavků. Zkuste za {seconds}s.",
+    "timeout": "Požadavek vypršel po {ms}ms.",
+    "success": "Hotovo.",
+    "yes": "ano",
+    "no": "ne",
+    "confirm": "Jste si jisti? (ano/ne)",
+    "dryRun": "[simulace] by provedlo: {action}",
+    "cancelled": "Zrušeno.",
+    "jsonOpt": "Výstup jako JSON",
+    "yesOpt": "Přeskočit potvrzení"
+  },
+  "program": {
+    "description": "OmniRoute — Chytrý AI router s automatickým přepínáním",
+    "version": "Vypsat verzi a skončit",
+    "output": "Formát výstupu (table, json, jsonl, csv)",
+    "quiet": "Potlačit nepodstatný výstup",
+    "no_color": "Zakázat barevný výstup",
+    "timeout": "Časový limit HTTP požadavků v milisekundách",
+    "api_key": "API klíč pro server OmniRoute",
+    "base_url": "Základní URL serveru OmniRoute",
+    "context": "Kontext/profil serveru pro tento příkaz",
+    "lang": "Nastavit jazyk CLI (přepisuje OMNIROUTE_LANG)"
+  }
+}

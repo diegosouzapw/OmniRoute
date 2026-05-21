@@ -50,9 +50,9 @@ async function createProvider(dataDir: string) {
 test("providers list succeeds with configured providers", async () => {
   await withProvidersEnv(async (dataDir) => {
     await createProvider(dataDir);
-    const { runProvidersCommand } = await import("../../bin/cli/commands/providers.mjs");
+    const { runListCommand } = await import("../../bin/cli/commands/providers.mjs");
 
-    const exitCode = await runProvidersCommand(["list", "--json"]);
+    const exitCode = await runListCommand({ json: true });
 
     assert.equal(exitCode, 0);
   });
@@ -60,7 +60,7 @@ test("providers list succeeds with configured providers", async () => {
 
 test("providers available lists supported provider catalog", async () => {
   await withProvidersEnv(async () => {
-    const { runProvidersCommand } = await import("../../bin/cli/commands/providers.mjs");
+    const { runAvailableCommand } = await import("../../bin/cli/commands/providers.mjs");
     const logs: string[] = [];
     const originalLog = console.log;
     console.log = (...args: unknown[]) => {
@@ -68,7 +68,7 @@ test("providers available lists supported provider catalog", async () => {
     };
 
     try {
-      const exitCode = await runProvidersCommand(["available", "--json", "--search", "openai"]);
+      const exitCode = await runAvailableCommand({ json: true, search: "openai" });
       assert.equal(exitCode, 0);
     } finally {
       console.log = originalLog;
@@ -91,8 +91,8 @@ test("providers test updates provider status from upstream result", async () => 
         headers: { "Content-Type": "application/json" },
       })) as typeof fetch;
 
-    const { runProvidersCommand } = await import("../../bin/cli/commands/providers.mjs");
-    const exitCode = await runProvidersCommand(["test", "OpenAI CLI"]);
+    const { runTestCommand } = await import("../../bin/cli/commands/providers.mjs");
+    const exitCode = await runTestCommand("OpenAI CLI", {});
 
     assert.equal(exitCode, 0);
 
@@ -139,8 +139,8 @@ test("providers validate fails encrypted API keys without storage key", async ()
     );
     db.close();
 
-    const { runProvidersCommand } = await import("../../bin/cli/commands/providers.mjs");
-    const exitCode = await runProvidersCommand(["validate", "--json"]);
+    const { runValidateCommand } = await import("../../bin/cli/commands/providers.mjs");
+    const exitCode = await runValidateCommand({ json: true });
 
     assert.equal(exitCode, 1);
   });

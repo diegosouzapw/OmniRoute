@@ -43,6 +43,7 @@ import {
   addBufferToUsage,
 } from "../utils/usageTracking.ts";
 import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
+import { sanitizeErrorMessage } from "../utils/error.ts";
 import { generateToolCallId } from "../translator/helpers/toolCallHelper.ts";
 import { cursorSessionManager, type CursorSession } from "../services/cursorSessionManager.ts";
 import crypto from "crypto";
@@ -805,13 +806,13 @@ export class CursorExecutor extends BaseExecutor {
       ? openAIToolsToMcpDefs(body.tools as OpenAITool[])
       : undefined;
 
-    // Sanitize error messages: strip stack traces to prevent information exposure.
-    const sanitize = (m: string) => (typeof m === "string" ? m.split("\n")[0] : String(m));
+    // Sanitize error messages: strip stack traces and absolute paths to
+    // prevent information exposure. Shared helper in utils/error.ts.
     const buildErrorResponse = (status: number, message: string, type = "invalid_request_error") =>
-      new Response(JSON.stringify({ error: { message: sanitize(message), type, code: "" } }), {
-        status,
-        headers: { "Content-Type": "application/json" },
-      });
+      new Response(
+        JSON.stringify({ error: { message: sanitizeErrorMessage(message), type, code: "" } }),
+        { status, headers: { "Content-Type": "application/json" } }
+      );
 
     // Cursor's agent.v1.AgentService/Run is a bidirectional Connect-RPC:
     // request_context, KV blob lookups, and exec rejections must be

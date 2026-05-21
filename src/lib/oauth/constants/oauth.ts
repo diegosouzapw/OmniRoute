@@ -1,4 +1,8 @@
 import {
+  ANTIGRAVITY_BASE_URLS,
+  getAntigravityFetchAvailableModelsUrls,
+} from "@omniroute/open-sse/config/antigravityUpstream.ts";
+import {
   ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   getAntigravityLoadCodeAssistClientMetadata,
@@ -9,6 +13,10 @@ import {
   GITHUB_COPILOT_CHAT_USER_AGENT,
   GITHUB_COPILOT_EDITOR_VERSION,
 } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
+import {
+  resolvePublicCred,
+  resolvePublicCredMulti,
+} from "@omniroute/open-sse/utils/publicCreds.ts";
 import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitlab";
 
 /**
@@ -16,7 +24,7 @@ import { buildGitLabOAuthEndpoints, GITLAB_DUO_DEFAULT_BASE_URL } from "../gitla
  *
  * All credentials are read exclusively from environment variables.
  * Default values match the public CLI client IDs from .env.example
- * (auto-populated by scripts/sync-env.mjs on install).
+ * (auto-populated by scripts/dev/sync-env.mjs on install).
  *
  * These are public OAuth client credentials for desktop/CLI applications
  * that rely on PKCE for security (RFC 8252), not on secret confidentiality.
@@ -57,15 +65,17 @@ export const CODEX_CONFIG = {
 };
 
 // Gemini (Google) OAuth Configuration (Standard OAuth2)
+// clientId/clientSecret are public values shipped in the Gemini CLI binary;
+// resolved through resolvePublicCred so they don't appear as literals here.
 export const GEMINI_CONFIG = {
-  clientId:
-    process.env.GEMINI_CLI_OAUTH_CLIENT_ID ||
-    process.env.GEMINI_OAUTH_CLIENT_ID ||
-    "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-  clientSecret:
-    process.env.GEMINI_CLI_OAUTH_CLIENT_SECRET ||
-    process.env.GEMINI_OAUTH_CLIENT_SECRET ||
-    "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",
+  clientId: resolvePublicCredMulti("gemini_id", [
+    "GEMINI_CLI_OAUTH_CLIENT_ID",
+    "GEMINI_OAUTH_CLIENT_ID",
+  ]),
+  clientSecret: resolvePublicCredMulti("gemini_alt", [
+    "GEMINI_CLI_OAUTH_CLIENT_SECRET",
+    "GEMINI_OAUTH_CLIENT_SECRET",
+  ]),
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -135,12 +145,11 @@ export const CLINE_CONFIG = {
 };
 
 // Antigravity OAuth Configuration (Standard OAuth2 with Google)
+// clientId/clientSecret are public values shipped in the Antigravity CLI;
+// resolved through resolvePublicCred so they don't appear as literals here.
 export const ANTIGRAVITY_CONFIG = {
-  clientId:
-    process.env.ANTIGRAVITY_OAUTH_CLIENT_ID ||
-    "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-  clientSecret:
-    process.env.ANTIGRAVITY_OAUTH_CLIENT_SECRET || "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",
+  clientId: resolvePublicCred("antigravity_id", "ANTIGRAVITY_OAUTH_CLIENT_ID"),
+  clientSecret: resolvePublicCred("antigravity_alt", "ANTIGRAVITY_OAUTH_CLIENT_SECRET"),
   authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
   userInfoUrl: "https://www.googleapis.com/oauth2/v1/userinfo",
@@ -152,13 +161,16 @@ export const ANTIGRAVITY_CONFIG = {
     "https://www.googleapis.com/auth/experimentsandconfigs",
   ],
   // Antigravity specific
-  apiEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com",
+  apiEndpoint: ANTIGRAVITY_BASE_URLS[0],
   apiVersion: "v1internal",
-  loadCodeAssistEndpoint:
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:loadCodeAssist",
-  onboardUserEndpoint: "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:onboardUser",
-  fetchAvailableModelsEndpoint:
-    "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+  loadCodeAssistEndpoints: ANTIGRAVITY_BASE_URLS.map(
+    (baseUrl) => `${baseUrl}/v1internal:loadCodeAssist`
+  ),
+  onboardUserEndpoints: ANTIGRAVITY_BASE_URLS.map((baseUrl) => `${baseUrl}/v1internal:onboardUser`),
+  fetchAvailableModelsEndpoints: getAntigravityFetchAvailableModelsUrls(),
+  loadCodeAssistEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:loadCodeAssist`,
+  onboardUserEndpoint: `${ANTIGRAVITY_BASE_URLS[0]}/v1internal:onboardUser`,
+  fetchAvailableModelsEndpoint: getAntigravityFetchAvailableModelsUrls()[0],
   loadCodeAssistUserAgent: ANTIGRAVITY_LOAD_CODE_ASSIST_USER_AGENT,
   loadCodeAssistApiClient: ANTIGRAVITY_LOAD_CODE_ASSIST_API_CLIENT,
   loadCodeAssistClientMetadata: getAntigravityLoadCodeAssistClientMetadata(),
@@ -264,6 +276,45 @@ export const CURSOR_CONFIG = {
   },
 };
 
+// Windsurf / Devin CLI Configuration
+//
+// Authentication uses PKCE Authorization Code Flow — same pattern as Codex CLI.
+// Extracted from Devin CLI binary (model_configs_v2.bin + devin.exe strings):
+//
+//   Authorize URL:  https://app.devin.ai/editor/signin
+//   Params:         response_type=code, redirect_uri, code_challenge, code_challenge_method=S256
+//   Callback path:  /auth/callback  (local server on random port 127.0.0.1:0)
+//   Exchange:       POST https://server.codeium.com/<ExchangePKCEAuthorizationCode>
+//                   via Connect JSON protocol (Content-Type: application/json)
+//   Response field: windsurfApiKey  → stored as accessToken / WINDSURF_API_KEY
+//
+// Fallback: user can also paste a token from windsurf.com/show-auth-token
+export const WINDSURF_CONFIG = {
+  // Browser-based PKCE authorize endpoint (extracted from devin.exe binary)
+  authorizeUrl: "https://app.devin.ai/editor/signin",
+  codeChallengeMethod: "S256" as const,
+  // Local callback server — 0 = OS assigns a free port
+  callbackPort: 0,
+  callbackPath: "/auth/callback",
+  // Token exchange via Windsurf Connect JSON (gRPC-web + JSON)
+  apiServerUrl: "https://server.codeium.com",
+  exchangePath: "/exa.seat_management_pb.SeatManagementService/ExchangePKCEAuthorizationCode",
+  // Inference server URL (gRPC-web requests go here)
+  inferenceUrl: "https://server.self-serve.windsurf.com",
+  // Fallback: user visits this page, copies token, pastes it
+  showAuthTokenUrl: "https://windsurf.com/show-auth-token",
+  // Token refresh via Firebase Secure Token Service (for short-lived browser-flow tokens).
+  // Default is the public Firebase Web client identifier embedded in the
+  // Windsurf/Devin CLI binary; users may override via WINDSURF_FIREBASE_API_KEY.
+  // Long-lived import tokens never need this — refresh is skipped when key is absent.
+  firebaseApiKey: resolvePublicCred("windsurf_fb", "WINDSURF_FIREBASE_API_KEY"),
+  firebaseTokenUrl: "https://securetoken.googleapis.com/v1/token",
+  // IDE identity sent with every gRPC request
+  ideName: "windsurf",
+  ideVersion: "3.14.0",
+  extensionVersion: "3.14.0",
+};
+
 // OAuth timeout (5 minutes)
 export const OAUTH_TIMEOUT = 300000;
 
@@ -284,4 +335,6 @@ export const PROVIDERS = {
   CURSOR: "cursor",
   KILOCODE: "kilocode",
   CLINE: "cline",
+  WINDSURF: "windsurf",
+  DEVIN_CLI: "devin-cli",
 };

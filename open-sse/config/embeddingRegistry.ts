@@ -46,6 +46,20 @@ export function buildDynamicEmbeddingProvider(node: EmbeddingProviderNodeRow): E
 }
 
 export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
+  cohere: {
+    id: "cohere",
+    baseUrl: "https://api.cohere.com/v2/embed",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "embed-v4.0", name: "Embed v4.0" },
+      { id: "embed-multilingual-v3.0", name: "Embed Multilingual v3.0" },
+      { id: "embed-multilingual-v3.0-images", name: "Embed Multilingual v3.0 Image" },
+      { id: "embed-multilingual-light-v3.0", name: "Embed Multilingual Light v3.0" },
+      { id: "embed-multilingual-light-v3.0-images", name: "Embed Multilingual Light v3.0 Image" },
+    ],
+  },
+
   nebius: {
     id: "nebius",
     baseUrl: "https://api.tokenfactory.nebius.com/v1/embeddings",
@@ -114,6 +128,26 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     models: [{ id: "nvidia/nv-embedqa-e5-v5", name: "NV EmbedQA E5 v5", dimensions: 1024 }],
   },
 
+  // Issue #2298: Adding DeepInfra to the embedding registry so custom
+  // embedding models on the DeepInfra provider don't fail with "Unknown
+  // embedding provider" when the user adds them via the dashboard.
+  deepinfra: {
+    id: "deepinfra",
+    baseUrl: "https://api.deepinfra.com/v1/openai/embeddings",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [
+      { id: "Qwen/Qwen3-Embedding-8B", name: "Qwen3 Embedding 8B", dimensions: 4096 },
+      { id: "Qwen/Qwen3-Embedding-4B", name: "Qwen3 Embedding 4B", dimensions: 2560 },
+      { id: "Qwen/Qwen3-Embedding-0.6B", name: "Qwen3 Embedding 0.6B", dimensions: 1024 },
+      { id: "BAAI/bge-large-en-v1.5", name: "BGE Large EN v1.5", dimensions: 1024 },
+      { id: "BAAI/bge-base-en-v1.5", name: "BGE Base EN v1.5", dimensions: 768 },
+      { id: "BAAI/bge-m3", name: "BGE-M3", dimensions: 1024 },
+      { id: "intfloat/e5-large-v2", name: "E5 Large v2", dimensions: 1024 },
+      { id: "thenlper/gte-large", name: "GTE Large", dimensions: 1024 },
+    ],
+  },
+
   openrouter: {
     id: "openrouter",
     baseUrl: "https://openrouter.ai/api/v1/embeddings",
@@ -155,19 +189,11 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
       { id: "voyage-4-large", name: "Voyage 4 Large", dimensions: 1024 },
       { id: "voyage-4", name: "Voyage 4", dimensions: 1024 },
       { id: "voyage-4-lite", name: "Voyage 4 Lite", dimensions: 1024 },
+      { id: "voyage-multilingual-3.5", name: "Voyage Multilingual 3.5", dimensions: 1024 },
       { id: "voyage-code-3", name: "Voyage Code 3", dimensions: 1024 },
+      { id: "voyage-code-2", name: "Voyage Code 2", dimensions: 1536 },
       { id: "voyage-finance-2", name: "Voyage Finance 2", dimensions: 1024 },
       { id: "voyage-law-2", name: "Voyage Law 2", dimensions: 1024 },
-      { id: "voyage-code-2", name: "Voyage Code 2", dimensions: 1536 },
-      { id: "voyage-3-large", name: "Voyage 3 Large", dimensions: 1024 },
-      { id: "voyage-3.5", name: "Voyage 3.5", dimensions: 1024 },
-      { id: "voyage-3.5-lite", name: "Voyage 3.5 Lite", dimensions: 1024 },
-      { id: "voyage-3", name: "Voyage 3", dimensions: 1024 },
-      { id: "voyage-3-lite", name: "Voyage 3 Lite", dimensions: 512 },
-      { id: "voyage-multilingual-2", name: "Voyage Multilingual 2", dimensions: 1024 },
-      { id: "voyage-large-2-instruct", name: "Voyage Large 2 Instruct", dimensions: 1024 },
-      { id: "voyage-large-2", name: "Voyage Large 2", dimensions: 1536 },
-      { id: "voyage-2", name: "Voyage 2", dimensions: 1024 },
     ],
   },
 

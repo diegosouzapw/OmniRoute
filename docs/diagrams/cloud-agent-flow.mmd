@@ -1,0 +1,32 @@
+%% Cloud Agent task lifecycle
+%% Reflects: src/lib/cloudAgent/* and src/app/api/v1/agents/tasks/*
+%% Supported agents: codex-cloud, devin, jules
+%% v3.8.0
+sequenceDiagram
+  participant U as User
+  participant API as /v1/agents/tasks
+  participant Reg as Cloud Agent Registry
+  participant Ag as Cloud Agent<br/>(codex-cloud / devin / jules)
+  participant DB as SQLite domain DB
+
+  U->>API: POST createTask (description, sources)
+  API->>API: Zod validation + AuthZ (management)
+  API->>Reg: getAgent(providerId)
+  Reg->>Ag: instantiate with credentials
+  Ag->>Ag: createTask() returns planning
+  Ag-->>API: taskId + status: planning
+  API->>DB: insertCloudAgentTask
+  API-->>U: taskId
+
+  U->>API: GET /tasks/:id (poll)
+  API->>Ag: getStatus(externalId)
+  Ag-->>API: status, plan, messages
+  API->>DB: updateCloudAgentTask
+  API-->>U: snapshot
+
+  U->>API: POST approvePlan
+  API->>Ag: approvePlan(externalId)
+  Ag-->>API: status: running
+  Note over Ag: Async execution upstream
+
+  Ag-->>DB: stream events / final result

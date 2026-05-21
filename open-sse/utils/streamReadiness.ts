@@ -66,6 +66,85 @@ function hasUsefulJsonPayload(payload: unknown): boolean {
   return hasUsefulValue(payload);
 }
 
+function hasOpenAIResponseLifecyclePayload(
+  payload: Record<string, unknown>,
+  type: string
+): boolean {
+  if (type === "response.created" || type === "response.in_progress") {
+    const response = payload.response;
+    if (!isRecord(response)) return false;
+
+    return (
+      hasNonEmptyString(response.id) ||
+      hasNonEmptyString(response.object) ||
+      hasNonEmptyString(response.status) ||
+      typeof response.created_at === "number"
+    );
+  }
+
+  if (type === "response.output_item.added") {
+    const item = payload.item;
+    if (!isRecord(item)) return false;
+
+    return (
+      hasNonEmptyString(item.id) ||
+      hasNonEmptyString(item.type) ||
+      hasNonEmptyString(item.status) ||
+      Array.isArray(item.content) ||
+      isRecord(item.content)
+    );
+  }
+
+  return false;
+}
+
+function hasChatCompletionToolCallStart(value: unknown): boolean {
+  const hasToolCallId = (item: unknown) => isRecord(item) && hasNonEmptyString(item.id);
+  if (Array.isArray(value)) return value.some(hasToolCallId);
+  return hasToolCallId(value);
+}
+
+function hasChatCompletionFunctionCallStart(value: unknown): boolean {
+  return isRecord(value) && hasNonEmptyString(value.name);
+}
+
+function hasChatCompletionChunkStartPayload(payload: Record<string, unknown>): boolean {
+  if (payload.object !== "chat.completion.chunk" && payload.type !== "chat.completion.chunk") {
+    return false;
+  }
+
+  const choices = payload.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return false;
+
+  return choices.some((choice) => {
+    if (!isRecord(choice)) return false;
+    const delta = choice.delta;
+    if (!isRecord(delta)) return false;
+
+    return (
+      hasNonEmptyString(delta.role) ||
+      hasChatCompletionToolCallStart(delta.tool_calls) ||
+      hasChatCompletionFunctionCallStart(delta.function_call)
+    );
+  });
+}
+
+function hasAcceptedStreamStartPayload(payload: unknown, eventType = ""): boolean {
+  if (!isRecord(payload)) return false;
+
+  // Anthropic/Claude streams can legitimately start with lifecycle frames and
+  // OpenAI Responses streams can do the same before the first text/tool delta
+  // arrives. Treating structurally valid lifecycle frames as readiness prevents
+  // false 504s while ping-only/generic-empty zombie streams still fail below.
+  const type = typeof payload.type === "string" ? payload.type : eventType;
+  if (type === "message_start" && isRecord(payload.message)) return true;
+  if (type === "content_block_start" && isRecord(payload.content_block)) return true;
+  if (hasOpenAIResponseLifecyclePayload(payload, type)) return true;
+  if (hasChatCompletionChunkStartPayload(payload)) return true;
+
+  return false;
+}
+
 export function hasUsefulStreamContent(text: string): boolean {
   const lines = text.split(/\r?\n/);
 
@@ -85,6 +164,60 @@ export function hasUsefulStreamContent(text: string): boolean {
     }
   }
 
+  return false;
+}
+
+type StreamReadinessSignalState = {
+  currentEvent: string;
+  pendingLine: string;
+};
+
+function processStreamReadinessLine(state: StreamReadinessSignalState, line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith(":")) {
+    if (!trimmed) state.currentEvent = "";
+    return false;
+  }
+
+  if (trimmed.startsWith("event:")) {
+    state.currentEvent = trimmed.slice(6).trim();
+    return false;
+  }
+
+  if (/^(?:ping|keepalive)$/i.test(state.currentEvent)) return false;
+  if (!trimmed.startsWith("data:")) return false;
+
+  const data = trimmed.slice(5).trim();
+  if (!data || data === "[DONE]") return false;
+
+  try {
+    const parsed = JSON.parse(data);
+    return (
+      hasUsefulJsonPayload(parsed) || hasAcceptedStreamStartPayload(parsed, state.currentEvent)
+    );
+  } catch {
+    return data.length > 0;
+  }
+}
+
+function appendStreamReadinessSignal(state: StreamReadinessSignalState, chunk: string): boolean {
+  const lines = `${state.pendingLine}${chunk}`.split(/\r?\n/);
+  state.pendingLine = lines.pop() ?? "";
+
+  for (const line of lines) {
+    if (processStreamReadinessLine(state, line)) return true;
+  }
+
+  return false;
+}
+
+export function hasStreamReadinessSignal(text: string): boolean {
+  const state: StreamReadinessSignalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
+  if (appendStreamReadinessSignal(state, text)) return true;
+  if (state.pendingLine) return processStreamReadinessLine(state, state.pendingLine);
   return false;
 }
 
@@ -170,7 +303,10 @@ export async function ensureStreamReadiness(
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   const decoder = new TextDecoder();
-  let bufferedText = "";
+  const readinessState: StreamReadinessSignalState = {
+    currentEvent: "",
+    pendingLine: "",
+  };
   const startedAt = Date.now();
   const deadline = startedAt + options.timeoutMs;
   let handedOffReader = false;
@@ -245,9 +381,9 @@ export async function ensureStreamReadiness(
 
       if (!readResult.value) continue;
       chunks.push(readResult.value);
-      bufferedText += decoder.decode(readResult.value, { stream: true });
+      const decodedChunk = decoder.decode(readResult.value, { stream: true });
 
-      if (hasUsefulStreamContent(bufferedText)) {
+      if (appendStreamReadinessSignal(readinessState, decodedChunk)) {
         options.log?.debug?.(
           "STREAM",
           `Stream readiness confirmed in ${Date.now() - startedAt}ms (${options.provider || "provider"}/${options.model || "unknown"})`

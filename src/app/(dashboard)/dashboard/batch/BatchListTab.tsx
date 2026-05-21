@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import BatchDetailModal from "./BatchDetailModal";
 
 function relativeTime(ts: number): string {
@@ -64,6 +65,7 @@ interface BatchListTabProps {
   batches: BatchRecord[];
   files: FileRecord[];
   loading: boolean;
+  onRefresh?: () => void;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -124,10 +126,61 @@ const ALL_STATUSES = [
   "expired",
 ];
 
-export default function BatchListTab({ batches, files, loading }: Readonly<BatchListTabProps>) {
+export default function BatchListTab({
+  batches,
+  files,
+  loading,
+  onRefresh,
+}: Readonly<BatchListTabProps>) {
+  const t = useTranslations("common");
   const [selectedBatch, setSelectedBatch] = useState<BatchRecord | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [removingCompleted, setRemovingCompleted] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const completedBatches = batches.filter((b) => b.status === "completed");
+
+  const handleDeleteBatch = async (e: React.MouseEvent, batch: BatchRecord) => {
+    e.stopPropagation();
+    setDeletingId(batch.id);
+    try {
+      const res = await fetch(`/api/v1/batches/${batch.id}`, { method: "DELETE" });
+      if (res.ok) {
+        onRefresh?.();
+      } else {
+        console.error(
+          `[DeleteBatch] DELETE ${batch.id} returned ${res.status}`,
+          await res.text().catch(() => "")
+        );
+      }
+    } catch (err) {
+      console.error(`[DeleteBatch] DELETE ${batch.id} threw`, err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleRemoveCompleted = async () => {
+    if (completedBatches.length === 0) return;
+    setRemovingCompleted(true);
+    try {
+      const res = await fetch("/api/v1/batches/delete-completed", { method: "DELETE" });
+      if (res.ok) {
+        onRefresh?.();
+      } else {
+        console.error(
+          "[RemoveCompleted] DELETE /batches/delete-completed returned",
+          res.status,
+          await res.text().catch(() => "")
+        );
+      }
+    } catch (err) {
+      console.error("[RemoveCompleted] DELETE /batches/delete-completed threw", err);
+    } finally {
+      setRemovingCompleted(false);
+    }
+  };
 
   const filtered = batches.filter((b) => {
     if (statusFilter !== "all" && b.status !== statusFilter) return false;
@@ -148,7 +201,7 @@ export default function BatchListTab({ batches, files, loading }: Readonly<Batch
       <div className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
         <input
           type="text"
-          placeholder="Search by ID, endpoint, model…"
+          placeholder={t("batchListSearchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 min-w-[200px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
@@ -164,11 +217,22 @@ export default function BatchListTab({ batches, files, loading }: Readonly<Batch
             </option>
           ))}
         </select>
+        <button
+          onClick={handleRemoveCompleted}
+          disabled={removingCompleted}
+          className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          title={t("batchListDeleteAllCompletedTitle")}
+        >
+          <span className="material-symbols-outlined text-[16px]">
+            {removingCompleted ? "hourglass_empty" : "delete_sweep"}
+          </span>
+          {removingCompleted ? "Removing…" : "Remove completed"}
+        </button>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto overflow-y-hidden rounded-xl border border-[var(--color-border)]">
-        <table className="w-full text-sm" role="table" aria-label="Batches">
+        <table className="w-full text-sm" role="table" aria-label={t("batchListBatchesTable")}>
           <thead>
             <tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
@@ -192,12 +256,13 @@ export default function BatchListTab({ batches, files, loading }: Readonly<Batch
               <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] uppercase text-xs tracking-wider">
                 Expires
               </th>
+              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {loading && filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   <div className="flex items-center justify-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-accent)]" />
                     Loading…
@@ -206,7 +271,7 @@ export default function BatchListTab({ batches, files, loading }: Readonly<Batch
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
+                <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-muted)]">
                   No batches found
                 </td>
               </tr>
@@ -268,6 +333,20 @@ export default function BatchListTab({ batches, files, loading }: Readonly<Batch
                     </td>
                     <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">
                       {batch.expiresAt ? relativeTime(batch.expiresAt) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {["completed", "failed", "cancelled", "expired"].includes(batch.status) && (
+                        <button
+                          onClick={(e) => handleDeleteBatch(e, batch)}
+                          disabled={deletingId === batch.id}
+                          className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-500/10 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors whitespace-nowrap disabled:opacity-50"
+                          title={t("batchListDeleteBatchTitle")}
+                        >
+                          <span className="material-symbols-outlined text-[13px]">
+                            {deletingId === batch.id ? "hourglass_empty" : "delete"}
+                          </span>
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

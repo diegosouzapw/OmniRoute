@@ -1,3 +1,5 @@
+import { isDeepSeekReasoningModel } from "../../services/reasoningCache.ts";
+
 /**
  * Shared sanitizers for tool payloads that arrive from IDEs/SDKs with
  * JSON Schema numeric constraints encoded as strings or invalid descriptions.
@@ -196,9 +198,17 @@ export function sanitizeToolId(id: string | undefined): string {
 
 export function injectEmptyReasoningContentForToolCalls(
   messages: unknown,
-  provider: unknown
+  provider: unknown,
+  model: unknown
 ): unknown {
-  if (!Array.isArray(messages) || String(provider || "").toLowerCase() !== "deepseek") {
+  if (
+    !Array.isArray(messages) ||
+    !isDeepSeekReasoningModel({
+      provider: String(provider ?? ""),
+      model: String(model ?? ""),
+      thinkingEnabled: true,
+    })
+  ) {
     return messages;
   }
 

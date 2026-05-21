@@ -15,13 +15,22 @@ import { VertexExecutor } from "./vertex.ts";
 import { CliproxyapiExecutor } from "./cliproxyapi.ts";
 import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
+import { GeminiWebExecutor } from "./gemini-web.ts";
 import { ChatGptWebExecutor } from "./chatgpt-web.ts";
 import { BlackboxWebExecutor } from "./blackbox-web.ts";
 import { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 import { AzureOpenAIExecutor } from "./azure-openai.ts";
+import { CommandCodeExecutor } from "./commandCode.ts";
 import { GitlabExecutor } from "./gitlab.ts";
 import { NlpCloudExecutor } from "./nlpcloud.ts";
 import { PetalsExecutor } from "./petals.ts";
+import { WindsurfExecutor } from "./windsurf.ts";
+import { DevinCliExecutor } from "./devin-cli.ts";
+import { DeepSeekWebExecutor } from "./deepseek-web.ts";
+import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+import { CopilotWebExecutor } from "./copilot-web.ts";
+import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
+import { T3ChatWebExecutor } from "./t3-chat-web.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -37,6 +46,8 @@ const executors = {
   glmt: new GlmExecutor("glmt"),
   cu: new CursorExecutor(), // Alias for cursor
   "azure-openai": new AzureOpenAIExecutor(),
+  "command-code": new CommandCodeExecutor(),
+  cmd: new CommandCodeExecutor(), // Alias
   gitlab: new GitlabExecutor(),
   "gitlab-duo": new GitlabExecutor("gitlab-duo"),
   nlpcloud: new NlpCloudExecutor(),
@@ -56,12 +67,26 @@ const executors = {
   "perplexity-web": new PerplexityWebExecutor(),
   "pplx-web": new PerplexityWebExecutor(), // Alias
   "grok-web": new GrokWebExecutor(),
+  "gemini-web": new GeminiWebExecutor(),
+  gweb: new GeminiWebExecutor(), // Alias
   "chatgpt-web": new ChatGptWebExecutor(),
   "cgpt-web": new ChatGptWebExecutor(), // Alias
   "blackbox-web": new BlackboxWebExecutor(),
   "bb-web": new BlackboxWebExecutor(), // Alias
   "muse-spark-web": new MuseSparkWebExecutor(),
   "ms-web": new MuseSparkWebExecutor(), // Alias
+  windsurf: new WindsurfExecutor(),
+  ws: new WindsurfExecutor(), // Alias
+  "devin-cli": new DevinCliExecutor(),
+  devin: new DevinCliExecutor(), // Alias
+  "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
+  "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
+  "copilot-web": new CopilotWebExecutor(),
+  copilot: new CopilotWebExecutor(), // Alias
+  "veoaifree-web": new VeoAIFreeWebExecutor(),
+  "veo-free": new VeoAIFreeWebExecutor(), // Alias
+  "t3-web": new T3ChatWebExecutor(),
+  t3chat: new T3ChatWebExecutor(), // Alias
 };
 
 const defaultCache = new Map();
@@ -94,11 +119,20 @@ export { CliproxyapiExecutor } from "./cliproxyapi.ts";
 export { VertexExecutor } from "./vertex.ts";
 export { PerplexityWebExecutor } from "./perplexity-web.ts";
 export { GrokWebExecutor } from "./grok-web.ts";
+export { GeminiWebExecutor } from "./gemini-web.ts";
 export { KieExecutor } from "./kie.ts";
 export { ChatGptWebExecutor } from "./chatgpt-web.ts";
 export { BlackboxWebExecutor } from "./blackbox-web.ts";
 export { MuseSparkWebExecutor } from "./muse-spark-web.ts";
 export { AzureOpenAIExecutor } from "./azure-openai.ts";
+export { CommandCodeExecutor } from "./commandCode.ts";
 export { GitlabExecutor } from "./gitlab.ts";
 export { NlpCloudExecutor } from "./nlpcloud.ts";
 export { PetalsExecutor } from "./petals.ts";
+export { WindsurfExecutor } from "./windsurf.ts";
+export { DevinCliExecutor } from "./devin-cli.ts";
+export { CopilotWebExecutor } from "./copilot-web.ts";
+export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
+export { DeepSeekWebExecutor } from "./deepseek-web.ts";
+export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+export { T3ChatWebExecutor } from "./t3-chat-web.ts";

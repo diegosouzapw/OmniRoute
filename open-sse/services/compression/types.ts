@@ -167,23 +167,32 @@ export const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
 };
 
 export const DEFAULT_CAVEMAN_CONFIG: CavemanConfig = {
-  enabled: true,
+  enabled: false,
   compressRoles: ["user"],
   skipRules: [],
   minMessageLength: 50,
-  preservePatterns: [],
-  intensity: "full",
+  // Protect code blocks, inline code, file paths, URLs, and error/stack lines
+  // from caveman compression so signal-carrying content is never mangled.
+  preservePatterns: [
+    "```[\\s\\S]*?```",
+    "`[^`\\n]+`",
+    "\\b(https?://\\S+)",
+    "(?:^|\\s)(\\.{0,2}/[\\w./\\-]+)",
+    "^\\s*(Error|TypeError|RangeError|SyntaxError|ReferenceError):",
+    "^\\s+at\\s",
+  ],
+  intensity: "lite",
 };
 
 export const DEFAULT_CAVEMAN_OUTPUT_MODE_CONFIG: CavemanOutputModeConfig = {
   enabled: false,
-  intensity: "full",
+  intensity: "lite",
   autoClarity: true,
 };
 
 export const DEFAULT_RTK_CONFIG: RtkConfig = {
-  enabled: true,
-  intensity: "standard",
+  enabled: false,
+  intensity: "minimal",
   applyToToolResults: true,
   applyToCodeBlocks: false,
   applyToAssistantMessages: false,
@@ -298,3 +307,6 @@ export const DEFAULT_ULTRA_CONFIG: UltraConfig = {
   slmFallbackToAggressive: true,
   maxTokensPerMessage: 0,
 };
+
+export type { McpAccessibilityConfig } from "./engines/mcpAccessibility/constants.ts";
+export { DEFAULT_MCP_ACCESSIBILITY_CONFIG } from "./engines/mcpAccessibility/constants.ts";
