@@ -326,3 +326,8 @@ export const databaseSettingsSchema = z.object(
 );
 
 export type DatabaseSettingsSchema = z.infer<typeof databaseSettingsSchema>;
+
+export const featureFlagUpdateSchema = z.object({
+  key: z.string().min(1),
+  value: z.string().optional(),
+});

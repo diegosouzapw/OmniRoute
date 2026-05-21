@@ -6856,6 +6856,7 @@ function AddApiKeyModal({
   const isPerplexityWeb = provider === "perplexity-web";
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
+  const isDeepSeekWeb = provider === "deepseek-web";
   const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
   const apiKeyOptional = providerAllowsOptionalApiKey(provider);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
@@ -6908,43 +6909,49 @@ function AddApiKeyModal({
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
-    : isWebSessionProvider
-      ? t("sessionCookieLabel")
-      : apiKeyOptional
-        ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-        : t("apiKeyLabel");
+    : isDeepSeekWeb
+      ? "User Token"
+      : isWebSessionProvider
+        ? t("sessionCookieLabel")
+        : apiKeyOptional
+          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+          : t("apiKeyLabel");
   const apiCredentialPlaceholder = isVertex
     ? t("vertexServiceAccountPlaceholder")
-    : isGrokWeb
-      ? t("grokWebCookiePlaceholder")
-      : isPerplexityWeb
-        ? t("perplexityWebCookiePlaceholder")
-        : isBlackboxWeb
-          ? t("blackboxWebCookiePlaceholder")
-          : isMuseSparkWeb
-            ? t("museSparkWebCookiePlaceholder")
-            : isQoder
-              ? t("qoderPatPlaceholder")
-              : apiKeyOptional
-                ? t("optional")
-                : undefined;
+    : isDeepSeekWeb
+      ? "Paste userToken value from localStorage"
+      : isGrokWeb
+        ? t("grokWebCookiePlaceholder")
+        : isPerplexityWeb
+          ? t("perplexityWebCookiePlaceholder")
+          : isBlackboxWeb
+            ? t("blackboxWebCookiePlaceholder")
+            : isMuseSparkWeb
+              ? t("museSparkWebCookiePlaceholder")
+              : isQoder
+                ? t("qoderPatPlaceholder")
+                : apiKeyOptional
+                  ? t("optional")
+                  : undefined;
   const apiCredentialHint = isQoder
     ? t("qoderPatHint")
-    : isGrokWeb
-      ? t("grokWebCookieHint")
-      : isPerplexityWeb
-        ? t("perplexityWebCookieHint")
-        : isBlackboxWeb
-          ? t("blackboxWebCookieHint")
-          : isMuseSparkWeb
-            ? t("museSparkWebCookieHint")
-            : isLocalSelfHostedProvider
-              ? t("localProviderApiKeyOptionalHint", {
-                  provider: localProviderMetadata?.name || providerName || provider || "",
-                })
-              : apiKeyOptional
-                ? t("apiKeyOptionalHint")
-                : undefined;
+    : isDeepSeekWeb
+      ? "Found in browser DevTools → Application → Local Storage → chat.deepseek.com → userToken"
+      : isGrokWeb
+        ? t("grokWebCookieHint")
+        : isPerplexityWeb
+          ? t("perplexityWebCookieHint")
+          : isBlackboxWeb
+            ? t("blackboxWebCookieHint")
+            : isMuseSparkWeb
+              ? t("museSparkWebCookieHint")
+              : isLocalSelfHostedProvider
+                ? t("localProviderApiKeyOptionalHint", {
+                    provider: localProviderMetadata?.name || providerName || provider || "",
+                  })
+                : apiKeyOptional
+                  ? t("apiKeyOptionalHint")
+                  : undefined;
 
   const handleValidate = async () => {
     setValidating(true);

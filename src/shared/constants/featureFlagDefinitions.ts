@@ -95,13 +95,13 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
   },
   {
     key: "ONEPROXY_ENABLED",
-    label: "OneProxy",
-    description: "Enable OneProxy for outbound requests",
-    descriptionI18nKey: "featureFlagOneproxyEnabledDescription",
+    label: "OneProxy Enabled",
+    description: "Enable 1proxy request proxying.",
+    descriptionI18nKey: "settings.featureFlags.oneproxyEnabled",
     category: "network",
-    defaultValue: "false",
+    defaultValue: "true",
     type: "boolean",
-    requiresRestart: true,
+    requiresRestart: false,
     warningLevel: "info",
   },
   {

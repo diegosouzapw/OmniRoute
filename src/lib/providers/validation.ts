@@ -2643,6 +2643,58 @@ function buildMetaAiValidationBody() {
   };
 }
 
+async function validateDeepSeekWebProvider({ apiKey }: any) {
+  if (!apiKey) {
+    return {
+      valid: false,
+      error:
+        "Missing userToken — paste the value from DevTools → Application → Local Storage → chat.deepseek.com → userToken",
+    };
+  }
+  let token = apiKey;
+  try {
+    const parsed = JSON.parse(token);
+    if (typeof parsed?.value === "string") token = parsed.value;
+  } catch {
+    // not JSON, use as-is
+  }
+
+  try {
+    const resp = await fetch("https://chat.deepseek.com/api/v0/users/current", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "*/*",
+        Origin: "https://chat.deepseek.com",
+        Referer: "https://chat.deepseek.com/",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+        "X-App-Version": "20241129.1",
+        "X-Client-Platform": "web",
+      },
+    });
+    if (resp.status === 401 || resp.status === 403) {
+      return {
+        valid: false,
+        error: "userToken is invalid or expired — get a fresh one from localStorage",
+      };
+    }
+    if (!resp.ok) {
+      return { valid: false, error: `DeepSeek returned HTTP ${resp.status}` };
+    }
+    const json = await resp.json();
+    const bizData = json?.data?.biz_data || json?.biz_data;
+    if (!bizData?.token) {
+      return {
+        valid: false,
+        error: `DeepSeek did not return an access token: ${json?.msg || "unknown error"}`,
+      };
+    }
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 async function validateGrokWebProvider({ apiKey, providerSpecificData = {} }: any) {
   try {
     const token = extractCookieValue(apiKey, "sso");
@@ -3252,6 +3304,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     runwayml: validateRunwayProvider,
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
+    "deepseek-web": validateDeepSeekWebProvider,
     "grok-web": validateGrokWebProvider,
     "chatgpt-web": validateChatGptWebProvider,
     "perplexity-web": validatePerplexityWebProvider,

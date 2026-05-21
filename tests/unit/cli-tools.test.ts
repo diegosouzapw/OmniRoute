@@ -101,12 +101,12 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
     "codex",
     {
       Authorization: "Bearer token",
-      "User-Agent": "codex-cli/0.131.0 (Windows 10.0.26200; x64)",
+      "User-Agent": "codex-cli/0.132.0 (Windows 10.0.26200; x64)",
     },
     { model: "gpt-5.5", messages: [], stream: true }
   );
 
-  assert.equal(codex.headers["User-Agent"], "codex-cli/0.131.0 (Windows 10.0.26200; x64)");
+  assert.equal(codex.headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
   assert.deepEqual(Object.keys(JSON.parse(codex.bodyString)), ["model", "stream", "messages"]);
 
   const copilot = applyFingerprint(

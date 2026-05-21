@@ -224,7 +224,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#4D6BFE",
     textIcon: "DS",
     website: "https://chat.deepseek.com",
-    authHint: "Paste your ds_session_id cookie from chat.deepseek.com",
+    authHint:
+      "Paste your userToken from chat.deepseek.com — DevTools → Application → Local Storage → userToken",
   },
   "copilot-web": {
     id: "copilot-web",
