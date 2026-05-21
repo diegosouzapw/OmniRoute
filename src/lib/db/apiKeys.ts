@@ -772,20 +772,46 @@ export async function updateApiKeyPermissions(
   // event below. We only fetch when the caller is actually changing scopes —
   // a privileged change ("manage" grants management API surface access) that
   // must always leave an audit trail per OWASP A09 / SOC2 CC7.2.
+  //
+  // The previous-scopes SELECT and the row UPDATE are wrapped in a single
+  // transaction so a concurrent writer cannot slip in between and make the
+  // audit log lie about what changed. SQLite is single-writer in practice,
+  // but the transaction also gives us atomicity if the underlying driver
+  // ever swaps to a backend that allows multiple writers (sqljsAdapter /
+  // nodeSqliteAdapter fall-back per v3.8.1 db driver cascade).
   let previousScopes: string[] = [];
+  let changedRows = 0;
   if (scopesUpdate !== undefined) {
     updates.push("scopes = @scopes");
     params.scopes = JSON.stringify(nextScopes);
 
-    const prevRow = db
-      .prepare<{ scopes: string | null }>("SELECT scopes FROM api_keys WHERE id = ?")
-      .get(id);
-    previousScopes = parseStringList(prevRow?.scopes ?? null);
+    // SELECT-then-UPDATE wrapped in an explicit transaction so a concurrent
+    // writer can't slip between the read and the write and make the audit
+    // log lie about what changed. `exec("BEGIN"/"COMMIT")` works across all
+    // driver backends (better-sqlite3 / node:sqlite / sql.js) wired by the
+    // v3.8.1 db driver cascade — none of them expose `db.transaction()` via
+    // ApiKeysDbLike, which is intentionally minimal.
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      const prevRow = db
+        .prepare<{ scopes: string | null }>("SELECT scopes FROM api_keys WHERE id = ?")
+        .get(id);
+      previousScopes = parseStringList(prevRow?.scopes ?? null);
+      const upd = db
+        .prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`)
+        .run(params);
+      changedRows = upd.changes ?? 0;
+      db.exec("COMMIT");
+    } catch (err) {
+      db.exec("ROLLBACK");
+      throw err;
+    }
+  } else {
+    const upd = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
+    changedRows = upd.changes ?? 0;
   }
 
-  const result = db.prepare(`UPDATE api_keys SET ${updates.join(", ")} WHERE id = @id`).run(params);
-
-  if (result.changes === 0) return false;
+  if (changedRows === 0) return false;
 
   const { logAuditEvent } = await import("@/lib/compliance");
 
