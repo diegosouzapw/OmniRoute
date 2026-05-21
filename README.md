@@ -1316,6 +1316,24 @@ omniroute --mcp
 curl http://localhost:20128/.well-known/agent.json
 ```
 
+### Remote MCP from a public hostname (v3.8.1+)
+
+`/api/mcp/*` is LOCAL_ONLY by default. To reach the remote MCP server through
+a tunnel or reverse proxy, issue an API key with the `manage` scope (API
+Manager → toggle **Management Access** on the key) and send it as a Bearer:
+
+```bash
+curl -i \
+  -H "Authorization: Bearer sk-…" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"my-client","version":"0"}}}' \
+  https://your-public-host.example/api/mcp/stream
+```
+
+The carve-out is intentionally narrow — `/api/cli-tools/runtime/*` stays
+strict-loopback regardless of scope. See [docs/security/ROUTE_GUARD_TIERS.md](docs/security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+
 ### Key Environment Variables
 
 | Variable             | Default        | Purpose                                   |
