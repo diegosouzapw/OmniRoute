@@ -719,7 +719,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "reference/FREE_TIERS.md",
     section: "Reference",
     content:
-      "Last consolidated: 2026-05-13 — OmniRoute v3.8.0 Source of truth: src/shared/constants/providers.ts (FREEPROVIDERS, OAUTHPROVIDERS, and APIKEYPROVIDERS entries flagged with hasFree: true + freeNote) This page lists providers with usable free tiers shipped in OmniRoute v3.8.0. The data is derived fro",
+      "Last consolidated: 2026-05-13 — OmniRoute v3.8.1 Source of truth: src/shared/constants/providers.ts (FREEPROVIDERS, OAUTHPROVIDERS, and APIKEYPROVIDERS entries flagged with hasFree: true + freeNote) This page lists providers with usable free tiers shipped in OmniRoute v3.8.1. The data is derived fro",
     headings: [
       "How free providers are wired",
       "Quick reference (API key providers with hasFree: true)",
