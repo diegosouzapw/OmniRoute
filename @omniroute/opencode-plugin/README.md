@@ -49,21 +49,45 @@ Restart OpenCode. `/models` lists the full live catalog. Variants (`-low`, `-med
 
 ## Multi-instance (prod + preprod side-by-side)
 
+> ⚠ OC ≤1.15.5 dedupes plugin loads by absolute module path. Two `plugin:` entries pointing at the same `dist/index.js` collapse into one (last-listed options win). Workaround: install the plugin twice into separate directories so each entry resolves to a distinct module file. v0.2.x will introduce an `instances: [...]` shape that registers N providers from a single load.
+
+### Dual-install workaround (works today on OC ≤1.15.5)
+
+Pack the plugin once, extract it twice into named directories, then point each `plugin:` entry at its own copy:
+
+```sh
+# 1. Build + pack the plugin (run from the plugin worktree)
+cd /path/to/OmniRoute/@omniroute/opencode-plugin
+npm run build
+npm pack
+# produces omniroute-opencode-plugin-0.1.0.tgz
+
+# 2. Extract one copy per OmniRoute endpoint
+mkdir -p ~/.config/opencode/plugins/omniroute-opencode-plugin-prod
+mkdir -p ~/.config/opencode/plugins/omniroute-opencode-plugin-preprod
+tar -xzf omniroute-opencode-plugin-0.1.0.tgz -C ~/.config/opencode/plugins/omniroute-opencode-plugin-prod    --strip-components=1
+tar -xzf omniroute-opencode-plugin-0.1.0.tgz -C ~/.config/opencode/plugins/omniroute-opencode-plugin-preprod --strip-components=1
+```
+
+Then in `~/.config/opencode/opencode.json` reference each directory by absolute path:
+
 ```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
     [
-      "@omniroute/opencode-plugin",
+      "./plugins/omniroute-opencode-plugin-prod/dist/index.js",
       {
         "providerId": "omniroute",
+        "displayName": "OmniRoute",
         "baseURL": "https://or.example.com",
       },
     ],
     [
-      "@omniroute/opencode-plugin",
+      "./plugins/omniroute-opencode-plugin-preprod/dist/index.js",
       {
         "providerId": "omniroute-preprod",
+        "displayName": "OmniRoute Preprod",
         "baseURL": "https://or-preprod.example.com",
       },
     ],
@@ -71,14 +95,27 @@ Restart OpenCode. `/models` lists the full live catalog. Variants (`-low`, `-med
 }
 ```
 
+Paths are relative to `~/.config/opencode/`. Each entry now resolves to a distinct module file, so OC loads them as two separate plugin instances. Authenticate each:
+
 ```sh
 opencode auth login --provider omniroute
 opencode auth login --provider omniroute-preprod
 ```
 
-Each entry gets its own provider id, its own model picker entry, and its own slot in `auth.json`. Closures are isolated per plugin instance — no cross-talk.
+Each entry gets its own provider id, its own model picker entry, its own slot in `auth.json`, and its own TTL cache. Closures are isolated per plugin instance — no cross-talk.
 
-> ⚠ Multi-instance currently relies on OpenCode loading each plugin entry as a distinct module. Some OC versions (≤1.15.5) dedupe plugin loads by absolute module path, so two entries pointing at the same `dist/index.js` collapse into one (the last-listed options win). If you hit this, install the plugin twice into separate directories or wait for the v0.2.x `instances: [...]` shape (tracked).
+### After publish (`@omniroute/opencode-plugin` npm)
+
+Once the package is published, the dual-install becomes two `npm install --prefix` commands instead of `tar -xzf`:
+
+```sh
+mkdir -p ~/.config/opencode/plugins/omniroute-opencode-plugin-prod
+mkdir -p ~/.config/opencode/plugins/omniroute-opencode-plugin-preprod
+npm install --prefix ~/.config/opencode/plugins/omniroute-opencode-plugin-prod    @omniroute/opencode-plugin
+npm install --prefix ~/.config/opencode/plugins/omniroute-opencode-plugin-preprod @omniroute/opencode-plugin
+```
+
+`opencode.json` paths become `./plugins/omniroute-opencode-plugin-prod/node_modules/@omniroute/opencode-plugin/dist/index.js` (and the preprod equivalent).
 
 ## Features
 
