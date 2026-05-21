@@ -6,6 +6,7 @@
  * over the process environment variable of the same name.
  */
 
+import { FEATURE_FLAG_DEFINITIONS } from "@/shared/constants/featureFlagDefinitions";
 import { getDbInstance } from "./core";
 
 const NAMESPACE = "feature_flags";
@@ -42,6 +43,15 @@ export function getFeatureFlagOverride(key: string): string | undefined {
  * Persists (or replaces) an override for a single flag.
  */
 export function setFeatureFlagOverride(key: string, value: string): void {
+  const definition = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === key);
+  if (!definition) {
+    throw new Error(`Unknown feature flag key: ${key}`);
+  }
+  if (definition.type === "enum" && definition.enumValues && !definition.enumValues.includes(value)) {
+    throw new Error(
+      `Invalid value "${value}" for enum flag ${key}. Allowed: ${definition.enumValues.join(", ")}`
+    );
+  }
   const db = getDbInstance();
   db.prepare(
     "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
