@@ -779,35 +779,62 @@ function modelsCacheKey(baseURL: string, apiKey: string): string {
  *     tuple's hook lists models under its own provider id).
  *   - `models(provider, ctx)` extracts the api key from `ctx.auth` (rejecting
  *     non-`api` flavors with `{}` — same posture as the auth loader); calls
- *     the injected fetcher; maps each raw entry through `mapRawModelToModelV2`;
- *     caches the result by `(baseURL, sha256(apiKey))` for `modelCacheTtl`.
- *   - Cache is in-memory per hook instance. OC refreshes its model list
- *     more often than the TTL during interactive sessions, so a single
- *     hook serves many `models()` calls — caching avoids hammering
- *     `/v1/models` on every keystroke in the model picker.
- *   - On fetch failure we propagate the error to OC (rather than swallowing
- *     to `{}`) so the user sees an actionable message. An empty catalog
- *     would silently hide the provider from the picker.
+ *     both `/v1/models` and `/api/combos` fetchers; maps raw `/v1/models`
+ *     entries through `mapRawModelToModelV2`; maps each `/api/combos` entry
+ *     through `mapComboToModelV2` (LCD across its member models); merges
+ *     combos into the same map under their combo id; caches the unified
+ *     result by `(baseURL, sha256(apiKey))` for `modelCacheTtl`.
+ *   - **Combo / model ID collisions: combos win.** OmniRoute treats combos
+ *     as the curated routing surface; if a combo and a raw model share an
+ *     id the operator's intent is clearly the combo. We emit a
+ *     `console.warn` exactly once per `(baseURL, apiKey, comboId)`
+ *     collision so the operator can spot the unusual naming choice
+ *     without log spam on every cache refresh.
+ *   - **Combos fetch failure does NOT break the catalog**: soft-fail with
+ *     a `console.warn` and fall back to a models-only catalog. Rationale:
+ *     `/api/combos` requires a management-scoped key and OmniRoute may
+ *     not have any combos provisioned (preprod returned `{combos: []}`
+ *     at probe time). Hard-failing the entire catalog when combos are
+ *     optional would silently hide the whole provider from OC's model
+ *     picker.
+ *   - **`/v1/models` fetch failure DOES propagate.** Without models
+ *     there's no catalog at all, so an empty `{}` would just mask the
+ *     error.
+ *   - Cache is in-memory per hook instance, shared between models and
+ *     combos (one fetch pair per (baseURL, apiKey) per TTL refresh).
  *
  * @param opts Plugin options (providerId, baseURL, modelCacheTtl, …).
- * @param deps Dependency injection. `fetcher` defaults to the live HTTP
- *             fetcher; `now` defaults to `Date.now` (overridable for TTL
- *             tests). `cache` lets the caller share state across
- *             reconstructions (unused outside tests today).
+ * @param deps Dependency injection. `fetcher` defaults to the live
+ *             `/v1/models` HTTP fetcher; `combosFetcher` defaults to the
+ *             live `/api/combos` HTTP fetcher (override for tests / to
+ *             disable combos by injecting one that returns `[]`). `now`
+ *             defaults to `Date.now` (overridable for TTL tests). `cache`
+ *             lets the caller share state across reconstructions (unused
+ *             outside tests today).
  */
 export function createOmniRouteProviderHook(
   opts?: OmniRoutePluginOptions,
   deps: {
     fetcher?: OmniRouteModelsFetcher;
+    combosFetcher?: OmniRouteCombosFetcher;
     now?: () => number;
     cache?: Map<string, { models: Record<string, ModelV2>; expiresAt: number }>;
   } = {}
 ): ProviderHook {
   const resolved = resolveOmniRoutePluginOptions(opts);
   const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
+  // T-05: combo discovery merges `/api/combos` entries into the same map as
+  // `/v1/models`. Default fetcher is declared further down the file; the
+  // reference resolves at hook-invocation time, not at hook-construction
+  // time, so source-order beyond hoisting rules has no semantic effect.
+  const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
   const now = deps.now ?? Date.now;
   const cache =
     deps.cache ?? new Map<string, { models: Record<string, ModelV2>; expiresAt: number }>();
+  // T-05: collision-warning deduper. Emit warn once per (cacheKey, comboId)
+  // tuple per hook instance so the operator sees the unusual naming choice
+  // once per session, not once per cache refresh.
+  const collisionWarned = new Set<string>();
 
   return {
     id: resolved.providerId,
@@ -847,15 +874,84 @@ export function createOmniRouteProviderHook(
         return cached.models;
       }
 
-      const raw = await fetcher(baseURL, apiKey, 10_000);
+      // Models fetch is required (no catalog otherwise → silent provider
+      // disappearance). We do NOT wrap this in a try; let the error
+      // propagate to OC's UI.
+      const rawModels = await fetcher(baseURL, apiKey, 10_000);
+
+      // T-05: combos fetch is best-effort. Soft-fail on any error: emit a
+      // console.warn and fall back to a models-only catalog. Rationale:
+      // /api/combos requires a management-scoped key and OmniRoute may
+      // not have any combos provisioned (preprod returned `{combos:[]}`
+      // at probe time). Hard-failing the catalog when combos are optional
+      // would silently hide the whole provider from OC's picker.
+      let rawCombos: OmniRouteRawCombo[] = [];
+      try {
+        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+      } catch (err) {
+        console.warn(
+          "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
+          err
+        );
+      }
+
+      // Lookup index for LCD member resolution: O(1) per member lookup.
+      // Indexed by raw model `id` — combo steps reference this exact
+      // string per ComboModelStep in src/lib/combos/steps.ts.
+      const rawModelById = new Map<string, OmniRouteRawModelEntry>();
+      for (const entry of rawModels) {
+        if (entry.id) rawModelById.set(entry.id, entry);
+      }
+
+      // Map raw models → ModelV2 keyed by id.
       const models: Record<string, ModelV2> = {};
-      for (const entry of raw) {
+      for (const entry of rawModels) {
         if (!entry.id) continue;
         models[entry.id] = mapRawModelToModelV2(entry, {
           providerId: resolved.providerId,
           baseURL,
         });
       }
+
+      // T-05: map raw combos → ModelV2. Skip hidden combos (operator
+      // preference — provisioned but intentionally not surfaced).
+      // Resolve each combo's member step list into the matching raw
+      // model entries; unknown member ids are silently dropped before
+      // mapComboToModelV2 sees them, which then degrades to the
+      // all-false LCD posture if zero members remain.
+      for (const combo of rawCombos) {
+        if (!combo.id) continue;
+        if (combo.isHidden === true) continue;
+
+        const memberSteps = Array.isArray(combo.models) ? combo.models : [];
+        const memberEntries: OmniRouteRawModelEntry[] = [];
+        for (const step of memberSteps) {
+          // Use the unknown-bridge pattern from commit 91b137e6 so the
+          // DTS pass stays clean: ComboMemberRef declares `model?: string`
+          // but we still verify the runtime shape before consuming it.
+          const modelId = (step as unknown as { model?: unknown }).model;
+          if (typeof modelId !== "string" || modelId.length === 0) continue;
+          const member = rawModelById.get(modelId);
+          if (member) memberEntries.push(member);
+        }
+
+        const mapped = mapComboToModelV2(combo, memberEntries, resolved.providerId, baseURL);
+
+        // Collision policy: combos win. Warn ONCE per (cacheKey, comboId)
+        // when overwriting a same-id raw model so the operator can spot
+        // the unusual naming choice without log spam.
+        if (Object.prototype.hasOwnProperty.call(models, combo.id)) {
+          const dedupeKey = `${cacheKey}::${combo.id}`;
+          if (!collisionWarned.has(dedupeKey)) {
+            collisionWarned.add(dedupeKey);
+            console.warn(
+              `[omniroute-plugin] combo id "${combo.id}" collides with a model id; combo wins.`
+            );
+          }
+        }
+        models[combo.id] = mapped;
+      }
+
       cache.set(cacheKey, { models, expiresAt: t + resolved.modelCacheTtl });
       return models;
     },
