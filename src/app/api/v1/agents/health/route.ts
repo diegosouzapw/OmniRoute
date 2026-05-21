@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAgent, getAvailableAgents } from "@/lib/cloudAgent/registry";
-import { getDbInstance } from "@/lib/db/core";
-import type { AgentCredentials } from "@/lib/cloudAgent/baseAgent";
+import { getCloudAgentCredentialFromDb } from "@/lib/cloudAgent/credentials";
 import { getCloudAgentCorsHeaders, requireCloudAgentManagementAuth } from "@/lib/cloudAgent/api";
 import pino from "pino";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
@@ -13,30 +12,6 @@ const PROVIDER_NAMES: Record<string, string> = {
   devin: "Devin",
   "codex-cloud": "Codex Cloud",
 };
-
-function getCredentialFromDb(providerId: string): AgentCredentials | null {
-  const db = getDbInstance();
-
-  // Ensure table exists
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cloud_agent_credentials (
-      provider_id TEXT PRIMARY KEY,
-      api_key TEXT NOT NULL,
-      base_url TEXT,
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-
-  const row = db
-    .prepare("SELECT api_key, base_url FROM cloud_agent_credentials WHERE provider_id = ?")
-    .get(providerId) as { api_key: string; base_url: string | null } | undefined;
-
-  if (!row) return null;
-
-  const creds: AgentCredentials = { apiKey: row.api_key };
-  if (row.base_url) creds.baseUrl = row.base_url;
-  return creds;
-}
 
 interface ProviderHealth {
   id: string;
@@ -54,7 +29,7 @@ async function checkProviderHealth(providerId: string): Promise<ProviderHealth> 
     return { id: providerId, name, connected: false, latencyMs: 0, error: "Unknown provider" };
   }
 
-  const credentials = getCredentialFromDb(providerId);
+  const credentials = getCloudAgentCredentialFromDb(providerId);
   if (!credentials) {
     return {
       id: providerId,
@@ -66,10 +41,12 @@ async function checkProviderHealth(providerId: string): Promise<ProviderHealth> 
   }
 
   const start = Date.now();
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
   try {
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Connection timed out")), 5000)
-    );
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Connection timed out")), 5000);
+    });
     await Promise.race([agent.listSources(credentials), timeoutPromise]);
     return { id: providerId, name, connected: true, latencyMs: Date.now() - start };
   } catch (error) {
@@ -80,6 +57,8 @@ async function checkProviderHealth(providerId: string): Promise<ProviderHealth> 
       latencyMs: Date.now() - start,
       error: error instanceof Error ? error.message : "Unknown error",
     };
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 
