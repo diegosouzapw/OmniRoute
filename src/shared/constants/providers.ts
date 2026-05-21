@@ -216,6 +216,16 @@ export const WEB_COOKIE_PROVIDERS = {
     website: "https://www.meta.ai",
     authHint: "Paste your abra_sess value or full cookie header from meta.ai",
   },
+  "claude-web": {
+    id: "claude-web",
+    alias: "cw",
+    name: "Claude Web",
+    icon: "auto_awesome",
+    color: "#D97757",
+    textIcon: "CW",
+    website: "https://claude.ai",
+    authHint: "Paste your session cookie from claude.ai",
+  },
   "deepseek-web": {
     id: "deepseek-web",
     alias: "ds-web",
@@ -2203,6 +2213,8 @@ export function providerAllowsOptionalApiKey(providerId: unknown): boolean {
     providerId === "pollinations" ||
     providerId === "copilot-web" ||
     providerId === "hackclub" ||
+    providerId === "gitlawb" ||
+    providerId === "gitlawb-gmi" ||
     isLocalProvider(providerId) ||
     isSelfHostedChatProvider(providerId) ||
     isOpenAICompatibleProvider(providerId) ||

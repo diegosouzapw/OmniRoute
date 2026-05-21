@@ -78,6 +78,7 @@ const KNOWN_SVGS = new Set([
   "cartesia",
   "clarifai",
   "command-code",
+  "claude-web",
   "docker-model-runner",
   "droid",
   "gemini-cli",

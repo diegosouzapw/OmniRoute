@@ -285,6 +285,7 @@ const LOBE_PROVIDER_ALIASES = {
   cerebras: "Cerebras",
   "chatgpt-web": "OpenAI",
   claude: "ClaudeCode",
+  "claude-web": "HuggingFace",
   cline: "Cline",
   cloudflare: "Cloudflare",
   "cloudflare-ai": "WorkersAI",
