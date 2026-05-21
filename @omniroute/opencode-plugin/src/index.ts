@@ -46,7 +46,10 @@
  */
 
 import { createHash } from "node:crypto";
-import type { AuthHook, Plugin, PluginOptions, ProviderHook } from "@opencode-ai/plugin";
+import { readFile } from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+import type { AuthHook, Config, Plugin, PluginOptions, ProviderHook } from "@opencode-ai/plugin";
 import type { Model as ModelV2 } from "@opencode-ai/sdk/v2";
 import { z } from "zod";
 
@@ -272,10 +275,19 @@ export function createOmniRouteAuthHook(opts?: OmniRoutePluginOptions): AuthHook
  */
 export const OmniRoutePlugin: Plugin = async (_input, options) => {
   const resolved = coercePluginOptions(options);
+  // T-07: a single per-plugin-instance cache shared between the provider
+  // hook (T-03/T-05) and the config-shim hook (T-07). On OC ≥1.14.49 both
+  // hooks fire within the same Plugin invocation, so a shared cache keeps
+  // /v1/models + /api/combos at exactly one round-trip per TTL refresh
+  // instead of two. On OC ≤1.14.48 only the config hook runs; the cache
+  // still works (single producer + single consumer through the same map).
+  // Each `OmniRoutePlugin(...)` invocation gets its OWN cache via closure,
+  // so prod + preprod side-by-side instances do NOT collide.
+  const sharedCache: OmniRouteFetchCache = new Map();
   return {
     auth: createOmniRouteAuthHook(resolved),
-    provider: createOmniRouteProviderHook(resolved),
-    // config shim lands in T-07
+    provider: createOmniRouteProviderHook(resolved, { cache: sharedCache }),
+    config: createOmniRouteConfigHook(resolved, { cache: sharedCache }),
   };
 };
 
@@ -769,6 +781,33 @@ function modelsCacheKey(baseURL: string, apiKey: string): string {
 }
 
 /**
+ * Shared fetch-result cache entry. Holds the RAW `/v1/models` + `/api/combos`
+ * responses (NOT a pre-derived ModelV2 / static-entry shape) so the provider
+ * hook (T-03/T-05) and the config-shim hook (T-07) can derive their own
+ * output shapes from the same source without re-fetching.
+ *
+ * Why raw instead of derived:
+ *   - provider hook emits ModelV2 (rich nested capabilities + cost + limits).
+ *   - config hook emits the stripped sibling shape
+ *     (`{name, attachment, reasoning, tool_call, temperature, limit?}`).
+ *   - These overlap but neither is a superset of the other (ModelV2 has no
+ *     `tool_call` field — it's `toolcall`; the stripped shape has no
+ *     `cost`/`status`/`headers`). Caching the raw responses is the only
+ *     lossless option.
+ *   - On OC ≥1.14.49 cold start BOTH hooks fire within the same
+ *     OmniRoutePlugin instance — sharing the cache means /v1/models +
+ *     /api/combos each hit the gateway exactly ONCE per TTL refresh, not
+ *     twice.
+ */
+export interface OmniRouteFetchCacheEntry {
+  rawModels: OmniRouteRawModelEntry[];
+  rawCombos: OmniRouteRawCombo[];
+  expiresAt: number;
+}
+
+export type OmniRouteFetchCache = Map<string, OmniRouteFetchCacheEntry>;
+
+/**
  * Build the ProviderHook portion of the plugin for a given options bag.
  * Exported standalone so the contract is unit-testable without faking the
  * full PluginInput / Hooks surface, and so multi-instance setups can each
@@ -818,7 +857,7 @@ export function createOmniRouteProviderHook(
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
     now?: () => number;
-    cache?: Map<string, { models: Record<string, ModelV2>; expiresAt: number }>;
+    cache?: OmniRouteFetchCache;
   } = {}
 ): ProviderHook {
   const resolved = resolveOmniRoutePluginOptions(opts);
@@ -829,8 +868,10 @@ export function createOmniRouteProviderHook(
   // time, so source-order beyond hoisting rules has no semantic effect.
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
   const now = deps.now ?? Date.now;
-  const cache =
-    deps.cache ?? new Map<string, { models: Record<string, ModelV2>; expiresAt: number }>();
+  // T-07: cache holds RAW fetch results (not pre-derived ModelV2) so that
+  // the config-shim hook can share the same cache and derive its stripped
+  // sibling shape from the same source without a second round-trip.
+  const cache: OmniRouteFetchCache = deps.cache ?? new Map();
   // T-05: collision-warning deduper. Emit warn once per (cacheKey, comboId)
   // tuple per hook instance so the operator sees the unusual naming choice
   // once per session, not once per cache refresh.
@@ -868,31 +909,41 @@ export function createOmniRouteProviderHook(
       }
 
       const cacheKey = modelsCacheKey(baseURL, apiKey);
-      const cached = cache.get(cacheKey);
       const t = now();
+      const cached = cache.get(cacheKey);
+
+      let rawModels: OmniRouteRawModelEntry[];
+      let rawCombos: OmniRouteRawCombo[];
       if (cached && cached.expiresAt > t) {
-        return cached.models;
-      }
+        rawModels = cached.rawModels;
+        rawCombos = cached.rawCombos;
+      } else {
+        // Models fetch is required (no catalog otherwise → silent provider
+        // disappearance). We do NOT wrap this in a try; let the error
+        // propagate to OC's UI.
+        rawModels = await fetcher(baseURL, apiKey, 10_000);
 
-      // Models fetch is required (no catalog otherwise → silent provider
-      // disappearance). We do NOT wrap this in a try; let the error
-      // propagate to OC's UI.
-      const rawModels = await fetcher(baseURL, apiKey, 10_000);
+        // T-05: combos fetch is best-effort. Soft-fail on any error: emit a
+        // console.warn and fall back to a models-only catalog. Rationale:
+        // /api/combos requires a management-scoped key and OmniRoute may
+        // not have any combos provisioned (preprod returned `{combos:[]}`
+        // at probe time). Hard-failing the catalog when combos are optional
+        // would silently hide the whole provider from OC's picker.
+        rawCombos = [];
+        try {
+          rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+        } catch (err) {
+          console.warn(
+            "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
+            err
+          );
+        }
 
-      // T-05: combos fetch is best-effort. Soft-fail on any error: emit a
-      // console.warn and fall back to a models-only catalog. Rationale:
-      // /api/combos requires a management-scoped key and OmniRoute may
-      // not have any combos provisioned (preprod returned `{combos:[]}`
-      // at probe time). Hard-failing the catalog when combos are optional
-      // would silently hide the whole provider from OC's picker.
-      let rawCombos: OmniRouteRawCombo[] = [];
-      try {
-        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
-      } catch (err) {
-        console.warn(
-          "[omniroute-plugin] combos fetch failed, falling back to models-only catalog",
-          err
-        );
+        cache.set(cacheKey, {
+          rawModels,
+          rawCombos,
+          expiresAt: t + resolved.modelCacheTtl,
+        });
       }
 
       // Lookup index for LCD member resolution: O(1) per member lookup.
@@ -952,7 +1003,6 @@ export function createOmniRouteProviderHook(
         models[combo.id] = mapped;
       }
 
-      cache.set(cacheKey, { models, expiresAt: t + resolved.modelCacheTtl });
       return models;
     },
   };
@@ -1329,4 +1379,488 @@ export function createGeminiSanitizingFetch(inner: typeof fetch): typeof fetch {
  */
 export function __resetGeminiStreamingWarning(): void {
   geminiStreamingWarningEmitted = false;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Config hook (T-07) — backward-compat shim for OC ≤1.14.48
+//
+// OC ≤1.14.48 does NOT call `provider.models()` at startup; it reads the
+// catalog from the static `provider.<id>` config block instead. OC ≥1.14.49
+// calls `provider.models()` dynamically AND merges the dynamic catalog over
+// any static block (dynamic wins on collision). To support both, the plugin
+// publishes a static block via `config` AND a dynamic one via `provider.models`
+// — OC's resolution order picks the right one per OC version. This module
+// implements the static-publish half.
+//
+// Sibling shape source-of-truth: see
+// `@omniroute/opencode-provider/src/index.ts` (`createOmniRouteProvider`,
+// `OpenCodeProviderEntry`, `OpenCodeModelEntry`). We replicate that shape
+// here rather than depending on the sibling package — the plugin must stay
+// self-contained (npm-installable on its own, no peer dep on the provider
+// builder).
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Per-model entry shape under `provider.<id>.models[modelId]`. Mirrors
+ * `OpenCodeModelEntry` exported by `@omniroute/opencode-provider`. Stripped
+ * down to the fields OC's static catalog reader actually consumes — NOT a
+ * full ModelV2 (that's the dynamic-hook shape). Optional fields are omitted
+ * when OmniRoute didn't surface a value, NOT emitted as `undefined` — the
+ * resulting JSON must be diffable across OmniRoute deployments without
+ * `undefined` noise.
+ */
+export interface OmniRouteStaticModelEntry {
+  /** Display label rendered in OC's model picker. Defaults to the model id. */
+  name: string;
+  /** Model accepts image / file attachments. */
+  attachment?: boolean;
+  /** Model exposes a reasoning / extended-thinking surface. */
+  reasoning?: boolean;
+  /** Model honours the `temperature` parameter. */
+  temperature?: boolean;
+  /** Model supports function / tool calling. */
+  tool_call?: boolean;
+  /** Context-window limits. */
+  limit?: {
+    context: number;
+    input?: number;
+    output?: number;
+  };
+}
+
+/**
+ * Static `provider.<id>` block written to `input.provider` by the config hook.
+ * Mirrors `OpenCodeProviderEntry` from `@omniroute/opencode-provider`.
+ *
+ *   - `npm` is always `"@ai-sdk/openai-compatible"` — OmniRoute exposes an
+ *     OpenAI-compatible surface and that's the AI-SDK adapter that speaks it.
+ *   - `options.baseURL` MUST be the fully-qualified `/v1` URL (the AI-SDK
+ *     appends paths like `/chat/completions` directly under it).
+ *   - `options.apiKey` is the bearer token; the fetch interceptor (T-04)
+ *     also injects it on the dynamic path, but the static block needs it
+ *     embedded too so OC ≤1.14.48 can construct the SDK client without
+ *     going through the auth hook.
+ */
+export interface OmniRouteStaticProviderEntry {
+  npm: "@ai-sdk/openai-compatible";
+  name: string;
+  options: {
+    baseURL: string;
+    apiKey: string;
+  };
+  models: Record<string, OmniRouteStaticModelEntry>;
+}
+
+/**
+ * Build the static `provider.<id>` block from raw `/v1/models` + `/api/combos`
+ * responses. Pure function — no I/O, no side effects, no dependency on the
+ * sibling provider package. Exported so callers and tests can construct the
+ * block independently of the auth.json + fetch pipeline.
+ *
+ * Mapping rules (per the sibling `createOmniRouteProvider` output spec):
+ *
+ *   - One entry per raw model AND one entry per non-hidden combo.
+ *   - `name` = model id (no separate display name on `/v1/models`).
+ *   - `attachment` = `caps.attachment ?? caps.vision ?? false` — same
+ *     convention as `mapRawModelToModelV2` (T-03).
+ *   - `reasoning` = `caps.reasoning || caps.thinking`. Booleans only — we
+ *     do NOT emit the field when both source flags are absent (keeps the
+ *     stripped shape minimal).
+ *   - `temperature` = `caps.temperature ?? true` — OpenAI-compat surface
+ *     supports temperature by default; only an explicit `false` suppresses.
+ *   - `tool_call` = `caps.tool_calling ?? false`.
+ *   - `limit.context` = raw `context_length` when > 0; omitted otherwise.
+ *   - `limit.input` = raw `max_input_tokens` when present.
+ *   - `limit.output` = raw `max_output_tokens` when present.
+ *
+ * For combos: LCD across member raw models (matches `mapComboToModelV2`):
+ *
+ *   - `attachment`, `reasoning`, `tool_call`, `temperature`: `every` member.
+ *   - `limit.context` = min(member context_lengths).
+ *   - `limit.input` = min(member max_input_tokens) ONLY when every member
+ *     declares one.
+ *   - `limit.output` = min(member max_output_tokens).
+ *   - Empty members → all-false / limits omitted.
+ *
+ * Collision: combos win (matches the dynamic provider hook).
+ *
+ * @param rawModels Raw `/v1/models` entries (may be empty).
+ * @param rawCombos Raw `/api/combos` entries (may be empty).
+ * @param opts      Resolved plugin options (we read `displayName` + `providerId`).
+ * @param baseURL   Fully-qualified `/v1` base URL — written verbatim to
+ *                  `options.baseURL`. Caller is responsible for `/v1`
+ *                  normalisation; we do NOT touch it here.
+ * @param apiKey    Bearer token — written verbatim to `options.apiKey`.
+ */
+export function buildStaticProviderEntry(
+  rawModels: OmniRouteRawModelEntry[],
+  rawCombos: OmniRouteRawCombo[],
+  opts: ReturnType<typeof resolveOmniRoutePluginOptions>,
+  baseURL: string,
+  apiKey: string
+): OmniRouteStaticProviderEntry {
+  const models: Record<string, OmniRouteStaticModelEntry> = {};
+
+  // Raw model entries → stripped per-model shape.
+  for (const raw of rawModels) {
+    if (!raw.id) continue;
+    const caps = raw.capabilities ?? {};
+    const entry: OmniRouteStaticModelEntry = { name: raw.id };
+
+    const attachment = caps.attachment ?? caps.vision;
+    if (typeof attachment === "boolean") entry.attachment = attachment;
+
+    if (typeof caps.reasoning === "boolean" || typeof caps.thinking === "boolean") {
+      entry.reasoning = Boolean(caps.reasoning || caps.thinking);
+    }
+
+    if (typeof caps.temperature === "boolean") {
+      entry.temperature = caps.temperature;
+    }
+
+    if (typeof caps.tool_calling === "boolean") {
+      entry.tool_call = caps.tool_calling;
+    }
+
+    const limit: OmniRouteStaticModelEntry["limit"] = {} as { context: number };
+    let hasLimit = false;
+    if (typeof raw.context_length === "number" && raw.context_length > 0) {
+      (limit as { context: number }).context = raw.context_length;
+      hasLimit = true;
+    }
+    if (typeof raw.max_input_tokens === "number" && raw.max_input_tokens > 0) {
+      (limit as { input?: number }).input = raw.max_input_tokens;
+      hasLimit = true;
+    }
+    if (typeof raw.max_output_tokens === "number" && raw.max_output_tokens > 0) {
+      (limit as { output?: number }).output = raw.max_output_tokens;
+      hasLimit = true;
+    }
+    if (hasLimit) {
+      // Static shape requires `context: number` when limit is present —
+      // fill with 0 when only input/output were declared (matches the
+      // sibling provider's behaviour for partial limits).
+      if (typeof (limit as { context?: number }).context !== "number") {
+        (limit as { context: number }).context = 0;
+      }
+      entry.limit = limit as OmniRouteStaticModelEntry["limit"];
+    }
+
+    models[raw.id] = entry;
+  }
+
+  // Combo entries → stripped LCD shape. Combos win on id collision (matches
+  // the dynamic provider hook's resolution order — see T-05).
+  const rawModelById = new Map<string, OmniRouteRawModelEntry>();
+  for (const m of rawModels) {
+    if (m.id) rawModelById.set(m.id, m);
+  }
+
+  for (const combo of rawCombos) {
+    if (!combo.id) continue;
+    if (combo.isHidden === true) continue;
+
+    const memberSteps = Array.isArray(combo.models) ? combo.models : [];
+    const memberEntries: OmniRouteRawModelEntry[] = [];
+    for (const step of memberSteps) {
+      const modelId = (step as unknown as { model?: unknown }).model;
+      if (typeof modelId !== "string" || modelId.length === 0) continue;
+      const member = rawModelById.get(modelId);
+      if (member) memberEntries.push(member);
+    }
+
+    const hasMembers = memberEntries.length > 0;
+    const displayName = combo.name && combo.name.trim().length > 0 ? combo.name : combo.id;
+    const entry: OmniRouteStaticModelEntry = { name: displayName };
+
+    if (hasMembers) {
+      // LCD across capabilities — every member must support for the combo
+      // to support. Mirrors mapComboToModelV2.
+      entry.attachment = memberEntries.every((m) =>
+        Boolean(m.capabilities?.attachment ?? m.capabilities?.vision ?? false)
+      );
+      entry.reasoning = memberEntries.every((m) =>
+        Boolean(m.capabilities?.reasoning || m.capabilities?.thinking)
+      );
+      entry.temperature = memberEntries.every(
+        (m) => (m.capabilities?.temperature ?? true) !== false
+      );
+      entry.tool_call = memberEntries.every((m) => Boolean(m.capabilities?.tool_calling ?? false));
+
+      // LCD across limits — min over declared values, omit `input` unless
+      // EVERY member declares one (matches mapComboToModelV2).
+      const contextValues = memberEntries
+        .map((m) => m.context_length)
+        .filter((v): v is number => typeof v === "number" && v > 0);
+      const outputValues = memberEntries
+        .map((m) => m.max_output_tokens)
+        .filter((v): v is number => typeof v === "number" && v > 0);
+      const inputValues = memberEntries
+        .map((m) => m.max_input_tokens)
+        .filter((v): v is number => typeof v === "number" && v > 0);
+      const everyDeclaresInput = inputValues.length === memberEntries.length;
+
+      if (contextValues.length > 0 || outputValues.length > 0 || everyDeclaresInput) {
+        const limit = {} as { context: number; input?: number; output?: number };
+        limit.context = contextValues.length > 0 ? Math.min(...contextValues) : 0;
+        if (everyDeclaresInput && inputValues.length > 0) {
+          limit.input = Math.min(...inputValues);
+        }
+        if (outputValues.length > 0) {
+          limit.output = Math.min(...outputValues);
+        }
+        entry.limit = limit;
+      }
+    } else {
+      // Empty members → safety posture: all caps false. Caller's OC picker
+      // will grey out an unroutable combo rather than promise capabilities
+      // we can't honour.
+      entry.attachment = false;
+      entry.reasoning = false;
+      entry.temperature = false;
+      entry.tool_call = false;
+    }
+
+    models[combo.id] = entry;
+  }
+
+  return {
+    npm: "@ai-sdk/openai-compatible",
+    name: opts.displayName,
+    options: { baseURL, apiKey },
+    models,
+  };
+}
+
+/**
+ * Shape we expect inside `auth.json`. The file is keyed by providerId, with
+ * each entry being a flavor-tagged credential. Today only the `api` flavor
+ * is consumed by this plugin (OAuth + WellKnown flavors are passed through
+ * but never decoded into a static block).
+ */
+interface AuthJsonApiEntry {
+  type: "api";
+  key: string;
+  baseURL?: string;
+}
+
+type AuthJsonShape = Record<string, AuthJsonApiEntry | { type?: string; [k: string]: unknown }>;
+
+/**
+ * Read & parse `auth.json` from OC's data dir. The path resolution mirrors
+ * OC core's:
+ *
+ *   `${OPENCODE_DATA_DIR ?? path.join(os.homedir(), ".local/share/opencode")}/auth.json`
+ *
+ * Returns `undefined` when the file is missing (most-common case on a fresh
+ * install — silent no-op). Returns `null` when the file exists but doesn't
+ * parse as JSON (logs ONE warn so the operator sees the corruption).
+ *
+ * Exported as a dependency-injectable function on `createOmniRouteConfigHook`
+ * so tests can stub it without monkey-patching `node:fs/promises`.
+ */
+export type OmniRouteReadAuthJson = () => Promise<AuthJsonShape | undefined | null>;
+
+export const defaultReadAuthJson: OmniRouteReadAuthJson = async () => {
+  const dir = process.env.OPENCODE_DATA_DIR ?? path.join(os.homedir(), ".local/share/opencode");
+  const file = path.join(dir, "auth.json");
+  let body: string;
+  try {
+    body = await readFile(file, "utf8");
+  } catch {
+    // File missing or unreadable — silent no-op. This is the expected path
+    // on a fresh install BEFORE `/connect` has been run.
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(body) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as AuthJsonShape;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Build the config-hook portion of the plugin for a given options bag.
+ * Exported standalone so the contract is unit-testable without faking the
+ * full PluginInput / Hooks surface, and so multi-instance setups can each
+ * own their own (auth.json reader, fetch cache, fetcher) trio.
+ *
+ * Behavioural contract:
+ *   - Runs BEFORE `auth.loader` in the OC startup sequence (per the
+ *     @opencode-ai/plugin contract). `getAuth()` is NOT available here,
+ *     so we read `auth.json` directly via the injected reader.
+ *   - No-op when:
+ *       (a) `auth.json` is missing / unreadable (fresh install before
+ *           `/connect`),
+ *       (b) `auth.json[providerId]` is missing or not type-api,
+ *       (c) `apiKey` is empty after extraction,
+ *       (d) `baseURL` is unresolvable (neither opts.baseURL nor
+ *           `auth.json[providerId].baseURL`),
+ *       (e) `input.provider[providerId]` is ALREADY set (operator override
+ *           wins — we never clobber manually-curated catalogs).
+ *     Each no-op path emits ONE debug-level breadcrumb to `console.warn`
+ *     so the operator can diagnose without log spam. Malformed `auth.json`
+ *     warns once and continues as if the file were missing.
+ *   - Fail-open on fetcher errors: a `/v1/models` failure → still publish
+ *     a stub `{models: {}}` provider block (so OC has a complete-shape
+ *     entry to render). A `/api/combos` failure → publish models-only.
+ *     Both paths emit ONE `console.warn`.
+ *   - When the provider hook (T-03/T-05) has ALREADY populated the shared
+ *     cache for this (baseURL, apiKey) tuple, we reuse the raw payloads
+ *     directly — no second fetch. (And vice-versa: the config hook fires
+ *     first on OC ≥1.14.49 cold start, populating the cache for the
+ *     provider hook moments later.)
+ *   - DUAL-PUBLISH SAFE: on OC ≥1.14.49 BOTH this static block and the
+ *     dynamic `provider.models()` result will land in OC's catalog
+ *     reducer. The dynamic block wins by OC's own merge rule — see
+ *     OpenCode core's provider resolution order — so emitting both is a
+ *     correctness-positive: ≤1.14.48 reads static, ≥1.14.49 prefers
+ *     dynamic but the static one keeps things responsive during the
+ *     ~50ms window before the dynamic fetch resolves.
+ *
+ * @param opts Plugin options (validated, resolved with defaults).
+ * @param deps Dependency injection.
+ *   - `readAuthJson`     — replaces `defaultReadAuthJson` (test stub).
+ *   - `fetcher`          — replaces `defaultOmniRouteModelsFetcher`.
+ *   - `combosFetcher`    — replaces `defaultOmniRouteCombosFetcher`.
+ *   - `now`              — clock for cache TTL (default `Date.now`).
+ *   - `cache`            — shared fetch-result cache (see
+ *                          `OmniRouteFetchCache`). Pass the same Map the
+ *                          provider hook owns to dedupe round-trips.
+ *   - `logger`           — `{warn}` sink for breadcrumb capture in tests.
+ *                          Defaults to `console`.
+ */
+export function createOmniRouteConfigHook(
+  opts?: OmniRoutePluginOptions,
+  deps: {
+    readAuthJson?: OmniRouteReadAuthJson;
+    fetcher?: OmniRouteModelsFetcher;
+    combosFetcher?: OmniRouteCombosFetcher;
+    now?: () => number;
+    cache?: OmniRouteFetchCache;
+    logger?: { warn: (...args: unknown[]) => void };
+  } = {}
+): (input: Config) => Promise<void> {
+  const resolved = resolveOmniRoutePluginOptions(opts);
+  const readAuthJson = deps.readAuthJson ?? defaultReadAuthJson;
+  const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
+  const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const now = deps.now ?? Date.now;
+  const cache: OmniRouteFetchCache = deps.cache ?? new Map();
+  const logger = deps.logger ?? console;
+
+  return async (input: Config) => {
+    // (e) operator override — `input.provider[providerId]` already set →
+    // leave it alone. Manually curated catalogs ALWAYS win over the plugin's
+    // generated block. Detect-and-respect before any I/O.
+    const existingProviders = (input as { provider?: Record<string, unknown> }).provider;
+    if (existingProviders && existingProviders[resolved.providerId] !== undefined) {
+      logger.warn(
+        `[omniroute-plugin] config shim skipped: provider.${resolved.providerId} already set by user`
+      );
+      return;
+    }
+
+    // Read auth.json. `undefined` = missing file (silent path), `null` =
+    // malformed JSON (warn once and treat as missing).
+    let authJson: AuthJsonShape | undefined | null;
+    try {
+      authJson = await readAuthJson();
+    } catch {
+      // Reader threw — be conservative and treat like a missing file.
+      authJson = undefined;
+    }
+
+    if (authJson === null) {
+      logger.warn("[omniroute-plugin] config shim: auth.json failed to parse; treating as missing");
+      authJson = undefined;
+    }
+
+    const entry = authJson?.[resolved.providerId] as AuthJsonApiEntry | undefined;
+    const apiKey = entry && entry.type === "api" && typeof entry.key === "string" ? entry.key : "";
+
+    if (!apiKey) {
+      // (c) no apiKey — silent no-op (with debug breadcrumb). The operator
+      // hasn't run `/connect <providerId>` yet, OR the stored credential
+      // isn't api-flavored. OC will handle the `/connect` flow at runtime.
+      logger.warn(
+        `[omniroute-plugin] config shim skipped: no apiKey for providerId=${resolved.providerId}`
+      );
+      return;
+    }
+
+    // baseURL resolution: opts.baseURL wins, then auth.json's stored baseURL.
+    // No silent localhost default — a misconfigured plugin should surface a
+    // breadcrumb and skip, not phantom requests.
+    const storedBaseURL = entry && typeof entry.baseURL === "string" ? entry.baseURL : undefined;
+    const baseURL = resolved.baseURL ?? storedBaseURL ?? "";
+    if (!baseURL) {
+      logger.warn(
+        `[omniroute-plugin] config shim skipped: no baseURL for providerId=${resolved.providerId}`
+      );
+      return;
+    }
+
+    // Try the shared cache first. On OC ≥1.14.49 the provider hook may have
+    // populated it moments earlier; on OC ≤1.14.48 only this hook runs but
+    // the cache still works (single producer + consumer through one Map).
+    const cacheKey = modelsCacheKey(baseURL, apiKey);
+    const t = now();
+    const cached = cache.get(cacheKey);
+
+    let rawModels: OmniRouteRawModelEntry[];
+    let rawCombos: OmniRouteRawCombo[];
+
+    if (cached && cached.expiresAt > t) {
+      rawModels = cached.rawModels;
+      rawCombos = cached.rawCombos;
+    } else {
+      // Fail-open fetcher errors: on /v1/models throw, fall back to empty
+      // catalog (still publish a stub block so OC has a complete-shape
+      // entry); on /api/combos throw, publish models-only.
+      try {
+        rawModels = await fetcher(baseURL, apiKey, 10_000);
+      } catch (err) {
+        logger.warn(
+          "[omniroute-plugin] config shim: /v1/models fetch failed; publishing stub provider entry",
+          err
+        );
+        rawModels = [];
+      }
+
+      rawCombos = [];
+      try {
+        rawCombos = await combosFetcher(baseURL, apiKey, 10_000);
+      } catch (err) {
+        logger.warn(
+          "[omniroute-plugin] config shim: /api/combos fetch failed; publishing models-only static catalog",
+          err
+        );
+      }
+
+      // Cache even partial results — a subsequent provider-hook call should
+      // not re-burn the timeout window on the same broken endpoint.
+      cache.set(cacheKey, {
+        rawModels,
+        rawCombos,
+        expiresAt: t + resolved.modelCacheTtl,
+      });
+    }
+
+    const block = buildStaticProviderEntry(rawModels, rawCombos, resolved, baseURL, apiKey);
+
+    // Mutate the input.provider map. The Config type declares
+    // `provider?: {[key: string]: ProviderConfig}` — we initialise the
+    // bag when absent so users who never set `provider` in opencode.json
+    // still get the static block.
+    const inputWithProvider = input as { provider?: Record<string, unknown> };
+    if (!inputWithProvider.provider) {
+      inputWithProvider.provider = {};
+    }
+    inputWithProvider.provider[resolved.providerId] = block;
+  };
 }
