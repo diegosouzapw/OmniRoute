@@ -5,6 +5,11 @@
 omnirouteCloud/
 omnirouteSite/
 
+# Memory Bank and Cursor rules (local-only AI agent context)
+memory-bank/
+.cursor/rules/core.mdc
+.cursor/rules/memory-bank.mdc
+
 # Claude Code local state — runtime files only; shared commands at .claude/commands/ are tracked
 .claude/scheduled_tasks.lock
 .claude/scheduled_tasks/
