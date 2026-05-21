@@ -306,6 +306,30 @@ export const APIKEY_PROVIDERS = {
     hasFree: true,
     freeNote: "Free models at $0/token with :free suffix - 20 RPM / 200 RPD",
   },
+  astraflow: {
+    id: "astraflow",
+    alias: "astraflow",
+    name: "Astraflow (UCloud Global)",
+    icon: "cloud",
+    color: "#0052D9",
+    textIcon: "AF",
+    passthroughModels: true,
+    website: "https://astraflow.ucloud-global.com",
+    apiHint:
+      "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (global endpoint). Get your API key at https://astraflow.ucloud-global.com",
+  },
+  "astraflow-cn": {
+    id: "astraflow-cn",
+    alias: "astraflow-cn",
+    name: "Astraflow (UCloud China)",
+    icon: "cloud",
+    color: "#0052D9",
+    textIcon: "AFC",
+    passthroughModels: true,
+    website: "https://astraflow.ucloud.cn",
+    apiHint:
+      "Astraflow by UCloud — OpenAI-compatible platform supporting 200+ models (China endpoint). Get your API key at https://astraflow.ucloud.cn",
+  },
   qianfan: {
     id: "qianfan",
     alias: "qianfan",
