@@ -181,7 +181,7 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 | `auto/offline` | 🔋 Most quota / rate-limit headroom first                      |
 | `auto/smart`   | 🔭 Quality-first + 10% exploration to discover better models   |
 
-<br/>
+##
 
 ### 🔀 Or build your own — 14 routing strategies
 
@@ -196,7 +196,7 @@ No combo to create. Set your model to `auto` (or a variant) and OmniRoute builds
 
 <sub>The Auto-Combo engine scores every candidate on **9 factors** (health, quota, cost, latency, success rate, freshness…) — see [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md).</sub>
 
-<br/>
+##
 
 ### 🧱 Resilience is built in (3 independent layers)
 
@@ -223,6 +223,8 @@ Result: 4 layers of fallback = zero downtime
 
 # 🏆 What Sets OmniRoute Apart
 
+</div>
+
 | Feature                                | OmniRoute                                                   | Other routers |
 | -------------------------------------- | ----------------------------------------------------------- | ------------- |
 | 🌐 Providers                           | **177**                                                     | 20–100        |
@@ -239,8 +241,6 @@ Result: 4 layers of fallback = zero downtime
 | 🌍 i18n                                | **40+ locales**                                             | 0–4           |
 
 <sub>📊 Detailed comparison vs LiteLLM, OpenRouter & Portkey → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
-
-</div>
 
 <br/>
 
@@ -289,11 +289,10 @@ Result: 4 layers of fallback = zero downtime
 
 > The most complete catalog of any open-source router: **177 providers**, **50+ with a free tier**, **11 free forever**.
 
-<br/>
+<div align="center">
 
 ### 🆓 Free Forever — $0, no card
 
-<div align="center">
 <table>
   <tr>
     <td align="center" width="150"><img src="https://img.shields.io/badge/AgentRouter-FF6600?style=flat-square" alt="AgentRouter"/><br/><sub>GPT-5, Claude, Gemini<br/>$100 free credits</sub></td>
@@ -308,63 +307,11 @@ Result: 4 layers of fallback = zero downtime
     <td align="center" width="150"><img src="https://img.shields.io/badge/Cerebras-F15A29?style=flat-square" alt="Cerebras"/><br/><sub>Qwen3 235B<br/>1M tokens/day</sub></td>
   </tr>
 </table>
-</div>
-
-<br/>
-
-<div align="center">
-
-### 🔐 OAuth (11) · 🔑 API Key (122) · 🏠 Self-Hosted (10)
-
-<table>
-  <tr>
-    <td align="center"><img src="https://img.shields.io/badge/OpenAI-412991?style=flat-square&logo=openai&logoColor=white" alt="OpenAI"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Anthropic-D97757?style=flat-square&logo=anthropic&logoColor=white" alt="Anthropic"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Mistral-FF7000?style=flat-square&logo=mistralai&logoColor=white" alt="Mistral"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Copilot-000000?style=flat-square&logo=githubcopilot&logoColor=white" alt="Copilot"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Perplexity-1FB8CD?style=flat-square&logo=perplexity&logoColor=white" alt="Perplexity"/></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://img.shields.io/badge/HuggingFace-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="HuggingFace"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Ollama-000000?style=flat-square&logo=ollama&logoColor=white" alt="Ollama"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/DeepSeek-4D6BFE?style=flat-square" alt="DeepSeek"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/xAI_Grok-000000?style=flat-square" alt="xAI Grok"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Groq-F55036?style=flat-square" alt="Groq"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/GLM_·_Z.AI-2E6BE6?style=flat-square" alt="GLM Z.AI"/></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://img.shields.io/badge/Kimi-000000?style=flat-square" alt="Kimi"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/MiniMax-FF4D4F?style=flat-square" alt="MiniMax"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Qwen-615CED?style=flat-square" alt="Qwen"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Cerebras-F15A29?style=flat-square" alt="Cerebras"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/OpenRouter-6467F2?style=flat-square" alt="OpenRouter"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Together_AI-0F6FFF?style=flat-square" alt="Together AI"/></td>
-  </tr>
-  <tr>
-    <td align="center"><img src="https://img.shields.io/badge/Fireworks-5019C5?style=flat-square" alt="Fireworks"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Vertex_AI-4285F4?style=flat-square&logo=googlecloud&logoColor=white" alt="Vertex AI"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/AWS_Bedrock-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white" alt="AWS Bedrock"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Azure_OpenAI-0078D4?style=flat-square&logo=microsoftazure&logoColor=white" alt="Azure OpenAI"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/Cohere-39594C?style=flat-square" alt="Cohere"/></td>
-    <td align="center"><img src="https://img.shields.io/badge/NVIDIA_NIM-76B900?style=flat-square&logo=nvidia&logoColor=white" alt="NVIDIA NIM"/></td>
-  </tr>
-</table>
-
-</div>
-
-<details>
-<summary><b>…and 150+ more providers (full catalog)</b></summary>
-
-<br/>
-
-Alibaba · Amazon Q · AssemblyAI · Baidu Qianfan · Baseten · Black Forest Labs · Blackbox · Brave Search · Bytez · CablyAI · Cartesia · ChatGPT Web · Chutes.ai · Clarifai · Codestral · CrofAI · DataRobot · Deepgram · ElevenLabs · Empower · Exa Search · Fal.ai · Featherless AI · FriendliAI · Galadriel · GigaChat · GitLab Duo · GLHF Chat · GoAPI · Heroku AI · Hyperbolic · IBM watsonx · Inference.net · Inworld · Jina AI · Kilo Gateway · Lambda AI · Linkup Search · LlamaGate · Maritalk · Modal · Moonshot AI · Morph · NanoGPT · NLP Cloud · Nous Research · Novita AI · nScale · OCI · Ollama Cloud · OVHcloud · PiAPI · PlayHT · Poe · Predibase · PublicAI · Recraft · Reka · Runway · SAP · SambaNova · Scaleway · SearchAPI · SearXNG · Serper · SiliconFlow · Snowflake · Stability AI · Synthetic · Tavily · TheB.AI · Topaz · Upstage · v0 (Vercel) · Vercel AI Gateway · Venice.ai · Volcengine · Voyage AI · W&B Inference · You.com · Z.AI · LM Studio · vLLM · Llamafile · oobabooga · ComfyUI · NVIDIA Triton · + OpenAI/Anthropic-compatible custom endpoints
 
 📖 Full machine-readable catalog → [`docs/reference/PROVIDER_REFERENCE.md`](docs/reference/PROVIDER_REFERENCE.md)
 
-</details>
-
 <br/>
+</div>
 
 <div align="center">
 
@@ -475,10 +422,9 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 >
 > **Same answer. 72% fewer tokens. Zero accuracy loss.** ✅
 
-<details>
-<summary><b>📖 How it works — pipeline, architecture & savings math</b></summary>
-
 <br/>
+
+### 📖 How it works — pipeline, architecture & savings math</b></summary>
 
 ```
 Client (10,000 tok) ──▶ OmniRoute Compression (7 options) ──▶ Provider (~1,080 tok, up to 95% saved)
@@ -495,8 +441,6 @@ range    = 78.4 – 94.6%
 Code blocks, URLs, JSON and structured data are **always protected** by the preservation engine. Auto-trigger compression by token threshold, or assign a compression pipeline per routing combo.
 
 📖 [`COMPRESSION_GUIDE.md`](docs/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/COMPRESSION_ENGINES.md)
-
-</details>
 
 <br/>
 
@@ -535,10 +479,9 @@ curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 
 You should see your connected models listed. 🎉 That's it — start coding, and OmniRoute auto-routes & falls back for you.
 
-<details>
-<summary><b>📦 More install methods — Docker, source, pnpm, Arch</b></summary>
-
 <br/>
+
+## 📦 More install methods — Docker, source, pnpm, Arch</b></summary>
 
 **🐳 Docker**
 
@@ -597,9 +540,12 @@ yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 </table>
 </div>
 
+<div align="center">
+
 > 🎬 **Made a video about OmniRoute?** Open an [issue](https://github.com/diegosouzapw/OmniRoute/issues/new) or [discussion](https://github.com/diegosouzapw/OmniRoute/discussions) with the link — we'll feature it here.
 
 <br/>
+</div>
 
 <div align="center">
 
@@ -747,8 +693,6 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 # 📧 Support & Community
 
-</div>
-
 > 💬 **Join our WhatsApp groups** — get help, share tips, stay updated:
 > · [**🌍 International**](https://chat.whatsapp.com/JI7cDQ1GyaiDHhVBpLxf8b?mode=gi_t) · [**🇧🇷 Português**](https://chat.whatsapp.com/CeGCxdFzqBe5Uki288wOvf)
 
@@ -757,12 +701,16 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 - 🐛 **Issues**: [report a bug](https://github.com/diegosouzapw/OmniRoute/issues) (attach `npm run system-info` output)
 - 🤝 **Contributing**: see [CONTRIBUTING.md](CONTRIBUTING.md) or pick a `good first issue`
 
+</div>
+
 ---
+
+<br/>
+<div align="center">
 
 ## 🛠️ Tech Stack
 
-<details>
-<summary><b>Click to expand tech stack details</b></summary>
+</div>
 
 - **Runtime**: Node.js 20.20.2+, 22.22.2+, or 24.x LTS (24 LTS recommended)
 - **Language**: TypeScript 5.9 — **100% TypeScript** across `src/` and `open-sse/` (zero `any` in core modules since v2.0)
@@ -780,11 +728,13 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 - **Docker**: [hub.docker.com/r/diegosouzapw/omniroute](https://hub.docker.com/r/diegosouzapw/omniroute)
 - **Resilience**: Circuit breaker, exponential backoff, anti-thundering herd, TLS spoofing, auto-combo self-healing
 
-</details>
+<div align="center">
 
----
+<br/>
 
 ## 📖 Documentation
+
+</div>
 
 ### 📘 Getting Started
 
@@ -845,9 +795,11 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 | [Release Checklist](docs/RELEASE_CHECKLIST.md) | Pre-release validation steps                    |
 | [Coverage Plan](docs/COVERAGE_PLAN.md)         | Test coverage strategy and 4,690+ test suite    |
 
----
+<br/>
 
-## ⭐ Top Contributors
+<div align="center">
+
+# ⭐ Top Contributors
 
 > OmniRoute is shaped by a passionate open-source community. These individuals have made exceptional contributions that directly impact the quality, stability, and reach of the project. **Thank you.**
 
@@ -898,9 +850,17 @@ Compression: aggressive (~50%) → double your free quota · Cost: $0/mo
 
 > 🙏 These contributors' features, bug fixes, and infrastructure improvements are a **core part** of what makes OmniRoute reliable and feature-rich. Every pull request, every test case, and every i18n translation file matters. Open source is built by people like them.
 
+</div>
+
 ---
 
+<br/>
+
+<div align="center">
+
 ## 👥 Contributors
+
+</div>
 
 [![Contributors](https://contrib.rocks/image?repo=diegosouzapw/OmniRoute&max=100&columns=20&anon=1)](https://github.com/diegosouzapw/OmniRoute/graphs/contributors)
 
@@ -918,12 +878,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ```bash
 # Create a release — npm publish happens automatically
-gh release create v2.0.0 --title "v2.0.0" --generate-notes
+gh release create v3.8.2 --title "v3.8.2" --generate-notes
 ```
 
----
+<br/>
 
-## 📊 Star History
+<div align="center">
+
+## 📊 Stars
 
 <a href="https://www.star-history.com/?repos=diegosouzapw%2Fomniroute&type=date&legend=top-left">
  <picture>
@@ -932,6 +894,11 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=diegosouzapw/omniroute&type=date&legend=top-left" />
  </picture>
 </a>
+</div>
+
+<br/>
+
+<div align="center">
 
 ## 🌍 StarMapper
 
@@ -942,8 +909,15 @@ gh release create v2.0.0 --title "v2.0.0" --generate-notes
     <img alt="StarMapper" src="https://starmapper.bruniaux.com/api/map-image/diegosouzapw/omniroute" />
   </picture>
 </a>
+</div>
+
+<br/>
+
+<div align="center">
 
 ## 🙏 Acknowledgments
+
+</div>
 
 Special thanks to **[9router](https://github.com/decolua/9router)** by **[decolua](https://github.com/decolua)** — the original project that inspired this fork. OmniRoute builds upon that incredible foundation with additional features, multi-modal APIs, and a full TypeScript rewrite.
 
@@ -953,7 +927,7 @@ Special thanks to **[Caveman](https://github.com/JuliusBrussee/caveman)** by **[
 
 Special thanks to **[RTK - Rust Token Killer](https://github.com/rtk-ai/rtk)** by **[RTK AI](https://github.com/rtk-ai)** — the high-performance command-output compression project whose terminal, build, test, git, and tool-output filtering model inspired OmniRoute's RTK engine, JSON filter DSL, raw-output recovery, and stacked RTK → Caveman compression pipeline.
 
----
+<br/>
 
 ## 📄 License
 
