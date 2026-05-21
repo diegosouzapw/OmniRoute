@@ -643,7 +643,7 @@ function cloneClaudeCodeCompatibleMessagesFromClaude(
         .map((message) => cloneValue(message) as MessageLike)
         .filter((message) => {
           const role = String(message?.role || "").toLowerCase();
-          return role === "user" || role === "assistant";
+          return role !== "system" && role !== "developer";
         })
     : [];
 
