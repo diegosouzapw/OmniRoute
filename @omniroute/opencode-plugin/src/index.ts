@@ -879,12 +879,25 @@ export type OmniRouteEnrichmentFetcher = (
 ) => Promise<OmniRouteEnrichmentMap>;
 
 /**
- * Default enrichment fetcher — calls `GET /api/pricing/models`.
- * Tolerates two shapes:
- *  - `{ providers: { [providerId]: { models: [{ id, name, custom, pricing? }] } } }`
- *  - `{ [providerId]: { models: [...] } }` (legacy direct shape)
- * Returns a Map<id, {name, pricing}> ready to overlay onto ModelV2.
- * Soft-fails (returns empty Map) on non-2xx or parse errors.
+ * Default enrichment fetcher — pulls nice display names from
+ * `GET /api/pricing/models` and merges per-million-token pricing from
+ * `GET /api/pricing` (the actual pricing source — `/api/pricing/models` is
+ * a catalog endpoint whose entries are `{id, name, custom}` only).
+ *
+ * `/api/pricing/models` shape (catalog):
+ *  - `{ [providerAlias]: { id, alias, name, models: [{ id, name, custom }] } }`
+ *
+ * `/api/pricing` shape (pricing only):
+ *  - `{ [providerAlias]: { [modelId]: { input, output, cached, reasoning, cache_creation } } }`
+ *    where values are USD per million tokens.
+ *
+ * The two responses are joined on `(providerAlias, modelId)` and the merged
+ * entries are stored under both `${providerAlias}/${modelId}` and bare
+ * `${modelId}` keys so downstream lookups against either form succeed.
+ *
+ * Soft-fails (returns whatever was collected) on non-2xx or parse errors;
+ * the two fetches are independent so one missing source still surfaces the
+ * other.
  */
 export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = async (
   baseURL,
@@ -894,57 +907,108 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
   const out: OmniRouteEnrichmentMap = new Map();
   if (!baseURL || !apiKey) return out;
   const root = baseURL.replace(/\/v1\/?$/, "").replace(/\/$/, "");
-  const url = `${root}/api/pricing/models`;
-  const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  const headers = {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+  };
+
+  // ── 1. Catalog with nice display names ────────────────────────────────
+  const catalogAc = new AbortController();
+  const catalogTimer = setTimeout(() => catalogAc.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    const res = await fetch(`${root}/api/pricing/models`, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json",
-      },
-      signal: ac.signal,
+      headers,
+      signal: catalogAc.signal,
     });
-    if (!res.ok) return out;
-    const body = (await res.json()) as unknown;
-    const providers =
-      (body as { providers?: Record<string, { models?: unknown[] }> })?.providers ??
-      (body as Record<string, { models?: unknown[] }>);
-    if (!providers || typeof providers !== "object") return out;
-    for (const [providerId, slot] of Object.entries(providers)) {
-      if (!slot || typeof slot !== "object") continue;
-      const models = (slot as { models?: unknown[] }).models;
-      if (!Array.isArray(models)) continue;
-      for (const m of models) {
-        if (!m || typeof m !== "object") continue;
-        const id = (m as { id?: unknown }).id;
-        if (typeof id !== "string" || id.length === 0) continue;
-        const name = (m as { name?: unknown }).name;
-        const pricing = (m as { pricing?: unknown }).pricing;
-        const entry: OmniRouteEnrichmentEntry = {};
-        if (typeof name === "string" && name.trim().length > 0) entry.name = name;
-        if (pricing && typeof pricing === "object") {
-          const p = pricing as Record<string, unknown>;
-          const parsed: NonNullable<OmniRouteEnrichmentEntry["pricing"]> = {};
-          if (typeof p.input === "number") parsed.input = p.input;
-          if (typeof p.output === "number") parsed.output = p.output;
-          if (typeof p.cacheRead === "number") parsed.cacheRead = p.cacheRead;
-          if (typeof p.cacheWrite === "number") parsed.cacheWrite = p.cacheWrite;
-          if (Object.keys(parsed).length > 0) entry.pricing = parsed;
+    if (res.ok) {
+      const body = (await res.json()) as unknown;
+      const providers =
+        (body as { providers?: Record<string, { models?: unknown[] }> })?.providers ??
+        (body as Record<string, { models?: unknown[] }>);
+      if (providers && typeof providers === "object") {
+        for (const [providerAlias, slot] of Object.entries(providers)) {
+          if (!slot || typeof slot !== "object") continue;
+          const models = (slot as { models?: unknown[] }).models;
+          if (!Array.isArray(models)) continue;
+          for (const m of models) {
+            if (!m || typeof m !== "object") continue;
+            const id = (m as { id?: unknown }).id;
+            if (typeof id !== "string" || id.length === 0) continue;
+            const name = (m as { name?: unknown }).name;
+            const entry: OmniRouteEnrichmentEntry = {};
+            if (typeof name === "string" && name.trim().length > 0) entry.name = name;
+            const namespaced = `${providerAlias}/${id}`;
+            if (!out.has(namespaced)) out.set(namespaced, entry);
+            if (!out.has(id)) out.set(id, entry);
+          }
         }
-        // Store under namespaced id and bare id so collision-avoidance still
-        // catches the entry regardless of how callers refer to it.
-        const namespaced = `${providerId}/${id}`;
-        if (!out.has(namespaced)) out.set(namespaced, entry);
-        if (!out.has(id)) out.set(id, entry);
       }
     }
   } catch {
-    // Network error / abort — return whatever we collected (probably empty).
+    // Soft-fail; keep going to pricing fetch.
   } finally {
-    clearTimeout(timer);
+    clearTimeout(catalogTimer);
   }
+
+  // ── 2. Pricing values from /api/pricing ───────────────────────────────
+  const priceAc = new AbortController();
+  const priceTimer = setTimeout(() => priceAc.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${root}/api/pricing`, {
+      method: "GET",
+      headers,
+      signal: priceAc.signal,
+    });
+    if (res.ok) {
+      const body = (await res.json()) as unknown;
+      if (body && typeof body === "object" && !Array.isArray(body)) {
+        for (const [providerAlias, slot] of Object.entries(body as Record<string, unknown>)) {
+          if (!slot || typeof slot !== "object" || Array.isArray(slot)) continue;
+          for (const [modelId, raw] of Object.entries(slot as Record<string, unknown>)) {
+            if (!raw || typeof raw !== "object") continue;
+            const p = raw as Record<string, unknown>;
+            const parsed: NonNullable<OmniRouteEnrichmentEntry["pricing"]> = {};
+            // OmniRoute `/api/pricing` keys:
+            //   input         → cost.input
+            //   output        → cost.output
+            //   cached        → cost.cache.read   (alias: cacheRead)
+            //   cache_creation → cost.cache.write (alias: cacheWrite)
+            // Tolerate alternative spellings for forward-compat.
+            if (typeof p.input === "number") parsed.input = p.input;
+            if (typeof p.output === "number") parsed.output = p.output;
+            const cacheRead =
+              typeof p.cached === "number"
+                ? p.cached
+                : typeof p.cacheRead === "number"
+                  ? p.cacheRead
+                  : undefined;
+            if (typeof cacheRead === "number") parsed.cacheRead = cacheRead;
+            const cacheWrite =
+              typeof p.cache_creation === "number"
+                ? p.cache_creation
+                : typeof p.cacheWrite === "number"
+                  ? p.cacheWrite
+                  : undefined;
+            if (typeof cacheWrite === "number") parsed.cacheWrite = cacheWrite;
+            if (Object.keys(parsed).length === 0) continue;
+            const namespaced = `${providerAlias}/${modelId}`;
+            const existingNs = out.get(namespaced);
+            if (existingNs) existingNs.pricing = { ...(existingNs.pricing ?? {}), ...parsed };
+            else out.set(namespaced, { pricing: parsed });
+            const existingBare = out.get(modelId);
+            if (existingBare) existingBare.pricing = { ...(existingBare.pricing ?? {}), ...parsed };
+            else out.set(modelId, { pricing: parsed });
+          }
+        }
+      }
+    }
+  } catch {
+    // Soft-fail; return whatever names we collected.
+  } finally {
+    clearTimeout(priceTimer);
+  }
+
   return out;
 };
 

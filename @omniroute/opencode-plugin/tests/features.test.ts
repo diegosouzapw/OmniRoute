@@ -475,3 +475,137 @@ test("defaultOmniRouteCompressionMetaFetcher: empty baseURL → empty array", as
   const arr = await defaultOmniRouteCompressionMetaFetcher("", "sk", 100);
   assert.equal(arr.length, 0);
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// Default enrichment fetcher — joins /api/pricing/models (names) with
+// /api/pricing (per-model per-million-token pricing). The two endpoints are
+// fetched independently; either may soft-fail. Verified via a stub fetch
+// installed on globalThis.
+// ─────────────────────────────────────────────────────────────────────────
+
+test("defaultOmniRouteEnrichmentFetcher: merges names from /api/pricing/models and prices from /api/pricing", async () => {
+  const origFetch = globalThis.fetch;
+  const calls: string[] = [];
+  globalThis.fetch = (async (input: unknown) => {
+    const url = typeof input === "string" ? input : (input as { url: string }).url;
+    calls.push(url);
+    if (url.endsWith("/api/pricing/models")) {
+      return new Response(
+        JSON.stringify({
+          cc: {
+            id: "cc",
+            alias: "cc",
+            name: "Cc",
+            models: [
+              { id: "claude-opus-4-7", name: "Claude Opus 4.7", custom: false },
+              { id: "claude-sonnet-4-6", name: "Claude 4.6 Sonnet", custom: false },
+            ],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (url.endsWith("/api/pricing")) {
+      return new Response(
+        JSON.stringify({
+          cc: {
+            "claude-opus-4-7": {
+              input: 5,
+              output: 25,
+              cached: 0.5,
+              cache_creation: 6.25,
+              reasoning: 25,
+            },
+            "claude-sonnet-4-6": {
+              input: 3,
+              output: 15,
+            },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response("not found", { status: 404 });
+  }) as typeof fetch;
+
+  try {
+    const map = await defaultOmniRouteEnrichmentFetcher(
+      "https://or.example.com/v1",
+      "sk-test",
+      5_000
+    );
+    assert.ok(
+      calls.some((u) => u.endsWith("/api/pricing/models")),
+      "catalog endpoint hit"
+    );
+    assert.ok(
+      calls.some((u) => u.endsWith("/api/pricing")),
+      "pricing endpoint hit"
+    );
+    const opus = map.get("cc/claude-opus-4-7");
+    assert.ok(opus, "namespaced entry present");
+    assert.equal(opus?.name, "Claude Opus 4.7", "name from /api/pricing/models");
+    assert.equal(opus?.pricing?.input, 5, "input price merged");
+    assert.equal(opus?.pricing?.output, 25, "output price merged");
+    assert.equal(opus?.pricing?.cacheRead, 0.5, "cached → cacheRead alias");
+    assert.equal(opus?.pricing?.cacheWrite, 6.25, "cache_creation → cacheWrite alias");
+    const opusBare = map.get("claude-opus-4-7");
+    assert.ok(opusBare, "bare id entry present (collision-avoidance)");
+    assert.equal(opusBare?.name, "Claude Opus 4.7");
+    assert.equal(opusBare?.pricing?.input, 5);
+    const sonnet = map.get("cc/claude-sonnet-4-6");
+    assert.equal(sonnet?.name, "Claude 4.6 Sonnet");
+    assert.equal(sonnet?.pricing?.input, 3);
+    assert.equal(sonnet?.pricing?.output, 15);
+    assert.equal(sonnet?.pricing?.cacheRead, undefined, "no cached key → no cacheRead");
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+
+test("defaultOmniRouteEnrichmentFetcher: name-only when pricing endpoint 5xxs", async () => {
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: unknown) => {
+    const url = typeof input === "string" ? input : (input as { url: string }).url;
+    if (url.endsWith("/api/pricing/models")) {
+      return new Response(
+        JSON.stringify({
+          cc: { models: [{ id: "claude-opus-4-7", name: "Claude Opus 4.7", custom: false }] },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response("boom", { status: 500 });
+  }) as typeof fetch;
+  try {
+    const map = await defaultOmniRouteEnrichmentFetcher("https://or.example.com", "sk-test", 5_000);
+    const opus = map.get("cc/claude-opus-4-7");
+    assert.equal(opus?.name, "Claude Opus 4.7", "name still present");
+    assert.equal(opus?.pricing, undefined, "no pricing when /api/pricing fails");
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
+
+test("defaultOmniRouteEnrichmentFetcher: pricing-only when catalog endpoint 5xxs", async () => {
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: unknown) => {
+    const url = typeof input === "string" ? input : (input as { url: string }).url;
+    if (url.endsWith("/api/pricing")) {
+      return new Response(JSON.stringify({ cc: { "claude-opus-4-7": { input: 5, output: 25 } } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response("boom", { status: 500 });
+  }) as typeof fetch;
+  try {
+    const map = await defaultOmniRouteEnrichmentFetcher("https://or.example.com", "sk-test", 5_000);
+    const opus = map.get("cc/claude-opus-4-7");
+    assert.equal(opus?.pricing?.input, 5);
+    assert.equal(opus?.pricing?.output, 25);
+    assert.equal(opus?.name, undefined, "no name when catalog endpoint fails");
+  } finally {
+    globalThis.fetch = origFetch;
+  }
+});
