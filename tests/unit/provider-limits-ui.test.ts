@@ -12,6 +12,13 @@ test("provider plan fallbacks normalize to Unknown instead of repeating provider
   assert.equal(tier.label, "Unknown");
 });
 
+test("tier token matching avoids substring false positives", () => {
+  assert.equal(providerLimitUtils.normalizePlanTier("MiniMax").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("APPROVE").key, "unknown");
+  assert.equal(providerLimitUtils.normalizePlanTier("Max").key, "ultra");
+  assert.equal(providerLimitUtils.normalizePlanTier("Pro").key, "pro");
+});
+
 test("paid individual tiers use non-gray badge variants", () => {
   assert.equal(providerLimitUtils.normalizePlanTier("Plus").variant, "success");
   assert.equal(providerLimitUtils.normalizePlanTier("Pro").variant, "success");

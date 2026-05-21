@@ -59,9 +59,14 @@ function normalizePlanCandidate(value: unknown) {
   return trimmed;
 }
 
+function escapeRegExpToken(token: string): string {
+  return token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** Match tier tokens as whole words (avoids MINIMAX → Max, APPROVE → Pro, etc.). */
 function hasTierToken(upper: string, token: string): boolean {
-  const pattern = new RegExp(`(?:^|[^A-Z])${token}(?:[^A-Z]|$)`);
+  const escaped = escapeRegExpToken(token.toUpperCase());
+  const pattern = new RegExp(`(?:^|[^A-Z])${escaped}(?:[^A-Z]|$)`);
   return pattern.test(upper);
 }
 
@@ -505,7 +510,7 @@ export function normalizePlanTier(plan) {
     return { key: "ultra", label: "Max", variant: "success", rank: 4, raw };
   }
 
-  if (hasTierToken(upper, "PRO") || upper.includes("PREMIUM")) {
+  if (hasTierToken(upper, "PRO") || hasTierToken(upper, "PREMIUM")) {
     return { key: "pro", label: "Pro", variant: "success", rank: 3, raw };
   }
 
@@ -513,11 +518,11 @@ export function normalizePlanTier(plan) {
     return { key: "lite", label: "Starter", variant: "primary", rank: 2, raw };
   }
 
-  if (hasTierToken(upper, "LITE") || upper.includes("LIGHT")) {
+  if (hasTierToken(upper, "LITE") || hasTierToken(upper, "LIGHT")) {
     return { key: "lite", label: "Lite", variant: "primary", rank: 2, raw };
   }
 
-  if (hasTierToken(upper, "PLUS") || upper.includes("PAID")) {
+  if (hasTierToken(upper, "PLUS") || hasTierToken(upper, "PAID")) {
     return { key: "plus", label: "Plus", variant: "success", rank: 2, raw };
   }
 
