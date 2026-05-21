@@ -6,6 +6,7 @@ import { generateClineConfig } from "./cline";
 import { generateCodexConfig } from "./codex";
 import { generateContinueConfig } from "./continue";
 import { generateHermesConfig } from "./hermes";
+import { generateHermesAgentConfig, type HermesAgentConfigPayload } from "./hermes-agent";
 import { generateKilocodeConfig } from "./kilocode";
 import { generateOpencodeConfig } from "./opencode";
 
@@ -44,6 +45,7 @@ const TOOL_CONFIG_PATHS: Record<string, string> = {
   kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
   continue: path.join(os.homedir(), ".continue", "config.yaml"),
   hermes: path.join(os.homedir(), ".hermes", "config.yaml"),
+  "hermes-agent": path.join(os.homedir(), ".hermes", "config.yaml"),
 };
 
 
@@ -58,6 +60,7 @@ const GENERATORS: Record<string, ConfigGenerator> = {
   kilocode: generateKilocodeConfig,
   continue: generateContinueConfig,
   hermes: generateHermesConfig,
+  "hermes-agent": generateHermesAgentConfig as any, // rich multi-role version
 };
 
 export async function generateConfig(

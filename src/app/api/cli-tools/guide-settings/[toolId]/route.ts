@@ -17,6 +17,10 @@ import { resolveApiKey, getOrCreateApiKey } from "@/shared/services/apiKeyResolv
  * Save configuration for guide-based tools that have config files.
  * Currently supports: continue, opencode
  */
+export async function GET(request, { params }) {
+  return NextResponse.json({ error: "GET not supported for this tool" }, { status: 400 });
+}
+
 export async function POST(request, { params }) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
@@ -61,6 +65,7 @@ export async function POST(request, { params }) {
         return await saveQwenConfig({ baseUrl, apiKey, model });
       case "hermes":
         return await saveHermesConfig({ baseUrl, apiKey, model });
+      // hermes-agent now uses the dedicated /api/cli-tools/hermes-agent-settings endpoint
       default:
         return NextResponse.json(
           { error: `Direct config save not supported for: ${toolId}` },
@@ -261,7 +266,11 @@ async function saveHermesConfig({ baseUrl, apiKey, model }) {
     .trim()
     .replace(/\/+$/, "");
   const providerBaseUrl = normalizedBaseUrl.endsWith("/v1") ? normalizedBaseUrl : `${normalizedBaseUrl}/v1`;
-  const selectedModel = model || "gpt-5.4-mini";
+
+  if (!model) {
+    return NextResponse.json({ error: "model is required for Hermes" }, { status: 400 });
+  }
+  const selectedModel = model;
 
   let existingConfig: Record<string, any> = {};
   try {
@@ -300,3 +309,5 @@ async function saveHermesConfig({ baseUrl, apiKey, model }) {
     configPath,
   });
 }
+
+

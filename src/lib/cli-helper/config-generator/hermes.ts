@@ -24,7 +24,10 @@ export async function generateHermesConfig(options: {
   base = end < base.length ? base.slice(0, end) : base;
   if (base.endsWith("/v1")) base = base.slice(0, -3);
 
-  const model = options.model || "gpt-5.4-mini";
+  if (!options.model) {
+    throw new Error("model is required");
+  }
+  const model = options.model;
 
   const config = {
     model: {
