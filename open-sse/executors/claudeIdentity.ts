@@ -285,13 +285,12 @@ export function parseUpstreamMetadataUserId(
 // ---------- anthropic-beta selector --------------------------------------
 
 /**
- * Models that support the heavy-agent beta tier (context-1m, effort,
- * advanced-tool-use). Only Opus/Sonnet are eligible — Haiku with OAuth
- * authentication rejects `context-1m-2025-08-07` with
- * "This authentication style is incompatible with the long context beta header"
- * (issue #2454). Matches real Claude Desktop, which omits these flags for Haiku.
+ * Models that support the heavy-agent beta tier (effort, advanced-tool-use).
+ * Only Opus/Sonnet are eligible — Haiku with OAuth authentication rejects
+ * heavy agent flags (issue #2454). Matches real Claude Code captures.
  */
 const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
+const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
 
 function isHeavyAgentModel(model: unknown): boolean {
   if (typeof model !== "string") return false;
@@ -299,14 +298,21 @@ function isHeavyAgentModel(model: unknown): boolean {
   return HEAVY_AGENT_BETA_MODEL_PREFIXES.some((prefix) => normalized.includes(prefix));
 }
 
+function isContext1mModel(model: unknown): boolean {
+  if (typeof model !== "string") return false;
+  const normalized = model.toLowerCase();
+  return CONTEXT_1M_BETA_MODEL_PREFIXES.some((prefix) => normalized.includes(prefix));
+}
+
 /**
  * Pick the anthropic-beta flag set that matches the request shape. Real CLI
  * uses three patterns: minimal probe, structured-output, and full agent.
  * Sending the full set on every shape is itself a fingerprint.
  *
- * The heavy-agent flags (context-1m, effort, advanced-tool-use) are gated on
- * the model as well as the shape: Haiku must never receive `context-1m`, which
- * Anthropic rejects under OAuth authentication.
+ * The heavy-agent flags are gated on the model as well as the shape. In direct
+ * Claude Code captures, Sonnet receives effort/advanced-tool-use but not
+ * context-1m; sending context-1m to Sonnet trips Anthropic's long-context credit
+ * gate for accounts where direct Claude Code works.
  */
 export function selectBetaFlags(
   body: Record<string, unknown> | null | undefined,
@@ -325,14 +331,15 @@ export function selectBetaFlags(
   const isFullAgent = hasTools && hasSystem;
   const effectiveModel = model ?? (typeof b.model === "string" ? b.model : "");
   const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
+  const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
 
   const flags: string[] = [];
   if (isFullAgent) flags.push("claude-code-20250219");
   flags.push("oauth-2025-04-20");
-  if (isHeavyAgent) flags.push("context-1m-2025-08-07");
+  if (isContext1m) flags.push("context-1m-2025-08-07");
   flags.push(
     "interleaved-thinking-2025-05-14",
-    "redact-thinking-2026-02-12",
+    "thinking-token-count-2026-05-13",
     "context-management-2025-06-27",
     "prompt-caching-scope-2026-01-05"
   );
@@ -340,7 +347,13 @@ export function selectBetaFlags(
   if (hasStructuredOutput && !isFullAgent) flags.push("structured-outputs-2025-12-15");
   // extended-cache-ttl is sent for all full-agent shapes (incl. Haiku); the
   // heavier advanced-tool-use / effort flags are Opus/Sonnet-only.
-  if (isFullAgent) flags.push("extended-cache-ttl-2025-04-11", "cache-diagnosis-2026-04-07");
+  if (isFullAgent) {
+    flags.push(
+      "afk-mode-2026-01-31",
+      "extended-cache-ttl-2025-04-11",
+      "cache-diagnosis-2026-04-07"
+    );
+  }
   if (isHeavyAgent) {
     flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }

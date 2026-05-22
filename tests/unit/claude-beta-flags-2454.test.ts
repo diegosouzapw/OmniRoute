@@ -5,8 +5,9 @@ const { selectBetaFlags } = await import("../../open-sse/executors/claudeIdentit
 
 // Regression for #2454: Haiku with OAuth rejects `context-1m-2025-08-07` with
 // 400 "This authentication style is incompatible with the long context beta header".
-// The heavy-agent beta tier (context-1m, effort, advanced-tool-use) must be gated on
+// The heavy-agent beta tier (effort, advanced-tool-use) must be gated on
 // Opus/Sonnet only; Haiku still receives the general full-agent flags.
+// context-1m is Opus-only in captured Claude Code traffic.
 
 function fullAgentBody(model: string) {
   return {
@@ -31,11 +32,14 @@ test("#2454 Haiku full-agent omits heavy-agent beta flags", () => {
   assert.ok(flags.includes("extended-cache-ttl-2025-04-11"));
 });
 
-test("#2454 Sonnet full-agent includes heavy-agent beta flags", () => {
+test("Sonnet full-agent includes heavy-agent flags but omits context-1m", () => {
   const flags = selectBetaFlags(fullAgentBody("claude-sonnet-4-6"));
-  assert.ok(flags.includes("context-1m-2025-08-07"), "Sonnet should receive context-1m");
+  assert.ok(!flags.includes("context-1m-2025-08-07"), "Sonnet must NOT receive context-1m");
   assert.ok(flags.includes("effort-2025-11-24"));
   assert.ok(flags.includes("advanced-tool-use-2025-11-20"));
+  assert.ok(flags.includes("thinking-token-count-2026-05-13"));
+  assert.ok(flags.includes("afk-mode-2026-01-31"));
+  assert.ok(!flags.includes("redact-thinking-2026-02-12"));
 });
 
 test("#2454 Opus full-agent includes heavy-agent beta flags", () => {
