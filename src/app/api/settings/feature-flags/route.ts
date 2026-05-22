@@ -55,10 +55,7 @@ export async function GET(request: NextRequest) {
       summary: { total, active, inactive, overriddenByDb, overriddenByEnv },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: sanitizeErrorMessage(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -95,10 +92,7 @@ export async function PUT(request: NextRequest) {
   // Validate key against known definitions
   const definition = FEATURE_FLAG_DEFINITIONS.find((d) => d.key === key);
   if (!definition) {
-    return NextResponse.json(
-      { error: `Unknown feature flag key: ${key}` },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: `Unknown feature flag key: ${key}` }, { status: 400 });
   }
 
   // Validate enum values
@@ -141,10 +135,7 @@ export async function PUT(request: NextRequest) {
       requiresRestart: definition.requiresRestart,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: sanitizeErrorMessage(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -168,9 +159,6 @@ export async function DELETE(request: NextRequest) {
       message: `Cleared ${count} feature flag override${count !== 1 ? "s" : ""}`,
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: sanitizeErrorMessage(error) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

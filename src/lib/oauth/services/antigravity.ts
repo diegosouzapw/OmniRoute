@@ -6,6 +6,7 @@ import {
   getAntigravityHeaders,
   getAntigravityLoadCodeAssistMetadata,
 } from "@omniroute/open-sse/services/antigravityHeaders.ts";
+import { extractCodeAssistOnboardTierId } from "@omniroute/open-sse/services/codeAssistSubscription.ts";
 import { getServerCredentials } from "../config/index";
 import { startLocalServer } from "../utils/server";
 import { spinner as createSpinner } from "../utils/ui";
@@ -145,16 +146,7 @@ export class AntigravityService {
       projectId = projectId.id;
     }
 
-    // Extract tier ID (default to legacy-tier)
-    let tierId = "legacy-tier";
-    if (Array.isArray(data.allowedTiers)) {
-      for (const tier of data.allowedTiers) {
-        if (tier.isDefault && tier.id) {
-          tierId = tier.id.trim();
-          break;
-        }
-      }
-    }
+    const tierId = extractCodeAssistOnboardTierId(data);
 
     return { projectId, tierId, raw: data };
   }

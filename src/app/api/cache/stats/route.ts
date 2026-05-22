@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const cache = getPromptCache();
-    const stats = (cache as any).getStats();
+    const stats = cache.getStats();
     return NextResponse.json(stats);
   } catch (error) {
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -23,9 +23,9 @@ export async function DELETE(req: NextRequest) {
 
   try {
     const cache = getPromptCache();
-    (cache as any).clear();
+    cache.clear();
     return NextResponse.json({ success: true, message: "Cache cleared" });
   } catch (error) {
-    return NextResponse.json({ error: (error as any).message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

@@ -48,7 +48,7 @@ test("handleChat applies body-derived retry-after to the runtime limiter", async
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "Trigger 429 from body retry-after" }],
       },
@@ -62,7 +62,7 @@ test("handleChat applies body-derived retry-after to the runtime limiter", async
   const limiterState = await rateLimitManager.__getLimiterStateForTests(
     "openai",
     connection.id,
-    "gpt-4o-mini"
+    "gpt-4.1"
   );
   assert.ok(limiterState, "expected limiter state to exist for the active connection");
   assert.equal(limiterState.reservoir, 0, "body-derived retry-after should drain the limiter");
@@ -80,7 +80,7 @@ test("handleChat tolerates non-JSON rate-limit bodies without breaking fallback 
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "Trigger plain text 429" }],
       },

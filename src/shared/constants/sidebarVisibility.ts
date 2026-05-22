@@ -75,6 +75,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-advanced",
   "settings-security",
   "settings-feature-flags",
+  "settings-authz",
   // Help
   "docs",
   "issues",
@@ -658,6 +659,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     i18nKey: "settingsFeatureFlags",
     subtitleKey: "settingsFeatureFlagsSubtitle",
     icon: "flag",
+  },
+  {
+    id: "settings-authz",
+    href: "/dashboard/settings/authz",
+    i18nKey: "settingsAuthz",
+    subtitleKey: "settingsAuthzSubtitle",
+    icon: "shield_lock",
   },
 ];
 

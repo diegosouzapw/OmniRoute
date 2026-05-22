@@ -1,14 +1,17 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
-import {
-  createFile,
-  deleteFile,
-  listFiles,
-  createBatch,
-  getBatch,
-  updateBatch,
-} from "@/lib/localDb";
-import { getDbInstance } from "@/lib/db/core";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+// Isolate this suite's SQLite DB into a unique DATA_DIR so it doesn't race the shared
+// default ~/.omniroute store under concurrent test execution — `listFiles`/delete state
+// was intermittently flaking when another test process wrote the same DB file.
+process.env.DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-file-deletion-"));
+
+const { createFile, deleteFile, listFiles, createBatch, getBatch, updateBatch } =
+  await import("@/lib/localDb");
+const { getDbInstance } = await import("@/lib/db/core");
 
 describe("File Deletion API", () => {
   let testFileId: string;

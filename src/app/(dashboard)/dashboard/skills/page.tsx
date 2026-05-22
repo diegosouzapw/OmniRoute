@@ -310,8 +310,43 @@ export default function SkillsPage() {
     );
   }
 
+  // ── Stats computation ────────────────────────────────────────────────────
+
+  const enabledCount = skills.filter((s) => s.enabled).length;
+  const execSuccessCount = executions.filter((e) => e.status === "success").length;
+  const successRate =
+    executions.length > 0 ? Math.round((execSuccessCount / executions.length) * 100) : 0;
+
   return (
     <div className="flex flex-col gap-6">
+      {/* ── Stats Cards ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">
+            {t("totalSkills") || "Total Skills"}
+          </p>
+          <p className="text-2xl font-bold text-text-main mt-1">{skillsTotal}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">
+            {t("enabledSkills") || "Enabled"}
+          </p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">{enabledCount}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">
+            {t("totalExecutions") || "Executions"}
+          </p>
+          <p className="text-2xl font-bold text-violet-400 mt-1">{execTotal}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">
+            {t("successRate") || "Success Rate"}
+          </p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{successRate}%</p>
+        </Card>
+      </div>
+
       <div className="flex justify-end">
         <button
           onClick={() => setShowInstallModal(true)}

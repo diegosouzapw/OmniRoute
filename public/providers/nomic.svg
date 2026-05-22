@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <circle cx="16" cy="16" r="14" fill="#7C3AED" opacity="0.15"/>
+  <circle cx="16" cy="16" r="14" fill="none" stroke="#7C3AED" stroke-width="2"/>
+  <text x="16" y="16" text-anchor="middle" dominant-baseline="central" font-family="system-ui,-apple-system,sans-serif" font-size="11" font-weight="600" fill="#7C3AED">NM</text>
+</svg>
