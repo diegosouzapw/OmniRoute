@@ -327,7 +327,12 @@ export function parseEmbeddingModel(
  * Get all embedding models as a flat list
  */
 export function getAllEmbeddingModels() {
-  const models = [];
+  const models: Array<{
+    id: string;
+    name: string;
+    provider: string;
+    dimensions: number | undefined;
+  }> = [];
   for (const [providerId, config] of Object.entries(EMBEDDING_PROVIDERS)) {
     for (const model of config.models) {
       models.push({

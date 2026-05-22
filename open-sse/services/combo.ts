@@ -292,7 +292,7 @@ function buildExecutionKey(path: string[], stepId: string): string {
   return [...path, stepId].join(">");
 }
 
-function normalizeRuntimeStep(entry, comboName, index, allCombos, path = []) {
+function normalizeRuntimeStep(entry, comboName, index, allCombos, path: string[] = []) {
   const step = normalizeComboStep(entry, {
     comboName,
     index,
@@ -337,7 +337,7 @@ function getDirectComboTargets(combo) {
   );
 }
 
-function getTopLevelRuntimeSteps(combo, allCombos, path = []) {
+function getTopLevelRuntimeSteps(combo, allCombos, path: string[] = []) {
   return (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, allCombos, path))
     .filter((entry): entry is ComboRuntimeStep => entry !== null);
@@ -364,10 +364,10 @@ function getCompositeTierStepOrder(combo): string[] {
         if (!normalizedTierName || !stepId) return null;
         return [normalizedTierName, { stepId, fallbackTier }] as const;
       })
-      .filter(Boolean)
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
   );
 
-  let currentTier = defaultTier;
+  let currentTier: string | null = defaultTier;
   while (currentTier && tierEntries.has(currentTier) && !visitedTiers.has(currentTier)) {
     visitedTiers.add(currentTier);
     const entry = tierEntries.get(currentTier);
@@ -417,11 +417,11 @@ function orderRuntimeStepsByCompositeTiers(steps: ComboRuntimeStep[], combo): Co
   return ordered;
 }
 
-function getOrderedTopLevelRuntimeSteps(combo, allCombos, path = []) {
+function getOrderedTopLevelRuntimeSteps(combo, allCombos, path: string[] = []) {
   return orderRuntimeStepsByCompositeTiers(getTopLevelRuntimeSteps(combo, allCombos, path), combo);
 }
 
-function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path = []) {
+function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path: string[] = []) {
   if (step.kind === "model") return [step];
   if (depth > MAX_COMBO_DEPTH) return [];
 
@@ -440,7 +440,7 @@ export function resolveNestedComboTargets(
   allCombos,
   visited = new Set(),
   depth = 0,
-  path = []
+  path: string[] = []
 ) {
   const directTargets = (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
@@ -534,7 +534,7 @@ export function resolveNestedComboModels(combo, allCombos, visited = new Set(), 
   visited.add(combo.name);
 
   const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
-  const resolved = [];
+  const resolved: string[] = [];
 
   for (const entry of combo.models || []) {
     const modelName = normalizeModelEntry(entry).model;
@@ -1417,6 +1417,7 @@ function resolveWeightedTargets(combo, allCombos) {
     hasCompositeTierRuntimeOrder(combo)
   );
   const expandedTargets = orderedSteps.flatMap((step) => {
+    if (!step) return [];
     if (!allCombos) {
       return step.kind === "model" ? [step] : [];
     }
@@ -1448,7 +1449,7 @@ function scoreAutoTargets(
       const factors = calculateFactors(
         candidate as ProviderCandidate,
         candidates,
-        taskType,
+        taskType ?? "",
         getTaskFitness
       );
       return {
@@ -1456,7 +1457,7 @@ function scoreAutoTargets(
         score: calculateScore(factors, weights),
       };
     })
-    .filter(Boolean)
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     .sort((a, b) => b.score - a.score);
 }
 
@@ -1825,8 +1826,8 @@ export async function handleComboChat({
 
     const candidates = await buildAutoCandidates(eligibleTargets, combo.name);
     if (candidates.length > 0) {
-      let selectedProvider = null;
-      let selectedModel = null;
+      let selectedProvider: string | null = null;
+      let selectedModel: string | null = null;
       let selectionReason = "";
 
       if (routingStrategy !== "rules") {
@@ -2047,9 +2048,9 @@ export async function handleComboChat({
       }
     }
 
-    let lastError = null;
-    let earliestRetryAfter = null;
-    let lastStatus = null;
+    let lastError: string | null = null;
+    let earliestRetryAfter: string | null = null;
+    let lastStatus: number | null = null;
     const startTime = Date.now();
     let fallbackCount = 0;
     let recordedAttempts = 0;
@@ -2226,8 +2227,8 @@ export async function handleComboChat({
 
         // Extract error info from response
         let errorText = result.statusText || "";
-        let errorBody = null;
-        let retryAfter = null;
+        let errorBody: any = null;
+        let retryAfter: string | null = null;
         try {
           const cloned = result.clone();
           try {
@@ -2462,9 +2463,9 @@ async function handleRoundRobinCombo({
 
   const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
-  let lastError = null;
-  let lastStatus = null;
-  let earliestRetryAfter = null;
+  let lastError: string | null = null;
+  let lastStatus: number | null = null;
+  let earliestRetryAfter: string | number | null = null;
   let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
@@ -2613,7 +2614,7 @@ async function handleRoundRobinCombo({
 
         // Extract error info
         let errorText = result.statusText || "";
-        let retryAfter = null;
+        let retryAfter: string | number | null = null;
         let errorBody: {
           error?: { code?: string | null; message?: string | null } | string;
           message?: string | null;

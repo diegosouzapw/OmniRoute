@@ -212,8 +212,8 @@ export function parseAntigravityRetryTime(message) {
  */
 export async function parseUpstreamError(response, provider = null) {
   let message = "";
-  let retryAfterMs = null;
-  let responseBody = null;
+  let retryAfterMs: number | null = null;
+  let responseBody: unknown = null;
   let errorCode = undefined;
   let errorType = undefined;
 
