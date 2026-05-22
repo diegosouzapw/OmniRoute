@@ -22,7 +22,7 @@ interface ProviderStats {
   errorTime?: string | null;
   allDisabled?: boolean;
   expiryStatus?: "expired" | "expiring_soon" | string | null;
-  codexFastActive?: boolean;
+  codexServiceTier?: "default" | "priority" | "flex" | null;
 }
 
 interface ProviderCardProps {
@@ -110,15 +110,21 @@ export default function ProviderCard({
   const isCompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isAnthropicCompatible = isAnthropicCompatibleProvider(providerId) && !isCcCompatible;
-  const codexFastChip =
-    providerId === "codex" && stats.codexFastActive ? (
+  const codexServiceTierChip =
+    providerId === "codex" && stats.codexServiceTier && stats.codexServiceTier !== "default" ? (
       <span
-        key="fast"
-        className="inline-flex items-center gap-0.5 rounded-full bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-sky-600 dark:text-sky-400"
-        title="Codex Fast tier is active"
+        key="codex-service-tier"
+        className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide ${
+          stats.codexServiceTier === "flex"
+            ? "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+            : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+        }`}
+        title={`Codex ${stats.codexServiceTier} service tier is active`}
       >
-        <span className="material-symbols-outlined text-[10px] leading-none">bolt</span>
-        Fast
+        <span className="material-symbols-outlined text-[10px] leading-none">
+          {stats.codexServiceTier === "flex" ? "speed" : "bolt"}
+        </span>
+        {stats.codexServiceTier === "flex" ? "Flex" : "Fast"}
       </span>
     ) : null;
 
@@ -221,7 +227,7 @@ export default function ProviderCard({
                       Number(stats.warning || 0),
                       stats.errorCode,
                       t,
-                      codexFastChip
+                      codexServiceTierChip
                     )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>

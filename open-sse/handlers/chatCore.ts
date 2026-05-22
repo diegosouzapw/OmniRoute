@@ -106,6 +106,7 @@ import {
 import {
   getCodexRequestDefaults,
   normalizeCodexServiceTier,
+  type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
 import { cacheReasoningFromAssistantMessage } from "../services/reasoningCache.ts";
 import { sanitizeOpenAITool } from "../services/toolSchemaSanitizer.ts";
@@ -1289,8 +1290,9 @@ export async function handleChatCore({
   };
   let tokensCompressed: number | null = null;
   body = injectSystemPrompt(body);
-  let effectiveServiceTier: "standard" | "priority" = "standard";
-  const resolveEffectiveServiceTier = (requestBody?: unknown): "standard" | "priority" => {
+  type EffectiveServiceTier = "standard" | CodexServiceTier;
+  let effectiveServiceTier: EffectiveServiceTier = "standard";
+  const resolveEffectiveServiceTier = (requestBody?: unknown): EffectiveServiceTier => {
     if (provider !== "codex") return "standard";
     const requestRecord =
       requestBody && typeof requestBody === "object" && !Array.isArray(requestBody)
@@ -1298,11 +1300,9 @@ export async function handleChatCore({
         : {};
     const rawServiceTier = requestRecord.service_tier;
     if (typeof rawServiceTier === "string" && rawServiceTier.trim().length > 0) {
-      return normalizeCodexServiceTier(rawServiceTier) ? "priority" : "standard";
+      return normalizeCodexServiceTier(rawServiceTier) ?? "standard";
     }
-    return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier === "priority"
-      ? "priority"
-      : "standard";
+    return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier ?? "standard";
   };
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({

@@ -295,6 +295,18 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
+test("CodexExecutor.transformRequest applies flex request default service tier", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest("gpt-5.5", { input: "hello" }, false, {
+    requestEndpointPath: "/responses",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "flex" },
+    },
+  });
+
+  assert.equal(result.service_tier, "flex");
+});
+
 test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
   const executor = new CodexExecutor();
   const body = {

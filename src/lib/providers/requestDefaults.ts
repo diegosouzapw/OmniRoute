@@ -46,10 +46,13 @@ export function normalizeCodexReasoningEffort(value: unknown): CodexReasoningEff
   return normalized as CodexReasoningEffort;
 }
 
-export function normalizeCodexServiceTier(value: unknown): "priority" | undefined {
+export type CodexServiceTier = "default" | "priority" | "flex";
+
+export function normalizeCodexServiceTier(value: unknown): CodexServiceTier | undefined {
   const normalized = normalizeString(value);
   if (!normalized) return undefined;
   if (normalized === "fast" || normalized === "priority") return "priority";
+  if (normalized === "default" || normalized === "flex") return normalized;
   return undefined;
 }
 
@@ -236,7 +239,7 @@ export function getProviderRequestDefaults(
 
 export function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort?: CodexReasoningEffort;
-  serviceTier?: "priority";
+  serviceTier?: CodexServiceTier;
 } {
   const defaults = getProviderRequestDefaults("codex", providerSpecificData);
   const reasoningEffort = normalizeCodexReasoningEffort(defaults.reasoningEffort);
