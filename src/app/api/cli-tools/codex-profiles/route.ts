@@ -171,7 +171,7 @@ export async function POST(request) {
     };
 
     await ensureProfilesDir();
-    const profilePath = path.join(PROFILES_DIR, `${profileId}.json`);
+    const profilePath = safeProfilePath(`${profileId}.json`);
     await fs.writeFile(profilePath, JSON.stringify(profile, null, 2));
 
     return NextResponse.json({
@@ -217,7 +217,7 @@ export async function PUT(request) {
     }
     const { profileId } = validation.data;
 
-    const profilePath = path.join(PROFILES_DIR, `${profileId}.json`);
+    const profilePath = safeProfilePath(`${profileId}.json`);
     let profile;
     try {
       const raw = await fs.readFile(profilePath, "utf-8");
@@ -286,7 +286,7 @@ export async function DELETE(request) {
     }
     const { profileId } = validation.data;
 
-    const profilePath = path.join(PROFILES_DIR, `${profileId}.json`);
+    const profilePath = safeProfilePath(`${profileId}.json`);
     try {
       await fs.unlink(profilePath);
     } catch (err) {

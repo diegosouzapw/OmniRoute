@@ -26,6 +26,24 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
   },
 
+  // ── GPT-4o family ──────────────────────────────────────────────
+  "gpt-4o-mini": {
+    maxOutputTokens: 16384,
+    contextWindow: 128000,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["openai/gpt-4o-mini"],
+  },
+  "gpt-4o": {
+    maxOutputTokens: 16384,
+    contextWindow: 128000,
+    supportsThinking: false,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["openai/gpt-4o"],
+  },
+
   // ── Gemini 3 Flash series ───────────────────────────────────────
   "gemini-3-flash": {
     maxOutputTokens: 65536,
@@ -161,6 +179,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     contextWindow: 262144,
     supportsThinking: true,
     supportsTools: true,
+    supportsVision: true,
     aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
   },
 

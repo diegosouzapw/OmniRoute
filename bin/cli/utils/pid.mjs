@@ -65,7 +65,7 @@ export async function waitForServer(port, timeout = 15000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
     try {
-      const res = await fetch(`http://localhost:${port}/api/health`, {
+      const res = await fetch(`http://localhost:${port}/api/monitoring/health`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) return true;

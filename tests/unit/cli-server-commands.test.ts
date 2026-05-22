@@ -100,35 +100,44 @@ test("mcp status --json returns 0 when server responds", async () => {
 
 test("completion bash outputs bash script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const lines: string[] = [];
-  const originalLog = console.log;
-  console.log = (msg: string) => lines.push(msg);
+  const chunks: string[] = [];
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = (chunk: any) => {
+    chunks.push(String(chunk));
+    return true;
+  };
   const result = await runCompletionCommand("bash");
-  console.log = originalLog;
+  process.stdout.write = originalWrite;
   assert.equal(result, 0);
-  assert.ok(lines.join("").includes("_omniroute"));
+  assert.ok(chunks.join("").includes("_omniroute"));
 });
 
 test("completion zsh outputs zsh script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const lines: string[] = [];
-  const originalLog = console.log;
-  console.log = (msg: string) => lines.push(msg);
+  const chunks: string[] = [];
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = (chunk: any) => {
+    chunks.push(String(chunk));
+    return true;
+  };
   const result = await runCompletionCommand("zsh");
-  console.log = originalLog;
+  process.stdout.write = originalWrite;
   assert.equal(result, 0);
-  assert.ok(lines.join("").includes("#compdef omniroute"));
+  assert.ok(chunks.join("").includes("#compdef omniroute"));
 });
 
 test("completion fish outputs fish script", async () => {
   const { runCompletionCommand } = await import("../../bin/cli/commands/completion.mjs");
-  const lines: string[] = [];
-  const originalLog = console.log;
-  console.log = (msg: string) => lines.push(msg);
+  const chunks: string[] = [];
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = (chunk: any) => {
+    chunks.push(String(chunk));
+    return true;
+  };
   const result = await runCompletionCommand("fish");
-  console.log = originalLog;
+  process.stdout.write = originalWrite;
   assert.equal(result, 0);
-  assert.ok(lines.join("").includes("complete -c omniroute"));
+  assert.ok(chunks.join("").includes("complete -c omniroute"));
 });
 
 // ── env ───────────────────────────────────────────────────────────────────────

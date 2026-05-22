@@ -6,6 +6,21 @@ import assert from "node:assert/strict";
 
 const { PerplexityWebExecutor } = await import("../../open-sse/executors/perplexity-web.ts");
 const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/executors/index.ts");
+const { __setTlsFetchOverrideForTesting, TlsClientUnavailableError } =
+  await import("../../open-sse/services/perplexityTlsClient.ts");
+
+// #2459: the executor now routes through tlsFetchPerplexity (Firefox TLS) instead of
+// global fetch. Install one persistent bridge so the tests below can keep stubbing
+// globalThis.fetch (returning a Response) and have it surface as a TlsFetchResult.
+__setTlsFetchOverrideForTesting(async (url, opts) => {
+  const res = await (globalThis.fetch as any)(url, opts);
+  return {
+    status: res.status,
+    headers: res.headers,
+    text: res.status === 200 ? null : await res.text(),
+    body: res.status === 200 ? res.body : null,
+  };
+});
 
 // ─── Helper: Build a mock SSE stream from Perplexity events ─────────────────
 
@@ -25,14 +40,22 @@ function mockPplxStream(events) {
   });
 }
 
-// ─── Helper: Override global fetch for testing ──────────────────────────────
+// ─── Helper: stub globalThis.fetch for testing ──────────────────────────────
+// The persistent bridge above forwards tlsFetchPerplexity calls to globalThis.fetch,
+// so stubbing fetch is still the way to mock Perplexity's upstream response.
 
-function mockFetch(status, streamEvents) {
+function mockFetch(status, streamEvents, bodyText) {
   const original = globalThis.fetch;
-  globalThis.fetch = async (url, opts) => {
-    return new Response(mockPplxStream(streamEvents), {
+  globalThis.fetch = async () => {
+    if (status === 200) {
+      return new Response(mockPplxStream(streamEvents), {
+        status,
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    }
+    return new Response(bodyText ?? `{"error":"http ${status}"}`, {
       status,
-      headers: { "Content-Type": "text/event-stream" },
+      headers: { "Content-Type": "text/html" },
     });
   };
   return () => {
@@ -748,5 +771,50 @@ test("Request: posts to correct Perplexity SSE endpoint", async () => {
     assert.equal(capturedHeaders["Accept"], "text/event-stream");
   } finally {
     globalThis.fetch = original;
+  }
+});
+
+// ─── #2459: Cloudflare challenge vs genuine auth failure ─────────────────────
+
+test("Error: Cloudflare 403 challenge returns a distinct (non-cookie) error", async () => {
+  const restore = mockFetch(403, [], "<html><title>Just a moment...</title></html>");
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "valid-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 403);
+    const json = (await result.response.json()) as any;
+    assert.match(json.error.message, /Cloudflare/i);
+    assert.ok(!/session-token/i.test(json.error.message), "must not blame the cookie");
+  } finally {
+    restore();
+  }
+});
+
+test("Error: TlsClientUnavailableError returns 502 with install hint", async () => {
+  const restore = mockFetchError(new TlsClientUnavailableError("native binary missing"));
+  try {
+    const executor = new PerplexityWebExecutor();
+    const result = await executor.execute({
+      model: "pplx-auto",
+      body: { messages: [{ role: "user", content: "hi" }] },
+      stream: false,
+      credentials: { apiKey: "test-cookie" },
+      signal: AbortSignal.timeout(10000),
+      log: null,
+    });
+
+    assert.equal(result.response.status, 502);
+    const json = (await result.response.json()) as any;
+    assert.match(json.error.message, /TLS client unavailable/i);
+  } finally {
+    restore();
   }
 });

@@ -31,8 +31,8 @@ function getRuleSectionCount(value: unknown, keys: string[]): number {
   return 0;
 }
 
-function getErrorMessage(payload: unknown): string {
-  if (!isObjectRecord(payload)) return "Failed to save payload rules";
+function getErrorMessage(payload: unknown, fallback: string): string {
+  if (!isObjectRecord(payload)) return fallback;
 
   const nestedError = payload.error;
   if (typeof nestedError === "string" && nestedError.trim()) {
@@ -52,11 +52,12 @@ function getErrorMessage(payload: unknown): string {
     }
   }
 
-  return "Failed to save payload rules";
+  return fallback;
 }
 
 export default function PayloadRulesTab() {
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   const [editorValue, setEditorValue] = useState(EMPTY_PAYLOAD_RULES_TEXT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,16 +67,16 @@ export default function PayloadRulesTab() {
     try {
       const parsed = JSON.parse(editorValue);
       if (!isObjectRecord(parsed)) {
-        return { value: null, error: "Payload rules must be a JSON object." };
+        return { value: null, error: t("payloadMustBeObject") };
       }
       return { value: parsed, error: null };
     } catch (error) {
       return {
         value: null,
-        error: error instanceof Error ? error.message : "Invalid JSON payload.",
+        error: error instanceof Error ? error.message : t("payloadInvalidJson"),
       };
     }
-  }, [editorValue]);
+  }, [editorValue, t]);
 
   const summary = useMemo(() => {
     const source = parsedEditor.value;
@@ -94,19 +95,19 @@ export default function PayloadRulesTab() {
       const response = await fetch("/api/settings/payload-rules");
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(getErrorMessage(payload));
+        throw new Error(getErrorMessage(payload, tCommon("failedToLoad")));
       }
 
       setEditorValue(JSON.stringify(payload, null, 2));
     } catch (error) {
       setMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Failed to load payload rules",
+        text: error instanceof Error ? error.message : tCommon("failedToLoad"),
       });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [tCommon]);
 
   useEffect(() => {
     loadConfig();
@@ -116,7 +117,7 @@ export default function PayloadRulesTab() {
     setEditorValue(EMPTY_PAYLOAD_RULES_TEXT);
     setMessage({
       type: "info",
-      text: "Editor reset to the neutral template. Save to apply it.",
+      text: t("payloadResetInfo"),
     });
   };
 
@@ -124,7 +125,7 @@ export default function PayloadRulesTab() {
     if (parsedEditor.error || !parsedEditor.value) {
       setMessage({
         type: "error",
-        text: parsedEditor.error || "Payload rules must be valid JSON before saving.",
+        text: parsedEditor.error || t("payloadValidJsonRequired"),
       });
       return;
     }
@@ -139,15 +140,15 @@ export default function PayloadRulesTab() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(getErrorMessage(payload));
+        throw new Error(getErrorMessage(payload, tCommon("error")));
       }
 
       setEditorValue(JSON.stringify(payload, null, 2));
-      setMessage({ type: "success", text: "Payload rules saved and hot reloaded." });
+      setMessage({ type: "success", text: t("payloadSaveSuccess") });
     } catch (error) {
       setMessage({
         type: "error",
-        text: error instanceof Error ? error.message : "Failed to save payload rules",
+        text: error instanceof Error ? error.message : tCommon("error"),
       });
     } finally {
       setSaving(false);
@@ -165,53 +166,41 @@ export default function PayloadRulesTab() {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold">{t("payloadRulesTitle")}</h3>
-            <p className="text-sm text-text-muted mt-1">
-              Configure request payload mutations by model and protocol. Changes are persisted in
-              settings and hot reloaded into the runtime immediately after save.
-            </p>
+            <p className="text-sm text-text-muted mt-1">{t("payloadRulesDesc")}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <div className="rounded-lg border border-border bg-bg-secondary/40 p-3">
-            <p className="text-sm font-medium">default</p>
-            <p className="text-xs text-text-muted mt-1">
-              Applies params only when the target path is missing from the outgoing payload.
-            </p>
+            <p className="text-sm font-medium">{t("payloadRuleDefaultTitle")}</p>
+            <p className="text-xs text-text-muted mt-1">{t("payloadRuleDefaultDesc")}</p>
           </div>
           <div className="rounded-lg border border-border bg-bg-secondary/40 p-3">
-            <p className="text-sm font-medium">override</p>
-            <p className="text-xs text-text-muted mt-1">
-              Forces values onto the payload, replacing anything already present at that path.
-            </p>
+            <p className="text-sm font-medium">{t("payloadRuleOverrideTitle")}</p>
+            <p className="text-xs text-text-muted mt-1">{t("payloadRuleOverrideDesc")}</p>
           </div>
           <div className="rounded-lg border border-border bg-bg-secondary/40 p-3">
-            <p className="text-sm font-medium">filter</p>
-            <p className="text-xs text-text-muted mt-1">
-              Removes blocked params from the payload before the upstream request is sent.
-            </p>
+            <p className="text-sm font-medium">{t("payloadRuleFilterTitle")}</p>
+            <p className="text-xs text-text-muted mt-1">{t("payloadRuleFilterDesc")}</p>
           </div>
           <div className="rounded-lg border border-border bg-bg-secondary/40 p-3">
-            <p className="text-sm font-medium">defaultRaw</p>
-            <p className="text-xs text-text-muted mt-1">
-              Like <code>default</code>, but string values are parsed as JSON first when possible.
-              The legacy input alias <code>default-raw</code> is also accepted on save.
-            </p>
+            <p className="text-sm font-medium">{t("payloadRuleDefaultRawTitle")}</p>
+            <p className="text-xs text-text-muted mt-1">{t("payloadRuleDefaultRawDesc")}</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-text-muted">
           <span className="rounded-full border border-border px-2.5 py-1">
-            default: {summary.default}
+            {t("payloadRuleDefaultTitle")}: {summary.default}
           </span>
           <span className="rounded-full border border-border px-2.5 py-1">
-            override: {summary.override}
+            {t("payloadRuleOverrideTitle")}: {summary.override}
           </span>
           <span className="rounded-full border border-border px-2.5 py-1">
-            filter: {summary.filter}
+            {t("payloadRuleFilterTitle")}: {summary.filter}
           </span>
           <span className="rounded-full border border-border px-2.5 py-1">
-            defaultRaw: {summary.defaultRaw}
+            {t("payloadRuleDefaultRawTitle")}: {summary.defaultRaw}
           </span>
         </div>
 
@@ -239,14 +228,12 @@ export default function PayloadRulesTab() {
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg-secondary/30">
             <div>
-              <p className="text-sm font-medium">Editor</p>
-              <p className="text-xs text-text-muted">
-                Use the runtime schema shape: <code>default</code>, <code>override</code>,{" "}
-                <code>filter</code>, <code>defaultRaw</code>. The API also accepts the legacy input
-                key <code>default-raw</code>.
-              </p>
+              <p className="text-sm font-medium">{t("payloadEditorTitle")}</p>
+              <p className="text-xs text-text-muted">{t("payloadEditorDesc")}</p>
             </div>
-            <div className="text-xs text-text-muted">{loading ? "Loading..." : "Ready"}</div>
+            <div className="text-xs text-text-muted">
+              {loading ? tCommon("loading") : t("payloadEditorReady")}
+            </div>
           </div>
           <textarea
             value={editorValue}
@@ -263,19 +250,19 @@ export default function PayloadRulesTab() {
 
         {parsedEditor.error && (
           <p className="text-sm text-red-500">
-            JSON parse error: <span className="font-medium">{parsedEditor.error}</span>
+            {t("payloadJsonParseError", { error: parsedEditor.error })}
           </p>
         )}
 
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={loadConfig} disabled={loading || saving}>
-            Reload
+            {tCommon("refresh")}
           </Button>
           <Button variant="secondary" onClick={handleReset} disabled={loading || saving}>
-            Reset Template
+            {tCommon("reset")}
           </Button>
           <Button onClick={handleSave} disabled={loading || saving || !!parsedEditor.error}>
-            {saving ? "Saving..." : "Save Payload Rules"}
+            {saving ? t("saving") : t("savePayloadRules")}
           </Button>
         </div>
       </div>

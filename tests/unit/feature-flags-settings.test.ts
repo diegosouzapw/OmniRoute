@@ -10,9 +10,8 @@ process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
 
-const { FEATURE_FLAG_DEFINITIONS } = await import(
-  "../../src/shared/constants/featureFlagDefinitions.ts"
-);
+const { FEATURE_FLAG_DEFINITIONS } =
+  await import("../../src/shared/constants/featureFlagDefinitions.ts");
 const {
   getFeatureFlagOverrides,
   getFeatureFlagOverride,

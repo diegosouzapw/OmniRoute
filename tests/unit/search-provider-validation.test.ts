@@ -74,12 +74,14 @@ test("kimi-coding-apikey validation uses Kimi Coding messages endpoint", async (
 
     assert.equal(result.valid, true);
     assert.equal(result.error, null);
-    assert.equal(calls.length, 1);
+    // The Anthropic-like validator first probes /models then falls back to the messages endpoint.
+    assert.equal(calls.length, 2);
 
-    assert.equal(calls[0].url, "https://api.kimi.com/coding/v1/messages");
-    assert.equal(calls[0].method, "POST");
-    assert.equal(calls[0].headers["x-api-key"], "sk-kimi-test");
-    assert.equal(calls[0].headers["Anthropic-Version"], "2023-06-01");
+    // calls[0] is the models probe; calls[1] is the POST to the messages endpoint.
+    assert.equal(calls[1].url, "https://api.kimi.com/coding/v1/messages");
+    assert.equal(calls[1].method, "POST");
+    assert.equal(calls[1].headers["x-api-key"], "sk-kimi-test");
+    assert.equal(calls[1].headers["Anthropic-Version"], "2023-06-01");
 
     for (const call of calls) {
       assert.equal(call.url.includes("?beta=true/messages"), false);

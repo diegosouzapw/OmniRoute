@@ -377,13 +377,21 @@ export function openaiToOpenAIResponsesRequest(
                   }
                   return imgResult;
                 }
-                if (contentItem.type === "file") {
-                  const file = toRecord(contentItem.file);
+                if (contentItem.type === "file" || contentItem.type === "document") {
+                  // Accept both the OpenAI `file` shape and the Gemini-style `document` shape,
+                  // and map the bare `data`/`url` fields too, so a PDF reaches Codex/Responses
+                  // regardless of which content-part name the client used (#2515).
+                  const file = toRecord(
+                    contentItem.type === "document" ? contentItem.document : contentItem.file
+                  );
                   const fileResult: JsonRecord = { type: "input_file" };
                   if (file.file_data !== undefined) fileResult.file_data = file.file_data;
+                  else if (file.data !== undefined) fileResult.file_data = file.data;
                   if (file.file_id !== undefined) fileResult.file_id = file.file_id;
                   if (file.file_url !== undefined) fileResult.file_url = file.file_url;
+                  else if (file.url !== undefined) fileResult.file_url = file.url;
                   if (file.filename !== undefined) fileResult.filename = file.filename;
+                  else if (file.name !== undefined) fileResult.filename = file.name;
                   return fileResult;
                 }
                 return contentValue;

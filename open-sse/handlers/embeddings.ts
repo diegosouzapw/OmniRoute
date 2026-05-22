@@ -23,6 +23,7 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { isDetailedLoggingEnabled } from "@/lib/db/detailedLogs";
 import { getCallLogPipelineCaptureStreamChunks } from "@/lib/logEnv";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
+import { stripStaleEncodingHeaders } from "../utils/upstreamResponseHeaders.ts";
 
 interface ClientRawRequest {
   endpoint: string;
@@ -215,7 +216,7 @@ export async function handleEmbedding({
         success: false,
         status: response.status,
         error: errorText,
-        headers: response.headers,
+        headers: stripStaleEncodingHeaders(response.headers),
       };
     }
 
@@ -266,7 +267,7 @@ export async function handleEmbedding({
     return {
       success: true,
       data: normalizedResponse,
-      headers: response.headers,
+      headers: stripStaleEncodingHeaders(response.headers),
     };
   } catch (err) {
     if (log) {

@@ -221,7 +221,10 @@ function hasQoderToken(connection: any): boolean {
   if (typeof connection?.apiKey === "string" && connection.apiKey.trim().length > 0) return true;
   const psd = connection?.providerSpecificData;
   if (psd && typeof psd === "object") {
-    const pat = (psd as any).personalAccessToken ?? (psd as any).pat ?? (psd as any).accessToken;
+    const pat =
+      (psd as Record<string, unknown>).personalAccessToken ??
+      (psd as Record<string, unknown>).pat ??
+      (psd as Record<string, unknown>).accessToken;
     if (typeof pat === "string" && pat.trim().length > 0) return true;
   }
   return false;
