@@ -1,4 +1,9 @@
-import type { HideableSidebarItemId } from "@/shared/constants/sidebarVisibility";
+import type {
+  HideableSidebarItemId,
+  SidebarItemOrder,
+  SidebarPresetId,
+  SidebarSectionId,
+} from "@/shared/constants/sidebarVisibility";
 import type { ResilienceSettings } from "@/lib/resilience/settings";
 import type {
   AccountFallbackStrategyValue,
@@ -25,6 +30,9 @@ export interface Settings {
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
+  sidebarSectionOrder?: SidebarSectionId[];
+  sidebarItemOrder?: SidebarItemOrder;
+  sidebarActivePreset?: SidebarPresetId;
   resilienceSettings?: ResilienceSettings;
 }
 
