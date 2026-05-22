@@ -174,25 +174,21 @@ export default function KiroAuthModal({
                 </span>
                 <div className="flex-1">
                   <h3 className="font-semibold mb-1">Google Account</h3>
-                  <p className="text-sm text-text-muted">
-                    Login with your Google account (manual callback).
-                  </p>
+                  <p className="text-sm text-text-muted">Login with your Google account.</p>
                 </div>
               </div>
             </button>
 
-            {/* GitHub Social Login - HIDDEN */}
+            {/* GitHub Social Login */}
             <button
-              onClick={() => handleMethodSelect("social-github")}
-              className="hidden w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
+              onClick={() => handleSocialLogin("github")}
+              className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
             >
               <div className="flex items-start gap-3">
                 <span className="material-symbols-outlined text-primary mt-0.5">code</span>
                 <div className="flex-1">
                   <h3 className="font-semibold mb-1">GitHub Account</h3>
-                  <p className="text-sm text-text-muted">
-                    Login with your GitHub account (manual callback).
-                  </p>
+                  <p className="text-sm text-text-muted">Login with your GitHub account.</p>
                 </div>
               </div>
             </button>
