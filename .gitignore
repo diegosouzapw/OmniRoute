@@ -97,6 +97,9 @@ clipr/
 app.log
 *.tgz
 .gh-discussions.json
+deploy.sh
+docker-compose.minimal.yml
+
 
 # Backup directories
 app.__qa_backup/
