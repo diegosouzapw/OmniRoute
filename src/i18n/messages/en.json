@@ -5204,7 +5204,9 @@
     "budgetWarnAtPct": "Warn at %",
     "quotaAlerts": "Quota alerts",
     "quotaTableRefreshing": "⟳ Refreshing...",
-    "noSpendLast30Days": "No spend in last 30 days"
+    "noSpendLast30Days": "No spend in last 30 days",
+    "updatedShort": "Updated",
+    "lastRefreshed": "Last refreshed"
   },
   "modals": {
     "waitingAuth": "Waiting for Authorization",

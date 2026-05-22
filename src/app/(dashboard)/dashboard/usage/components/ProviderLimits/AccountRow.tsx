@@ -119,7 +119,7 @@ export default function AccountRow({
   quota,
   loading,
   error,
-  refreshedAt: _refreshedAt,
+  refreshedAt,
   tierMeta,
   resolvedPlan,
   status,
@@ -165,6 +165,21 @@ export default function AccountRow({
     emailsVisible,
     connection.provider
   );
+
+  // Connection-level staleness cue (restored from the pre-refactor flat table):
+  // when the provider returned cached/stale cumulative usage, `quota.stale.since`
+  // carries the moment that snapshot was taken; otherwise we show the last
+  // successful refresh time. Amber = stale, muted = fresh.
+  const staleInfo = (quota?.stale || null) as { since?: string; reason?: string } | null;
+  const displayRefreshedAt = staleInfo?.since || refreshedAt;
+  const refreshedLabel = displayRefreshedAt
+    ? new Date(displayRefreshedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      })
+    : null;
 
   const allQuotas = quota?.quotas || [];
   const { visibleQuotas, untouchedCount } = useMemo(() => {
@@ -381,6 +396,15 @@ export default function AccountRow({
           <div className="text-[13px] font-semibold text-text-main truncate min-w-0">
             {accountName}
           </div>
+          {staleInfo && (
+            <span
+              className="material-symbols-outlined text-[13px] text-amber-500 shrink-0"
+              title={t("staleQuotaTooltip")}
+              aria-label={t("staleQuotaTooltip")}
+            >
+              schedule
+            </span>
+          )}
         </div>
 
         {/* Tier badge */}
@@ -540,19 +564,35 @@ export default function AccountRow({
                 </div>
               )}
               <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
-                {untouchedCount > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowUnused((v) => !v)}
-                    className="text-[11px] text-text-muted hover:text-text-main underline-offset-2 hover:underline cursor-pointer"
-                  >
-                    {showUnused
-                      ? tr("hideUnusedQuotas", "Hide untouched")
-                      : tr("showUnusedQuotas", "Show {count} untouched", { count: untouchedCount })}
-                  </button>
-                ) : (
-                  <span />
-                )}
+                <div className="flex items-center gap-2 min-w-0">
+                  {untouchedCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowUnused((v) => !v)}
+                      className="text-[11px] text-text-muted hover:text-text-main underline-offset-2 hover:underline cursor-pointer"
+                    >
+                      {showUnused
+                        ? tr("hideUnusedQuotas", "Hide untouched")
+                        : tr("showUnusedQuotas", "Show {count} untouched", {
+                            count: untouchedCount,
+                          })}
+                    </button>
+                  )}
+                  {refreshedLabel && (
+                    <span
+                      className={`text-[10px] tabular-nums ${
+                        staleInfo ? "text-amber-500" : "text-text-muted"
+                      }`}
+                      title={
+                        staleInfo
+                          ? t("staleQuotaTooltip")
+                          : `${tr("lastRefreshed", "Last refreshed")}: ${refreshedLabel}`
+                      }
+                    >
+                      {tr("updatedShort", "Updated")} {refreshedLabel}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
