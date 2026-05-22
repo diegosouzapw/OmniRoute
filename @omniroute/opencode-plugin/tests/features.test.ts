@@ -30,12 +30,14 @@ import assert from "node:assert/strict";
 
 import {
   applyEnrichment,
+  applyProviderTag,
   createOmniRouteConfigHook,
   createOmniRouteProviderHook,
   defaultOmniRouteEnrichmentFetcher,
   defaultOmniRouteCompressionMetaFetcher,
   formatCompressionPipeline,
   parseOmniRoutePluginOptions,
+  PROVIDER_TAG_SEPARATOR,
   type OmniRouteEnrichmentMap,
   type OmniRouteCompressionCombo,
   type OmniRouteRawModelEntry,
@@ -168,6 +170,63 @@ test("applyEnrichment: partial pricing preserves untouched fields", () => {
   assert.equal(m.cost.input, 99);
   assert.equal(m.cost.output, 2);
   assert.equal(m.cost.cache.read, 0.1);
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// applyProviderTag (Option E)
+// ─────────────────────────────────────────────────────────────────────────
+
+test("applyProviderTag: PROVIDER_TAG_SEPARATOR is middle-dot with surrounding spaces", () => {
+  assert.equal(PROVIDER_TAG_SEPARATOR, " \u00b7 ");
+});
+
+test("applyProviderTag: undefined enrichment → no-op", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, undefined);
+  assert.equal(m.name, "Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: providerDisplayName present → suffix appended", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  assert.equal(m.name, "Claude Sonnet 4.6 \u00b7 Claude");
+});
+
+test("applyProviderTag: missing providerDisplayName → no-op", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerAlias: "cc" });
+  assert.equal(m.name, "Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: empty/whitespace providerDisplayName → no-op", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "   " });
+  assert.equal(m.name, "Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: idempotent — second call doesn't double-suffix", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  assert.equal(m.name, "Claude Sonnet 4.6 \u00b7 Claude");
+});
+
+test("applyProviderTag: distinct providers for same model id → two separate suffixes", () => {
+  const a = baseModel();
+  a.name = "Claude Opus 4.7";
+  applyProviderTag(a as never, { providerDisplayName: "Claude" });
+  assert.equal(a.name, "Claude Opus 4.7 \u00b7 Claude");
+
+  const b = baseModel();
+  b.name = "Claude Opus 4.7";
+  applyProviderTag(b as never, { providerDisplayName: "Kiro" });
+  assert.equal(b.name, "Claude Opus 4.7 \u00b7 Kiro");
 });
 
 // ─────────────────────────────────────────────────────────────────────────

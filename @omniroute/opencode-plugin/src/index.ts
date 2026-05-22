@@ -119,6 +119,7 @@ const featuresSchema = z
     fetchInterceptor: z.boolean().optional(),
     usableOnly: z.boolean().optional(),
     diskCache: z.boolean().optional(),
+    providerTag: z.boolean().optional(),
   })
   .strict();
 
@@ -892,6 +893,15 @@ export interface OmniRouteEnrichmentEntry {
    * `entry.id` field inside `/api/pricing/models`.
    */
   providerCanonical?: string;
+  /**
+   * Human-readable upstream provider label (e.g. `Claude`, `Kiro`,
+   * `Windsurf`, `GitHub Models`). Populated from the per-provider
+   * `entry.name` field inside `/api/pricing/models`. Used by the
+   * `providerTag` feature to suffix `ModelV2.name` with the routing
+   * destination so the OC TUI picker can differentiate the same
+   * model id sold through different upstream connections.
+   */
+  providerDisplayName?: string;
 }
 
 /** Map keyed by full model id (possibly namespaced, e.g. `cc/claude-sonnet-4-6`). */
@@ -964,6 +974,14 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
             typeof canonicalRaw === "string" && canonicalRaw.length > 0
               ? canonicalRaw
               : providerAlias;
+          // Upstream provider human label (e.g. `Claude`, `Kiro`,
+          // `GitHub Models`). Optional — falls back to undefined when
+          // OmniRoute hasn't curated a label for this slot.
+          const slotNameRaw = (slot as { name?: unknown }).name;
+          const providerDisplayName =
+            typeof slotNameRaw === "string" && slotNameRaw.trim().length > 0
+              ? slotNameRaw.trim()
+              : undefined;
           for (const m of models) {
             if (!m || typeof m !== "object") continue;
             const id = (m as { id?: unknown }).id;
@@ -973,6 +991,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
               providerAlias,
               providerCanonical,
             };
+            if (providerDisplayName) entry.providerDisplayName = providerDisplayName;
             if (typeof name === "string" && name.trim().length > 0) entry.name = name;
             const namespaced = `${providerAlias}/${id}`;
             if (!out.has(namespaced)) out.set(namespaced, entry);
@@ -1047,6 +1066,42 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
 
   return out;
 };
+
+/**
+ * Separator used by `applyProviderTag` between the enriched model name
+ * and the upstream provider label. Middle-dot (U+00B7) chosen for visual
+ * compactness in narrow TUI columns; trivially distinct from any model
+ * id character so it survives a roundtrip through `model.name`.
+ */
+export const PROVIDER_TAG_SEPARATOR = " · ";
+
+/**
+ * Append the upstream provider label to `model.name` so the OC TUI picker
+ * can differentiate the same model id sold through different upstream
+ * connections (e.g. `cc/claude-opus-4-7` via Anthropic vs `kr/claude-opus-4-7`
+ * via Kiro). Mutates the model in place and is idempotent — running twice
+ * never double-suffixes. No-op when:
+ *
+ *  - `enrichment` is undefined,
+ *  - `enrichment.providerDisplayName` is missing/empty,
+ *  - the current `model.name` already ends with the suffix.
+ *
+ * Combos are intentionally skipped by callers (they're multi-upstream by
+ * definition; the `Combo: ` prefix conveys that). Raw models call this
+ * after `applyEnrichment` so the tag layers on top of the friendly name.
+ */
+export function applyProviderTag(
+  model: ModelV2,
+  enrichment: OmniRouteEnrichmentEntry | undefined
+): ModelV2 {
+  if (!enrichment) return model;
+  const tag = enrichment.providerDisplayName;
+  if (typeof tag !== "string" || tag.trim().length === 0) return model;
+  const suffix = `${PROVIDER_TAG_SEPARATOR}${tag}`;
+  if (model.name.endsWith(suffix)) return model;
+  model.name = `${model.name}${suffix}`;
+  return model;
+}
 
 /**
  * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
@@ -1556,6 +1611,7 @@ export function createOmniRouteProviderHook(
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
+  const wantProviderTag = features.providerTag !== false;
   const now = deps.now ?? Date.now;
   // T-07: cache holds RAW fetch results (not pre-derived ModelV2) so that
   // the config-shim hook can share the same cache and derive its stripped
@@ -1731,7 +1787,13 @@ export function createOmniRouteProviderHook(
           providerId: resolved.providerId,
           baseURL,
         });
-        applyEnrichment(model, rawEnrichment.get(entry.id));
+        const enrichEntry = rawEnrichment.get(entry.id);
+        applyEnrichment(model, enrichEntry);
+        // Append upstream provider label (e.g. `Claude Opus 4.7 · Claude`)
+        // so the picker can differentiate same-id models routed through
+        // different upstream connections. Idempotent + gated by
+        // `features.providerTag` (default-on). Combos skip this on purpose.
+        if (wantProviderTag) applyProviderTag(model, enrichEntry);
         models[entry.id] = model;
       }
 
@@ -2337,6 +2399,11 @@ export function buildStaticProviderEntry(
     wantUsableOnly && connections && connections.length > 0
       ? usableProviderAliasSet(connections, enrichment)
       : undefined;
+  // Provider-tag suffix — default-on, opt-out via `features.providerTag: false`.
+  // Appends e.g. ` · Claude` to enriched raw-model names so the picker can
+  // tell `cc/claude-opus-4-7` (Anthropic) apart from `kr/claude-opus-4-7`
+  // (Kiro). Combos skip this by design.
+  const wantProviderTag = opts.features?.providerTag !== false;
 
   // Build a name-set of every non-hidden combo from `/api/combos`. OmniRoute
   // pre-mirrors combos into `/v1/models` with the friendly name as the raw
@@ -2365,10 +2432,21 @@ export function buildStaticProviderEntry(
     // model picker reads this `name` straight from the static block on
     // OC ≤1.15.5 where the dynamic provider hook never fires. Falls back
     // to the raw id when no enrichment entry is found.
-    const enrichmentName = enrichment?.get(raw.id)?.name;
-    const entry: OmniRouteStaticModelEntry = {
-      name: enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id,
-    };
+    const enrichmentEntry = enrichment?.get(raw.id);
+    const enrichmentName = enrichmentEntry?.name;
+    let displayName = enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id;
+    // Provider-tag suffix — append upstream provider label so the picker
+    // can differentiate same-id models routed through different upstream
+    // connections (mirrors `applyProviderTag` used in the dynamic hook).
+    // Idempotent: skip when the name already ends with the suffix.
+    if (wantProviderTag) {
+      const tag = enrichmentEntry?.providerDisplayName;
+      if (typeof tag === "string" && tag.trim().length > 0) {
+        const suffix = `${PROVIDER_TAG_SEPARATOR}${tag}`;
+        if (!displayName.endsWith(suffix)) displayName = `${displayName}${suffix}`;
+      }
+    }
+    const entry: OmniRouteStaticModelEntry = { name: displayName };
 
     const attachment = caps.attachment ?? caps.vision;
     if (typeof attachment === "boolean") entry.attachment = attachment;
@@ -2748,6 +2826,7 @@ export function createOmniRouteConfigHook(
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
   const wantDiskCache = features.diskCache !== false;
+  const wantProviderTag = features.providerTag !== false;
 
   return async (input: Config) => {
     // (e) operator override — `input.provider[providerId]` already set →

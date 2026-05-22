@@ -1074,3 +1074,150 @@ test("config: cached rawEnrichment from earlier provider hook is reused (no refe
     .omniroute;
   assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
 });
+
+// ─────────────────────────────────────────────────────────────────────
+// Provider-tag suffix (Option E) — append upstream provider label to
+// enriched model names so the picker can differentiate `cc/claude-opus-4-7`
+// (Anthropic) from `kr/claude-opus-4-7` (Kiro) etc.
+// ─────────────────────────────────────────────────────────────────────
+
+test("config: providerTag (default-on) appends ' · <provider>' to enriched raw-model names", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE, MODEL_GEMINI]);
+  const combosFetcher = stubCombosFetcher([COMBO_CLAUDE_TIER]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      [
+        "claude-sonnet-4-6",
+        {
+          name: "Claude Sonnet 4.6",
+          providerAlias: "cc",
+          providerCanonical: "claude",
+          providerDisplayName: "Claude",
+        },
+      ],
+      [
+        "gemini-3-flash",
+        {
+          name: "Gemini 3 Flash",
+          providerAlias: "gemini-cli",
+          providerCanonical: "gemini-cli",
+          providerDisplayName: "Gemini-cli",
+        },
+      ],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry);
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6 · Claude");
+  assert.equal(entry.models["gemini-3-flash"].name, "Gemini 3 Flash · Gemini-cli");
+  // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
+  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
+});
+
+test("config: providerTag=false suppresses the suffix", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      [
+        "claude-sonnet-4-6",
+        { name: "Claude Sonnet 4.6", providerDisplayName: "Claude" },
+      ],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { providerTag: false } },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.equal(
+    entry.models["claude-sonnet-4-6"].name,
+    "Claude Sonnet 4.6",
+    "enriched name kept, provider tag suppressed"
+  );
+});
+
+test("config: providerTag skipped when providerDisplayName missing (falls back to enriched name only)", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  // Enrichment has the friendly name but NO providerDisplayName — e.g.
+  // a slot OmniRoute hasn't curated a human label for yet.
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["claude-sonnet-4-6", { name: "Claude Sonnet 4.6", providerAlias: "cc" }],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
+});
+
+test("config: providerTag is idempotent — second hook call doesn't double-suffix", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      [
+        "claude-sonnet-4-6",
+        { name: "Claude Sonnet 4.6", providerDisplayName: "Claude" },
+      ],
+    ])
+  );
+  const logger = captureWarn();
+  const sharedCache = new Map();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", modelCacheTtl: 60_000 },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, cache: sharedCache, logger }
+  );
+
+  const inputA = makeInput();
+  await hook(inputA);
+  const entryA = (inputA as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.equal(entryA.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6 · Claude");
+
+  // Second invocation (cache hit) — name must still be single-suffixed.
+  const inputB = makeInput();
+  await hook(inputB);
+  const entryB = (inputB as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.equal(entryB.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6 · Claude");
+});
