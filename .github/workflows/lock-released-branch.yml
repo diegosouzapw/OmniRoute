@@ -1,6 +1,6 @@
 name: Lock released branch
 
-# When a GitHub Release is published (e.g. tag v3.8.1), make the matching
+# When a GitHub Release is published (e.g. tag v3.8.2), make the matching
 # release/<tag> branch read-only so no further commits can land on a shipped
 # version. Uses branch protection's lock_branch + enforce_admins so the freeze
 # applies even to repository admins. To reopen a branch later:
@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag of the released version (e.g. v3.8.1)"
+        description: "Tag of the released version (e.g. v3.8.2)"
         required: true
         type: string
 

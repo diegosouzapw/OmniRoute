@@ -2240,7 +2240,11 @@ export async function handleComboChat({
 
         // Extract error info from response
         let errorText = result.statusText || "";
-        let errorBody: any = null;
+        let errorBody: {
+          error?: { code?: string | null; message?: string | null } | string;
+          message?: string | null;
+          retryAfter?: string | null;
+        } | null = null;
         let retryAfter: string | null = null;
         try {
           const cloned = result.clone();
@@ -2249,8 +2253,12 @@ export async function handleComboChat({
             if (text) {
               errorText = text.substring(0, 500);
               errorBody = JSON.parse(text);
+              const parsedError = errorBody?.error;
               errorText =
-                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+                (typeof parsedError === "object" && parsedError?.message) ||
+                (typeof parsedError === "string" ? parsedError : null) ||
+                errorBody?.message ||
+                errorText;
               retryAfter = errorBody?.retryAfter || null;
             }
           } catch {
