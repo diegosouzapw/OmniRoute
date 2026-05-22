@@ -583,6 +583,9 @@ export class AntigravityExecutor extends BaseExecutor {
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
         projectId: credentials.projectId,
+        // Preserve providerSpecificData so a projectId stored there survives the refresh
+        // (the onCredentialsRefreshed DB write) instead of being dropped → 422 (#2480).
+        providerSpecificData: credentials.providerSpecificData,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

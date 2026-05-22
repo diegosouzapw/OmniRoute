@@ -611,8 +611,11 @@ export async function refreshKiroToken(
     const region = providerSpecificData?.region;
 
     // AWS SSO OIDC (Builder ID or IDC)
-    // If clientId and clientSecret exist, assume AWS SSO OIDC (default to builder-id if authMethod not specified)
-    if (clientId && clientSecret) {
+    // If clientId and clientSecret exist, assume AWS SSO OIDC (default to builder-id if authMethod not specified).
+    // Exception: imported social tokens (authMethod === "imported") carry a freshly-registered
+    // clientId/clientSecret but their refresh token is Kiro-social-issued — the isolated OIDC client
+    // cannot refresh it, so they must fall through to the social auth path (#2467).
+    if (clientId && clientSecret && authMethod !== "imported") {
       const endpoint = `https://oidc.${region || "us-east-1"}.amazonaws.com/token`;
 
       const response = await runWithProxyContext(proxyConfig, () =>

@@ -589,6 +589,47 @@ test("refreshKiroToken uses AWS OIDC path for social-auth token when clientId is
   });
 });
 
+// Issue #2467 — an IMPORTED social token (authMethod === "imported") carries a
+// freshly-registered clientId/clientSecret, but its refresh token is Kiro-social-issued
+// and the isolated OIDC client cannot refresh it. It must use the social-auth endpoint,
+// NOT AWS OIDC (which is what #2328 enabled for authMethod "google").
+test("refreshKiroToken uses social-auth path for imported token even with clientId (#2467)", async () => {
+  const log = createLog();
+  const calls: any[] = [];
+
+  await withMockedFetch(
+    async (url, options = {}) => {
+      calls.push({ url, options });
+      return jsonResponse({
+        accessToken: "kiro-imported-access",
+        refreshToken: "kiro-imported-refresh-next",
+        expiresIn: 1100,
+      });
+    },
+    async () => {
+      const result = await refreshKiroToken(
+        "kiro-imported-refresh",
+        {
+          authMethod: "imported",
+          clientId: "isolated-client-id",
+          clientSecret: "isolated-client-secret",
+          region: "us-east-1",
+        },
+        log
+      );
+      assert.equal(result.accessToken, "kiro-imported-access");
+    }
+  );
+
+  // Must call the shared social-auth tokenUrl — NOT the AWS OIDC endpoint.
+  assert.equal(
+    calls[0].url,
+    PROVIDERS.kiro.tokenUrl,
+    `expected social-auth endpoint but got ${calls[0].url}`
+  );
+  assert.ok(!calls[0].url.includes("oidc."), "imported token must not use AWS OIDC");
+});
+
 test("refreshQoderToken uses basic auth once qoder oauth settings are configured", async () => {
   const log = createLog();
   const calls: any[] = [];

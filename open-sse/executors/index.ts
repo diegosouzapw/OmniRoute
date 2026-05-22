@@ -58,6 +58,7 @@ const executors = {
   cf: new CloudflareAIExecutor(), // Alias
   "opencode-zen": new OpencodeExecutor("opencode-zen"),
   "opencode-go": new OpencodeExecutor("opencode-go"),
+  opencode: new OpencodeExecutor("opencode-zen"), // Alias for opencode-zen
   puter: new PuterExecutor(),
   pu: new PuterExecutor(), // Alias
   vertex: new VertexExecutor(),

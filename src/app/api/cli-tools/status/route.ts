@@ -47,6 +47,15 @@ async function checkToolConfigStatus(toolId: string): Promise<string> {
       return "configured";
     }
 
+    if (toolId === "hermes") {
+      const lower = content.toLowerCase();
+      const hasOmniRoute =
+        lower.includes("omniroute") ||
+        lower.includes(`localhost:${apiPort}`) ||
+        lower.includes(`127.0.0.1:${apiPort}`);
+      return hasOmniRoute ? "configured" : "not_configured";
+    }
+
     const config = JSON.parse(content);
 
     // Each tool stores OmniRoute config differently
@@ -142,7 +151,16 @@ export async function GET(request: Request) {
     );
 
     // Check config status for installed+runnable tools via direct file reads
-    const settingsTools = ["claude", "codex", "droid", "openclaw", "cline", "kilo", "qwen"];
+    const settingsTools = [
+      "claude",
+      "codex",
+      "droid",
+      "openclaw",
+      "cline",
+      "kilo",
+      "qwen",
+      "hermes",
+    ];
 
     await Promise.all(
       settingsTools.map(async (toolId) => {

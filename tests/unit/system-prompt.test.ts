@@ -30,7 +30,7 @@ test("injectSystemPrompt: adds system message when none exists", () => {
   assert.equal(result.messages.length, 2);
 });
 
-test("injectSystemPrompt: prepends to existing system message", () => {
+test("injectSystemPrompt: appends after existing system message (#2468)", () => {
   setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
   const body = {
     messages: [
@@ -39,23 +39,24 @@ test("injectSystemPrompt: prepends to existing system message", () => {
     ],
   };
   const result = injectSystemPrompt(body);
-  assert.ok(result.messages[0].content.startsWith("GLOBAL:"));
-  assert.ok(result.messages[0].content.includes("Original prompt"));
+  // Global prompt must be the FINAL instruction so it wins over provider/agent blocks.
+  assert.ok(result.messages[0].content.startsWith("Original prompt"));
+  assert.ok(result.messages[0].content.trimEnd().endsWith("GLOBAL:"));
   assert.equal(result.messages.length, 2);
 });
 
-test("injectSystemPrompt: Claude body.system field", () => {
+test("injectSystemPrompt: Claude body.system field appends global last (#2468)", () => {
   setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
   const body = {
     system: "Claude prompt",
     messages: [{ role: "user", content: "hi" }],
   };
   const result = injectSystemPrompt(body);
-  assert.ok(result.system.startsWith("GLOBAL:"));
-  assert.ok(result.system.includes("Claude prompt"));
+  assert.ok(result.system.startsWith("Claude prompt"));
+  assert.ok(result.system.trimEnd().endsWith("GLOBAL:"));
 });
 
-test("injectSystemPrompt: Claude array system field", () => {
+test("injectSystemPrompt: Claude array system field appends global last (#2468)", () => {
   setSystemPromptConfig({ enabled: true, prompt: "GLOBAL:" });
   const body = {
     system: [{ type: "text", text: "Claude prompt" }],
@@ -63,7 +64,8 @@ test("injectSystemPrompt: Claude array system field", () => {
   };
   const result = injectSystemPrompt(body);
   assert.ok(Array.isArray(result.system));
-  assert.equal(result.system[0].text, "GLOBAL:");
+  assert.equal(result.system[0].text, "Claude prompt");
+  assert.equal(result.system[result.system.length - 1].text, "GLOBAL:");
   assert.equal(result.system.length, 2);
 });
 

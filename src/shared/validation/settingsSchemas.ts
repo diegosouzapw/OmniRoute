@@ -10,251 +10,282 @@ import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
 import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
+import { SPAWN_CAPABLE_PREFIXES } from "@/server/authz/routeGuard";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
 
-export const updateSettingsSchema = z.object({
-  newPassword: z.string().min(1).max(200).optional(),
-  currentPassword: z.string().max(200).optional(),
-  theme: z.string().max(50).optional(),
-  language: z.string().max(10).optional(),
-  requireLogin: z.boolean().optional(),
-  enableSocks5Proxy: z.boolean().optional(),
-  instanceName: z.string().max(100).optional(),
-  customLogoUrl: z.string().max(2000).optional(),
-  customLogoBase64: z.string().max(100000).optional(),
-  customFaviconUrl: z.string().max(2000).optional(),
-  customFaviconBase64: z.string().max(50000).optional(),
-  corsOrigins: z.string().max(500).optional(),
-  cloudUrl: z.string().max(500).optional(),
-  baseUrl: z.string().max(500).optional(),
-  setupComplete: z.boolean().optional(),
-  blockedProviders: z.array(z.string().max(100)).optional(),
-  hideHealthCheckLogs: z.boolean().optional(),
-  hideEndpointCloudflaredTunnel: z.boolean().optional(),
-  hideEndpointTailscaleFunnel: z.boolean().optional(),
-  hideEndpointNgrokTunnel: z.boolean().optional(),
-  debugMode: z.boolean().optional(),
-  hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
-  comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
-  codexServiceTier: z
-    .object({
-      enabled: z.boolean().optional(),
-      tier: z.enum(["default", "priority", "flex"]).optional(),
-      supportedModels: z.array(z.string().max(200)).max(200).optional(),
-    })
-    .optional(),
-  // Claude Fast Mode: opt-in toggle that asks a paired CLIProxyAPI build
-  // (claude-fastmode-spoof) to rewrite SDK-shaped entrypoints so requests can
-  // reach Anthropic Fast Mode (speed:"fast"). Default off; only the listed
-  // Opus models are gated by the Anthropic binary KT() check. Schema is
-  // intentionally permissive on supportedModels so additional eligible model
-  // ids can be enabled without a schema bump.
-  claudeFastMode: z
-    .object({
-      enabled: z.boolean().optional(),
-      supportedModels: z.array(z.string().max(200)).max(200).optional(),
-    })
-    .optional(),
-  // Routing settings (#134)
-  fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
-  wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
-  stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
-  requestRetry: z.number().int().min(0).max(10).optional(),
-  maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
-  maxBodySizeMb: z
-    .number()
-    .int()
-    .min(MIN_REQUEST_BODY_LIMIT_MB)
-    .max(MAX_REQUEST_BODY_LIMIT_MB)
-    .optional(),
-  // Auto intent classifier settings (multilingual routing)
-  intentDetectionEnabled: z.boolean().optional(),
-  intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
-  intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
-  intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
-  intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
-  // Protocol toggles (default: disabled)
-  mcpEnabled: z.boolean().optional(),
-  mcpTransport: z.enum(["stdio", "sse", "streamable-http"]).optional(),
-  a2aEnabled: z.boolean().optional(),
-  wsAuth: z.boolean().optional(),
-  // CLI Fingerprint compatibility (per-provider)
-  cliCompatProviders: z.array(z.string().max(100)).optional(),
-  // CC bridge transforms (issue #2260): config-driven pipeline that normalizes
-  // system blocks at the Claude Code bridge so any client (OpenCode, Cline,
-  // Cursor, Continue, raw API) ends up with classifier-correct structure.
-  ccBridgeTransforms: z
-    .object({
-      enabled: z.boolean(),
-      pipeline: z
-        .array(
-          z.discriminatedUnion("kind", [
-            z.object({
-              kind: z.literal("drop_paragraph_if_contains"),
-              needles: z.array(z.string().max(500)).max(50),
-              caseSensitive: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("drop_paragraph_if_starts_with"),
-              prefixes: z.array(z.string().max(500)).max(50),
-              caseSensitive: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("replace_text"),
-              match: z.string().min(1).max(500),
-              replacement: z.string().max(500),
-              allOccurrences: z.boolean().optional(),
-            }),
-            z.object({
-              kind: z.literal("replace_regex"),
-              pattern: z.string().min(1).max(500),
-              flags: z.string().max(10).optional(),
-              replacement: z.string().max(500),
-            }),
-            z.object({
-              kind: z.literal("drop_block_if_contains"),
-              needles: z.array(z.string().max(500)).max(50),
-            }),
-            z.object({
-              kind: z.literal("prepend_system_block"),
-              text: z.string().min(1).max(2000),
-              idempotencyKey: z.string().max(100).optional(),
-            }),
-            z.object({
-              kind: z.literal("append_system_block"),
-              text: z.string().min(1).max(2000),
-              idempotencyKey: z.string().max(100).optional(),
-            }),
-            z.object({
-              kind: z.literal("inject_billing_header"),
-              entrypoint: z.string().min(1).max(50),
-              versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
-              cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
-              version: z.string().max(50).optional(),
-            }),
-          ])
-        )
-        .max(50),
-    })
-    .optional(),
-  // System Transforms (issue #2260 v2): generic per-provider DSL covering
-  // native `claude`, `anthropic-compatible-cc-*` bridge, and any other
-  // provider key. Adds `obfuscate_words` op kind on top of the base set.
-  systemTransforms: z
-    .object({
-      providers: z.record(
-        z.string().max(100),
-        z.object({
-          enabled: z.boolean(),
-          pipeline: z
-            .array(
-              z.discriminatedUnion("kind", [
-                z.object({
-                  kind: z.literal("drop_paragraph_if_contains"),
-                  needles: z.array(z.string().max(500)).max(50),
-                  caseSensitive: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("drop_paragraph_if_starts_with"),
-                  prefixes: z.array(z.string().max(500)).max(50),
-                  caseSensitive: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("replace_text"),
-                  match: z.string().min(1).max(500),
-                  replacement: z.string().max(500),
-                  allOccurrences: z.boolean().optional(),
-                }),
-                z.object({
-                  kind: z.literal("replace_regex"),
-                  pattern: z.string().min(1).max(500),
-                  flags: z.string().max(10).optional(),
-                  replacement: z.string().max(500),
-                }),
-                z.object({
-                  kind: z.literal("drop_block_if_contains"),
-                  needles: z.array(z.string().max(500)).max(50),
-                }),
-                z.object({
-                  kind: z.literal("prepend_system_block"),
-                  text: z.string().min(1).max(2000),
-                  idempotencyKey: z.string().max(100).optional(),
-                }),
-                z.object({
-                  kind: z.literal("append_system_block"),
-                  text: z.string().min(1).max(2000),
-                  idempotencyKey: z.string().max(100).optional(),
-                }),
-                z.object({
-                  kind: z.literal("inject_billing_header"),
-                  entrypoint: z.string().min(1).max(50),
-                  versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
-                  cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
-                  version: z.string().max(50).optional(),
-                }),
-                z.object({
-                  kind: z.literal("obfuscate_words"),
-                  words: z.array(z.string().max(100)).max(200),
-                  targets: z
-                    .array(z.enum(["system", "messages", "tools"]))
-                    .max(3)
-                    .optional(),
-                }),
-              ])
-            )
-            .max(50),
-        })
-      ),
-    })
-    .optional(),
-  // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
-  stripModelPrefix: z.boolean().optional(),
-  // Cache control preservation mode
-  alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
-  antigravitySignatureCacheMode: z.enum(signatureCacheModeValues).optional(),
-  // Adaptive Volume Routing
-  adaptiveVolumeRouting: z.boolean().optional(),
-  // Usage token buffer — safety margin added to reported prompt/input token counts.
-  // Prevents CLI tools from overrunning context windows. Set to 0 to disable.
-  usageTokenBuffer: z.number().int().min(0).max(50000).optional(),
-  // Custom CLI agent definitions for ACP
-  customAgents: z
-    .array(
-      z.object({
-        id: z.string().max(50),
-        name: z.string().max(100),
-        binary: z.string().max(200),
-        versionCommand: z.string().max(300),
-        providerAlias: z.string().max(50),
-        spawnArgs: z.array(z.string().max(200)),
-        protocol: z.enum(["stdio", "http"]),
+export const updateSettingsSchema = z
+  .object({
+    newPassword: z.string().min(1).max(200).optional(),
+    currentPassword: z.string().max(200).optional(),
+    theme: z.string().max(50).optional(),
+    language: z.string().max(10).optional(),
+    requireLogin: z.boolean().optional(),
+    enableSocks5Proxy: z.boolean().optional(),
+    instanceName: z.string().max(100).optional(),
+    customLogoUrl: z.string().max(2000).optional(),
+    customLogoBase64: z.string().max(100000).optional(),
+    customFaviconUrl: z.string().max(2000).optional(),
+    customFaviconBase64: z.string().max(50000).optional(),
+    corsOrigins: z.string().max(500).optional(),
+    cloudUrl: z.string().max(500).optional(),
+    baseUrl: z.string().max(500).optional(),
+    setupComplete: z.boolean().optional(),
+    blockedProviders: z.array(z.string().max(100)).optional(),
+    hideHealthCheckLogs: z.boolean().optional(),
+    hideEndpointCloudflaredTunnel: z.boolean().optional(),
+    hideEndpointTailscaleFunnel: z.boolean().optional(),
+    hideEndpointNgrokTunnel: z.boolean().optional(),
+    debugMode: z.boolean().optional(),
+    hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
+    comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
+    codexServiceTier: z
+      .object({
+        enabled: z.boolean().optional(),
+        tier: z.enum(["default", "priority", "flex"]).optional(),
+        supportedModels: z.array(z.string().max(200)).max(200).optional(),
       })
-    )
-    .optional(),
-  // SkillsMP marketplace API key
-  skillsmpApiKey: z.string().max(200).optional(),
-  // Active skills provider (single source of truth for skills page)
-  skillsProvider: z.enum(["skillsmp", "skillssh"]).optional(),
-  // models.dev sync settings
-  modelsDevSyncEnabled: z.boolean().optional(),
-  modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
-  // Vision Bridge settings
-  visionBridgeEnabled: z.boolean().optional(),
-  visionBridgeModel: z.string().max(200).optional(),
-  visionBridgePrompt: z.string().max(5000).optional(),
-  visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
-  visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
-  // Missing settings
-  lkgpEnabled: z.boolean().optional(),
-  backgroundDegradation: z.unknown().optional(),
-  bruteForceProtection: z.boolean().optional(),
-  // Auto-routing settings
-  autoRoutingEnabled: z.boolean().optional(),
-  autoRoutingDefaultVariant: z
-    .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
-    .optional(),
-});
+      .optional(),
+    // Claude Fast Mode: opt-in toggle that asks a paired CLIProxyAPI build
+    // (claude-fastmode-spoof) to rewrite SDK-shaped entrypoints so requests can
+    // reach Anthropic Fast Mode (speed:"fast"). Default off; only the listed
+    // Opus models are gated by the Anthropic binary KT() check. Schema is
+    // intentionally permissive on supportedModels so additional eligible model
+    // ids can be enabled without a schema bump.
+    claudeFastMode: z
+      .object({
+        enabled: z.boolean().optional(),
+        supportedModels: z.array(z.string().max(200)).max(200).optional(),
+      })
+      .optional(),
+    // Routing settings (#134)
+    fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
+    wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
+    stickyRoundRobinLimit: z.number().int().min(0).max(1000).optional(),
+    requestRetry: z.number().int().min(0).max(10).optional(),
+    maxRetryIntervalSec: z.number().int().min(0).max(300).optional(),
+    maxBodySizeMb: z
+      .number()
+      .int()
+      .min(MIN_REQUEST_BODY_LIMIT_MB)
+      .max(MAX_REQUEST_BODY_LIMIT_MB)
+      .optional(),
+    // Auto intent classifier settings (multilingual routing)
+    intentDetectionEnabled: z.boolean().optional(),
+    intentSimpleMaxWords: z.number().int().min(1).max(500).optional(),
+    intentExtraCodeKeywords: z.array(z.string().max(100)).optional(),
+    intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
+    intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
+    // Protocol toggles (default: disabled)
+    mcpEnabled: z.boolean().optional(),
+    mcpTransport: z.enum(["stdio", "sse", "streamable-http"]).optional(),
+    a2aEnabled: z.boolean().optional(),
+    wsAuth: z.boolean().optional(),
+    // CLI Fingerprint compatibility (per-provider)
+    cliCompatProviders: z.array(z.string().max(100)).optional(),
+    // CC bridge transforms (issue #2260): config-driven pipeline that normalizes
+    // system blocks at the Claude Code bridge so any client (OpenCode, Cline,
+    // Cursor, Continue, raw API) ends up with classifier-correct structure.
+    ccBridgeTransforms: z
+      .object({
+        enabled: z.boolean(),
+        pipeline: z
+          .array(
+            z.discriminatedUnion("kind", [
+              z.object({
+                kind: z.literal("drop_paragraph_if_contains"),
+                needles: z.array(z.string().max(500)).max(50),
+                caseSensitive: z.boolean().optional(),
+              }),
+              z.object({
+                kind: z.literal("drop_paragraph_if_starts_with"),
+                prefixes: z.array(z.string().max(500)).max(50),
+                caseSensitive: z.boolean().optional(),
+              }),
+              z.object({
+                kind: z.literal("replace_text"),
+                match: z.string().min(1).max(500),
+                replacement: z.string().max(500),
+                allOccurrences: z.boolean().optional(),
+              }),
+              z.object({
+                kind: z.literal("replace_regex"),
+                pattern: z.string().min(1).max(500),
+                flags: z.string().max(10).optional(),
+                replacement: z.string().max(500),
+              }),
+              z.object({
+                kind: z.literal("drop_block_if_contains"),
+                needles: z.array(z.string().max(500)).max(50),
+              }),
+              z.object({
+                kind: z.literal("prepend_system_block"),
+                text: z.string().min(1).max(2000),
+                idempotencyKey: z.string().max(100).optional(),
+              }),
+              z.object({
+                kind: z.literal("append_system_block"),
+                text: z.string().min(1).max(2000),
+                idempotencyKey: z.string().max(100).optional(),
+              }),
+              z.object({
+                kind: z.literal("inject_billing_header"),
+                entrypoint: z.string().min(1).max(50),
+                versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
+                cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
+                version: z.string().max(50).optional(),
+              }),
+            ])
+          )
+          .max(50),
+      })
+      .optional(),
+    // System Transforms (issue #2260 v2): generic per-provider DSL covering
+    // native `claude`, `anthropic-compatible-cc-*` bridge, and any other
+    // provider key. Adds `obfuscate_words` op kind on top of the base set.
+    systemTransforms: z
+      .object({
+        providers: z.record(
+          z.string().max(100),
+          z.object({
+            enabled: z.boolean(),
+            pipeline: z
+              .array(
+                z.discriminatedUnion("kind", [
+                  z.object({
+                    kind: z.literal("drop_paragraph_if_contains"),
+                    needles: z.array(z.string().max(500)).max(50),
+                    caseSensitive: z.boolean().optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("drop_paragraph_if_starts_with"),
+                    prefixes: z.array(z.string().max(500)).max(50),
+                    caseSensitive: z.boolean().optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("replace_text"),
+                    match: z.string().min(1).max(500),
+                    replacement: z.string().max(500),
+                    allOccurrences: z.boolean().optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("replace_regex"),
+                    pattern: z.string().min(1).max(500),
+                    flags: z.string().max(10).optional(),
+                    replacement: z.string().max(500),
+                  }),
+                  z.object({
+                    kind: z.literal("drop_block_if_contains"),
+                    needles: z.array(z.string().max(500)).max(50),
+                  }),
+                  z.object({
+                    kind: z.literal("prepend_system_block"),
+                    text: z.string().min(1).max(2000),
+                    idempotencyKey: z.string().max(100).optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("append_system_block"),
+                    text: z.string().min(1).max(2000),
+                    idempotencyKey: z.string().max(100).optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("inject_billing_header"),
+                    entrypoint: z.string().min(1).max(50),
+                    versionFormat: z.enum(["ex-machina", "omniroute-daystamp"]),
+                    cchAlgo: z.enum(["sha256-first-user", "xxhash64-body", "static-zero"]),
+                    version: z.string().max(50).optional(),
+                  }),
+                  z.object({
+                    kind: z.literal("obfuscate_words"),
+                    words: z.array(z.string().max(100)).max(200),
+                    targets: z
+                      .array(z.enum(["system", "messages", "tools"]))
+                      .max(3)
+                      .optional(),
+                  }),
+                ])
+              )
+              .max(50),
+          })
+        ),
+      })
+      .optional(),
+    // Strip provider/model prefix at proxy layer (e.g. "openai/gpt-4" → "gpt-4")
+    stripModelPrefix: z.boolean().optional(),
+    // Cache control preservation mode
+    alwaysPreserveClientCache: z.enum(["auto", "always", "never"]).optional(),
+    antigravitySignatureCacheMode: z.enum(signatureCacheModeValues).optional(),
+    // Adaptive Volume Routing
+    adaptiveVolumeRouting: z.boolean().optional(),
+    // Usage token buffer — safety margin added to reported prompt/input token counts.
+    // Prevents CLI tools from overrunning context windows. Set to 0 to disable.
+    usageTokenBuffer: z.number().int().min(0).max(50000).optional(),
+    // Custom CLI agent definitions for ACP
+    customAgents: z
+      .array(
+        z.object({
+          id: z.string().max(50),
+          name: z.string().max(100),
+          binary: z.string().max(200),
+          versionCommand: z.string().max(300),
+          providerAlias: z.string().max(50),
+          spawnArgs: z.array(z.string().max(200)),
+          protocol: z.enum(["stdio", "http"]),
+        })
+      )
+      .optional(),
+    // SkillsMP marketplace API key
+    skillsmpApiKey: z.string().max(200).optional(),
+    // Active skills provider (single source of truth for skills page)
+    skillsProvider: z.enum(["skillsmp", "skillssh"]).optional(),
+    // models.dev sync settings
+    modelsDevSyncEnabled: z.boolean().optional(),
+    modelsDevSyncInterval: z.number().int().min(3600000).max(604800000).optional(),
+    // Vision Bridge settings
+    visionBridgeEnabled: z.boolean().optional(),
+    visionBridgeModel: z.string().max(200).optional(),
+    visionBridgePrompt: z.string().max(5000).optional(),
+    visionBridgeTimeout: z.number().int().min(1000).max(300000).optional(),
+    visionBridgeMaxImages: z.number().int().min(1).max(20).optional(),
+    // Missing settings
+    lkgpEnabled: z.boolean().optional(),
+    backgroundDegradation: z.unknown().optional(),
+    bruteForceProtection: z.boolean().optional(),
+    // Auto-routing settings
+    autoRoutingEnabled: z.boolean().optional(),
+    autoRoutingDefaultVariant: z
+      .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
+      .optional(),
+    // LOCAL_ONLY manage-scope bypass policy (T-011). Kill-switch + per-prefix
+    // list, both DB-stored and hot-reloaded into `getAuthzBypassSnapshot()` on
+    // each PATCH. The prefix list MUST NOT include any spawn-capable path —
+    // enforced here and at runtime (GHSA-fhh6-4qxv-rpqj rationale).
+    localOnlyManageScopeBypassEnabled: z.boolean().optional(),
+    localOnlyManageScopeBypassPrefixes: z.array(z.string().startsWith("/")).max(20).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const prefixes = data.localOnlyManageScopeBypassPrefixes;
+    if (!prefixes) return;
+    for (let i = 0; i < prefixes.length; i++) {
+      const prefix = prefixes[i];
+      // Reject prefixes that are the same as, child of, or PARENT of any
+      // spawn-capable prefix. The parent case catches e.g. `/api/cli-tools/`
+      // — a bypass on the parent would grant non-loopback access to the
+      // spawn-capable `/api/cli-tools/runtime/*` surface via path.startsWith.
+      if (
+        SPAWN_CAPABLE_PREFIXES.some(
+          (spawn) => prefix === spawn || prefix.startsWith(spawn) || spawn.startsWith(prefix)
+        )
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["localOnlyManageScopeBypassPrefixes", i],
+          message: `BYPASS_PREFIX_NOT_ALLOWED: ${prefix} is spawn-capable and cannot be bypassed`,
+          params: { code: "BYPASS_PREFIX_NOT_ALLOWED", prefix },
+        });
+      }
+    }
+  });
 
 export const databaseSettingsSchema = z.object(
   {

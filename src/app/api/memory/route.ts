@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { listMemories, createMemory } from "@/lib/memory/store";
+import { memoryCache } from "@/lib/memory/cache";
 import { MemoryType } from "@/lib/memory/types";
 import { parsePaginationParams, buildPaginatedResponse } from "@/shared/types/pagination";
 import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
+import { getDbInstance } from "@/lib/db/core";
 
 const createMemorySchema = z.object({
   content: z.string().min(1),
@@ -46,9 +48,26 @@ export async function GET(request: Request) {
       page: offset === undefined ? paginationParams.page : undefined,
     });
 
+    // Compute total tokens across all memories using SQL (avoids loading all content into memory)
+    const db = getDbInstance();
+    const tokenResult = db
+      .prepare(
+        "SELECT COALESCE(SUM((LENGTH(content) + 3) / 4), 0) as tokensUsed FROM memories" +
+          (apiKeyId ? " WHERE api_key_id = ?" : "")
+      )
+      .get(...(apiKeyId ? [apiKeyId] : [])) as { tokensUsed: number };
+    const tokensUsed = tokenResult?.tokensUsed ?? 0;
+
+    // Compute hit rate from memory cache
+    const cacheStats = memoryCache.stats();
+    const totalCacheRequests = cacheStats.hits + cacheStats.misses;
+    const hitRate = totalCacheRequests > 0 ? cacheStats.hits / totalCacheRequests : 0;
+
     const stats = {
       total: result.total,
       byType: result.byType ?? {},
+      tokensUsed,
+      hitRate,
     };
 
     const responsePagination =

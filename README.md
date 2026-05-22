@@ -4,7 +4,7 @@
 
 ### Never stop coding. Save 15-95% eligible tokens with RTK+Caveman compression + auto-fallback to **FREE & low-cost AI models**.
 
-_The most complete open-source AI proxy — **one endpoint**, **160+ providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
+_The most complete open-source AI proxy — **one endpoint**, **212 providers**, **13 routing strategies**, zero downtime. Multi-platform: **Web**, **Desktop (Electron)**, **Mobile (PWA + Termux)**. Fully extensible via **MCP Server (37 tools)**, **A2A Protocol**, and **Memory/Skills** systems. Available in **40+ languages**._
 
 [![npm](https://img.shields.io/npm/v/omniroute?logo=npm&style=flat-square)](https://www.npmjs.com/package/omniroute)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
@@ -1316,6 +1316,24 @@ omniroute --mcp
 curl http://localhost:20128/.well-known/agent.json
 ```
 
+### Remote MCP from a public hostname (v3.8.1+)
+
+`/api/mcp/*` is LOCAL_ONLY by default. To reach the remote MCP server through
+a tunnel or reverse proxy, issue an API key with the `manage` scope (API
+Manager → toggle **Management Access** on the key) and send it as a Bearer:
+
+```bash
+curl -i \
+  -H "Authorization: Bearer sk-…" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"my-client","version":"0"}}}' \
+  https://your-public-host.example/api/mcp/stream
+```
+
+The carve-out is intentionally narrow — `/api/cli-tools/runtime/*` stays
+strict-loopback regardless of scope. See [docs/security/ROUTE_GUARD_TIERS.md](docs/security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
+
 ### Key Environment Variables
 
 | Variable             | Default        | Purpose                                   |
@@ -1444,7 +1462,7 @@ Code blocks, URLs, JSON, and structured data are **always protected** from compr
 2. **Per-provider proxy** — different proxy per provider
 3. **Per-API-key proxy** — different proxy per key
 
-Plus the **1proxy free marketplace** for community-shared proxies. Users in Russia, China, Iran, and other restricted regions can access all 160+ providers through OmniRoute's proxy infrastructure.
+Plus the **1proxy free marketplace** for community-shared proxies. Users in Russia, China, Iran, and other restricted regions can access all 212 providers through OmniRoute's proxy infrastructure.
 
 See the [Proxy Guide](docs/PROXY_GUIDE.md) for setup instructions.
 
