@@ -498,6 +498,19 @@ export class DefaultExecutor extends BaseExecutor {
         "QwenExecutor"
       );
     }
+
+    // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")
+    // so registry can store short model IDs while the upstream API receives the full path.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      const entry = getRegistryEntry(this.provider);
+      if (entry?.modelIdPrefix) {
+        const body = withDefaults as Record<string, unknown>;
+        if (typeof body.model === "string" && !body.model.startsWith(entry.modelIdPrefix)) {
+          body.model = `${entry.modelIdPrefix}${body.model}`;
+        }
+      }
+    }
+
     return withDefaults;
   }
 
