@@ -19,6 +19,7 @@ import {
   AntigravityToolCard,
   CopilotToolCard,
   CustomCliCard,
+  HermesAgentToolCard,
 } from "./components";
 import { useTranslations } from "next-intl";
 import { DEFAULT_DISPLAY_BASE_URL } from "@/shared/hooks";
@@ -32,6 +33,7 @@ const AUTO_CONFIGURED_TOOL_IDS = new Set([
   "cline",
   "kilo",
   "copilot",
+  "hermes-agent",
 ]);
 const GUIDED_TOOL_IDS = new Set([
   "cursor",
@@ -342,6 +344,16 @@ export default function CLIToolsPageClient({ machineId: _machineId }) {
       case "copilot":
         return (
           <CopilotToolCard
+            key={toolId}
+            {...commonProps}
+            activeProviders={getActiveProviders()}
+            hasActiveProviders={hasActiveProviders}
+            cloudEnabled={cloudEnabled}
+          />
+        );
+      case "hermes-agent":
+        return (
+          <HermesAgentToolCard
             key={toolId}
             {...commonProps}
             activeProviders={getActiveProviders()}

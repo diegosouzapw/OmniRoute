@@ -18,7 +18,7 @@ test("voyage-ai embedding registry exposes current embedding models", () => {
   assert.equal(provider.baseUrl, "https://api.voyageai.com/v1/embeddings");
   assert.ok(provider.models.some((model) => model.id === "voyage-4-large"));
   assert.ok(provider.models.some((model) => model.id === "voyage-code-3"));
-  assert.ok(provider.models.some((model) => model.id === "voyage-3-large"));
+  assert.ok(provider.models.some((model) => model.id === "voyage-4"));
 
   const parsed = parseEmbeddingModel("voyage-ai/voyage-4-large");
   assert.equal(parsed.provider, "voyage-ai");

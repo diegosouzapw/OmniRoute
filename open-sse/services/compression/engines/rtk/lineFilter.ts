@@ -8,30 +8,41 @@ export interface LineFilterResult {
   appliedRules: string[];
 }
 
+// ──────────────── RegExp cache ────────────────
+//
+// Patterns are static (loaded from filter JSON files on boot) but were being
+// compiled via `new RegExp(...)` on every call to applyLineFilter().  For a
+// busy proxy this means thousands of redundant RegExp instantiations per
+// second.  Cache them here once.
+
+const regexCache = new Map<string, RegExp>();
+
+function cachedRegExp(pattern: string, flags: string): RegExp | null {
+  const key = `${pattern}::${flags}`;
+  const cached = regexCache.get(key);
+  if (cached) return cached;
+  try {
+    const re = new RegExp(pattern, flags);
+    regexCache.set(key, re);
+    return re;
+  } catch {
+    return null;
+  }
+}
+
 function compilePatterns(patterns: string[]): RegExp[] {
   return patterns.flatMap((pattern) => {
-    try {
-      return [new RegExp(pattern, "i")];
-    } catch {
-      return [];
-    }
+    const re = cachedRegExp(pattern, "i");
+    return re ? [re] : [];
   });
 }
 
 function compileGlobalPattern(pattern: string): RegExp | null {
-  try {
-    return new RegExp(pattern, "g");
-  } catch {
-    return null;
-  }
+  return cachedRegExp(pattern, "g");
 }
 
 function compileBlobPattern(pattern: string): RegExp | null {
-  try {
-    return new RegExp(pattern, "im");
-  } catch {
-    return null;
-  }
+  return cachedRegExp(pattern, "im");
 }
 
 function stripAnsi(text: string): string {

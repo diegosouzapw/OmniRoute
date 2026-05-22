@@ -335,6 +335,13 @@ test("createErrorResult — response body excludes upstream_details when not pro
   assert.ok(!("upstream_details" in body), "upstream_details must be absent when not provided");
 });
 
+test("createErrorResult — exposes error code/type on the result object", async () => {
+  const { createErrorResult } = await import("../../open-sse/utils/error.ts");
+  const result = createErrorResult(504, "upstream timeout", null, "UPSTREAM_TIMEOUT", "timeout");
+  assert.equal(result.errorCode, "UPSTREAM_TIMEOUT");
+  assert.equal(result.errorType, "timeout");
+});
+
 test("regression: upstream_details never contains stack trace text", async () => {
   const { createErrorResult } = await import("../../open-sse/utils/error.ts");
   const upstream = { error: { message: "err" }, stack: "Error\n    at /abs/path.ts:1:2" };

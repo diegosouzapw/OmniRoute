@@ -1,6 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { generateSignature, isCacheable } from "../../src/lib/semanticCache.ts";
+import {
+  generateSignature,
+  isCacheableForRead,
+  isCacheableForWrite,
+} from "../../src/lib/semanticCache.ts";
 
 describe("Semantic Cache", () => {
   describe("generateSignature", () => {
@@ -69,35 +73,50 @@ describe("Semantic Cache", () => {
     });
   });
 
-  describe("isCacheable", () => {
-    it("returns true for non-streaming temp=0 requests", () => {
-      assert.equal(isCacheable({ stream: false, temperature: 0 }, null), true);
+  describe("isCacheableForRead", () => {
+    // #2536 superseded isCacheable with read/write variants that cache both
+    // streaming and non-streaming requests and require an explicit numeric
+    // temperature: 0 (omitted temperature is treated as non-deterministic).
+    it("returns true for temperature=0 (streaming or not)", () => {
+      assert.equal(isCacheableForRead({ stream: false, temperature: 0 }, null), true);
+      assert.equal(isCacheableForRead({ stream: true, temperature: 0 }, null), true);
     });
 
-    it("returns true when temperature is undefined (defaults to 0)", () => {
-      assert.equal(isCacheable({ stream: false }, null), true);
-    });
-
-    it("returns false for streaming requests", () => {
-      assert.equal(isCacheable({ stream: true, temperature: 0 }, null), false);
-    });
-
-    it("returns false when stream is not explicitly false", () => {
-      assert.equal(isCacheable({ temperature: 0 }, null), false);
+    it("returns false when temperature is omitted (provider default may be non-deterministic)", () => {
+      assert.equal(isCacheableForRead({ stream: false }, null), false);
     });
 
     it("returns false for non-zero temperature", () => {
-      assert.equal(isCacheable({ stream: false, temperature: 0.7 }, null), false);
+      assert.equal(isCacheableForRead({ temperature: 0.7 }, null), false);
     });
 
     it("returns false when no-cache header is set", () => {
       const headers = new Headers({ "x-omniroute-no-cache": "true" });
-      assert.equal(isCacheable({ stream: false, temperature: 0 }, headers), false);
+      assert.equal(isCacheableForRead({ temperature: 0 }, headers), false);
     });
 
     it("returns true when no-cache header is absent", () => {
       const headers = new Headers({});
-      assert.equal(isCacheable({ stream: false, temperature: 0 }, headers), true);
+      assert.equal(isCacheableForRead({ temperature: 0 }, headers), true);
+    });
+  });
+
+  describe("isCacheableForWrite", () => {
+    it("returns true for temperature=0 responses", () => {
+      assert.equal(isCacheableForWrite({ temperature: 0 }, null), true);
+    });
+
+    it("returns false when temperature is omitted", () => {
+      assert.equal(isCacheableForWrite({ stream: false }, null), false);
+    });
+
+    it("returns false for non-zero temperature", () => {
+      assert.equal(isCacheableForWrite({ temperature: 0.7 }, null), false);
+    });
+
+    it("returns false when no-cache header is set", () => {
+      const headers = new Headers({ "x-omniroute-no-cache": "true" });
+      assert.equal(isCacheableForWrite({ temperature: 0 }, headers), false);
     });
   });
 });

@@ -394,29 +394,16 @@ export function getCacheStats() {
 }
 
 /**
- * Check if a request is cacheable for read (pre-request lookup).
- * Only non-streaming, deterministic (temperature=0) requests.
- * @deprecated Use isCacheableForRead instead.
- */
-export function isCacheable(body, headers) {
-  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
-    return false;
-  }
-  if (body.stream !== false) return false;
-  if ((body.temperature ?? 0) !== 0) return false;
-  return true;
-}
-
-/**
  * Check if a cached response can be served for this request.
  * Works for both streaming and non-streaming requests (cache hit returns JSON).
- * Omitted temperature defaults to 0 for read (matching existing cache entries).
+ * Requires explicit numeric `temperature: 0` — omitted temperature is NOT cached
+ * because the provider default may be non-deterministic (e.g. random/creative tasks).
  */
 export function isCacheableForRead(body, headers) {
   if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
     return false;
   }
-  if ((body.temperature ?? 0) !== 0) return false;
+  if (typeof body.temperature !== "number" || body.temperature !== 0) return false;
   return true;
 }
 

@@ -446,3 +446,21 @@ test("ensureStreamReadiness returns 502 when stream ends without useful content"
   assert.equal(result.ok, false);
   assert.equal(result.response.status, 502);
 });
+
+// Regression for #2520: a reasoning-only stream (Mistral `thinking` array / StepFun
+// `reasoning_details`) is real output and must NOT be classified as "no useful content"
+// (which produced a spurious 502).
+test("hasUsefulStreamContent detects thinking[] and reasoning_details (#2520)", () => {
+  assert.equal(
+    hasUsefulStreamContent(
+      `data: ${JSON.stringify({ choices: [{ delta: { content: [{ type: "thinking", thinking: [{ text: "reasoning..." }] }] }, index: 0 }] })}\n\n`
+    ),
+    true
+  );
+  assert.equal(
+    hasUsefulStreamContent(
+      `data: ${JSON.stringify({ choices: [{ delta: { reasoning_details: [{ type: "reasoning.text", text: "deliberating" }] }, index: 0 }] })}\n\n`
+    ),
+    true
+  );
+});

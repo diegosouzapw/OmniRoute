@@ -79,5 +79,8 @@ test("settings route password update rejects the wrong current password after mi
   );
 
   assert.equal(response.status, 401);
-  assert.deepEqual(await response.json(), { error: "Invalid current password" });
+  // T-011 unified security-impacting gate: structured error code.
+  assert.deepEqual(await response.json(), {
+    error: { code: "PASSWORD_MISMATCH", message: "Invalid current password" },
+  });
 });

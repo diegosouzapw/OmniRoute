@@ -1,23 +1,30 @@
-name: Build Fork Image (ghcr.io)
+name: Publish Fork Image to GHCR
 
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
+env:
+  IMAGE_NAME: ghcr.io/kang-heewon/omniroute
+
 jobs:
   build:
-    name: Build and Push to ghcr.io
+    name: Build and Push Fork Image
+    if: github.repository == 'kang-heewon/OmniRoute'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          ref: main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -29,14 +36,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.title=omniroute
+            org.opencontainers.image.description=Unified AI proxy/router — fork image
+            org.opencontainers.image.url=https://github.com/kang-heewon/OmniRoute
+            org.opencontainers.image.source=https://github.com/kang-heewon/OmniRoute
+            org.opencontainers.image.licenses=MIT
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: .
           target: runner-base
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/gi99lin/omniroute:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -1,0 +1,70 @@
+name: Lock released branch
+
+# When a GitHub Release is published (e.g. tag v3.8.1), make the matching
+# release/<tag> branch read-only so no further commits can land on a shipped
+# version. Uses branch protection's lock_branch + enforce_admins so the freeze
+# applies even to repository admins. To reopen a branch later:
+#   gh api -X DELETE repos/<owner>/<repo>/branches/release/<tag>/protection
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of the released version (e.g. v3.8.1)"
+        required: true
+        type: string
+
+permissions:
+  # Editing branch protection requires the administration scope.
+  administration: write
+  contents: read
+
+jobs:
+  lock-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lock release/<tag> branch
+        env:
+          GH_TOKEN: ${{ secrets.BRANCH_LOCK_TOKEN || secrets.GITHUB_TOKEN }}
+          # release event -> github.event.release.tag_name; manual -> inputs.tag
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TAG}" ]; then
+            echo "::error::No tag provided; cannot determine release branch."
+            exit 1
+          fi
+
+          BRANCH="release/${TAG}"
+          echo "Target branch: ${BRANCH} (repo: ${REPO})"
+
+          # Skip gracefully if the release branch does not exist.
+          if ! gh api "repos/${REPO}/branches/${BRANCH}" >/dev/null 2>&1; then
+            echo "::warning::Branch ${BRANCH} not found — nothing to lock."
+            exit 0
+          fi
+
+          echo "Applying lock_branch protection to ${BRANCH}..."
+          gh api -X PUT "repos/${REPO}/branches/${BRANCH}/protection" --input - <<'JSON'
+          {
+            "required_status_checks": null,
+            "enforce_admins": true,
+            "required_pull_request_reviews": null,
+            "restrictions": null,
+            "lock_branch": true,
+            "allow_force_pushes": false,
+            "allow_deletions": false
+          }
+          JSON
+
+          LOCKED=$(gh api "repos/${REPO}/branches/${BRANCH}/protection" \
+            --jq '.lock_branch.enabled')
+          if [ "${LOCKED}" != "true" ]; then
+            echo "::error::Failed to confirm lock on ${BRANCH} (lock_branch=${LOCKED})."
+            exit 1
+          fi
+          echo "✅ ${BRANCH} is now locked (read-only)."

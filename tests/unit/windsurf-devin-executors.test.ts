@@ -21,12 +21,8 @@ describe("Windsurf MODEL_ALIAS_MAP", () => {
     // Claude aliases
     ["claude-sonnet-4.6", "claude-sonnet-4-6"],
     ["claude-opus-4.7-max", "claude-opus-4-7-max"],
-    ["claude-3.7-sonnet-thinking", "CLAUDE_3_7_SONNET_20250219_THINKING"],
     // Gemini aliases
     ["gemini-2.5-pro", "MODEL_GOOGLE_GEMINI_2_5_PRO"],
-    ["gemini-3.0-pro", "gemini-3-pro"],
-    // Kimi
-    ["kimi-k2", "MODEL_KIMI_K2"],
   ];
 
   const PASSTHROUGH_CASES = [
@@ -35,6 +31,10 @@ describe("Windsurf MODEL_ALIAS_MAP", () => {
     "grok-code-fast-1",
     "deepseek-v4",
     "some-unknown-model",
+    // These aliases were removed from MODEL_ALIAS_MAP in v3.8.x — pass through unchanged:
+    "claude-3.7-sonnet-thinking",
+    "gemini-3.0-pro",
+    "kimi-k2",
   ];
 
   // Load the alias map from the module source — we parse it at test time to

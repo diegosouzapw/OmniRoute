@@ -925,7 +925,7 @@ test("v1 models catalog tolerates custom model lookup failures and keeps builtin
     const body = (await response.json()) as any;
 
     assert.equal(response.status, 200);
-    assert.ok(body.data.some((item) => item.id === "openai/gpt-4o"));
+    assert.ok(body.data.some((item) => item.id === "openai/gpt-4o-2024-11-20"));
     assert.ok(logs.some((entry) => entry.includes("Could not fetch custom models")));
   } finally {
     db.prepare = originalPrepare;
@@ -1151,14 +1151,14 @@ test("v1 models catalog skips duplicate built-ins and custom models from inactiv
     isActive: false,
   });
 
-  await modelsDb.addCustomModel("openai", "gpt-4o", "Duplicate Builtin");
+  await modelsDb.addCustomModel("openai", "gpt-4o-2024-11-20", "Duplicate Builtin");
   await modelsDb.addCustomModel("cline", "inactive-only", "Inactive Only");
 
   const response = await v1ModelsCatalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
   const body = (await response.json()) as any;
-  const duplicateBuiltins = body.data.filter((item) => item.id === "openai/gpt-4o");
+  const duplicateBuiltins = body.data.filter((item) => item.id === "openai/gpt-4o-2024-11-20");
 
   assert.equal(response.status, 200);
   assert.equal(duplicateBuiltins.length, 1);

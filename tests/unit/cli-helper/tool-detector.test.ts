@@ -10,6 +10,9 @@ describe("tool-detector", () => {
       if (cmd === "opencode") {
         return { stdout: "v1.0.0\n" };
       }
+      if (cmd === "hermes") {
+        return { stdout: "v0.75.3\n" };
+      }
       if (cmd === "which") {
         return { stdout: "/usr/local/bin/opencode\n" };
       }
@@ -31,6 +34,17 @@ describe("tool-detector", () => {
       assert.strictEqual(result!.installed, true);
       assert.strictEqual(result!.version, "1.0.0");
       assert.ok(result!.configPath.includes(".config/opencode"));
+      assert.strictEqual(typeof result!.configured, "boolean");
+    });
+
+    it("returns DetectedTool object for Hermes with the Hermes config path", async () => {
+      const result = await toolDetector.detectTool("hermes");
+      assert.ok(result !== null);
+      assert.strictEqual(result!.id, "hermes");
+      assert.strictEqual(result!.name, "Hermes");
+      assert.strictEqual(result!.installed, true);
+      assert.strictEqual(result!.version, "0.75.3");
+      assert.ok(result!.configPath.includes(".hermes/config.yaml"));
       assert.strictEqual(typeof result!.configured, "boolean");
     });
   });

@@ -32,6 +32,22 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Flush lingering microtasks and Bottleneck yieldLoop(0) timers after each test.
+// Without this, leftover timers from a previous test's _free→_drainAll chain can
+// interleave with the next test's Bottleneck timer chain, causing timing-sensitive
+// IPC deserialization failures in Node.js v24 test runner subprocesses.
+// Pattern borrowed from rate-limit-manager.test.ts.
+async function flushBackgroundWork() {
+  await wait(50);
+  await new Promise((resolve) => setImmediate(resolve));
+}
+
+// Allow all DB migration async work and Bottleneck internal setup to fully settle
+// before the test runner starts IPC communication.  Without this, the subprocess
+// can be mid-migration when the runner sends its first IPC probe, causing an
+// "Unable to deserialize cloned data" failure in Node.js v24.
+await flushBackgroundWork();
+
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -44,10 +60,12 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   await rateLimitManager.__resetRateLimitManagerForTests();
+  await flushBackgroundWork();
 });
 
 test.after(async () => {
   await rateLimitManager.__resetRateLimitManagerForTests();
+  await flushBackgroundWork();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -93,22 +111,39 @@ test("after disable+re-enable, withRateLimit must succeed without stopped-limite
 
 /**
  * In-flight safety: a job started BEFORE disable must still complete.
- * Uses wait(0) (immediate tick) to minimize cross-test async interference.
  *
  * Bug vector: disableRateLimitProtection() called limiter.stop({dropWaitingJobs:true}).
+ *
+ * Bottleneck's yieldLoop(0) chain defers job execution by several event-loop ticks.
+ * Leftover timers from the previous test's _free→_drainAll chain can interleave and
+ * delay the new job in Node.js v24 test runner subprocesses. flushBackgroundWork()
+ * at the start drains those timers before we schedule the test job.
  */
 test("in-flight job before disable must complete without stopped-limiter error", async () => {
+  // Drain any leftover Bottleneck timers from test 1 so this test's timer chain
+  // is not competed away by the previous test's cleanup residuals.
+  await flushBackgroundWork();
+
   const provider = "openai";
   const connectionId = "lifecycle-test-conn-b";
 
   rateLimitManager.enableRateLimitProtection(connectionId);
 
-  // Start job (completes in next tick), disable immediately
-  const jobPromise = rateLimitManager.withRateLimit(provider, connectionId, null, () =>
-    wait(0).then(() => "in-flight-ok")
-  );
+  // Two-phase job: phase 1 signals the fn has started; phase 2 is the async body.
+  // disableRateLimitProtection is called only after phase 1, so the job is EXECUTING
+  // (not queued) when disconnect() is invoked.
+  let phase1Resolve: () => void;
+  const phase1 = new Promise<void>((r) => {
+    phase1Resolve = r;
+  });
 
-  // Disable before the job resolves (it's queued/executing in Bottleneck)
+  const jobPromise = rateLimitManager.withRateLimit(provider, connectionId, null, async () => {
+    phase1Resolve!();
+    await wait(0);
+    return "in-flight-ok";
+  });
+
+  await phase1;
   rateLimitManager.disableRateLimitProtection(connectionId);
 
   let error = null;
@@ -131,8 +166,13 @@ test("in-flight job before disable must complete without stopped-limiter error",
  * 429 teardown: after a 429 evicts the limiter, the next request must succeed.
  *
  * Bug vector: updateFromHeaders() 429 path called limiter.stop() before this fix.
+ *
+ * Drain leftover timers from test 2's _free→_drainAll chain before scheduling
+ * the pre-429 job, same rationale as test B above.
  */
 test("after 429 teardown, next withRateLimit must get a fresh limiter and succeed", async () => {
+  await flushBackgroundWork();
+
   const provider = "openai";
   const connectionId = "lifecycle-test-conn-c";
 
