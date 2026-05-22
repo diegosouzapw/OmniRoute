@@ -4,10 +4,12 @@ import path from "path";
 import os from "os";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
+import { validateBaseUrl } from "@/lib/cli-helper/config-generator";
 import {
   generateHermesAgentConfig,
   getCurrentHermesAgentRoles,
 } from "@/lib/cli-helper/config-generator/hermes-agent";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 /**
  * Dedicated endpoint for Hermes Agent (the advanced Nous Research terminal agent).
@@ -43,7 +45,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, roles, firstSetupAt });
   } catch (error) {
-    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: sanitizeErrorMessage(error) },
+      { status: 500 }
+    );
   }
 }
 
@@ -62,6 +67,10 @@ export async function POST(request: Request) {
 
   if (!baseUrl) {
     return NextResponse.json({ error: "baseUrl is required" }, { status: 400 });
+  }
+
+  if (typeof baseUrl !== "string" || !validateBaseUrl(baseUrl)) {
+    return NextResponse.json({ error: "baseUrl must be a valid http(s) URL" }, { status: 400 });
   }
 
   if (!Array.isArray(selections) || selections.length === 0) {

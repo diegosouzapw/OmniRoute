@@ -29,7 +29,7 @@ import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
 import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
-import { handlePipelineCombo } from "./autoCombo/pipelineRouter.ts";
+import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
 import {
   calculateFactors,
   calculateScore,
@@ -1718,7 +1718,7 @@ export async function handleComboChat({
     const autoVariant = autoParsed.valid ? autoParsed.variant : undefined;
     if (autoVariant === "smart" || config.pipeline_enabled) {
       try {
-        return await handlePipelineCombo({
+        const pipelineRaw = await handlePipelineCombo({
           body,
           combo,
           handleChatCore: handleSingleModel,
@@ -1726,9 +1726,22 @@ export async function handleComboChat({
           settings,
           signal,
         });
+        // handlePipelineCombo resolves to a PipelineResult (buffered text) or,
+        // in the streaming-final-stage case, a Response. Callers downstream
+        // (chat.ts → withSessionHeader) require a Response, so adapt the
+        // PipelineResult here instead of leaking the raw object.
+        return pipelineRaw instanceof Response
+          ? pipelineRaw
+          : buildPipelineResponse(pipelineRaw, body);
       } catch (pipelineErr) {
-        if (pipelineErr instanceof Error && pipelineErr.message === "PIPELINE_DISABLED") {
+        const pipelineMsg = pipelineErr instanceof Error ? pipelineErr.message : "";
+        if (pipelineMsg === "PIPELINE_DISABLED") {
           log.info("COMBO", "Pipeline disabled, falling through to standard auto routing");
+        } else if (pipelineMsg === "PIPELINE_TOKEN_THRESHOLD") {
+          log.info(
+            "COMBO",
+            "Pipeline skipped (prompt below token threshold), falling through to standard auto routing"
+          );
         } else {
           log.warn("COMBO", "Pipeline dispatch failed, falling through to standard auto routing", {
             err: pipelineErr,

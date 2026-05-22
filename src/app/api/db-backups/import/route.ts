@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     // The DB was replaced wholesale — re-hydrate the in-memory Global System Prompt so it
     // reflects the imported settings without requiring a restart (#2470).
     try {
-      const importedSettings = getSettings();
+      const importedSettings = await getSettings();
       if (importedSettings.systemPrompt) {
         setSystemPromptConfig(importedSettings.systemPrompt);
       }

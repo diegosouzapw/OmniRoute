@@ -1371,15 +1371,27 @@ export function isUsableCombo(
 ): boolean {
   const steps = Array.isArray(combo.models) ? combo.models : [];
   if (steps.length === 0) return true;
-  let sawKnownProvider = false;
+  // The provider id is folded INTO the full model string by OmniRoute's
+  // `normalizeComboRecord` (e.g. "cc/claude-opus-4-7") — combo member refs do
+  // NOT carry a separate `providerId` field. Derive the prefix from `step.model`
+  // and apply the same subtract-filter verdict as `isUsableRawModelId`.
+  let sawResolvableMember = false;
   for (const step of steps) {
-    const pid = (step as unknown as { providerId?: unknown }).providerId;
-    if (typeof pid !== "string" || pid.length === 0) continue;
-    sawKnownProvider = true;
-    if (usable.canonicals.has(pid) || usable.aliases.has(pid)) return true;
+    // Nested combo refs carry no model id we can resolve to a provider here.
+    if (step?.kind === "combo-ref") continue;
+    const modelId = typeof step?.model === "string" ? step.model : "";
+    const slash = modelId.indexOf("/");
+    if (slash <= 0) continue; // no provider prefix to evaluate
+    sawResolvableMember = true;
+    const prefix = modelId.slice(0, slash);
+    if (usable.aliases.has(prefix) || usable.canonicals.has(prefix)) return true;
+    // Unknown prefix (not in the known-alias universe) → can't prove
+    // unroutable; keep. Known-but-not-usable prefixes keep scanning.
+    if (!usable.knownAliases.has(prefix)) return true;
   }
-  // No member declared a providerId → can't prove unroutable; keep.
-  if (!sawKnownProvider) return true;
+  // No member resolved to a provider prefix → can't prove unroutable; keep.
+  if (!sawResolvableMember) return true;
+  // Every resolvable member used a known-but-non-usable prefix → drop.
   return false;
 }
 
@@ -2126,7 +2138,7 @@ export function createGeminiSanitizingFetch(inner: typeof fetch): typeof fetch {
         // Streaming body — skip with one-shot warning.
         if (!geminiStreamingWarningEmitted) {
           geminiStreamingWarningEmitted = true;
-          // eslint-disable-next-line no-console
+
           console.warn(
             "[omniroute-plugin] sanitizeGemini: streaming Request body, skipping schema strip (Gemini may reject)"
           );
@@ -2584,7 +2596,9 @@ export type OmniRouteDiskSnapshotReader = (
 export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (providerId, entry) => {
   try {
     const file = diskSnapshotPath(providerId);
-    await mkdir(path.dirname(file), { recursive: true });
+    // Restrict perms to the owner: the snapshot lives alongside auth.json
+    // (0o600) and embeds provider topology + masked connection records.
+    await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
     const snapshot: OmniRouteDiskSnapshot = {
       v: 1,
       rawModels: entry.rawModels,
@@ -2594,7 +2608,7 @@ export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (pro
       rawConnections: entry.rawConnections,
       writtenAt: Date.now(),
     };
-    await writeFile(file, JSON.stringify(snapshot), "utf8");
+    await writeFile(file, JSON.stringify(snapshot), { encoding: "utf8", mode: 0o600 });
   } catch {
     // Soft-fail; caller already has the in-memory cache.
   }

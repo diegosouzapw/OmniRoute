@@ -385,3 +385,42 @@ test("pipeline-combo: reflection fail triggers re-execution with corrected conte
   // Should have made multiple calls due to reflection retry
   assert.ok(calls.length >= 3, `Expected >= 3 calls for retry, got ${calls.length}`);
 });
+
+test("pipeline-combo: max_reflection_loops>1 re-runs the pipeline that many times (regression: loop count was silently ignored)", async () => {
+  // Reflect ALWAYS fails, so the outer reflection loop should keep re-running
+  // the whole pipeline until the configured budget is exhausted. Each pipeline
+  // run hits the reflect stage exactly once, so reflect calls == loops + 1.
+  const reflectCallsFor = async (maxLoops: number): Promise<number> => {
+    let reflectCalls = 0;
+    const { handler } = createMockHandleChatCore((body) => {
+      const messages = body.messages as Array<{ role: string; content: string }>;
+      const systemMsg = messages.find((m) => m.role === "system")?.content || "";
+      if (systemMsg.includes("quality reviewer")) {
+        reflectCalls++;
+        return '{"status":"fail","issues":["always fails"],"corrected":"c"}';
+      }
+      return "execute output";
+    });
+
+    await handlePipelineCombo({
+      body: makeBody([
+        {
+          role: "user",
+          content: "Write a robust sorting algorithm in Python with edge case handling",
+        },
+      ]),
+      combo: makeCombo({ max_reflection_loops: maxLoops }),
+      handleChatCore: handler,
+      log: mockLog,
+      settings: makeSettings({ max_reflection_loops: maxLoops }),
+    });
+    return reflectCalls;
+  };
+
+  const oneLoop = await reflectCallsFor(1);
+  const threeLoops = await reflectCallsFor(3);
+
+  assert.equal(oneLoop, 2, `Expected 2 reflect calls with 1 loop, got ${oneLoop}`);
+  assert.equal(threeLoops, 4, `Expected 4 reflect calls with 3 loops, got ${threeLoops}`);
+  assert.ok(threeLoops > oneLoop, "Higher max_reflection_loops must produce more pipeline re-runs");
+});

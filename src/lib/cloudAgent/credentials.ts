@@ -2,21 +2,10 @@ import { getDbInstance } from "@/lib/db/core";
 import { encrypt, decrypt } from "@/lib/db/encryption";
 import type { AgentCredentials } from "@/lib/cloudAgent/baseAgent";
 
-/**
- * Ensure cloud_agent_credentials table exists.
- * Should be replaced by a proper migration in db/migrations/.
- */
-export function ensureCredentialsTable(): void {
-  const db = getDbInstance();
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cloud_agent_credentials (
-      provider_id TEXT PRIMARY KEY,
-      api_key_encrypted TEXT NOT NULL,
-      base_url TEXT,
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-}
+// The `cloud_agent_credentials` table is provisioned by migration
+// `061_cloud_agent_credentials.sql` at database initialization (see
+// src/lib/db/migrations/). Do not create it inline here — the project
+// migration policy requires versioned, transaction-wrapped DDL.
 
 /** Mask API key for display — show last 4 chars only */
 export function maskApiKey(key: string): string {
@@ -26,7 +15,6 @@ export function maskApiKey(key: string): string {
 
 /** Get decrypted credentials for a provider */
 export function getCloudAgentCredentialFromDb(providerId: string): AgentCredentials | null {
-  ensureCredentialsTable();
   const db = getDbInstance();
   const row = db
     .prepare(
@@ -51,7 +39,6 @@ export function listCloudAgentCredentials(): Array<{
   baseUrl: string | null;
   updatedAt: string;
 }> {
-  ensureCredentialsTable();
   const db = getDbInstance();
   const rows = db
     .prepare(
@@ -81,7 +68,6 @@ export function saveCloudAgentCredential(
   apiKey: string,
   baseUrl?: string
 ): void {
-  ensureCredentialsTable();
   const encrypted = encrypt(apiKey);
   if (!encrypted) throw new Error("Failed to encrypt API key");
 
@@ -98,7 +84,6 @@ export function saveCloudAgentCredential(
 
 /** Delete credentials for a provider */
 export function deleteCloudAgentCredential(providerId: string): void {
-  ensureCredentialsTable();
   const db = getDbInstance();
   db.prepare("DELETE FROM cloud_agent_credentials WHERE provider_id = ?").run(providerId);
 }
