@@ -326,12 +326,10 @@ export class GeminiCLIExecutor extends BaseExecutor {
     const storedProject =
       bodyRecord.project ||
       credentials.projectId ||
-      (credentials.providerSpecificData as Record<string, unknown>)?.projectId ||
-      "";
+      (credentials.providerSpecificData as Record<string, unknown>)?.projectId;
 
     const envelope: Record<string, any> = {
       model: currentModel,
-      project: storedProject,
       user_prompt_id: bodyRecord.user_prompt_id || generateGeminiCliRequestId(),
       request: {
         ...requestRecord,
@@ -339,8 +337,12 @@ export class GeminiCLIExecutor extends BaseExecutor {
       },
     };
 
+    if (typeof storedProject === "string" ? storedProject.trim() : storedProject) {
+      envelope.project = storedProject;
+    }
+
     for (const [key, value] of Object.entries(bodyRecord)) {
-      if (!(key in envelope) && key !== "request") {
+      if (!(key in envelope) && key !== "request" && key !== "project") {
         envelope[key] = value;
       }
     }
