@@ -31,11 +31,14 @@ import assert from "node:assert/strict";
 import {
   applyEnrichment,
   applyProviderTag,
+  buildCanonicalToAliasMap,
+  canonicalDedupSet,
   createOmniRouteConfigHook,
   createOmniRouteProviderHook,
   defaultOmniRouteEnrichmentFetcher,
   defaultOmniRouteCompressionMetaFetcher,
   formatCompressionPipeline,
+  lookupEnrichment,
   parseOmniRoutePluginOptions,
   PROVIDER_TAG_SEPARATOR,
   type OmniRouteEnrichmentMap,
@@ -721,4 +724,180 @@ test("defaultOmniRouteEnrichmentFetcher: pricing-only when catalog endpoint 5xxs
   } finally {
     globalThis.fetch = origFetch;
   }
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// Canonical-twin dedup + alias-fallback lookup
+// ─────────────────────────────────────────────────────────────────────────
+
+function makeEnrichmentMap(
+  entries: Array<{
+    key: string;
+    name?: string;
+    providerAlias?: string;
+    providerCanonical?: string;
+    providerDisplayName?: string;
+  }>
+): OmniRouteEnrichmentMap {
+  const map: OmniRouteEnrichmentMap = new Map();
+  for (const e of entries) {
+    map.set(e.key, {
+      name: e.name,
+      providerAlias: e.providerAlias,
+      providerCanonical: e.providerCanonical,
+      providerDisplayName: e.providerDisplayName,
+    });
+  }
+  return map;
+}
+
+test("buildCanonicalToAliasMap: maps canonical → alias when both present and distinct", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+    { key: "cx/gpt-5.5", providerAlias: "cx", providerCanonical: "codex" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  assert.equal(c2a.get("claude"), "cc");
+  assert.equal(c2a.get("codex"), "cx");
+  assert.equal(c2a.size, 2);
+});
+
+test("buildCanonicalToAliasMap: skips entries where alias === canonical (e.g. kiro)", () => {
+  const map = makeEnrichmentMap([
+    { key: "kiro/claude-sonnet-4", providerAlias: "kiro", providerCanonical: "kiro" },
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  assert.equal(c2a.has("kiro"), false);
+  assert.equal(c2a.get("claude"), "cc");
+  assert.equal(c2a.size, 1);
+});
+
+test("buildCanonicalToAliasMap: undefined enrichment → empty map", () => {
+  const c2a = buildCanonicalToAliasMap(undefined);
+  assert.equal(c2a.size, 0);
+});
+
+test("buildCanonicalToAliasMap: first-wins on duplicate canonical", () => {
+  // Two aliases claiming same canonical — first registration wins.
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+    { key: "anthropic/claude-opus-4-7", providerAlias: "anthropic", providerCanonical: "claude" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  assert.equal(c2a.get("claude"), "cc");
+});
+
+test("lookupEnrichment: direct hit", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  const hit = lookupEnrichment("cc/claude-opus-4-7", map, c2a);
+  assert.equal(hit?.name, "Claude Opus 4.7");
+});
+
+test("lookupEnrichment: canonical → alias fallback hits", () => {
+  const map = makeEnrichmentMap([
+    {
+      key: "cc/claude-opus-4-7",
+      name: "Claude Opus 4.7",
+      providerAlias: "cc",
+      providerCanonical: "claude",
+    },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  // Caller asks for `claude/claude-opus-4-7` — should resolve via alias `cc`.
+  const hit = lookupEnrichment("claude/claude-opus-4-7", map, c2a);
+  assert.equal(hit?.name, "Claude Opus 4.7");
+});
+
+test("lookupEnrichment: short-alias (e.g. dg/nova-3) → bare-id fallback hits", () => {
+  // Fetcher writes both alias-key AND bare-id key. If alias isn't a known
+  // prefix in canonicalToAlias (no canonical mapping), bare-id fallback
+  // still rescues the row.
+  const map = makeEnrichmentMap([
+    { key: "deepgram/nova-3", name: "Nova 3 (Transcription)" },
+    { key: "nova-3", name: "Nova 3 (Transcription)" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  // `dg/nova-3` is the raw id — prefix `dg` not in canonicalToAlias map,
+  // but bare `nova-3` is. Bare fallback hits.
+  const hit = lookupEnrichment("dg/nova-3", map, c2a);
+  assert.equal(hit?.name, "Nova 3 (Transcription)");
+});
+
+test("lookupEnrichment: nothing matches → undefined", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  const hit = lookupEnrichment("qoder/unknown-model", map, c2a);
+  assert.equal(hit, undefined);
+});
+
+test("lookupEnrichment: undefined enrichment map → undefined", () => {
+  const c2a = new Map<string, string>();
+  const hit = lookupEnrichment("cc/claude-opus-4-7", undefined, c2a);
+  assert.equal(hit, undefined);
+});
+
+test("canonicalDedupSet: drops canonical row when alias twin present", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  const raw: OmniRouteRawModelEntry[] = [
+    { id: "cc/claude-opus-4-7" } as OmniRouteRawModelEntry,
+    { id: "claude/claude-opus-4-7" } as OmniRouteRawModelEntry,
+  ];
+  const drop = canonicalDedupSet(raw, c2a);
+  assert.equal(drop.has("claude/claude-opus-4-7"), true);
+  assert.equal(drop.has("cc/claude-opus-4-7"), false);
+  assert.equal(drop.size, 1);
+});
+
+test("canonicalDedupSet: keeps standalone canonical row (no alias twin) — never hides a model", () => {
+  // Only canonical row present, no alias twin. Must NOT drop — otherwise
+  // we'd hide the model entirely from the catalog.
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  const raw: OmniRouteRawModelEntry[] = [
+    { id: "claude/claude-opus-99" } as OmniRouteRawModelEntry, // canonical only — no `cc/claude-opus-99`
+  ];
+  const drop = canonicalDedupSet(raw, c2a);
+  assert.equal(drop.size, 0);
+});
+
+test("canonicalDedupSet: no enrichment / empty canonicalToAlias → no drops", () => {
+  const raw: OmniRouteRawModelEntry[] = [
+    { id: "claude/claude-opus-4-7" } as OmniRouteRawModelEntry,
+    { id: "cc/claude-opus-4-7" } as OmniRouteRawModelEntry,
+  ];
+  const drop = canonicalDedupSet(raw, new Map());
+  assert.equal(drop.size, 0);
+});
+
+test("canonicalDedupSet: multi-provider — drops all canonical twins where alias exists", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude" },
+    { key: "cx/gpt-5.5", providerAlias: "cx", providerCanonical: "codex" },
+    { key: "pol/openai-large", providerAlias: "pol", providerCanonical: "pollinations" },
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  const raw: OmniRouteRawModelEntry[] = [
+    { id: "cc/claude-opus-4-7" } as OmniRouteRawModelEntry,
+    { id: "claude/claude-opus-4-7" } as OmniRouteRawModelEntry,
+    { id: "cx/gpt-5.5" } as OmniRouteRawModelEntry,
+    { id: "codex/gpt-5.5" } as OmniRouteRawModelEntry,
+    { id: "pol/openai-large" } as OmniRouteRawModelEntry,
+    { id: "pollinations/openai-large" } as OmniRouteRawModelEntry,
+  ];
+  const drop = canonicalDedupSet(raw, c2a);
+  assert.equal(drop.has("claude/claude-opus-4-7"), true);
+  assert.equal(drop.has("codex/gpt-5.5"), true);
+  assert.equal(drop.has("pollinations/openai-large"), true);
+  assert.equal(drop.size, 3);
 });

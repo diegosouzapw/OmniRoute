@@ -1148,6 +1148,114 @@ export function applyProviderTag(
 }
 
 /**
+ * Reverse-index the enrichment map from `providerCanonical → providerAlias`.
+ *
+ * OmniRoute's `/api/pricing/models` is keyed by short ALIAS (`cc`, `cx`,
+ * `pol`). But `/v1/models` exposes some models a SECOND time under their
+ * CANONICAL name (`claude/claude-opus-4-7`, `codex/gpt-5.5`,
+ * `pollinations/midjourney`). Without a reverse map, those canonical
+ * rows miss enrichment entirely and surface as raw ids in the picker.
+ *
+ * Built once per refresh from the enrichment entries themselves — no
+ * hardcoded registry. Only records `canonical → alias` mappings when
+ * both are present AND distinct (skips slots where alias === canonical
+ * like `kiro`).
+ */
+export function buildCanonicalToAliasMap(
+  enrichment: OmniRouteEnrichmentMap | undefined
+): Map<string, string> {
+  const out = new Map<string, string>();
+  if (!enrichment) return out;
+  for (const entry of enrichment.values()) {
+    const alias = typeof entry.providerAlias === "string" ? entry.providerAlias.trim() : "";
+    const canonical =
+      typeof entry.providerCanonical === "string" ? entry.providerCanonical.trim() : "";
+    if (alias.length === 0 || canonical.length === 0) continue;
+    if (alias === canonical) continue;
+    if (!out.has(canonical)) out.set(canonical, alias);
+  }
+  return out;
+}
+
+/**
+ * Enrichment lookup with alias-fallback chain.
+ *
+ * Resolution order (first hit wins):
+ *
+ *   1. `enrichment.get(rawId)` — direct hit on `<prefix>/<modelId>` or
+ *      bare id (the fetcher writes under both forms).
+ *   2. If `rawId` is `<canonical>/<modelId>` and `canonicalToAlias` has
+ *      a mapping for `canonical`, try `<alias>/<modelId>`. This rescues
+ *      duplicate rows like `claude/claude-opus-4-7` (canonical) when
+ *      enrichment only indexed under `cc/claude-opus-4-7` (alias).
+ *   3. Bare `<modelId>` as a last resort. Already covered by step 1 in
+ *      practice (fetcher writes bare keys), but kept defensive.
+ *
+ * Returns `undefined` when no lookup hits.
+ */
+export function lookupEnrichment(
+  rawId: string,
+  enrichment: OmniRouteEnrichmentMap | undefined,
+  canonicalToAlias: Map<string, string>
+): OmniRouteEnrichmentEntry | undefined {
+  if (!enrichment) return undefined;
+  const direct = enrichment.get(rawId);
+  if (direct) return direct;
+  const slash = rawId.indexOf("/");
+  if (slash > 0) {
+    const prefix = rawId.slice(0, slash);
+    const modelId = rawId.slice(slash + 1);
+    const alias = canonicalToAlias.get(prefix);
+    if (alias && alias !== prefix) {
+      const viaAlias = enrichment.get(`${alias}/${modelId}`);
+      if (viaAlias) return viaAlias;
+    }
+    const bare = enrichment.get(modelId);
+    if (bare) return bare;
+  }
+  return undefined;
+}
+
+/**
+ * Pre-pass: detect raw rows that are the CANONICAL twin of an ALIAS row
+ * already in the catalog. Returns the set of canonical-keyed ids to skip
+ * during the raw-model loop so each model surfaces exactly once under
+ * its enriched alias key.
+ *
+ * Example: `/v1/models` returns BOTH `cc/claude-opus-4-7` and
+ * `claude/claude-opus-4-7`. The former is enriched (alias `cc` exists
+ * in `/api/pricing/models`); the latter is raw. We keep `cc/...` and
+ * drop `claude/...`.
+ *
+ * Built once per refresh. Cheap — O(M) where M = raw model count.
+ */
+export function canonicalDedupSet(
+  rawModels: ReadonlyArray<OmniRouteRawModelEntry>,
+  canonicalToAlias: Map<string, string>
+): Set<string> {
+  const drop = new Set<string>();
+  if (canonicalToAlias.size === 0) return drop;
+  // Index every alias key present in the raw catalog.
+  const aliasKeys = new Set<string>();
+  for (const m of rawModels) {
+    if (typeof m.id === "string" && m.id.length > 0) aliasKeys.add(m.id);
+  }
+  for (const m of rawModels) {
+    if (typeof m.id !== "string" || m.id.length === 0) continue;
+    const slash = m.id.indexOf("/");
+    if (slash <= 0) continue;
+    const prefix = m.id.slice(0, slash);
+    const modelId = m.id.slice(slash + 1);
+    const alias = canonicalToAlias.get(prefix);
+    if (!alias || alias === prefix) continue;
+    // Canonical row only gets suppressed if the alias row actually
+    // exists — otherwise we'd hide the model entirely.
+    if (aliasKeys.has(`${alias}/${modelId}`)) drop.add(m.id);
+  }
+  return drop;
+}
+
+/**
  * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
  * passed entry for convenience.
  */
@@ -1856,20 +1964,29 @@ export function createOmniRouteProviderHook(
           ? usableProviderAliasSet(rawConnections, rawEnrichment)
           : undefined;
 
+      // Build the canonical→alias reverse map AND the canonical-dedup
+      // set once per refresh. Together they fix the dual-keyed
+      // `/v1/models` problem where the same model surfaces under BOTH
+      // `<alias>/<id>` (enriched) AND `<canonical>/<id>` (raw): we keep
+      // the alias key and skip the canonical twin entirely.
+      const canonicalToAlias = buildCanonicalToAliasMap(rawEnrichment);
+      const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+
       // Map raw models → ModelV2 keyed by id. When enrichment data is
       // present (features.enrichment, default on), overlay the nicer
-      // display name + pricing from /api/pricing/models. The enrichment
-      // map keys on both namespaced (`<provider>/<id>`) and bare ids so
-      // we just try the bare id first, then fall back.
+      // display name + pricing from /api/pricing/models via the
+      // alias-fallback lookup chain (covers canonical rows lacking
+      // direct pricing entries).
       const models: Record<string, ModelV2> = {};
       for (const entry of rawModels) {
         if (!entry.id) continue;
+        if (canonicalDedup.has(entry.id)) continue;
         if (usable && !isUsableRawModelId(entry.id, usable, rawEnrichment)) continue;
         const model = mapRawModelToModelV2(entry, {
           providerId: resolved.providerId,
           baseURL,
         });
-        const enrichEntry = rawEnrichment.get(entry.id);
+        const enrichEntry = lookupEnrichment(entry.id, rawEnrichment, canonicalToAlias);
         applyEnrichment(model, enrichEntry);
         // Prepend upstream provider label (e.g. `Claude - Claude Opus 4.7`)
         // so the picker groups same-model rows by upstream connection.
@@ -2500,6 +2617,13 @@ export function buildStaticProviderEntry(
     if (typeof name === "string" && name.length > 0) comboNames.add(name);
   }
 
+  // Build the canonical→alias reverse map AND the canonical-dedup set
+  // once per static-block construction. Same shape as the dynamic hook
+  // so both catalogs publish identical keys (no `claude/X` raw twin
+  // shadowing the enriched `cc/X` row).
+  const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
+  const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+
   // Raw model entries → stripped per-model shape.
   for (const raw of rawModels) {
     if (!raw.id) continue;
@@ -2507,14 +2631,18 @@ export function buildStaticProviderEntry(
     // `combo/<name>` namespace. We keep `codex-auto-review` and any other
     // future no-slash raw entry that doesn't have a matching combo.
     if (comboNames.has(raw.id)) continue;
+    // Skip canonical-named twins when the alias-keyed enriched row exists.
+    if (canonicalDedup.has(raw.id)) continue;
     if (usable && !isUsableRawModelId(raw.id, usable, enrichment)) continue;
     const caps = raw.capabilities ?? {};
     // Enrichment overlay: `/api/pricing/models` carries human display names
     // (e.g. "Claude Opus 4.7" for raw id "cc/claude-opus-4-7"). The OC TUI
     // model picker reads this `name` straight from the static block on
     // OC ≤1.15.5 where the dynamic provider hook never fires. Falls back
-    // to the raw id when no enrichment entry is found.
-    const enrichmentEntry = enrichment?.get(raw.id);
+    // to the raw id when no enrichment entry is found. The alias-fallback
+    // lookup rescues `<canonical>/<id>` rows whose enrichment indexed only
+    // under `<alias>/<id>`.
+    const enrichmentEntry = lookupEnrichment(raw.id, enrichment, canonicalToAlias);
     const enrichmentName = enrichmentEntry?.name;
     let displayName = enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id;
     // Provider-tag PREFIX — `<label> - <name>` so the picker groups by
