@@ -6406,6 +6406,8 @@
     "combo": "Combo",
     "keys": "Keys",
     "shown": "Shown",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more...",
     "sortNewest": "Newest",
     "sortOldest": "Oldest",
     "sortTokensDesc": "Tokens ↓",

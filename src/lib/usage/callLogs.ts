@@ -844,8 +844,11 @@ export async function getCallLogs(filter: any = {}) {
     sql += " WHERE " + conditions.join(" AND ");
   }
 
-  const limit = filter.limit || 200;
-  sql += ` ORDER BY cl.timestamp DESC LIMIT ${limit}`;
+  const limit = Number.isInteger(filter.limit) && filter.limit > 0 ? filter.limit : 200;
+  const offset = Number.isInteger(filter.offset) && filter.offset > 0 ? filter.offset : 0;
+  sql += ` ORDER BY cl.timestamp DESC LIMIT @__limit OFFSET @__offset`;
+  params.__limit = limit;
+  params.__offset = offset;
 
   const rows = db.prepare(sql).all(params) as CallLogSummaryRow[];
   return rows.map(mapSummaryRow);
