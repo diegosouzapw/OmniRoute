@@ -797,16 +797,16 @@ async function validateGeminiLikeProvider({
     const headers: Record<string, string> = {};
     let urlWithKey = requestUrl;
 
-    if (normalizedAuthType === "query") {
-      urlWithKey = `${requestUrl}?key=${encodeURIComponent(apiKey)}`;
-    } else if (normalizedAuthType === "header" || normalizedAuthType === "apikey") {
-      headers["x-goog-api-key"] = apiKey;
-    } else if (
+    if (
       normalizedAuthType === "oauth" ||
       normalizedAuthType === "bearer" ||
       apiKey.startsWith("ya29.")
     ) {
       headers.Authorization = `Bearer ${apiKey}`;
+    } else if (normalizedAuthType === "query") {
+      urlWithKey = `${requestUrl}?key=${encodeURIComponent(apiKey)}`;
+    } else if (normalizedAuthType === "header" || normalizedAuthType === "apikey") {
+      headers["x-goog-api-key"] = apiKey;
     }
 
     applyCustomUserAgent(headers, providerSpecificData);

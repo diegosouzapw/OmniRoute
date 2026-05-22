@@ -2293,7 +2293,13 @@ export async function handleComboChat({
     // Estimate input tokens once; exclude candidates whose known context limit is too small.
     // Uses the same 4-chars-per-token heuristic as contextManager.ts::compressContext().
     // Null/unknown limits are treated as "include" to avoid incorrectly dropping valid targets.
-    const estimatedInputTokens = estimateTokens(body?.messages ?? []);
+    const requestMessages = body.messages;
+    const estimatedInputTokens = estimateTokens(
+      typeof requestMessages === "string" ||
+        (requestMessages !== null && typeof requestMessages === "object")
+        ? requestMessages
+        : []
+    );
     if (estimatedInputTokens > 0) {
       const filteredByContext = eligibleTargets.filter((target) => {
         const limit = getModelContextLimitForModelString(target.modelStr);
@@ -2301,7 +2307,7 @@ export async function handleComboChat({
         return limit >= estimatedInputTokens;
       });
       if (filteredByContext.length > 0) {
-        log.debug(
+        log.debug?.(
           "COMBO",
           `Auto strategy: context-window filter kept ${filteredByContext.length}/${eligibleTargets.length} candidates (est. ${estimatedInputTokens} tokens)`
         );
@@ -2481,7 +2487,7 @@ export async function handleComboChat({
             `[LKGP] Prioritizing last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} for combo "${combo.name}"`
           );
         } else if (lkgpIndex === 0) {
-          log.debug(
+          log.debug?.(
             "COMBO",
             `[LKGP] Last known good provider ${providerName}${connId ? ` (account ${connId})` : ""} already first for combo "${combo.name}"`
           );
@@ -2547,7 +2553,7 @@ export async function handleComboChat({
           );
           if (eligible.length > 0) orderedTargets = eligible;
         }
-        log.debug(
+        log.debug?.(
           {
             strategyModifier: manifestHint.strategyModifier,
             specificityLevel: manifestHint.specificityLevel,
@@ -2878,7 +2884,7 @@ export async function handleComboChat({
 
         // #1731: If the entire provider quota is exhausted, mark it so subsequent
         // same-provider targets are skipped immediately.
-        if (provider && isProviderExhaustedReason(fallbackResult)) {
+        if (provider && provider !== "unknown" && isProviderExhaustedReason(fallbackResult)) {
           exhaustedProviders.add(provider);
           log.info(
             "COMBO",
@@ -3262,7 +3268,7 @@ async function handleRoundRobinCombo({
 
         // #1731: If the entire provider quota is exhausted, mark it so subsequent
         // same-provider targets are skipped immediately.
-        if (provider && isProviderExhaustedReason(fallbackResult)) {
+        if (provider && provider !== "unknown" && isProviderExhaustedReason(fallbackResult)) {
           exhaustedProviders.add(provider);
           log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
         }
@@ -3289,7 +3295,7 @@ async function handleRoundRobinCombo({
             `All accounts rate-limited for ${modelStr}, falling back to next model`
           );
           // #1731: All-accounts-rate-limited 503 also counts as provider exhaustion
-          if (provider) {
+          if (provider && provider !== "unknown") {
             exhaustedProviders.add(provider);
           }
         }

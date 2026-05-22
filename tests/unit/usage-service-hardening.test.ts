@@ -5,6 +5,8 @@ const usageService = await import("../../open-sse/services/usage.ts");
 const { __testing } = usageService;
 const { getAntigravityLoadCodeAssistMetadata } =
   await import("../../open-sse/services/antigravityHeaders.ts");
+const { getAntigravityFetchAvailableModelsUrls } =
+  await import("../../open-sse/config/antigravityUpstream.ts");
 
 const originalFetch = globalThis.fetch;
 const originalCreditsMode = process.env.ANTIGRAVITY_CREDITS;
@@ -350,6 +352,8 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
 
 test("usage service retries Antigravity fetchAvailableModels across the shared fallback order", async () => {
   const calls: any[] = [];
+  const expectedQuotaUrls = getAntigravityFetchAvailableModelsUrls();
+  const finalQuotaUrl = expectedQuotaUrls.at(-1);
 
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), init });
@@ -364,16 +368,9 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
       );
     }
 
-    try {
-      const parsedUrl = new URL(String(url));
-      if (parsedUrl.hostname === "daily-cloudcode-pa.sandbox.googleapis.com") {
-        return new Response("bad gateway", { status: 502 });
-      }
-      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
-        return new Response("bad gateway", { status: 502 });
-      }
-    } catch {
-      // Ignore invalid URLs
+    const urlString = String(url);
+    if (expectedQuotaUrls.includes(urlString) && urlString !== finalQuotaUrl) {
+      return new Response("bad gateway", { status: 502 });
     }
 
     return new Response(
@@ -399,11 +396,7 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   const quotaCalls = calls.filter((call) => call.url.includes("fetchAvailableModels"));
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
-    [
-      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-    ]
+    expectedQuotaUrls
   );
   assert.match(quotaCalls[2].init.headers["User-Agent"], /^Antigravity\//);
   assert.equal(usage.plan, "Business");
