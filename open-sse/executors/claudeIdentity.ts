@@ -290,18 +290,24 @@ export function parseUpstreamMetadataUserId(
  * heavy agent flags (issue #2454). Matches real Claude Code captures.
  */
 const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
+/**
+ * Models that support the context-1m beta tier. Only Opus is eligible;
+ * Sonnet trips long-context credit gates under OAuth full-agent traffic.
+ */
 const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
 
-function isHeavyAgentModel(model: unknown): boolean {
+function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
   if (typeof model !== "string") return false;
   const normalized = model.toLowerCase();
-  return HEAVY_AGENT_BETA_MODEL_PREFIXES.some((prefix) => normalized.includes(prefix));
+  return prefixes.some((prefix) => normalized.includes(prefix));
+}
+
+function isHeavyAgentModel(model: unknown): boolean {
+  return matchesModelPrefix(model, HEAVY_AGENT_BETA_MODEL_PREFIXES);
 }
 
 function isContext1mModel(model: unknown): boolean {
-  if (typeof model !== "string") return false;
-  const normalized = model.toLowerCase();
-  return CONTEXT_1M_BETA_MODEL_PREFIXES.some((prefix) => normalized.includes(prefix));
+  return matchesModelPrefix(model, CONTEXT_1M_BETA_MODEL_PREFIXES);
 }
 
 /**
@@ -346,16 +352,12 @@ export function selectBetaFlags(
   if (hasStructuredOutput || isFullAgent) flags.push("advisor-tool-2026-03-01");
   if (hasStructuredOutput && !isFullAgent) flags.push("structured-outputs-2025-12-15");
   // extended-cache-ttl is sent for all full-agent shapes (incl. Haiku); the
-  // heavier advanced-tool-use / effort flags are Opus/Sonnet-only.
+  // heavier afk-mode / advanced-tool-use / effort flags are Opus/Sonnet-only.
   if (isFullAgent) {
-    flags.push(
-      "afk-mode-2026-01-31",
-      "extended-cache-ttl-2025-04-11",
-      "cache-diagnosis-2026-04-07"
-    );
+    flags.push("extended-cache-ttl-2025-04-11", "cache-diagnosis-2026-04-07");
   }
   if (isHeavyAgent) {
-    flags.push("advanced-tool-use-2025-11-20", "effort-2025-11-24");
+    flags.push("afk-mode-2026-01-31", "advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
   return flags.join(",");
 }

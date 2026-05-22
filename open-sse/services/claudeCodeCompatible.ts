@@ -50,13 +50,7 @@ const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
     text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   },
 ];
-const CONTEXT_1M_SUPPORTED_MODELS = [
-  "claude-opus-4-7",
-  "claude-opus-4-6",
-  "claude-sonnet-4-6",
-  "claude-sonnet-4-5",
-  "claude-sonnet-4",
-];
+const CONTEXT_1M_SUPPORTED_MODELS = ["claude-opus-4-7", "claude-opus-4-6"];
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_TIMEOUT_SECONDS = getStainlessTimeoutSeconds(
   process.env
 );
