@@ -864,7 +864,7 @@ test("checkFallbackError detects model access denied via structured error type (
   assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
 });
 
-test("checkFallbackError detects model access denied via structured error type (Anthropic permission_error)", () => {
+test("checkFallbackError detects model access denied via structured error type (Anthropic permission_error) when the message confirms the model", () => {
   const result = checkFallbackError(
     400,
     "you do not have access to the requested model",
@@ -878,6 +878,23 @@ test("checkFallbackError detects model access denied via structured error type (
   assert.equal(result.shouldFallback, true);
   assert.equal(result.cooldownMs, 0);
   assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT fallback on a permission_error that is a key/feature scope issue (not model access)", () => {
+  // permission_error is ambiguous on Anthropic — also raised for API-key scope,
+  // org restrictions and feature gating. Without a model-related message it must
+  // surface the real error instead of silently exhausting every combo target.
+  const result = checkFallbackError(
+    400,
+    "Your API key does not have permission to use the Message Batches API",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "permission_error" }
+  );
+  assert.equal(result.shouldFallback, false);
 });
 
 test("checkFallbackError detects model access denied via regex fallback (invalid model)", () => {
