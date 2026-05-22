@@ -34,6 +34,24 @@ test("QoderExecutor: buildHeaders inherits configured user agent, auth and strea
   });
 });
 
+test("QoderExecutor: buildHeaders for PAT token includes User-Agent and Accept headers", () => {
+  const executor = new QoderExecutor();
+
+  // PAT tokens (pt- prefix) must include standard headers for native Qoder API compatibility
+  assert.deepEqual(executor.buildHeaders({ apiKey: "pt-test-token" }, true), {
+    "Content-Type": "application/json",
+    "User-Agent": "Qoder-Cli",
+    Authorization: "Bearer pt-test-token",
+    Accept: "text/event-stream",
+  });
+  assert.deepEqual(executor.buildHeaders({ apiKey: "pt-test-token" }, false), {
+    "Content-Type": "application/json",
+    "User-Agent": "Qoder-Cli",
+    Authorization: "Bearer pt-test-token",
+    Accept: "application/json",
+  });
+});
+
 test("QoderExecutor: buildUrl uses the live qoder.com API base", () => {
   const executor = new QoderExecutor();
   assert.equal(

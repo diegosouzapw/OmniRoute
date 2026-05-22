@@ -1,11 +1,15 @@
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getQoderDashscopeCompatHeaders } from "../config/providerHeaderProfiles.ts";
+import {
+  getQoderDashscopeCompatHeaders,
+  QODER_DEFAULT_USER_AGENT,
+} from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
@@ -27,6 +31,17 @@ function getAuthToken(credentials: ProviderCredentials): string {
 export class QoderExecutor extends BaseExecutor {
   constructor() {
     super("qoder", PROVIDERS.qoder);
+  }
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string
+  ): Record<string, string> {
+    const headers = super.buildHeaders(credentials, stream, clientHeaders, model);
+    setUserAgentHeader(headers, QODER_DEFAULT_USER_AGENT);
+    return headers;
   }
 
   transformRequest(model: string, body: unknown): Record<string, unknown> {
