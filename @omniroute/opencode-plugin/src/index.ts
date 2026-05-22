@@ -1068,38 +1068,82 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
 };
 
 /**
- * Separator used by `applyProviderTag` between the enriched model name
- * and the upstream provider label. Middle-dot (U+00B7) chosen for visual
- * compactness in narrow TUI columns; trivially distinct from any model
- * id character so it survives a roundtrip through `model.name`.
+ * Separator used by `applyProviderTag` between the upstream provider
+ * label (prefix) and the enriched model name. ASCII hyphen with
+ * surrounding spaces — terminal-safe everywhere, never collides with
+ * a model id (those use slashes / dots / underscores).
+ *
+ * Layout: `<short-label> - <model name>` (label leads so column scans
+ * group by provider — e.g. `Claude - Claude Opus 4.7`,
+ * `Kiro - Claude Opus 4.7`).
  */
-export const PROVIDER_TAG_SEPARATOR = " · ";
+export const PROVIDER_TAG_SEPARATOR = " - ";
+
+/** Threshold beyond which `providerDisplayName` is abbreviated to UPPER(alias). */
+const PROVIDER_LABEL_MAX_CHARS = 8;
 
 /**
- * Append the upstream provider label to `model.name` so the OC TUI picker
- * can differentiate the same model id sold through different upstream
- * connections (e.g. `cc/claude-opus-4-7` via Anthropic vs `kr/claude-opus-4-7`
- * via Kiro). Mutates the model in place and is idempotent — running twice
- * never double-suffixes. No-op when:
+ * Pick the short label for an upstream provider that goes into the
+ * `<label> · <model>` prefix.
+ *
+ * Rule (matches user spec — no hardcoded registry, fully data-driven):
+ *
+ *   1. Trim `enrichment.providerDisplayName` (= `/api/pricing/models[<alias>].name`).
+ *   2. If the trimmed label is non-empty AND ≤ {@link PROVIDER_LABEL_MAX_CHARS},
+ *      use it verbatim (e.g. `Claude`, `Kiro`, `Codex`, `Qwen`).
+ *   3. Otherwise fall back to `UPPER(enrichment.providerAlias)` so long
+ *      slot.names (`GitHub Models`, `Gemini-cli`) compress to `GHM`,
+ *      `GEMINI-CLI`.
+ *   4. If neither field is usable, return `undefined` (caller should
+ *      skip the prefix decoration).
+ */
+export function shortProviderLabel(
+  enrichment: OmniRouteEnrichmentEntry | undefined
+): string | undefined {
+  if (!enrichment) return undefined;
+  const raw =
+    typeof enrichment.providerDisplayName === "string" ? enrichment.providerDisplayName.trim() : "";
+  if (raw.length > 0 && raw.length <= PROVIDER_LABEL_MAX_CHARS) return raw;
+  const alias = typeof enrichment.providerAlias === "string" ? enrichment.providerAlias.trim() : "";
+  if (alias.length > 0) return alias.toUpperCase();
+  // Tolerate "label too long + no alias" by falling back to the long
+  // label itself — better than dropping the prefix entirely. Rare case.
+  return raw.length > 0 ? raw : undefined;
+}
+
+/**
+ * Prepend the upstream provider label to `model.name` so the OC TUI
+ * picker can differentiate the same model id sold through different
+ * upstream connections (e.g. `cc/claude-opus-4-7` via Anthropic
+ * vs `kr/claude-opus-4-7` via Kiro). Result shape:
+ *
+ *   `<label>${PROVIDER_TAG_SEPARATOR}<enriched name>`
+ *   → `Claude - Claude Opus 4.7`
+ *   → `Kiro - Claude Opus 4.7`
+ *   → `GHM - GPT 5`           (slot.name "GitHub Models" > 8 chars → UPPER(alias))
+ *
+ * Mutates the model in place and is idempotent — running twice never
+ * double-prefixes. No-op when:
  *
  *  - `enrichment` is undefined,
- *  - `enrichment.providerDisplayName` is missing/empty,
- *  - the current `model.name` already ends with the suffix.
+ *  - {@link shortProviderLabel} returns `undefined`
+ *    (no `providerDisplayName` AND no `providerAlias`),
+ *  - the current `model.name` already starts with the prefix.
  *
- * Combos are intentionally skipped by callers (they're multi-upstream by
- * definition; the `Combo: ` prefix conveys that). Raw models call this
- * after `applyEnrichment` so the tag layers on top of the friendly name.
+ * Combos are intentionally skipped by callers (they're multi-upstream
+ * by definition; the `Combo: ` prefix conveys that). Raw models call
+ * this after `applyEnrichment` so the tag layers on top of the
+ * friendly name.
  */
 export function applyProviderTag(
   model: ModelV2,
   enrichment: OmniRouteEnrichmentEntry | undefined
 ): ModelV2 {
-  if (!enrichment) return model;
-  const tag = enrichment.providerDisplayName;
-  if (typeof tag !== "string" || tag.trim().length === 0) return model;
-  const suffix = `${PROVIDER_TAG_SEPARATOR}${tag}`;
-  if (model.name.endsWith(suffix)) return model;
-  model.name = `${model.name}${suffix}`;
+  const label = shortProviderLabel(enrichment);
+  if (!label) return model;
+  const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
+  if (model.name.startsWith(prefix)) return model;
+  model.name = `${prefix}${model.name}`;
   return model;
 }
 
@@ -1230,14 +1274,52 @@ export const defaultOmniRouteCompressionMetaFetcher: OmniRouteCompressionMetaFet
 };
 
 /**
- * Format a compression pipeline as a short human-readable string for combo
- * `name` decoration. Example: `[rtk:standard → caveman:full]`.
+ * Map of well-known compression-intensity tokens to a single emoji
+ * conveying "how much" compression is applied. Traffic-light palette:
+ *
+ *   🟢 minimal / lite   — almost no loss
+ *   🟡 standard          — balanced
+ *   🟠 aggressive / full — heavy
+ *   🔴 ultra             — extreme
+ *
+ * Lookup is case-insensitive. Unknown intensities fall through to the
+ * raw text form (`engine:<intensity>`) so we never hide a value that
+ * OmniRoute knows but the plugin doesn't.
+ *
+ * Exported for callers (and tests) that want to assemble their own
+ * pipeline strings.
+ */
+export const COMPRESSION_INTENSITY_EMOJI: Record<string, string> = {
+  minimal: "🟢",
+  lite: "🟢",
+  standard: "🟡",
+  aggressive: "🟠",
+  full: "🟠",
+  ultra: "🔴",
+};
+
+/**
+ * Format a compression pipeline as a short human-readable string for
+ * combo `name` decoration. Intensity tokens render as a traffic-light
+ * emoji so a column scan reveals "how compressed" the combo is at a
+ * glance:
+ *
+ *   `[rtk🟡 → caveman🟠]`    (rtk:standard → caveman:full)
+ *   `[rtk🔴]`                 (rtk:ultra, single-step)
+ *   `[caveman]`               (engine without intensity, no emoji)
+ *   `[rtk:custom-thing]`      (unknown intensity, raw-text fallback)
  */
 export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]): string {
   if (!pipeline || pipeline.length === 0) return "";
   return (
     "[" +
-    pipeline.map((s) => (s.intensity ? `${s.engine}:${s.intensity}` : s.engine)).join(" → ") +
+    pipeline
+      .map((s) => {
+        if (!s.intensity) return s.engine;
+        const emoji = COMPRESSION_INTENSITY_EMOJI[s.intensity.toLowerCase()];
+        return emoji ? `${s.engine}${emoji}` : `${s.engine}:${s.intensity}`;
+      })
+      .join(" → ") +
     "]"
   );
 }
@@ -1789,10 +1871,10 @@ export function createOmniRouteProviderHook(
         });
         const enrichEntry = rawEnrichment.get(entry.id);
         applyEnrichment(model, enrichEntry);
-        // Append upstream provider label (e.g. `Claude Opus 4.7 · Claude`)
-        // so the picker can differentiate same-id models routed through
-        // different upstream connections. Idempotent + gated by
-        // `features.providerTag` (default-on). Combos skip this on purpose.
+        // Prepend upstream provider label (e.g. `Claude - Claude Opus 4.7`)
+        // so the picker groups same-model rows by upstream connection.
+        // Idempotent + gated by `features.providerTag` (default-on).
+        // Combos skip this on purpose.
         if (wantProviderTag) applyProviderTag(model, enrichEntry);
         models[entry.id] = model;
       }
@@ -2400,8 +2482,8 @@ export function buildStaticProviderEntry(
       ? usableProviderAliasSet(connections, enrichment)
       : undefined;
   // Provider-tag suffix — default-on, opt-out via `features.providerTag: false`.
-  // Appends e.g. ` · Claude` to enriched raw-model names so the picker can
-  // tell `cc/claude-opus-4-7` (Anthropic) apart from `kr/claude-opus-4-7`
+  // Prepends e.g. `Claude - ` to enriched raw-model names so the picker
+  // can tell `cc/claude-opus-4-7` (Anthropic) apart from `kr/claude-opus-4-7`
   // (Kiro). Combos skip this by design.
   const wantProviderTag = opts.features?.providerTag !== false;
 
@@ -2435,15 +2517,15 @@ export function buildStaticProviderEntry(
     const enrichmentEntry = enrichment?.get(raw.id);
     const enrichmentName = enrichmentEntry?.name;
     let displayName = enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id;
-    // Provider-tag suffix — append upstream provider label so the picker
-    // can differentiate same-id models routed through different upstream
-    // connections (mirrors `applyProviderTag` used in the dynamic hook).
-    // Idempotent: skip when the name already ends with the suffix.
+    // Provider-tag PREFIX — `<label> - <name>` so the picker groups by
+    // upstream provider when scanning a column of model names. Mirrors
+    // `applyProviderTag` used in the dynamic hook. Idempotent: skip
+    // when the name already starts with the prefix.
     if (wantProviderTag) {
-      const tag = enrichmentEntry?.providerDisplayName;
-      if (typeof tag === "string" && tag.trim().length > 0) {
-        const suffix = `${PROVIDER_TAG_SEPARATOR}${tag}`;
-        if (!displayName.endsWith(suffix)) displayName = `${displayName}${suffix}`;
+      const label = shortProviderLabel(enrichmentEntry);
+      if (label) {
+        const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
+        if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;
       }
     }
     const entry: OmniRouteStaticModelEntry = { name: displayName };
