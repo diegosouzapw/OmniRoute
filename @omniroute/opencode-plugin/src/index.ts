@@ -1079,21 +1079,45 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
  */
 export const PROVIDER_TAG_SEPARATOR = " - ";
 
-/** Threshold beyond which `providerDisplayName` is abbreviated to UPPER(alias). */
-const PROVIDER_LABEL_MAX_CHARS = 8;
+/**
+ * Threshold beyond which `providerDisplayName` is abbreviated. Raised
+ * from 8 → 12 so curated brand casing (`AssemblyAI`, `Antigravity`,
+ * `Pollinations`, `GEMINI-CLI` curated form) wins over a shouty
+ * UPPER(alias) fallback for the common case.
+ */
+const PROVIDER_LABEL_MAX_CHARS = 12;
+
+/**
+ * Aliases longer than this get title-case fallback instead of UPPER —
+ * keeps short-token UPPER (`cc`→`CC`, `ghm`→`GHM`) but tames long
+ * lowercase aliases (`antigravity`→`Antigravity`).
+ */
+const ALIAS_UPPER_MAX_CHARS = 5;
+
+/**
+ * Title-case a long, lowercase-looking alias (e.g. `antigravity` →
+ * `Antigravity`) so the prefix doesn't shout when neither
+ * `providerDisplayName` nor a short alias is available.
+ */
+function titleCaseAlias(alias: string): string {
+  if (alias.length === 0) return alias;
+  return alias.charAt(0).toUpperCase() + alias.slice(1).toLowerCase();
+}
 
 /**
  * Pick the short label for an upstream provider that goes into the
- * `<label> · <model>` prefix.
+ * `<label> - <model>` prefix.
  *
  * Rule (matches user spec — no hardcoded registry, fully data-driven):
  *
  *   1. Trim `enrichment.providerDisplayName` (= `/api/pricing/models[<alias>].name`).
- *   2. If the trimmed label is non-empty AND ≤ {@link PROVIDER_LABEL_MAX_CHARS},
- *      use it verbatim (e.g. `Claude`, `Kiro`, `Codex`, `Qwen`).
- *   3. Otherwise fall back to `UPPER(enrichment.providerAlias)` so long
- *      slot.names (`GitHub Models`, `Gemini-cli`) compress to `GHM`,
- *      `GEMINI-CLI`.
+ *   2. If the trimmed label is non-empty AND ≤ {@link PROVIDER_LABEL_MAX_CHARS} (12),
+ *      use it verbatim (e.g. `Claude`, `Kiro`, `AssemblyAI`, `Antigravity`).
+ *   3. Otherwise look at the alias:
+ *      - if the alias is short (≤ {@link ALIAS_UPPER_MAX_CHARS}) →
+ *        `UPPER(alias)` (e.g. `cc` → `CC`, `ghm` → `GHM`).
+ *      - if the alias is longer → title-case it (`antigravity` →
+ *        `Antigravity`) so the prefix is readable, not shouty.
  *   4. If neither field is usable, return `undefined` (caller should
  *      skip the prefix decoration).
  */
@@ -1105,7 +1129,9 @@ export function shortProviderLabel(
     typeof enrichment.providerDisplayName === "string" ? enrichment.providerDisplayName.trim() : "";
   if (raw.length > 0 && raw.length <= PROVIDER_LABEL_MAX_CHARS) return raw;
   const alias = typeof enrichment.providerAlias === "string" ? enrichment.providerAlias.trim() : "";
-  if (alias.length > 0) return alias.toUpperCase();
+  if (alias.length > 0) {
+    return alias.length <= ALIAS_UPPER_MAX_CHARS ? alias.toUpperCase() : titleCaseAlias(alias);
+  }
   // Tolerate "label too long + no alias" by falling back to the long
   // label itself — better than dropping the prefix entirely. Rare case.
   return raw.length > 0 ? raw : undefined;
@@ -1120,7 +1146,8 @@ export function shortProviderLabel(
  *   `<label>${PROVIDER_TAG_SEPARATOR}<enriched name>`
  *   → `Claude - Claude Opus 4.7`
  *   → `Kiro - Claude Opus 4.7`
- *   → `GHM - GPT 5`           (slot.name "GitHub Models" > 8 chars → UPPER(alias))
+ *   → `AssemblyAI - Universal 2 (Transcription)` (slot.name fits, used verbatim)
+ *   → `GHM - GPT 5`           (slot.name "GitHub Models" > 12 chars → UPPER(alias))
  *
  * Mutates the model in place and is idempotent — running twice never
  * double-prefixes. No-op when:

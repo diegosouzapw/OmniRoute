@@ -221,6 +221,28 @@ test("applyProviderTag: only providerAlias known → UPPER(alias) prefix", () =>
   assert.equal(m.name, "CC - Claude Sonnet 4.6");
 });
 
+test("applyProviderTag: long alias (no displayName) → title-case fallback, not shouty UPPER", () => {
+  const m = baseModel();
+  m.name = "Gemini 2.5 Flash";
+  applyProviderTag(m as never, { providerAlias: "antigravity" });
+  assert.equal(m.name, "Antigravity - Gemini 2.5 Flash");
+});
+
+test("applyProviderTag: displayName fits new 12-char cap → used verbatim (AssemblyAI/Antigravity)", () => {
+  const m1 = baseModel();
+  m1.name = "Universal 2 (Transcription)";
+  applyProviderTag(m1 as never, { providerDisplayName: "AssemblyAI", providerAlias: "aai" });
+  assert.equal(m1.name, "AssemblyAI - Universal 2 (Transcription)");
+
+  const m2 = baseModel();
+  m2.name = "Gemini 2.5 Flash";
+  applyProviderTag(m2 as never, {
+    providerDisplayName: "Antigravity",
+    providerAlias: "antigravity",
+  });
+  assert.equal(m2.name, "Antigravity - Gemini 2.5 Flash");
+});
+
 test("applyProviderTag: empty/whitespace providerDisplayName + no alias → no-op", () => {
   const m = baseModel();
   m.name = "Claude Sonnet 4.6";
@@ -789,9 +811,7 @@ test("buildCanonicalToAliasMap: first-wins on duplicate canonical", () => {
 });
 
 test("lookupEnrichment: direct hit", () => {
-  const map = makeEnrichmentMap([
-    { key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" },
-  ]);
+  const map = makeEnrichmentMap([{ key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" }]);
   const c2a = buildCanonicalToAliasMap(map);
   const hit = lookupEnrichment("cc/claude-opus-4-7", map, c2a);
   assert.equal(hit?.name, "Claude Opus 4.7");
@@ -828,9 +848,7 @@ test("lookupEnrichment: short-alias (e.g. dg/nova-3) → bare-id fallback hits",
 });
 
 test("lookupEnrichment: nothing matches → undefined", () => {
-  const map = makeEnrichmentMap([
-    { key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" },
-  ]);
+  const map = makeEnrichmentMap([{ key: "cc/claude-opus-4-7", name: "Claude Opus 4.7" }]);
   const c2a = buildCanonicalToAliasMap(map);
   const hit = lookupEnrichment("qoder/unknown-model", map, c2a);
   assert.equal(hit, undefined);

@@ -1122,7 +1122,7 @@ test("config: providerTag (default-on) prepends '<provider> - ' to enriched raw-
     .omniroute;
   assert.ok(entry);
   assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude - Claude Sonnet 4.6");
-  assert.equal(entry.models["gemini-3-flash"].name, "GEMINI-CLI - Gemini 3 Flash");
+  assert.equal(entry.models["gemini-3-flash"].name, "Gemini-cli - Gemini 3 Flash");
   // Combos stay untouched — `Combo: ` prefix already conveys multi-upstream.
   assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
 });
