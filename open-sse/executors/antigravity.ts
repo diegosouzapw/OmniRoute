@@ -1,13 +1,20 @@
 import crypto, { randomUUID } from "crypto";
 import {
   BaseExecutor,
+  mergeAbortSignals,
   mergeUpstreamExtraHeaders,
   type ExecuteInput,
   type ExecutorLog,
   type ProviderCredentials,
 } from "./base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
-import { PROVIDERS, OAUTH_ENDPOINTS, HTTP_STATUS } from "../config/constants.ts";
+import {
+  PROVIDERS,
+  OAUTH_ENDPOINTS,
+  HTTP_STATUS,
+  STREAM_READINESS_TIMEOUT_MS,
+  ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE,
+} from "../config/constants.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import {
   antigravityNativeOAuthUserAgent,
@@ -44,7 +51,6 @@ import {
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
-
 const BARE_PRO_IDS = new Set(["gemini-3.1-pro"]);
 
 interface AntigravityContent {
@@ -129,6 +135,26 @@ type AntigravityRequestEnvelope = Record<string, unknown> & {
   request: Record<string, unknown>;
   enabledCreditTypes?: string[];
 };
+
+class AntigravityPreResponseTimeoutError extends Error {
+  code = ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
+  status = HTTP_STATUS.GATEWAY_TIMEOUT;
+
+  constructor(timeoutMs: number, url: string) {
+    super(`Antigravity upstream did not return response headers within ${timeoutMs}ms: ${url}`);
+    this.name = "TimeoutError";
+  }
+}
+
+function getAbortErrorCode(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const value = (error as { code?: unknown }).code;
+  return typeof value === "string" ? value : null;
+}
+
+function isAntigravityPreResponseTimeout(error: unknown): boolean {
+  return getAbortErrorCode(error) === ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE;
+}
 
 /**
  * Per-account GOOGLE_ONE_AI credits-exhausted tracker.
@@ -583,6 +609,9 @@ export class AntigravityExecutor extends BaseExecutor {
             : credentials.refreshToken,
         expiresIn: typeof tokens.expires_in === "number" ? tokens.expires_in : undefined,
         projectId: credentials.projectId,
+        // Preserve providerSpecificData so a projectId stored there survives the refresh
+        // (the onCredentialsRefreshed DB write) instead of being dropped → 422 (#2480).
+        providerSpecificData: credentials.providerSpecificData,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -774,6 +803,44 @@ export class AntigravityExecutor extends BaseExecutor {
     const creditsMode = getCreditsMode();
     const useCreditsFirst = shouldUseCreditsFirst(credentials?.accessToken || "", creditsMode);
 
+    const fetchWithReadinessTimeout = async (
+      url: string,
+      init: RequestInit,
+      timeoutMs = STREAM_READINESS_TIMEOUT_MS
+    ): Promise<Response> => {
+      const boundedTimeoutMs = Math.max(0, Math.floor(timeoutMs));
+      if (boundedTimeoutMs <= 0) {
+        return fetch(url, init);
+      }
+
+      const timeoutController = new AbortController();
+      let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+        timeoutController.abort(new AntigravityPreResponseTimeoutError(boundedTimeoutMs, url));
+      }, boundedTimeoutMs);
+
+      const existingSignal = init.signal instanceof AbortSignal ? init.signal : null;
+      const combinedSignal = existingSignal
+        ? mergeAbortSignals(existingSignal, timeoutController.signal)
+        : timeoutController.signal;
+
+      try {
+        return await fetch(url, { ...init, signal: combinedSignal });
+      } catch (error) {
+        if (
+          timeoutController.signal.aborted &&
+          isAntigravityPreResponseTimeout(timeoutController.signal.reason)
+        ) {
+          throw timeoutController.signal.reason;
+        }
+        throw error;
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      }
+    };
+
     for (let urlIndex = 0; urlIndex < fallbackCount; urlIndex++) {
       const url = this.buildUrl(model, upstreamStream, urlIndex);
       const headers = this.buildHeaders(credentials, upstreamStream);
@@ -849,7 +916,7 @@ export class AntigravityExecutor extends BaseExecutor {
           );
         }
 
-        let response = await fetch(url, {
+        let response = await fetchWithReadinessTimeout(url, {
           method: "POST",
           headers: finalHeaders,
           body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
@@ -861,7 +928,7 @@ export class AntigravityExecutor extends BaseExecutor {
           const retryHeaders = { ...finalHeaders };
           removeHeaderCaseInsensitive(retryHeaders, "x-goog-user-project");
           log?.debug?.("RETRY", "403 with x-goog-user-project, retrying once without it");
-          response = await fetch(url, {
+          response = await fetchWithReadinessTimeout(url, {
             method: "POST",
             headers: retryHeaders,
             body: getChunkedOrFixedBody(serializedRequest.bodyString, stream),
@@ -931,7 +998,7 @@ export class AntigravityExecutor extends BaseExecutor {
                 );
                 const finalCreditsHeaders = serializedCreditsRequest.headers;
                 try {
-                  const creditsResp = await fetch(url, {
+                  const creditsResp = await fetchWithReadinessTimeout(url, {
                     method: "POST",
                     headers: finalCreditsHeaders,
                     body: getChunkedOrFixedBody(serializedCreditsRequest.bodyString, stream),

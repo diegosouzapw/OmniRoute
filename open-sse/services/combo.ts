@@ -2042,11 +2042,11 @@ export async function handleComboChat({
         continue;
       }
 
-      // Pre-check: skip models where all accounts are in cooldown
+      // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
       if (isModelAvailable) {
         const available = await isModelAvailable(modelStr, target);
         if (!available) {
-          log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
+          log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
           continue;
         }
@@ -2258,6 +2258,14 @@ export async function handleComboChat({
         // treated as local to that target and the combo continues to the next target.
         // Error classification is retained only for retry/cooldown pacing; it must
         // not decide whether fallback happens, including for generic 400 responses.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2265,7 +2273,8 @@ export async function handleComboChat({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 
@@ -2450,7 +2459,7 @@ async function handleRoundRobinCombo({
     if (isModelAvailable) {
       const available = await isModelAvailable(modelStr, target);
       if (!available) {
-        log.info("COMBO-RR", `Skipping ${modelStr} (all accounts in cooldown)`);
+        log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
         if (offset > 0) fallbackCount++;
         continue;
       }
@@ -2643,6 +2652,14 @@ async function handleRoundRobinCombo({
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
         // not to decide whether fallback is allowed.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2650,7 +2667,8 @@ async function handleRoundRobinCombo({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 

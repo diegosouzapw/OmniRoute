@@ -152,7 +152,7 @@ describe("ensureAntigravityProjectAssigned", () => {
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
       hitUrls.push(url);
-      if (url.includes("daily-cloudcode-pa.googleapis.com")) {
+      if (new URL(url).hostname === "daily-cloudcode-pa.googleapis.com") {
         // First URL fails
         return new Response("not found", { status: 404 });
       }

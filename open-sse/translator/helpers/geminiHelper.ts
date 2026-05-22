@@ -128,16 +128,14 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
           continue;
         }
 
-        // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."})
+        // 3. Handle raw data strings (e.g. {"type": "file", "data": "JVBER...", "mime_type": "..."}).
+        //    Also accept the Responses-API shape {"type":"input_file","file_data":"JVBER...","filename":...}
+        //    so PDFs sent as `input_file` reach Gemini instead of being silently dropped (#2515).
         const file = toRecord(rec.file);
         const doc = toRecord(rec.document);
-        const rawDataStr = rec.data || file?.data || doc?.data;
+        const rawDataStr = rec.data || rec.file_data || file?.data || doc?.data;
         const mimeTypeFallback =
-          rec.mime_type ||
-          rec.media_type ||
-          file?.mime_type ||
-          doc?.mime_type ||
-          "application/octet-stream";
+          rec.mime_type || rec.media_type || file?.mime_type || doc?.mime_type || "application/pdf";
         if (typeof rawDataStr === "string" && !rawDataStr.startsWith("http")) {
           const rawData = rawDataStr.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, "");
           parts.push({
@@ -154,7 +152,13 @@ export function convertOpenAIContentToParts(content: unknown): JsonRecord[] {
         const fileUrl = toRecord(rec.file_url);
         const fileObj = toRecord(rec.file);
         const docObj = toRecord(rec.document);
-        const fileData = imageUrl?.url || fileUrl?.url || fileObj?.url || docObj?.url;
+        // `file_url` is a top-level string on the Responses-API input_file shape (#2515).
+        const fileData =
+          (typeof rec.file_url === "string" ? rec.file_url : undefined) ||
+          imageUrl?.url ||
+          fileUrl?.url ||
+          fileObj?.url ||
+          docObj?.url;
         if (typeof fileData === "string" && fileData.startsWith("data:")) {
           const commaIndex = fileData.indexOf(",");
           if (commaIndex !== -1) {

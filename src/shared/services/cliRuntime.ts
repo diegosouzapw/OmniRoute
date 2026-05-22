@@ -131,12 +131,23 @@ const CLI_TOOLS: Record<string, any> = {
     },
   },
   hermes: {
+    // Original / legacy simple Hermes entry (recovered from origin/main)
     defaultCommand: "hermes",
     envBinKey: "CLI_HERMES_BIN",
     requiresBinary: false,
     healthcheckTimeoutMs: 4000,
     paths: {
       config: ".config/hermes/config.json",
+    },
+  },
+  "hermes-agent": {
+    // Rich first-class support for the advanced Hermes Agent (multi-role: default, delegation, auxiliary.*)
+    defaultCommand: "hermes",
+    envBinKey: "CLI_HERMES_BIN",
+    requiresBinary: true,
+    healthcheckTimeoutMs: 4000,
+    paths: {
+      config: ".hermes/config.yaml",
     },
   },
   amp: {

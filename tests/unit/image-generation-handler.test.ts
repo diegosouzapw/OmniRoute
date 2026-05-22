@@ -1842,6 +1842,67 @@ test("handleImageGeneration (codex) returns a data URL when response_format is n
   }
 });
 
+test("handleImageGeneration (codex) fans out n>1 requests in parallel", async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  let releaseFirst;
+  let pending;
+
+  globalThis.fetch = async (_url, options = {}) => {
+    const index = calls.length;
+    calls.push(JSON.parse(String(options.body || "{}")));
+    const sse = buildCodexSSE([
+      {
+        type: "image_generation_call",
+        id: `ig_${index + 1}`,
+        status: "completed",
+        result: index === 0 ? "Zmlyc3Q=" : "c2Vjb25k",
+      },
+    ]);
+
+    if (index === 0) {
+      return new Promise((resolve) => {
+        releaseFirst = () => resolve(new Response(sse, { status: 200 }));
+      });
+    }
+
+    return new Response(sse, { status: 200 });
+  };
+
+  try {
+    pending = handleImageGeneration({
+      body: {
+        model: "codex/gpt-5.4",
+        prompt: "kitten",
+        n: 2,
+        response_format: "b64_json",
+      },
+      credentials: { accessToken: "codex-token" },
+      log: null,
+    });
+
+    await Promise.resolve();
+    assert.equal(calls.length, 2);
+    assert.deepEqual(
+      calls.map((call) => call.input[0].content[0].text),
+      ["kitten", "kitten"]
+    );
+
+    releaseFirst();
+    const result = await pending;
+
+    assert.equal(result.success, true);
+    assert.deepEqual(
+      result.data.data.map((item) => item.b64_json),
+      ["Zmlyc3Q=", "c2Vjb25k"]
+    );
+  } finally {
+    if (releaseFirst) releaseFirst();
+    if (pending) await pending.catch(() => {});
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleImageGeneration (codex) surfaces an error when no image_generation_call is emitted", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {

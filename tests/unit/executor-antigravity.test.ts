@@ -588,6 +588,51 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
   }
 });
 
+test("AntigravityExecutor.execute tags pre-response stalls with a fallbackable timeout code", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  seedAntigravityVersionCache("2026.04.17-test");
+
+  globalThis.fetch = async (_url, init) => {
+    await new Promise((_resolve, reject) => {
+      const signal = init?.signal as AbortSignal | undefined;
+      if (signal?.aborted) {
+        reject(signal.reason);
+        return;
+      }
+      signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+    throw new Error("unreachable");
+  };
+  globalThis.setTimeout = ((callback) => {
+    (callback as () => void)();
+    return 0;
+  }) as typeof setTimeout;
+
+  try {
+    await assert.rejects(
+      () =>
+        executor.execute({
+          model: "antigravity/gemini-2.5-flash",
+          body: { request: { contents: [] } },
+          stream: true,
+          credentials: { accessToken: "token", projectId: "project-1" },
+          log: { debug() {}, warn() {}, error() {} },
+        }),
+      (error: unknown) => {
+        assert.equal((error as { code?: string }).code, "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT");
+        assert.equal((error as { name?: string }).name, "TimeoutError");
+        assert.match((error as Error).message, /did not return response headers/);
+        return true;
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
 test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
@@ -598,9 +643,9 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.equal(
+    assert.match(
       headers["User-Agent"],
-      "Antigravity/2026.04.17-test (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+      /^Antigravity\/2026\.04\.17-test \(.+\) Chrome\/132\.0\.6834\.160 Electron\/39\.2\.3$/
     );
     assert.equal(headers["x-client-name"], "antigravity");
     assert.equal(headers["x-client-version"], "2026.04.17-test");

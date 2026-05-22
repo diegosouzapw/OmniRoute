@@ -22,6 +22,11 @@ export const STREAM_IDLE_TIMEOUT_MS = upstreamTimeouts.streamIdleTimeoutMs;
 // first token, while dead 200 OK streams fail fast enough for combo fallback.
 export const STREAM_READINESS_TIMEOUT_MS = upstreamTimeouts.streamReadinessTimeoutMs;
 
+// Error code used when an upstream Antigravity request stalls before response
+// headers are returned. Keep it shared so executor, core normalization and
+// account fallback detection cannot drift.
+export const ANTIGRAVITY_PRE_RESPONSE_TIMEOUT_CODE = "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT";
+
 // Heartbeat interval for synthetic SSE keepalive emission toward the downstream
 // client (Capy, Claude Code, OpenAI SDK, etc). Keeps strict proxies from
 // dropping the connection during long upstream thinking phases. Set to 0 to
