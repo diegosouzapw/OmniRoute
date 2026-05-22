@@ -1,8 +1,10 @@
 import { getComboByName } from "@/lib/db/combos";
 import { buildComboScoringInspectorResponse } from "@/lib/usage/comboScoringInspector";
+import { inspectTargetResilience } from "@/lib/usage/resilienceExplain";
 import type {
   ComboScoringInspectorFactor,
   ComboScoringInspectorTarget,
+  ResilienceExplanation,
 } from "@/shared/types/utilization";
 import { getCallLogById, getCallLogs } from "./callLogs";
 
@@ -183,6 +185,7 @@ export type RouteExplainabilityResponse = {
   recommendations: string[];
   limitations: string[];
   decisionReplay: DecisionReplay;
+  resilience: ResilienceExplanation | null;
 };
 
 function asExplainLog(value: unknown): ExplainLog | null {
@@ -616,6 +619,15 @@ async function buildDecisionReplay(log: ExplainLog): Promise<DecisionReplay> {
   };
 }
 
+async function buildSelectedResilience(log: ExplainLog): Promise<ResilienceExplanation | null> {
+  if (!log.provider || !log.model) return null;
+  return inspectTargetResilience({
+    provider: log.provider,
+    model: log.model,
+    connectionId: log.connectionId ?? null,
+  });
+}
+
 async function getRelatedLogs(log: ExplainLog): Promise<ExplainLog[]> {
   const selectedTime = log.timestamp ? new Date(log.timestamp).getTime() : 0;
   const windowMs = 15 * 60 * 1000;
@@ -662,7 +674,10 @@ export async function explainRouteByRequestId(
   );
   const factors = buildFactors(log, targetStats);
   const score = calculateScore(log, targetStats);
-  const decisionReplay = await buildDecisionReplay(log);
+  const [decisionReplay, resilience] = await Promise.all([
+    buildDecisionReplay(log),
+    buildSelectedResilience(log),
+  ]);
   const routeType = log.comboName ? "combo" : "direct";
   const confidence = log.hasPipelineDetails
     ? "high"
@@ -727,5 +742,6 @@ export async function explainRouteByRequestId(
     recommendations: buildRecommendations(log, targetStats),
     limitations: buildLimitations(log, relatedTargets),
     decisionReplay,
+    resilience,
   };
 }

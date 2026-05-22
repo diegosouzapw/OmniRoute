@@ -285,6 +285,70 @@ export interface ComboScoringInspectorFactor {
   note?: string;
 }
 
+export type ResilienceExplainScope = "provider" | "connection" | "model";
+
+export type ResilienceExplainState = "eligible" | "degraded" | "skipped" | "unknown";
+
+export interface ResilienceSkipReason {
+  scope: ResilienceExplainScope;
+  code:
+    | "provider_circuit_open"
+    | "provider_circuit_half_open"
+    | "connection_not_allowed"
+    | "connection_cooldown"
+    | "connection_terminal_status"
+    | "connection_unavailable"
+    | "codex_scope_cooldown"
+    | "model_lockout"
+    | "model_excluded"
+    | "no_active_connection"
+    | "inspector_error";
+  message: string;
+  retryAfterMs?: number | null;
+  connectionId?: string | null;
+  evidence?: Record<string, unknown>;
+}
+
+export interface ResilienceProviderExplanation {
+  provider: string;
+  state: ResilienceExplainState;
+  circuitBreakerState: "CLOSED" | "OPEN" | "HALF_OPEN" | "UNKNOWN";
+  retryAfterMs: number | null;
+  failureCount: number | null;
+  lastFailureTime: number | null;
+}
+
+export interface ResilienceAccountExplanation {
+  connectionId: string;
+  state: ResilienceExplainState;
+  reasonCode: ResilienceSkipReason["code"] | null;
+  retryAfterMs: number | null;
+  testStatus: string | null;
+  lastErrorType: string | null;
+  errorCode: string | number | null;
+  backoffLevel: number | null;
+}
+
+export interface ResilienceModelExplanation {
+  provider: string;
+  model: string;
+  connectionId: string;
+  state: ResilienceExplainState;
+  reason: string | null;
+  retryAfterMs: number | null;
+  failureCount: number | null;
+  lockedAt: string | null;
+}
+
+export interface ResilienceExplanation {
+  provider: ResilienceProviderExplanation;
+  accounts: ResilienceAccountExplanation[];
+  models: ResilienceModelExplanation[];
+  skipReasons: ResilienceSkipReason[];
+  summary: string[];
+  targetState: ResilienceExplainState;
+}
+
 export interface ComboScoringInspectorTarget {
   executionKey: string;
   stepId: string | null;
@@ -302,6 +366,7 @@ export interface ComboScoringInspectorTarget {
     avgLatencyMs: number | null;
     forecastRisk: ComboForecastRiskLevel | null;
     autopilotIssueCount: number;
+    resilience: ResilienceExplanation;
   };
 }
 

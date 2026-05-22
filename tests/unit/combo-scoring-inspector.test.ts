@@ -15,6 +15,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const quotaSnapshotsDb = await import("../../src/lib/db/quotaSnapshots.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
@@ -22,9 +23,14 @@ const comboMetrics = await import("../../open-sse/services/comboMetrics.ts");
 const inspector = await import("../../src/lib/usage/comboScoringInspector.ts");
 const route = await import("../../src/app/api/usage/combo-scoring-inspector/route.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
+const { lockModel, clearAllModelLockouts } =
+  await import("../../open-sse/services/accountFallback.ts");
+const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 async function resetStorage() {
   comboMetrics.resetAllComboMetrics();
+  clearAllModelLockouts();
+  resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -272,6 +278,107 @@ test("scoring inspector skipAutopilot avoids rebuilding autopilot report", async
   assert.equal(response.combos.length, 1);
   assert.equal(
     response.combos[0].warnings.includes("Combo has no inspectable execution targets."),
+    true
+  );
+});
+
+test("scoring inspector includes resilience skip reasons for cooldowns and model lockouts", async () => {
+  const cooldownConnection = (await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "cooldown account",
+    apiKey: "test-key",
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+    testStatus: "unavailable",
+    lastErrorType: "rate_limit",
+    errorCode: 429,
+  })) as { id: string };
+  const lockedConnection = (await providersDb.createProviderConnection({
+    provider: "github",
+    authType: "apikey",
+    name: "locked account",
+    apiKey: "test-key",
+  })) as { id: string };
+  lockModel("github", lockedConnection.id, "github/gpt-4o", "rate_limited", 60_000);
+
+  const response = await inspector.buildComboScoringInspectorResponse({
+    range: "24h",
+    horizon: "7d",
+    skipAutopilot: true,
+    healthResponse: {
+      timeRange: "24h",
+      combos: [
+        {
+          comboId: "combo-resilience",
+          comboName: "combo-resilience",
+          strategy: "auto",
+          models: [],
+          cost: { totalUsd: 0, avgPerRequestUsd: 0, byModel: [] },
+          quotaHealth: { providers: [], worstRemainingPct: 0 },
+          usageSkew: { modelDistribution: [], giniCoefficient: 0 },
+          performance: { avgLatencyMs: 0, successRate: 0, totalRequests: 0 },
+          targetHealth: [
+            {
+              executionKey: "openai-cooldown",
+              stepId: "openai-cooldown",
+              model: "openai/gpt-4o-mini",
+              provider: "openai",
+              connectionId: cooldownConnection.id,
+              label: "Cooldown target",
+              requests: 0,
+              successRate: 0,
+              avgLatencyMs: 0,
+              lastStatus: null,
+              lastUsedAt: null,
+              quotaRemainingPct: null,
+              quotaIsExhausted: null,
+              quotaTrend: null,
+              quotaScope: "connection",
+            },
+            {
+              executionKey: "github-lockout",
+              stepId: "github-lockout",
+              model: "github/gpt-4o",
+              provider: "github",
+              connectionId: lockedConnection.id,
+              label: "Locked target",
+              requests: 0,
+              successRate: 0,
+              avgLatencyMs: 0,
+              lastStatus: null,
+              lastUsedAt: null,
+              quotaRemainingPct: null,
+              quotaIsExhausted: null,
+              quotaTrend: null,
+              quotaScope: "connection",
+            },
+          ],
+        },
+      ],
+    },
+    forecastResponse: {
+      asOf: "2026-05-22T00:00:00.000Z",
+      timeRange: "24h",
+      horizon: "7d",
+      method: "linear_history",
+      combos: [],
+    },
+  });
+
+  const targets = response.combos[0].targets;
+  const cooldownTarget = targets.find((target) => target.executionKey === "openai-cooldown");
+  const lockoutTarget = targets.find((target) => target.executionKey === "github-lockout");
+
+  assert.equal(cooldownTarget?.signals.resilience.targetState, "skipped");
+  assert.equal(
+    cooldownTarget?.signals.resilience.skipReasons.some(
+      (reason) => reason.code === "connection_cooldown" && reason.retryAfterMs! > 0
+    ),
+    true
+  );
+  assert.equal(lockoutTarget?.signals.resilience.targetState, "skipped");
+  assert.equal(
+    lockoutTarget?.signals.resilience.skipReasons.some((reason) => reason.code === "model_lockout"),
     true
   );
 });

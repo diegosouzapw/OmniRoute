@@ -9,15 +9,20 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const routeExplain = await import("../../src/lib/usage/routeExplain.ts");
 const route = await import("../../src/app/api/usage/route-explain/[id]/route.ts");
 const { normalizeComboStep } = await import("../../src/lib/combos/steps.ts");
+const { clearAllModelLockouts } = await import("../../open-sse/services/accountFallback.ts");
+const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
 type RouteExplainabilityResponse =
   import("../../src/lib/usage/routeExplain.ts").RouteExplainabilityResponse;
 
 async function resetStorage() {
+  clearAllModelLockouts();
+  resetAllCircuitBreakers();
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -61,11 +66,49 @@ test("route explainability builds a direct-route explanation from call logs", as
   assert.equal(explanation.decisionReplay.runtime.exact, true);
   assert.equal(explanation.decisionReplay.runtime.selectedCallLogId, "direct-route-1");
   assert.equal(explanation.decisionReplay.recompute, null);
+  assert.equal(explanation.resilience?.provider.circuitBreakerState, "CLOSED");
   assert.equal(
     explanation.decision.factors.some((factor) => factor.name === "Direct routing"),
     true
   );
   assert.equal(explanation.recommendations.length > 0, true);
+});
+
+test("route explainability includes selected-target resilience reasons", async () => {
+  const connection = (await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "route cooldown account",
+    apiKey: "test-key",
+    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+    testStatus: "unavailable",
+    lastErrorType: "rate_limit",
+    errorCode: 429,
+  })) as { id: string };
+
+  await callLogs.saveCallLog({
+    id: "direct-route-cooldown",
+    timestamp: "2026-05-20T12:00:00.000Z",
+    method: "POST",
+    path: "/v1/chat/completions",
+    status: 200,
+    model: "openai/gpt-4o-mini",
+    requestedModel: "openai/gpt-4o-mini",
+    provider: "openai",
+    connectionId: connection.id,
+    duration: 320,
+  });
+
+  const explanation = await routeExplain.explainRouteByRequestId("direct-route-cooldown");
+
+  assert.ok(explanation);
+  assert.equal(explanation.resilience?.targetState, "skipped");
+  assert.equal(
+    explanation.resilience?.skipReasons.some(
+      (reason) => reason.code === "connection_cooldown" && reason.connectionId === connection.id
+    ),
+    true
+  );
 });
 
 test("route explainability surfaces nearby combo fallback evidence", async () => {
