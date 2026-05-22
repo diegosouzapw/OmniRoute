@@ -25,7 +25,7 @@ export async function GET(request: Request) {
         // Without this, models for aliased providers always appear unconfigured.
         activeProviders = new Set<string>();
         for (const c of active) {
-          const pId = String((c as any).provider);
+          const pId = String((c as Record<string, unknown>).provider);
           activeProviders.add(pId);
           const alias = PROVIDER_ID_TO_ALIAS[pId];
           if (alias) activeProviders.add(alias);

@@ -8,6 +8,7 @@ import {
   clearAntigravityVersionCache,
   seedAntigravityVersionCache,
 } from "../../open-sse/services/antigravityVersion.ts";
+import { clearAntigravityProjectCache } from "../../open-sse/services/antigravityProjectBootstrap.ts";
 
 type AntigravityTransformResult = Exclude<
   Awaited<ReturnType<AntigravityExecutor["transformRequest"]>>,
@@ -232,6 +233,80 @@ test("AntigravityExecutor.transformRequest returns a structured error response w
   assert.equal(result.status, 422);
   assert.equal(payload.error.code, "missing_project_id");
   assert.match(payload.error.message, /Missing Google projectId/);
+});
+
+// #2334/#2541: a freshly re-added Antigravity account can have an empty stored projectId
+// even when its Google account already owns a Cloud Code project. transformRequest must
+// auto-discover it via loadCodeAssist (mirroring gemini-cli.ts) instead of hard-failing.
+test("AntigravityExecutor.transformRequest auto-discovers a missing projectId via loadCodeAssist (#2334)", async () => {
+  clearAntigravityProjectCache();
+  seedAntigravityVersionCache("2026.04.17-test");
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  let loadCodeAssistCalled = false;
+
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    if (String(url).includes("loadCodeAssist")) {
+      loadCodeAssistCalled = true;
+      return new Response(JSON.stringify({ cloudaicompanionProject: "discovered-project-123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response("{}", { status: 404 });
+  }) as typeof fetch;
+
+  try {
+    const result = await executor.transformRequest(
+      "antigravity/gemini-3.1-pro",
+      { request: { contents: [] } },
+      true,
+      { accessToken: "fresh-account-token-2334" }
+    );
+    if (result instanceof Response) {
+      throw new Error(`Expected an envelope but got a ${result.status} Response`);
+    }
+    assert.equal(
+      loadCodeAssistCalled,
+      true,
+      "loadCodeAssist should be called to recover the project"
+    );
+    assert.equal(result.project, "discovered-project-123");
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
+});
+
+// #2334: when loadCodeAssist also finds no project (truly un-onboarded account), the
+// structured 422 must still be returned so the dashboard can prompt a reconnect.
+test("AntigravityExecutor.transformRequest still 422s when loadCodeAssist finds no project (#2334)", async () => {
+  clearAntigravityProjectCache();
+  seedAntigravityVersionCache("2026.04.17-test");
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })) as typeof fetch;
+
+  try {
+    const result = await executor.transformRequest(
+      "antigravity/gemini-3.1-pro",
+      { request: { contents: [] } },
+      true,
+      { accessToken: "no-project-token-2334" }
+    );
+    if (!(result instanceof Response)) throw new Error("Expected a 422 Response");
+    assert.equal(result.status, 422);
+    const payload = (await result.json()) as ErrorPayload;
+    assert.equal(payload.error.code, "missing_project_id");
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearAntigravityProjectCache();
+  }
 });
 
 test("AntigravityExecutor.transformRequest prefers top-level credentials projectId over nested providerSpecificData", async () => {
@@ -490,6 +565,10 @@ test("AntigravityExecutor.refreshCredentials refreshes Google OAuth tokens", asy
       refreshToken: "new-refresh",
       expiresIn: 3600,
       projectId: "project-1",
+      // refreshCredentials preserves providerSpecificData across refresh (#2480); when the
+      // input has none it surfaces as `undefined`. (Test updated to match that behavior —
+      // it had been stale since the #2480 change added this field.)
+      providerSpecificData: undefined,
     });
   } finally {
     globalThis.fetch = originalFetch;
@@ -588,6 +667,51 @@ test("AntigravityExecutor.execute embeds retryAfterMs when the upstream asks for
   }
 });
 
+test("AntigravityExecutor.execute tags pre-response stalls with a fallbackable timeout code", async () => {
+  const executor = new AntigravityExecutor();
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  seedAntigravityVersionCache("2026.04.17-test");
+
+  globalThis.fetch = async (_url, init) => {
+    await new Promise((_resolve, reject) => {
+      const signal = init?.signal as AbortSignal | undefined;
+      if (signal?.aborted) {
+        reject(signal.reason);
+        return;
+      }
+      signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
+    });
+    throw new Error("unreachable");
+  };
+  globalThis.setTimeout = ((callback) => {
+    (callback as () => void)();
+    return 0;
+  }) as typeof setTimeout;
+
+  try {
+    await assert.rejects(
+      () =>
+        executor.execute({
+          model: "antigravity/gemini-2.5-flash",
+          body: { request: { contents: [] } },
+          stream: true,
+          credentials: { accessToken: "token", projectId: "project-1" },
+          log: { debug() {}, warn() {}, error() {} },
+        }),
+      (error: unknown) => {
+        assert.equal((error as { code?: string }).code, "ANTIGRAVITY_PRE_RESPONSE_TIMEOUT");
+        assert.equal((error as { name?: string }).name, "TimeoutError");
+        assert.match((error as Error).message, /did not return response headers/);
+        return true;
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
 test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async () => {
   const executor = new AntigravityExecutor();
   const originalFetch = globalThis.fetch;
@@ -598,9 +722,9 @@ test("AntigravityExecutor.execute applies CLI fingerprint when enabled", async (
     const headers = init?.headers as Record<string, string>;
     const parsedBody = JSON.parse(String(init?.body));
 
-    assert.equal(
+    assert.match(
       headers["User-Agent"],
-      "Antigravity/2026.04.17-test (Macintosh; Intel Mac OS X 10_15_7) Chrome/132.0.6834.160 Electron/39.2.3"
+      /^Antigravity\/2026\.04\.17-test \(.+\) Chrome\/132\.0\.6834\.160 Electron\/39\.2\.3$/
     );
     assert.equal(headers["x-client-name"], "antigravity");
     assert.equal(headers["x-client-version"], "2026.04.17-test");

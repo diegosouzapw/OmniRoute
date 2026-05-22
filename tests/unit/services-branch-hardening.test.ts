@@ -354,11 +354,11 @@ test("model helpers cover malformed input, alias maps, wildcard aliases, ambigui
     model: "gemini-custom",
     extendedContext: false,
   });
-  assert.deepEqual(await modelService.getModelInfoCore("made-up-model", {}), {
-    provider: "openai",
-    model: "made-up-model",
-    extendedContext: false,
-  });
+  const unknownModel = await modelService.getModelInfoCore("made-up-model", {});
+  assert.equal(unknownModel.provider, null);
+  assert.equal(unknownModel.errorType, "model_not_found");
+  assert.ok(unknownModel.errorMessage.includes("made-up-model"));
+  assert.ok(unknownModel.errorMessage.includes("provider/model prefix"));
 });
 
 test("error classifier covers empty-content helpers, context overflow and remaining error classes", () => {

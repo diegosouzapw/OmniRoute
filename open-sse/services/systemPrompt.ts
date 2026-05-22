@@ -44,21 +44,24 @@ export function injectSystemPrompt(body, promptText = null) {
     const sysIdx = result.messages.findIndex((m) => m.role === "system" || m.role === "developer");
     result.messages = [...result.messages];
     if (sysIdx >= 0) {
-      // Prepend to existing system message
+      // Append after existing system content so the global prompt is the FINAL
+      // instruction — provider/agent system blocks (Kiro, OpenCode, Hermes, etc.)
+      // are injected into the system message later, and recency bias means the
+      // user's global prompt must come after them to take priority (#2468).
       const msg = { ...result.messages[sysIdx] };
-      msg.content = text + "\n\n" + (msg.content || "");
+      msg.content = (msg.content || "") + "\n\n" + text;
       result.messages[sysIdx] = msg;
     } else {
       result.messages = [{ role: "system", content: text }, ...result.messages];
     }
   }
 
-  // Claude format (system field)
+  // Claude format (system field) — append for the same reason as above (#2468).
   if (result.system !== undefined) {
     if (typeof result.system === "string") {
-      result.system = text + "\n\n" + result.system;
+      result.system = result.system + "\n\n" + text;
     } else if (Array.isArray(result.system)) {
-      result.system = [{ type: "text", text }, ...result.system];
+      result.system = [...result.system, { type: "text", text }];
     }
   }
 

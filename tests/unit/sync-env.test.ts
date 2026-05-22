@@ -68,7 +68,8 @@ test("syncEnv creates .env from .env.example and generates blank secrets", () =>
     assert.deepEqual(result, { created: true, added: 7 });
     assert.match(envContent, /^JWT_SECRET=.{32,}$/m);
     assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
-    assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=.{32,}$/m);
+    // STORAGE_ENCRYPTION_KEY is generated at server startup (not postinstall — see #1622)
+    assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=claude-default$/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
@@ -104,7 +105,8 @@ test("syncEnv appends only missing keys and preserves existing values", () => {
     assert.match(envContent, /^JWT_SECRET=my-custom-secret-that-should-stay$/m);
     assert.match(envContent, /^CLAUDE_OAUTH_CLIENT_ID=custom-claude$/m);
     assert.match(envContent, /^API_KEY_SECRET=.{32,}$/m);
-    assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=.{32,}$/m);
+    // STORAGE_ENCRYPTION_KEY is generated at server startup (not postinstall — see #1622)
+    assert.match(envContent, /^STORAGE_ENCRYPTION_KEY=/m);
     assert.match(envContent, /^MACHINE_ID_SALT=omniroute-/m);
     assert.match(envContent, /^CODEX_OAUTH_CLIENT_ID=codex-default$/m);
     assert.match(envContent, /^CLAUDE_USER_AGENT=claude-cli\/2\.1\.145 \(external, cli\)$/m);

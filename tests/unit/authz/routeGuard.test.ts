@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   isLocalOnlyPath,
+  isLocalOnlyBypassableByManageScope,
   isAlwaysProtectedPath,
   isLoopbackHost,
 } from "../../../src/server/authz/routeGuard.ts";
@@ -23,6 +24,19 @@ test("isLocalOnlyPath: /api/cli-tools/runtime/ is local-only", () => {
 test("isLocalOnlyPath: regular management routes are not local-only", () => {
   assert.equal(isLocalOnlyPath("/api/settings"), false);
   assert.equal(isLocalOnlyPath("/api/providers"), false);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/mcp/ prefix is bypassable", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/"), true);
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/mcp/stream"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/cli-tools/runtime/* is NOT bypassable", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/cli-tools/runtime/foo"), false);
+});
+
+test("isLocalOnlyBypassableByManageScope: non-local-only routes are not bypassable", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/settings"), false);
 });
 
 test("isAlwaysProtectedPath: /api/shutdown is always protected", () => {

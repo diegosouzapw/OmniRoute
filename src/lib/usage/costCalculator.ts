@@ -94,7 +94,12 @@ export function computeCostFromPricing(
   const inputTokens = tokens.input ?? tokens.prompt_tokens ?? tokens.input_tokens ?? 0;
   const cachedTokens =
     tokens.cacheRead ?? tokens.cached_tokens ?? tokens.cache_read_input_tokens ?? 0;
-  const nonCachedInput = Math.max(0, inputTokens - cachedTokens);
+  const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
+
+  // prompt_tokens from extractors already includes cache_read + cache_creation,
+  // so we must subtract BOTH cache types to avoid pricing cache at the full
+  // input rate in addition to their dedicated cache_* rates below.
+  const nonCachedInput = Math.max(0, inputTokens - cachedTokens - cacheCreationTokens);
   cost += nonCachedInput * (inputPrice / 1_000_000);
   if (cachedTokens > 0) cost += cachedTokens * (cachedPrice / 1_000_000);
 
@@ -104,7 +109,6 @@ export function computeCostFromPricing(
   const reasoningTokens = tokens.reasoning ?? tokens.reasoning_tokens ?? 0;
   if (reasoningTokens > 0) cost += reasoningTokens * (reasoningPrice / 1_000_000);
 
-  const cacheCreationTokens = tokens.cacheCreation ?? tokens.cache_creation_input_tokens ?? 0;
   if (cacheCreationTokens > 0) cost += cacheCreationTokens * (cacheCreationPrice / 1_000_000);
 
   return cost * getCodexFastCostMultiplier(options.provider, options.model, options.serviceTier);

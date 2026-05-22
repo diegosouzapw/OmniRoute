@@ -133,7 +133,7 @@ export async function POST(request) {
     const PER_CONNECTION_TIMEOUT = 30_000; // 30s per connection
     const CONCURRENCY = 5; // max parallel tests
 
-    const testOne = async (conn) => {
+    const testOne = async (conn: Record<string, unknown>) => {
       try {
         const result = await Promise.race([
           testSingleConnection(conn.id),
@@ -144,7 +144,14 @@ export async function POST(request) {
             )
           ),
         ]);
-        const data = result as any;
+        const data = result as {
+          valid: boolean;
+          latencyMs?: number;
+          error?: string | null;
+          diagnosis?: unknown;
+          statusCode?: number | null;
+          testedAt?: string;
+        };
         return {
           provider: conn.provider,
           connectionId: conn.id,

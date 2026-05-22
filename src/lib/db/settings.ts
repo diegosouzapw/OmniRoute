@@ -104,6 +104,14 @@ export async function getSettings() {
     wsAuth: false,
     maxBodySizeMb: requestBodyLimitMbFromEnv(process.env.MAX_BODY_SIZE_BYTES),
     debugMode: true,
+    // LOCAL_ONLY manage-scope bypass policy defaults (T-011 / spec §Data Model).
+    // Preserves PR #2473 behaviour on migration — the bypass starts ENABLED
+    // for `/api/mcp/` so existing manage-scope Bearer clients keep working.
+    // Operators flip the kill-switch to false (or drop the prefix) via the
+    // Settings UI; the change hot-reloads through `applyRuntimeSettings` →
+    // `applyAuthzBypassSection` → `getAuthzBypassSnapshot()`.
+    localOnlyManageScopeBypassEnabled: true,
+    localOnlyManageScopeBypassPrefixes: ["/api/mcp/"],
   };
   for (const row of rows) {
     const record = toRecord(row);

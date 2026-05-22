@@ -7,10 +7,14 @@ const {
   validateCommandCodeProvider,
 } = await import("../../src/lib/providers/validation.ts");
 
+const { __setTlsFetchOverrideForTesting: __setPplxTlsFetchOverride } =
+  await import("../../open-sse/services/perplexityTlsClient.ts");
+
 const originalFetch = globalThis.fetch;
 
 test.afterEach(() => {
   globalThis.fetch = originalFetch;
+  __setPplxTlsFetchOverride(null);
 });
 
 function toPlainHeaders(headers: any) {
@@ -260,14 +264,20 @@ test("gitlab specialty validator treats 401 as invalid PAT", async () => {
 
 test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and Muse Spark session cookies", async () => {
   const calls = [];
+
+  // Perplexity now uses tlsFetchPerplexity (TLS-impersonating client) instead of globalThis.fetch
+  // to bypass Cloudflare Enterprise. Use the test-only override hook to intercept calls.
+  let pplxTlsCall: { url: string; options: Record<string, unknown> } | null = null;
+  __setPplxTlsFetchOverride(async (url, options) => {
+    pplxTlsCall = { url, options };
+    return { status: 200, headers: new Headers(), text: null, body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     calls.push({ url: target, init });
 
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
-      return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    }
-    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
@@ -320,9 +330,6 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   const grokCall = calls.find((call) =>
     call.url.includes("grok.com/rest/app-chat/conversations/new")
   );
-  const perplexityCall = calls.find((call) =>
-    call.url.includes("perplexity.ai/rest/sse/perplexity_ask")
-  );
   const blackboxSessionCall = calls.find((call) =>
     call.url.includes("app.blackbox.ai/api/auth/session")
   );
@@ -336,7 +343,14 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
   assert.equal(grokBody.modeId, "fast");
   assert.equal("modelName" in grokBody, false);
   assert.equal("modelMode" in grokBody, false);
-  assert.equal(perplexityCall?.init.headers.Cookie, "__Secure-next-auth.session-token=pplx-cookie");
+  // Perplexity goes through tlsFetchPerplexity (TLS override), not globalThis.fetch.
+  // options.headers is a plain object; the validator sets Cookie from the session token.
+  assert.ok(pplxTlsCall, "perplexity TLS override was called");
+  assert.ok(pplxTlsCall!.url.includes("perplexity.ai/rest/sse/perplexity_ask"));
+  assert.equal(
+    (pplxTlsCall!.options.headers as Record<string, string>)["Cookie"],
+    "__Secure-next-auth.session-token=pplx-cookie"
+  );
   assert.equal(blackboxSessionCall?.init.headers.Cookie, "__Secure-authjs.session-token=bb-cookie");
   assert.equal(
     blackboxSubscriptionCall?.init.headers.Cookie,
@@ -347,13 +361,16 @@ test("web-cookie provider validators accept valid Grok, Perplexity, Blackbox and
 });
 
 test("web-cookie provider validators surface auth and subscription failures", async () => {
+  // Perplexity uses tlsFetchPerplexity (TLS-impersonating client). Return 403 to simulate
+  // an invalid session cookie so the validator emits the expected error message.
+  __setPplxTlsFetchOverride(async () => {
+    return { status: 403, headers: new Headers(), text: null, body: null };
+  });
+
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     if (target.includes("grok.com/rest/app-chat/conversations/new")) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
-    }
-    if (target.includes("perplexity.ai/rest/sse/perplexity_ask")) {
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
     }
     if (target.includes("app.blackbox.ai/api/auth/session")) {
       const cookie = (init.headers as Record<string, string>)?.Cookie || "";

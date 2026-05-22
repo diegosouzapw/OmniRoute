@@ -67,6 +67,7 @@ function getCodexWebSocketTransport(): WebsocketFn | null {
     const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
     _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
   } catch {
+    console.warn("[codex] wreq-js import failed, websocket disabled");
     _websocketFn = null;
   }
   return _websocketFn;
@@ -847,6 +848,7 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
       terminal = eventType === "response.completed" || eventType === "response.failed";
     }
   } catch {
+    console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
   }
 
@@ -952,6 +954,7 @@ export class CodexExecutor extends BaseExecutor {
       try {
         ws?.close(1000, reason);
       } catch {
+        console.warn("[codex] closeUpstream: socket close race ignored");
         // ignore close races
       }
     };
@@ -985,12 +988,14 @@ export class CodexExecutor extends BaseExecutor {
         try {
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch {
+          console.warn("[codex] finishStream: failed to enqueue [DONE]");
           // The downstream may already have gone away.
         }
       }
       try {
         controller.close();
       } catch {
+        console.warn("[codex] finishStream: failed to close controller");
         // The controller may already be closed.
       }
     };

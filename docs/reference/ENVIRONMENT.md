@@ -87,6 +87,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `OMNIROUTE_CRYPT_KEY`                  | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** for `STORAGE_ENCRYPTION_KEY`. Accepted as a fallback when the primary variable is absent.                        |
 | `OMNIROUTE_API_KEY_BASE64`             | _(unset)_            | `src/lib/db/encryption.ts`                            | **Legacy alias** (Base64-encoded form) accepted as a fallback. Decoded automatically before use.                                  |
 | `OMNIROUTE_DB_HEALTHCHECK_INTERVAL_MS` | _(unset)_            | `src/lib/db/core.ts`                                  | Override the periodic SQLite healthcheck interval (ms). When unset, defaults are derived from `NODE_ENV`.                         |
+| `OMNIROUTE_SKIP_DB_HEALTHCHECK`        | `0`                  | `src/lib/db/core.ts`, `src/lib/db/healthCheck.ts`     | Set to `1` to skip the DB healthcheck entirely on startup. Useful for short-lived tasks and integration tests.                    |
 | `OMNIROUTE_FORCE_DB_HEALTHCHECK`       | `0`                  | `src/lib/db/core.ts`                                  | Set to `1` to force the DB healthcheck loop on, even when it would normally be skipped (e.g., short-lived tasks).                 |
 | `OMNIROUTE_SKIP_POSTINSTALL`           | `0`                  | `scripts/postinstall.mjs`                             | Set to `1` to skip the native-runtime warm-up during `npm install`. Useful in CI/headless installs where sqlite is already built. |
 | `OMNIROUTE_MIGRATIONS_DIR`             | _(auto-detect)_      | `src/lib/db/migrationRunner.ts`                       | Override the directory that the migration runner scans. Useful when shipping bundled migrations in custom builds.                 |
@@ -528,6 +529,8 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_CHATGPT_TLS_GRACE_MS`         | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 | `OMNIROUTE_CLAUDE_TLS_TIMEOUT_MS`        | `60000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`claudeTlsClient.ts`).      |
 | `OMNIROUTE_CLAUDE_TLS_GRACE_MS`          | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
+| `OMNIROUTE_PPLX_TLS_TIMEOUT_MS`          | `30000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`perplexityTlsClient.ts`).  |
+| `OMNIROUTE_PPLX_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 
 ### Circuit Breaker Thresholds
 

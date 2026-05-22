@@ -14,7 +14,7 @@ export const DEFAULT_MEMORY_SETTINGS: MemorySettings = {
   maxTokens: 2000,
   retentionDays: 30,
   strategy: "hybrid",
-  skillsEnabled: false,
+  skillsEnabled: true,
 };
 
 let cachedMemorySettings: MemorySettings | null = null;

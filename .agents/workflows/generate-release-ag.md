@@ -290,24 +290,11 @@ Normally handled by CI, but if manual publish is required:
 npm publish
 ```
 
-### 16. Deploy to AKAMAI VPS (Production)
-
-Now that the release is officially cut, deploy it to the Akamai VPS.
-
-```bash
-# Deploy to AKAMAI VPS (69.164.221.35)
-scp omniroute-*.tgz root@69.164.221.35:/tmp/
-ssh root@69.164.221.35 "npm install -g /tmp/omniroute-*.tgz --ignore-scripts && cd /usr/lib/node_modules/omniroute/app && npm rebuild better-sqlite3 && pm2 delete omniroute 2>/dev/null; pm2 start /root/.omniroute/ecosystem.config.cjs --update-env && pm2 save && echo '✅ Akamai done'"
-
-# Verify
-curl -s -o /dev/null -w "AKAMAI: HTTP %{http_code}\n" http://69.164.221.35:20128/
-```
-
 ## Phase 4: Release Monitoring & Artifact Validation
 
 > After triggering the official release, actively monitor the CI pipelines until all artifacts are successfully generated. If any pipeline fails, stop and apply the necessary corrections before continuing.
 
-### 18. Monitor CI Pipelines
+### 16. Monitor CI Pipelines
 
 Wait for and verify the successful completion of the following automated jobs:
 
@@ -328,7 +315,7 @@ gh run watch <RUN_ID>
 npm info omniroute version
 ```
 
-### 19. Handle Failures (If Any)
+### 17. Handle Failures (If Any)
 
 If a workflow fails:
 
@@ -336,7 +323,7 @@ If a workflow fails:
 - Apply the fix on the `main` branch.
 - If necessary, re-trigger the workflow using `gh workflow run <workflow_name.yml> --repo diegosouzapw/OmniRoute --ref v3.x.y`
 
-### 20. Preserve release branch
+### 18. Preserve release branch
 
 ```bash
 # Branch is kept for historical purposes. Do not delete.
