@@ -12,6 +12,7 @@ const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 const core = await import("../../src/lib/db/core.ts");
 const combosDb = await import("../../src/lib/db/combos.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 
 async function resetStorage() {
@@ -608,6 +609,50 @@ test("proxy resolution matches combo proxies through aliased model entries", asy
   assert.equal(resolved.level, "combo");
   assert.equal(resolved.levelId, combo.id);
   assert.equal(resolved.proxy.host, "combo-alias.local");
+});
+
+test("proxy resolution prefers legacy key and provider proxies over registry global fallback (#2601)", async () => {
+  const keyConnection = await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "Legacy Key Override",
+    apiKey: "sk-key-override",
+  });
+  const providerConnection = await providersDb.createProviderConnection({
+    provider: "claude",
+    authType: "apikey",
+    name: "Legacy Provider Override",
+    apiKey: "sk-provider-override",
+  });
+
+  const registryGlobal = await proxiesDb.createProxy({
+    name: "Registry Global Fallback",
+    type: "http",
+    host: "registry-global.local",
+    port: 8080,
+  });
+  await proxiesDb.assignProxyToScope("global", null, registryGlobal.id);
+
+  await settingsDb.setProxyForLevel("key", (keyConnection as any).id, {
+    type: "http",
+    host: "legacy-key-override.local",
+    port: 3128,
+  });
+  await settingsDb.setProxyForLevel("provider", "claude", {
+    type: "https",
+    host: "legacy-provider-override.local",
+    port: 443,
+  });
+
+  const keyResolved = await settingsDb.resolveProxyForConnection((keyConnection as any).id);
+  const providerResolved = await settingsDb.resolveProxyForConnection(
+    (providerConnection as any).id
+  );
+
+  assert.equal(keyResolved.level, "key");
+  assert.equal(keyResolved.proxy.host, "legacy-key-override.local");
+  assert.equal(providerResolved.level, "provider");
+  assert.equal(providerResolved.proxy.host, "legacy-provider-override.local");
 });
 
 test("proxy readers normalize legacy rows, skip malformed entries, and coerce invalid globals to null", async () => {
