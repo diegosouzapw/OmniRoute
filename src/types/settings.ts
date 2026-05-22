@@ -24,8 +24,17 @@ export interface Settings {
   hideEndpointCloudflaredTunnel?: boolean;
   hideEndpointTailscaleFunnel?: boolean;
   hideEndpointNgrokTunnel?: boolean;
+  pinProviderQuotaToHome?: boolean;
+  showQuickStartOnHome?: boolean;
+  showProviderTopologyOnHome?: boolean;
   hiddenSidebarItems?: HideableSidebarItemId[];
   resilienceSettings?: ResilienceSettings;
+  // LOCAL_ONLY manage-scope bypass policy (DB-stored, hot-reloaded by
+  // `applyRuntimeSettings` → `applyAuthzBypassSection`). The route guard
+  // consults `getAuthzBypassSnapshot()` on the hot path; these fields are
+  // the persisted source of truth that feeds that snapshot.
+  localOnlyManageScopeBypassEnabled?: boolean;
+  localOnlyManageScopeBypassPrefixes?: string[];
 }
 
 export interface ComboDefaults {

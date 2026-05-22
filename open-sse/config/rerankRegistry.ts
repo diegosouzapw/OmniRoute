@@ -44,7 +44,10 @@ export const RERANK_PROVIDERS = {
     baseUrl: "https://api.fireworks.ai/inference/v1/rerank",
     authType: "apikey",
     authHeader: "bearer",
-    models: [{ id: "accounts/fireworks/models/nomic-rerank-v1", name: "Nomic Rerank v1" }],
+    models: [
+      { id: "accounts/fireworks/models/nomic-rerank-v1", name: "Nomic Rerank v1" },
+      { id: "accounts/fireworks/models/qwen3-reranker-8b", name: "Qwen3 Reranker 8B" },
+    ],
   },
 
   "voyage-ai": {

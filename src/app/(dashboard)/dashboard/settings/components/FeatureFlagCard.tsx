@@ -52,7 +52,12 @@ function Spinner() {
   );
 }
 
-export default function FeatureFlagCard({ flag, onToggle, onReset, saving = false }: FeatureFlagCardProps) {
+export default function FeatureFlagCard({
+  flag,
+  onToggle,
+  onReset,
+  saving = false,
+}: FeatureFlagCardProps) {
   const enabled = flag.type === "boolean" ? isEnabled(flag.effectiveValue) : false;
   const category = CATEGORY_STYLES[flag.category];
   const source = SOURCE_STYLES[flag.source];

@@ -8,6 +8,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { resolveApiKey } from "@/shared/services/apiKeyResolver";
 import { resolveMitmDataDir } from "@/mitm/dataDir";
 import { KIRO_MITM_PROFILE } from "@/mitm/targets/kiro";
+import { ANTIGRAVITY_MITM_PROFILE } from "@/mitm/targets/antigravity";
 
 type MitmTargetRoute = {
   id: string;
@@ -70,14 +71,18 @@ function getKeyPath() {
 }
 
 function defaultTargets(port = DEFAULT_PORT): MitmTargetRoute[] {
+  const allHosts = [
+    ANTIGRAVITY_MITM_PROFILE.targetHost,
+    ...(ANTIGRAVITY_MITM_PROFILE.additionalHosts || []),
+  ];
   return [
     {
-      id: "antigravity",
-      name: "Antigravity",
-      targetHost: "daily-cloudcode-pa.googleapis.com",
-      targetPort: 443,
+      id: ANTIGRAVITY_MITM_PROFILE.id,
+      name: ANTIGRAVITY_MITM_PROFILE.name,
+      targetHost: allHosts.join(", "),
+      targetPort: ANTIGRAVITY_MITM_PROFILE.targetPort,
       localPort: port,
-      endpoints: [":generateContent", ":streamGenerateContent"],
+      endpoints: ANTIGRAVITY_MITM_PROFILE.apiEndpoints,
       enabled: true,
     },
     {

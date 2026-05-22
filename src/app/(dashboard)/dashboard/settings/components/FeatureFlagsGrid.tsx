@@ -80,7 +80,7 @@ export default function FeatureFlagsGrid() {
         (f) =>
           debouncedSearch === "" ||
           f.key.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-          f.description.toLowerCase().includes(debouncedSearch.toLowerCase()),
+          f.description.toLowerCase().includes(debouncedSearch.toLowerCase())
       );
   }, [flags, debouncedSearch, category]);
 

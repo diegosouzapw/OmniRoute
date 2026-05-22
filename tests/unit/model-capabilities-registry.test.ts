@@ -52,7 +52,7 @@ test.after(() => {
 test("canonical model capability resolver lets exact synced metadata override global specs", () => {
   modelsDevSync.saveModelsDevCapabilities({
     openai: {
-      "gpt-4o": buildCapability({
+      "gpt-4o-2024-11-20": buildCapability({
         tool_call: false,
         reasoning: false,
         attachment: true,
@@ -68,6 +68,8 @@ test("canonical model capability resolver lets exact synced metadata override gl
       }),
     },
     antigravity: {
+      // The resolver returns "gemini-3.1-pro-high" unchanged (ANTIGRAVITY_MODEL_ALIASES only maps
+      // the public-facing alias → internal, not the reverse). Save under the canonical resolved key.
       "gemini-3.1-pro-high": buildCapability({
         tool_call: false,
         reasoning: false,
@@ -79,15 +81,15 @@ test("canonical model capability resolver lets exact synced metadata override gl
     },
   });
 
-  const gpt4o = modelCapabilities.getResolvedModelCapabilities("openai/gpt-4o");
+  const gpt4o = modelCapabilities.getResolvedModelCapabilities("openai/gpt-4o-2024-11-20");
   assert.equal(gpt4o.toolCalling, false);
   assert.equal(gpt4o.reasoning, false);
   assert.equal(gpt4o.supportsVision, true);
   assert.equal(gpt4o.contextWindow, 256000);
   assert.equal(gpt4o.maxInputTokens, 256000);
   assert.equal(gpt4o.maxOutputTokens, 12345);
-  assert.equal(modelCapabilities.getModelContextLimit("openai", "gpt-4o"), 256000);
-  assert.equal(modelCapabilities.capMaxOutputTokens("openai/gpt-4o", 999999), 12345);
+  assert.equal(modelCapabilities.getModelContextLimit("openai", "gpt-4o-2024-11-20"), 256000);
+  assert.equal(modelCapabilities.capMaxOutputTokens("openai/gpt-4o-2024-11-20", 999999), 12345);
 
   const geminiHigh = modelCapabilities.getResolvedModelCapabilities(
     "antigravity/gemini-3.1-pro-high"
@@ -129,4 +131,17 @@ test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   assert.equal(gptOss.toolCalling, true);
   const deepseek = modelCapabilities.getResolvedModelCapabilities("deepseek/deepseek-reasoner");
   assert.equal(deepseek.toolCalling, true);
+});
+
+test("Kimi K2.6 supports vision capability", () => {
+  const kimi = modelCapabilities.getResolvedModelCapabilities("kimi-k2.6");
+  assert.equal(kimi.supportsVision, true);
+  assert.equal(kimi.supportsThinking, true);
+  assert.equal(kimi.supportsTools, true);
+  assert.equal(kimi.contextWindow, 262144);
+  assert.equal(kimi.maxOutputTokens, 262144);
+
+  // Also test via alias
+  const kimiThinking = modelCapabilities.getResolvedModelCapabilities("kimi-k2.6-thinking");
+  assert.equal(kimiThinking.supportsVision, true);
 });

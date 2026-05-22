@@ -19,6 +19,7 @@ import {
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
 } from "@/shared/constants/sidebarVisibility";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -40,6 +41,9 @@ export default function AppearanceTab() {
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
   const showNgrokTunnel = settings.hideEndpointNgrokTunnel !== true;
+  const pinProviderQuotaToHome = settings[PIN_PROVIDER_QUOTA_TO_HOME_KEY] === true;
+  const showQuickStartOnHome = settings.showQuickStartOnHome !== false; // default on
+  const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false; // default on
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -382,6 +386,83 @@ export default function AppearanceTab() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Pin Information to Home Page section */}
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("pinProviderQuotaToHome", "Pin Information to Home Page")}
+            </p>
+            <p className="text-sm text-text-muted">
+              Choose which sections to pin to the top of the Home page.
+            </p>
+          </div>
+
+          {/* Pinned options as a rounded table/list */}
+          <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+            <div className="divide-y divide-border/70">
+              {/* Provider Quota Limits */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("providerQuotaLimits", "Provider Quota Limits")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "providerQuotaLimitsDesc",
+                      "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={pinProviderQuotaToHome}
+                  onChange={() => updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, !pinProviderQuotaToHome)}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Quick Start */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("quickStart", "Quick Start")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "quickStartDesc",
+                      "Show the Quick Start panel on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showQuickStartOnHome}
+                  onChange={() => updateSetting("showQuickStartOnHome", !showQuickStartOnHome)}
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Provider Topology */}
+              <div className="flex items-start justify-between px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("providerTopology", "Provider Topology")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "providerTopologyDesc",
+                      "Show the Provider Topology on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showProviderTopologyOnHome}
+                  onChange={() => updateSetting("showProviderTopologyOnHome", !showProviderTopologyOnHome)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
         </div>
 

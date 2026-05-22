@@ -606,7 +606,12 @@ test("chatCore builds Claude Code-compatible upstream requests for CC providers"
   assert.equal(call.body.messages[0].content[0].text, "Ping");
 });
 
-test("chatCore preserves native Claude Code messages for native Claude OAuth passthrough", async () => {
+// Fix #2468: normalizeClaudeUpstreamMessages() now runs on the pure Claude passthrough
+// path too. It extracts role:"system" messages into the top-level system parameter,
+// strips empty text blocks, converts inline document blocks (no url/data) to text, and
+// drops unknown block types (e.g. future_block). tool_result blocks are preserved via
+// preserveToolResultBlocks:true.
+test("chatCore normalizes native Claude Code messages for native Claude OAuth passthrough", async () => {
   const clientMessages = [
     {
       role: "system",
@@ -650,17 +655,30 @@ test("chatCore preserves native Claude Code messages for native Claude OAuth pas
 
   assert.equal(result.success, true);
   assert.equal(call.body.model, "claude-sonnet-4-6");
-  assert.deepEqual(call.body.messages, clientMessages);
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // system-role block appended to top-level system array
   assert.equal(
     call.body.system.some(
       (block: { text?: string }) => block.text === "system-message-that-should-stay-in-messages"
     ),
-    false
+    true
   );
-  assert.equal(call.body.messages[1].content[0].text, "");
-  assert.equal(call.body.messages[1].content[2].type, "document");
-  assert.equal(call.body.messages[1].content[3].type, "future_block");
-  assert.equal(call.body.messages[3].content[0].type, "tool_result");
+
+  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
+  // Remaining: ["Run pwd" text, "[README.md]\nDo not flatten me" text]
+  assert.equal(call.body.messages[0].content.length, 2);
+  assert.equal(call.body.messages[0].content[0].text, "Run pwd");
+  assert.equal(call.body.messages[0].content[1].type, "text");
+  assert.equal(call.body.messages[0].content[1].text, "[README.md]\nDo not flatten me");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
 
 test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough", async () => {
@@ -701,7 +719,10 @@ test("chatCore keeps Claude normalization for non-Claude-Code Claude passthrough
   ]);
 });
 
-test("chatCore preserves native Claude Code messages before CC-compatible relay transforms", async () => {
+// Fix #2468: normalizeClaudeUpstreamMessages() runs on the CC-compatible bridge path too
+// (preserveClaudeMessages=true). Same normalization: system-role → top-level system,
+// empty text stripped, document→text, future_block dropped, tool_result preserved.
+test("chatCore normalizes native Claude Code messages before CC-compatible relay transforms", async () => {
   const clientMessages = [
     {
       role: "system",
@@ -752,7 +773,11 @@ test("chatCore preserves native Claude Code messages before CC-compatible relay 
   assert.equal(result.success, true);
   assert.match(call.url, /\/v1\/messages\?beta=true$/);
   assert.equal(call.body.stream, true);
-  assert.deepEqual(call.body.messages, clientMessages);
+
+  // After normalization: role:"system" msg extracted → top-level system (3 msgs remain, not 4)
+  assert.equal(call.body.messages.length, 3);
+
+  // CC bridge prepends its own system block; extracted system block is appended after it
   assert.equal(
     call.body.system[0].text,
     "You are a Claude agent, built on Anthropic's Claude Agent SDK."
@@ -761,12 +786,21 @@ test("chatCore preserves native Claude Code messages before CC-compatible relay 
     call.body.system.some(
       (block: { text?: string }) => block.text === "system-message-remains-in-source-history"
     ),
-    false
+    true
   );
-  assert.equal(call.body.messages[1].content[0].text, "");
-  assert.equal(call.body.messages[1].content[2].type, "document");
-  assert.equal(call.body.messages[1].content[3].type, "future_block");
-  assert.equal(call.body.messages[3].content[0].type, "tool_result");
+
+  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
+  // Remaining: ["Inspect project" text, "[design.md]\nKeep as document block" text]
+  assert.equal(call.body.messages[0].content.length, 2);
+  assert.equal(call.body.messages[0].content[0].text, "Inspect project");
+  assert.equal(call.body.messages[0].content[1].type, "text");
+  assert.equal(call.body.messages[0].content[1].text, "[design.md]\nKeep as document block");
+
+  // assistant msg[1] (was clientMessages[2]): tool_use unchanged
+  assert.equal(call.body.messages[1].content[0].type, "tool_use");
+
+  // user msg[2] (was clientMessages[3]): tool_result preserved (preserveToolResultBlocks:true)
+  assert.equal(call.body.messages[2].content[0].type, "tool_result");
 });
 
 test("chatCore preserves cache_control automatically for Claude Code single-model requests", async () => {

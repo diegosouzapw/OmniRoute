@@ -128,6 +128,7 @@ const VISION_MODELS = [
   "qwen-vl",
   "qvq",
   "mistral-pixtral",
+  "kimi",
 ];
 
 function isVisionModel(modelId: string): boolean {

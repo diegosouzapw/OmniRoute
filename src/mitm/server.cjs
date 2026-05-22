@@ -13,10 +13,12 @@ function getDataDir() {
 }
 
 // Configuration
+// Keep in sync with src/mitm/targets/antigravity.ts
 const TARGET_HOSTS = new Set([
   "daily-cloudcode-pa.sandbox.googleapis.com",
   "daily-cloudcode-pa.googleapis.com",
   "cloudcode-pa.googleapis.com",
+  "autopush-cloudcode-pa.sandbox.googleapis.com",
 ]);
 const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
 const LOCAL_PORT =
@@ -288,25 +290,34 @@ const server = https.createServer(sslOptions, async (req, res) => {
   writeStats();
 
   const bodyBuffer = await collectBodyRaw(req);
+  const host = String(req.headers.host || "").split(":")[0].toLowerCase();
+  const model = bodyBuffer.length > 0 ? extractModel(bodyBuffer) : null;
 
-  // Save request log if enabled
+  console.log(`[MITM] ${req.method} ${host}${req.url} | body: ${bodyBuffer.length}B | model: ${model || "N/A"}`);
+
   if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
 
-  // Anti-loop: requests from OmniRoute bypass interception
   if (req.headers["x-omniroute-source"] === "omniroute") {
+    console.log(`[MITM] → PASSTHROUGH (OmniRoute source loop)`);
+    return passthrough(req, res, bodyBuffer);
+  }
+
+  if (!TARGET_HOSTS.has(host)) {
+    console.log(`[MITM] → PASSTHROUGH (host ${host} not in target list)`);
     return passthrough(req, res, bodyBuffer);
   }
 
   const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
 
   if (!isChatRequest) {
+    console.log(`[MITM] → PASSTHROUGH (URL ${req.url} does not match chat patterns)`);
     return passthrough(req, res, bodyBuffer);
   }
 
-  const model = extractModel(bodyBuffer);
   const mappedModel = getMappedModel(model);
 
   if (!mappedModel) {
+    console.log(`[MITM] → PASSTHROUGH (model "${model}" has no MITM alias mapping)`);
     return passthrough(req, res, bodyBuffer);
   }
 
@@ -314,7 +325,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
   stats.lastInterceptAt = new Date().toISOString();
   writeStats();
 
-  console.log(`🔀 ${model} → ${mappedModel}`);
+  console.log(`[MITM] INTERCEPTED ${model} → ${mappedModel}`);
   return intercept(req, res, bodyBuffer, mappedModel);
 });
 

@@ -117,6 +117,11 @@ export const EMBEDDING_PROVIDERS: Record<string, EmbeddingProvider> = {
     authHeader: "bearer",
     models: [
       { id: "nomic-ai/nomic-embed-text-v1.5", name: "Nomic Embed Text v1.5", dimensions: 768 },
+      {
+        id: "accounts/fireworks/models/qwen3-embedding-8b",
+        name: "Qwen3 Embedding 8B",
+        dimensions: 4096,
+      },
     ],
   },
 

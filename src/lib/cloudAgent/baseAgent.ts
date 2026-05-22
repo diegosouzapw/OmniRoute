@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import type {
   CloudAgentTask,
   CloudAgentStatus,
@@ -87,12 +86,10 @@ export abstract class CloudAgentBase {
   }
 
   protected generateTaskId(): string {
-    // Cryptographically secure suffix (not Math.random) — task IDs flow into
-    // session/external identifiers, so they must be unpredictable (CodeQL js/insecure-randomness).
-    return `task_${Date.now()}_${randomBytes(8).toString("hex")}`;
+    return `task_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").substring(0, 9)}`;
   }
 
   protected generateActivityId(): string {
-    return `act_${Date.now()}_${randomBytes(8).toString("hex")}`;
+    return `act_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").substring(0, 9)}`;
   }
 }

@@ -35,7 +35,7 @@ function makeRequest(headers?: HeadersInit) {
       "content-type": "application/json",
       ...headers,
     },
-    body: JSON.stringify({ providerId: "openai", modelId: "gpt-4o-mini" }),
+    body: JSON.stringify({ providerId: "openai", modelId: "gpt-4o-2024-11-20" }),
   });
 }
 
@@ -135,7 +135,7 @@ test("model test route ignores forwarded hosts and works in strict API-key mode"
         "x-forwarded-host": "evil.example",
         "x-forwarded-proto": "https",
       },
-      body: { providerId: "openai", modelId: "gpt-4o-mini" },
+      body: { providerId: "openai", modelId: "gpt-4o-2024-11-20" },
     })
   );
   const body = (await response.json()) as any;

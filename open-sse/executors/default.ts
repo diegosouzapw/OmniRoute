@@ -1,4 +1,4 @@
-import { BaseExecutor } from "./base.ts";
+import { BaseExecutor, setUserAgentHeader } from "./base.ts";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import {
@@ -239,7 +239,7 @@ export class DefaultExecutor extends BaseExecutor {
     }
   }
 
-  buildHeaders(credentials, stream = true) {
+  buildHeaders(credentials, stream = true, clientHeaders?: Record<string, string> | null) {
     const headers = { "Content-Type": "application/json", ...this.config.headers };
 
     // Allow per-provider User-Agent override via environment variable.
@@ -405,6 +405,30 @@ export class DefaultExecutor extends BaseExecutor {
       }
     }
 
+    // Forward client request metadata headers (from OpenCode or similar clients)
+    // Allowlist-based: only specific x-opencode-* headers and User-Agent are forwarded
+    if (clientHeaders) {
+      const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
+      if (clientUA) {
+        setUserAgentHeader(headers, clientUA);
+      }
+
+      const opencodeHeaderKeys = [
+        "x-opencode-session",
+        "x-opencode-request",
+        "x-opencode-project",
+        "x-opencode-client",
+      ];
+      for (const headerName of opencodeHeaderKeys) {
+        const value = Object.entries(clientHeaders).find(
+          ([key]) => key.toLowerCase() === headerName.toLowerCase()
+        )?.[1];
+        if (value) {
+          headers[headerName] = value;
+        }
+      }
+    }
+
     return headers;
   }
 
@@ -474,6 +498,19 @@ export class DefaultExecutor extends BaseExecutor {
         "QwenExecutor"
       );
     }
+
+    // Apply modelIdPrefix from RegistryEntry (e.g. "accounts/fireworks/models/")
+    // so registry can store short model IDs while the upstream API receives the full path.
+    if (typeof withDefaults === "object" && withDefaults !== null) {
+      const entry = getRegistryEntry(this.provider);
+      if (entry?.modelIdPrefix) {
+        const body = withDefaults as Record<string, unknown>;
+        if (typeof body.model === "string" && !body.model.startsWith(entry.modelIdPrefix)) {
+          body.model = `${entry.modelIdPrefix}${body.model}`;
+        }
+      }
+    }
+
     return withDefaults;
   }
 

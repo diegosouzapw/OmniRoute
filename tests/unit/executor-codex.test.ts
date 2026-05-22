@@ -156,7 +156,7 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.131.0");
+  assert.equal(standardHeaders.Version, "0.132.0");
   assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(standardHeaders["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
@@ -1219,7 +1219,11 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
-test("CodexExecutor.refreshCredentials propagates unrecoverable error object instead of returning null", async () => {
+test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
+  // Source intentionally returns null (not an error object) so that base.ts does
+  // not spread stale error fields onto activeCredentials. The upstream 401/403
+  // drives the proper re-auth / mark-expired path instead.
+  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1230,8 +1234,7 @@ test("CodexExecutor.refreshCredentials propagates unrecoverable error object ins
 
   try {
     const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
-    assert.ok(result !== null, "should return error object, not null");
-    assert.equal((result as any).error, "unrecoverable_refresh_error");
+    assert.equal(result, null, "should return null to leave original credentials untouched");
   } finally {
     globalThis.fetch = originalFetch;
   }

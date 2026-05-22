@@ -8,6 +8,7 @@ import { startBudgetResetJob } from "./lib/jobs/budgetResetJob";
 import { startReasoningCacheCleanupJob } from "./lib/jobs/reasoningCacheCleanupJob";
 import { getSettings } from "./lib/db/settings";
 import { applyRuntimeSettings } from "./lib/config/runtimeSettings";
+import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
 import { startRuntimeConfigHotReload } from "./lib/config/hotReload";
 import { startSpendBatchWriter } from "./lib/spend/batchWriter";
 import { registerDefaultGuardrails } from "./lib/guardrails";
@@ -74,6 +75,14 @@ async function startServer() {
         { sections: runtimeChanges.map((entry) => entry.section) },
         "Runtime settings hydrated"
       );
+    }
+
+    // Restore the Global System Prompt into the in-memory config. It lives in the
+    // `settings.systemPrompt` key but is NOT covered by applyRuntimeSettings, so without
+    // this the toggle/prompt revert to defaults on every restart (#2470).
+    if (settings.systemPrompt) {
+      setSystemPromptConfig(settings.systemPrompt);
+      startupLog.info("Global System Prompt restored from settings");
     }
 
     // Initialize cloud sync

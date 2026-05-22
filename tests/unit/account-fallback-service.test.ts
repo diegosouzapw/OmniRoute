@@ -829,3 +829,100 @@ test("classifyErrorText handles hour quota messages", () => {
   assert.equal(classifyErrorText("hour quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
   assert.equal(classifyErrorText("quota has been exceeded"), RateLimitReason.QUOTA_EXHAUSTED);
 });
+
+// ─── Model Access Denied (structured error codes + regex fallback) ─────
+
+test("checkFallbackError detects model access denied via structured error code (OpenAI)", () => {
+  const result = checkFallbackError(
+    400,
+    "The model `gpt-5` does not exist",
+    0,
+    null,
+    "openai",
+    null,
+    null,
+    { code: "model_not_found", type: null }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError detects model access denied via structured error type (Anthropic not_found_error)", () => {
+  const result = checkFallbackError(
+    400,
+    "model: claude-sonnet-4-7-20260515",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "not_found_error" }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError detects model access denied via structured error type (Anthropic permission_error) when the message confirms the model", () => {
+  const result = checkFallbackError(
+    400,
+    "you do not have access to the requested model",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "permission_error" }
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT fallback on a permission_error that is a key/feature scope issue (not model access)", () => {
+  // permission_error is ambiguous on Anthropic — also raised for API-key scope,
+  // org restrictions and feature gating. Without a model-related message it must
+  // surface the real error instead of silently exhausting every combo target.
+  const result = checkFallbackError(
+    400,
+    "Your API key does not have permission to use the Message Batches API",
+    0,
+    null,
+    "anthropic",
+    null,
+    null,
+    { code: null, type: "permission_error" }
+  );
+  assert.equal(result.shouldFallback, false);
+});
+
+test("checkFallbackError detects model access denied via regex fallback (invalid model)", () => {
+  const result = checkFallbackError(
+    400,
+    "Invalid model: gpt-5-turbo",
+    0,
+    null,
+    "some-provider",
+    null,
+    null
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 0);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT fallback on generic 400 without model access denied", () => {
+  const result = checkFallbackError(400, "bad request payload", 0, null, "openai", null, null);
+  assert.equal(result.shouldFallback, false);
+});
+
+test("checkFallbackError ignores structured error with unrelated code on 400", () => {
+  const result = checkFallbackError(400, "something went wrong", 0, null, "openai", null, null, {
+    code: "invalid_api_key",
+    type: null,
+  });
+  // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES,
+  // no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
+  assert.equal(result.shouldFallback, false);
+});
