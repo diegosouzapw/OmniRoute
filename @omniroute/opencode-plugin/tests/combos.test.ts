@@ -450,9 +450,9 @@ test("models() returns combo entries merged into the map", async () => {
   assert.ok(out["claude-primary"]);
   assert.ok(out["claude-secondary"]);
   assert.ok(out["gemini-3-flash"]);
-  assert.ok(out["combo-claude-tier"]);
+  assert.ok(out["combo/claude-tier"]);
 
-  const combo = out["combo-claude-tier"];
+  const combo = out["combo/claude-tier"];
   assert.equal(combo.name, "Claude Tier");
   assert.equal(combo.providerID, "omniroute");
   // LCD over claude-primary (200k, reasoning) + claude-secondary (100k, no reasoning)
@@ -478,11 +478,11 @@ test("models(): combo with unknown member ids degrades to all-false LCD posture"
     { fetcher: modelsFetcher, combosFetcher }
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk-z") as never });
-  assert.ok(out["phantom"]);
+  assert.ok(out["combo/phantom-combo"]);
   // With zero resolvable members, LCD = all-false (defensive posture).
-  assert.equal(out["phantom"].capabilities.toolcall, false);
-  assert.equal(out["phantom"].capabilities.reasoning, false);
-  assert.equal(out["phantom"].limit.context, 0);
+  assert.equal(out["combo/phantom-combo"].capabilities.toolcall, false);
+  assert.equal(out["combo/phantom-combo"].capabilities.reasoning, false);
+  assert.equal(out["combo/phantom-combo"].limit.context, 0);
 });
 
 test("models(): hidden combos are excluded from the map", async () => {
@@ -505,15 +505,17 @@ test("models(): hidden combos are excluded from the map", async () => {
     { fetcher: modelsFetcher, combosFetcher }
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk-z") as never });
-  assert.ok(out["visible"]);
-  assert.ok(!out["hidden"], "hidden combo must be omitted");
+  assert.ok(out["combo/visible"]);
+  assert.ok(!out["combo/hidden"], "hidden combo must be omitted");
 });
 
-test("models(): combo ID collides with a model ID → combo wins, warn emitted once", async () => {
-  // The combo shares id with a model in the catalog.
+test("models(): combo name exactly matches raw model id → raw deleted, combo lives at combo/ key, no warn", async () => {
+  // Combo.name === raw model id triggers the dedup deletion. This mirrors
+  // the real OmniRoute payload where /v1/models pre-mirrors combos as
+  // no-slash raw entries whose ids match /api/combos friendly names.
   const colliderCombo: OmniRouteRawCombo = {
-    id: "claude-primary", // SAME id as MODEL_PRIMARY
-    name: "Claude Primary Combo Override",
+    id: "uuid-collider",
+    name: "claude-primary", // EXACT match to MODEL_PRIMARY.id
     models: [{ id: "s1", kind: "model", model: "claude-secondary", weight: 100 }],
   };
   const modelsFetcher = stubModelsFetcher([MODEL_PRIMARY, MODEL_SECONDARY]);
@@ -527,47 +529,45 @@ test("models(): combo ID collides with a model ID → combo wins, warn emitted o
     return hook.models!({} as never, { auth: apiAuth("sk-z") as never });
   });
 
-  // Combo wins → the entry at "claude-primary" has the combo's display name,
-  // not the raw model's id-as-name.
-  assert.equal(out["claude-primary"].name, "Claude Primary Combo Override");
-  // Exactly one collision warning was emitted.
+  // Raw model deleted by combo-name dedup; combo surfaces under combo/<slug>.
+  assert.equal(out["claude-primary"], undefined, "raw deleted by combo-name dedup");
+  assert.ok(out["combo/claude-primary"], "combo surfaces under combo/ namespace");
+  assert.equal(out["combo/claude-primary"].name, "claude-primary");
+
+  // No collision warning fires — dedup makes keys disjoint.
   const collisionWarns = warnings.filter((w) => {
     const msg = w.args[0];
-    return typeof msg === "string" && msg.includes("collides with a model id");
+    return typeof msg === "string" && msg.includes("collides");
   });
-  assert.equal(collisionWarns.length, 1, "collision warning emitted exactly once");
-
-  // Second call within TTL hits the cache; no additional warnings.
-  const { warnings: warnings2 } = await withWarnCapture(async (_w) => {
-    return hook.models!({} as never, { auth: apiAuth("sk-z") as never });
-  });
-  const collisionWarns2 = warnings2.filter((w) => {
-    const msg = w.args[0];
-    return typeof msg === "string" && msg.includes("collides with a model id");
-  });
-  assert.equal(collisionWarns2.length, 0, "no re-warn on cached call");
+  assert.equal(collisionWarns.length, 0, "no collision warn after dedup");
 });
 
-test("models(): collision warn is per-comboId — distinct collisions both warn", async () => {
-  const m1: OmniRouteRawModelEntry = { ...MODEL_PRIMARY, id: "id-a" };
-  const m2: OmniRouteRawModelEntry = { ...MODEL_SECONDARY, id: "id-b" };
+test("models(): two combos with same slug → second gets disambiguator suffix", async () => {
+  // Both combos slug to `claude` — second must get `combo/claude-<id-prefix>`.
   const combos: OmniRouteRawCombo[] = [
-    { id: "id-a", name: "A", models: [{ id: "s", kind: "model", model: "id-a", weight: 1 }] },
-    { id: "id-b", name: "B", models: [{ id: "s", kind: "model", model: "id-b", weight: 1 }] },
+    {
+      id: "uuid-a",
+      name: "Claude",
+      models: [{ id: "s", kind: "model", model: "claude-primary", weight: 1 }],
+    },
+    {
+      id: "uuid-b",
+      name: "Claude",
+      models: [{ id: "s", kind: "model", model: "claude-secondary", weight: 1 }],
+    },
   ];
   const hook = createOmniRouteProviderHook(
     { baseURL: "https://or.example.com/v1" },
-    { fetcher: stubModelsFetcher([m1, m2]), combosFetcher: stubCombosFetcher(combos) }
+    {
+      fetcher: stubModelsFetcher([MODEL_PRIMARY, MODEL_SECONDARY]),
+      combosFetcher: stubCombosFetcher(combos),
+    }
   );
 
-  const { warnings } = await withWarnCapture(async () => {
-    return hook.models!({} as never, { auth: apiAuth("sk-z") as never });
-  });
-  const collisionWarns = warnings.filter((w) => {
-    const msg = w.args[0];
-    return typeof msg === "string" && msg.includes("collides with a model id");
-  });
-  assert.equal(collisionWarns.length, 2);
+  const out = await hook.models!({} as never, { auth: apiAuth("sk-z") as never });
+  // First combo gets the bare slug; second gets disambiguated.
+  assert.ok(out["combo/claude"], "first combo at bare slug");
+  assert.ok(out["combo/claude-uuid"], "second combo disambiguated by id prefix");
 });
 
 test("models(): combos fetch fails → falls back to models-only, warn emitted, no throw", async () => {
@@ -610,7 +610,7 @@ test("models(): combos cached + reused within TTL (one combo fetch per TTL windo
   const second = await hook.models!({} as never, { auth: apiAuth("sk-z") as never });
   assert.equal(combosFetcher.callCount(), 1, "combos fetched only once within TTL");
   assert.equal(modelsFetcher.callCount(), 1, "models fetched only once within TTL");
-  assert.ok(second["combo-claude-tier"]);
+  assert.ok(second["combo/claude-tier"]);
 });
 
 test("models(): combos refetched after TTL expiry (same key as models)", async () => {

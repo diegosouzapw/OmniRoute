@@ -33,6 +33,9 @@ import {
   OmniRoutePlugin,
   resolveOmniRoutePluginOptions,
   type OmniRouteCombosFetcher,
+  type OmniRouteEnrichmentEntry,
+  type OmniRouteEnrichmentFetcher,
+  type OmniRouteEnrichmentMap,
   type OmniRouteFetchCache,
   type OmniRouteModelsFetcher,
   type OmniRouteRawCombo,
@@ -147,6 +150,29 @@ function throwingCombosFetcher(): OmniRouteCombosFetcher & { callCount: () => nu
   return Object.assign(f, { callCount: () => n });
 }
 
+function stubEnrichmentFetcher(payload: OmniRouteEnrichmentMap): OmniRouteEnrichmentFetcher & {
+  callCount: () => number;
+  callsBy: () => Array<[string, string]>;
+} {
+  let n = 0;
+  const calls: Array<[string, string]> = [];
+  const f: OmniRouteEnrichmentFetcher = async (baseURL, apiKey) => {
+    n++;
+    calls.push([baseURL, apiKey]);
+    return payload;
+  };
+  return Object.assign(f, { callCount: () => n, callsBy: () => calls });
+}
+
+function throwingEnrichmentFetcher(): OmniRouteEnrichmentFetcher & { callCount: () => number } {
+  let n = 0;
+  const f: OmniRouteEnrichmentFetcher = async () => {
+    n++;
+    throw new Error("ETIMEDOUT");
+  };
+  return Object.assign(f, { callCount: () => n });
+}
+
 interface WarnCapture {
   warn: (...args: unknown[]) => void;
   entries: unknown[][];
@@ -208,9 +234,10 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   assert.equal(claude.limit?.input, 180_000);
   assert.equal(claude.limit?.output, 64_000);
 
-  // Combo present + LCD'd (gemini's reasoning=false → combo reasoning=false).
-  const combo = entry.models["combo-claude-tier"];
-  assert.ok(combo, "combo surfaced");
+  // Combo surfaces under `combo/<friendly-name>` namespace + LCD'd
+  // (gemini's reasoning=false → combo reasoning=false).
+  const combo = entry.models["combo/claude-tier"];
+  assert.ok(combo, "combo surfaced under combo/ namespace");
   assert.equal(combo.name, "Claude Tier");
   assert.equal(combo.reasoning, false, "LCD: any member reasoning=false → combo reasoning=false");
   assert.equal(combo.tool_call, true);
@@ -712,4 +739,133 @@ test("config: initialises input.provider when undefined", async () => {
   const provider = (input as { provider?: Record<string, unknown> }).provider;
   assert.ok(provider, "provider bag initialised");
   assert.ok(provider!.omniroute);
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Enrichment overlay — eager fetch on config-hook so OC ≤1.15.5 TUI sees
+// human display names instead of raw provider/model ids.
+// ────────────────────────────────────────────────────────────────────────────
+
+test("config: enrichment fetched + name overlaid on raw-model entries", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE, MODEL_GEMINI]);
+  const combosFetcher = stubCombosFetcher([COMBO_CLAUDE_TIER]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["claude-sonnet-4-6", { name: "Claude Sonnet 4.6" }],
+      ["gemini-3-flash", { name: "Gemini 3 Flash" }],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry);
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
+  assert.equal(entry.models["gemini-3-flash"].name, "Gemini 3 Flash");
+  // Combo names still come from /api/combos — enrichment overlay does NOT touch combos.
+  assert.equal(entry.models["combo/claude-tier"].name, "Claude Tier");
+  assert.equal(enrichmentFetcher.callCount(), 1);
+});
+
+test("config: features.enrichment=false skips enrichment fetch + keeps raw-id names", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["claude-sonnet-4-6", { name: "Claude Sonnet 4.6" }],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { enrichment: false } },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry);
+  assert.equal(enrichmentFetcher.callCount(), 0, "enrichment fetch suppressed by feature flag");
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
+});
+
+test("config: enrichment fetcher throws → soft-fail (warn + raw-id static catalog)", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const enrichmentFetcher = throwingEnrichmentFetcher();
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute" },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, logger }
+  );
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry, "static block still published on enrichment failure");
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id retained");
+  assert.equal(enrichmentFetcher.callCount(), 1);
+  assert.ok(
+    logger.entries.some((e) => String(e[0]).includes("/api/pricing/models fetch failed")),
+    "enrichment-fetch breadcrumb emitted"
+  );
+});
+
+test("config: cached rawEnrichment from earlier provider hook is reused (no refetch)", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-shared", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CLAUDE]);
+  const combosFetcher = stubCombosFetcher([]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["claude-sonnet-4-6", { name: "Claude Sonnet 4.6" }],
+    ])
+  );
+  const sharedCache: OmniRouteFetchCache = new Map();
+  const logger = captureWarn();
+
+  const providerHook = createOmniRouteProviderHook(
+    { providerId: "omniroute", baseURL: "https://or.example/v1", modelCacheTtl: 60_000 },
+    { fetcher, combosFetcher, enrichmentFetcher, cache: sharedCache }
+  );
+  const configHook = createOmniRouteConfigHook(
+    { providerId: "omniroute", baseURL: "https://or.example/v1", modelCacheTtl: 60_000 },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, cache: sharedCache, logger }
+  );
+
+  // Provider hook fires first (e.g. eager cache warm-up), populates rawEnrichment.
+  await providerHook.models!({} as never, {
+    auth: { type: "api", key: "sk-shared" } as never,
+  });
+  assert.equal(enrichmentFetcher.callCount(), 1);
+
+  // Config hook then fires — must reuse cached enrichment, not refetch.
+  const input = makeInput();
+  await configHook(input);
+  assert.equal(enrichmentFetcher.callCount(), 1, "config reused cached enrichment");
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
 });

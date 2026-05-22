@@ -1162,6 +1162,48 @@ export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]):
 }
 
 /**
+ * Slugify a combo display name into a copy/paste-friendly URL-safe segment.
+ * Lowercases, replaces any run of non-alphanumeric chars with a single dash,
+ * trims leading/trailing dashes. Empty input or all-special input returns
+ * the empty string (caller must fall back to the combo's UUID id).
+ *
+ * Example: `Claude Tier` → `claude-tier`, `GPT 5.5 / Pro` → `gpt-5-5-pro`.
+ */
+export function slugifyComboName(name: string): string {
+  if (typeof name !== "string") return "";
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Build a combo's static-block key (`combo/<slug>`), guaranteeing uniqueness
+ * across an entire static catalog. If `<slug>` is already present in `used`,
+ * suffixes a short UUID-prefix disambiguator from `combo.id` so the second
+ * combo doesn't silently overwrite the first. Mutates `used` in place by
+ * recording the chosen key. Returns the final `combo/<...>` key.
+ *
+ * Falls back to `combo/<id>` when the friendly name slugifies to the empty
+ * string (e.g. a combo named just punctuation).
+ */
+export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): string {
+  const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+  let slug = slugifyComboName(friendlyName);
+  if (slug.length === 0) slug = combo.id;
+  let key = `combo/${slug}`;
+  if (used.has(key)) {
+    const tail = combo.id.split("-")[0] ?? combo.id;
+    key = `combo/${slug}-${tail}`;
+    // Defensive: in the (impossible) event the disambiguated key also
+    // collides, append the full id.
+    if (used.has(key)) key = `combo/${slug}-${combo.id}`;
+  }
+  used.add(key);
+  return key;
+}
+
+/**
  * Internal cache key: `${baseURL}::sha256(apiKey)`. We hash the apiKey so
  * the key is safe to log / inspect via debugger without leaking the secret.
  * Different (baseURL, apiKey) tuples MUST keep independent cache entries:
@@ -1435,6 +1477,22 @@ export function createOmniRouteProviderHook(
       // model entries; unknown member ids are silently dropped before
       // mapComboToModelV2 sees them, which then degrades to the
       // all-false LCD posture if zero members remain.
+      //
+      // Combos are keyed under the `combo/<slug>` namespace so the TUI
+      // picker separates them from provider/model pairs and the UUID
+      // never surfaces. This mirrors `buildStaticProviderEntry` so the
+      // static + dynamic catalogs publish identical keys.
+      const comboNames = new Set<string>();
+      for (const combo of rawCombos) {
+        if (!combo || combo.isHidden === true) continue;
+        const n = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+        if (typeof n === "string" && n.length > 0) comboNames.add(n);
+      }
+      for (const key of Object.keys(models)) {
+        if (comboNames.has(key)) delete models[key];
+      }
+
+      const usedComboKeys = new Set<string>();
       for (const combo of rawCombos) {
         if (!combo.id) continue;
         if (combo.isHidden === true) continue;
@@ -1452,6 +1510,7 @@ export function createOmniRouteProviderHook(
         }
 
         const mapped = mapComboToModelV2(combo, memberEntries, resolved.providerId, baseURL);
+        const hasMembers = memberEntries.length > 0;
 
         // Apply enrichment overlay to combos too (OmniRoute's
         // /api/pricing/models surfaces combos alongside provider-scoped
@@ -1459,28 +1518,32 @@ export function createOmniRouteProviderHook(
         applyEnrichment(mapped, rawEnrichment.get(combo.id));
 
         // Optionally decorate combo name with its compression pipeline.
-        // Only fires when features.compressionMetadata: true and OmniRoute
-        // returned at least one default compression combo.
-        if (defaultCompression && defaultCompression.pipeline.length > 0) {
+        // Only fires when features.compressionMetadata: true, OmniRoute
+        // returned at least one default compression combo, AND the
+        // combo has resolvable members — claiming compression on an
+        // unroutable combo would mislead the picker.
+        if (hasMembers && defaultCompression && defaultCompression.pipeline.length > 0) {
           const tag = formatCompressionPipeline(defaultCompression.pipeline);
           if (tag.length > 0 && !mapped.name.includes(tag)) {
             mapped.name = `${mapped.name} ${tag}`;
           }
         }
 
-        // Collision policy: combos win. Warn ONCE per (cacheKey, comboId)
-        // when overwriting a same-id raw model so the operator can spot
+        const comboKey = buildComboKey(combo, usedComboKeys);
+
+        // Collision policy: combos win. Warn ONCE per (cacheKey, comboKey)
+        // when overwriting a same-key raw model so the operator can spot
         // the unusual naming choice without log spam.
-        if (Object.prototype.hasOwnProperty.call(models, combo.id)) {
-          const dedupeKey = `${cacheKey}::${combo.id}`;
+        if (Object.prototype.hasOwnProperty.call(models, comboKey)) {
+          const dedupeKey = `${cacheKey}::${comboKey}`;
           if (!collisionWarned.has(dedupeKey)) {
             collisionWarned.add(dedupeKey);
             console.warn(
-              `[omniroute-plugin] combo id "${combo.id}" collides with a model id; combo wins.`
+              `[omniroute-plugin] combo key "${comboKey}" collides with a model id; combo wins.`
             );
           }
         }
-        models[combo.id] = mapped;
+        models[comboKey] = mapped;
       }
 
       return models;
@@ -1977,15 +2040,42 @@ export function buildStaticProviderEntry(
   rawCombos: OmniRouteRawCombo[],
   opts: ReturnType<typeof resolveOmniRoutePluginOptions>,
   baseURL: string,
-  apiKey: string
+  apiKey: string,
+  enrichment?: OmniRouteEnrichmentMap,
+  compressionCombos?: OmniRouteCompressionCombo[]
 ): OmniRouteStaticProviderEntry {
   const models: Record<string, OmniRouteStaticModelEntry> = {};
+
+  // Build a name-set of every non-hidden combo from `/api/combos`. OmniRoute
+  // pre-mirrors combos into `/v1/models` with the friendly name as the raw
+  // id (e.g. `claude-primary`, `gemini-pro`), so without dedup the static
+  // catalog ends up with both `claude-primary` (raw, opaque) AND the same
+  // combo under `combo/claude-primary` (rich LCD). We suppress the raw twin
+  // so each combo surfaces exactly once, under the `combo/` namespace.
+  const comboNames = new Set<string>();
+  for (const combo of rawCombos) {
+    if (!combo || combo.isHidden === true) continue;
+    const name = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+    if (typeof name === "string" && name.length > 0) comboNames.add(name);
+  }
 
   // Raw model entries → stripped per-model shape.
   for (const raw of rawModels) {
     if (!raw.id) continue;
+    // Skip the 20 named no-slash entries that shadow combos under the
+    // `combo/<name>` namespace. We keep `codex-auto-review` and any other
+    // future no-slash raw entry that doesn't have a matching combo.
+    if (comboNames.has(raw.id)) continue;
     const caps = raw.capabilities ?? {};
-    const entry: OmniRouteStaticModelEntry = { name: raw.id };
+    // Enrichment overlay: `/api/pricing/models` carries human display names
+    // (e.g. "Claude Opus 4.7" for raw id "cc/claude-opus-4-7"). The OC TUI
+    // model picker reads this `name` straight from the static block on
+    // OC ≤1.15.5 where the dynamic provider hook never fires. Falls back
+    // to the raw id when no enrichment entry is found.
+    const enrichmentName = enrichment?.get(raw.id)?.name;
+    const entry: OmniRouteStaticModelEntry = {
+      name: enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id,
+    };
 
     const attachment = caps.attachment ?? caps.vision;
     if (typeof attachment === "boolean") entry.attachment = attachment;
@@ -2029,12 +2119,33 @@ export function buildStaticProviderEntry(
     models[raw.id] = entry;
   }
 
-  // Combo entries → stripped LCD shape. Combos win on id collision (matches
-  // the dynamic provider hook's resolution order — see T-05).
+  // Combo entries → stripped LCD shape. Each combo is keyed as
+  // `combo/<friendly-name>` so the OC TUI model picker shows them under a
+  // distinct namespace (e.g. `combo/claude-primary`) instead of the opaque
+  // upstream UUID id (e.g. `b4a0211e-e3e1-472d-b252-fb9bf6d1c935`).
   const rawModelById = new Map<string, OmniRouteRawModelEntry>();
   for (const m of rawModels) {
     if (m.id) rawModelById.set(m.id, m);
   }
+
+  // Resolve the default compression pipeline once — its short signature
+  // (e.g. `[rtk:standard → caveman:full]`) is appended to every routable
+  // combo `name` so operators can see what compression a combo applies
+  // at a glance. Provider hook does the same decoration when feature is
+  // on. Suffix is suppressed for combos with no resolvable members —
+  // claiming compression on an unroutable combo would mislead the
+  // picker.
+  let compressionSuffix = "";
+  if (compressionCombos && compressionCombos.length > 0) {
+    const def = compressionCombos.find((c) => c.isDefault === true);
+    if (def) {
+      const sig = formatCompressionPipeline(def.pipeline);
+      if (sig.length > 0) compressionSuffix = ` ${sig}`;
+    }
+  }
+
+  // Track combo keys to detect slug collisions across the catalog.
+  const usedComboKeys = new Set<string>();
 
   for (const combo of rawCombos) {
     if (!combo.id) continue;
@@ -2050,7 +2161,9 @@ export function buildStaticProviderEntry(
     }
 
     const hasMembers = memberEntries.length > 0;
-    const displayName = combo.name && combo.name.trim().length > 0 ? combo.name : combo.id;
+    const friendlyName = combo.name && combo.name.trim().length > 0 ? combo.name.trim() : combo.id;
+    const displayName =
+      hasMembers && compressionSuffix ? `${friendlyName}${compressionSuffix}` : friendlyName;
     const entry: OmniRouteStaticModelEntry = { name: displayName };
 
     if (hasMembers) {
@@ -2101,7 +2214,12 @@ export function buildStaticProviderEntry(
       entry.tool_call = false;
     }
 
-    models[combo.id] = entry;
+    // Key under `combo/<slug>` (e.g. `combo/claude-primary`) so the
+    // namespace cleanly separates combos from raw provider/model pairs
+    // and so the key is copy/paste-friendly. Slug collisions across
+    // combos are disambiguated with a short UUID-prefix suffix; see
+    // `buildComboKey` for the policy.
+    models[buildComboKey(combo, usedComboKeys)] = entry;
   }
 
   return {
@@ -2220,6 +2338,8 @@ export function createOmniRouteConfigHook(
     readAuthJson?: OmniRouteReadAuthJson;
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
+    enrichmentFetcher?: OmniRouteEnrichmentFetcher;
+    compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     now?: () => number;
     cache?: OmniRouteFetchCache;
     logger?: { warn: (...args: unknown[]) => void };
@@ -2229,9 +2349,15 @@ export function createOmniRouteConfigHook(
   const readAuthJson = deps.readAuthJson ?? defaultReadAuthJson;
   const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
+  const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
+  const compressionMetaFetcher =
+    deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
   const now = deps.now ?? Date.now;
   const cache: OmniRouteFetchCache = deps.cache ?? new Map();
   const logger = deps.logger ?? console;
+  const features = resolved.features ?? {};
+  const wantEnrichment = features.enrichment !== false;
+  const wantCompressionMeta = features.compressionMetadata === true;
 
   return async (input: Config) => {
     // (e) operator override — `input.provider[providerId]` already set →
@@ -2294,10 +2420,14 @@ export function createOmniRouteConfigHook(
 
     let rawModels: OmniRouteRawModelEntry[];
     let rawCombos: OmniRouteRawCombo[];
+    let rawEnrichment: OmniRouteEnrichmentMap;
+    let rawCompressionCombos: OmniRouteCompressionCombo[];
 
     if (cached && cached.expiresAt > t) {
       rawModels = cached.rawModels;
       rawCombos = cached.rawCombos;
+      rawEnrichment = cached.rawEnrichment;
+      rawCompressionCombos = cached.rawCompressionCombos;
     } else {
       // Fail-open fetcher errors: on /v1/models throw, fall back to empty
       // catalog (still publish a stub block so OC has a complete-shape
@@ -2322,23 +2452,60 @@ export function createOmniRouteConfigHook(
         );
       }
 
+      // Eagerly fetch enrichment so the static block can overlay human
+      // display names on raw model ids. On OC ≤1.15.5 the dynamic
+      // `provider.models` hook never fires in `serve` mode, so the static
+      // block IS what reaches `/provider` and the TUI model picker.
+      // Gated by `features.enrichment` (default-on). Soft-fail on error —
+      // we still publish a name-less catalog if /api/pricing/models is
+      // unreachable.
+      rawEnrichment = new Map();
+      if (wantEnrichment) {
+        try {
+          rawEnrichment = await enrichmentFetcher(baseURL, apiKey, 10_000);
+        } catch (err) {
+          logger.warn(
+            "[omniroute-plugin] config shim: /api/pricing/models fetch failed; publishing raw-id static catalog",
+            err
+          );
+        }
+      }
+
+      // Compression-metadata fetch — opt-in via features.compressionMetadata.
+      // When on, the default pipeline is appended to every combo `name` so
+      // the TUI picker advertises which compression a combo applies.
+      rawCompressionCombos = [];
+      if (wantCompressionMeta) {
+        try {
+          rawCompressionCombos = await compressionMetaFetcher(baseURL, apiKey, 10_000);
+        } catch (err) {
+          logger.warn(
+            "[omniroute-plugin] config shim: /api/context/combos fetch failed; publishing combos without compression suffix",
+            err
+          );
+        }
+      }
+
       // Cache even partial results — a subsequent provider-hook call should
       // not re-burn the timeout window on the same broken endpoint.
-      // Config-hook never fetches enrichment/compression directly: the
-      // static block doesn't surface them today (sibling shape is name+
-      // capability only). Provider-hook may fetch them later and write
-      // back into the same cache key; we seed empty values so the cache
-      // entry shape remains consistent.
       cache.set(cacheKey, {
         rawModels,
         rawCombos,
-        rawEnrichment: new Map(),
-        rawCompressionCombos: [],
+        rawEnrichment,
+        rawCompressionCombos,
         expiresAt: t + resolved.modelCacheTtl,
       });
     }
 
-    const block = buildStaticProviderEntry(rawModels, rawCombos, resolved, baseURL, apiKey);
+    const block = buildStaticProviderEntry(
+      rawModels,
+      rawCombos,
+      resolved,
+      baseURL,
+      apiKey,
+      rawEnrichment,
+      rawCompressionCombos
+    );
 
     // Mutate the input.provider map. The Config type declares
     // `provider?: {[key: string]: ProviderConfig}` — we initialise the
@@ -2359,7 +2526,6 @@ export function createOmniRouteConfigHook(
     // as provider-block emit): if input.mcp[providerId] is already set,
     // we leave it alone.
     // ─────────────────────────────────────────────────────────────────────
-    const features = resolved.features ?? {};
     if (features.mcpAutoEmit === true) {
       const mcpKey = features.mcpToken ?? apiKey;
       if (!mcpKey) {
