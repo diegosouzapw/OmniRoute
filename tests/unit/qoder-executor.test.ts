@@ -34,6 +34,24 @@ test("QoderExecutor: buildHeaders inherits configured user agent, auth and strea
   });
 });
 
+test("QoderExecutor: buildHeaders for PAT token includes User-Agent and Accept headers", () => {
+  const executor = new QoderExecutor();
+
+  // PAT tokens (pt- prefix) must include standard headers for native Qoder API compatibility
+  assert.deepEqual(executor.buildHeaders({ apiKey: "pt-test-token" }, true), {
+    "Content-Type": "application/json",
+    "User-Agent": "Qoder-Cli",
+    Authorization: "Bearer pt-test-token",
+    Accept: "text/event-stream",
+  });
+  assert.deepEqual(executor.buildHeaders({ apiKey: "pt-test-token" }, false), {
+    "Content-Type": "application/json",
+    "User-Agent": "Qoder-Cli",
+    Authorization: "Bearer pt-test-token",
+    Accept: "application/json",
+  });
+});
+
 test("QoderExecutor: buildUrl uses the live qoder.com API base", () => {
   const executor = new QoderExecutor();
   assert.equal(
@@ -166,13 +184,59 @@ test("QoderExecutor: missing tokens return an authentication error response", as
   assert.equal(payload.error.code, "token_required");
 });
 
-test("QoderExecutor: non-stream calls target DashScope and map alias models", async () => {
+test("QoderExecutor: non-stream calls target Qoder native API for PAT tokens", async () => {
+  const executor = new QoderExecutor();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    assert.equal(String(url), "https://api.qoder.com/v1/chat/completions");
+    assert.equal(options.method, "POST");
+    assert.equal(options.headers.Authorization, "Bearer pt-0pUI-test-token");
+    assert.equal(options.headers["x-dashscope-authtype"], undefined);
+    const parsedBody = JSON.parse(String(options.body));
+    assert.equal(parsedBody.model, "qwen3.5-plus");
+    return new Response(
+      JSON.stringify({
+        id: "chatcmpl-qoder",
+        object: "chat.completion",
+        choices: [
+          {
+            index: 0,
+            message: { role: "assistant", content: "OK" },
+            finish_reason: "stop",
+          },
+        ],
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  };
+
+  try {
+    const { response, url, transformedBody } = await executor.execute({
+      model: "qwen3.5-plus",
+      body: { messages: [{ role: "user", content: "Reply with OK only." }] },
+      stream: false,
+      credentials: { apiKey: "pt-0pUI-test-token" },
+    });
+
+    assert.equal(url, "https://api.qoder.com/v1/chat/completions");
+    assert.equal((transformedBody as any).model, "qwen3.5-plus");
+    assert.equal(response.status, 200);
+    const payload = (await response.json()) as any;
+    assert.equal(payload.object, "chat.completion");
+    assert.equal(payload.choices[0].message.role, "assistant");
+    assert.equal(payload.choices[0].message.content, "OK");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("QoderExecutor: non-stream calls target DashScope for non-PAT tokens and map alias models", async () => {
   const executor = new QoderExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options) => {
     assert.equal(String(url), "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");
     assert.equal(options.method, "POST");
-    assert.equal(options.headers.Authorization, "Bearer pat_test");
+    assert.equal(options.headers.Authorization, "Bearer sk_test");
     assert.equal(options.headers["x-dashscope-authtype"], "qwen-oauth");
     assert.equal(options.headers["user-agent"], getQwenCliUserAgent());
     assert.equal(options.headers["x-dashscope-useragent"], getQwenCliUserAgent());
@@ -199,7 +263,7 @@ test("QoderExecutor: non-stream calls target DashScope and map alias models", as
       model: "qwen3.5-plus",
       body: { messages: [{ role: "user", content: "Reply with OK only." }] },
       stream: false,
-      credentials: { apiKey: "pat_test" },
+      credentials: { apiKey: "sk_test" },
     });
 
     assert.equal(url, "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions");

@@ -37,8 +37,8 @@ export function createBetterSqliteAdapter(db: import("better-sqlite3").Database)
       (db.transaction(fn) as unknown as { immediate: () => void }).immediate();
     },
 
-    backup(destination: string): Promise<void> {
-      return db.backup(destination);
+    async backup(destination: string): Promise<void> {
+      await db.backup(destination);
     },
 
     checkpoint(mode = "TRUNCATE"): void {

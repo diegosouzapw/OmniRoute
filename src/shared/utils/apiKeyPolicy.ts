@@ -19,7 +19,8 @@ import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Manager, while provider/account quota controls remain
 // responsible for upstream 429 handling and fallback.
-const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
+// Exported so tests can lock in the "no implicit caps" contract from #2289.
+export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
 
 interface AccessSchedule {
   enabled: boolean;

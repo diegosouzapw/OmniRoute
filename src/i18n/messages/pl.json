@@ -6847,8 +6847,8 @@
     "equalSplit": "Equal split",
     "save": "Save allocations",
     "betaPreviewLabel": "__MISSING__:Beta — UI preview.",
-    "betaConfigSavedPrefix": "__MISSING__:A configuração é salva em",
-    "betaConfigSavedSuffix": "__MISSING__:(não persiste no servidor ainda). A aplicação dos caps por request ainda não está conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota;",
+    "betaConfigSavedPrefix": "__MISSING__:Configuration is saved in",
+    "betaConfigSavedSuffix": "__MISSING__:(not yet persisted on the server). Per-request cap enforcement is not yet wired into the proxy pipeline. This screen lets you design and visualize the quota split;",
     "policyLabel": "__MISSING__:Policy:"
   }
 }

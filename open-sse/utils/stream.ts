@@ -28,10 +28,6 @@ import {
   sanitizeStreamingChunk,
   extractThinkingFromContent,
 } from "../handlers/responseSanitizer.ts";
-import {
-  rememberResponseConversationState,
-  rememberResponseFunctionCalls,
-} from "../services/responsesToolCallState.ts";
 import { buildErrorBody } from "./error.ts";
 
 /**
@@ -1585,25 +1581,6 @@ export function createSSEStream(options: StreamOptions = {}) {
               });
             }
             clearPendingPassthroughEvent();
-
-            if (passthroughResponsesId) {
-              const requestInput =
-                body && typeof body === "object" && Array.isArray((body as JsonRecord).input)
-                  ? ((body as JsonRecord).input as unknown[])
-                  : [];
-              rememberResponseConversationState(
-                passthroughResponsesId,
-                requestInput,
-                passthroughResponsesOutputItems
-              );
-            }
-
-            if (passthroughResponsesId && passthroughResponsesOutputItems.length > 0) {
-              rememberResponseFunctionCalls(
-                passthroughResponsesId,
-                passthroughResponsesOutputItems
-              );
-            }
 
             // Estimate usage if provider didn't return valid usage
             if (!hasValidUsage(usage) && totalContentLength > 0) {

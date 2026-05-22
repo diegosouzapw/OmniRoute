@@ -23,7 +23,7 @@ test("#2247 — route.ts exposes Qoder PAT disambiguation message", () => {
   // The new message tells the user how to fix it instead of just "CLI not installed"
   assert.match(
     source,
-    /If you have a Personal Access Token, switch this connection to API Key auth instead/,
+    /Personal Access Token is stored on this connection\. Switch this connection to API Key auth/,
     "expected the disambiguated Qoder message to be present in test/route.ts"
   );
 });

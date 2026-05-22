@@ -28,6 +28,16 @@ for (const [id, alias] of Object.entries(PROVIDER_ID_TO_ALIAS)) {
   }
   ALIAS_TO_PROVIDER_ID[alias] = id;
 }
+// Manual alias overrides — maps slug-style prefixes to canonical provider IDs.
+// These live outside the registry because they represent multiple providers
+// or backward-compatible slug changes, not a single provider's display name.
+// opencode/ → opencode-zen (the main free/open tier; opencode-go is a separate paid tier)
+ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
+
+// Manual aliases for external compatibility not covered by PROVIDER_ID_TO_ALIAS.
+// OpenCode's Zen provider now uses the "opencode" slug, but OmniRoute registers
+// it as "opencode-zen". This alias ensures `opencode/<model>` resolves correctly.
+ALIAS_TO_PROVIDER_ID["opencode"] = "opencode-zen";
 
 // Provider-scoped legacy model aliases. Used to normalize provider/model inputs
 // and keep backward compatibility when upstream IDs change.
@@ -468,11 +478,17 @@ async function resolveModelByProviderInference(modelId: string, extendedContext:
     return { provider: "gemini", model: modelId, extendedContext };
   }
 
-  // Last resort: treat as openai model
+  // Last resort: no provider could be inferred — return a clear error instead
+  // of silently defaulting to "openai", which would produce a misleading
+  // "No credentials for provider: openai" response when the model name
+  // is unrecognised (e.g. a missing combo, a typo, or a bare model id
+  // that doesn't exist in any provider's catalog).
   return {
-    provider: "openai",
+    provider: null,
     model: modelId,
     extendedContext,
+    errorType: "model_not_found",
+    errorMessage: `Unable to determine provider for model '${modelId}'. Use a provider/model prefix (e.g. openai/${modelId}) or ensure the model is added as a combo entry.`,
   };
 }
 

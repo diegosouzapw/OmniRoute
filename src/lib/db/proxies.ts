@@ -685,6 +685,35 @@ export async function resolveProxyForProvider(providerId: string) {
       };
     }
 
+    // Fallback: honor the legacy per-provider / global proxy config (set via
+    // /api/settings/proxy?level=provider&id=...). The proxy registry only tracks
+    // explicit assignments; without this fallback the OAuth token exchange and
+    // token-refresh paths ignore a proxy configured the legacy way and connect
+    // directly — which on a VPS trips Anthropic's IP rate limit (#2456).
+    // resolveProxyForConnection already has this fallback; mirror it here.
+    // Dynamic import avoids a static cycle (settings.ts imports from proxies.ts).
+    const { getProxyForLevel } = await import("./settings");
+    const legacyProvider = await getProxyForLevel("provider", providerId);
+    if (legacyProvider && typeof legacyProvider === "object" && legacyProvider.host) {
+      return {
+        type: legacyProvider.type,
+        host: legacyProvider.host,
+        port: legacyProvider.port,
+        username: legacyProvider.username,
+        password: legacyProvider.password,
+      };
+    }
+    const legacyGlobal = await getProxyForLevel("global");
+    if (legacyGlobal && typeof legacyGlobal === "object" && legacyGlobal.host) {
+      return {
+        type: legacyGlobal.type,
+        host: legacyGlobal.host,
+        port: legacyGlobal.port,
+        username: legacyGlobal.username,
+        password: legacyGlobal.password,
+      };
+    }
+
     return null;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);

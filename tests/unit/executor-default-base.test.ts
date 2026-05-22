@@ -569,7 +569,7 @@ test("DefaultExecutor.execute uses CC-compatible connection defaults to append 1
 
   assert.equal(calls[0].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), false);
   assert.equal(calls[1].headers["anthropic-beta"].includes(CONTEXT_1M_BETA_HEADER), true);
-  assert.equal(calls[2].headers["anthropic-beta"], CONTEXT_1M_BETA_HEADER);
+  assert.equal(calls[2].headers["anthropic-beta"], undefined);
 });
 
 test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude models that support x-high effort", async () => {

@@ -14,12 +14,17 @@ import { useTranslations } from "next-intl";
 import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
+  SIDEBAR_SECTION_ORDER_KEY,
+  SIDEBAR_ITEM_ORDER_KEY,
   SIDEBAR_SECTIONS,
   getSectionItems,
   normalizeHiddenSidebarItems,
+  applySectionOrder,
+  applyItemOrder,
   type SidebarSectionId,
   type SidebarItemDefinition,
   type SidebarItemGroup,
+  type SidebarItemOrder,
 } from "@/shared/constants/sidebarVisibility";
 
 const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
@@ -70,6 +75,8 @@ export default function Sidebar({
   const [isDisconnected, setIsDisconnected] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [hiddenSidebarItems, setHiddenSidebarItems] = useState<string[]>([]);
+  const [sidebarSectionOrder, setSidebarSectionOrder] = useState<SidebarSectionId[]>([]);
+  const [sidebarItemOrder, setSidebarItemOrder] = useState<SidebarItemOrder>({});
   const [customAppName, setCustomAppName] = useState<string | null>(null);
   const [customLogo, setCustomLogo] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<SidebarSectionId>>(
@@ -116,7 +123,15 @@ export default function Sidebar({
 
     fetch("/api/settings")
       .then((res) => res.json())
-      .then((data) => applySettings(data))
+      .then((data) => {
+        applySettings(data);
+        if (Array.isArray(data?.[SIDEBAR_SECTION_ORDER_KEY])) {
+          setSidebarSectionOrder(data[SIDEBAR_SECTION_ORDER_KEY] as SidebarSectionId[]);
+        }
+        if (data?.[SIDEBAR_ITEM_ORDER_KEY] && typeof data[SIDEBAR_ITEM_ORDER_KEY] === "object") {
+          setSidebarItemOrder(data[SIDEBAR_ITEM_ORDER_KEY] as SidebarItemOrder);
+        }
+      })
       .catch(() => {});
 
     const handleSettingsUpdated = (event: Event) => {
@@ -126,6 +141,16 @@ export default function Sidebar({
         setHiddenSidebarItems(
           normalizeHiddenSidebarItems(detail[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY])
         );
+      }
+      if (SIDEBAR_SECTION_ORDER_KEY in detail && Array.isArray(detail[SIDEBAR_SECTION_ORDER_KEY])) {
+        setSidebarSectionOrder(detail[SIDEBAR_SECTION_ORDER_KEY] as SidebarSectionId[]);
+      }
+      if (
+        SIDEBAR_ITEM_ORDER_KEY in detail &&
+        detail[SIDEBAR_ITEM_ORDER_KEY] &&
+        typeof detail[SIDEBAR_ITEM_ORDER_KEY] === "object"
+      ) {
+        setSidebarItemOrder(detail[SIDEBAR_ITEM_ORDER_KEY] as SidebarItemOrder);
       }
       if ("instanceName" in detail) setCustomAppName((detail.instanceName as string) || null);
       if ("customLogoBase64" in detail) {
@@ -158,17 +183,27 @@ export default function Sidebar({
 
   const hiddenSidebarSet = new Set(hiddenSidebarItems);
 
-  const visibleSections = SIDEBAR_SECTIONS.filter(
-    (section) => section.visibility !== "debug" || showDebug
-  )
+  const orderedSections = applySectionOrder(
+    SIDEBAR_SECTIONS.filter((section) => section.visibility !== "debug" || showDebug),
+    sidebarSectionOrder
+  );
+
+  const visibleSections = orderedSections
     .map((section) => {
-      const children = section.children
+      const orderedChildren = applyItemOrder(
+        section.children,
+        sidebarItemOrder[section.id as SidebarSectionId] ?? []
+      );
+
+      const children = orderedChildren
         .map((child) => {
           if ("type" in child && child.type === "group") {
             const items = child.items
               .map((item) => resolveItem(item, hiddenSidebarSet))
               .filter(Boolean) as (SidebarItemDefinition & { label: string })[];
             if (items.length === 0) return null;
+            // Smart-grouping: single visible item → inline flat (no group header)
+            if (items.length === 1) return items[0];
             return {
               ...child,
               title: getSidebarLabel(child.titleKey, child.titleFallback),

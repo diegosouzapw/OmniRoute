@@ -12,6 +12,7 @@ import type { ScoringWeights } from "./scoring";
 
 export const MODE_PACKS: Record<string, ScoringWeights> = {
   // Prioritize latency → health. tierPriority replaces 0.05 from stability.
+  // tierAffinity/specificityMatch stay at 0 (manifest-routing-only weights).
   "ship-fast": {
     quota: 0.15,
     health: 0.3,
@@ -20,6 +21,8 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     taskFit: 0.1,
     stability: 0.0,
     tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
   },
   // Prioritize cost. tierPriority replaces 0.05 from stability.
   "cost-saver": {
@@ -30,6 +33,8 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     taskFit: 0.1,
     stability: 0.05,
     tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
   },
   // Prioritize task fitness. tierPriority replaces 0.05 from latencyInv.
   "quality-first": {
@@ -40,6 +45,8 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     taskFit: 0.4,
     stability: 0.15,
     tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
   },
   // Prioritize quota availability. tierPriority replaces 0.05 from taskFit.
   "offline-friendly": {
@@ -50,6 +57,8 @@ export const MODE_PACKS: Record<string, ScoringWeights> = {
     taskFit: 0.0,
     stability: 0.1,
     tierPriority: 0.05,
+    tierAffinity: 0,
+    specificityMatch: 0,
   },
 };
 
