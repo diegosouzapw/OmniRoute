@@ -144,7 +144,13 @@ const KIMI_CODING_SHARED = {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
   models: [
-    { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 262144, maxOutputTokens: 262144 },
+    {
+      id: "kimi-k2.6",
+      name: "Kimi K2.6",
+      contextLength: 262144,
+      maxOutputTokens: 262144,
+      supportsVision: true,
+    },
     {
       id: "kimi-k2.6-thinking",
       name: "Kimi K2.6 Thinking",
