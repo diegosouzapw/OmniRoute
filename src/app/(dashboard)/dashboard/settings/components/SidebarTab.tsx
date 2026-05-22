@@ -27,6 +27,8 @@ import {
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTIONS,
   SIDEBAR_PRESETS,
+  applySectionOrder,
+  applyItemOrder,
   getSectionItems,
   normalizeHiddenSidebarItems,
   type HideableSidebarItemId,
@@ -69,19 +71,7 @@ function SortableSection({
   const getChildId = (c: SidebarSectionChild) =>
     "type" in c && c.type === "group" ? c.id : (c as SidebarItemDefinition).id;
 
-  // Apply stored item order within this section
-  const orderedChildren = (() => {
-    if (itemOrder.length === 0) return allChildren;
-    const known = new Set(allChildren.map(getChildId));
-    const valid = itemOrder.filter((id) => known.has(id));
-    const orderMap = new Map(valid.map((id, i) => [id, i]));
-    return [...allChildren].sort((a, b) => {
-      const ai = orderMap.get(getChildId(a)) ?? valid.length + allChildren.indexOf(a);
-      const bi = orderMap.get(getChildId(b)) ?? valid.length + allChildren.indexOf(b);
-      return ai - bi;
-    });
-  })();
-
+  const orderedChildren = applyItemOrder(allChildren, itemOrder);
   const childIds = orderedChildren.map(getChildId);
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -350,8 +340,12 @@ export default function SidebarTab() {
       });
       if (res.ok) {
         window.dispatchEvent(new CustomEvent(SIDEBAR_SETTINGS_UPDATED_EVENT, { detail: updates }));
+      } else {
+        console.error("Failed to update sidebar settings:", res.statusText);
       }
-    } catch {}
+    } catch (err) {
+      console.error("Error updating sidebar settings:", err);
+    }
   };
 
   const toggleItem = (id: HideableSidebarItemId) => {
@@ -372,18 +366,7 @@ export default function SidebarTab() {
     (s) => ({ ...s, title: getLabel(s.titleKey, s.titleFallback) })
   );
 
-  // Apply stored section order for the UI list
-  const orderedSections = (() => {
-    if (sectionOrder.length === 0) return visibleSections;
-    const known = new Set(visibleSections.map((s) => s.id));
-    const valid = sectionOrder.filter((id) => known.has(id));
-    const orderMap = new Map(valid.map((id, i) => [id, i]));
-    return [...visibleSections].sort((a, b) => {
-      const ai = orderMap.get(a.id) ?? valid.length + visibleSections.indexOf(a);
-      const bi = orderMap.get(b.id) ?? valid.length + visibleSections.indexOf(b);
-      return ai - bi;
-    });
-  })();
+  const orderedSections = applySectionOrder(visibleSections, sectionOrder);
 
   const sectionIds = orderedSections.map((s) => s.id);
 
@@ -552,7 +535,7 @@ export default function SidebarTab() {
                 {getSettingsLabel(
                   "presetConfirmWarning",
                   `Applying "${presetLabels[confirmPreset]}" will replace your current visibility and order settings.`
-                ).replace(`"${presetLabels[confirmPreset]}"`, `"${presetLabels[confirmPreset]}"`)}
+                )}
               </p>
               <div className="flex gap-2 shrink-0">
                 <button
