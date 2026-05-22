@@ -456,8 +456,18 @@ function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolName
 }
 
 // OpenAI -> Gemini (standard API)
-export function openaiToGeminiRequest(model, body, stream) {
-  return openaiToGeminiBase(model, body, stream);
+export function openaiToGeminiRequest(model, body, stream, credentials = null) {
+  // Thread the signature namespace so a thinking model's thoughtSignature (cached on the
+  // response turn under `<connectionId>:<toolCallId>`) is found and re-attached to the
+  // functionCall on the follow-up request. Without this the streaming lookup key didn't
+  // match and Gemini rejected tool calls with 400 "missing thought_signature" (#2504).
+  const signatureNamespace =
+    credentials &&
+    typeof credentials === "object" &&
+    typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
+      ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
+      : null;
+  return openaiToGeminiBase(model, body, stream, { signatureNamespace });
 }
 
 // OpenAI -> Gemini CLI (Cloud Code Assist)
@@ -642,7 +652,16 @@ register(
   (model, body, stream, credentials) =>
     wrapInCloudCodeEnvelope(
       model,
-      openaiToGeminiCLIRequest(model, body, stream, { functionResponseShape: "output" }),
+      openaiToGeminiCLIRequest(model, body, stream, {
+        functionResponseShape: "output",
+        // Forward the signature namespace so streaming thoughtSignatures round-trip (#2504).
+        signatureNamespace:
+          credentials &&
+          typeof credentials === "object" &&
+          typeof (credentials as Record<string, unknown>)._signatureNamespace === "string"
+            ? ((credentials as Record<string, unknown>)._signatureNamespace as string)
+            : null,
+      }),
       credentials
     ),
   null

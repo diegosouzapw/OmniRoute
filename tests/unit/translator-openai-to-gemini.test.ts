@@ -891,3 +891,58 @@ test("OpenAI -> Antigravity Gemini path preserves thinkingConfig (only Claude is
   assert.equal((result as any).request?.generationConfig.thinkingConfig.thinkingBudget > 0, true);
   assert.equal((result as any).request?.generationConfig.thinkingConfig.includeThoughts, true);
 });
+
+// Regression for #2515: a PDF sent in the Responses-API `input_file` shape must reach
+// Gemini as inlineData instead of being silently dropped.
+test("convertOpenAIContentToParts handles input_file file_data (#2515)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "input_file", file_data: "JVBERi0xLjcKJ", filename: "doc.pdf" },
+  ]);
+  const inline = parts.find((p) => (p as any).inlineData);
+  assert.ok(inline, "input_file with file_data must produce an inlineData part");
+  assert.equal((inline as any).inlineData.data, "JVBERi0xLjcKJ");
+});
+
+test("convertOpenAIContentToParts handles input_file file_url data URI (#2515)", () => {
+  const parts = convertOpenAIContentToParts([
+    { type: "input_file", file_url: "data:application/pdf;base64,QUJD", filename: "d.pdf" },
+  ]);
+  const inline = parts.find((p) => (p as any).inlineData);
+  assert.ok(inline, "input_file with file_url data URI must produce an inlineData part");
+  assert.equal((inline as any).inlineData.data, "QUJD");
+  assert.equal((inline as any).inlineData.mimeType, "application/pdf");
+});
+
+// Regression for #2504: with credentials._signatureNamespace set, a previously-cached
+// Gemini thoughtSignature must be re-attached to the functionCall on the follow-up turn.
+test("openaiToGeminiRequest re-attaches cached thoughtSignature for FORMATS.GEMINI (#2504)", async () => {
+  const { buildGeminiThoughtSignatureKey, storeGeminiThoughtSignature } =
+    await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
+  const ns = "conn-2504";
+  const toolId = "call_2504_abc";
+  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, toolId), "SIG_2504_XYZ");
+
+  const result: any = openaiToGeminiRequest(
+    "gemini-2.5-pro-preview",
+    {
+      messages: [
+        { role: "user", content: "run a tool" },
+        {
+          role: "assistant",
+          tool_calls: [
+            { id: toolId, type: "function", function: { name: "Bash", arguments: '{"cmd":"ls"}' } },
+          ],
+        },
+        { role: "tool", tool_call_id: toolId, content: "ok" },
+      ],
+    },
+    false,
+    { _signatureNamespace: ns }
+  );
+
+  const json = JSON.stringify(result);
+  assert.ok(
+    json.includes("SIG_2504_XYZ"),
+    "cached thoughtSignature must be re-attached to the functionCall"
+  );
+});
