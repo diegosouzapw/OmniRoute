@@ -1283,6 +1283,105 @@ export function canonicalDedupSet(
 }
 
 /**
+ * Build a per-alias index of enrichment metadata so we can render the
+ * provider prefix even for raw models that don't have their own
+ * curated `/api/pricing/models` entry.
+ *
+ * Real example: OmniRoute's `pricing['cohere']` slot lists 10 curated
+ * models but `/v1/models` also returns `cohere/rerank-multilingual-v3.0`
+ * and `cohere/rerank-v4.0-fast` (not in the curated 10). Without this
+ * index, those rows surface in the picker as `cohere/...` with no
+ * `Cohere - ` prefix because the per-model enrichment lookup misses.
+ *
+ * This index records the first non-empty `providerDisplayName` seen
+ * for each alias, plus the alias itself. Callers use it to synthesize
+ * a minimal `OmniRouteEnrichmentEntry` whenever the direct lookup
+ * misses but the raw id's prefix matches a known alias.
+ *
+ * Built once per refresh; first-wins on duplicate alias (matches
+ * `buildCanonicalToAliasMap` semantics).
+ */
+export function buildAliasIndex(
+  enrichment: OmniRouteEnrichmentMap | undefined
+): Map<string, OmniRouteEnrichmentEntry> {
+  const out = new Map<string, OmniRouteEnrichmentEntry>();
+  if (!enrichment) return out;
+  for (const entry of enrichment.values()) {
+    const alias = typeof entry.providerAlias === "string" ? entry.providerAlias.trim() : "";
+    if (alias.length === 0) continue;
+    if (out.has(alias)) {
+      // First-wins, but upgrade to the first entry that carries a
+      // non-empty providerDisplayName so the prefix renders nicely.
+      const existing = out.get(alias);
+      if (
+        existing &&
+        (!existing.providerDisplayName || existing.providerDisplayName.trim().length === 0) &&
+        typeof entry.providerDisplayName === "string" &&
+        entry.providerDisplayName.trim().length > 0
+      ) {
+        out.set(alias, entry);
+      }
+      continue;
+    }
+    out.set(alias, entry);
+  }
+  return out;
+}
+
+/**
+ * Resolve a synthesised enrichment entry for `applyProviderTag` /
+ * `shortProviderLabel` consumption, combining two sources:
+ *
+ *  1. The direct per-model enrichment match (if present).
+ *  2. A per-alias fallback derived from `buildAliasIndex` — covers raw
+ *     ids whose prefix matches a known alias but the specific model
+ *     id wasn't curated in `/api/pricing/models`. Example:
+ *     `cohere/rerank-multilingual-v3.0` falls back to the cohere slot's
+ *     `providerDisplayName='Cohere'` even though that specific id
+ *     isn't in the curated 10-model list.
+ *
+ * Returns `undefined` when neither source surfaces an alias.
+ *
+ * NOTE: this function is read-only over its inputs; it never mutates
+ * the underlying `direct` entry. When it falls back to the alias
+ * index, it constructs a fresh minimal entry exposing only the
+ * provider-prefix fields (`providerAlias`, `providerCanonical`,
+ * `providerDisplayName`). Other fields (name, pricing) are explicitly
+ * left undefined so `applyEnrichment` won't accidentally overwrite a
+ * model name with the alias-slot label.
+ */
+export function resolveProviderTagEntry(
+  rawId: string,
+  direct: OmniRouteEnrichmentEntry | undefined,
+  aliasIndex: Map<string, OmniRouteEnrichmentEntry>,
+  canonicalToAlias?: Map<string, string>
+): OmniRouteEnrichmentEntry | undefined {
+  if (direct) {
+    const alias = typeof direct.providerAlias === "string" ? direct.providerAlias.trim() : "";
+    const display =
+      typeof direct.providerDisplayName === "string" ? direct.providerDisplayName.trim() : "";
+    if (alias.length > 0 || display.length > 0) return direct;
+  }
+  const slash = rawId.indexOf("/");
+  if (slash <= 0) return direct;
+  const prefix = rawId.slice(0, slash);
+  // 1. Direct alias lookup (`cohere/...` → cohere slot keyed by alias=cohere).
+  let fromAlias = aliasIndex.get(prefix);
+  // 2. Canonical fallback (`pollinations/...` → look up via alias `pol`).
+  if (!fromAlias && canonicalToAlias) {
+    const alias = canonicalToAlias.get(prefix);
+    if (alias) fromAlias = aliasIndex.get(alias);
+  }
+  if (!fromAlias) return direct;
+  // Synthesize: borrow only the provider-prefix metadata.
+  return {
+    providerAlias: fromAlias.providerAlias,
+    providerCanonical: fromAlias.providerCanonical,
+    providerDisplayName: fromAlias.providerDisplayName,
+  };
+}
+
+/**
  * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
  * passed entry for convenience.
  */
@@ -1998,6 +2097,7 @@ export function createOmniRouteProviderHook(
       // the alias key and skip the canonical twin entirely.
       const canonicalToAlias = buildCanonicalToAliasMap(rawEnrichment);
       const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+      const aliasIndex = buildAliasIndex(rawEnrichment);
 
       // Map raw models → ModelV2 keyed by id. When enrichment data is
       // present (features.enrichment, default on), overlay the nicer
@@ -2018,8 +2118,18 @@ export function createOmniRouteProviderHook(
         // Prepend upstream provider label (e.g. `Claude - Claude Opus 4.7`)
         // so the picker groups same-model rows by upstream connection.
         // Idempotent + gated by `features.providerTag` (default-on).
-        // Combos skip this on purpose.
-        if (wantProviderTag) applyProviderTag(model, enrichEntry);
+        // Combos skip this on purpose. The alias-index fallback rescues
+        // raw rows like `cohere/rerank-multilingual-v3.0` whose specific
+        // model id isn't in `/api/pricing/models` but whose slot is.
+        if (wantProviderTag) {
+          const tagEntry = resolveProviderTagEntry(
+            entry.id,
+            enrichEntry,
+            aliasIndex,
+            canonicalToAlias
+          );
+          applyProviderTag(model, tagEntry);
+        }
         models[entry.id] = model;
       }
 
@@ -2650,6 +2760,7 @@ export function buildStaticProviderEntry(
   // shadowing the enriched `cc/X` row).
   const canonicalToAlias = buildCanonicalToAliasMap(enrichment);
   const canonicalDedup = canonicalDedupSet(rawModels, canonicalToAlias);
+  const aliasIndex = buildAliasIndex(enrichment);
 
   // Raw model entries → stripped per-model shape.
   for (const raw of rawModels) {
@@ -2675,9 +2786,18 @@ export function buildStaticProviderEntry(
     // Provider-tag PREFIX — `<label> - <name>` so the picker groups by
     // upstream provider when scanning a column of model names. Mirrors
     // `applyProviderTag` used in the dynamic hook. Idempotent: skip
-    // when the name already starts with the prefix.
+    // when the name already starts with the prefix. The alias-index
+    // fallback rescues raw rows like `cohere/rerank-multilingual-v3.0`
+    // whose specific model id isn't in `/api/pricing/models` but whose
+    // slot is.
     if (wantProviderTag) {
-      const label = shortProviderLabel(enrichmentEntry);
+      const tagEntry = resolveProviderTagEntry(
+        raw.id,
+        enrichmentEntry,
+        aliasIndex,
+        canonicalToAlias
+      );
+      const label = shortProviderLabel(tagEntry);
       if (label) {
         const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
         if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;

@@ -31,6 +31,7 @@ import assert from "node:assert/strict";
 import {
   applyEnrichment,
   applyProviderTag,
+  buildAliasIndex,
   buildCanonicalToAliasMap,
   canonicalDedupSet,
   createOmniRouteConfigHook,
@@ -41,6 +42,7 @@ import {
   lookupEnrichment,
   parseOmniRoutePluginOptions,
   PROVIDER_TAG_SEPARATOR,
+  resolveProviderTagEntry,
   type OmniRouteEnrichmentMap,
   type OmniRouteCompressionCombo,
   type OmniRouteRawModelEntry,
@@ -918,4 +920,106 @@ test("canonicalDedupSet: multi-provider — drops all canonical twins where alia
   assert.equal(drop.has("codex/gpt-5.5"), true);
   assert.equal(drop.has("pollinations/openai-large"), true);
   assert.equal(drop.size, 3);
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// buildAliasIndex + resolveProviderTagEntry — generic provider-prefix fallback
+// (rescues `cohere/*` + `pollinations/*` rows where direct enrichment misses)
+// ─────────────────────────────────────────────────────────────────────────
+
+test("buildAliasIndex: indexes one entry per alias (first-wins on duplicates)", () => {
+  const map = makeEnrichmentMap([
+    { key: "cohere/command-a", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+    { key: "cohere/embed-v4", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude", providerDisplayName: "Claude" },
+  ]);
+  const idx = buildAliasIndex(map);
+  assert.equal(idx.size, 2);
+  assert.equal(idx.get("cohere")?.providerDisplayName, "Cohere");
+  assert.equal(idx.get("cc")?.providerDisplayName, "Claude");
+});
+
+test("buildAliasIndex: upgrades to first entry with non-empty providerDisplayName", () => {
+  const map = makeEnrichmentMap([
+    { key: "cohere/a", providerAlias: "cohere", providerCanonical: "cohere" }, // no displayName
+    { key: "cohere/b", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+  ]);
+  const idx = buildAliasIndex(map);
+  assert.equal(idx.get("cohere")?.providerDisplayName, "Cohere");
+});
+
+test("buildAliasIndex: skips entries with no providerAlias", () => {
+  const map = makeEnrichmentMap([
+    { key: "orphan", providerCanonical: "something" },
+  ]);
+  assert.equal(buildAliasIndex(map).size, 0);
+});
+
+test("buildAliasIndex: undefined enrichment → empty map", () => {
+  assert.equal(buildAliasIndex(undefined).size, 0);
+});
+
+test("resolveProviderTagEntry: direct match returns the direct entry as-is", () => {
+  const direct = { providerAlias: "cc", providerDisplayName: "Claude" };
+  const idx = new Map();
+  const out = resolveProviderTagEntry("cc/claude-opus-4-7", direct, idx);
+  assert.equal(out, direct);
+});
+
+test("resolveProviderTagEntry: no direct, alias matches → synthesised entry from alias slot", () => {
+  // cohere class: direct lookup misses (model not in curated 10) but
+  // alias=cohere maps to the cohere slot in /api/pricing/models.
+  const map = makeEnrichmentMap([
+    { key: "cohere/command-a", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere", name: "Command A" },
+  ]);
+  const idx = buildAliasIndex(map);
+  const out = resolveProviderTagEntry("cohere/rerank-multilingual-v3.0", undefined, idx);
+  assert.equal(out?.providerAlias, "cohere");
+  assert.equal(out?.providerDisplayName, "Cohere");
+  // Crucially: synthesised entry must NOT carry the slot's name (would
+  // overwrite the per-model name with the alias label).
+  assert.equal(out?.name, undefined);
+});
+
+test("resolveProviderTagEntry: canonical prefix → alias fallback (pollinations → pol)", () => {
+  // pollinations class: raw id uses canonical name `pollinations/`, but
+  // /api/pricing/models keys it under alias `pol`. canonicalToAlias map
+  // bridges the gap.
+  const map = makeEnrichmentMap([
+    { key: "pol/openai-large", providerAlias: "pol", providerCanonical: "pollinations", providerDisplayName: "Pollinations" },
+  ]);
+  const idx = buildAliasIndex(map);
+  const c2a = buildCanonicalToAliasMap(map);
+  const out = resolveProviderTagEntry("pollinations/klein", undefined, idx, c2a);
+  assert.equal(out?.providerAlias, "pol");
+  assert.equal(out?.providerCanonical, "pollinations");
+  assert.equal(out?.providerDisplayName, "Pollinations");
+});
+
+test("resolveProviderTagEntry: no prefix and no direct → returns direct (undefined)", () => {
+  const idx = new Map();
+  const out = resolveProviderTagEntry("bareid", undefined, idx);
+  assert.equal(out, undefined);
+});
+
+test("resolveProviderTagEntry: prefix unknown to alias index → returns direct (undefined)", () => {
+  const map = makeEnrichmentMap([
+    { key: "cc/x", providerAlias: "cc", providerCanonical: "claude", providerDisplayName: "Claude" },
+  ]);
+  const idx = buildAliasIndex(map);
+  const out = resolveProviderTagEntry("unknownprovider/some-model", undefined, idx);
+  assert.equal(out, undefined);
+});
+
+test("resolveProviderTagEntry: direct present but empty alias+display → still tries fallback", () => {
+  // direct hit exists but carries no useful prefix metadata (degenerate
+  // case from a partially-populated enrichment). Should still upgrade
+  // via alias index.
+  const direct = { name: "Some Model" };
+  const map = makeEnrichmentMap([
+    { key: "cohere/x", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+  ]);
+  const idx = buildAliasIndex(map);
+  const out = resolveProviderTagEntry("cohere/rerank-v4.0", direct, idx);
+  assert.equal(out?.providerDisplayName, "Cohere");
 });
