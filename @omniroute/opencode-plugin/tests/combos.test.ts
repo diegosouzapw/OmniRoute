@@ -453,7 +453,7 @@ test("models() returns combo entries merged into the map", async () => {
   assert.ok(out["combo/claude-tier"]);
 
   const combo = out["combo/claude-tier"];
-  assert.equal(combo.name, "Claude Tier");
+  assert.equal(combo.name, "Combo: Claude Tier");
   assert.equal(combo.providerID, "omniroute");
   // LCD over claude-primary (200k, reasoning) + claude-secondary (100k, no reasoning)
   assert.equal(combo.limit.context, 100_000);
@@ -532,7 +532,7 @@ test("models(): combo name exactly matches raw model id → raw deleted, combo l
   // Raw model deleted by combo-name dedup; combo surfaces under combo/<slug>.
   assert.equal(out["claude-primary"], undefined, "raw deleted by combo-name dedup");
   assert.ok(out["combo/claude-primary"], "combo surfaces under combo/ namespace");
-  assert.equal(out["combo/claude-primary"].name, "claude-primary");
+  assert.equal(out["combo/claude-primary"].name, "Combo: claude-primary");
 
   // No collision warning fires — dedup makes keys disjoint.
   const collisionWarns = warnings.filter((w) => {

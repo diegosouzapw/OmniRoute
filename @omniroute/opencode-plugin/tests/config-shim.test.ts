@@ -26,6 +26,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { Config } from "@opencode-ai/plugin";
+
 import {
   buildStaticProviderEntry,
   createOmniRouteConfigHook,
@@ -38,6 +39,8 @@ import {
   type OmniRouteEnrichmentMap,
   type OmniRouteFetchCache,
   type OmniRouteModelsFetcher,
+  type OmniRouteProviderConnection,
+  type OmniRouteProvidersFetcher,
   type OmniRouteRawCombo,
   type OmniRouteRawModelEntry,
   type OmniRouteReadAuthJson,
@@ -238,7 +241,7 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   // (gemini's reasoning=false → combo reasoning=false).
   const combo = entry.models["combo/claude-tier"];
   assert.ok(combo, "combo surfaced under combo/ namespace");
-  assert.equal(combo.name, "Claude Tier");
+  assert.equal(combo.name, "Combo: Claude Tier");
   assert.equal(combo.reasoning, false, "LCD: any member reasoning=false → combo reasoning=false");
   assert.equal(combo.tool_call, true);
   assert.equal(combo.limit?.context, 200_000, "LCD: min(200_000, 1_000_000)");
@@ -346,8 +349,11 @@ test("config: fetchers throw → warn + emit stub entry with models: {}", async 
   const combosFetcher = throwingCombosFetcher();
   const logger = captureWarn();
 
+  // Opt-out of disk-cache fallback for this test — we want to assert the
+  // pure stub path, not the disk-cache-recovery path (covered by its own
+  // test below).
   const hook = createOmniRouteConfigHook(
-    { providerId: "omniroute" },
+    { providerId: "omniroute", features: { diskCache: false } },
     { readAuthJson, fetcher, combosFetcher, logger }
   );
   const input = makeInput();
@@ -773,7 +779,7 @@ test("config: enrichment fetched + name overlaid on raw-model entries", async ()
   assert.equal(entry.models["claude-sonnet-4-6"].name, "Claude Sonnet 4.6");
   assert.equal(entry.models["gemini-3-flash"].name, "Gemini 3 Flash");
   // Combo names still come from /api/combos — enrichment overlay does NOT touch combos.
-  assert.equal(entry.models["combo/claude-tier"].name, "Claude Tier");
+  assert.equal(entry.models["combo/claude-tier"].name, "Combo: Claude Tier");
   assert.equal(enrichmentFetcher.callCount(), 1);
 });
 
@@ -828,6 +834,205 @@ test("config: enrichment fetcher throws → soft-fail (warn + raw-id static cata
   assert.ok(
     logger.entries.some((e) => String(e[0]).includes("/api/pricing/models fetch failed")),
     "enrichment-fetch breadcrumb emitted"
+  );
+});
+
+function stubProvidersFetcher(payload: OmniRouteProviderConnection[]): OmniRouteProvidersFetcher & {
+  callCount: () => number;
+} {
+  let n = 0;
+  const f: OmniRouteProvidersFetcher = async () => {
+    n++;
+    return payload;
+  };
+  return Object.assign(f, { callCount: () => n });
+}
+
+function throwingProvidersFetcher(): OmniRouteProvidersFetcher & { callCount: () => number } {
+  let n = 0;
+  const f: OmniRouteProvidersFetcher = async () => {
+    n++;
+    throw new Error("ETIMEDOUT");
+  };
+  return Object.assign(f, { callCount: () => n });
+}
+
+const MODEL_CC_OPUS: OmniRouteRawModelEntry = {
+  id: "cc/claude-opus-4-7",
+  capabilities: { tool_calling: true, reasoning: true, temperature: true },
+  context_length: 200_000,
+};
+const MODEL_NV_LLAMA: OmniRouteRawModelEntry = {
+  id: "nvidia/llama-3-70b",
+  capabilities: { tool_calling: true, temperature: true },
+  context_length: 128_000,
+};
+
+test("config: usableOnly=false → no filter (existing behavior)", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CC_OPUS, MODEL_NV_LLAMA]);
+  const combosFetcher = stubCombosFetcher([]);
+  const providersFetcher = stubProvidersFetcher([
+    { id: "c1", provider: "claude", isActive: true, testStatus: "active" },
+  ]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["cc/claude-opus-4-7", { name: "Claude Opus 4.7" }],
+      ["nvidia/llama-3-70b", { name: "Llama 3 70B" }],
+    ])
+  );
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", baseURL: "https://or.example/v1" },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, providersFetcher }
+  );
+
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry.models["cc/claude-opus-4-7"], "claude kept");
+  assert.ok(entry.models["nvidia/llama-3-70b"], "nvidia kept (filter off)");
+  assert.equal(providersFetcher.callCount(), 0, "providers fetch not called when feature off");
+});
+
+test("config: usableOnly=true → drops models for non-usable providers, keeps usable + unknown", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([
+    MODEL_CC_OPUS,
+    MODEL_NV_LLAMA,
+    // Unknown prefix not in pricing-models nor connections — must pass through.
+    {
+      id: "agentrouter/synthetic-1",
+      capabilities: { temperature: true },
+      context_length: 100_000,
+    },
+  ]);
+  const combosFetcher = stubCombosFetcher([]);
+  const providersFetcher = stubProvidersFetcher([
+    // Claude is usable.
+    { id: "c1", provider: "claude", isActive: true, testStatus: "active" },
+    // Nvidia provisioned but errored → not usable.
+    { id: "c2", provider: "nvidia", isActive: true, testStatus: "error" },
+  ]);
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      [
+        "cc/claude-opus-4-7",
+        { name: "Claude Opus 4.7", providerAlias: "cc", providerCanonical: "claude" },
+      ],
+      [
+        "nvidia/llama-3-70b",
+        { name: "Llama 3 70B", providerAlias: "nvidia", providerCanonical: "nvidia" },
+      ],
+    ])
+  );
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", baseURL: "https://or.example/v1", features: { usableOnly: true } },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, providersFetcher }
+  );
+
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry.models["cc/claude-opus-4-7"], "claude kept (active)");
+  assert.equal(entry.models["nvidia/llama-3-70b"], undefined, "nvidia dropped (error status)");
+  assert.ok(entry.models["agentrouter/synthetic-1"], "unknown prefix kept (subtract-filter)");
+  assert.equal(providersFetcher.callCount(), 1);
+});
+
+test("config: usableOnly=true + providers fetch fails → soft-fail keeps everything", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = stubModelsFetcher([MODEL_CC_OPUS, MODEL_NV_LLAMA]);
+  const combosFetcher = stubCombosFetcher([]);
+  const providersFetcher = throwingProvidersFetcher();
+  const enrichmentFetcher = stubEnrichmentFetcher(
+    new Map<string, OmniRouteEnrichmentEntry>([
+      ["cc/claude-opus-4-7", { name: "Claude Opus 4.7" }],
+      ["nvidia/llama-3-70b", { name: "Llama 3 70B" }],
+    ])
+  );
+  const logger = captureWarn();
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", baseURL: "https://or.example/v1", features: { usableOnly: true } },
+    { readAuthJson, fetcher, combosFetcher, enrichmentFetcher, providersFetcher, logger }
+  );
+
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry.models["cc/claude-opus-4-7"]);
+  assert.ok(entry.models["nvidia/llama-3-70b"], "soft-fail keeps both");
+  assert.ok(
+    logger.entries.some((e) => String(e[0]).includes("/api/providers fetch failed")),
+    "providers-fetch breadcrumb emitted"
+  );
+});
+
+test("config: diskCache hydrates stale snapshot when /v1/models throws", async () => {
+  const readAuthJson = stubReadAuthJson({
+    omniroute: { type: "api", key: "sk-test", baseURL: "https://or.example/v1" },
+  });
+  const fetcher = throwingModelsFetcher();
+  const combosFetcher = stubCombosFetcher([]);
+  const logger = captureWarn();
+
+  // Disk reader returns a stale snapshot — emulates the last-known-good
+  // catalog written on a healthy refresh.
+  const diskSnapshotReader: typeof import("../src/index.js").defaultDiskSnapshotReader =
+    async () => ({
+      rawModels: [MODEL_CLAUDE],
+      rawCombos: [],
+      rawEnrichment: new Map([["claude-sonnet-4-6", { name: "Claude Sonnet 4.6 (cached)" }]]),
+      rawCompressionCombos: [],
+      rawConnections: [],
+    });
+  let writes = 0;
+  const diskSnapshotWriter: typeof import("../src/index.js").defaultDiskSnapshotWriter =
+    async () => {
+      writes++;
+    };
+
+  const hook = createOmniRouteConfigHook(
+    { providerId: "omniroute", features: { diskCache: true } },
+    {
+      readAuthJson,
+      fetcher,
+      combosFetcher,
+      diskSnapshotReader,
+      diskSnapshotWriter,
+      logger,
+    }
+  );
+
+  const input = makeInput();
+  await hook(input);
+
+  const entry = (input as { provider: Record<string, OmniRouteStaticProviderEntry> }).provider
+    .omniroute;
+  assert.ok(entry.models["claude-sonnet-4-6"], "stale snapshot hydrated into static block");
+  assert.equal(
+    entry.models["claude-sonnet-4-6"].name,
+    "Claude Sonnet 4.6 (cached)",
+    "stale enrichment also reused"
+  );
+  assert.equal(writes, 0, "disk write skipped when live fetch failed");
+  assert.ok(
+    logger.entries.some((e) => String(e[0]).includes("using stale disk cache")),
+    "disk-cache hydration breadcrumb emitted"
   );
 });
 

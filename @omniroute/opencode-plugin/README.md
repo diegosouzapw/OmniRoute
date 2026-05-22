@@ -119,16 +119,20 @@ npm install --prefix ~/.config/opencode/plugins/omniroute-opencode-plugin-prepro
 
 ## Features
 
-| Feature                               | What it does                                                                                      | Hook                     |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------ |
-| Dynamic `/v1/models`                  | Pulls live catalog (455+ entries on prod) on each refresh, TTL-cached                             | `provider.models`        |
-| Variants pass-through                 | `-low`/`-medium`/`-high`/`-thinking` ship as first-class IDs from OmniRoute (no client synthesis) | `provider.models`        |
-| Combo LCD aggregation                 | Combos appear with intersected capabilities + min context/output across members                   | `provider.models`        |
-| Nice names                            | `combo.name` / `model.id` surfaces as `ModelV2.name`                                              | `provider.models`        |
-| Bearer injection + suffix-spoof guard | Adds `Authorization` on baseURL-matched requests only                                             | `auth.loader.fetch`      |
-| Gemini schema sanitization            | Strips `$schema`/`$ref`/`additionalProperties` for `gemini-*`/`google-vertex-gemini/*`            | `auth.loader.fetch` wrap |
-| Multi-instance                        | Each plugin entry binds to its own `providerId`; closures isolated                                | factory                  |
-| Config-hook shim                      | OC ≤1.14.48 fallback: writes static catalog into `config.provider[id]`                            | `config`                 |
+| Feature                                     | What it does                                                                                                                                                       | Hook                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Dynamic `/v1/models`                        | Pulls live catalog (455+ entries on prod) on each refresh, TTL-cached                                                                                              | `provider.models`            |
+| Variants pass-through                       | `-low`/`-medium`/`-high`/`-thinking` ship as first-class IDs from OmniRoute (no client synthesis)                                                                  | `provider.models`            |
+| Combo LCD aggregation                       | Combos appear with intersected capabilities + min context/output across members                                                                                    | `provider.models` + `config` |
+| `combo/<slug>` namespace + `Combo: ` prefix | Combos surface under `combo/claude-primary` (not the upstream UUID) and the picker shows `Combo: claude-primary` so they stand apart from raw provider/model pairs | both hooks                   |
+| Nice names + cost                           | `/api/pricing/models` display names AND `/api/pricing` per-million-token cost overlaid onto the live catalog                                                       | both hooks                   |
+| Compression pipeline tags                   | Combo names get tagged with their compression pipeline (e.g. `Combo: claude-primary [rtk:standard → caveman:full]`) when `features.compressionMetadata: true`      | both hooks                   |
+| Usable-only filter                          | Filter to providers with at least one healthy connection in `/api/providers` (opt-in via `features.usableOnly`)                                                    | both hooks                   |
+| Disk-cache fallback                         | Last-known-good catalog persisted to disk; hydrates on a cold start when `/v1/models` is unreachable (default-on, opt-out via `features.diskCache: false`)         | `config`                     |
+| Bearer injection + suffix-spoof guard       | Adds `Authorization` on baseURL-matched requests only                                                                                                              | `auth.loader.fetch`          |
+| Gemini schema sanitization                  | Strips `$schema`/`$ref`/`additionalProperties` for `gemini-*`/`google-vertex-gemini/*`                                                                             | `auth.loader.fetch` wrap     |
+| Multi-instance                              | Each plugin entry binds to its own `providerId`; closures isolated                                                                                                 | factory                      |
+| Config-hook shim                            | OC ≤1.15.5 fallback: writes static catalog into `config.provider[id]` (config hook is the only one that fires in `serve` mode on these versions)                   | `config`                     |
 
 ## Plugin options
 
@@ -144,15 +148,17 @@ npm install --prefix ~/.config/opencode/plugins/omniroute-opencode-plugin-prepro
 
 Every field is optional. Defaults mirror v0.1.0 behaviour so existing `opencode.json` files do not need to change.
 
-| Feature               | Type      | Default | What it does                                                                                                                                                                                                                                                                                                                          |
-| --------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `combos`              | `boolean` | `true`  | Discover `/api/combos` and surface them as pseudo-models with LCD capabilities                                                                                                                                                                                                                                                        |
-| `enrichment`          | `boolean` | `true`  | Pull display names from `/api/pricing/models` AND per-million-token pricing (`input`, `output`, `cached` → `cacheRead`, `cache_creation` → `cacheWrite`) from `/api/pricing`, then overlay both onto the live catalog (so the UI shows `Claude 4.7 Opus` with `cost.input: 5`, `cost.output: 25` instead of raw IDs and zeroed cost). |
-| `compressionMetadata` | `boolean` | `false` | Pull `/api/context/combos` so combo names get tagged with their compression pipeline, e.g. `claude-primary [rtk:standard → caveman:full]`                                                                                                                                                                                             |
-| `geminiSanitization`  | `boolean` | `true`  | Strip `$schema`/`$ref`/`additionalProperties` from tool params when the model id matches `gemini`                                                                                                                                                                                                                                     |
-| `mcpAutoEmit`         | `boolean` | `false` | Auto-write an `mcp.<providerId>` remote entry into the OC config pointing at `<baseURL>/api/mcp/stream` with the resolved Bearer token                                                                                                                                                                                                |
-| `mcpToken`            | `string`  | _unset_ | Optional separate Bearer for the auto-emitted MCP entry. Falls back to the provider's `apiKey` (from `auth.json`) when unset                                                                                                                                                                                                          |
-| `fetchInterceptor`    | `boolean` | `true`  | Inject `Authorization: Bearer` + default `Content-Type` on every outbound request targeting `baseURL` (suffix-spoof guarded)                                                                                                                                                                                                          |
+| Feature               | Type      | Default | What it does                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `combos`              | `boolean` | `true`  | Discover `/api/combos` and surface them as pseudo-models with LCD capabilities. Combos are keyed under the `combo/<slug>` namespace and labelled `Combo: <name>` in the model picker so they're distinguishable from raw provider/model pairs.                                                                                                                                                                                           |
+| `enrichment`          | `boolean` | `true`  | Pull display names from `/api/pricing/models` AND per-million-token pricing (`input`, `output`, `cached` → `cacheRead`, `cache_creation` → `cacheWrite`) from `/api/pricing`, then overlay both onto the live catalog (so the UI shows `Claude 4.7 Opus` with `cost.input: 5`, `cost.output: 25` instead of raw IDs and zeroed cost).                                                                                                    |
+| `compressionMetadata` | `boolean` | `false` | Pull `/api/context/combos` so combo names get tagged with their compression pipeline, e.g. `Combo: claude-primary [rtk:standard → caveman:full]`                                                                                                                                                                                                                                                                                         |
+| `usableOnly`          | `boolean` | `false` | Read `/api/providers` and filter the catalog to providers that have at least one connection with `isActive: true` AND `testStatus: 'active'`. Subtract-filter semantics: providers unknown to BOTH the pricing-models catalog AND the connection table pass through (so synthetic prefixes like `agentrouter/*` survive). On fetch failure the filter is disabled for the refresh — never hides the whole catalog.                       |
+| `diskCache`           | `boolean` | `true`  | Persist the last successful `/v1/models` + `/api/combos` + enrichment + connections + compression snapshot to `${OPENCODE_DATA_DIR ?? ~/.local/share/opencode}/plugins/omniroute-<providerId>.json`. On a subsequent cold start where `/v1/models` throws (network down / IP whitelist drop / 5xx) the static block hydrates from the snapshot so OC's model picker survives offline. Soft-fail on read/write — never blocks publishing. |
+| `geminiSanitization`  | `boolean` | `true`  | Strip `$schema`/`$ref`/`additionalProperties` from tool params when the model id matches `gemini`                                                                                                                                                                                                                                                                                                                                        |
+| `mcpAutoEmit`         | `boolean` | `false` | Auto-write an `mcp.<providerId>` remote entry into the OC config pointing at `<baseURL>/api/mcp/stream` with the resolved Bearer token                                                                                                                                                                                                                                                                                                   |
+| `mcpToken`            | `string`  | _unset_ | Optional separate Bearer for the auto-emitted MCP entry. Falls back to the provider's `apiKey` (from `auth.json`) when unset                                                                                                                                                                                                                                                                                                             |
+| `fetchInterceptor`    | `boolean` | `true`  | Inject `Authorization: Bearer` + default `Content-Type` on every outbound request targeting `baseURL` (suffix-spoof guarded)                                                                                                                                                                                                                                                                                                             |
 
 #### Example — enrichment + compression tags + MCP auto-emit
 
@@ -190,6 +196,33 @@ With `mcpAutoEmit: true`, the plugin synthesises an `mcp.omniroute` entry equiva
 ```
 
 If you want a narrower-scoped Bearer for MCP (different from the chat/inference key), set `features.mcpToken`. Operator overrides win: if you already set `mcp.omniroute` in `opencode.json`, the plugin will not overwrite it.
+
+#### Example — production-leaning defaults (clean picker, offline resilience)
+
+```jsonc
+{
+  "plugin": [
+    [
+      "@omniroute/opencode-plugin",
+      {
+        "providerId": "omniroute",
+        "baseURL": "https://or.example.com",
+        "features": {
+          "combos": true,
+          "enrichment": true,
+          "compressionMetadata": true,
+          "usableOnly": true,
+          "diskCache": true,
+        },
+      },
+    ],
+  ],
+}
+```
+
+- `usableOnly: true` drops models whose canonical provider has no healthy connection in your OmniRoute instance — your `/models` picker stays focused on what you can actually call.
+- `diskCache: true` (default) writes a snapshot to `${OPENCODE_DATA_DIR}/plugins/omniroute-<providerId>.json` on every healthy refresh. On a cold start where `/v1/models` is unreachable (laptop offline, IP whitelist drop), the snapshot hydrates the static block so OC still shows the catalog instead of a stub.
+- `compressionMetadata: true` annotates combo display names with their pipeline (e.g. `Combo: claude-primary [rtk:standard → caveman:full]`) so the picker advertises which compression each combo applies.
 
 ## Comparison vs `@omniroute/opencode-provider`
 
