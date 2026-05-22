@@ -1295,7 +1295,7 @@ export const defaultOmniRouteProvidersFetcher: OmniRouteProvidersFetcher = async
 export function usableProviderAliasSet(
   connections: OmniRouteProviderConnection[],
   enrichment: OmniRouteEnrichmentMap | undefined
-): { aliases: Set<string>; canonicals: Set<string> } {
+): { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> } {
   const usableCanonicals = new Set<string>();
   for (const c of connections) {
     if (!c || c.isActive !== true) continue;
@@ -1305,15 +1305,19 @@ export function usableProviderAliasSet(
     }
   }
   const aliases = new Set<string>();
+  const knownAliases = new Set<string>();
   if (enrichment) {
     // Walk enrichment entries to map alias → canonical via the metadata
     // populated by `defaultOmniRouteEnrichmentFetcher`. Every entry carries
     // its providerAlias + providerCanonical so the namespaced/bare key
-    // duplication is harmless.
+    // duplication is harmless. Collect EVERY alias we encounter (regardless
+    // of usability) into `knownAliases` so the downstream filter can decide
+    // "this prefix was in /api/pricing/models" in O(1) instead of O(E).
     for (const entry of enrichment.values()) {
       const alias = entry.providerAlias;
       const canonical = entry.providerCanonical;
       if (typeof alias !== "string" || alias.length === 0) continue;
+      knownAliases.add(alias);
       if (typeof canonical !== "string" || canonical.length === 0) continue;
       if (usableCanonicals.has(canonical)) aliases.add(alias);
     }
@@ -1322,7 +1326,7 @@ export function usableProviderAliasSet(
   // common case where `/v1/models` ids use the canonical id directly
   // (e.g. `gemini-cli/gemini-1.5-pro`).
   for (const canonical of usableCanonicals) aliases.add(canonical);
-  return { aliases, canonicals: usableCanonicals };
+  return { aliases, canonicals: usableCanonicals, knownAliases };
 }
 
 /**
@@ -1340,22 +1344,18 @@ export function usableProviderAliasSet(
  */
 export function isUsableRawModelId(
   id: string,
-  usable: { aliases: Set<string>; canonicals: Set<string> },
+  usable: { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> },
   enrichment: OmniRouteEnrichmentMap | undefined
 ): boolean {
   const slash = id.indexOf("/");
   if (slash <= 0) return true;
   const prefix = id.slice(0, slash);
   if (usable.aliases.has(prefix) || usable.canonicals.has(prefix)) return true;
-  if (!enrichment) return true;
-  // Walk enrichment keys to detect whether this prefix is "known". If we've
-  // seen it as a namespaced key elsewhere, it WAS in /api/pricing/models
-  // and therefore should have appeared in /api/providers too — drop it.
-  for (const key of enrichment.keys()) {
-    const s = key.indexOf("/");
-    if (s <= 0) continue;
-    if (key.slice(0, s) === prefix) return false;
-  }
+  // O(1) "known prefix" check via pre-calculated knownAliases set.
+  // If prefix was in /api/pricing/models but is NOT in usable set,
+  // drop the model. Unknown prefixes (e.g. agentrouter-style synthetic)
+  // pass through (subtract-filter semantics).
+  if (usable.knownAliases.has(prefix)) return false;
   return true;
 }
 
@@ -1367,7 +1367,7 @@ export function isUsableRawModelId(
  */
 export function isUsableCombo(
   combo: OmniRouteRawCombo,
-  usable: { aliases: Set<string>; canonicals: Set<string> }
+  usable: { aliases: Set<string>; canonicals: Set<string>; knownAliases: Set<string> }
 ): boolean {
   const steps = Array.isArray(combo.models) ? combo.models : [];
   if (steps.length === 0) return true;
