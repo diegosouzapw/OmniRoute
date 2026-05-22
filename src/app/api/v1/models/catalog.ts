@@ -126,8 +126,8 @@ const VISION_MODEL_KEYWORDS = [
   "glm-4.5v",
   "vision",
   "multimodal",
+  "kimi",
 ];
-
 function isVisionModelId(modelId: string): boolean {
   const normalized = String(modelId || "").toLowerCase();
   if (!normalized) return false;

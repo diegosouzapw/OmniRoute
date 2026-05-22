@@ -130,3 +130,16 @@ test("GPT OSS and DeepSeek Reasoner models support tool calling", () => {
   const deepseek = modelCapabilities.getResolvedModelCapabilities("deepseek/deepseek-reasoner");
   assert.equal(deepseek.toolCalling, true);
 });
+
+test("Kimi K2.6 supports vision capability", () => {
+  const kimi = modelCapabilities.getResolvedModelCapabilities("kimi-k2.6");
+  assert.equal(kimi.supportsVision, true);
+  assert.equal(kimi.supportsThinking, true);
+  assert.equal(kimi.supportsTools, true);
+  assert.equal(kimi.contextWindow, 262144);
+  assert.equal(kimi.maxOutputTokens, 262144);
+
+  // Also test via alias
+  const kimiThinking = modelCapabilities.getResolvedModelCapabilities("kimi-k2.6-thinking");
+  assert.equal(kimiThinking.supportsVision, true);
+});

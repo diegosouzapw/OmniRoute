@@ -161,6 +161,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     contextWindow: 262144,
     supportsThinking: true,
     supportsTools: true,
+    supportsVision: true,
     aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
   },
 
