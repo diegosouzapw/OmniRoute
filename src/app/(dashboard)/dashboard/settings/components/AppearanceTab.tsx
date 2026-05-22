@@ -44,10 +44,6 @@ export default function AppearanceTab() {
   const pinProviderQuotaToHome = settings[PIN_PROVIDER_QUOTA_TO_HOME_KEY] === true;
   const showQuickStartOnHome = settings.showQuickStartOnHome !== false; // default on
   const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false; // default on
-  const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true; // default off
-  const autoRefreshProviderQuotaInterval = typeof settings.autoRefreshProviderQuotaInterval === "number"
-    ? settings.autoRefreshProviderQuotaInterval
-    : 180;
 
   const getSettingsLabel = (key: string, fallback: string) =>
     typeof t.has === "function" && t.has(key) ? t(key) : fallback;
@@ -391,61 +387,6 @@ export default function AppearanceTab() {
               );
             })}
           </div>
-        </div>
-
-        {/* Automatic Refresh of Provider Quota */}
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 pr-4">
-              <p className="font-medium">
-                {getSettingsLabel("autoRefreshProviderQuota", "Automatic Refresh of Provider Quota")}
-              </p>
-              <p className="text-sm text-text-muted">
-                {getSettingsLabel(
-                  "autoRefreshProviderQuotaDesc",
-                  "Automatically refresh provider quotas at a set interval."
-                )}
-              </p>
-            </div>
-            <Toggle
-              checked={autoRefreshProviderQuota}
-              onChange={() => {
-                const next = !autoRefreshProviderQuota;
-                updateSetting("autoRefreshProviderQuota", next);
-                // Ensure the interval value is persisted when first enabling the feature
-                if (next) {
-                  updateSetting("autoRefreshProviderQuotaInterval", autoRefreshProviderQuotaInterval);
-                }
-              }}
-              disabled={loading}
-            />
-          </div>
-
-          {autoRefreshProviderQuota && (
-            <div className="mt-3 ml-1 flex items-center gap-3">
-              <label className="text-sm text-text-muted min-w-[140px]">
-                {getSettingsLabel("autoRefreshProviderQuotaInterval", "Refresh interval (seconds)")}
-              </label>
-              <input
-                type="number"
-                min={10}
-                max={3600}
-                step={10}
-                value={autoRefreshProviderQuotaInterval}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val)) {
-                    updateSetting("autoRefreshProviderQuotaInterval", Math.max(10, Math.min(3600, val)));
-                  }
-                }}
-                className="w-24 rounded border border-border bg-surface px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                disabled={loading}
-              />
-              <span className="text-xs text-text-muted">
-                {getSettingsLabel("autoRefreshProviderQuotaIntervalDesc", "Minimum 10s, default 180s (3 min)")}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Pin Information to Home Page section */}

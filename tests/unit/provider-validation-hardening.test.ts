@@ -128,3 +128,38 @@ test("Claude Code compatible validation surfaces bridge connection failures", as
   assert.equal(result.valid, false);
   assert.match(result.error, /bridge failed/i);
 });
+
+// Regression for the non-string-input crash class surfaced by #2463
+// ("e.startsWith is not a function" during a connection test). A non-string
+// apiKey / modelsUrl must never throw a TypeError mid-validation — it should
+// return a clean { valid: boolean } result.
+
+test("#2463 snowflake validation does not throw on non-string apiKey", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: [] }), { status: 200 });
+  const result = await validateProviderApiKey({
+    provider: "snowflake",
+    apiKey: 12345 as any, // simulates a corrupted / mis-typed credential
+    providerSpecificData: { baseUrl: "https://acct.snowflakecomputing.com" },
+  });
+  assert.equal(typeof result.valid, "boolean");
+});
+
+test("#2463 gemini validation does not throw on non-string apiKey", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: [] }), { status: 200 });
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: null as any,
+    providerSpecificData: {},
+  });
+  assert.equal(typeof result.valid, "boolean");
+});
+
+test("#2463 openai-compatible validation does not throw on non-string modelsUrl", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: [] }), { status: 200 });
+  const result = await validateProviderApiKey({
+    provider: "openai-compatible-nonstring-modelsurl",
+    apiKey: "sk-test",
+    providerSpecificData: { baseUrl: "https://compat.example.com/v1", modelsUrl: 999 as any },
+  });
+  assert.equal(typeof result.valid, "boolean");
+});

@@ -100,8 +100,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
   const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
-  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
-  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -117,12 +115,6 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           }
           if (typeof data.showProviderTopologyOnHome === "boolean") {
             setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-          }
-          if (typeof data.autoRefreshProviderQuota === "boolean") {
-            setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
-          }
-          if (typeof data.autoRefreshProviderQuotaInterval === "number") {
-            setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
           }
         }
       })
@@ -760,10 +752,7 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {/* Pinned Provider Quota Limits (compact, no filters) */}
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
-          <ProviderLimits
-            showFilters={false}
-            autoRefreshInterval={autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0}
-          />
+          <ProviderLimits showFilters={false} />
         </Suspense>
       )}
 

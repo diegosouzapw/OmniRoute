@@ -5,6 +5,7 @@ import { Card, Button, Input, Toggle } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import IPFilterSection from "./IPFilterSection";
 import SessionInfoCard from "./SessionInfoCard";
+import AuthzSection from "./AuthzSection";
 import { useTranslations } from "next-intl";
 
 export default function SecurityTab() {
@@ -274,6 +275,7 @@ export default function SecurityTab() {
 
       <SessionInfoCard />
       <IPFilterSection />
+      <AuthzSection />
     </div>
   );
 }

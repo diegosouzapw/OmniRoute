@@ -77,34 +77,51 @@ loadEnvFile();
   const { homedir } = await import("node:os");
 
   if (!process.env.STORAGE_ENCRYPTION_KEY) {
-    const dataDir = join(homedir(), ".omniroute");
+    // Persist the key into DATA_DIR when set — that's the directory mounted as a volume in
+    // Docker (where storage.sqlite lives), so the key survives `docker down` / `docker pull`.
+    // Writing only to ~/.omniroute (the container home, not a volume) silently lost the key on
+    // container recreation, leaving the persisted encrypted DB undecryptable (regression of #1622).
+    const dataDir = process.env.DATA_DIR || join(homedir(), ".omniroute");
     const envPath = join(dataDir, ".env");
+    const dbPath = join(dataDir, "storage.sqlite");
 
-    // Ensure data directory exists
-    if (!existsSync(dataDir)) {
-      mkdirSync(dataDir, { recursive: true });
-    }
-
-    const key = randomBytes(32).toString("hex");
-
-    // Read existing .env content or start fresh
-    let content = "";
-    if (existsSync(envPath)) {
-      content = readFileSync(envPath, "utf-8");
-    }
-
-    // Append key if not already present
-    if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
-      const separator = content.trim() ? "\n" : "";
-      const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
-      writeFileSync(envPath, newContent + "\n", "utf-8");
-      console.log(
-        "  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ~/.omniroute/.env\x1b[0m"
+    // Safety guard: never auto-generate a fresh key when a database already exists in
+    // DATA_DIR. A new key cannot decrypt previously-encrypted credentials and would lock the
+    // user out (then the encryption layer aborts on every read). Mirrors bootstrapEnv's
+    // hasEncryptedCredentials guard. Restoring the previous key in DATA_DIR/.env recovers it.
+    // (#1622 follow-up — reported by Daniel Nach; original persistence by @Chewji9875)
+    if (existsSync(dbPath)) {
+      console.warn(
+        `  \x1b[33m⚠ STORAGE_ENCRYPTION_KEY is not set but a database already exists at\x1b[0m\n` +
+          `  \x1b[33m  ${dbPath}\x1b[0m\n` +
+          `  \x1b[33m  Not auto-generating a new key — it could not decrypt existing data. Restore your\x1b[0m\n` +
+          `  \x1b[33m  previous key in ${envPath}, or move/remove the database to start fresh.\x1b[0m`
       );
-    }
+    } else {
+      // First run (no database yet) — generate and persist a fresh key.
+      if (!existsSync(dataDir)) {
+        mkdirSync(dataDir, { recursive: true });
+      }
 
-    // Set in process.env for immediate use
-    process.env.STORAGE_ENCRYPTION_KEY = key;
+      const key = randomBytes(32).toString("hex");
+
+      // Read existing .env content or start fresh
+      let content = "";
+      if (existsSync(envPath)) {
+        content = readFileSync(envPath, "utf-8");
+      }
+
+      // Append key if not already present
+      if (!content.includes("STORAGE_ENCRYPTION_KEY=")) {
+        const separator = content.trim() ? "\n" : "";
+        const newContent = content.trimEnd() + separator + `STORAGE_ENCRYPTION_KEY=${key}`;
+        writeFileSync(envPath, newContent + "\n", "utf-8");
+        console.log(`  \x1b[2m✨ Generated STORAGE_ENCRYPTION_KEY in ${envPath}\x1b[0m`);
+      }
+
+      // Set in process.env for immediate use
+      process.env.STORAGE_ENCRYPTION_KEY = key;
+    }
   }
 }
 
