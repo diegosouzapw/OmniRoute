@@ -146,7 +146,13 @@ const KIMI_CODING_SHARED = {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
   models: [
-    { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 262144, maxOutputTokens: 262144, supportsVision: true },
+    {
+      id: "kimi-k2.6",
+      name: "Kimi K2.6",
+      contextLength: 262144,
+      maxOutputTokens: 262144,
+      supportsVision: true,
+    },
     {
       id: "kimi-k2.6-thinking",
       name: "Kimi K2.6 Thinking",
@@ -891,21 +897,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-haiku-4.5",
         name: "Claude Haiku 4.5",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
       {
         id: "claude-sonnet-4.5",
         name: "Claude Sonnet 4.5",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
       {
         id: "claude-sonnet-4.6",
         name: "Claude Sonnet 4.6",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
