@@ -1944,7 +1944,15 @@ export const codexProfileNameSchema = z.object({
 });
 
 export const codexProfileIdSchema = z.object({
-  profileId: z.string().trim().min(1, "profileId is required"),
+  // profileId is interpolated into a filesystem path (`<PROFILES_DIR>/<id>.json`).
+  // Constrain to a safe slug charset so request bodies cannot smuggle path
+  // separators or `..` segments and escape PROFILES_DIR (path traversal).
+  profileId: z
+    .string()
+    .trim()
+    .min(1, "profileId is required")
+    .regex(/^[a-zA-Z0-9._-]+$/, "profileId contains invalid characters")
+    .refine((v) => v !== "." && v !== "..", "profileId is invalid"),
 });
 
 export const guideSettingsSaveSchema = z
