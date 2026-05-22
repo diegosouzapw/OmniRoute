@@ -38,8 +38,9 @@ import {
 import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import ProviderCard from "./components/ProviderCard";
@@ -140,7 +141,8 @@ export default function ProvidersPage() {
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
   const [expirations, setExpirations] = useState<any>(null);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
   const [loading, setLoading] = useState(true);
   const [showAllProviders, setShowAllProviders] = useState(false);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
@@ -202,7 +204,7 @@ export default function ProvidersPage() {
           setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
         }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(settingsData));
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -310,12 +312,16 @@ export default function ProvidersPage() {
     if (hasExpired) expiryStatus = "expired";
     else if (hasExpiringSoon) expiryStatus = "expiring_soon";
 
-    const codexFastActive =
-      providerId === "codex" &&
-      (codexGlobalFastServiceTier ||
-        providerConnections.some((connection) =>
-          getCodexEffectiveFastServiceTier(connection.providerSpecificData, false)
-        ));
+    const codexServiceTier =
+      providerId === "codex"
+        ? codexGlobalServiceMode !== "none"
+          ? codexGlobalServiceMode
+          : providerConnections
+              .map((connection) =>
+                getCodexEffectiveServiceTier(connection.providerSpecificData, "none")
+              )
+              .find((tier) => tier !== "default") || null
+        : null;
 
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
@@ -335,7 +341,7 @@ export default function ProvidersPage() {
       errorTime,
       allDisabled,
       expiryStatus,
-      codexFastActive,
+      codexServiceTier,
     };
   };
 

@@ -61,10 +61,14 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
+  type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  resolveCodexGlobalFastServiceTier,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
@@ -726,7 +730,7 @@ interface ConnectionRowProps {
   isClaude?: boolean;
   isCodex?: boolean;
   isGeminiCli?: boolean;
-  codexFastGlobalEnabled?: boolean;
+  codexGlobalServiceMode?: CodexGlobalServiceMode;
   isFirst: boolean;
   isLast: boolean;
   isSelected?: boolean;
@@ -867,6 +871,17 @@ const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "xhigh", label: "XHigh" },
 ];
 
+const CODEX_ACCOUNT_SERVICE_TIER_OPTIONS: Array<{ value: CodexServiceTier; label: string }> = [
+  { value: "default", label: "Default" },
+  { value: "priority", label: "Priority" },
+  { value: "flex", label: "Flex" },
+];
+
+const CODEX_GLOBAL_SERVICE_MODE_OPTIONS: Array<{ value: CodexGlobalServiceMode; label: string }> = [
+  { value: "none", label: "No global setting" },
+  ...CODEX_ACCOUNT_SERVICE_TIER_OPTIONS,
+];
+
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
     policy && typeof policy === "object" && !Array.isArray(policy)
@@ -884,7 +899,7 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
  */
 function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort: string;
-  serviceTier?: "priority";
+  serviceTier?: CodexServiceTier;
 } {
   const defaults = _getCodexRequestDefaults(providerSpecificData);
   return {
@@ -1306,8 +1321,12 @@ export default function ProviderDetailPage() {
   );
   const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
-  const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
+  const [codexGlobalSupportedModels, setCodexGlobalSupportedModels] = useState<string[]>([
+    ...CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  ]);
+  const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
@@ -1600,7 +1619,9 @@ export default function ProviderDetailPage() {
     fetch("/api/settings", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(data));
+        const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
+        setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
       })
       .catch(() => {});
   }, [providerId]);
@@ -2349,29 +2370,39 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const handleToggleCodexGlobalFastServiceTier = async (enabled: boolean) => {
-    if (savingCodexGlobalFastServiceTier) return;
-    setSavingCodexGlobalFastServiceTier(true);
+  const handleChangeCodexGlobalServiceMode = async (mode: CodexGlobalServiceMode) => {
+    if (savingCodexGlobalServiceMode) return;
+    setSavingCodexGlobalServiceMode(true);
+    const previousMode = codexGlobalServiceMode;
+    setCodexGlobalServiceMode(mode);
     try {
+      const tier = mode === "none" ? (previousMode !== "none" ? previousMode : undefined) : mode;
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codexServiceTier: { enabled } }),
+        body: JSON.stringify({
+          codexServiceTier: {
+            enabled: mode !== "none",
+            ...(tier ? { tier } : {}),
+            supportedModels: codexGlobalSupportedModels,
+          },
+        }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Codex Fast setting");
+        setCodexGlobalServiceMode(previousMode);
+        notify.error(data.error || "Failed to update Codex service mode");
         return;
       }
 
-      setCodexGlobalFastServiceTier(enabled);
-      notify.success(enabled ? "Codex Fast enabled globally" : "Codex Fast disabled globally");
+      notify.success("Codex service mode updated");
     } catch (error) {
-      console.error("Error toggling Codex Fast setting:", error);
-      notify.error("Failed to update Codex Fast setting");
+      setCodexGlobalServiceMode(previousMode);
+      console.error("Error updating Codex service mode:", error);
+      notify.error("Failed to update Codex service mode");
     } finally {
-      setSavingCodexGlobalFastServiceTier(false);
+      setSavingCodexGlobalServiceMode(false);
     }
   };
 
@@ -3749,17 +3780,35 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title={t("providerDetailFastTierTooltip")}>
-                  <Toggle
-                    size="sm"
-                    checked={codexGlobalFastServiceTier}
-                    onChange={handleToggleCodexGlobalFastServiceTier}
-                    disabled={savingCodexGlobalFastServiceTier}
-                    label={t("providerDetailFastDefaultLabel")}
-                    ariaLabel="Toggle Codex Fast default"
-                    className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
-                  />
-                </div>
+                <label
+                  className="inline-flex items-center gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1 text-xs font-medium text-text-muted"
+                  title={providerText(
+                    t,
+                    "providerDetailServiceModeTooltip",
+                    "Set a global Codex service mode, or leave accounts on their individual service-tier setting."
+                  )}
+                >
+                  <span>
+                    {providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}
+                  </span>
+                  <select
+                    value={codexGlobalServiceMode}
+                    onChange={(event) =>
+                      handleChangeCodexGlobalServiceMode(
+                        event.target.value as CodexGlobalServiceMode
+                      )
+                    }
+                    disabled={savingCodexGlobalServiceMode}
+                    aria-label="Global Codex service mode"
+                    className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
+                  >
+                    {CODEX_GLOBAL_SERVICE_MODE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               )}
               {/* Provider-level proxy indicator/button */}
               <button
@@ -4013,7 +4062,7 @@ export default function ProviderDetailPage() {
                           connection={conn}
                           isOAuth={conn.authType === "oauth"}
                           isClaude={providerId === "claude"}
-                          codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                          codexGlobalServiceMode={codexGlobalServiceMode}
                           isFirst={index === 0}
                           isLast={index === sorted.length - 1}
                           isSelected={selectedIds.has(conn.id)}
@@ -4195,7 +4244,7 @@ export default function ProviderDetailPage() {
                                 connection={conn}
                                 isOAuth={conn.authType === "oauth"}
                                 isClaude={providerId === "claude"}
-                                codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                                codexGlobalServiceMode={codexGlobalServiceMode}
                                 isFirst={gi === 0 && index === 0}
                                 isLast={
                                   gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -6350,7 +6399,7 @@ function ConnectionRow({
   isClaude,
   isCodex,
   isGeminiCli,
-  codexFastGlobalEnabled,
+  codexGlobalServiceMode,
   isCcCompatible,
   cliproxyapiEnabled,
   isFirst,
@@ -6480,12 +6529,50 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
-  const codexFastEnabled = isCodex
-    ? getCodexEffectiveFastServiceTier(
+  const codexServiceTier = isCodex
+    ? getCodexEffectiveServiceTier(
         connection.providerSpecificData,
-        codexFastGlobalEnabled === true
+        codexGlobalServiceMode ?? "none"
       )
-    : false;
+    : "default";
+  const codexServiceTierIsGlobal =
+    isCodex && codexGlobalServiceMode !== undefined && codexGlobalServiceMode !== "none";
+  const codexServiceTierBadge =
+    codexServiceTier === "priority"
+      ? {
+          label: providerText(t, "codexTierFastLabel", "Fast"),
+          icon: "bolt",
+          className: "bg-sky-500/15 text-sky-500",
+          title: codexServiceTierIsGlobal
+            ? providerText(
+                t,
+                "providerDetailGlobalPriorityActive",
+                "Global Codex priority service tier is active"
+              )
+            : providerText(
+                t,
+                "providerDetailConnectionPriorityActive",
+                "Codex priority service tier is active for this connection"
+              ),
+        }
+      : codexServiceTier === "flex"
+        ? {
+            label: providerText(t, "codexTierFlexLabel", "Flex"),
+            icon: "speed",
+            className: "bg-cyan-500/15 text-cyan-500",
+            title: codexServiceTierIsGlobal
+              ? providerText(
+                  t,
+                  "providerDetailGlobalFlexActive",
+                  "Global Codex flex service tier is active"
+                )
+              : providerText(
+                  t,
+                  "providerDetailConnectionFlexActive",
+                  "Codex flex service tier is active for this connection"
+                ),
+          }
+        : null;
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
@@ -6634,17 +6721,15 @@ function ConnectionRow({
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
-                {codexFastEnabled && (
+                {codexServiceTierBadge && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-sky-500/15 text-sky-500"
-                    title={
-                      codexFastGlobalEnabled
-                        ? "Global Codex fast tier is active"
-                        : "Codex fast tier is active for this connection"
-                    }
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${codexServiceTierBadge.className}`}
+                    title={codexServiceTierBadge.title}
                   >
-                    <span className="material-symbols-outlined text-[13px]">bolt</span>
-                    Fast
+                    <span className="material-symbols-outlined text-[13px]">
+                      {codexServiceTierBadge.icon}
+                    </span>
+                    {codexServiceTierBadge.label}
                   </span>
                 )}
                 <button
@@ -9305,7 +9390,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     customUserAgent: "",
     accountId: "",
     codexReasoningEffort: "medium",
-    codexFastServiceTier: false,
+    codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
@@ -9429,7 +9514,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
-        codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
+        codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
@@ -9690,7 +9775,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
-            ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
+            ...(formData.codexServiceTier !== "default"
+              ? { serviceTier: formData.codexServiceTier }
+              : {}),
           };
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
@@ -9767,11 +9854,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(e) => setFormData({ ...formData, codexReasoningEffort: e.target.value })}
               hint={t("defaultThinkingStrengthHint")}
             />
-            <Toggle
-              checked={formData.codexFastServiceTier}
-              onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
-              label={t("codexFastServiceTierLabel")}
-              description={t("codexFastServiceTierDescription")}
+            <Select
+              label={providerText(t, "codexServiceTierLabel", "Codex service tier")}
+              value={formData.codexServiceTier}
+              options={CODEX_ACCOUNT_SERVICE_TIER_OPTIONS}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  codexServiceTier: event.target.value as CodexServiceTier,
+                })
+              }
+              hint={providerText(
+                t,
+                "codexServiceTierDescription",
+                "Default uses the normal Codex tier. Priority shows as Fast; Flex uses the flex service tier when available."
+              )}
             />
             <Toggle
               checked={formData.codexOpenaiStoreEnabled}

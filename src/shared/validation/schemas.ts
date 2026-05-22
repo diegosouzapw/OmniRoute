@@ -20,7 +20,7 @@ function isHttpUrl(value: string): boolean {
 }
 
 const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
-const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["priority", "fast"]);
+const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
 function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
@@ -143,7 +143,7 @@ function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+            "providerSpecificData.requestDefaults.serviceTier must be one of default, priority, fast, flex when provided",
           path: ["requestDefaults", "serviceTier"],
         });
       }
