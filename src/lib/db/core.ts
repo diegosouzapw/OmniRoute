@@ -1109,6 +1109,7 @@ function startDbHealthCheckScheduler(db: SqliteDatabase) {
       if (!db.open) return;
       runDbHealthCheck(db, {
         autoRepair: true,
+        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
         expectedSchemaVersion: "1",
         createBackupBeforeRepair: () => createHealthCheckBackup(db),
       });
@@ -1363,6 +1364,7 @@ export function getDbInstance(): SqliteDatabase {
   if (shouldRunStartupDbHealthCheck()) {
     runDbHealthCheck(db, {
       autoRepair: true,
+        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
       expectedSchemaVersion: "1",
       createBackupBeforeRepair: () => createHealthCheckBackup(db),
     });
