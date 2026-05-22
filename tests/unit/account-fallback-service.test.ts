@@ -153,6 +153,33 @@ test("checkFallbackError keeps generic 400 client errors terminal", () => {
   });
 });
 
+test("checkFallbackError treats a genuine 400 model-access error as combo fallback", () => {
+  const result = checkFallbackError(400, "The model `foo` does not exist or is not available");
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
+test("checkFallbackError does NOT treat a bad-credential 400 as model-access fallback", () => {
+  // Phrased so it would otherwise match MODEL_ACCESS_DENIED_PATTERNS ("...api key
+  // ... model"), but the bad-credential signal must keep it terminal so the real
+  // auth error surfaces instead of silently exhausting every combo target.
+  const result = checkFallbackError(400, "Invalid API key provided for model gpt-4o");
+  assert.deepEqual(result, {
+    shouldFallback: false,
+    cooldownMs: 0,
+    reason: RateLimitReason.UNKNOWN,
+  });
+});
+
+test("checkFallbackError still honors structured model_not_found even with credential-like text", () => {
+  // Structured codes are authoritative and unaffected by the credential guard.
+  const result = checkFallbackError(400, "unauthorized-ish blob", 0, null, "openai", null, null, {
+    code: "model_not_found",
+  });
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.reason, RateLimitReason.MODEL_CAPACITY);
+});
+
 test("filterAvailableAccounts skips exclusion and active cooldowns but keeps recovered ones", () => {
   withMockedNow(1_700_000_000_000, () => {
     const accounts = [

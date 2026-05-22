@@ -174,6 +174,22 @@ const MODEL_ACCESS_DENIED_PATTERNS = [
   /\bmodel[\s\S]{0,60}?\b(?:access|permission)\b/i,
 ];
 
+// Pure credential/authentication failures — the key or token itself is bad, which
+// is NOT a model-availability problem. Some providers phrase these as a 400 that
+// also mentions the model (e.g. "invalid api key for model X"), which would
+// otherwise trip MODEL_ACCESS_DENIED_PATTERNS above and trigger combo fallback
+// across every target, masking the real "fix your credential" error. When the
+// text clearly indicates a bad credential, the regex-based model-access detection
+// is suppressed (structured codes/types like model_not_found are unaffected).
+const AUTH_CREDENTIAL_ERROR_PATTERNS = [
+  /\b(?:invalid|incorrect|expired|missing|revoked)\s+api[\s_-]?key\b/i,
+  /\bapi[\s_-]?key\s+(?:is\s+)?(?:invalid|incorrect|expired|missing|revoked|not\s+valid)\b/i,
+  /\bauthentication\s+(?:failed|error|required)\b/i,
+  /\b(?:invalid|expired|missing|revoked)\s+(?:token|credentials?|bearer)\b/i,
+  /\bunauthorized\b/i,
+  /\bnot\s+authenticated\b/i,
+];
+
 // Malformed request patterns — the model rejected the message format but a different
 // provider/model in the combo may accept it.
 const MALFORMED_REQUEST_PATTERNS = [
@@ -1270,7 +1286,14 @@ export function checkFallbackError(
       typeof structuredError?.code === "string" ? structuredError.code.toLowerCase() : "";
     const structuredType =
       typeof structuredError?.type === "string" ? structuredError.type.toLowerCase() : "";
-    const matchesModelAccessPattern = MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(errorStr));
+    // A clear bad-credential error must never be reclassified as model-access
+    // (which would silently exhaust every combo target). Structured detection
+    // below still catches genuine model_not_found / not_found_error codes.
+    const looksLikeAuthCredentialError = AUTH_CREDENTIAL_ERROR_PATTERNS.some((p) =>
+      p.test(errorStr)
+    );
+    const matchesModelAccessPattern =
+      !looksLikeAuthCredentialError && MODEL_ACCESS_DENIED_PATTERNS.some((p) => p.test(errorStr));
 
     const isModelAccessDeniedStructured =
       !!structuredError &&
@@ -1344,7 +1367,9 @@ export function getEarliestRateLimitedUntil(
 /**
  * Format rateLimitedUntil to human-readable "reset after Xm Ys"
  */
-export function formatRetryAfter(rateLimitedUntil: string | Date | null | undefined): string {
+export function formatRetryAfter(
+  rateLimitedUntil: string | number | Date | null | undefined
+): string {
   if (!rateLimitedUntil) return "";
   const diffMs = new Date(rateLimitedUntil).getTime() - Date.now();
   if (diffMs <= 0) return "reset after 0s";

@@ -102,6 +102,26 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
   );
 });
 
+test("ANTIGRAVITY_PUBLIC_MODELS has no duplicate model IDs", () => {
+  const ids = ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id);
+  const seen = new Set<string>();
+  const duplicates = ids.filter((id) => {
+    if (seen.has(id)) return true;
+    seen.add(id);
+    return false;
+  });
+  assert.deepEqual(duplicates, [], `duplicate model IDs found: ${duplicates.join(", ")}`);
+});
+
+test("gemini-3-flash-agent keeps its Agent display name (not the Flash High duplicate)", () => {
+  // A duplicate entry previously overwrote this name with "Gemini 3.5 Flash (High)"
+  // because the id-keyed name map kept the last occurrence.
+  assert.equal(
+    getClientVisibleAntigravityModelName("gemini-3-flash-agent"),
+    "Gemini 3.5 Flash Agent"
+  );
+});
+
 test("AntigravityExecutor.transformRequest resolves alias models before dispatching upstream", async () => {
   const executor = new AntigravityExecutor();
   const result = await executor.transformRequest(

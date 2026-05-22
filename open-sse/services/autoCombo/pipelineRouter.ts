@@ -277,8 +277,21 @@ export async function handlePipelineCombo({
   const pipelineConfig = buildPipelineConfig(promptText, taskType);
 
   // ── Extract available models from combo ────────────────────────────────────
-  const comboModels = (combo as Record<string, unknown>).models as string[] | undefined;
-  const availableModels = comboModels?.length ? comboModels : ["deepseek-chat"];
+  // `combo.models` is an array of model-config entries (objects with a `.model`
+  // field), not plain strings — older code cast it to `string[]` and passed the
+  // raw objects to `getTaskFitness`, which then string-matched `"[object Object]"`
+  // and always fell back to the default model. Normalize to model-name strings.
+  const rawComboModels = (combo as Record<string, unknown>).models;
+  const comboModels = Array.isArray(rawComboModels)
+    ? rawComboModels
+        .map((entry) => {
+          if (typeof entry === "string") return entry;
+          const model = (entry as Record<string, unknown> | null)?.model;
+          return typeof model === "string" ? model : null;
+        })
+        .filter((model): model is string => typeof model === "string" && model.length > 0)
+    : [];
+  const availableModels = comboModels.length ? comboModels : ["deepseek-chat"];
 
   // ── Create stage executor ─────────────────────────────────────────────────
   const stageExecutor = createStageExecutor(body, handleChatCore, log, availableModels, taskType);
@@ -289,31 +302,36 @@ export async function handlePipelineCombo({
     ((settings as Record<string, unknown>).max_reflection_loops as number) ??
     1;
 
-  // Track reflection loops
-  let reflectionCount = 0;
   const wrappedExecutor = async (args: StageExecutorArgs) => {
     // fitnessTier is now passed by the pipeline engine via StageExecutorArgs
     return stageExecutor({ ...args, fitnessTier: args.fitnessTier as FitnessTier | undefined });
   };
 
-  const result = await executePipeline(pipelineConfig, wrappedExecutor);
+  let result = await executePipeline(pipelineConfig, wrappedExecutor);
 
   // ── Handle reflection loops ───────────────────────────────────────────────
-  // If reflect failed and we haven't exceeded max loops, re-run execute+reflect
-  if (result.reflectVerdict === "fail" && reflectionCount < maxReflectionLoops) {
+  // While the reflect stage reports "fail", re-run the whole pipeline up to
+  // `maxReflectionLoops` times (previously this was a single `if`, so the
+  // configured loop count above 1 was silently ignored). Each re-run is a fresh
+  // pipeline that internally applies its own reflect→fix correction (see
+  // executePipeline). The first retry that passes wins; if none pass we keep the
+  // original result.
+  let reflectionCount = 0;
+  while (result.reflectVerdict === "fail" && reflectionCount < maxReflectionLoops) {
     reflectionCount++;
     log.info(
       "PIPELINE",
       `Reflection failed, re-running (loop ${reflectionCount}/${maxReflectionLoops})`
     );
 
-    // Re-execute with corrected context from reflection
     const retryConfig = buildPipelineConfig(promptText, taskType);
     const retryResult = await executePipeline(retryConfig, wrappedExecutor);
 
-    // Use retry result if it passed, otherwise keep original
+    // Adopt the retry only if it passed; otherwise keep scanning until the loop
+    // budget is exhausted, then fall through with the original result.
     if (retryResult.reflectVerdict === "pass") {
-      return retryResult;
+      result = retryResult;
+      break;
     }
   }
 
@@ -333,4 +351,68 @@ export async function handlePipelineCombo({
     `Complete: ${result.stages.length} stages, fallback=${result.fallback}, verdict=${result.reflectVerdict}`
   );
   return result;
+}
+
+/**
+ * Convert a buffered {@link PipelineResult} into an HTTP `Response`.
+ *
+ * `handlePipelineCombo` resolves to a `PipelineResult` (the pipeline buffers
+ * every stage as non-streaming and exposes only the final text), but the combo
+ * routing layer hands its return value to callers that expect a `Response`.
+ * This adapter bridges that gap, emitting an OpenAI-compatible
+ * `chat.completion` body — or a single-chunk SSE stream when the client
+ * requested `stream: true` — so the pipeline output actually reaches the client
+ * instead of being silently dropped.
+ */
+export function buildPipelineResponse(
+  result: PipelineResult,
+  body: Record<string, unknown>
+): Response {
+  const model = typeof body.model === "string" && body.model.length > 0 ? body.model : "auto";
+  const id = `chatcmpl-pipeline-${Date.now()}`;
+  const created = Math.floor(Date.now() / 1000);
+  const content = result.text ?? "";
+
+  // Non-streaming: standard OpenAI chat.completion JSON body.
+  if (body.stream !== true) {
+    const payload = {
+      id,
+      object: "chat.completion",
+      created,
+      model,
+      choices: [
+        {
+          index: 0,
+          message: { role: "assistant", content },
+          finish_reason: "stop",
+        },
+      ],
+      usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    };
+    return new Response(JSON.stringify(payload), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Streaming: emit one content chunk, a terminal finish chunk, then [DONE].
+  const chunk = (delta: Record<string, unknown>, finishReason: string | null) =>
+    `data: ${JSON.stringify({
+      id,
+      object: "chat.completion.chunk",
+      created,
+      model,
+      choices: [{ index: 0, delta, finish_reason: finishReason }],
+    })}\n\n`;
+
+  const sse = chunk({ role: "assistant", content }, null) + chunk({}, "stop") + "data: [DONE]\n\n";
+
+  return new Response(sse, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
