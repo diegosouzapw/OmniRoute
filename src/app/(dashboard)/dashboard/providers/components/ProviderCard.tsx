@@ -36,6 +36,7 @@ interface ProviderCardProps {
     deprecationReason?: string;
     hasFree?: boolean;
     freeNote?: string;
+    subscriptionRisk?: boolean;
   };
   stats: ProviderStats;
   authType?: string;
@@ -182,6 +183,15 @@ export default function ProviderCard({
                 >
                   {provider.name}
                 </span>
+                {provider.subscriptionRisk === true && (
+                  <span
+                    className="material-symbols-outlined shrink-0 text-[15px] leading-none text-amber-500"
+                    title={t("riskNotice.tooltip")}
+                    aria-label={t("riskNotice.tooltip")}
+                  >
+                    info
+                  </span>
+                )}
                 {provider.deprecated && (
                   <Badge
                     variant="default"

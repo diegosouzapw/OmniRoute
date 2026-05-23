@@ -10,6 +10,7 @@ import {
   WEB_COOKIE_PROVIDERS,
   isClaudeCodeCompatibleProvider,
   supportsApiKeyOnFreeProvider,
+  type RiskNoticeVariant,
 } from "@/shared/constants/providers";
 
 export type ProviderDisplayAuthType = "oauth" | "apikey" | "compatible";
@@ -36,6 +37,8 @@ export interface ProviderCatalogMetadata {
   authHint?: string;
   apiHint?: string;
   passthroughModels?: boolean;
+  subscriptionRisk?: boolean;
+  riskNoticeVariant?: RiskNoticeVariant;
   apiType?: string;
   baseUrl?: string;
   [key: string]: unknown;

@@ -19,6 +19,8 @@ export const ProviderSchema = z.object({
   textIcon: z.string().optional(),
   website: z.string().url().optional(),
   passthroughModels: z.boolean().optional(),
+  subscriptionRisk: z.boolean().optional(),
+  riskNoticeVariant: z.enum(["oauth", "webCookie", "deprecated"]).optional(),
   deprecated: z.boolean().optional(),
   deprecationReason: z.string().optional(),
   hasFree: z.boolean().optional(),

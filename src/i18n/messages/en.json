@@ -3267,6 +3267,16 @@
     "freeTierAvailable": "Free tier available",
     "deprecated": "Deprecated",
     "deprecatedProvider": "This provider has been deprecated",
+    "riskNotice": {
+      "title": "Before continuing",
+      "tooltip": "Provider with usage caveats — click for details",
+      "oauth": "This provider uses your official product session/OAuth, which is not authorized for proxy/router use.\n\nWe don't recommend intensive autonomous agent usage (OpenCloud-style, long multi-step flows, large batches) — the upstream may react by restricting or banning the account.\n\nUse at your own risk.",
+      "webCookie": "This provider authenticates through your web session cookies. The upstream service may invalidate the session at any time, requiring you to log in again. Not recommended for long unattended operations.\n\nUse at your own risk.",
+      "deprecated": "This provider was discontinued by its upstream and may stop working without notice. Existing connections may continue working until the upstream fully removes access. Consider alternatives.",
+      "dontShowAgain": "Don't show this again for this provider",
+      "understand": "I understand, continue",
+      "cancel": "Cancel"
+    },
     "disabled": "Disabled",
     "enableProvider": "Enable provider",
     "disableProvider": "Disable provider",

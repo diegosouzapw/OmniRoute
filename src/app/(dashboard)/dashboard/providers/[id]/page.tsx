@@ -68,6 +68,8 @@ import {
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import RiskNoticeModal from "../components/RiskNoticeModal";
+import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -1038,6 +1040,7 @@ export default function ProviderDetailPage() {
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
+  const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
   const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
     phase: "idle",
     state: "",
@@ -1115,6 +1118,9 @@ export default function ProviderDetailPage() {
   const [batchDeleting, setBatchDeleting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
+  const pendingRiskActionRef = useRef<(() => void) | null>(null);
+  const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
+    useRiskAcknowledged(providerId);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -1138,6 +1144,7 @@ export default function ProviderDetailPage() {
   });
   const providerSupportsOAuth =
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
+  const subscriptionRisk = providerInfo?.subscriptionRisk === true;
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const isFreeNoAuth = FREE_PROVIDERS[providerId]?.noAuth === true;
@@ -1582,6 +1589,31 @@ export default function ProviderDetailPage() {
     }
     setShowAddApiKeyModal(true);
   }, [isOAuth]);
+
+  const gateConnectionFlow = useCallback(
+    (callback: () => void) => {
+      if (subscriptionRisk && !riskAcknowledged && !isRiskAcknowledged(providerId)) {
+        pendingRiskActionRef.current = callback;
+        setShowRiskNoticeModal(true);
+        return;
+      }
+      callback();
+    },
+    [providerId, riskAcknowledged, subscriptionRisk]
+  );
+
+  const handleConfirmRiskNotice = useCallback(() => {
+    acknowledgeRisk();
+    setShowRiskNoticeModal(false);
+    const pendingAction = pendingRiskActionRef.current;
+    pendingRiskActionRef.current = null;
+    pendingAction?.();
+  }, [acknowledgeRisk]);
+
+  const handleCancelRiskNotice = useCallback(() => {
+    pendingRiskActionRef.current = null;
+    setShowRiskNoticeModal(false);
+  }, []);
 
   const clearCommandCodeAuthTimer = useCallback(() => {
     if (commandCodeAuthTimerRef.current !== null) {
@@ -3469,7 +3501,11 @@ export default function ProviderDetailPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+              <Button
+                size="sm"
+                icon="add"
+                onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+              >
                 {t("add")}
               </Button>
               <Button
@@ -3605,7 +3641,7 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
@@ -3613,21 +3649,25 @@ export default function ProviderDetailPage() {
                         size="sm"
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                      <Button
+                        size="sm"
+                        icon="add"
+                        onClick={() => gateConnectionFlow(openPrimaryAddFlow)}
+                      >
                         {providerSupportsPat ? "Add PAT" : t("add")}
                       </Button>
                       {providerId === "qoder" && (
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => setShowOAuthModal(true)}
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
                         >
                           Experimental OAuth
                         </Button>
@@ -3637,7 +3677,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3649,7 +3689,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3661,7 +3701,11 @@ export default function ProviderDetailPage() {
                 </>
               ) : (
                 connections.length === 0 && (
-                  <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                  <Button
+                    size="sm"
+                    icon="add"
+                    onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+                  >
                     {t("add")}
                   </Button>
                 )
@@ -3689,25 +3733,28 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
                       <Button
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button icon="add" onClick={openPrimaryAddFlow}>
+                      <Button icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                         {providerSupportsPat ? "Add PAT" : t("addConnection")}
                       </Button>
                       {providerId === "qoder" && (
-                        <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
+                        >
                           Experimental OAuth
                         </Button>
                       )}
@@ -3715,7 +3762,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportCodexModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importCodexAuth")
                             ? t("importCodexAuth")
@@ -3726,7 +3773,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3737,7 +3784,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3834,7 +3881,7 @@ export default function ProviderDetailPage() {
                           onDelete={() => handleDelete(conn.id)}
                           onReauth={
                             conn.authType === "oauth"
-                              ? () => setShowOAuthModal(true, conn)
+                              ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                               : undefined
                           }
                           onRefreshToken={
@@ -4021,7 +4068,7 @@ export default function ProviderDetailPage() {
                                 onDelete={() => handleDelete(conn.id)}
                                 onReauth={
                                   conn.authType === "oauth"
-                                    ? () => setShowOAuthModal(true, conn)
+                                    ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                                     : undefined
                                 }
                                 onRefreshToken={
@@ -4177,6 +4224,15 @@ export default function ProviderDetailPage() {
       )}
 
       {/* Modals */}
+      {showRiskNoticeModal && subscriptionRisk && (
+        <RiskNoticeModal
+          variant={providerInfo.riskNoticeVariant ?? "oauth"}
+          providerId={providerId}
+          providerName={providerInfo.name}
+          onConfirm={handleConfirmRiskNotice}
+          onCancel={handleCancelRiskNotice}
+        />
+      )}
       {!isUpstreamProxyProvider &&
         (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
@@ -7618,9 +7674,7 @@ function previewCodexJson(json: unknown): { valid: boolean; email: string | null
     // Only reject when auth_mode is explicitly set to something other than "chatgpt".
     if (
       !doc ||
-      (doc.auth_mode !== undefined &&
-        doc.auth_mode !== null &&
-        doc.auth_mode !== "chatgpt")
+      (doc.auth_mode !== undefined && doc.auth_mode !== null && doc.auth_mode !== "chatgpt")
     )
       return { valid: false, email: null };
     const tokens =
