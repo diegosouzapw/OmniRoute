@@ -2821,6 +2821,7 @@
     "configuredProvidersLabel": "Im Dashboard konfiguriert",
     "configuredProvidersHint": "Anbieter mit in /dashboard/providers gespeicherten Anmeldeinformationen, unabhängig vom Laufzeitstatus.",
     "activeProviders": "{count} active",
+    "additionalModels": "+{count} weitere Modelle",
     "activeProvidersHint": "Konfigurierte Anbieter, die derzeit für Routing-Anfragen aktiviert sind.",
     "monitoredProviders": "{count} monitored",
     "monitoredProvidersHint": "Anbieter, die derzeit von Leistungsschalter-Zustandsmonitoren überwacht werden.",

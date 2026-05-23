@@ -2821,6 +2821,7 @@
     "configuredProvidersLabel": "Configured in dashboard",
     "configuredProvidersHint": "Providers with credentials saved in /dashboard/providers, regardless of runtime state.",
     "activeProviders": "{count} active",
+    "additionalModels": "+{count} more models",
     "activeProvidersHint": "Configured providers currently enabled for routing requests.",
     "monitoredProviders": "{count} monitored",
     "monitoredProvidersHint": "Providers currently tracked by circuit-breaker health monitors.",

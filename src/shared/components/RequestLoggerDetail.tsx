@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   PROVIDER_COLORS,
@@ -36,7 +37,10 @@ function PayloadSection({ title, json, onCopy }) {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-[600px] overflow-y-auto leading-relaxed whitespace-pre-wrap break-words">
+      <pre
+        className="p-4 rounded-xl bg-black/5 dark:bg-black/30 border border-border overflow-x-auto text-xs font-mono text-text-main max-h-150 overflow-y-auto leading-relaxed whitespace-pre-wrap"
+        style={{ overflowWrap: "break-word" }}
+      >
         {json}
       </pre>
     </div>
@@ -183,7 +187,7 @@ export default function RequestLoggerDetail({
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="relative bg-bg-primary border border-border rounded-xl w-full max-w-225 max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -212,13 +216,22 @@ export default function RequestLoggerDetail({
             </div>
             <span className="text-text-muted font-mono text-sm self-center ml-2">{log.path}</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
-            aria-label="Close detail modal"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/analytics?tab=route-trace&id=${encodeURIComponent(log.id)}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+            >
+              <span className="material-symbols-outlined text-[16px]">alt_route</span>
+              Route Trace
+            </Link>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Close detail modal"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
         </div>
 
         <div className="p-6 flex flex-col gap-6">
