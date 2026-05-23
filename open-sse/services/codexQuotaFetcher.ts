@@ -143,7 +143,7 @@ function getDominantResetAt(quota: {
 export async function fetchCodexQuota(
   connectionId: string,
   connection?: Record<string, unknown>
-): Promise<QuotaInfo | null> {
+): Promise<CodexDualWindowQuota | null> {
   // Check cache first
   const cached = quotaCache.get(connectionId);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {

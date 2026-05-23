@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-test("CLI_TOOLS registry contains all 17 expected tools", async () => {
+test("CLI_TOOLS registry contains all 18 expected tools", async () => {
   const { CLI_TOOLS } = await import("../../src/shared/constants/cliTools.ts");
   const expected = [
     "claude",
@@ -13,6 +13,7 @@ test("CLI_TOOLS registry contains all 17 expected tools", async () => {
     "qwen",
     "windsurf",
     "hermes",
+    "hermes-agent",
     "amp",
     "kiro",
     "cursor",

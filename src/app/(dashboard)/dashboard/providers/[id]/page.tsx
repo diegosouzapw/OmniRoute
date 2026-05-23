@@ -7614,7 +7614,15 @@ function extractEmailFromJwtLocal(idToken: string): string | null {
 function previewCodexJson(json: unknown): { valid: boolean; email: string | null } {
   try {
     const doc = json && typeof json === "object" ? (json as Record<string, unknown>) : null;
-    if (!doc || doc.auth_mode !== "chatgpt") return { valid: false, email: null };
+    // Codex CLI no longer writes auth_mode — accept both with and without it.
+    // Only reject when auth_mode is explicitly set to something other than "chatgpt".
+    if (
+      !doc ||
+      (doc.auth_mode !== undefined &&
+        doc.auth_mode !== null &&
+        doc.auth_mode !== "chatgpt")
+    )
+      return { valid: false, email: null };
     const tokens =
       doc.tokens && typeof doc.tokens === "object" ? (doc.tokens as Record<string, unknown>) : null;
     if (!tokens?.id_token || typeof tokens.id_token !== "string")

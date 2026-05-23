@@ -75,7 +75,7 @@ export function createResponsesLogger(model, logsDir = null) {
  * @param {Object} logger - Optional logger instance
  * @returns {TransformStream}
  */
-export function createResponsesApiTransformStream(logger = null) {
+export function createResponsesApiTransformStream(logger = null, keepaliveIntervalMs = 3000) {
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -99,6 +99,7 @@ export function createResponsesApiTransformStream(logger = null) {
     buffer: "",
     completedSent: false,
     usage: null,
+    keepaliveTimer: null,
   };
 
   const encoder = new TextEncoder();
@@ -321,6 +322,12 @@ export function createResponsesApiTransformStream(logger = null) {
   };
 
   return new TransformStream({
+    start(controller) {
+      // Periodic keepalive heartbeat to prevent client timeouts (Codex CLI #2544)
+      state.keepaliveTimer = setInterval(() => {
+        controller.enqueue(encoder.encode(": keepalive\n\n"));
+      }, keepaliveIntervalMs);
+    },
     transform(chunk, controller) {
       const text = new TextDecoder().decode(chunk);
       logger?.logInput(text.trim());
@@ -539,6 +546,11 @@ export function createResponsesApiTransformStream(logger = null) {
     },
 
     flush(controller) {
+      // Clear keepalive timer
+      if (state.keepaliveTimer) {
+        clearInterval(state.keepaliveTimer);
+        state.keepaliveTimer = null;
+      }
       for (const i in state.msgItemAdded) closeMessage(controller, i);
       closeReasoning(controller);
       for (const i in state.funcCallIds) closeToolCall(controller, i);

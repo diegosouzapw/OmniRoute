@@ -33,7 +33,7 @@ jobs:
         node: ["20", "22", "24"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -47,14 +47,14 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: "@omniroute/opencode-provider/package-lock.json"
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: opencode-provider-dist
           path: "@omniroute/opencode-provider/dist"

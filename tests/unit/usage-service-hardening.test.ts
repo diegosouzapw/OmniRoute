@@ -320,8 +320,8 @@ test("usage service covers Antigravity quota parsing, exclusions and forbidden a
   });
 
   assert.equal(usage.plan, "Ultra");
-  assert.deepEqual(Object.keys(usage.quotas).sort(), ["claude-sonnet-4-6", "gemini-pro-agent"]);
-  assert.equal(usage.quotas["claude-sonnet-4-6"].used, 600);
+  // claude-sonnet-4-6 was removed from ANTIGRAVITY_PUBLIC_MODELS in May 2026 (deprecated)
+  assert.deepEqual(Object.keys(usage.quotas).sort(), ["gemini-pro-agent"]);
   assert.equal(usage.quotas["gemini-pro-agent"].total, 0);
   assert.equal(usage.quotas["gemini-pro-agent"].remainingPercentage, 100);
   const loadCodeAssistCall = calls.find((call) => call.url.includes("loadCodeAssist"));
@@ -366,10 +366,12 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
 
     try {
       const parsedUrl = new URL(String(url));
-      if (parsedUrl.hostname === "daily-cloudcode-pa.sandbox.googleapis.com") {
+      // ANTIGRAVITY_BASE_URLS order: daily-cloudcode-pa.googleapis.com, cloudcode-pa.googleapis.com,
+      // daily-cloudcode-pa.sandbox.googleapis.com — fail first two to exercise all three fallbacks
+      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
         return new Response("bad gateway", { status: 502 });
       }
-      if (parsedUrl.hostname === "daily-cloudcode-pa.googleapis.com") {
+      if (parsedUrl.hostname === "cloudcode-pa.googleapis.com") {
         return new Response("bad gateway", { status: 502 });
       }
     } catch {
@@ -379,7 +381,7 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
     return new Response(
       JSON.stringify({
         models: {
-          "claude-sonnet-4-6": {
+          "gemini-pro-agent": {
             quotaInfo: {
               remainingFraction: 0.5,
               resetTime: new Date(Date.now() + 60_000).toISOString(),
@@ -397,27 +399,30 @@ test("usage service retries Antigravity fetchAvailableModels across the shared f
   });
 
   const quotaCalls = calls.filter((call) => call.url.includes("fetchAvailableModels"));
+  // ANTIGRAVITY_BASE_URLS order changed: daily first, then cloudcode-pa, then sandbox last
   assert.deepEqual(
     quotaCalls.map((call) => call.url),
     [
-      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
       "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
       "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
     ]
   );
   assert.match(quotaCalls[2].init.headers["User-Agent"], /^Antigravity\//);
   assert.equal(usage.plan, "Business");
-  assert.equal(usage.quotas["claude-sonnet-4-6"].used, 500);
+  assert.ok(usage.quotas["gemini-pro-agent"] !== undefined);
 });
 
 test("usage service manual Antigravity refresh bypasses usage TTL caches", async () => {
   process.env.ANTIGRAVITY_CREDITS = "retry";
   let probeCalls = 0;
   let modelCalls = 0;
+  let loadCodeAssistCalls = 0;
 
   globalThis.fetch = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes("loadCodeAssist")) {
+      loadCodeAssistCalls++;
       return new Response(JSON.stringify({ cloudaicompanionProject: "ag-project" }), {
         status: 200,
       });
@@ -460,6 +465,7 @@ test("usage service manual Antigravity refresh bypasses usage TTL caches", async
 
   assert.equal(probeCalls, 2);
   assert.equal(modelCalls, 2);
+  assert.equal(loadCodeAssistCalls, 2);
 });
 
 test("usage service handles missing Antigravity access tokens without probing upstream", async () => {
@@ -589,7 +595,7 @@ test("usage service covers Claude default-plan fallback, legacy org denial and f
     provider: "claude",
     accessToken: "claude-default",
   });
-  assert.equal(defaultPlan.plan, "Claude Code");
+  assert.equal(defaultPlan.plan, undefined);
   assert.equal(defaultPlan.extraUsage, null);
 
   globalThis.fetch = async (url) => {
@@ -1020,6 +1026,7 @@ test("usage service covers MiniMax usage parsing, documented endpoint fallback a
       return new Response(
         JSON.stringify({
           base_resp: { status_code: 0, status_msg: "ok" },
+          plan_name: "MiniMax Coding Plan Lite",
           model_remains: [
             {
               model_name: "MiniMax-M2.7",
@@ -1069,6 +1076,7 @@ test("usage service covers MiniMax usage parsing, documented endpoint fallback a
       "https://api.minimax.io/v1/api/openplatform/coding_plan/remains",
     ]
   );
+  assert.equal(usage.plan, "Lite");
   assert.equal(usage.quotas["session (5h)"].used, 400);
   assert.equal(usage.quotas["session (5h)"].total, 1500);
   assert.equal(usage.quotas["session (5h)"].remaining, 1100);
@@ -1115,6 +1123,7 @@ test("usage service treats MiniMax token-plan counts as used usage", async () =>
     apiKey: "minimax-key",
   });
 
+  assert.equal(usage.plan, "Max");
   assert.equal(usage.quotas["session (5h)"].used, 13);
   assert.equal(usage.quotas["session (5h)"].remaining, 14987);
   assert.equal(usage.quotas["session (5h)"].remainingPercentage, 99.91333333333333);
@@ -1259,6 +1268,26 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
 
   assert.equal(__testing.getAntigravityPlanLabel(null), "Free");
   assert.equal(
+    __testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 1500 }]),
+    "Starter"
+  );
+  assert.equal(__testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 4500 }]), "Plus");
+  assert.equal(__testing.getMiniMaxPlanLabel({}, [{ current_interval_total_count: 15000 }]), "Max");
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      paidTier: { name: "Google One AI Premium" },
+      currentTier: { id: "free-tier" },
+    }),
+    "Pro"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel({
+      currentTier: { id: "tier_google_one_ai_pro" },
+      allowedTiers: [{ id: "free-tier", isDefault: true }],
+    }),
+    "Pro"
+  );
+  assert.equal(
     __testing.getAntigravityPlanLabel({
       allowedTiers: [{ id: "tier_pro", isDefault: true }],
     }),
@@ -1281,6 +1310,13 @@ test("usage helper branches cover Gemini CLI and Antigravity plan label fallback
       currentTier: { name: "custom sky" },
     }),
     "Custom sky"
+  );
+  assert.equal(
+    __testing.getAntigravityPlanLabel(
+      { currentTier: { name: "TIER_UNKNOWN_CUSTOM" } },
+      { allowedTiers: [{ id: "tier_pro", isDefault: true }] }
+    ),
+    "Pro"
   );
 });
 

@@ -3,7 +3,7 @@
 ## Project
 
 Unified AI proxy/router — route any LLM through one endpoint. Multi-provider support
-with **160+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
+with **212 providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
 with **MCP Server** (37 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
@@ -504,6 +504,24 @@ For any non-trivial change, read the matching deep-dive first:
 | Tunnels                              | [`docs/ops/TUNNELS_GUIDE.md`](docs/ops/TUNNELS_GUIDE.md)                                                                            |
 | Electron desktop                     | [`docs/guides/ELECTRON_GUIDE.md`](docs/guides/ELECTRON_GUIDE.md)                                                                    |
 | Release flow                         | [`docs/ops/RELEASE_CHECKLIST.md`](docs/ops/RELEASE_CHECKLIST.md)                                                                    |
+
+---
+
+## Fork / Upstream Workflow
+
+This repository is a fork of `diegosouzapw/OmniRoute`. Keep fork-only operational
+changes (for example GHCR image publishing, personal deployment workflows, or local
+automation) out of upstream contribution PRs.
+
+When preparing a PR for upstream, always start the work branch from `upstream/main`,
+not from this fork's `main`:
+
+```bash
+git fetch upstream
+git switch -c <branch-name> upstream/main
+```
+
+Only cherry-pick or reapply the changes intended for the upstream PR.
 
 ---
 

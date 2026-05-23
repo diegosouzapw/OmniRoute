@@ -101,6 +101,8 @@ export interface RegistryEntry {
   oauth?: RegistryOAuth;
   models: RegistryModel[];
   modelsUrl?: string;
+  /** Prefix to prepend to model IDs before upstream API calls (e.g. "accounts/fireworks/models/") */
+  modelIdPrefix?: string;
   chatPath?: string;
   clientVersion?: string;
   timeoutMs?: number;
@@ -144,7 +146,13 @@ const KIMI_CODING_SHARED = {
     "Anthropic-Version": ANTHROPIC_VERSION_HEADER,
   },
   models: [
-    { id: "kimi-k2.6", name: "Kimi K2.6", contextLength: 262144, maxOutputTokens: 262144 },
+    {
+      id: "kimi-k2.6",
+      name: "Kimi K2.6",
+      contextLength: 262144,
+      maxOutputTokens: 262144,
+      supportsVision: true,
+    },
     {
       id: "kimi-k2.6-thinking",
       name: "Kimi K2.6 Thinking",
@@ -889,21 +897,18 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       {
         id: "claude-haiku-4.5",
         name: "Claude Haiku 4.5",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
       {
         id: "claude-sonnet-4.5",
         name: "Claude Sonnet 4.5",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
       {
         id: "claude-sonnet-4.6",
         name: "Claude Sonnet 4.6",
-        targetFormat: "openai-responses",
         contextLength: 200000,
         maxOutputTokens: 64000,
       },
@@ -1153,6 +1158,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", contextLength: 400000 },
       { id: "gpt-4.1", name: "GPT-4.1", contextLength: 1047576 },
       { id: "gpt-4o-2024-11-20", name: "GPT-4o (Nov 2024)", contextLength: 128000 },
+      { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
+      { id: "gpt-4o-mini", name: "GPT-4o Mini", contextLength: 128000 },
       { id: "o3", name: "O3", contextLength: 200000, unsupportedParams: REASONING_UNSUPPORTED },
     ],
   },
@@ -1244,23 +1251,71 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     authHeader: "Authorization",
     authPrefix: "Bearer",
     defaultContextLength: 200000,
+    // Sync with https://opencode.ai/zen/v1/models — this list is regenerated
+    // from the live API response so new models work without a code deploy.
+    passthroughModels: true,
     models: [
+      // ── Chat / Coding ──────────────────────────────────────────
       { id: "big-pickle", name: "Big Pickle" },
       { id: "gpt-5-nano", name: "GPT 5 Nano", contextLength: 400000 },
+      { id: "gpt-5", name: "GPT 5" },
+      { id: "gpt-5-codex", name: "GPT 5 Codex" },
+      { id: "gpt-5.1", name: "GPT 5.1" },
+      { id: "gpt-5.1-codex", name: "GPT 5.1 Codex" },
+      { id: "gpt-5.1-codex-max", name: "GPT 5.1 Codex Max" },
+      { id: "gpt-5.1-codex-mini", name: "GPT 5.1 Codex Mini" },
+      { id: "gpt-5.2", name: "GPT 5.2" },
+      { id: "gpt-5.2-codex", name: "GPT 5.2 Codex" },
+      { id: "gpt-5.3-codex", name: "GPT 5.3 Codex" },
+      { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
+      { id: "gpt-5.4", name: "GPT 5.4" },
+      { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
+      { id: "gpt-5.4-nano", name: "GPT 5.4 Nano" },
+      { id: "gpt-5.4-pro", name: "GPT 5.4 Pro" },
+      { id: "gpt-5.5", name: "GPT 5.5" },
+      { id: "gpt-5.5-pro", name: "GPT 5.5 Pro" },
+
+      // ── Claude ─────────────────────────────────────────────────
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5" },
+      { id: "claude-sonnet-4", name: "Claude Sonnet 4" },
+      { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+      { id: "claude-opus-4-1", name: "Claude Opus 4.1" },
+      { id: "claude-opus-4-5", name: "Claude Opus 4.5" },
+      { id: "claude-opus-4-6", name: "Claude Opus 4.6" },
+      { id: "claude-opus-4-7", name: "Claude Opus 4.7" },
+
+      // ── Gemini ─────────────────────────────────────────────────
+      { id: "gemini-3-flash", name: "Gemini 3 Flash" },
+      { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro" },
+      { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
+
+      // ── Grok ───────────────────────────────────────────────────
+      { id: "grok-build-0.1", name: "Grok Build 0.1" },
+
+      // ── GLM / Z.AI ─────────────────────────────────────────────
+      { id: "glm-5", name: "GLM-5" },
+      { id: "glm-5.1", name: "GLM-5.1" },
+
+      // ── MiniMax ────────────────────────────────────────────────
+      { id: "minimax-m2.5", name: "MiniMax M2.5" },
+      { id: "minimax-m2.7", name: "MiniMax M2.7" },
+
+      // ── Kimi / Moonshot ────────────────────────────────────────
+      { id: "kimi-k2.5", name: "Kimi K2.5" },
+      { id: "kimi-k2.6", name: "Kimi K2.6" },
+
+      // ── Qwen ───────────────────────────────────────────────────
+      // Issue #2292: Qwen models return Claude-format SSE bodies even
+      // when hitting /chat/completions. targetFormat: "claude" routes
+      // through /messages and the Claude translator.
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus", targetFormat: "claude" },
+      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude" },
+
+      // ── Free Tier ──────────────────────────────────────────────
+      { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
       { id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", contextLength: 204800 },
-      { id: "ling-2.6-1t-free", name: "Ling 2.6 Free", contextLength: 262000 },
-      {
-        id: "trinity-large-preview-free",
-        name: "Trinity Large Preview Free",
-        contextLength: 131000,
-      },
       { id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", contextLength: 1000000 },
-      // Issue #2292: opencode-zen returns Claude-format SSE bodies for these
-      // Qwen3.6 models even when the request hits the OpenAI-compatible
-      // /chat/completions endpoint. Flagging targetFormat: "claude" routes
-      // the request to /messages and parses the response with the Claude
-      // translator, fixing "expected choices (array), received undefined".
-      { id: "qwen3.6-plus", name: "Qwen3.6 Plus", targetFormat: "claude", contextLength: 200000 },
       {
         id: "qwen3.6-plus-free",
         name: "Qwen3.6 Plus Free",
@@ -1459,6 +1514,62 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       "X-Title": "Endpoint Proxy",
     },
     models: [{ id: "auto", name: "Auto (Best Available)" }],
+  },
+
+  "api-airforce": {
+    id: "api-airforce",
+    alias: "af",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.airforce/v1/chat/completions",
+    modelsUrl: "https://api.airforce/v1/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    defaultContextLength: 128000,
+    headers: {
+      "HTTP-Referer": "https://endpoint-proxy.local",
+      "X-Title": "Endpoint Proxy",
+    },
+    models: [
+      // Free tier models (55 available)
+      { id: "x-ai/grok-3", name: "Grok-3 (Free)", contextLength: 131072, maxOutputTokens: 65536 },
+      {
+        id: "x-ai/grok-2-1212",
+        name: "Grok-2 1212 (Free)",
+        contextLength: 131072,
+        maxOutputTokens: 65536,
+      },
+      {
+        id: "anthropic/claude-3.7-sonnet",
+        name: "Claude 3.7 Sonnet (Free)",
+        contextLength: 200000,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: "qwen/qwen3-32b",
+        name: "Qwen3 32B (Free)",
+        contextLength: 128000,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: "moonshot/kimi-k2.6",
+        name: "Kimi K2.6 (Free)",
+        contextLength: 262144,
+        maxOutputTokens: 65536,
+      },
+      {
+        id: "google/gemini-2.5-flash",
+        name: "Gemini 2.5 Flash (Free)",
+        contextLength: 1048576,
+        maxOutputTokens: 65536,
+      },
+      {
+        id: "deepseek/deepseek-v3",
+        name: "DeepSeek V3 (Free)",
+        contextLength: 262144,
+        maxOutputTokens: 16384,
+      },
+    ],
   },
 
   qianfan: {
@@ -2024,6 +2135,293 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
+  novita: {
+    id: "novita",
+    alias: "novita",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.novita.ai/v3/chat/completions",
+    modelsUrl: "https://api.novita.ai/v3/models",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "ai-ai/llama-3.1-8b-instruct", name: "Llama 3.1 8B" }],
+  },
+
+  baidu: {
+    id: "baidu",
+    alias: "baidu",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://qianfan.baidubce.com/v2/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "ernie-4.0-8k", name: "ERNIE 4.0 8K" }],
+  },
+
+  baichuan: {
+    id: "baichuan",
+    alias: "baichuan",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.baichuan-ai.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "Baichuan4", name: "Baichuan 4" }],
+  },
+
+  coze: {
+    id: "coze",
+    alias: "coze",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.coze.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "claude-3-7-sonnet-20250514", name: "Claude 3.7 Sonnet" }],
+  },
+
+  dify: {
+    id: "dify",
+    alias: "dify",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.dify.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "auto", name: "Auto" }],
+  },
+
+  lepton: {
+    id: "lepton",
+    alias: "lepton",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.lepton.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "llama-3.1-8b", name: "Llama 3.1 8B" }],
+  },
+
+  kluster: {
+    id: "kluster",
+    alias: "kluster",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.kluster.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "auto", name: "Auto" }],
+  },
+
+  krutrim: {
+    id: "krutrim",
+    alias: "krutrim",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.krutrim.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "krutrim-2-7b-instruct", name: "Krutrim 2 7B" }],
+  },
+
+  liquid: {
+    id: "liquid",
+    alias: "liquid",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.liquid.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "liquid-lfm-40b", name: "Liquid LFM 40B" }],
+  },
+
+  nomic: {
+    id: "nomic",
+    alias: "nomic",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.nomic.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "nomic-embed-text-v1.5", name: "Nomic Embed Text" }],
+  },
+
+  monsterapi: {
+    id: "monsterapi",
+    alias: "monster",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.monsterapi.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "llama-3-8b-fuse", name: "Llama 3 8B Fuse" }],
+  },
+
+  nlpcloud: {
+    id: "nlpcloud",
+    alias: "nlpc",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.nlpcloud.io/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "llama-3-8b-instruct", name: "Llama 3 8B" }],
+  },
+
+  phind: {
+    id: "phind",
+    alias: "phind",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.phind.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "Phind-70B", name: "Phind 70B" }],
+  },
+
+  poolside: {
+    id: "poolside",
+    alias: "poolside",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.poolside.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "poolside-model", name: "Poolside Model" }],
+  },
+
+  chutes: {
+    id: "chutes",
+    alias: "chutes",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.chutesai.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "Qwen2.5-72B-Instruct", name: "Qwen2.5 72B" }],
+  },
+
+  glhf: {
+    id: "glhf",
+    alias: "glhf",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.laf.run/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "deepseek-7b-chat", name: "DeepSeek 7B Chat" }],
+  },
+
+  huggingchat: {
+    id: "huggingchat",
+    alias: "huggingchat",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://huggingface.co/api/chat",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "meta-llama/llama-3-70b-instruct", name: "Llama 3 70B" }],
+  },
+
+  iflytek: {
+    id: "iflytek",
+    alias: "iflytek",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://spark-api.xf-yun.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "generalv3.5", name: "General V3.5" }],
+  },
+
+  inclusionai: {
+    id: "inclusionai",
+    alias: "inclusionai",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.inclusionai.tech/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "inclusion-model", name: "Inclusion Model" }],
+  },
+
+  sensenova: {
+    id: "sensenova",
+    alias: "sensenova",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.sensenova.cn/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "sensechat", name: "SenseChat" }],
+  },
+
+  sparkdesk: {
+    id: "sparkdesk",
+    alias: "sparkdesk",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://spark-api.xf-yun.com/v3.1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "general", name: "General" }],
+  },
+
+  stepfun: {
+    id: "stepfun",
+    alias: "stepfun",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.stepfun.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "step-1v", name: "Step 1V" }],
+  },
+
+  tencent: {
+    id: "tencent",
+    alias: "tencent",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.hunyuan.cloud.tencent.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "hunyuan-pro", name: "Hunyuan Pro" }],
+  },
+
+  doubao: {
+    id: "doubao",
+    alias: "doubao",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "doubao-pro-32k", name: "Doubao Pro 32K" }],
+  },
+
+  yi: {
+    id: "yi",
+    alias: "yi",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.lingyiwanwu.com/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "yi-large", name: "Yi Large" }],
+  },
+
+  modal: {
+    id: "modal",
+    alias: "modal",
+    format: "openai",
+    executor: "default",
+    baseUrl: "https://api.modal.ai/v1/chat/completions",
+    authType: "apikey",
+    authHeader: "bearer",
+    models: [{ id: "google/gemini-2.0-flash", name: "Gemini 2.0 Flash" }],
+  },
+
   blackbox: {
     id: "blackbox",
     alias: "bb",
@@ -2125,7 +2523,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     alias: "fta",
     format: "openai",
     executor: "default",
-    baseUrl: "https://api.freetheai.xyz/v1",
+    baseUrl: "https://api.freetheai.xyz/v1/chat/completions",
     authType: "apikey",
     authHeader: "bearer",
     models: [
@@ -2396,18 +2794,30 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     format: "openai",
     executor: "default",
     baseUrl: "https://api.fireworks.ai/inference/v1/chat/completions",
+    modelsUrl:
+      "https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless=true",
+    modelIdPrefix: "accounts/fireworks/models/",
     authType: "apikey",
     authHeader: "bearer",
     models: [
-      { id: "accounts/fireworks/models/kimi-k2p6", name: "Kimi K2.6" },
-      { id: "accounts/fireworks/models/minimax-m2p7", name: "MiniMax M2.7" },
-      { id: "accounts/fireworks/models/qwen3p6-plus", name: "Qwen3.6 Plus" },
-      { id: "accounts/fireworks/models/glm-5p1", name: "GLM 5.1" },
       {
-        id: "accounts/fireworks/models/deepseek-v4-pro",
+        id: "deepseek-v4-flash",
+        name: "DeepSeek V4 Flash",
+        supportsReasoning: true,
+      },
+      {
+        id: "deepseek-v4-pro",
         name: "DeepSeek V4 Pro",
         supportsReasoning: true,
       },
+      { id: "glm-5p1", name: "GLM 5.1" },
+      { id: "gpt-oss-120b", name: "OpenAI gpt-oss-120b" },
+      { id: "gpt-oss-20b", name: "OpenAI gpt-oss-20b" },
+      { id: "kimi-k2p5", name: "Kimi K2.5" },
+      { id: "kimi-k2p6", name: "Kimi K2.6" },
+      { id: "minimax-m2p5", name: "MiniMax M2.5" },
+      { id: "minimax-m2p7", name: "MiniMax M2.7" },
+      { id: "qwen3p6-plus", name: "Qwen3.6 Plus" },
     ],
   },
 

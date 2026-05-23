@@ -126,8 +126,8 @@ const VISION_MODEL_KEYWORDS = [
   "glm-4.5v",
   "vision",
   "multimodal",
+  "kimi",
 ];
-
 function isVisionModelId(modelId: string): boolean {
   const normalized = String(modelId || "").toLowerCase();
   if (!normalized) return false;
@@ -581,6 +581,7 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
+      if (typeof combo.name !== "string" || combo.name.length === 0) continue;
       const comboMetadata = buildComboCatalogMetadata(combo, combos);
 
       models.push({
@@ -699,7 +700,15 @@ export async function getUnifiedModelsResponse(
           if (!providerSupportsModel(canonicalProviderId, sm.id)) continue;
           if (getModelIsHidden(providerId, sm.id)) continue;
 
-          const aliasId = `${alias}/${sm.id}`;
+          // Strip modelIdPrefix (e.g. "accounts/fireworks/models/") from display ID
+          // so synced model IDs match the short IDs from static registry.
+          const registryEntry = REGISTRY[providerId];
+          const displayModelId =
+            registryEntry?.modelIdPrefix && sm.id.startsWith(registryEntry.modelIdPrefix)
+              ? sm.id.slice(registryEntry.modelIdPrefix.length)
+              : sm.id;
+
+          const aliasId = `${alias}/${displayModelId}`;
           const endpoints = Array.isArray(sm.supportedEndpoints) ? sm.supportedEndpoints : ["chat"];
           const apiFormat = typeof sm.apiFormat === "string" ? sm.apiFormat : "chat-completions";
           let modelType: string | undefined;
@@ -753,7 +762,7 @@ export async function getUnifiedModelsResponse(
           }
 
           if (canonicalProviderId !== alias && !prefix) {
-            const providerPrefixedId = `${canonicalProviderId}/${sm.id}`;
+            const providerPrefixedId = `${canonicalProviderId}/${displayModelId}`;
             if (!models.some((model) => model.id === providerPrefixedId)) {
               models.push({
                 id: providerPrefixedId,

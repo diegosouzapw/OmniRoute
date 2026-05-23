@@ -17,7 +17,7 @@ function getPublicModel(id: string) {
 
 test("resolveAntigravityModelId maps the documented Antigravity aliases to upstream IDs", () => {
   assert.equal(resolveAntigravityModelId("gemini-3-pro-preview"), "gemini-3.1-pro-high");
-  assert.equal(resolveAntigravityModelId("gemini-3.5-flash-preview"), "gemini-3-flash-agent");
+  assert.equal(resolveAntigravityModelId("gemini-3.5-flash-preview"), "gemini-3.5-flash-high");
   assert.equal(resolveAntigravityModelId("gemini-3-flash-preview"), "gemini-3-flash");
   assert.equal(resolveAntigravityModelId("gemini-3-pro-image-preview"), "gemini-3-pro-image");
   assert.equal(
@@ -54,21 +54,17 @@ test("isUserCallableAntigravityModelId only allows public chat-capable model IDs
   assert.equal(isUserCallableAntigravityModelId("gemini-2.5-flash-lite"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-2.5-flash-thinking"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-pro-agent"), true);
-  assert.equal(isUserCallableAntigravityModelId("claude-sonnet-4-6"), true);
+  // Claude was removed from Antigravity 2.0's public catalog (May 2026); the alias is
+  // kept for back-compat but the model is no longer user-callable.
+  assert.equal(isUserCallableAntigravityModelId("claude-sonnet-4-6"), false);
   assert.equal(isUserCallableAntigravityModelId("tab_flash_lite_preview"), false);
   assert.equal(isUserCallableAntigravityModelId("unknown-model"), false);
 });
 
 test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and capabilities", () => {
-  assert.deepEqual(getPublicModel("claude-opus-4-6-thinking"), {
-    id: "claude-opus-4-6-thinking",
-    name: "Claude Opus 4.6 (Thinking)",
-    contextLength: 250000,
-    maxOutputTokens: 64000,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  });
+  // Claude models were removed from Antigravity 2.0's public catalog (May 2026), so they
+  // are no longer exposed as public models (the back-compat alias still resolves upstream).
+  assert.equal(getPublicModel("claude-opus-4-6-thinking"), undefined);
   assert.deepEqual(getPublicModel("gemini-3.5-flash-preview"), {
     id: "gemini-3.5-flash-preview",
     name: "Gemini 3.5 Flash (High)",
@@ -106,6 +102,26 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
   );
 });
 
+test("ANTIGRAVITY_PUBLIC_MODELS has no duplicate model IDs", () => {
+  const ids = ANTIGRAVITY_PUBLIC_MODELS.map((model) => model.id);
+  const seen = new Set<string>();
+  const duplicates = ids.filter((id) => {
+    if (seen.has(id)) return true;
+    seen.add(id);
+    return false;
+  });
+  assert.deepEqual(duplicates, [], `duplicate model IDs found: ${duplicates.join(", ")}`);
+});
+
+test("gemini-3-flash-agent keeps its Agent display name (not the Flash High duplicate)", () => {
+  // A duplicate entry previously overwrote this name with "Gemini 3.5 Flash (High)"
+  // because the id-keyed name map kept the last occurrence.
+  assert.equal(
+    getClientVisibleAntigravityModelName("gemini-3-flash-agent"),
+    "Gemini 3.5 Flash Agent"
+  );
+});
+
 test("AntigravityExecutor.transformRequest resolves alias models before dispatching upstream", async () => {
   const executor = new AntigravityExecutor();
   const result = await executor.transformRequest(
@@ -137,7 +153,7 @@ test("AntigravityExecutor.transformRequest resolves Gemini 3.5 Flash alias upstr
   );
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
-  assert.equal(result.model, "gemini-3-flash-agent");
+  assert.equal(result.model, "gemini-3.5-flash-high");
 });
 
 test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatible Cloud Code schema", async () => {

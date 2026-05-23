@@ -329,6 +329,19 @@ export const CLI_TOOLS = {
 }`,
     },
   },
+
+  // Rich, first-class support for the real advanced Hermes Agent (Nous Research)
+  // Separate from the original simple "Hermes" guide above.
+  "hermes-agent": {
+    id: "hermes-agent",
+    name: "Hermes Agent",
+    icon: "terminal",
+    color: "#8B5CF6",
+    description: "Hermes Agent (by Nousresearch) — advanced multi-role terminal AI",
+    docsUrl: "/docs?section=cli-tools&tool=hermes-agent",
+    configType: "custom",
+    defaultCommand: "hermes",
+  },
   amp: {
     id: "amp",
     name: "Amp CLI",

@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-// Import the constants directly
-const { APIKEY_PROVIDERS, OAUTH_PROVIDERS } =
-  await import("../../src/shared/constants/providers.ts");
-
-// Import validateProviderApiKey for Scenario C tests
-const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
+// Regular ESM imports — top-level await with dynamic import() races with
+// --test-force-exit and emits "Promise resolution is still pending" failures
+// in CI even though the module evaluation is well-formed.
+import { APIKEY_PROVIDERS, OAUTH_PROVIDERS } from "../../src/shared/constants/providers.ts";
+import { validateProviderApiKey } from "../../src/lib/providers/validation.ts";
+import {
+  validateBody,
+  createProviderSchema,
+  updateProviderConnectionSchema,
+} from "../../src/shared/validation/schemas.ts";
 
 test("APIKEY_PROVIDERS includes bailian-coding-plan", () => {
   assert.ok(
@@ -29,9 +33,6 @@ test("bailian-coding-plan not in OAUTH_PROVIDERS", () => {
 });
 
 // Schema validation tests for providerSpecificData.baseUrl
-const { validateBody, createProviderSchema, updateProviderConnectionSchema } =
-  await import("../../src/shared/validation/schemas.ts");
-
 const VALID_BAILIAN_URL = "https://coding-intl.dashscope.aliyuncs.com/apps/anthropic/v1";
 
 test("createProviderSchema accepts valid baseUrl in providerSpecificData", () => {

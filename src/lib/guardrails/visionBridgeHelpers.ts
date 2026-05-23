@@ -2,6 +2,7 @@
  * Vision Bridge helper functions for image processing.
  */
 import { fetchRemoteImage } from "@/shared/network/remoteImageFetch";
+import { getRuntimePorts } from "@/lib/runtime/ports";
 
 /**
  * Provider to environment variable mapping for API key resolution.
@@ -53,14 +54,34 @@ export function resolveProviderApiKey(model: string, explicitKey?: string): stri
  *      registered in OmniRoute (`google/gemini-2.0-flash`,
  *      `openrouter/...`, etc.) instead of being limited to OpenAI/Anthropic.
  *   2. `OPENAI_API_URL` env var (legacy)
- *   3. `https://api.openai.com/v1` (default — works only when the operator
- *      actually has an OpenAI account and OPENAI_API_KEY set)
+ *   3. OmniRoute self-loop (`http://localhost:20128/v1`) — auto-detected when
+ *      the model uses a known OmniRoute-internal provider (e.g. `kr/`, `if/`,
+ *      `pol/`, `groq/`, etc.) instead of a direct OpenAI/Anthropic endpoint.
+ *   4. `https://api.openai.com/v1` (fallback when the model is `openai/*` or
+ *      unprefixed — works only when the operator actually has an OpenAI
+ *      account and OPENAI_API_KEY set)
+ *
+ * @param model - Optional model identifier used to detect non-standard providers
+ *                that require OmniRoute self-loop routing.
  */
-export function resolveVisionBridgeBaseUrl(): string {
+export function resolveVisionBridgeBaseUrl(model?: string): string {
   const explicit = (process.env.VISION_BRIDGE_BASE_URL || "").trim();
   if (explicit) return explicit.replace(/\/+$/, "");
   const legacy = (process.env.OPENAI_API_URL || "").trim();
   if (legacy) return legacy.replace(/\/+$/, "");
+
+  // When the model has a non-standard provider prefix (not openai/ or
+  // anthropic/), it can only be resolved through OmniRoute's own router,
+  // not through a direct OpenAI/Anthropic endpoint. Use the operator-configured
+  // port via OMNIROUTE_PORT / PORT env vars, falling back to the default 20128.
+  if (model && model.includes("/")) {
+    const provider = model.split("/")[0].toLowerCase();
+    if (provider !== "openai" && provider !== "anthropic") {
+      const { port } = getRuntimePorts();
+      return `http://localhost:${port}/v1`;
+    }
+  }
+
   return "https://api.openai.com/v1";
 }
 
@@ -260,17 +281,36 @@ export async function callVisionModel(
       // VISION_BRIDGE_BASE_URL so the vision-bridge call can be routed through
       // OmniRoute itself or any other OpenAI-compatible endpoint instead of
       // hardcoded api.openai.com.
-      const baseUrl = resolveVisionBridgeBaseUrl();
+      const baseUrl = resolveVisionBridgeBaseUrl(config.model);
+
+      // When routing through the OmniRoute self-loop (non-standard provider),
+      // keep the full provider-prefixed model ID so OmniRoute can resolve the
+      // correct provider backend. Only strip the prefix for direct OpenAI calls.
+      const useFullModelId =
+        baseUrl.startsWith("http://localhost") &&
+        config.model.includes("/") &&
+        !config.model.startsWith("openai/");
+      const requestModel = useFullModelId ? config.model : modelName;
+
+      // Build headers with optional recursion guard for self-loop calls.
+      // When routing through OmniRoute's own API, omit the vision-bridge
+      // guardrail on the sub-request to prevent infinite recursion.
+      // Use sk_omniroute as fallback for self-loop if no API key is resolved.
+      const selfLoopApiKey = resolvedApiKey || "sk_omniroute";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${selfLoopApiKey}`,
+      };
+      if (useFullModelId) {
+        headers["x-omniroute-disabled-guardrails"] = "vision-bridge";
+      }
 
       response = await fetch(`${baseUrl}/chat/completions`, {
         method: "POST",
         signal: controller.signal,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resolvedApiKey}`,
-        },
+        headers,
         body: JSON.stringify({
-          model: modelName,
+          model: requestModel,
           messages: [
             {
               role: "user",

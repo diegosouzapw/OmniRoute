@@ -14,11 +14,17 @@ export type RuntimeReloadSection =
   | "modelsDevSync"
   | "corsOrigins"
   | "ccBridgeTransforms"
-  | "systemTransforms";
+  | "systemTransforms"
+  | "authzBypass";
 
 export interface RuntimeReloadChange {
   section: RuntimeReloadSection;
   source: string;
+}
+
+interface AuthzBypassSnapshot {
+  enabled: boolean;
+  prefixes: string[];
 }
 
 interface RuntimeSettingsSnapshot {
@@ -35,7 +41,16 @@ interface RuntimeSettingsSnapshot {
   corsOrigins: string;
   ccBridgeTransforms: unknown;
   systemTransforms: unknown;
+  authzBypass: AuthzBypassSnapshot;
 }
+
+// Default bypass policy: kill-switch on, `/api/mcp/` bypassable. Mirrors the
+// pre-T-011 compile-time constant so the route guard works identically before
+// the first `applyRuntimeSettings` call (e.g. cold-boot requests).
+const DEFAULT_AUTHZ_BYPASS_SNAPSHOT: AuthzBypassSnapshot = {
+  enabled: true,
+  prefixes: ["/api/mcp/"],
+};
 
 const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   payloadRules: null,
@@ -51,9 +66,16 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
   corsOrigins: "",
   ccBridgeTransforms: null,
   systemTransforms: null,
+  authzBypass: DEFAULT_AUTHZ_BYPASS_SNAPSHOT,
 };
 
 let lastAppliedSnapshot: RuntimeSettingsSnapshot | null = null;
+
+// Module-local mirror of the current bypass policy. Read by the route guard
+// on every non-loopback hit to a LOCAL_ONLY path via `getAuthzBypassSnapshot`.
+// Initialised to the default so cold-boot requests (before any
+// `applyRuntimeSettings` call) behave identically to PR #2473.
+let currentAuthzBypass: AuthzBypassSnapshot = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
 
 function isTruthyEnvFlag(value: string | undefined): boolean {
   if (typeof value !== "string") return false;
@@ -165,6 +187,41 @@ function normalizePayloadRules(value: unknown): unknown {
   return parseStoredJson(value, "payloadRules");
 }
 
+function normalizeAuthzBypass(settings: Record<string, unknown>): AuthzBypassSnapshot {
+  const enabled =
+    settings.localOnlyManageScopeBypassEnabled === false
+      ? false
+      : settings.localOnlyManageScopeBypassEnabled === true
+        ? true
+        : DEFAULT_AUTHZ_BYPASS_SNAPSHOT.enabled;
+  const rawPrefixes = settings.localOnlyManageScopeBypassPrefixes;
+  const prefixes = Array.isArray(rawPrefixes)
+    ? Array.from(
+        new Set(
+          rawPrefixes
+            .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+            .filter((entry) => entry.length > 0 && entry.startsWith("/"))
+        )
+      )
+    : [...DEFAULT_AUTHZ_BYPASS_SNAPSHOT.prefixes];
+  return { enabled, prefixes };
+}
+
+/**
+ * O(1) accessor for the current LOCAL_ONLY manage-scope bypass policy.
+ *
+ * Consumed by the route-guard hot path (`isLocalOnlyBypassableByManageScope`).
+ * Returns the default snapshot (`{ enabled: true, prefixes: ["/api/mcp/"] }`)
+ * before the first `applyRuntimeSettings` call so cold-boot requests behave
+ * identically to PR #2473. Mutated only by `applyAuthzBypassSection`.
+ *
+ * Hot-reload latency: <50 ms (no I/O, no async, pure read of module-local
+ * state). Spec §Non-Functional Requirements / Performance.
+ */
+export function getAuthzBypassSnapshot(): AuthzBypassSnapshot {
+  return currentAuthzBypass;
+}
+
 export function buildRuntimeSettingsSnapshot(
   settings: Record<string, unknown>
 ): RuntimeSettingsSnapshot {
@@ -188,6 +245,7 @@ export function buildRuntimeSettingsSnapshot(
     corsOrigins: typeof settings.corsOrigins === "string" ? settings.corsOrigins : "",
     ccBridgeTransforms: parseStoredJson(settings.ccBridgeTransforms, "ccBridgeTransforms"),
     systemTransforms: parseStoredJson(settings.systemTransforms, "systemTransforms"),
+    authzBypass: normalizeAuthzBypass(settings),
   };
 }
 
@@ -281,6 +339,14 @@ async function applyCcBridgeTransformsSection(ccBridgeTransforms: unknown) {
   if (ccBridgeTransforms && typeof ccBridgeTransforms === "object") {
     setSystemTransformsConfig(ccBridgeTransforms);
   }
+}
+
+/**
+ * Swap the in-process bypass policy. Synchronous, O(1), no I/O — the SLA
+ * (<50 ms hot-reload) is structurally satisfied by this shape.
+ */
+function applyAuthzBypassSection(snapshot: AuthzBypassSnapshot) {
+  currentAuthzBypass = { enabled: snapshot.enabled, prefixes: [...snapshot.prefixes] };
 }
 
 async function applySystemTransformsSection(systemTransforms: unknown) {
@@ -447,6 +513,11 @@ export async function applyRuntimeSettings(
     markChanged("systemTransforms");
   }
 
+  if (force || hasChanged(currentSnapshot.authzBypass, previousSnapshot.authzBypass)) {
+    applyAuthzBypassSection(currentSnapshot.authzBypass);
+    markChanged("authzBypass");
+  }
+
   lastAppliedSnapshot = currentSnapshot;
   return changes;
 }
@@ -457,4 +528,5 @@ export function getLastAppliedRuntimeSettingsSnapshotForTests() {
 
 export function resetRuntimeSettingsStateForTests() {
   lastAppliedSnapshot = null;
+  currentAuthzBypass = DEFAULT_AUTHZ_BYPASS_SNAPSHOT;
 }

@@ -71,3 +71,10 @@ test("T38: modelSpecs exposes centralized helpers with alias and prefix lookup",
   assert.equal(getDefaultThinkingBudget("gemini-3.1-pro-high"), 24576);
   assert.equal(capThinkingBudget("gemini-3.1-pro-low", 50000), 16000);
 });
+
+test("T38: MiMo V2.5 and V2 Omni models support vision", () => {
+  assert.equal(MODEL_SPECS["mimo-v2.5-pro"].supportsVision, true);
+  assert.equal(MODEL_SPECS["mimo-v2.5"].supportsVision, true);
+  assert.equal(MODEL_SPECS["mimo-v2-omni"].supportsVision, true);
+  assert.equal(MODEL_SPECS["mimo-v2-flash"].supportsVision, undefined);
+});

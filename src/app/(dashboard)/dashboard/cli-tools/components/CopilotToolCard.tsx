@@ -128,6 +128,18 @@ export default function CopilotToolCard({
       maxOutputTokens,
     }));
 
+    const responseModels = [...selectedModels].map((modelId) => ({
+      id: modelId,
+      name: modelId,
+      url: `${baseUrl}/v1/responses#models.ai.azure.com`,
+      supportsReasoningEffort: ["none", "low", "medium", "high", "xhigh"],
+      zeroDataRetentionEnabled: true,
+      toolCalling,
+      vision,
+      maxInputTokens,
+      maxOutputTokens,
+    }));
+
     const config = {
       name: "OmniRoute",
       vendor: "azure",
@@ -135,7 +147,14 @@ export default function CopilotToolCard({
       models,
     };
 
-    return JSON.stringify(config, null, 2);
+    const responsesConfig = {
+      name: "OmniRoute-responses",
+      vendor: "azure",
+      apiKey: `\${input:chat.lm.secret.omniroute}`,
+      models: responseModels,
+    };
+
+    return [config, responsesConfig].map((entry) => JSON.stringify(entry, null, 2)).join(",\n");
   };
 
   const handleCopy = async (text: string, field: string) => {
