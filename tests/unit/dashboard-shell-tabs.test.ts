@@ -17,7 +17,7 @@ test("analytics page exposes the restored analytics tab shell", () => {
     "Search",
     "Utilization",
     "Combo Health",
-    "Route Explainability",
+    "Route Trace",
   ]) {
     assert.ok(source.includes('label: "' + label + '"'));
   }
@@ -27,7 +27,7 @@ test("analytics page exposes the restored analytics tab shell", () => {
     "search",
     "utilization",
     "combo-health",
-    "route-explain",
+    "route-trace",
   ]) {
     assert.ok(source.includes('id: "' + tabId + '"'));
   }

@@ -1,6 +1,11 @@
 import { buildComboHealthAutopilotReport } from "@/lib/monitoring/comboHealthAutopilot";
+import { getProviderConnections } from "@/lib/db/providers";
 import { buildComboForecastResponse } from "@/lib/usage/comboForecast";
 import { buildComboHealthResponse } from "@/lib/usage/comboHealth";
+import {
+  inspectTargetResilience,
+  type ProviderConnectionView,
+} from "@/lib/usage/resilienceExplain";
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import {
   calculateFactors,
@@ -250,13 +255,13 @@ function autopilotIssueCounts(combo: ComboAutopilotCombo | undefined): Map<strin
   return counts;
 }
 
-function buildInspectorCombo(
+async function buildInspectorCombo(
   combo: ComboHealthMetrics,
   forecastTargets: Map<string, ComboForecastTarget>,
   autopilotCombo: ComboAutopilotCombo | undefined,
   taskType: string,
   weights: ScoringWeights
-): ComboScoringInspectorCombo {
+): Promise<ComboScoringInspectorCombo> {
   const warnings: string[] = [];
   const targets = combo.targetHealth ?? [];
   if (combo.strategy !== "auto") {
@@ -287,28 +292,56 @@ function buildInspectorCombo(
     })
     .sort((left, right) => right.score - left.score);
 
-  const inspectorTargets: ComboScoringInspectorTarget[] = scored.map((item, index) => ({
-    executionKey: item.entry.context.target.executionKey,
-    stepId: item.entry.context.target.stepId,
-    provider: item.entry.context.target.provider,
-    model: item.entry.context.target.model,
-    connectionId: item.entry.context.target.connectionId,
-    label: item.entry.context.target.label,
-    rank: index + 1,
-    score: roundNumber(item.score),
-    factors: factorBreakdown(item.factors, weights, item.entry.context),
-    signals: {
-      quotaRemainingPct: item.entry.context.target.quotaRemainingPct,
-      projectedQuotaRemainingPct:
-        item.entry.context.forecastTarget?.quota.projectedRemainingPct ?? null,
-      successRate:
-        item.entry.context.target.requests > 0 ? item.entry.context.target.successRate : null,
-      avgLatencyMs:
-        item.entry.context.target.avgLatencyMs > 0 ? item.entry.context.target.avgLatencyMs : null,
-      forecastRisk: item.entry.context.forecastTarget?.quota.risk ?? null,
-      autopilotIssueCount: item.entry.context.autopilotIssueCount,
-    },
-  }));
+  const connectionsByProvider = new Map<string, ProviderConnectionView[]>();
+  await Promise.allSettled(
+    [...new Set(scored.map((item) => item.entry.context.target.provider).filter(Boolean))].map(
+      async (provider) => {
+        try {
+          connectionsByProvider.set(
+            provider,
+            (await getProviderConnections({ provider, isActive: true })) as ProviderConnectionView[]
+          );
+        } catch {
+          warnings.push(
+            `Provider connection prefetch failed for ${provider}; resilience details will use fallback inspection.`
+          );
+        }
+      }
+    )
+  );
+
+  const inspectorTargets: ComboScoringInspectorTarget[] = await Promise.all(
+    scored.map(async (item, index) => {
+      const target = item.entry.context.target;
+      const resilience = await inspectTargetResilience({
+        provider: target.provider,
+        model: target.model,
+        connectionId: target.connectionId,
+        providerConnections: connectionsByProvider.get(target.provider),
+      });
+      return {
+        executionKey: target.executionKey,
+        stepId: target.stepId,
+        provider: target.provider,
+        model: target.model,
+        connectionId: target.connectionId,
+        label: target.label,
+        rank: index + 1,
+        score: roundNumber(item.score),
+        factors: factorBreakdown(item.factors, weights, item.entry.context),
+        signals: {
+          quotaRemainingPct: target.quotaRemainingPct,
+          projectedQuotaRemainingPct:
+            item.entry.context.forecastTarget?.quota.projectedRemainingPct ?? null,
+          successRate: target.requests > 0 ? target.successRate : null,
+          avgLatencyMs: target.avgLatencyMs > 0 ? target.avgLatencyMs : null,
+          forecastRisk: item.entry.context.forecastTarget?.quota.risk ?? null,
+          autopilotIssueCount: item.entry.context.autopilotIssueCount,
+          resilience,
+        },
+      };
+    })
+  );
 
   return {
     comboId: combo.comboId,
@@ -368,13 +401,15 @@ export async function buildComboScoringInspectorResponse(
     timeRange: options.range,
     horizon: options.horizon,
     method: "read_only_recompute",
-    combos: health.combos.map((combo) =>
-      buildInspectorCombo(
-        combo,
-        targetForecastMap(forecastByComboId.get(combo.comboId)?.targets ?? []),
-        autopilotByComboId.get(combo.comboId),
-        taskType,
-        weights
+    combos: await Promise.all(
+      health.combos.map((combo) =>
+        buildInspectorCombo(
+          combo,
+          targetForecastMap(forecastByComboId.get(combo.comboId)?.targets ?? []),
+          autopilotByComboId.get(combo.comboId),
+          taskType,
+          weights
+        )
       )
     ),
   };

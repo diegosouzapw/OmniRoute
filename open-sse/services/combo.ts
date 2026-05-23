@@ -16,7 +16,13 @@ import {
 } from "./accountFallback.ts";
 import { RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
-import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
+import { clamp01 } from "../utils/number.ts";
+import {
+  recordComboIntent,
+  recordComboRequest,
+  recordComboShadowRequest,
+  getComboMetrics,
+} from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
@@ -32,7 +38,7 @@ import {
   type IntentClassifierConfig,
 } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
-import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
+import { selectWithStrategy, type SlaRoutingPolicy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
 import {
   calculateFactors,
@@ -41,9 +47,10 @@ import {
   type ProviderCandidate,
   type ScoringWeights,
 } from "./autoCombo/scoring.ts";
-import { supportsToolCalling } from "./modelCapabilities.ts";
+import { getResolvedModelCapabilities, supportsToolCalling } from "./modelCapabilities.ts";
 import { estimateTokens } from "./contextManager.ts";
 import { getSessionConnection } from "./sessionManager.ts";
+import { orderTargetsByEvalScores } from "./evalRouting.ts";
 import { generateRoutingHints } from "./manifestAdapter";
 import type { RoutingHint } from "./manifestAdapter";
 import { getModelContextLimit } from "../../src/lib/modelCapabilities";
@@ -228,6 +235,15 @@ export type ResolvedComboTarget = {
   weight: number;
   label: string | null;
   failoverBeforeRetry?: unknown;
+  trafficType?: "production" | "shadow";
+};
+
+type ShadowRoutingConfig = {
+  enabled: boolean;
+  targets: unknown[];
+  sampleRate: number;
+  maxTargets: number;
+  timeoutMs: number;
 };
 
 type ComboRuntimeStep =
@@ -412,6 +428,160 @@ function toRecordedTarget(target: ResolvedComboTarget) {
     connectionId: target.connectionId,
     label: target.label,
   };
+}
+
+function normalizeShadowRoutingConfig(config: Record<string, unknown>): ShadowRoutingConfig {
+  const raw = isRecord(config.shadowRouting) ? config.shadowRouting : {};
+  const sampleRate = Number(raw.sampleRate ?? 1);
+  const maxTargets = Number(raw.maxTargets ?? 2);
+  const timeoutMs = Number(raw.timeoutMs ?? 30000);
+  return {
+    enabled: raw.enabled === true,
+    targets: Array.isArray(raw.targets) ? raw.targets : [],
+    sampleRate: Number.isFinite(sampleRate) ? Math.max(0, Math.min(1, sampleRate)) : 1,
+    maxTargets: Number.isFinite(maxTargets) ? Math.max(1, Math.min(10, Math.floor(maxTargets))) : 2,
+    timeoutMs: Number.isFinite(timeoutMs)
+      ? Math.max(1000, Math.min(120000, Math.floor(timeoutMs)))
+      : 30000,
+  };
+}
+
+function resolveShadowTargets(
+  combo: ComboLike,
+  config: Record<string, unknown>,
+  allCombos: ComboCollectionLike
+): ResolvedComboTarget[] {
+  const shadowConfig = normalizeShadowRoutingConfig(config);
+  if (!shadowConfig.enabled || shadowConfig.targets.length === 0) return [];
+  if (shadowConfig.sampleRate <= 0 || Math.random() > shadowConfig.sampleRate) return [];
+
+  const shadowCombo: ComboLike = {
+    ...combo,
+    name: `${combo.name}:shadow`,
+    models: shadowConfig.targets,
+  };
+  return resolveNestedComboTargets(shadowCombo, allCombos, new Set([combo.name]), 0, ["shadow"])
+    .slice(0, shadowConfig.maxTargets)
+    .map((target) => ({
+      ...target,
+      trafficType: "shadow" as const,
+    }));
+}
+
+async function drainShadowResponse(response: Response): Promise<void> {
+  try {
+    if (!response.body) return;
+    await response.arrayBuffer();
+  } catch {
+    // Shadow draining is best-effort and must never affect the production response.
+  }
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Shadow route timed out")), timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
+function cloneRequestBodyForShadowRouting(body: Record<string, unknown>): Record<string, unknown> {
+  if (typeof structuredClone === "function") {
+    return structuredClone(body) as Record<string, unknown>;
+  }
+
+  return JSON.parse(JSON.stringify(body)) as Record<string, unknown>;
+}
+
+function scheduleShadowRouting(
+  combo: ComboLike,
+  config: Record<string, unknown>,
+  body: Record<string, unknown>,
+  targets: ResolvedComboTarget[],
+  handleSingleModel: HandleSingleModel,
+  isModelAvailable: IsModelAvailable | undefined,
+  strategy: string,
+  log: ComboLogger
+): void {
+  if (targets.length === 0) return;
+  const shadowConfig = normalizeShadowRoutingConfig(config);
+  let shadowBaseBody: Record<string, unknown>;
+  try {
+    shadowBaseBody = cloneRequestBodyForShadowRouting(body);
+  } catch (error) {
+    log.warn("COMBO", "Shadow routing skipped: failed to clone request body", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return;
+  }
+  const run = async () => {
+    await Promise.all(
+      targets.map(async (target) => {
+        const startedAt = Date.now();
+        try {
+          const shadowBody = {
+            ...cloneRequestBodyForShadowRouting(shadowBaseBody),
+            model: target.modelStr,
+            stream: false,
+          };
+          if (isModelAvailable) {
+            const available = await isModelAvailable(target.modelStr, target);
+            if (!available) {
+              recordComboShadowRequest(combo.name, target.modelStr, {
+                success: false,
+                latencyMs: Date.now() - startedAt,
+                target: toRecordedTarget(target),
+              });
+              log.info("COMBO", `Shadow target skipped (unavailable): ${target.modelStr}`);
+              return;
+            }
+          }
+
+          const response = await withTimeout(
+            handleSingleModel(shadowBody, target.modelStr, {
+              ...target,
+              failoverBeforeRetry: true,
+              trafficType: "shadow",
+            }),
+            shadowConfig.timeoutMs
+          );
+          await drainShadowResponse(response.clone());
+          recordComboShadowRequest(combo.name, target.modelStr, {
+            success: response.ok,
+            latencyMs: Date.now() - startedAt,
+            target: toRecordedTarget(target),
+          });
+          log.info(
+            "COMBO",
+            `Shadow target ${target.modelStr} completed with status ${response.status} (${strategy})`
+          );
+        } catch (error) {
+          recordComboShadowRequest(combo.name, target.modelStr, {
+            success: false,
+            latencyMs: Date.now() - startedAt,
+            target: toRecordedTarget(target),
+          });
+          log.warn("COMBO", `Shadow target ${target.modelStr} failed`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      })
+    );
+  };
+
+  if (typeof setImmediate === "function") {
+    setImmediate(() => void run());
+    return;
+  }
+  setTimeout(() => void run(), 0);
 }
 
 function buildExecutionKey(path: string[], stepId: string): string {
@@ -858,6 +1028,169 @@ function getModelContextLimitForModelString(modelStr: string) {
   return getModelContextLimit(provider, model);
 }
 
+type RequestCompatibilityRequirements = {
+  requiresTools: boolean;
+  requiresVision: boolean;
+  requiresStructuredOutput: boolean;
+  estimatedInputTokens: number;
+  requestedOutputTokens: number;
+  requiredContextTokens: number;
+};
+
+function getPositiveTokenCount(value: unknown): number {
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? Math.ceil(count) : 0;
+}
+
+function requestRequiresTools(body: Record<string, unknown>): boolean {
+  if (Array.isArray(body.tools) && body.tools.length > 0) return true;
+  if (Array.isArray(body.functions) && body.functions.length > 0) return true;
+  return false;
+}
+
+function requestRequiresStructuredOutput(body: Record<string, unknown>): boolean {
+  const responseFormat = isRecord(body.response_format) ? body.response_format : null;
+  const type = typeof responseFormat?.type === "string" ? responseFormat.type : null;
+  return type === "json_object" || type === "json_schema";
+}
+
+function estimateRequestInputTokens(body: Record<string, unknown>): number {
+  const estimatePayload: Record<string, unknown> = {};
+  for (const key of ["messages", "input", "tools", "functions", "response_format"]) {
+    if (body[key] !== undefined) estimatePayload[key] = body[key];
+  }
+  return Object.keys(estimatePayload).length > 0 ? estimateTokens(estimatePayload) : 0;
+}
+
+function valueContainsImagePart(value: unknown, depth = 0): boolean {
+  if (depth > 8 || value === null || value === undefined) return false;
+  if (typeof value === "string") return value.startsWith("data:image/");
+  if (Array.isArray(value)) return value.some((entry) => valueContainsImagePart(entry, depth + 1));
+  if (!isRecord(value)) return false;
+
+  const type = typeof value.type === "string" ? value.type.toLowerCase() : null;
+  if (type === "image" || type === "image_url" || type === "input_image") return true;
+  if ("image_url" in value || "input_image" in value) return true;
+
+  const source = isRecord(value.source) ? value.source : null;
+  const mediaType = typeof source?.media_type === "string" ? source.media_type.toLowerCase() : "";
+  if (mediaType.startsWith("image/")) return true;
+
+  return Object.values(value).some((entry) => valueContainsImagePart(entry, depth + 1));
+}
+
+function deriveRequestCompatibilityRequirements(
+  body: Record<string, unknown>
+): RequestCompatibilityRequirements {
+  const estimatedInputTokens = estimateRequestInputTokens(body);
+  const requestedOutputTokens = Math.max(
+    getPositiveTokenCount(body.max_tokens),
+    getPositiveTokenCount(body.max_completion_tokens)
+  );
+  return {
+    requiresTools: requestRequiresTools(body),
+    requiresVision: valueContainsImagePart(body.messages) || valueContainsImagePart(body.input),
+    requiresStructuredOutput: requestRequiresStructuredOutput(body),
+    estimatedInputTokens,
+    requestedOutputTokens,
+    requiredContextTokens: estimatedInputTokens + requestedOutputTokens,
+  };
+}
+
+function getTargetCompatibilityFailures(
+  target: ResolvedComboTarget,
+  requirements: RequestCompatibilityRequirements
+): string[] {
+  const capabilities = getResolvedModelCapabilities(target.modelStr);
+  const failures: string[] = [];
+
+  if (
+    requirements.requiresTools &&
+    (capabilities.supportsTools === false || !capabilities.toolCalling)
+  ) {
+    failures.push("tools");
+  }
+
+  if (requirements.requiresVision && capabilities.supportsVision === false) {
+    failures.push("vision");
+  }
+
+  if (requirements.requiresStructuredOutput && capabilities.structuredOutput === false) {
+    failures.push("structured_output");
+  }
+
+  if (
+    requirements.requestedOutputTokens > 0 &&
+    Number.isFinite(capabilities.maxOutputTokens) &&
+    capabilities.maxOutputTokens < requirements.requestedOutputTokens
+  ) {
+    failures.push("output_tokens");
+  }
+
+  const contextLimit = capabilities.maxInputTokens ?? capabilities.contextWindow ?? null;
+  if (
+    requirements.requiredContextTokens > 0 &&
+    contextLimit !== null &&
+    contextLimit !== undefined &&
+    contextLimit < requirements.requiredContextTokens
+  ) {
+    failures.push("context_window");
+  }
+
+  return failures;
+}
+
+function filterTargetsByRequestCompatibility(
+  targets: ResolvedComboTarget[],
+  body: Record<string, unknown>,
+  log: ComboLogger,
+  label = "Context-aware fallback"
+): ResolvedComboTarget[] {
+  if (targets.length === 0) return targets;
+  const requirements = deriveRequestCompatibilityRequirements(body);
+  const needsFiltering =
+    requirements.requiresTools ||
+    requirements.requiresVision ||
+    requirements.requiresStructuredOutput ||
+    requirements.requiredContextTokens > 0;
+  if (!needsFiltering) return targets;
+
+  const rejected: Array<{ target: ResolvedComboTarget; reasons: string[] }> = [];
+  const compatible = targets.filter((target) => {
+    const reasons = getTargetCompatibilityFailures(target, requirements);
+    if (reasons.length === 0) return true;
+    rejected.push({ target, reasons });
+    return false;
+  });
+
+  if (compatible.length === targets.length) return targets;
+  if (compatible.length === 0) {
+    log.warn(
+      "COMBO",
+      `${label}: all ${targets.length} targets were filtered by request requirements; preserving strategy order`
+    );
+    log.debug?.(
+      "COMBO",
+      `${label}: rejected targets ${rejected
+        .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+        .join(", ")}`
+    );
+    return targets;
+  }
+
+  log.info(
+    "COMBO",
+    `${label}: kept ${compatible.length}/${targets.length} targets for request requirements`
+  );
+  log.debug?.(
+    "COMBO",
+    `${label}: rejected targets ${rejected
+      .map((entry) => `${entry.target.modelStr}(${entry.reasons.join("+")})`)
+      .join(", ")}`
+  );
+  return compatible;
+}
+
 function sortTargetsByContextSize(targets: ResolvedComboTarget[]) {
   const hasKnownContext = targets.some(
     (target) => getModelContextLimitForModelString(target.modelStr) != null
@@ -909,11 +1242,6 @@ function orderTargetsByPowerOfTwoChoices(targets: ResolvedComboTarget[], comboNa
       ? secondIndex
       : firstIndex;
   return [targets[selectedIndex], ...targets.filter((_, index) => index !== selectedIndex)];
-}
-
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.min(1, value));
 }
 
 function finiteNumberOrNull(value: unknown): number | null {
@@ -991,6 +1319,29 @@ function resolveResetWindowConfig(config: Record<string, unknown> | null | undef
     quotaCacheTtlMs: getDurationConfig(config?.resetWindowQuotaCacheTtlMs, 0, 300_000),
     quotaCacheMaxStaleMs: getDurationConfig(config?.resetWindowQuotaCacheMaxStaleMs, 0, 3_600_000),
   };
+}
+
+function resolveSlaRoutingPolicy(
+  config: Record<string, unknown> | null | undefined
+): SlaRoutingPolicy | undefined {
+  if (!config) return undefined;
+  const nestedSla = isRecord(config.sla) ? config.sla : {};
+  const targetP95Ms = finiteNumberOrNull(config.slaTargetP95Ms ?? nestedSla.targetP95Ms);
+  const maxErrorRate = finiteNumberOrNull(config.slaMaxErrorRate ?? nestedSla.maxErrorRate);
+  const maxCostPer1MTokens = finiteNumberOrNull(
+    config.slaMaxCostPer1MTokens ?? nestedSla.maxCostPer1MTokens
+  );
+  const hardConstraints = config.slaHardConstraints ?? nestedSla.hardConstraints;
+
+  const policy: SlaRoutingPolicy = {};
+  if (targetP95Ms !== null && targetP95Ms > 0) policy.targetP95Ms = targetP95Ms;
+  if (maxErrorRate !== null && maxErrorRate >= 0) policy.maxErrorRate = clamp01(maxErrorRate);
+  if (maxCostPer1MTokens !== null && maxCostPer1MTokens > 0) {
+    policy.maxCostPer1MTokens = maxCostPer1MTokens;
+  }
+  if (typeof hardConstraints === "boolean") policy.hardConstraints = hardConstraints;
+
+  return Object.keys(policy).length > 0 ? policy : undefined;
 }
 
 function getResetAwareProvider(target: ResolvedComboTarget): string | null {
@@ -2365,6 +2716,7 @@ export async function handleComboChat({
     const modePack =
       typeof autoConfigSource.modePack === "string" ? autoConfigSource.modePack : undefined;
     const resetWindowConfig = resolveResetWindowConfig(autoConfigSource);
+    const slaPolicy = resolveSlaRoutingPolicy(autoConfigSource);
 
     let lastKnownGoodProvider: string | undefined;
     try {
@@ -2390,7 +2742,13 @@ export async function handleComboChat({
         try {
           const decision = selectWithStrategy(
             candidates,
-            { taskType, requestHasTools, lastKnownGoodProvider, estimatedInputTokens },
+            {
+              taskType,
+              requestHasTools,
+              lastKnownGoodProvider,
+              estimatedInputTokens,
+              sla: slaPolicy,
+            },
             routingStrategy
           );
           selectedProvider = decision.provider;
@@ -2597,9 +2955,23 @@ export async function handleComboChat({
     log.info("COMBO", `Context-optimized ordering: largest first (${orderedTargets[0]?.modelStr})`);
   }
 
+  orderedTargets = orderTargetsByEvalScores(orderedTargets, config.evalRouting, log);
+  orderedTargets = filterTargetsByRequestCompatibility(orderedTargets, body, log);
+
   if (orderedTargets.length === 0) {
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
+
+  scheduleShadowRouting(
+    combo,
+    config,
+    body,
+    resolveShadowTargets(combo, config, allCombos),
+    handleSingleModelWrapped,
+    isModelAvailable,
+    strategy,
+    log
+  );
 
   let globalAttempts = 0;
 
@@ -3035,11 +3407,29 @@ async function handleRoundRobinCombo({
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);
 
   const orderedTargets = resolveComboTargets(combo, allCombos);
-  const filteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
+  const tagFilteredTargets = await applyRequestTagRouting(orderedTargets, body, log);
+  const evalRankedTargets = orderTargetsByEvalScores(tagFilteredTargets, config.evalRouting, log);
+  const filteredTargets = filterTargetsByRequestCompatibility(
+    evalRankedTargets,
+    body,
+    log,
+    "Context-aware round-robin fallback"
+  );
   const modelCount = filteredTargets.length;
   if (modelCount === 0) {
     return comboModelNotFoundResponse("Round-robin combo has no executable targets");
   }
+
+  scheduleShadowRouting(
+    combo,
+    config,
+    body,
+    resolveShadowTargets(combo, config, allCombos),
+    handleSingleModel,
+    isModelAvailable,
+    "round-robin",
+    log
+  );
 
   // Get and increment atomic counter
   const counter = rrCounters.get(combo.name) || 0;

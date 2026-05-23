@@ -24,6 +24,8 @@ export const AUTO_ROUTING_STRATEGY_VALUES = [
   "eco",
   "latency",
   "fast",
+  "sla-aware",
+  "sla",
   "lkgp",
 ] as const;
 

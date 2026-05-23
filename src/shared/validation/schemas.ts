@@ -20,7 +20,7 @@ function isHttpUrl(value: string): boolean {
 }
 
 const CODEX_REASONING_EFFORT_VALUES = new Set(["none", "low", "medium", "high", "xhigh"]);
-const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["priority", "fast"]);
+const REQUEST_DEFAULT_SERVICE_TIER_VALUES = new Set(["default", "priority", "fast", "flex"]);
 
 function validateProviderSpecificData(
   data: Record<string, unknown> | undefined,
@@ -143,7 +143,7 @@ function validateProviderSpecificData(
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "providerSpecificData.requestDefaults.serviceTier must be priority when provided",
+            "providerSpecificData.requestDefaults.serviceTier must be one of default, priority, fast, flex when provided",
           path: ["requestDefaults", "serviceTier"],
         });
       }
@@ -487,6 +487,28 @@ const comboModelEntry = z.union([
   comboRefStepInputSchema,
 ]);
 
+const shadowRoutingSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    targets: z.array(comboModelEntry).max(20).optional(),
+    sampleRate: z.coerce.number().min(0).max(1).optional(),
+    maxTargets: z.coerce.number().int().min(1).max(10).optional(),
+    timeoutMs: z.coerce.number().int().min(1000).max(120000).optional(),
+  })
+  .strict();
+
+const evalRoutingSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    suiteIds: z.array(z.string().trim().min(1).max(200)).max(50).optional(),
+    maxAgeHours: z.coerce.number().min(1).max(8760).optional(),
+    minCases: z.coerce.number().int().min(1).max(100000).optional(),
+    qualityWeight: z.coerce.number().min(0).max(1).optional(),
+    latencyWeight: z.coerce.number().min(0).max(1).optional(),
+    cacheTtlMs: z.coerce.number().int().min(1000).max(300000).optional(),
+  })
+  .strict();
+
 export const comboStrategySchema = z.enum(ROUTING_STRATEGY_VALUES);
 
 const scoringWeightsSchema = z
@@ -532,6 +554,15 @@ const compressionModeSchema = z.enum([
 ]);
 const comboCompressionOverrideSchema = z.union([z.literal(""), compressionModeSchema]);
 
+const slaRoutingPolicySchema = z
+  .object({
+    targetP95Ms: z.coerce.number().int().positive().max(300000).optional(),
+    maxErrorRate: z.coerce.number().min(0).max(1).optional(),
+    maxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
+    hardConstraints: z.boolean().optional(),
+  })
+  .strict();
+
 const comboRuntimeConfigSchema = z
   .object({
     strategy: comboStrategySchema.optional(),
@@ -560,6 +591,11 @@ const comboRuntimeConfigSchema = z
     budgetCap: z.number().positive().optional(),
     explorationRate: z.number().min(0).max(1).optional(),
     routerStrategy: z.string().optional(),
+    slaTargetP95Ms: z.coerce.number().int().positive().max(300000).optional(),
+    slaMaxErrorRate: z.coerce.number().min(0).max(1).optional(),
+    slaMaxCostPer1MTokens: z.coerce.number().positive().max(1000000).optional(),
+    slaHardConstraints: z.boolean().optional(),
+    sla: slaRoutingPolicySchema.optional(),
     compositeTiers: compositeTiersSchema.optional(),
     resetAwareSessionWeight: z.coerce.number().min(0).max(100).optional(),
     resetAwareWeeklyWeight: z.coerce.number().min(0).max(100).optional(),
@@ -572,6 +608,8 @@ const comboRuntimeConfigSchema = z
     resetWindowTieBandMs: z.coerce.number().int().min(0).max(86_400_000).optional(),
     resetWindowQuotaCacheTtlMs: z.coerce.number().int().min(0).max(300_000).optional(),
     resetWindowQuotaCacheMaxStaleMs: z.coerce.number().int().min(0).max(3_600_000).optional(),
+    shadowRouting: shadowRoutingSchema.optional(),
+    evalRouting: evalRoutingSchema.optional(),
   })
   .strict();
 

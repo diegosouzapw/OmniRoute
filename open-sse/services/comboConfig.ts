@@ -28,6 +28,22 @@ const DEFAULT_COMBO_CONFIG = {
   setRetryDelayMs: 2000,
   resetAwareQuotaCacheTtlMs: 0,
   resetAwareQuotaCacheMaxStaleMs: 0,
+  shadowRouting: {
+    enabled: false,
+    targets: [],
+    sampleRate: 1,
+    maxTargets: 2,
+    timeoutMs: 30000,
+  },
+  evalRouting: {
+    enabled: false,
+    suiteIds: [],
+    maxAgeHours: 720,
+    minCases: 1,
+    qualityWeight: 0.85,
+    latencyWeight: 0.15,
+    cacheTtlMs: 60000,
+  },
 };
 
 const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
@@ -52,6 +68,10 @@ type ComboSettingsLike =
     }
   | null
   | undefined;
+
+function isRecord(value: unknown): value is ComboConfigRecord {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
 
 /**
  * Resolve effective config for a combo, applying cascade:
@@ -80,11 +100,27 @@ export function resolveComboConfig(
       )
     );
 
-  return {
+  const merged = {
     ...DEFAULT_COMBO_CONFIG,
     ...clean(global),
     ...clean(providerOverride),
     ...clean(comboConfig),
+  };
+
+  return {
+    ...merged,
+    shadowRouting: {
+      ...DEFAULT_COMBO_CONFIG.shadowRouting,
+      ...(isRecord(global.shadowRouting) ? clean(global.shadowRouting) : {}),
+      ...(isRecord(providerOverride.shadowRouting) ? clean(providerOverride.shadowRouting) : {}),
+      ...(isRecord(comboConfig.shadowRouting) ? clean(comboConfig.shadowRouting) : {}),
+    },
+    evalRouting: {
+      ...DEFAULT_COMBO_CONFIG.evalRouting,
+      ...(isRecord(global.evalRouting) ? clean(global.evalRouting) : {}),
+      ...(isRecord(providerOverride.evalRouting) ? clean(providerOverride.evalRouting) : {}),
+      ...(isRecord(comboConfig.evalRouting) ? clean(comboConfig.evalRouting) : {}),
+    },
   };
 }
 

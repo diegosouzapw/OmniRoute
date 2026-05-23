@@ -23,6 +23,8 @@ test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   assert.equal(first.failoverBeforeRetry, true);
   assert.equal(first.maxSetRetries, 0);
   assert.equal(first.setRetryDelayMs, 2000);
+  assert.equal(first.evalRouting.enabled, false);
+  assert.equal(first.evalRouting.maxAgeHours, 720);
 
   first.strategy = "weighted";
   assert.equal(second.strategy, "priority");
@@ -57,6 +59,33 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
   assert.equal(result.maxRetries, 4);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));
+});
+
+test("resolveComboConfig preserves nested routing defaults for partial overrides", () => {
+  const result = resolveComboConfig(
+    {
+      config: {
+        shadowRouting: { enabled: true },
+        evalRouting: { enabled: true, suiteIds: ["coding-proficiency"] },
+      },
+    },
+    {
+      comboDefaults: {
+        shadowRouting: { sampleRate: 0.5 },
+        evalRouting: { maxAgeHours: 168 },
+      },
+    }
+  );
+
+  assert.equal(result.shadowRouting.enabled, true);
+  assert.equal(result.shadowRouting.sampleRate, 0.5);
+  assert.equal(result.shadowRouting.maxTargets, 2);
+  assert.equal(result.shadowRouting.timeoutMs, 30000);
+  assert.equal(result.evalRouting.enabled, true);
+  assert.deepEqual(result.evalRouting.suiteIds, ["coding-proficiency"]);
+  assert.equal(result.evalRouting.maxAgeHours, 168);
+  assert.equal(result.evalRouting.minCases, 1);
+  assert.equal(result.evalRouting.cacheTtlMs, 60000);
 });
 
 test("resolveComboConfig ignores null, undefined, and legacy resilience overrides", () => {
@@ -156,6 +185,57 @@ test("createComboSchema accepts context-relay strategy with handoff config", () 
   assert.equal(parsed.strategy, "context-relay");
   assert.equal(parsed.config.handoffThreshold, 0.85);
   assert.equal(parsed.config.maxMessagesForSummary, 24);
+});
+
+test("createComboSchema accepts eval-driven routing config", () => {
+  const parsed = createComboSchema.parse({
+    name: "eval-ranked",
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-haiku"],
+    strategy: "priority",
+    config: {
+      evalRouting: {
+        enabled: true,
+        suiteIds: ["golden-set", "coding-proficiency"],
+        maxAgeHours: 168,
+        minCases: 5,
+        qualityWeight: 0.9,
+        latencyWeight: 0.1,
+        cacheTtlMs: 30000,
+      },
+    },
+  });
+
+  assert.equal(parsed.config.evalRouting.enabled, true);
+  assert.deepEqual(parsed.config.evalRouting.suiteIds, ["golden-set", "coding-proficiency"]);
+});
+
+test("createComboSchema accepts SLA-aware auto routing config", () => {
+  const parsed = createComboSchema.parse({
+    name: "sla-auto",
+    models: ["openai/gpt-4o-mini", "gemini/gemini-2.5-flash"],
+    strategy: "auto",
+    config: {
+      routerStrategy: "sla-aware",
+      slaTargetP95Ms: "1500",
+      slaMaxErrorRate: "0.05",
+      slaMaxCostPer1MTokens: "4.5",
+      slaHardConstraints: true,
+      sla: {
+        targetP95Ms: "2000",
+        maxErrorRate: "0.1",
+        hardConstraints: false,
+      },
+    },
+  });
+
+  assert.equal(parsed.strategy, "auto");
+  assert.equal(parsed.config.routerStrategy, "sla-aware");
+  assert.equal(parsed.config.slaTargetP95Ms, 1500);
+  assert.equal(parsed.config.slaMaxErrorRate, 0.05);
+  assert.equal(parsed.config.slaMaxCostPer1MTokens, 4.5);
+  assert.equal(parsed.config.slaHardConstraints, true);
+  assert.equal(parsed.config.sla.targetP95Ms, 2000);
+  assert.equal(parsed.config.sla.maxErrorRate, 0.1);
 });
 
 test("createComboSchema accepts structured combo steps with pinned connection and combo refs", () => {

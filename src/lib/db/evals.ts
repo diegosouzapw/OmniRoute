@@ -67,6 +67,13 @@ export interface PersistedEvalRun {
   createdAt: string;
 }
 
+export interface EvalRoutingRunQuery {
+  targetIds: string[];
+  suiteIds?: string[];
+  maxAgeHours?: number;
+  limit?: number;
+}
+
 type JsonRecord = Record<string, unknown>;
 
 interface StatementLike<TRow = unknown> {
@@ -516,6 +523,54 @@ export function listEvalRuns(
     ORDER BY created_at DESC
     LIMIT ?`;
   const rows = db.prepare(sql).all(...params);
+  return rows
+    .map((row) => toPersistedEvalRun(row))
+    .filter((row): row is PersistedEvalRun => row !== null);
+}
+
+export function listModelEvalRunsForRouting(options: EvalRoutingRunQuery): PersistedEvalRun[] {
+  const targetIds = [...new Set(options.targetIds.map((id) => id.trim()).filter(Boolean))].slice(
+    0,
+    200
+  );
+  if (targetIds.length === 0) return [];
+
+  const suiteIds = Array.isArray(options.suiteIds)
+    ? [...new Set(options.suiteIds.map((id) => id.trim()).filter(Boolean))].slice(0, 50)
+    : [];
+  const db = getDbInstance() as unknown as DbLike;
+  const conditions: string[] = ["target_type = 'model'"];
+  const params: unknown[] = [];
+
+  conditions.push(`target_id IN (${targetIds.map(() => "?").join(", ")})`);
+  params.push(...targetIds);
+
+  if (suiteIds.length > 0) {
+    conditions.push(`suite_id IN (${suiteIds.map(() => "?").join(", ")})`);
+    params.push(...suiteIds);
+  }
+
+  const maxAgeHours = Number(options.maxAgeHours);
+  if (Number.isFinite(maxAgeHours) && maxAgeHours > 0) {
+    conditions.push("created_at >= ?");
+    params.push(new Date(Date.now() - maxAgeHours * 60 * 60 * 1000).toISOString());
+  }
+
+  const limit = Number.isFinite(Number(options.limit))
+    ? Math.min(1000, Math.max(1, Math.floor(Number(options.limit))))
+    : Math.min(1000, Math.max(50, targetIds.length * Math.max(3, suiteIds.length || 5) * 2));
+  params.push(limit);
+
+  const rows = db
+    .prepare(
+      `SELECT *
+       FROM eval_runs
+       WHERE ${conditions.join(" AND ")}
+       ORDER BY created_at DESC
+       LIMIT ?`
+    )
+    .all(...params);
+
   return rows
     .map((row) => toPersistedEvalRun(row))
     .filter((row): row is PersistedEvalRun => row !== null);

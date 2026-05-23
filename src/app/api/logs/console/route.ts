@@ -46,6 +46,22 @@ function parseLevel(raw: string | number): string {
   return String(raw).toLowerCase();
 }
 
+function stringifyLogValue(value: unknown): string {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string") return value;
+  if (value instanceof Error) return value.message || value.name;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
+    return String(value);
+  }
+
+  try {
+    const json = JSON.stringify(value);
+    return typeof json === "string" ? json : String(value);
+  } catch {
+    return String(value);
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authError = await requireManagementAuth(req);
   if (authError) return authError;
@@ -81,8 +97,15 @@ export async function GET(req: NextRequest) {
           if (entryTime < oneHourAgo) continue;
         }
 
-        // Normalize level
+        // Normalize render-sensitive fields so malformed structured logs cannot crash the viewer.
         entry.level = parseLevel(entry.level);
+        entry.msg = stringifyLogValue(entry.msg ?? entry.message ?? "");
+        entry.message = stringifyLogValue(entry.message ?? entry.msg);
+        if (entry.component !== undefined) entry.component = stringifyLogValue(entry.component);
+        if (entry.module !== undefined) entry.module = stringifyLogValue(entry.module);
+        if (entry.correlationId !== undefined) {
+          entry.correlationId = stringifyLogValue(entry.correlationId);
+        }
 
         // Filter by level
         const entryLevelNum = LEVEL_ORDER[entry.level] || 0;

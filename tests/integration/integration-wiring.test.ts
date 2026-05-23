@@ -474,6 +474,23 @@ describe("Page Integration — cache page wiring", () => {
   });
 });
 
+describe("Page Integration — cost explorer wiring", () => {
+  const costsPage = readProjectFile("src/app/(dashboard)/dashboard/costs/CostOverviewTab.tsx");
+  const costExplorerUtils = readProjectFile(
+    "src/app/(dashboard)/dashboard/costs/costExplorerUtils.ts"
+  );
+
+  it("should expose an interactive grouped Cost Explorer on the costs dashboard", () => {
+    assert.ok(costsPage, "CostOverviewTab should exist");
+    assert.ok(costExplorerUtils, "costExplorerUtils should exist");
+    assert.match(costsPage, /CostExplorerCard/);
+    assert.match(costsPage, /EXPLORER_GROUP_OPTIONS/);
+    assert.match(costsPage, /byServiceTier/);
+    assert.match(costExplorerUtils, /buildCostExplorerRows/);
+    assert.match(costExplorerUtils, /serviceTier/);
+  });
+});
+
 describe("Page Integration — combos page empty state", () => {
   const src = readProjectFile("src/app/(dashboard)/dashboard/combos/page.tsx");
 

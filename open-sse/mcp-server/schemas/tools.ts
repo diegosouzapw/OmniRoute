@@ -561,7 +561,7 @@ export const setRoutingStrategyTool: McpToolDefinition<
 > = {
   name: "omniroute_set_routing_strategy",
   description:
-    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency).",
+    "Updates a combo routing strategy (priority/weighted/auto/etc.) at runtime. Supports selecting the sub-strategy used by auto mode (rules/cost/latency/sla-aware).",
   inputSchema: setRoutingStrategyInput,
   outputSchema: setRoutingStrategyOutput,
   scopes: ["write:combos"],

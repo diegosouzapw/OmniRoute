@@ -80,6 +80,7 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix:
         lang: ${{ fromJson(needs.i18n-matrix.outputs.langs) }}
     needs: i18n-matrix
@@ -111,9 +112,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.CI_NODE_VERSION }}
-      - name: Fetch base branch
-        run: git fetch --no-tags origin "${GITHUB_BASE_REF}" --depth=1
       - name: Validate source changes include tests
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
       - name: Publish PR test policy summary
         if: always()

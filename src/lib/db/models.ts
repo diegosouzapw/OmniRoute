@@ -635,6 +635,33 @@ export async function getSyncedAvailableModels(
 }
 
 /**
+ * Get synced available models for a provider grouped by connection id.
+ */
+export async function getSyncedAvailableModelsByConnection(
+  providerId: string
+): Promise<Record<string, SyncedAvailableModel[]>> {
+  const db = getDbInstance();
+  const prefix = `${providerId}:`;
+  const rows = db
+    .prepare(
+      "SELECT key, value FROM key_value WHERE namespace = 'syncedAvailableModels' AND key LIKE ?"
+    )
+    .all(`${prefix}%`);
+  const result: Record<string, SyncedAvailableModel[]> = {};
+  for (const row of rows) {
+    const { key, value } = getKeyValue(row);
+    if (!key || value === null || !key.startsWith(prefix)) continue;
+    try {
+      const connectionId = key.slice(prefix.length);
+      result[connectionId] = normalizeSyncedAvailableModels(JSON.parse(value));
+    } catch {
+      // Ignore malformed legacy entries.
+    }
+  }
+  return result;
+}
+
+/**
  * Get all synced available models across all providers.
  */
 export async function getAllSyncedAvailableModels(): Promise<

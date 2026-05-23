@@ -38,8 +38,9 @@ import {
 import type { ProviderEntry } from "./providerPageUtils";
 import { readConfiguredOnlyPreference, writeConfiguredOnlyPreference } from "./providerPageStorage";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
 import ProviderCard from "./components/ProviderCard";
@@ -140,7 +141,8 @@ export default function ProvidersPage() {
   const [providerNodes, setProviderNodes] = useState<any[]>([]);
   const [ccCompatibleProviderEnabled, setCcCompatibleProviderEnabled] = useState(false);
   const [expirations, setExpirations] = useState<any>(null);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
   const [loading, setLoading] = useState(true);
   const [showAllProviders, setShowAllProviders] = useState(false);
   const [showAddCompatibleModal, setShowAddCompatibleModal] = useState(false);
@@ -202,7 +204,7 @@ export default function ProvidersPage() {
           setCcCompatibleProviderEnabled(nodesData.ccCompatibleProviderEnabled === true);
         }
         if (expirationsRes.ok && expirationsData) setExpirations(expirationsData);
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(settingsData));
+        setCodexGlobalServiceMode(getCodexGlobalServiceMode(settingsData));
       } catch (error) {
         console.log("Error fetching data:", error);
       } finally {
@@ -310,12 +312,23 @@ export default function ProvidersPage() {
     if (hasExpired) expiryStatus = "expired";
     else if (hasExpiringSoon) expiryStatus = "expiring_soon";
 
-    const codexFastActive =
-      providerId === "codex" &&
-      (codexGlobalFastServiceTier ||
-        providerConnections.some((connection) =>
-          getCodexEffectiveFastServiceTier(connection.providerSpecificData, false)
-        ));
+    const codexConnectionServiceTiers = [
+      ...new Set(
+        providerConnections
+          .map((connection) =>
+            getCodexEffectiveServiceTier(connection.providerSpecificData, "none")
+          )
+          .filter((tier) => tier !== "default")
+      ),
+    ];
+    const codexServiceTier =
+      providerId === "codex"
+        ? codexGlobalServiceMode !== "none"
+          ? codexGlobalServiceMode
+          : codexConnectionServiceTiers.length === 1
+            ? codexConnectionServiceTiers[0]
+            : null
+        : null;
 
     // Count API keys in "warning" state across all connections
     const warning = providerConnections.reduce((warnCount, conn) => {
@@ -335,7 +348,7 @@ export default function ProvidersPage() {
       errorTime,
       allDisabled,
       expiryStatus,
-      codexFastActive,
+      codexServiceTier,
     };
   };
 
@@ -683,15 +696,20 @@ export default function ProvidersPage() {
               {t("addFirstProviderDesc") ||
                 "Connect an AI provider to start routing requests through OmniRoute. You can use free providers, API keys, or OAuth accounts."}
             </p>
-            <a
-              href="https://docs.omniroute.io/providers"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors mt-4"
-            >
-              <span className="material-symbols-outlined text-[16px]">help</span>
-              {t("learnMore") || "Learn more"}
-            </a>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Button icon="add" onClick={() => router.push("/dashboard/providers/new")}>
+                {providerText(t, "onboardingWizard", "Provider Onboarding Wizard")}
+              </Button>
+              <a
+                href="https://docs.omniroute.io/providers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">help</span>
+                {t("learnMore") || "Learn more"}
+              </a>
+            </div>
           </div>
         </Card>
       )}
@@ -728,6 +746,9 @@ export default function ProvidersPage() {
               disabled={connections.length === 0}
               className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
             />
+            <Button size="sm" icon="add" onClick={() => router.push("/dashboard/providers/new")}>
+              {providerText(t, "onboardingWizardShort", "Onboarding Wizard")}
+            </Button>
             <button
               onClick={() => handleBatchTest("all")}
               disabled={!!testingMode}

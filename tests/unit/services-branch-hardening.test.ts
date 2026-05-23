@@ -205,8 +205,19 @@ test("rate limit semaphore covers immediate acquire, timeout, cooldown drain and
 test("combo metrics cover empty reads, intent tracking, per-model stats and resets", () => {
   assert.equal(comboMetrics.getComboMetrics("missing"), null);
 
+  comboMetrics.recordComboShadowRequest("shadow-only", "openai/shadow", {
+    success: true,
+    latencyMs: 40,
+  });
+  const shadowOnlyMetrics = comboMetrics.getComboMetrics("shadow-only");
+  assert.equal(shadowOnlyMetrics.productionTraffic, false);
+  assert.equal(shadowOnlyMetrics.totalRequests, 0);
+  assert.equal(shadowOnlyMetrics.shadow.totalRequests, 1);
+  comboMetrics.resetComboMetrics("shadow-only");
+
   comboMetrics.recordComboIntent("idle", "chat");
   const idleMetrics = comboMetrics.getComboMetrics("idle");
+  assert.equal(idleMetrics.productionTraffic, false);
   assert.equal(idleMetrics.avgLatencyMs, 0);
   assert.equal(idleMetrics.successRate, 0);
   assert.equal(idleMetrics.fallbackRate, 0);
@@ -248,6 +259,7 @@ test("combo metrics cover empty reads, intent tracking, per-model stats and rese
   });
 
   const writer = comboMetrics.getComboMetrics("writer");
+  assert.equal(writer.productionTraffic, true);
   assert.equal(writer.strategy, "least-used");
   assert.equal(writer.totalRequests, 3);
   assert.equal(writer.totalSuccesses, 2);

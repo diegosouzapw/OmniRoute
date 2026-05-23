@@ -49,6 +49,13 @@ const PREFERRED_BY_FAMILY: Record<string, string> = {
 
 const CODEX_NATIVE_RESPONSES_MODELS = new Set(["gpt-5.5"]);
 
+type TrafficType = "production" | "shadow";
+
+type ExecuteChatWithBreakerOptions = {
+  trafficType?: TrafficType;
+  [key: string]: any;
+};
+
 function getHeaderValue(headers: Record<string, unknown> | null | undefined, name: string) {
   if (!headers || typeof headers !== "object") return "";
   const lowerName = name.toLowerCase();
@@ -331,8 +338,14 @@ export async function executeChatWithBreaker({
   providerProfile,
   cachedSettings,
   skipUpstreamRetry = false,
-}: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
+  trafficType = "production",
+}: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
+  const normalizedTrafficType: TrafficType =
+    typeof trafficType === "string" && trafficType.trim().toLowerCase() === "shadow"
+      ? "shadow"
+      : "production";
+  const isShadowTraffic = normalizedTrafficType === "shadow";
 
   try {
     const chatFn = () =>
@@ -354,6 +367,7 @@ export async function executeChatWithBreaker({
           disableEmergencyFallback: isCombo,
           cachedSettings,
           skipUpstreamRetry,
+          trafficType: normalizedTrafficType,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,
@@ -370,9 +384,11 @@ export async function executeChatWithBreaker({
             });
           },
           onRequestSuccess: async () => {
+            if (isShadowTraffic) return;
             await clearAccountError(credentials.connectionId, credentials);
           },
           onStreamFailure: async (failure: any) => {
+            if (isShadowTraffic) return;
             if (!credentials.connectionId) return;
             // A3 guard: if 401 and connection has extra keys, skip connection-level disable
             // (key-level failure already recorded in chatCore.ts via T07)
@@ -400,6 +416,28 @@ export async function executeChatWithBreaker({
           },
         })
       );
+
+    if (isShadowTraffic) {
+      if (!bypassCircuitBreaker && breaker && !breaker.canExecute()) {
+        const retryAfterMs = breaker.getRetryAfterMs();
+        return {
+          result: {
+            success: false,
+            response: providerCircuitOpenResponse(provider, Math.ceil(retryAfterMs / 1000)),
+            status: HTTP_STATUS.SERVICE_UNAVAILABLE,
+          },
+          tlsFingerprintUsed: false,
+        };
+      }
+
+      if (!proxyInfo?.proxy && isTlsFingerprintActive()) {
+        const tracked = await runWithTlsTracking(chatFn);
+        return { result: tracked.result, tlsFingerprintUsed: tracked.tlsFingerprintUsed };
+      }
+
+      const result = await chatFn();
+      return { result, tlsFingerprintUsed: false };
+    }
 
     if (bypassCircuitBreaker) {
       if (!proxyInfo?.proxy && isTlsFingerprintActive()) {

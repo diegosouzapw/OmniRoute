@@ -36,6 +36,16 @@ interface ComboMetricsEntry {
   byTarget: Record<string, ComboTargetMetrics>;
 }
 
+interface ComboShadowMetricsEntry {
+  totalRequests: number;
+  totalSuccesses: number;
+  totalFailures: number;
+  totalLatencyMs: number;
+  lastUsedAt: string | null;
+  byModel: Record<string, ModelMetrics>;
+  byTarget: Record<string, ComboTargetMetrics>;
+}
+
 interface ModelMetricsView extends ModelMetrics {
   avgLatencyMs: number;
   successRate: number;
@@ -47,9 +57,18 @@ interface ComboTargetMetricsView extends ComboTargetMetrics {
 }
 
 interface ComboMetricsView extends ComboMetricsEntry {
+  productionTraffic: boolean;
   avgLatencyMs: number;
   successRate: number;
   fallbackRate: number;
+  byModel: Record<string, ModelMetricsView>;
+  byTarget: Record<string, ComboTargetMetricsView>;
+  shadow: ComboShadowMetricsView;
+}
+
+interface ComboShadowMetricsView extends ComboShadowMetricsEntry {
+  avgLatencyMs: number;
+  successRate: number;
   byModel: Record<string, ModelMetricsView>;
   byTarget: Record<string, ComboTargetMetricsView>;
 }
@@ -95,6 +114,18 @@ function createComboEntry(strategy: string): ComboMetricsEntry {
     strategy,
     lastUsedAt: null,
     intentCounts: {},
+    byModel: {},
+    byTarget: {},
+  };
+}
+
+function createShadowEntry(): ComboShadowMetricsEntry {
+  return {
+    totalRequests: 0,
+    totalSuccesses: 0,
+    totalFailures: 0,
+    totalLatencyMs: 0,
+    lastUsedAt: null,
     byModel: {},
     byTarget: {},
   };
@@ -156,6 +187,7 @@ function toMetricView<T extends ModelMetrics>(
 
 // In-memory store
 const metrics = new Map<string, ComboMetricsEntry>();
+const shadowMetrics = new Map<string, ComboShadowMetricsEntry>();
 
 /**
  * Record a combo request result.
@@ -234,16 +266,100 @@ export function recordComboRequest(
 }
 
 /**
+ * Record a shadow/dark-launch combo request result in isolated metrics.
+ * Shadow metrics are deliberately not mixed into production counters because
+ * least-used and P2C strategies read production metrics for routing decisions.
+ */
+export function recordComboShadowRequest(
+  comboName: string,
+  modelStr: string | null,
+  {
+    success,
+    latencyMs,
+    target,
+  }: {
+    success: boolean;
+    latencyMs: number;
+    target?: ComboRequestTargetMeta | null;
+  }
+): void {
+  if (!shadowMetrics.has(comboName)) {
+    shadowMetrics.set(comboName, createShadowEntry());
+  }
+
+  const combo = shadowMetrics.get(comboName);
+  if (!combo) return;
+
+  const usedAt = new Date().toISOString();
+  combo.totalRequests++;
+  combo.totalLatencyMs += latencyMs;
+  combo.lastUsedAt = usedAt;
+
+  if (success) combo.totalSuccesses++;
+  else combo.totalFailures++;
+
+  if (!modelStr) return;
+
+  if (!combo.byModel[modelStr]) {
+    combo.byModel[modelStr] = createModelMetrics();
+  }
+  applyMetricOutcome(combo.byModel[modelStr], success, latencyMs, usedAt);
+
+  const targetMetric = buildTargetMetric(modelStr, target || {});
+  if (!targetMetric) return;
+
+  if (!combo.byTarget[targetMetric.executionKey]) {
+    combo.byTarget[targetMetric.executionKey] = targetMetric;
+  }
+
+  const existingTargetMetric = combo.byTarget[targetMetric.executionKey];
+  existingTargetMetric.stepId = targetMetric.stepId || existingTargetMetric.stepId;
+  existingTargetMetric.provider = targetMetric.provider || existingTargetMetric.provider;
+  existingTargetMetric.providerId = targetMetric.providerId || existingTargetMetric.providerId;
+  existingTargetMetric.connectionId =
+    target?.connectionId === null
+      ? null
+      : (targetMetric.connectionId ?? existingTargetMetric.connectionId);
+  existingTargetMetric.label =
+    target?.label === null ? null : (targetMetric.label ?? existingTargetMetric.label);
+
+  applyMetricOutcome(existingTargetMetric, success, latencyMs, usedAt);
+}
+
+function getComboShadowMetrics(comboName: string): ComboShadowMetricsView {
+  const combo = shadowMetrics.get(comboName) || createShadowEntry();
+  return {
+    ...combo,
+    avgLatencyMs:
+      combo.totalRequests > 0 ? Math.round(combo.totalLatencyMs / combo.totalRequests) : 0,
+    successRate:
+      combo.totalRequests > 0 ? Math.round((combo.totalSuccesses / combo.totalRequests) * 100) : 0,
+    byModel: Object.fromEntries(
+      Object.entries(combo.byModel).map(([model, metric]) => [model, toMetricView(metric)])
+    ),
+    byTarget: Object.fromEntries(
+      Object.entries(combo.byTarget).map(([executionKey, metric]) => [
+        executionKey,
+        toMetricView(metric),
+      ])
+    ),
+  };
+}
+
+/**
  * Get metrics for a specific combo.
  * @param {string} comboName
  * @returns {Object|null}
  */
 export function getComboMetrics(comboName: string): ComboMetricsView | null {
-  const combo = metrics.get(comboName);
+  const productionCombo = metrics.get(comboName);
+  const combo =
+    productionCombo || (shadowMetrics.has(comboName) ? createComboEntry("priority") : null);
   if (!combo) return null;
 
   return {
     ...combo,
+    productionTraffic: !!productionCombo && productionCombo.totalRequests > 0,
     avgLatencyMs:
       combo.totalRequests > 0 ? Math.round(combo.totalLatencyMs / combo.totalRequests) : 0,
     successRate:
@@ -260,6 +376,7 @@ export function getComboMetrics(comboName: string): ComboMetricsView | null {
         toMetricView(metric),
       ])
     ),
+    shadow: getComboShadowMetrics(comboName),
   };
 }
 
@@ -269,7 +386,7 @@ export function getComboMetrics(comboName: string): ComboMetricsView | null {
  */
 export function getAllComboMetrics(): Record<string, ComboMetricsView | null> {
   const result: Record<string, ComboMetricsView | null> = {};
-  for (const [name] of metrics) {
+  for (const name of new Set([...metrics.keys(), ...shadowMetrics.keys()])) {
     result[name] = getComboMetrics(name);
   }
   return result;
@@ -294,6 +411,7 @@ export function recordComboIntent(comboName: string, intent: string): void {
  */
 export function resetComboMetrics(comboName: string): void {
   metrics.delete(comboName);
+  shadowMetrics.delete(comboName);
 }
 
 /**
@@ -301,4 +419,5 @@ export function resetComboMetrics(comboName: string): void {
  */
 export function resetAllComboMetrics(): void {
   metrics.clear();
+  shadowMetrics.clear();
 }

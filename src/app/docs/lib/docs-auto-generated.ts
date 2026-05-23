@@ -968,7 +968,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Self-Healing",
       "Bandit Exploration",
       "API",
-      "Task Fitness",
+      "Auto router strategies",
     ],
   },
   {
