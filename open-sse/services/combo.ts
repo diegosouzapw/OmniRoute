@@ -513,12 +513,13 @@ function scheduleShadowRouting(
 ): void {
   if (targets.length === 0) return;
   const shadowConfig = normalizeShadowRoutingConfig(config);
+  const shadowBaseBody = cloneRequestBodyForShadowRouting(body);
   const run = async () => {
     await Promise.all(
       targets.map(async (target) => {
         const startedAt = Date.now();
         const shadowBody = {
-          ...cloneRequestBodyForShadowRouting(body),
+          ...cloneRequestBodyForShadowRouting(shadowBaseBody),
           model: target.modelStr,
           stream: false,
         };
@@ -2953,11 +2954,10 @@ export async function handleComboChat({
     return comboModelNotFoundResponse("Combo has no executable targets");
   }
 
-  const shadowRoutingBody = cloneRequestBodyForShadowRouting(body);
   scheduleShadowRouting(
     combo,
     config,
-    shadowRoutingBody,
+    body,
     resolveShadowTargets(combo, config, allCombos),
     handleSingleModelWrapped,
     isModelAvailable,

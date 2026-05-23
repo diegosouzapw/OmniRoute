@@ -877,7 +877,10 @@ const CODEX_GLOBAL_SERVICE_MODE_VALUES: CodexGlobalServiceMode[] = [
   ...CODEX_ACCOUNT_SERVICE_TIER_VALUES,
 ];
 
-function getCodexServiceTierLabel(t: ProviderMessageTranslator, value: CodexGlobalServiceMode) {
+function getCodexServiceTierLabel(
+  t: ProviderMessageTranslator,
+  value: CodexGlobalServiceMode
+): string {
   if (value === "none") {
     return providerText(t, "codexServiceModeNone", "No global setting");
   }
@@ -1331,6 +1334,7 @@ export default function ProviderDetailPage() {
     ...CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
   ]);
   const [codexSettingsLoaded, setCodexSettingsLoaded] = useState(false);
+  const [codexSettingsLoadError, setCodexSettingsLoadError] = useState<string | null>(null);
   const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
@@ -1628,20 +1632,38 @@ export default function ProviderDetailPage() {
     }
   }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
-  useEffect(() => {
-    if (providerId !== "codex") return;
+  const loadCodexSettings = useCallback(async () => {
+    if (providerId !== "codex") {
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(null);
+      return;
+    }
+
     setCodexSettingsLoaded(false);
-    fetch("/api/settings", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return;
-        const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
-        setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
-        setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
-        setCodexSettingsLoaded(true);
-      })
-      .catch(() => setCodexSettingsLoaded(false));
+    setCodexSettingsLoadError(null);
+
+    try {
+      const response = await fetch("/api/settings", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Settings request failed with HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data || typeof data !== "object") {
+        throw new Error("Settings response was empty");
+      }
+      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
+      setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
+      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
+      setCodexSettingsLoaded(true);
+    } catch (error) {
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(error instanceof Error ? error.message : "Failed to load settings");
+    }
   }, [providerId]);
+
+  useEffect(() => {
+    void loadCodexSettings();
+  }, [loadCodexSettings]);
 
   const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
     if (!conns.length) return;
@@ -3825,6 +3847,16 @@ export default function ProviderDetailPage() {
                       </option>
                     ))}
                   </select>
+                  {codexSettingsLoadError ? (
+                    <button
+                      type="button"
+                      onClick={() => void loadCodexSettings()}
+                      className="rounded border border-sky-500/30 px-2 py-0.5 text-[11px] font-medium text-sky-600 hover:bg-sky-500/10 dark:text-sky-300"
+                      title={codexSettingsLoadError}
+                    >
+                      {providerText(t, "retry", "Retry")}
+                    </button>
+                  ) : null}
                 </label>
               )}
               {/* Provider-level proxy indicator/button */}

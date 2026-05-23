@@ -341,7 +341,11 @@ export async function executeChatWithBreaker({
   trafficType = "production",
 }: ExecuteChatWithBreakerOptions): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
   let tlsFingerprintUsed = false;
-  const isShadowTraffic = trafficType === "shadow";
+  const normalizedTrafficType: TrafficType =
+    typeof trafficType === "string" && trafficType.trim().toLowerCase() === "shadow"
+      ? "shadow"
+      : "production";
+  const isShadowTraffic = normalizedTrafficType === "shadow";
 
   try {
     const chatFn = () =>
@@ -363,7 +367,7 @@ export async function executeChatWithBreaker({
           disableEmergencyFallback: isCombo,
           cachedSettings,
           skipUpstreamRetry,
-          trafficType,
+          trafficType: normalizedTrafficType,
           onCredentialsRefreshed: async (newCreds: any) => {
             await updateProviderCredentials(credentials.connectionId, {
               accessToken: newCreds.accessToken,

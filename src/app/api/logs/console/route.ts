@@ -49,12 +49,14 @@ function parseLevel(raw: string | number): string {
 function stringifyLogValue(value: unknown): string {
   if (value === undefined || value === null) return "";
   if (typeof value === "string") return value;
+  if (value instanceof Error) return value.message || value.name;
   if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint") {
     return String(value);
   }
 
   try {
-    return JSON.stringify(value);
+    const json = JSON.stringify(value);
+    return typeof json === "string" ? json : String(value);
   } catch {
     return String(value);
   }
