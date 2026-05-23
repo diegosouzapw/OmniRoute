@@ -56,9 +56,10 @@ test.after(() => {
 
 test("combo builder options route aggregates providers, connections, models and combo refs", async () => {
   const nowPlusMinute = Date.now() + 60_000;
+  // gpt-4o was removed from the openai registry; use gpt-4.1 (confirmed at providerRegistry.ts:1156)
   modelsDevSync.saveModelsDevCapabilities({
     openai: {
-      "gpt-4o": {
+      "gpt-4.1": {
         tool_call: true,
         reasoning: false,
         attachment: true,
@@ -67,14 +68,14 @@ test("combo builder options route aggregates providers, connections, models and 
         modalities_input: JSON.stringify(["text", "image"]),
         modalities_output: JSON.stringify(["text"]),
         knowledge_cutoff: "2024-10",
-        release_date: "2024-05-13",
+        release_date: "2024-04-14",
         last_updated: "2024-10-01",
         status: "stable",
         family: "gpt-4",
         open_weights: false,
-        limit_context: 128000,
-        limit_input: 128000,
-        limit_output: 16384,
+        limit_context: 1047576,
+        limit_input: 1047576,
+        limit_output: 32768,
         interleaved_field: null,
       },
     },
@@ -83,7 +84,7 @@ test("combo builder options route aggregates providers, connections, models and 
   await seedConnection("openai", {
     name: "OpenAI Primary",
     priority: 2,
-    defaultModel: "gpt-4o",
+    defaultModel: "gpt-4.1",
   });
   await seedConnection("openai", {
     authType: "oauth",
@@ -115,12 +116,12 @@ test("combo builder options route aggregates providers, connections, models and 
   const visibleCombo = await combosDb.createCombo({
     name: "team-router",
     strategy: "priority",
-    models: ["openai/gpt-4o"],
+    models: ["openai/gpt-4.1"],
   });
   await combosDb.createCombo({
     name: "hidden-router",
     strategy: "priority",
-    models: ["openai/gpt-4o"],
+    models: ["openai/gpt-4.1"],
     isHidden: true,
   });
 
@@ -139,9 +140,9 @@ test("combo builder options route aggregates providers, connections, models and 
   assert.equal(openai.displayName, "OpenAI");
   assert.equal(openai.connectionCount, 2);
   assert.equal(openai.activeConnectionCount, 1);
-  assert.ok(openai.models.some((model) => model.id === "gpt-4o"));
-  assert.equal(openai.models.find((model) => model.id === "gpt-4o").outputTokenLimit, 16384);
-  assert.equal(openai.models.find((model) => model.id === "gpt-4o").supportsThinking, false);
+  assert.ok(openai.models.some((model) => model.id === "gpt-4.1"));
+  assert.equal(openai.models.find((model) => model.id === "gpt-4.1").outputTokenLimit, 32768);
+  assert.equal(openai.models.find((model) => model.id === "gpt-4.1").supportsThinking, false);
   assert.equal(
     openai.models.some((model) => model.id === "gpt-4o-mini"),
     false

@@ -9,18 +9,18 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import {
-  getApiKeyMetadata,
-  getComboByName,
-  deactivateSaasCustomerApiKeys,
-  getSaasPolicyForApiKeyId,
-  isAllowedBySaasPattern,
-  isModelAllowedForKey,
-} from "@/lib/localDb";
+import { getApiKeyMetadata, isModelAllowedForKey } from "@/lib/localDb";
 import { checkBudget } from "@/domain/costRules";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
+import { checkRateLimit, RateLimitRule } from "./rateLimiter";
+
+// Default to no per-key request cap. API keys can still opt into explicit
+// limits via Settings/API Manager, while provider/account quota controls remain
+// responsible for upstream 429 handling and fallback.
+// Exported so tests can lock in the "no implicit caps" contract from #2289.
+export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
 
 interface AccessSchedule {
   enabled: boolean;
@@ -41,10 +41,13 @@ export interface ApiKeyMetadata {
   budget?: number;
   usedBudget?: number;
   isActive?: boolean;
+  isBanned?: boolean;
+  expiresAt?: string | null;
   accessSchedule?: AccessSchedule | null;
   maxRequestsPerDay?: number | null;
   maxRequestsPerMinute?: number | null;
   maxSessions?: number | null;
+  rateLimits?: RateLimitRule[] | null;
 }
 
 /**
@@ -113,101 +116,7 @@ function isWithinSchedule(schedule: AccessSchedule): boolean {
   return localMinutes >= fromMinutes && localMinutes < untilMinutes;
 }
 
-// ── In-memory request counter for per-key rate limits (#452) ──
-
-/** Sliding-window request timestamps per API key */
-const _requestTimestamps = new Map<string, number[]>();
-const REQUEST_COUNTER_MAX_KEYS = 5000;
-const REQUEST_DAY_MS = 24 * 60 * 60 * 1000;
-const REQUEST_MINUTE_MS = 60 * 1000;
-const SUPPORT_SITE = "ramelseg.com.br";
-
-/** Record a request and check per-key limits. Returns null if OK, or an error message. */
-function checkRequestCountLimits(
-  apiKeyId: string,
-  maxPerDay: number | null | undefined,
-  maxPerMinute: number | null | undefined
-): string | null {
-  if (!maxPerDay && !maxPerMinute) return null;
-
-  const now = Date.now();
-
-  // Get or create timestamp array for this key
-  let timestamps = _requestTimestamps.get(apiKeyId);
-  if (!timestamps) {
-    timestamps = [];
-    _requestTimestamps.set(apiKeyId, timestamps);
-    // Prevent unbounded growth
-    if (_requestTimestamps.size > REQUEST_COUNTER_MAX_KEYS) {
-      const firstKey = _requestTimestamps.keys().next().value;
-      if (firstKey) _requestTimestamps.delete(firstKey);
-    }
-  }
-
-  // Prune timestamps older than 24h
-  const dayAgo = now - REQUEST_DAY_MS;
-  while (timestamps.length > 0 && timestamps[0] < dayAgo) {
-    timestamps.shift();
-  }
-
-  // Check per-minute limit (before recording this request)
-  if (maxPerMinute && maxPerMinute > 0) {
-    const minuteAgo = now - REQUEST_MINUTE_MS;
-    const recentCount = timestamps.filter((t) => t >= minuteAgo).length;
-    if (recentCount >= maxPerMinute) {
-      return `Per-minute request limit exceeded (${maxPerMinute} RPM). Try again in a few seconds.`;
-    }
-  }
-
-  // Check per-day limit
-  if (maxPerDay && maxPerDay > 0) {
-    if (timestamps.length >= maxPerDay) {
-      return `Daily request limit exceeded (${maxPerDay} RPD). Resets in ${Math.ceil(
-        (timestamps[0] + REQUEST_DAY_MS - now) / 60000
-      )} minutes.`;
-    }
-  }
-
-  // All checks passed — record this request
-  timestamps.push(now);
-  return null;
-}
-
-function getFriendlySaasBlockMessage(reason: string | null | undefined): {
-  status: number;
-  message: string;
-} {
-  if (reason === "billing") {
-    return {
-      status: HTTP_STATUS.PAYMENT_REQUIRED,
-      message: `Sua conta esta com uma pendencia financeira. Para continuar usando a API, regularize a mensalidade ou fale com o suporte. Acesse: ${SUPPORT_SITE}`,
-    };
-  }
-
-  if (reason === "limit") {
-    return {
-      status: HTTP_STATUS.RATE_LIMITED,
-      message: `Seu limite de tokens deste ciclo foi atingido. Para continuar usando a API, aguarde a renovacao do ciclo ou solicite tokens adicionais. Acesse: ${SUPPORT_SITE}`,
-    };
-  }
-
-  return {
-    status: HTTP_STATUS.FORBIDDEN,
-    message: `Esta API key esta temporariamente desativada. Entre em contato com o suporte para entender o motivo e reativar o acesso. Acesse: ${SUPPORT_SITE}`,
-  };
-}
-
-function getFriendlyCustomerStatusMessage(status: string): string {
-  if (status === "blocked") {
-    return `Sua conta esta bloqueada no momento. Entre em contato com o suporte para verificar a situacao e reativar o acesso. Acesse: ${SUPPORT_SITE}`;
-  }
-
-  if (status === "inactive") {
-    return `Sua conta esta inativa no momento. Entre em contato com o suporte para ativar seu acesso novamente. Acesse: ${SUPPORT_SITE}`;
-  }
-
-  return `Sua conta nao esta liberada para uso da API no momento. Entre em contato com o suporte para verificar a situacao. Acesse: ${SUPPORT_SITE}`;
-}
+// Legacy in-memory request counter has been replaced by Redis-backed multi-window rate limiter
 
 export interface ApiKeyPolicyResult {
   /** API key string (null if no key provided) */
@@ -266,53 +175,35 @@ export async function enforceApiKeyPolicy(
     return { apiKey, apiKeyInfo: null, rejection: null };
   }
 
-  let saasPolicyApplied = false;
-  let saasPolicy: ReturnType<typeof getSaasPolicyForApiKeyId> | null = null;
-  if (apiKeyInfo.id) {
-    try {
-      saasPolicy = getSaasPolicyForApiKeyId(apiKeyInfo.id);
-      saasPolicyApplied = Boolean(saasPolicy);
-    } catch (error) {
-      log.error("API_POLICY", "SaaS customer policy failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Customer policy unavailable"),
-      };
-    }
-  }
-
-  if (saasPolicy?.usage.blocked) {
-    if (saasPolicy.usage.blockReason === "limit" || saasPolicy.usage.blockReason === "billing") {
-      deactivateSaasCustomerApiKeys(saasPolicy.customer.id, saasPolicy.usage.blockReason);
-    }
-    const friendlyBlock = getFriendlySaasBlockMessage(saasPolicy.usage.blockReason);
-    return {
-      apiKey,
-      apiKeyInfo,
-      rejection: errorResponse(friendlyBlock.status, friendlyBlock.message),
-    };
-  }
-
-  if (saasPolicy && !saasPolicy.apiKey.isActive) {
-    const friendlyBlock = getFriendlySaasBlockMessage(null);
-    return {
-      apiKey,
-      apiKeyInfo,
-      rejection: errorResponse(friendlyBlock.status, friendlyBlock.message),
-    };
-  }
-
-  // ── Check 1: is_active — hard block regardless of schedule ──
+  // ── Check 1: is_active / is_banned ──
   if (apiKeyInfo.isActive === false) {
+    return {
+      apiKey,
+      apiKeyInfo,
+      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
+    };
+  }
+  if (apiKeyInfo.isBanned === true) {
     return {
       apiKey,
       apiKeyInfo,
       rejection: errorResponse(
         HTTP_STATUS.FORBIDDEN,
-        "Esta API key esta desativada. Verifique se ela ainda esta ativa no painel ou fale com o suporte para reativar o acesso."
+        "This API key is banned due to policy violations"
       ),
     };
+  }
+
+  // ── Check 1.5: expires_at ──
+  if (apiKeyInfo.expiresAt) {
+    const expiry = new Date(apiKeyInfo.expiresAt).getTime();
+    if (Date.now() > expiry) {
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key has expired"),
+      };
+    }
   }
 
   // ── Check 2: access_schedule — time-based access window ──
@@ -331,79 +222,7 @@ export async function enforceApiKeyPolicy(
   }
 
   // ── Check 3: Model restriction ──
-  if (apiKeyInfo.id) {
-    try {
-      if (saasPolicy) {
-        if (saasPolicy.customer.status !== "active") {
-          return {
-            apiKey,
-            apiKeyInfo,
-            rejection: errorResponse(
-              HTTP_STATUS.FORBIDDEN,
-              getFriendlyCustomerStatusMessage(saasPolicy.customer.status)
-            ),
-          };
-        }
-        if (!saasPolicy.plan || !saasPolicy.plan.isActive) {
-          return {
-            apiKey,
-            apiKeyInfo,
-            rejection: errorResponse(
-              HTTP_STATUS.FORBIDDEN,
-              `O plano vinculado a sua conta esta inativo. Entre em contato com o suporte para atualizar o plano e liberar o acesso. Acesse: ${SUPPORT_SITE}`
-            ),
-          };
-        }
-
-        if (modelStr) {
-          const combo = await getComboByName(modelStr).catch(() => null);
-          if (combo) {
-            const comboAllowed =
-              saasPolicy.plan.allowAllCombos ||
-              isAllowedBySaasPattern(modelStr, saasPolicy.allowedCombos);
-            if (!comboAllowed) {
-              return {
-                apiKey,
-                apiKeyInfo,
-                rejection: errorResponse(
-                  HTTP_STATUS.FORBIDDEN,
-                  `Combo "${modelStr}" is not enabled for this customer`
-                ),
-              };
-            }
-          } else {
-            const modelAllowed =
-              saasPolicy.plan.allowAllModels ||
-              isAllowedBySaasPattern(modelStr, saasPolicy.allowedModels);
-            if (!modelAllowed) {
-              return {
-                apiKey,
-                apiKeyInfo,
-                rejection: errorResponse(
-                  HTTP_STATUS.FORBIDDEN,
-                  `Model "${modelStr}" is not enabled for this customer`
-                ),
-              };
-            }
-          }
-        }
-      }
-    } catch (error) {
-      log.error("API_POLICY", "SaaS customer policy failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Customer policy unavailable"),
-      };
-    }
-  }
-
-  if (
-    !saasPolicyApplied &&
-    modelStr &&
-    apiKeyInfo.allowedModels &&
-    apiKeyInfo.allowedModels.length > 0
-  ) {
+  if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
     const allowed = await isModelAllowedForKey(apiKey, modelStr);
     if (!allowed) {
       return {
@@ -442,18 +261,35 @@ export async function enforceApiKeyPolicy(
     }
   }
 
-  // ── Check 5: Request-count limits (#452) ──
-  if (apiKeyInfo.id && (apiKeyInfo.maxRequestsPerDay || apiKeyInfo.maxRequestsPerMinute)) {
-    const limitError = checkRequestCountLimits(
-      apiKeyInfo.id,
-      apiKeyInfo.maxRequestsPerDay,
-      apiKeyInfo.maxRequestsPerMinute
-    );
-    if (limitError) {
+  // ── Check 5: Generic Multi-Window Rate Limits ──
+  if (apiKeyInfo.id) {
+    const rulesToApply =
+      apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0
+        ? [...apiKeyInfo.rateLimits]
+        : [...DEFAULT_RATE_LIMITS];
+
+    // Combine with legacy limits if they exist and custom rate limits aren't set
+    if (!apiKeyInfo.rateLimits || apiKeyInfo.rateLimits.length === 0) {
+      if (apiKeyInfo.maxRequestsPerDay) {
+        rulesToApply.push({ limit: apiKeyInfo.maxRequestsPerDay, window: 86400 });
+      }
+      if (apiKeyInfo.maxRequestsPerMinute) {
+        rulesToApply.push({ limit: apiKeyInfo.maxRequestsPerMinute, window: 60 });
+      }
+    }
+
+    const rateLimitResult = await checkRateLimit(apiKeyInfo.id, rulesToApply);
+    if (!rateLimitResult.allowed) {
+      const failedWindowStr = rateLimitResult.failedWindow
+        ? ` (${rateLimitResult.failedWindow}s window)`
+        : "";
       return {
         apiKey,
         apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.RATE_LIMITED, limitError),
+        rejection: errorResponse(
+          HTTP_STATUS.RATE_LIMITED,
+          `Request limit exceeded${failedWindowStr}. Please try again later.`
+        ),
       };
     }
   }

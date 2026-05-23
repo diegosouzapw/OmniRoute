@@ -81,6 +81,41 @@ test("#2232 — whitespace-only VISION_BRIDGE_BASE_URL falls through to OPENAI_A
   assert.equal(resolveVisionBridgeBaseUrl(), "https://oai.example.com/v1");
 });
 
+test("#2232 — OmniRoute-internal providers default to self-loop when no env vars set", () => {
+  clearEnv();
+  // Non-standard prefixes (kr/, if/, pol/, groq/) should use OmniRoute self-loop
+  assert.equal(resolveVisionBridgeBaseUrl("kr/claude-sonnet-4-5"), "http://localhost:20128/v1");
+  assert.equal(resolveVisionBridgeBaseUrl("if/kimi-k2-thinking"), "http://localhost:20128/v1");
+  assert.equal(resolveVisionBridgeBaseUrl("pol/gpt-5"), "http://localhost:20128/v1");
+});
+
+test("#2232 — OpenAI and Anthropic models still default to api.openai.com", () => {
+  clearEnv();
+  // Standard prefixes should keep default behavior
+  assert.equal(resolveVisionBridgeBaseUrl("openai/gpt-4o"), "https://api.openai.com/v1");
+  assert.equal(
+    resolveVisionBridgeBaseUrl("anthropic/claude-sonnet-4-5"),
+    "https://api.openai.com/v1" // anthropic goes through a different code path
+    // but if passed here, should not self-loop
+  );
+});
+
+test("#2232 — unprefixed model names default to api.openai.com", () => {
+  clearEnv();
+  // Models without provider prefix should keep default behavior
+  assert.equal(resolveVisionBridgeBaseUrl("gpt-4o-mini"), "https://api.openai.com/v1");
+  assert.equal(resolveVisionBridgeBaseUrl("deepseek-v4-flash"), "https://api.openai.com/v1");
+});
+
+test("#2232 — VISION_BRIDGE_BASE_URL env var takes precedence over self-loop auto-detection", () => {
+  clearEnv();
+  process.env.VISION_BRIDGE_BASE_URL = "https://custom-proxy.example.com/v1";
+  assert.equal(
+    resolveVisionBridgeBaseUrl("kr/claude-sonnet-4-5"),
+    "https://custom-proxy.example.com/v1"
+  );
+});
+
 // ─── resolveProviderApiKey ────────────────────────────────────────────────
 
 test("#2232 — VISION_BRIDGE_API_KEY wins for non-anthropic models", () => {

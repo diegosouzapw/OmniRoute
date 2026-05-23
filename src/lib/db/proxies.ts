@@ -94,6 +94,22 @@ function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
   };
 }
 
+function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: string | null) {
+  const record = toRecord(row);
+  return {
+    proxy: {
+      type: record.type,
+      host: record.host,
+      port: record.port,
+      username: record.username,
+      password: record.password,
+    },
+    level,
+    levelId,
+    source: "registry",
+  };
+}
+
 function normalizeScope(scope: string): ProxyScope {
   const value = String(scope || "").toLowerCase();
   if (value === "key") return "account";
@@ -482,6 +498,39 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
   }
 }
 
+export async function resolveProxyForScopeFromRegistry(scope: string, scopeId?: string | null) {
+  try {
+    const db = getDbInstance();
+    const normalizedScope = normalizeScope(scope);
+
+    if (normalizedScope === "global") {
+      const globalAssignment = db
+        .prepare(
+          "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
+        )
+        .get();
+      return globalAssignment ? toRegistryProxyResolution(globalAssignment, "global", null) : null;
+    }
+
+    const normalizedScopeId = scopeId || null;
+    if (!normalizedScopeId) return null;
+
+    const assignment = db
+      .prepare(
+        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = ? AND a.scope_id = ? LIMIT 1"
+      )
+      .get(normalizedScope, normalizedScopeId);
+
+    return assignment
+      ? toRegistryProxyResolution(assignment, normalizedScope, normalizedScopeId)
+      : null;
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("no such table")) return null;
+    throw error;
+  }
+}
+
 export async function migrateLegacyProxyConfigToRegistry(options?: { force?: boolean }) {
   const force = options?.force === true;
   const db = getDbInstance();
@@ -649,39 +698,43 @@ export async function bulkAssignProxyToScope(
  */
 export async function resolveProxyForProvider(providerId: string) {
   try {
-    const db = getDbInstance();
+    // Resolve by specificity across both storage backends. The GUI Custom tab
+    // still writes provider/global proxies to the legacy config, while Saved
+    // Proxy uses the registry. A registry-global fallback must not shadow a
+    // more-specific legacy provider proxy (#2601).
+    const registryProvider = await resolveProxyForScopeFromRegistry("provider", providerId);
+    if (registryProvider?.proxy) return registryProvider.proxy;
 
-    // Check provider-level proxy
-    const providerAssignment = db
-      .prepare(
-        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'provider' AND a.scope_id = ? LIMIT 1"
-      )
-      .get(providerId);
-    if (providerAssignment) {
-      const record = toRecord(providerAssignment);
+    // Fallback: honor the legacy per-provider / global proxy config (set via
+    // /api/settings/proxy?level=provider&id=...). The proxy registry only tracks
+    // explicit assignments; without this fallback the OAuth token exchange and
+    // token-refresh paths ignore a proxy configured the legacy way and connect
+    // directly — which on a VPS trips Anthropic's IP rate limit (#2456).
+    // resolveProxyForConnection already has this fallback; mirror it here.
+    // Dynamic import avoids a static cycle (settings.ts imports from proxies.ts).
+    const { getProxyForLevel } = await import("./settings");
+    const legacyProvider = await getProxyForLevel("provider", providerId);
+    if (legacyProvider && typeof legacyProvider === "object" && legacyProvider.host) {
       return {
-        type: record.type,
-        host: record.host,
-        port: record.port,
-        username: record.username,
-        password: record.password,
+        type: legacyProvider.type,
+        host: legacyProvider.host,
+        port: legacyProvider.port,
+        username: legacyProvider.username,
+        password: legacyProvider.password,
       };
     }
 
-    // Check global proxy
-    const globalAssignment = db
-      .prepare(
-        "SELECT p.id, p.type, p.host, p.port, p.username, p.password FROM proxy_assignments a JOIN proxy_registry p ON p.id = a.proxy_id WHERE a.scope = 'global' LIMIT 1"
-      )
-      .get();
-    if (globalAssignment) {
-      const record = toRecord(globalAssignment);
+    const registryGlobal = await resolveProxyForScopeFromRegistry("global");
+    if (registryGlobal?.proxy) return registryGlobal.proxy;
+
+    const legacyGlobal = await getProxyForLevel("global");
+    if (legacyGlobal && typeof legacyGlobal === "object" && legacyGlobal.host) {
       return {
-        type: record.type,
-        host: record.host,
-        port: record.port,
-        username: record.username,
-        password: record.password,
+        type: legacyGlobal.type,
+        host: legacyGlobal.host,
+        port: legacyGlobal.port,
+        username: legacyGlobal.username,
+        password: legacyGlobal.password,
       };
     }
 

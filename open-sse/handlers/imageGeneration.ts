@@ -2193,7 +2193,7 @@ async function handleCodexImageGeneration({
   if (log && requestedCount > 1) {
     log.warn(
       "IMAGE",
-      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will run sequentially`
+      `Codex hosted image_generation returns one image per call; requested n=${requestedCount} will fan out in parallel`
     );
   }
 
@@ -2262,8 +2262,7 @@ async function handleCodexImageGeneration({
     );
   }
 
-  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
-  for (let i = 0; i < requestedCount; i++) {
+  const fetchOneImage = async () => {
     let response: Response;
     try {
       response = await fetch(providerConfig.baseUrl, {
@@ -2273,44 +2272,64 @@ async function handleCodexImageGeneration({
       });
     } catch (err) {
       if (log) log.error("IMAGE", `${provider} fetch error: ${(err as Error).message}`);
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error: `Image provider error: ${(err as Error).message}`,
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error: `Image provider error: ${(err as Error).message}`,
+          requestBody: upstreamBody,
+        },
+      };
     }
 
     if (!response.ok) {
       const errorText = await response.text();
       if (log)
         log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: response.status,
-        startTime,
-        error: errorText,
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: response.status,
+          startTime,
+          error: errorText,
+          requestBody: upstreamBody,
+        },
+      };
     }
 
     const rawSSE = await response.text();
     const items = extractImageGenerationCalls(rawSSE);
     if (items.length === 0) {
-      return saveImageErrorResult({
-        provider,
-        model,
-        status: 502,
-        startTime,
-        error:
-          "Codex completed without producing an image_generation_call — the model may have declined the tool",
-        requestBody: upstreamBody,
-      });
+      return {
+        ok: false as const,
+        error: {
+          provider,
+          model,
+          status: 502,
+          startTime,
+          error:
+            "Codex completed without producing an image_generation_call — the model may have declined the tool",
+          requestBody: upstreamBody,
+        },
+      };
     }
-    for (const item of items) {
+
+    return { ok: true as const, items };
+  };
+
+  const imageResults = await Promise.all(
+    Array.from({ length: requestedCount }, () => fetchOneImage())
+  );
+
+  const collected: Array<{ b64_json: string; revised_prompt?: string }> = [];
+  for (const imageResult of imageResults) {
+    if (!imageResult.ok) return saveImageErrorResult(imageResult.error);
+    for (const item of imageResult.items) {
       collected.push({
         b64_json: item.b64,
         ...(item.revisedPrompt ? { revised_prompt: item.revisedPrompt } : {}),

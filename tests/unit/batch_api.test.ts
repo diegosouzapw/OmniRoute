@@ -781,7 +781,8 @@ test("Batch processor keeps cancelled status for in-flight batches", async () =>
       method: "POST",
       url: "/v1/chat/completions",
       body: {
-        model: "openai/gpt-4o-mini",
+        // openai/gpt-4o-mini is now ambiguous (multi-provider); use o3-mini which resolves unambiguously to openai
+        model: "openai/o3-mini",
         messages: [{ role: "user", content: "cancel me" }],
       },
     }),

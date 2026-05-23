@@ -75,6 +75,7 @@ export default function SkillsPage() {
   const [shInstallingId, setShInstallingId] = useState<string | null>(null);
   const [skillsProvider, setSkillsProvider] = useState<SkillsProvider>("skillsmp");
   const t = useTranslations("skills");
+  const commonT = useTranslations("common");
 
   const fetchSkills = async (page: number) => {
     const params = new URLSearchParams({ page: String(page), limit: "20" });
@@ -168,19 +169,19 @@ export default function SkillsPage() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setInstallStatus({ type: "success", message: `Skill installed (${data.id})` });
+        setInstallStatus({ type: "success", message: t("installSuccess", { id: data.id }) });
         setInstallJson("");
         await refreshSkills();
       } else {
         setInstallStatus({
           type: "error",
-          message: data.error || data.message || "Install failed",
+          message: data.error || data.message || t("installError"),
         });
       }
     } catch (err) {
       setInstallStatus({
         type: "error",
-        message: err instanceof Error ? err.message : "Invalid JSON",
+        message: err instanceof Error ? err.message : t("invalidJson"),
       });
     } finally {
       setInstalling(false);
@@ -205,12 +206,12 @@ export default function SkillsPage() {
       const res = await fetch(`/api/skills/marketplace?q=${encodeURIComponent(mpQuery)}`);
       const data = await res.json();
       if (!res.ok) {
-        setMpError(data.error || "Search failed");
+        setMpError(data.error || t("marketplaceError"));
       } else {
         setMpResults(Array.isArray(data) ? data : data.skills || []);
       }
     } catch (err) {
-      setMpError(err instanceof Error ? err.message : "Search failed");
+      setMpError(err instanceof Error ? err.message : t("marketplaceError"));
     } finally {
       setMpLoading(false);
     }
@@ -241,11 +242,11 @@ export default function SkillsPage() {
         await refreshSkills();
         setMpInstallingId(null);
       } else {
-        setMpError(data.error || "Install failed");
+        setMpError(data.error || t("installError"));
         setMpInstallingId(null);
       }
     } catch (err) {
-      setMpError(err instanceof Error ? err.message : "Install failed");
+      setMpError(err instanceof Error ? err.message : t("installError"));
       setMpInstallingId(null);
     }
   };
@@ -258,12 +259,12 @@ export default function SkillsPage() {
       const res = await fetch(`/api/skills/skillssh?q=${encodeURIComponent(shQuery)}`);
       const data = await res.json();
       if (!res.ok) {
-        setShError(data.error || "Search failed");
+        setShError(data.error || t("marketplaceError"));
       } else {
         setShResults(data.skills || []);
       }
     } catch (err) {
-      setShError(err instanceof Error ? err.message : "Search failed");
+      setShError(err instanceof Error ? err.message : t("marketplaceError"));
     } finally {
       setShLoading(false);
     }
@@ -293,11 +294,11 @@ export default function SkillsPage() {
         await refreshSkills();
         setShInstallingId(null);
       } else {
-        setShError(data.error || "Install failed");
+        setShError(data.error || t("installError"));
         setShInstallingId(null);
       }
     } catch (err) {
-      setShError(err instanceof Error ? err.message : "Install failed");
+      setShError(err instanceof Error ? err.message : t("installError"));
       setShInstallingId(null);
     }
   };
@@ -310,14 +311,41 @@ export default function SkillsPage() {
     );
   }
 
+  // ── Stats computation ────────────────────────────────────────────────────
+
+  const enabledCount = skills.filter((s) => s.enabled).length;
+  const execSuccessCount = executions.filter((e) => e.status === "success").length;
+  const successRate =
+    executions.length > 0 ? Math.round((execSuccessCount / executions.length) * 100) : 0;
+
   return (
     <div className="flex flex-col gap-6">
+      {/* ── Stats Cards ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">{t("totalSkills")}</p>
+          <p className="text-2xl font-bold text-text-main mt-1">{skillsTotal}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">{t("enabledSkills")}</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">{enabledCount}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">{t("totalExecutions")}</p>
+          <p className="text-2xl font-bold text-violet-400 mt-1">{execTotal}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-text-muted uppercase tracking-wide">{t("successRate")}</p>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{successRate}%</p>
+        </Card>
+      </div>
+
       <div className="flex justify-end">
         <button
           onClick={() => setShowInstallModal(true)}
           className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 transition-colors"
         >
-          Install Skill
+          {t("installSkillButton")}
         </button>
       </div>
 
@@ -360,7 +388,7 @@ export default function SkillsPage() {
               : "border-transparent text-text-muted hover:text-text-main"
           }`}
         >
-          Marketplace
+          {t("marketplaceTab")}
         </button>
       </div>
 
@@ -381,9 +409,9 @@ export default function SkillsPage() {
                 className="px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               >
                 <option value="all">{t("allModes")}</option>
-                <option value="on">On</option>
-                <option value="auto">Auto</option>
-                <option value="off">Off</option>
+                <option value="on">{t("onMode")}</option>
+                <option value="auto">{t("autoMode")}</option>
+                <option value="off">{t("offMode")}</option>
               </select>
               <button
                 onClick={() => {
@@ -392,15 +420,13 @@ export default function SkillsPage() {
                 }}
                 className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 transition-colors"
               >
-                Apply filters
+                {t("applyFilters")}
               </button>
             </div>
 
             {popularDefaults.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs text-text-muted mb-2">
-                  Popular by default for selected provider:
-                </p>
+                <p className="text-xs text-text-muted mb-2">{t("popularDefaultsLabel")}</p>
                 <div className="flex flex-wrap gap-2">
                   {popularDefaults.map((name) => (
                     <span
@@ -433,7 +459,7 @@ export default function SkillsPage() {
                         {(skill.sourceProvider || "local").toUpperCase()}
                       </span>
                       <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400">
-                        mode: {skill.mode || (skill.enabled ? "on" : "off")}
+                        {t("mode")}: {skill.mode || (skill.enabled ? "on" : "off")}
                       </span>
                     </div>
                     <p className="text-sm text-text-muted mt-1">{skill.description}</p>
@@ -460,7 +486,7 @@ export default function SkillsPage() {
                             : "border-border text-text-muted"
                         }`}
                       >
-                        ON
+                        {t("onMode")}
                       </button>
                       <button
                         onClick={() => setSkillMode(skill.id, "auto")}
@@ -470,7 +496,7 @@ export default function SkillsPage() {
                             : "border-border text-text-muted"
                         }`}
                       >
-                        AUTO
+                        {t("autoMode")}
                       </button>
                       <button
                         onClick={() => setSkillMode(skill.id, "off")}
@@ -480,14 +506,14 @@ export default function SkillsPage() {
                             : "border-border text-text-muted"
                         }`}
                       >
-                        OFF
+                        {t("offMode")}
                       </button>
                     </div>
                     <button
                       onClick={() => deleteSkill(skill.id)}
                       className="text-xs px-2 py-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
                     >
-                      Uninstall
+                      {t("delete")}
                     </button>
                     <button
                       onClick={() => toggleSkill(skill.id, skill.enabled)}
@@ -510,7 +536,11 @@ export default function SkillsPage() {
           )}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
             <span className="text-sm text-text-muted">
-              Page {skillsPage} of {skillsTotalPages} ({skillsTotal} total)
+              {t("pageInfo", {
+                page: skillsPage,
+                totalPages: skillsTotalPages,
+                total: skillsTotal,
+              })}
             </span>
             <div className="flex gap-2">
               <button
@@ -522,7 +552,7 @@ export default function SkillsPage() {
                 disabled={skillsPage === 1}
                 className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
               >
-                Prev
+                {t("previous")}
               </button>
               <button
                 onClick={() => {
@@ -533,7 +563,7 @@ export default function SkillsPage() {
                 disabled={skillsPage === skillsTotalPages || skillsTotalPages === 0}
                 className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
               >
-                Next
+                {t("next")}
               </button>
             </div>
           </div>
@@ -588,7 +618,8 @@ export default function SkillsPage() {
           </div>
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
             <span className="text-sm text-text-muted">
-              Page {execPage} of {execTotalPages} ({execTotal} total)
+              {t("pageInfo", { page: execPage, totalPages: execTotalPages, total: execTotal }) ||
+                `Page ${execPage} of ${execTotalPages} (${execTotal} total)`}
             </span>
             <div className="flex gap-2">
               <button
@@ -600,7 +631,7 @@ export default function SkillsPage() {
                 disabled={execPage === 1}
                 className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
               >
-                Prev
+                {t("previous") || "Prev"}
               </button>
               <button
                 onClick={() => {
@@ -611,7 +642,7 @@ export default function SkillsPage() {
                 disabled={execPage === execTotalPages || execTotalPages === 0}
                 className="px-3 py-1 text-sm rounded border border-border text-text-muted hover:text-text-main disabled:opacity-40 transition-colors"
               >
-                Next
+                {t("next") || "Next"}
               </button>
             </div>
           </div>
@@ -661,11 +692,11 @@ export default function SkillsPage() {
           <Card>
             <h3 className="font-semibold mb-2">{t("skillsMarketplace")}</h3>
             <p className="text-sm text-text-muted mb-4">
-              Active provider:{" "}
+              {t("activeProvider")}{" "}
               <span className="font-medium">
                 {skillsProvider === "skillsmp" ? "SkillsMP" : "skills.sh"}
               </span>
-              . Change this in Settings → Memory & Skills.
+              . {t("changeInSettings")}
             </p>
             <div className="flex gap-2 mb-4">
               <input
@@ -680,9 +711,7 @@ export default function SkillsPage() {
                   e.key === "Enter" &&
                   (skillsProvider === "skillsmp" ? searchMarketplace() : searchSkillsSh())
                 }
-                placeholder={
-                  skillsProvider === "skillsmp" ? "Search SkillsMP..." : "Search skills.sh..."
-                }
+                placeholder={t("searchMarketplacePlaceholder")}
                 className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
               <button
@@ -694,11 +723,11 @@ export default function SkillsPage() {
               >
                 {skillsProvider === "skillsmp"
                   ? mpLoading
-                    ? "Searching..."
-                    : "Search SkillsMP"
+                    ? t("searching")
+                    : t("searchMarketplace")
                   : shLoading
-                    ? "Searching..."
-                    : "Search skills.sh"}
+                    ? t("searching")
+                    : t("searchMarketplace")}
               </button>
             </div>
             {(skillsProvider === "skillsmp" ? mpError : shError) && (
@@ -722,7 +751,7 @@ export default function SkillsPage() {
                       disabled={mpInstallingId === skill.name}
                       className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
                     >
-                      {mpInstallingId === skill.name ? "Installing..." : "Install"}
+                      {mpInstallingId === skill.name ? t("installing") : t("installSkillButton")}
                     </button>
                   </div>
                 </Card>
@@ -738,7 +767,7 @@ export default function SkillsPage() {
                     <div>
                       <h4 className="font-semibold">{skill.name}</h4>
                       <p className="text-sm text-text-muted mt-1">
-                        {skill.source} · {skill.installs.toLocaleString()} installs
+                        {skill.source} · {skill.installs.toLocaleString()} {t("installs")}
                       </p>
                     </div>
                     <button
@@ -746,7 +775,7 @@ export default function SkillsPage() {
                       disabled={shInstallingId === skill.id}
                       className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
                     >
-                      {shInstallingId === skill.id ? "Installing..." : "Install"}
+                      {shInstallingId === skill.id ? t("installing") : t("installSkillButton")}
                     </button>
                   </div>
                 </Card>
@@ -756,16 +785,12 @@ export default function SkillsPage() {
 
           {skillsProvider === "skillsmp" && !mpLoading && mpResults.length === 0 && !mpError && (
             <Card>
-              <div className="text-center py-8 text-text-muted">
-                Configure your SkillsMP API key in Settings to browse the marketplace.
-              </div>
+              <div className="text-center py-8 text-text-muted">{t("marketplaceSkillsMpHint")}</div>
             </Card>
           )}
           {skillsProvider === "skillssh" && !shLoading && shResults.length === 0 && !shError && (
             <Card>
-              <div className="text-center py-8 text-text-muted">
-                Search the skills.sh open directory to discover and install agent skills.
-              </div>
+              <div className="text-center py-8 text-text-muted">{t("marketplaceSkillsShHint")}</div>
             </Card>
           )}
         </div>
@@ -775,7 +800,7 @@ export default function SkillsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-surface border border-border rounded-xl p-6 w-full max-w-lg mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">{t("installSkill")}</h2>
+              <h2 className="text-lg font-semibold">{t("installSkillModalTitle")}</h2>
               <button
                 onClick={() => {
                   setShowInstallModal(false);
@@ -787,13 +812,11 @@ export default function SkillsPage() {
                 X
               </button>
             </div>
-            <p className="text-sm text-text-muted mb-4">
-              Paste a skill manifest JSON or upload a .json file.
-            </p>
+            <p className="text-sm text-text-muted mb-4">{t("installSkillModalDesc")}</p>
             <textarea
               value={installJson}
               onChange={(e) => setInstallJson(e.target.value)}
-              placeholder='{"name": "my-skill", "version": "1.0.0", "description": "...", "schema": {"input": {}, "output": {}}, "handlerCode": "..."}'
+              placeholder={t("installJsonPlaceholder")}
               className="w-full h-48 p-3 rounded-lg bg-background border border-border text-sm font-mono resize-none focus:outline-none focus:ring-1 focus:ring-violet-500"
             />
             <div className="flex items-center gap-3 mt-3">
@@ -808,7 +831,7 @@ export default function SkillsPage() {
                 onClick={() => fileInputRef.current?.click()}
                 className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-muted hover:text-text-main transition-colors"
               >
-                Upload JSON
+                {t("uploadJson")}
               </button>
               <div className="flex-1" />
               <button
@@ -819,14 +842,14 @@ export default function SkillsPage() {
                 }}
                 className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-muted hover:text-text-main transition-colors"
               >
-                Cancel
+                {t("cancel")}
               </button>
               <button
                 onClick={handleInstall}
                 disabled={installing || !installJson.trim()}
                 className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
               >
-                {installing ? "Installing..." : "Install"}
+                {installing ? t("installing") : t("installSkillButton")}
               </button>
             </div>
             {installStatus && (

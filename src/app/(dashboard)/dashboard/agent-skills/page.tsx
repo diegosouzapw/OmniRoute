@@ -126,20 +126,20 @@ export default function AgentSkillsPage() {
         </div>
         <ol className="space-y-1 text-xs text-text-muted">
           <li>
-            1. Click <strong className="text-text-main">{t("copyUrl")}</strong> on the skill you
-            want your agent to know about.
+            1.{" "}
+            {t.rich("howToUseStep1", {
+              copyUrl: t("copyUrl"),
+              bold: (chunks) => <strong className="text-text-main">{chunks}</strong>,
+            })}
           </li>
           <li>
-            2. In your AI agent (Claude, Cursor, Cline…), say:
+            2. {t("howToUseStep2")}
             <br />
             <code className="mt-1 block rounded border border-border bg-bg px-2 py-1 font-mono text-[11px]">
-              Use the skill at &lt;pasted-url&gt;
+              {t("howToUseStep2Code")}
             </code>
           </li>
-          <li>
-            3. The agent fetches the SKILL.md and learns OmniRoute&apos;s API or CLI — no manual
-            docs needed.
-          </li>
+          <li>3. {t("howToUseStep3")}</li>
         </ol>
         <a
           href={AGENT_SKILLS_REPO_URL}
@@ -156,13 +156,13 @@ export default function AgentSkillsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <SkillSection
           title={t("apiSkills")}
-          subtitle={`${apiSkills.length} skills — control OmniRoute via REST / HTTP`}
+          subtitle={t("apiSkillsSubtitle", { count: apiSkills.length })}
           icon="api"
           skills={apiSkills}
         />
         <SkillSection
           title={t("cliSkills")}
-          subtitle={`${cliSkills.length} skills — control OmniRoute via the omniroute terminal binary`}
+          subtitle={t("cliSkillsSubtitle", { count: cliSkills.length })}
           icon="terminal"
           skills={cliSkills}
         />

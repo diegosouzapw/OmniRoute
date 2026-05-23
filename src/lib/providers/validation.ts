@@ -312,7 +312,9 @@ async function validateOpenAILikeProvider({
       ? customModelsUrl.startsWith("http")
         ? customModelsUrl
         : `${baseUrl.replace(/\/+$/, "")}/${customModelsUrl.replace(/^\/+/, "")}`
-      : `${baseUrl}/models`;
+      : // addModelsSuffix strips a trailing /chat/completions before appending /models,
+        // so an OpenAI-style baseUrl validates against /v1/models, not /v1/chat/completions/models.
+        addModelsSuffix(baseUrl);
 
     const requestUrl =
       typeof providerSpecificData?.modelsUrl === "string" &&
@@ -631,16 +633,24 @@ async function validateAnthropicLikeProvider({
         ? providerSpecificData.modelsUrl.trim()
         : `${baseUrl}/models`;
 
-    const response = await validationRead(
-      requestUrl,
-      {
-        headers: {
-          "anthropic-version": "2023-06-01",
-          ...headers,
+    // Best-effort /models probe — its result is unused and the real validation is the
+    // messages POST below. It must NOT fail validation: for canonical Claude the baseUrl
+    // already carries a path/query (…/messages?beta=true) so `${baseUrl}/models` is not a
+    // real endpoint, and a 404/network throw here would otherwise wrongly mark the key invalid.
+    try {
+      await validationRead(
+        requestUrl,
+        {
+          headers: {
+            "anthropic-version": "2023-06-01",
+            ...headers,
+          },
         },
-      },
-      isLocal
-    );
+        isLocal
+      );
+    } catch {
+      // ignore probe failures
+    }
 
     if (!baseUrl) {
       return { valid: false, error: "Missing base URL" };
@@ -741,11 +751,15 @@ async function validateGeminiLikeProvider({
       return { valid: false, error: "Missing base URL" };
     }
 
+    // Strip a trailing /models before appending — the default Gemini registry baseUrl is
+    // `.../v1beta/models` (for the chat urlBuilder), so naively appending /models produced
+    // `.../v1beta/models/models` → upstream 404 on connection validation (#2545).
+    const baseForModels = baseUrl.replace(/\/models\/?$/, "");
     const requestUrl =
       typeof providerSpecificData?.modelsUrl === "string" &&
       providerSpecificData.modelsUrl.trim() !== ""
         ? providerSpecificData.modelsUrl.trim()
-        : `${baseUrl}/models`;
+        : `${baseForModels}/models`;
 
     const urlWithKey =
       authType === "query" ? `${requestUrl}?key=${encodeURIComponent(apiKey)}` : requestUrl;
@@ -755,9 +769,15 @@ async function validateGeminiLikeProvider({
     // - gemini-cli (OAuth): Bearer token
     const headers: Record<string, string> = {};
 
-    if (authType === "header" || authType === "apikey") {
+    if (typeof apiKey === "string" && apiKey.startsWith("ya29.")) {
+      // A Google OAuth access token (ya29.*) must use Bearer auth even when the
+      // connection is configured as an API-key provider — gemini-cli OAuth stores the
+      // access token in the apiKey field. Checked first so authType "apikey"/"header"
+      // doesn't shadow it with x-goog-api-key.
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    } else if (authType === "header" || authType === "apikey") {
       headers["x-goog-api-key"] = apiKey;
-    } else if (authType === "oauth" || (typeof apiKey === "string" && apiKey.startsWith("ya29."))) {
+    } else if (authType === "oauth") {
       headers["Authorization"] = `Bearer ${apiKey}`;
     }
 

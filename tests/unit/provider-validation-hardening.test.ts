@@ -163,3 +163,28 @@ test("#2463 openai-compatible validation does not throw on non-string modelsUrl"
   });
   assert.equal(typeof result.valid, "boolean");
 });
+
+// Regression for #2545: the default Gemini (AI Studio) base URL ends in /v1beta/models,
+// so the validator must not append a second /models (which produced /models/models → 404).
+test("#2545 gemini validation does not produce /models/models", async () => {
+  const calls: string[] = [];
+  globalThis.fetch = async (url: any) => {
+    calls.push(String(url));
+    return new Response(JSON.stringify({ models: [] }), { status: 200 });
+  };
+  const result = await validateProviderApiKey({
+    provider: "gemini",
+    apiKey: "AIzaTestKey",
+    providerSpecificData: {},
+  });
+  assert.equal(typeof result.valid, "boolean");
+  assert.ok(calls.length > 0, "validator must make a request");
+  assert.ok(
+    !calls.some((u) => u.includes("/models/models")),
+    `outbound URL must not contain /models/models — got ${calls.join(", ")}`
+  );
+  assert.ok(
+    calls.some((u) => /\/v1beta\/models(\?|$)/.test(u)),
+    `outbound URL must hit a single /models segment — got ${calls.join(", ")}`
+  );
+});

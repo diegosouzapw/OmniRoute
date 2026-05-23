@@ -217,6 +217,51 @@ describe("Server Readiness Logic", () => {
     const result = await waitForServer("http://localhost:59999", 100);
     assert.equal(result, false);
   });
+
+  // #2460: on a slow first launch (long DB migrations) the initial readiness probe can
+  // time out. The window must not be left on a hanging connection — a background retry
+  // must keep polling and reload the window once the server finally responds.
+  it("reloads the window once the server becomes ready after an initial timeout (#2460)", async () => {
+    let serverUp = false;
+    // Server "comes up" after ~60ms, simulating long first-launch migrations.
+    const upTimer = setTimeout(() => {
+      serverUp = true;
+    }, 60);
+
+    async function waitForServer(_url, timeoutMs) {
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        if (serverUp) return true;
+        await new Promise((r) => setTimeout(r, 15));
+      }
+      return false;
+    }
+
+    try {
+      // Initial probe with a short budget times out (server not up yet).
+      const initialReady = await waitForServer("http://localhost/api/monitoring/health", 20);
+      assert.equal(initialReady, false);
+
+      let reloaded = false;
+      const mainWindow = {
+        isDestroyed: () => false,
+        loadURL: () => {
+          reloaded = true;
+        },
+      };
+
+      // Background retry with a generous budget should succeed and reload the window.
+      const retryReady = await waitForServer("http://localhost/api/monitoring/health", 5000);
+      if (retryReady && mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.loadURL("http://localhost");
+      }
+
+      assert.equal(retryReady, true);
+      assert.equal(reloaded, true, "window should reload once the server is ready");
+    } finally {
+      clearTimeout(upTimer);
+    }
+  });
 });
 
 // ─── Restart Timeout Tests (#2) ──────────────────────────────

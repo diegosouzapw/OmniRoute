@@ -1,11 +1,15 @@
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
+  setUserAgentHeader,
   type ExecuteInput,
   type ProviderCredentials,
 } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
-import { getQoderDashscopeCompatHeaders } from "../config/providerHeaderProfiles.ts";
+import {
+  getQoderDashscopeCompatHeaders,
+  QODER_DEFAULT_USER_AGENT,
+} from "../config/providerHeaderProfiles.ts";
 import { sanitizeQwenThinkingToolChoice } from "../services/qwenThinking.ts";
 
 function getAuthToken(credentials: ProviderCredentials): string {
@@ -27,6 +31,17 @@ function getAuthToken(credentials: ProviderCredentials): string {
 export class QoderExecutor extends BaseExecutor {
   constructor() {
     super("qoder", PROVIDERS.qoder);
+  }
+
+  buildHeaders(
+    credentials: ProviderCredentials,
+    stream = true,
+    clientHeaders?: Record<string, string> | null,
+    model?: string
+  ): Record<string, string> {
+    const headers = super.buildHeaders(credentials, stream, clientHeaders, model);
+    setUserAgentHeader(headers, QODER_DEFAULT_USER_AGENT);
+    return headers;
   }
 
   transformRequest(model: string, body: unknown): Record<string, unknown> {
@@ -61,20 +76,24 @@ export class QoderExecutor extends BaseExecutor {
 
     const resolvedModel = model || "qwen3-coder-plus";
 
-    // Check if it's a model-alias matching QwenCode
+    // Detect token type: PAT (Personal Access Token) starts with "pt-"
+    const isPatToken = token.startsWith("pt-");
+
     let mappedModel = resolvedModel;
-    if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
-      mappedModel = "coder-model"; // Translate alias to what DashScope compatible endpoint accepts via QwenCode tokens
-    } else if (resolvedModel === "vision-model") {
-      mappedModel = "qwen3-vl-plus";
+    let endpointUrl: string;
+
+    if (isPatToken) {
+      endpointUrl = "https://api.qoder.com/v1/chat/completions";
+    } else {
+      if (resolvedModel === "qwen3.5-plus" || resolvedModel === "qwen3.6-plus") {
+        mappedModel = "coder-model";
+      } else if (resolvedModel === "vision-model") {
+        mappedModel = "qwen3-vl-plus";
+      }
+      endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
     }
 
-    // Determine the resource URL: Qwen CLI tokens usually target portal.qwen.ai natively,
-    // but the DashScope compatible endpoint works out of the box when authtype is set.
-    // If the token was mapped to a custom `resource_url`, we should use it. Otherwise default to dashscope Aliyun.
-    let endpointUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
-
-    // We allow setting custom API base via credentials
+    // Check for custom API base via credentials (overrides the default)
     let credentialsApiBase: unknown;
     if (typeof credentials === "object" && credentials !== null) {
       const credsObj = credentials as Record<string, unknown>;
@@ -90,7 +109,7 @@ export class QoderExecutor extends BaseExecutor {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...getQoderDashscopeCompatHeaders(),
+      ...(isPatToken ? {} : getQoderDashscopeCompatHeaders()),
     };
 
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);

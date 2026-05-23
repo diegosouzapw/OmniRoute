@@ -5,6 +5,8 @@ import { generateClaudeConfig } from "./claude";
 import { generateClineConfig } from "./cline";
 import { generateCodexConfig } from "./codex";
 import { generateContinueConfig } from "./continue";
+import { generateHermesConfig } from "./hermes";
+import { generateHermesAgentConfig, type HermesAgentConfigPayload } from "./hermes-agent";
 import { generateKilocodeConfig } from "./kilocode";
 import { generateOpencodeConfig } from "./opencode";
 
@@ -21,7 +23,7 @@ export interface GenerateResult {
   error?: string;
 }
 
-function validateBaseUrl(url: string): boolean {
+export function validateBaseUrl(url: string): boolean {
   try {
     const u = new URL(url);
     return u.protocol === "http:" || u.protocol === "https:";
@@ -42,6 +44,8 @@ const TOOL_CONFIG_PATHS: Record<string, string> = {
   cline: path.join(os.homedir(), ".cline", "data", "globalState.json"),
   kilocode: path.join(os.homedir(), ".config", "kilocode", "settings.json"),
   continue: path.join(os.homedir(), ".continue", "config.yaml"),
+  hermes: path.join(os.homedir(), ".hermes", "config.yaml"),
+  "hermes-agent": path.join(os.homedir(), ".hermes", "config.yaml"),
 };
 
 type ConfigGenerator = (options: GenerateOptions) => string | Promise<string>;
@@ -53,6 +57,8 @@ const GENERATORS: Record<string, ConfigGenerator> = {
   cline: generateClineConfig,
   kilocode: generateKilocodeConfig,
   continue: generateContinueConfig,
+  hermes: generateHermesConfig,
+  "hermes-agent": generateHermesAgentConfig as any, // rich multi-role version
 };
 
 export async function generateConfig(
@@ -86,7 +92,15 @@ export async function generateConfig(
 }
 
 export async function generateAllConfigs(options: GenerateOptions): Promise<GenerateResult[]> {
-  const toolIds = ["claude", "codex", "opencode", "cline", "kilocode", "continue"] as const;
+  const toolIds = [
+    "claude",
+    "codex",
+    "opencode",
+    "cline",
+    "kilocode",
+    "continue",
+    "hermes",
+  ] as const;
   const results = await Promise.allSettled(toolIds.map((id) => generateConfig(id, options)));
 
   return results.map((r) =>

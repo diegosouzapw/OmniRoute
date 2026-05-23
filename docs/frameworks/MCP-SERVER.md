@@ -1,6 +1,6 @@
 ---
 title: "OmniRoute MCP Server Documentation"
-version: 3.8.1
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -40,6 +40,26 @@ The MCP server exposes three transports, all backed by the same `createMcpServer
 | `streamable-http` | `POST/GET/DELETE /api/mcp/stream`           | Multi-session HTTP clients (`mcp-session-id` header) |
 
 The active HTTP transport (`sse` or `streamable-http`) is selected by the `mcpTransport` setting. Switching transports closes existing sessions on the other transport.
+
+### Remote access (manage-scope bypass)
+
+`/api/mcp/*` is in the LOCAL_ONLY tier (`src/server/authz/routeGuard.ts`) — by default only loopback hosts (`localhost`, `127.0.0.1`, `::1`) can reach it. Since v3.8.2, non-loopback clients may connect if they present an `Authorization: Bearer <api-key>` whose key carries the `manage` scope. This is the only way to reach the remote MCP server through a tunnel, reverse proxy, or public hostname.
+
+```bash
+# Grant manage scope: open the dashboard API Manager and toggle
+# "Management Access" on the key, or POST scopes:["manage"] when creating.
+
+# Then connect from a remote MCP client:
+curl -i \
+  -H "Host: your-public-host.example" \
+  -H "Authorization: Bearer sk-…" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"my-client","version":"0"}}}' \
+  https://your-public-host.example/api/mcp/stream
+```
+
+A non-manage key (or no Bearer) returns `403 LOCAL_ONLY`. The sibling prefix `/api/cli-tools/runtime/*` is intentionally NOT bypassable — see [Route Guard Tiers — Manage-scope carve-out](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
 ## IDE Configuration
 

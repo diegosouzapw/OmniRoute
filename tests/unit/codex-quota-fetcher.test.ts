@@ -170,11 +170,14 @@ test("registerCodexQuotaFetcher exposes Codex quota to preflight and monitor flo
     accessToken: "quota-token",
   });
 
+  // Use 100% (fully exhausted) to avoid floating-point boundary issues:
+  // (1 - 0.98) * 100 = 2.0000000000000018, which is > DEFAULT_MIN_REMAINING_PERCENT (2),
+  // so the preflight wouldn't block. 100% used → 0% remaining, clearly below 2%.
   globalThis.fetch = async () =>
     new Response(
       JSON.stringify({
         rate_limit: {
-          primary_window: { used_percent: 98, reset_after_seconds: 90 },
+          primary_window: { used_percent: 100, reset_after_seconds: 90 },
         },
       }),
       {

@@ -1,6 +1,6 @@
 ---
 title: "Progressive Web App (PWA) Guide"
-version: 3.8.1
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 

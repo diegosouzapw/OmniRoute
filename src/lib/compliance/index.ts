@@ -57,12 +57,44 @@ type AuditLogFilter = {
 };
 
 type AuditLogRow = Record<string, unknown> & {
+  id?: number | null;
+  action?: string | null;
+  actor?: string | null;
+  target?: string | null;
+  status?: string | null;
   details?: string | null;
   metadata?: string | null;
   ip_address?: string | null;
   resource_type?: string | null;
   request_id?: string | null;
   timestamp?: string | null;
+};
+
+/**
+ * Public shape of a normalized audit-log entry returned by `getAuditLog` /
+ * `normalizeAuditLogRow`. Includes the column-level fields callers (and
+ * tests) reach into directly — `action`, `actor`, `target`, `id`, `status`,
+ * `timestamp` — alongside the derived/parsed fields. The
+ * `Record<string, unknown>` intersection preserves the existing behaviour of
+ * spreading any extra DB columns (e.g. schema additions) without losing
+ * compile-time access to the known ones.
+ */
+export type AuditLogEntry = Record<string, unknown> & {
+  id?: number | null;
+  action?: string | null;
+  actor?: string | null;
+  target?: string | null;
+  status: string | null;
+  timestamp: string;
+  createdAt: string;
+  details: unknown;
+  metadata: unknown;
+  ip_address: string | null;
+  ip: string | null;
+  resource_type: string | null;
+  resourceType: string | null;
+  request_id: string | null;
+  requestId: string | null;
 };
 
 const AUDIT_LOG_REQUIRED_COLUMNS: Record<string, string> = {
@@ -227,7 +259,7 @@ function buildAuditLogQuery(filter: AuditLogFilter = {}): AuditLogQuery {
   };
 }
 
-function normalizeAuditLogRow(row: AuditLogRow) {
+function normalizeAuditLogRow(row: AuditLogRow): AuditLogEntry {
   const details = parseAuditValue(row.details);
   const metadata = parseAuditValue(row.metadata);
   const resourceType = typeof row.resource_type === "string" ? row.resource_type : null;
@@ -349,7 +381,7 @@ export function logAuditEvent(entry: {
  * @param {number} [filter.offset=0] - Pagination offset
  * @returns {Array<{ id: number, timestamp: string, action: string, actor: string, target: string, details: any, ip_address: string }>}
  */
-export function getAuditLog(filter: AuditLogFilter = {}) {
+export function getAuditLog(filter: AuditLogFilter = {}): AuditLogEntry[] {
   const db = getDb();
   if (!db) return [];
 

@@ -126,7 +126,12 @@ test("GeminiCLIExecutor.refreshProject caches loadCodeAssist lookups and transfo
       true,
       { apiKey: "gcli-api-key" }
     );
-    assert.equal(apiKeyTransformed.project, undefined);
+    // Source always sets envelope.project = storedProject (gemini-cli.ts ~line 334).
+    // For apiKey-only flows with no stored project, storedProject defaults to "" (line 330).
+    assert.ok(
+      !apiKeyTransformed.project,
+      "project should be falsy (empty string) for apiKey-only flows without a stored projectId"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
