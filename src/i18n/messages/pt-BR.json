@@ -3284,6 +3284,16 @@
     "freeAggregated": "Todos os providers com tier gratuito (também aparecem na categoria nativa)",
     "deprecated": "Depreciado",
     "deprecatedProvider": "Este provedor foi depreciado",
+    "riskNotice": {
+      "title": "Antes de continuar",
+      "tooltip": "Provider com restrições de uso — clique para detalhes",
+      "oauth": "Este provider usa sua sessão/OAuth oficial do produto, que não autoriza uso em proxy/router.\n\nNão recomendamos uso intensivo em agentes autônomos (estilo OpenCloud, multi-passos longos, batches grandes) — o upstream pode reagir restringindo ou banindo a conta.\n\nUse por sua conta e risco.",
+      "webCookie": "Este provider autentica através dos cookies da sua sessão web. O serviço upstream pode invalidar a sessão a qualquer momento, exigindo re-login. Não recomendado para operações longas e não-supervisionadas.\n\nUse por sua conta e risco.",
+      "deprecated": "Este provider foi descontinuado pelo upstream e pode parar de funcionar sem aviso. Conexões existentes podem continuar funcionando até o upstream remover completamente o acesso. Considere alternativas.",
+      "dontShowAgain": "Não mostrar de novo para este provider",
+      "understand": "Entendi, continuar",
+      "cancel": "Cancelar"
+    },
     "disabled": "Desativado",
     "enableProvider": "Ativar provedor",
     "disableProvider": "Desativar provedor",

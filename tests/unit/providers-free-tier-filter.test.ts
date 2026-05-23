@@ -117,7 +117,6 @@ test("OAuth providers with hasFree=true appear in OAuth and Free Tier filters", 
   assert.ok(oauthIds.includes("qoder"));
   assert.ok(freeIds.includes("qoder"));
 });
-
 test("summaryStats.free counts the aggregate overlap without subtracting native categories", () => {
   const entries = buildCatalogEntries();
   const summaryStats = countByCategory(entries);

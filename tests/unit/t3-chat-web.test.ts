@@ -149,8 +149,7 @@ function mockT3ChatSSEResponse(chunks: string[]) {
 
 // ─── Mocked streaming flow ───────────────────────────────────────────────
 
-test("execute: POSTs to completion URL with Cookie and convex-session-id headers (streaming)", async () => {
-  // TODO(post-devtools-capture): Update URL check once endpoint is confirmed.
+test("execute: POSTs to completion URL with Cookie containing convex-session-id (streaming)", async () => {
   const sseChunks = [
     JSON.stringify({ text: "Hello" }),
     JSON.stringify({ text: " world" }),
@@ -171,14 +170,13 @@ test("execute: POSTs to completion URL with Cookie and convex-session-id headers
     assert.ok(result.response.ok, `Expected 200, got ${result.response.status}`);
     assert.equal(mock.calls.length, 1, "Should make exactly one fetch call");
 
-    // Verify headers were sent
+    // Verify Cookie header contains convex-session-id (confirmed from live capture:
+    // t3.chat sets convex-session-id as a cookie, sent in Cookie header)
     const sentHeaders = mock.calls[0].headers;
     assert.ok(sentHeaders["Cookie"]?.length > 0, "Should send Cookie header");
     assert.ok(
-      // convex-session-id may be header or body — check both
-      sentHeaders["convex-session-id"]?.length > 0 ||
-        (mock.calls[0].body as any)?.convexSessionId?.length > 0,
-      "Should send convex-session-id as header or body field"
+      sentHeaders["Cookie"]?.includes("convex-session-id="),
+      "Cookie header should contain convex-session-id"
     );
   } finally {
     mock.restore();

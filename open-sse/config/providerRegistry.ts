@@ -2718,10 +2718,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
-  // TODO(post-devtools-capture): Confirm baseUrl after Step 0 DevTools capture.
-  // Current guess: "https://t3.chat/api/chat". May be a Convex deployment URL.
-  // TODO(post-devtools-capture): Trim duplicate model entries and update model IDs
-  // to match exact values seen in the DevTools request body (model field).
+  // t3.chat — Convex-based chat app. Cookie session auth via T3ChatWebExecutor.
+  // Base URL confirmed: POST https://t3.chat/api/chat (Convex HTTP action endpoint).
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",

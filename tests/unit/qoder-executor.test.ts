@@ -289,10 +289,10 @@ test("QoderExecutor: PAT token falls back to Cosy auth when Bearer returns 401",
       // First call to api.qoder.com returns 401 TOKEN_INVALID
       assert.equal(String(url), "https://api.qoder.com/v1/chat/completions");
       assert.equal(options.headers.Authorization, "Bearer pt-0pUI-test-token");
-      return new Response(
-        JSON.stringify({ code: "TOKEN_INVALID", message: "invalid apikey" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ code: "TOKEN_INVALID", message: "invalid apikey" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
     // Second call to api1.qoder.sh (Cosy fallback) returns SSE response
     assert.ok(String(url).includes("api1.qoder.sh"));
@@ -301,10 +301,10 @@ test("QoderExecutor: PAT token falls back to Cosy auth when Bearer returns 401",
     assert.ok(options.headers["Cosy-User"]);
     assert.ok(options.headers["Cosy-Date"]);
     assert.ok(options.headers.Authorization.startsWith("Bearer COSY."));
-    return new Response(
-      "data: {\"message\":{\"content\":\"Hello from Cosy\"}}\n\ndata: [DONE]\n\n",
-      { status: 200, headers: { "Content-Type": "text/event-stream" } }
-    );
+    return new Response('data: {"message":{"content":"Hello from Cosy"}}\n\ndata: [DONE]\n\n', {
+      status: 200,
+      headers: { "Content-Type": "text/event-stream" },
+    });
   };
 
   try {
