@@ -1,6 +1,6 @@
 ---
 title: "Authorization Guide"
-version: 3.8.1
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -177,7 +177,7 @@ Preset bundles (`MCP_SCOPE_PRESETS`): `readonly`, `full`, `monitor`, `agent`. Us
 
 The `/api/v1/agents/tasks/*` and `/api/resilience/model-cooldowns` endpoints **now require management auth** (commit `588a0333`). Clients previously sending a normal API key without the `manage` scope receive `403`. Migration: either issue the key the `manage` scope in the API Manager dashboard, or use a logged-in dashboard session.
 
-## Behaviour Change — v3.8.1
+## Behaviour Change — v3.8.2
 
 `/api/mcp/*` (the remote MCP server) is still LOCAL_ONLY by default but now accepts non-loopback requests when the `Authorization: Bearer <api-key>` header carries the `manage` scope. The carve-out is gated explicitly per-path via `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` in `src/server/authz/routeGuard.ts`; the sibling LOCAL_ONLY prefix `/api/cli-tools/runtime/*` is intentionally NOT bypassable because it can spawn arbitrary subprocesses. Anonymous requests to `/api/mcp/*` from non-loopback continue to return `403 LOCAL_ONLY` — the default for any new LOCAL_ONLY path remains strict-loopback. See [Route Guard Tiers](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 

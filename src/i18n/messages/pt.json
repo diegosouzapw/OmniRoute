@@ -926,7 +926,9 @@
     "settingsAuthzSubtitle": "__MISSING__:Route inventory and bypass policy",
     "docsSubtitle": "Documentação",
     "issuesSubtitle": "Reportar um bug",
-    "changelogSubtitle": "Notas de versão"
+    "changelogSubtitle": "Notas de versão",
+    "settingsSidebar": "Sidebar",
+    "settingsSidebarSubtitle": "Customize sidebar layout"
   },
   "webhooks": {
     "title": "__MISSING__:Webhooks",

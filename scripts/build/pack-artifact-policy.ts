@@ -86,8 +86,10 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
+  "@omniroute/opencode-plugin/",
   "@omniroute/opencode-provider/",
   "bin/cli/",
+  "docs/",
   "open-sse/mcp-server/schemas/",
   "open-sse/mcp-server/tools/",
   "src/lib/cli-helper/",

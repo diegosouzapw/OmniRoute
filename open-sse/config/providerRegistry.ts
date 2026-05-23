@@ -1158,6 +1158,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "gpt-5.4-nano", name: "GPT-5.4 Nano", contextLength: 400000 },
       { id: "gpt-4.1", name: "GPT-4.1", contextLength: 1047576 },
       { id: "gpt-4o-2024-11-20", name: "GPT-4o (Nov 2024)", contextLength: 128000 },
+      { id: "gpt-4o", name: "GPT-4o", contextLength: 128000 },
+      { id: "gpt-4o-mini", name: "GPT-4o Mini", contextLength: 128000 },
       { id: "o3", name: "O3", contextLength: 200000, unsupportedParams: REASONING_UNSUPPORTED },
     ],
   },

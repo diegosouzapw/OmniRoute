@@ -926,7 +926,9 @@
     "settingsAuthzSubtitle": "Inventário de rotas e política de bypass",
     "docsSubtitle": "Documentação",
     "issuesSubtitle": "Reportar um bug",
-    "changelogSubtitle": "Notas de versão"
+    "changelogSubtitle": "Notas de versão",
+    "settingsSidebar": "Sidebar",
+    "settingsSidebarSubtitle": "Customize sidebar layout"
   },
   "webhooks": {
     "title": "Webhooks",

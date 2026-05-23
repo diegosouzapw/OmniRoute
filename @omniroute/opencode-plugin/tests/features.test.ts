@@ -30,12 +30,14 @@ import assert from "node:assert/strict";
 
 import {
   applyEnrichment,
+  applyProviderTag,
   createOmniRouteConfigHook,
   createOmniRouteProviderHook,
   defaultOmniRouteEnrichmentFetcher,
   defaultOmniRouteCompressionMetaFetcher,
   formatCompressionPipeline,
   parseOmniRoutePluginOptions,
+  PROVIDER_TAG_SEPARATOR,
   type OmniRouteEnrichmentMap,
   type OmniRouteCompressionCombo,
   type OmniRouteRawModelEntry,
@@ -171,6 +173,80 @@ test("applyEnrichment: partial pricing preserves untouched fields", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
+// applyProviderTag (Option E)
+// ─────────────────────────────────────────────────────────────────────────
+
+test("applyProviderTag: PROVIDER_TAG_SEPARATOR is hyphen with surrounding spaces", () => {
+  assert.equal(PROVIDER_TAG_SEPARATOR, " - ");
+});
+
+test("applyProviderTag: undefined enrichment → no-op", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, undefined);
+  assert.equal(m.name, "Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: providerDisplayName present (short) → label prefix prepended", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  assert.equal(m.name, "Claude - Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: providerDisplayName too long → falls back to UPPER(alias) prefix", () => {
+  const m = baseModel();
+  m.name = "GPT 5";
+  applyProviderTag(m as never, {
+    providerDisplayName: "GitHub Models",
+    providerAlias: "ghm",
+  });
+  assert.equal(m.name, "GHM - GPT 5");
+});
+
+test("applyProviderTag: long displayName + no alias → uses long label rather than dropping prefix", () => {
+  const m = baseModel();
+  m.name = "GPT 5";
+  applyProviderTag(m as never, { providerDisplayName: "GitHub Models" });
+  assert.equal(m.name, "GitHub Models - GPT 5");
+});
+
+test("applyProviderTag: only providerAlias known → UPPER(alias) prefix", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerAlias: "cc" });
+  assert.equal(m.name, "CC - Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: empty/whitespace providerDisplayName + no alias → no-op", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "   " });
+  assert.equal(m.name, "Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: idempotent — second call doesn't double-prefix", () => {
+  const m = baseModel();
+  m.name = "Claude Sonnet 4.6";
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  applyProviderTag(m as never, { providerDisplayName: "Claude" });
+  assert.equal(m.name, "Claude - Claude Sonnet 4.6");
+});
+
+test("applyProviderTag: distinct providers for same model id → two separate prefixes", () => {
+  const a = baseModel();
+  a.name = "Claude Opus 4.7";
+  applyProviderTag(a as never, { providerDisplayName: "Claude" });
+  assert.equal(a.name, "Claude - Claude Opus 4.7");
+
+  const b = baseModel();
+  b.name = "Claude Opus 4.7";
+  applyProviderTag(b as never, { providerDisplayName: "Kiro" });
+  assert.equal(b.name, "Kiro - Claude Opus 4.7");
+});
+
+// ─────────────────────────────────────────────────────────────────────────
 // formatCompressionPipeline
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -178,25 +254,58 @@ test("formatCompressionPipeline: empty pipeline → empty string", () => {
   assert.equal(formatCompressionPipeline([]), "");
 });
 
-test("formatCompressionPipeline: single step with intensity", () => {
+test("formatCompressionPipeline: single step with intensity → emoji", () => {
   assert.equal(
     formatCompressionPipeline([{ engine: "caveman", intensity: "full" }]),
-    "[caveman:full]"
+    "[caveman\u{1F7E0}]"
   );
 });
 
-test("formatCompressionPipeline: multi-step pipeline", () => {
+test("formatCompressionPipeline: multi-step pipeline → emoji per step", () => {
   assert.equal(
     formatCompressionPipeline([
       { engine: "rtk", intensity: "standard" },
       { engine: "caveman", intensity: "full" },
     ]),
-    "[rtk:standard → caveman:full]"
+    "[rtk\u{1F7E1} → caveman\u{1F7E0}]"
   );
 });
 
-test("formatCompressionPipeline: step without intensity", () => {
+test("formatCompressionPipeline: step without intensity → engine bare", () => {
   assert.equal(formatCompressionPipeline([{ engine: "rtk" }]), "[rtk]");
+});
+
+test("formatCompressionPipeline: ultra → red", () => {
+  assert.equal(
+    formatCompressionPipeline([{ engine: "caveman", intensity: "ultra" }]),
+    "[caveman\u{1F534}]"
+  );
+});
+
+test("formatCompressionPipeline: lite/minimal → green", () => {
+  assert.equal(formatCompressionPipeline([{ engine: "rtk", intensity: "lite" }]), "[rtk\u{1F7E2}]");
+  assert.equal(
+    formatCompressionPipeline([{ engine: "rtk", intensity: "minimal" }]),
+    "[rtk\u{1F7E2}]"
+  );
+});
+
+test("formatCompressionPipeline: intensity case-insensitive", () => {
+  assert.equal(
+    formatCompressionPipeline([{ engine: "caveman", intensity: "ULTRA" }]),
+    "[caveman\u{1F534}]"
+  );
+  assert.equal(
+    formatCompressionPipeline([{ engine: "caveman", intensity: "Standard" }]),
+    "[caveman\u{1F7E1}]"
+  );
+});
+
+test("formatCompressionPipeline: unknown intensity falls back to raw text", () => {
+  assert.equal(
+    formatCompressionPipeline([{ engine: "rtk", intensity: "custom-thing" }]),
+    "[rtk:custom-thing]"
+  );
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -325,7 +434,11 @@ test("provider hook: compression metadata fetcher called when opted in", async (
   assert.equal(called, 1, "compression metadata fetcher called");
   const combo = out["combo/claude-primary"];
   assert.ok(combo, "combo entry present");
-  assert.match(combo.name, /\[rtk:standard → caveman:full\]/, "combo name decorated with pipeline");
+  assert.match(
+    combo.name,
+    /\[rtk\u{1F7E1} → caveman\u{1F7E0}\]/u,
+    "combo name decorated with emoji pipeline (rtk:standard=🟡, caveman:full=🟠)"
+  );
 });
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -119,6 +119,7 @@ const featuresSchema = z
     fetchInterceptor: z.boolean().optional(),
     usableOnly: z.boolean().optional(),
     diskCache: z.boolean().optional(),
+    providerTag: z.boolean().optional(),
   })
   .strict();
 
@@ -148,6 +149,25 @@ export type OmniRoutePluginOptions = z.infer<typeof optionsSchema>;
 export const OMNIROUTE_PROVIDER_KEY = "omniroute" as const;
 
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
+
+// Manual trim helpers avoid polynomial-regex CodeQL warnings on
+// user-supplied baseURL strings (string.replace(/\/+$/, "")). The same
+// behaviour, no backtracking.
+function trimTrailingSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 0x2f /* "/" */) i--;
+  return i === value.length ? value : value.slice(0, i);
+}
+function trimTrailingDashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 0x2d /* "-" */) i--;
+  return i === value.length ? value : value.slice(0, i);
+}
+function trimLeadingDashes(value: string): string {
+  let i = 0;
+  while (i < value.length && value.charCodeAt(i) === 0x2d /* "-" */) i++;
+  return i === 0 ? value : value.slice(i);
+}
 
 /**
  * Resolve effective options from the optional plugin-options object,
@@ -444,7 +464,7 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /v1/models");
   if (!baseURL) throw new Error("@omniroute/opencode-plugin: baseURL required to fetch /v1/models");
 
-  const trimmed = baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(baseURL);
   // Tolerate both `https://host` and `https://host/v1` forms — the gateway
   // exposes /v1/models either way; we just don't want a double `/v1/v1`.
   const url = /\/v\d+$/.test(trimmed) ? `${trimmed}/models` : `${trimmed}/v1/models`;
@@ -697,7 +717,7 @@ export const defaultOmniRouteCombosFetcher: OmniRouteCombosFetcher = async (
   // Strip trailing slashes, then strip a trailing `/v1` so we land on the
   // management plane. Models live under `/v1/models`; combos live under
   // `/api/combos` from the same gateway root.
-  const trimmed = baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(baseURL);
   const root = trimmed.replace(/\/v\d+$/, "");
   const url = `${root}/api/combos`;
 
@@ -892,6 +912,15 @@ export interface OmniRouteEnrichmentEntry {
    * `entry.id` field inside `/api/pricing/models`.
    */
   providerCanonical?: string;
+  /**
+   * Human-readable upstream provider label (e.g. `Claude`, `Kiro`,
+   * `Windsurf`, `GitHub Models`). Populated from the per-provider
+   * `entry.name` field inside `/api/pricing/models`. Used by the
+   * `providerTag` feature to suffix `ModelV2.name` with the routing
+   * destination so the OC TUI picker can differentiate the same
+   * model id sold through different upstream connections.
+   */
+  providerDisplayName?: string;
 }
 
 /** Map keyed by full model id (possibly namespaced, e.g. `cc/claude-sonnet-4-6`). */
@@ -964,6 +993,14 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
             typeof canonicalRaw === "string" && canonicalRaw.length > 0
               ? canonicalRaw
               : providerAlias;
+          // Upstream provider human label (e.g. `Claude`, `Kiro`,
+          // `GitHub Models`). Optional — falls back to undefined when
+          // OmniRoute hasn't curated a label for this slot.
+          const slotNameRaw = (slot as { name?: unknown }).name;
+          const providerDisplayName =
+            typeof slotNameRaw === "string" && slotNameRaw.trim().length > 0
+              ? slotNameRaw.trim()
+              : undefined;
           for (const m of models) {
             if (!m || typeof m !== "object") continue;
             const id = (m as { id?: unknown }).id;
@@ -973,6 +1010,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
               providerAlias,
               providerCanonical,
             };
+            if (providerDisplayName) entry.providerDisplayName = providerDisplayName;
             if (typeof name === "string" && name.trim().length > 0) entry.name = name;
             const namespaced = `${providerAlias}/${id}`;
             if (!out.has(namespaced)) out.set(namespaced, entry);
@@ -1047,6 +1085,86 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
 
   return out;
 };
+
+/**
+ * Separator used by `applyProviderTag` between the upstream provider
+ * label (prefix) and the enriched model name. ASCII hyphen with
+ * surrounding spaces — terminal-safe everywhere, never collides with
+ * a model id (those use slashes / dots / underscores).
+ *
+ * Layout: `<short-label> - <model name>` (label leads so column scans
+ * group by provider — e.g. `Claude - Claude Opus 4.7`,
+ * `Kiro - Claude Opus 4.7`).
+ */
+export const PROVIDER_TAG_SEPARATOR = " - ";
+
+/** Threshold beyond which `providerDisplayName` is abbreviated to UPPER(alias). */
+const PROVIDER_LABEL_MAX_CHARS = 8;
+
+/**
+ * Pick the short label for an upstream provider that goes into the
+ * `<label> · <model>` prefix.
+ *
+ * Rule (matches user spec — no hardcoded registry, fully data-driven):
+ *
+ *   1. Trim `enrichment.providerDisplayName` (= `/api/pricing/models[<alias>].name`).
+ *   2. If the trimmed label is non-empty AND ≤ {@link PROVIDER_LABEL_MAX_CHARS},
+ *      use it verbatim (e.g. `Claude`, `Kiro`, `Codex`, `Qwen`).
+ *   3. Otherwise fall back to `UPPER(enrichment.providerAlias)` so long
+ *      slot.names (`GitHub Models`, `Gemini-cli`) compress to `GHM`,
+ *      `GEMINI-CLI`.
+ *   4. If neither field is usable, return `undefined` (caller should
+ *      skip the prefix decoration).
+ */
+export function shortProviderLabel(
+  enrichment: OmniRouteEnrichmentEntry | undefined
+): string | undefined {
+  if (!enrichment) return undefined;
+  const raw =
+    typeof enrichment.providerDisplayName === "string" ? enrichment.providerDisplayName.trim() : "";
+  if (raw.length > 0 && raw.length <= PROVIDER_LABEL_MAX_CHARS) return raw;
+  const alias = typeof enrichment.providerAlias === "string" ? enrichment.providerAlias.trim() : "";
+  if (alias.length > 0) return alias.toUpperCase();
+  // Tolerate "label too long + no alias" by falling back to the long
+  // label itself — better than dropping the prefix entirely. Rare case.
+  return raw.length > 0 ? raw : undefined;
+}
+
+/**
+ * Prepend the upstream provider label to `model.name` so the OC TUI
+ * picker can differentiate the same model id sold through different
+ * upstream connections (e.g. `cc/claude-opus-4-7` via Anthropic
+ * vs `kr/claude-opus-4-7` via Kiro). Result shape:
+ *
+ *   `<label>${PROVIDER_TAG_SEPARATOR}<enriched name>`
+ *   → `Claude - Claude Opus 4.7`
+ *   → `Kiro - Claude Opus 4.7`
+ *   → `GHM - GPT 5`           (slot.name "GitHub Models" > 8 chars → UPPER(alias))
+ *
+ * Mutates the model in place and is idempotent — running twice never
+ * double-prefixes. No-op when:
+ *
+ *  - `enrichment` is undefined,
+ *  - {@link shortProviderLabel} returns `undefined`
+ *    (no `providerDisplayName` AND no `providerAlias`),
+ *  - the current `model.name` already starts with the prefix.
+ *
+ * Combos are intentionally skipped by callers (they're multi-upstream
+ * by definition; the `Combo: ` prefix conveys that). Raw models call
+ * this after `applyEnrichment` so the tag layers on top of the
+ * friendly name.
+ */
+export function applyProviderTag(
+  model: ModelV2,
+  enrichment: OmniRouteEnrichmentEntry | undefined
+): ModelV2 {
+  const label = shortProviderLabel(enrichment);
+  if (!label) return model;
+  const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
+  if (model.name.startsWith(prefix)) return model;
+  model.name = `${prefix}${model.name}`;
+  return model;
+}
 
 /**
  * Apply enrichment overlay onto a ModelV2 entry. Mutates and returns the
@@ -1175,14 +1293,52 @@ export const defaultOmniRouteCompressionMetaFetcher: OmniRouteCompressionMetaFet
 };
 
 /**
- * Format a compression pipeline as a short human-readable string for combo
- * `name` decoration. Example: `[rtk:standard → caveman:full]`.
+ * Map of well-known compression-intensity tokens to a single emoji
+ * conveying "how much" compression is applied. Traffic-light palette:
+ *
+ *   🟢 minimal / lite   — almost no loss
+ *   🟡 standard          — balanced
+ *   🟠 aggressive / full — heavy
+ *   🔴 ultra             — extreme
+ *
+ * Lookup is case-insensitive. Unknown intensities fall through to the
+ * raw text form (`engine:<intensity>`) so we never hide a value that
+ * OmniRoute knows but the plugin doesn't.
+ *
+ * Exported for callers (and tests) that want to assemble their own
+ * pipeline strings.
+ */
+export const COMPRESSION_INTENSITY_EMOJI: Record<string, string> = {
+  minimal: "🟢",
+  lite: "🟢",
+  standard: "🟡",
+  aggressive: "🟠",
+  full: "🟠",
+  ultra: "🔴",
+};
+
+/**
+ * Format a compression pipeline as a short human-readable string for
+ * combo `name` decoration. Intensity tokens render as a traffic-light
+ * emoji so a column scan reveals "how compressed" the combo is at a
+ * glance:
+ *
+ *   `[rtk🟡 → caveman🟠]`    (rtk:standard → caveman:full)
+ *   `[rtk🔴]`                 (rtk:ultra, single-step)
+ *   `[caveman]`               (engine without intensity, no emoji)
+ *   `[rtk:custom-thing]`      (unknown intensity, raw-text fallback)
  */
 export function formatCompressionPipeline(pipeline: OmniRouteCompressionStep[]): string {
   if (!pipeline || pipeline.length === 0) return "";
   return (
     "[" +
-    pipeline.map((s) => (s.intensity ? `${s.engine}:${s.intensity}` : s.engine)).join(" → ") +
+    pipeline
+      .map((s) => {
+        if (!s.intensity) return s.engine;
+        const emoji = COMPRESSION_INTENSITY_EMOJI[s.intensity.toLowerCase()];
+        return emoji ? `${s.engine}${emoji}` : `${s.engine}:${s.intensity}`;
+      })
+      .join(" → ") +
     "]"
   );
 }
@@ -1405,10 +1561,7 @@ export function isUsableCombo(
  */
 export function slugifyComboName(name: string): string {
   if (typeof name !== "string") return "";
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return trimLeadingDashes(trimTrailingDashes(name.toLowerCase().replace(/[^a-z0-9]+/g, "-")));
 }
 
 /**
@@ -1445,8 +1598,14 @@ export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): stri
  * distinct keys, and serving one's catalog from the other's cache would be
  * a correctness bug, not just a privacy one.
  */
-function modelsCacheKey(baseURL: string, apiKey: string): string {
-  const h = createHash("sha256").update(apiKey).digest("hex");
+// codeql[js/insufficient-password-hash]: the input here is an API-key
+// identifier we use solely to derive an in-memory cache lookup key — it is
+// never stored, transmitted, compared against a hash, or used as a password.
+// SHA-256 is intentional: cheap + deterministic, prevents the raw secret
+// from sitting in memory dumps alongside the cache map. Slow KDFs (bcrypt/
+// argon2) would defeat the purpose (sub-ms lookups on every request).
+function modelsCacheKey(baseURL: string, credentialId: string): string {
+  const h = createHash("sha256").update(credentialId).digest("hex");
   return `${baseURL}::${h}`;
 }
 
@@ -1556,6 +1715,7 @@ export function createOmniRouteProviderHook(
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
+  const wantProviderTag = features.providerTag !== false;
   const now = deps.now ?? Date.now;
   // T-07: cache holds RAW fetch results (not pre-derived ModelV2) so that
   // the config-shim hook can share the same cache and derive its stripped
@@ -1731,7 +1891,13 @@ export function createOmniRouteProviderHook(
           providerId: resolved.providerId,
           baseURL,
         });
-        applyEnrichment(model, rawEnrichment.get(entry.id));
+        const enrichEntry = rawEnrichment.get(entry.id);
+        applyEnrichment(model, enrichEntry);
+        // Prepend upstream provider label (e.g. `Claude - Claude Opus 4.7`)
+        // so the picker groups same-model rows by upstream connection.
+        // Idempotent + gated by `features.providerTag` (default-on).
+        // Combos skip this on purpose.
+        if (wantProviderTag) applyProviderTag(model, enrichEntry);
         models[entry.id] = model;
       }
 
@@ -1871,7 +2037,7 @@ export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;
 }): typeof fetch {
-  const trimmed = config.baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(config.baseURL);
   // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
   // (e.g. baseURL `https://or.example.com/v1` should NOT match
   // `https://or.example.com/v1-attacker.evil/...`).
@@ -2337,6 +2503,11 @@ export function buildStaticProviderEntry(
     wantUsableOnly && connections && connections.length > 0
       ? usableProviderAliasSet(connections, enrichment)
       : undefined;
+  // Provider-tag suffix — default-on, opt-out via `features.providerTag: false`.
+  // Prepends e.g. `Claude - ` to enriched raw-model names so the picker
+  // can tell `cc/claude-opus-4-7` (Anthropic) apart from `kr/claude-opus-4-7`
+  // (Kiro). Combos skip this by design.
+  const wantProviderTag = opts.features?.providerTag !== false;
 
   // Build a name-set of every non-hidden combo from `/api/combos`. OmniRoute
   // pre-mirrors combos into `/v1/models` with the friendly name as the raw
@@ -2365,10 +2536,21 @@ export function buildStaticProviderEntry(
     // model picker reads this `name` straight from the static block on
     // OC ≤1.15.5 where the dynamic provider hook never fires. Falls back
     // to the raw id when no enrichment entry is found.
-    const enrichmentName = enrichment?.get(raw.id)?.name;
-    const entry: OmniRouteStaticModelEntry = {
-      name: enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id,
-    };
+    const enrichmentEntry = enrichment?.get(raw.id);
+    const enrichmentName = enrichmentEntry?.name;
+    let displayName = enrichmentName && enrichmentName.length > 0 ? enrichmentName : raw.id;
+    // Provider-tag PREFIX — `<label> - <name>` so the picker groups by
+    // upstream provider when scanning a column of model names. Mirrors
+    // `applyProviderTag` used in the dynamic hook. Idempotent: skip
+    // when the name already starts with the prefix.
+    if (wantProviderTag) {
+      const label = shortProviderLabel(enrichmentEntry);
+      if (label) {
+        const prefix = `${label}${PROVIDER_TAG_SEPARATOR}`;
+        if (!displayName.startsWith(prefix)) displayName = `${prefix}${displayName}`;
+      }
+    }
+    const entry: OmniRouteStaticModelEntry = { name: displayName };
 
     const attachment = caps.attachment ?? caps.vision;
     if (typeof attachment === "boolean") entry.attachment = attachment;
@@ -2748,6 +2930,7 @@ export function createOmniRouteConfigHook(
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
   const wantDiskCache = features.diskCache !== false;
+  const wantProviderTag = features.providerTag !== false;
 
   return async (input: Config) => {
     // (e) operator override — `input.provider[providerId]` already set →

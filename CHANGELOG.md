@@ -4,10 +4,12 @@
 
 ---
 
-## [3.8.2] — 2026-05-21
+## [3.8.2] — 2026-05-22
 
 ### ✨ New Features
 
+- **feat(@omniroute/opencode-plugin):** upstream-provider suffix in model display name — appends provider label to enriched names (e.g. `Claude Opus 4.7 · Claude` vs `Claude Opus 4.7 · Kiro`) so the OC TUI model picker can differentiate same-id models routed through different upstream connections. Default-on, opt-out via `features.providerTag: false`. ([#2602](https://github.com/diegosouzapw/OmniRoute/pull/2602) — thanks @mrmm)
+- **feat(@omniroute/opencode-plugin):** provider-tag becomes a prefix + traffic-light compression emoji — provider label now prepends (`Claude - Claude Opus 4.7`) for better TUI column grouping, with smart abbreviation for long labels (`GitHub Models` → `GHM`). Compression pipelines render intensity as emoji (🟢🟡🟠🔴). ([#2604](https://github.com/diegosouzapw/OmniRoute/pull/2604) — thanks @mrmm)
 - **feat(providers):** add 7 free-tier providers (Wave 1) — Arcee AI, InclusionAI, Krutrim, Liquid AI, MonsterAPI, Nomic, and Poolside now available as new API-key providers with provider icons, model specs, and full routing support. ([#2479](https://github.com/diegosouzapw/OmniRoute/pull/2479) — thanks @oyi77)
 - **feat(providers):** add Astraflow provider support with global + China endpoints — new provider with dual-region base URLs for global and mainland China access. ([#2486](https://github.com/diegosouzapw/OmniRoute/pull/2486) — thanks @ucloudnb666)
 - **feat(providers):** add `claude-web` provider — cookie-based Claude Web chat access without OAuth. ([#2476](https://github.com/diegosouzapw/OmniRoute/pull/2476) — thanks @oyi77)
@@ -96,6 +98,9 @@
 - **fix(github):** remove incorrect `openai-responses` targetFormat from GitHub Copilot's Haiku/Sonnet models. ([#2583](https://github.com/diegosouzapw/OmniRoute/pull/2583) — thanks @oyi77)
 - **fix(copilot):** stabilize responses configuration — removes 865 lines of unstable config, simplifies handler. ([#2579](https://github.com/diegosouzapw/OmniRoute/pull/2579) — thanks @ivan-mezentsev)
 - **fix(#2544):** add SSE heartbeat keepalive to Responses API transform stream — prevents Codex CLI 0.130.0 from disconnecting during long thinking/reasoning phases. ([#2599](https://github.com/diegosouzapw/OmniRoute/pull/2599) — thanks @herjarsa)
+- **fix(memory):** extract system role messages in semantic passthrough path to prevent 400 on memory injection — system messages were being passed as-is to providers that reject mixed roles. ([#2474](https://github.com/diegosouzapw/OmniRoute/pull/2474) — thanks @Tentoxa)
+- **fix(@omniroute/opencode-provider):** include `limit.context` in model entries for OpenCode context window detection — previously OpenCode couldn't determine model context size. ([#2482](https://github.com/diegosouzapw/OmniRoute/pull/2482) — thanks @herjarsa)
+- **fix(mimo):** add `supportsVision` flag to Kimi K2.6 in providerRegistry + comprehensive vision tests for MiMo V2.5/V2.5-Pro/V2-Omni. ([#2600](https://github.com/diegosouzapw/OmniRoute/pull/2600) — thanks @herjarsa)
 
 ### 🌐 Internationalization
 
@@ -140,6 +145,8 @@
 - **fix(i18n):** harden diff key extraction tag sanitization in `extract-keys-from-diff.mjs`.
 - **chore(i18n):** refresh fr/es/de locales + add missing `settings.update` key. ([#2437](https://github.com/diegosouzapw/OmniRoute/pull/2437))
 - **fix(dashboard):** allow bracketed combo names — align dashboard combo-name validator regex with the shared/server schema updated in PR #2354; names like `Claude [1m]` are now accepted in the create/edit form. ([#2458](https://github.com/diegosouzapw/OmniRoute/pull/2458) — thanks @congvc-dev)
+- **docs(agentrouter):** recommend native provider as the simple path — guide now prefers the built-in AgentRouter provider instead of manual OpenAI-compatible configuration. ([#2429](https://github.com/diegosouzapw/OmniRoute/pull/2429) — thanks @leninejunior)
+- **feat(settings):** surface Codex Fast Tier toggle in Settings › AI — companion UI toggle for the Codex Fast Tier feature. ([#2440](https://github.com/diegosouzapw/OmniRoute/pull/2440) — thanks @NomenAK)
 
 ### 🔒 Security Fixes
 

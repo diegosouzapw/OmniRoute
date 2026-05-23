@@ -152,6 +152,9 @@ describe("ensureAntigravityProjectAssigned", () => {
 
     const mockFetch = async (url: string, _init?: RequestInit): Promise<Response> => {
       hitUrls.push(url);
+      // Exact hostname match (not substring .includes) so the check can't be fooled by a
+      // look-alike host like daily-cloudcode-pa.googleapis.com.evil.com (CodeQL
+      // js/incomplete-url-substring-sanitization).
       if (new URL(url).hostname === "daily-cloudcode-pa.googleapis.com") {
         // First URL fails
         return new Response("not found", { status: 404 });

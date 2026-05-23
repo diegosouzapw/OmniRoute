@@ -581,6 +581,7 @@ export async function getUnifiedModelsResponse(
     // Add combos first (they appear at the top) — only active ones
     for (const combo of combos) {
       if (combo.isActive === false || combo.isHidden === true) continue;
+      if (typeof combo.name !== "string" || combo.name.length === 0) continue;
       const comboMetadata = buildComboCatalogMetadata(combo, combos);
 
       models.push({

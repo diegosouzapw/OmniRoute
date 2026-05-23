@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import { z } from "zod";
 import { requireCliToolsAuth } from "@/lib/api/requireCliToolsAuth";
 import { getCliPrimaryConfigPath } from "@/shared/services/cliRuntime";
 import { validateBaseUrl } from "@/lib/cli-helper/config-generator";
@@ -10,6 +11,20 @@ import {
   getCurrentHermesAgentRoles,
 } from "@/lib/cli-helper/config-generator/hermes-agent";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
+
+const hermesAgentSettingsSchema = z.object({
+  baseUrl: z.string().min(1, "baseUrl is required"),
+  keyId: z.string().optional().nullable(),
+  apiKey: z.string().optional().nullable(),
+  selections: z
+    .array(
+      z.object({
+        role: z.string(),
+        model: z.string(),
+      })
+    )
+    .min(1, "selections must be a non-empty array of { role, model }"),
+});
 
 /**
  * Dedicated endpoint for Hermes Agent (the advanced Nous Research terminal agent).
@@ -56,28 +71,25 @@ export async function POST(request: Request) {
   const authError = await requireCliToolsAuth(request);
   if (authError) return authError;
 
-  let body;
+  let rawBody;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { baseUrl, keyId, apiKey, selections } = body;
-
-  if (!baseUrl) {
-    return NextResponse.json({ error: "baseUrl is required" }, { status: 400 });
-  }
-
-  if (typeof baseUrl !== "string" || !validateBaseUrl(baseUrl)) {
-    return NextResponse.json({ error: "baseUrl must be a valid http(s) URL" }, { status: 400 });
-  }
-
-  if (!Array.isArray(selections) || selections.length === 0) {
+  const parsed = hermesAgentSettingsSchema.safeParse(rawBody);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "selections must be a non-empty array of { role, model }" },
+      { error: parsed.error.issues[0]?.message ?? "Invalid request" },
       { status: 400 }
     );
+  }
+
+  const { baseUrl, keyId, apiKey, selections } = parsed.data;
+
+  if (!validateBaseUrl(baseUrl)) {
+    return NextResponse.json({ error: "baseUrl must be a valid http(s) URL" }, { status: 400 });
   }
 
   const configPath = getCliPrimaryConfigPath("hermes-agent") || CONFIG_PATH;
