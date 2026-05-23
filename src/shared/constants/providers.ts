@@ -1,7 +1,36 @@
 // Provider definitions
 
-// Free Providers
-export const FREE_PROVIDERS = {
+export const FREE_PROVIDERS = {};
+
+// No-auth Providers
+export const NOAUTH_PROVIDERS = {
+  opencode: {
+    id: "opencode",
+    alias: "oc",
+    name: "OpenCode Free",
+    icon: "terminal",
+    color: "#E87040",
+    textIcon: "OC",
+    website: "https://opencode.ai",
+    noAuth: true,
+    hasFree: true,
+    authHint: "No API key required — uses OpenCode's public free endpoint.",
+    freeNote:
+      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
+    notice: {
+      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
+    },
+  },
+};
+
+export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
+
+export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
+  return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
+}
+
+// OAuth Providers
+export const OAUTH_PROVIDERS = {
   qoder: {
     id: "qoder",
     alias: "if",
@@ -50,33 +79,6 @@ export const FREE_PROVIDERS = {
     authHint:
       "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
   },
-  opencode: {
-    id: "opencode",
-    alias: "oc",
-    name: "OpenCode Free",
-    icon: "terminal",
-    color: "#E87040",
-    textIcon: "OC",
-    website: "https://opencode.ai",
-    noAuth: true,
-    hasFree: true,
-    authHint: "No API key required — uses OpenCode's public free endpoint.",
-    freeNote:
-      "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
-    notice: {
-      text: "OpenCode Free uses the public OpenCode endpoint (https://opencode.ai/zen/v1). No signup or API key needed. Rate limits apply.",
-    },
-  },
-};
-
-export const FREE_APIKEY_PROVIDER_IDS = new Set(["qoder"]);
-
-export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
-  return typeof providerId === "string" && FREE_APIKEY_PROVIDER_IDS.has(providerId);
-}
-
-// OAuth Providers
-export const OAUTH_PROVIDERS = {
   claude: { id: "claude", alias: "cc", name: "Claude Code", icon: "smart_toy", color: "#D97757" },
   antigravity: {
     id: "antigravity",
@@ -2607,7 +2609,7 @@ export const SYSTEM_PROVIDERS = {
 
 // All providers (combined)
 export const AI_PROVIDERS = {
-  ...FREE_PROVIDERS,
+  ...NOAUTH_PROVIDERS,
   ...OAUTH_PROVIDERS,
   ...APIKEY_PROVIDERS,
   ...WEB_COOKIE_PROVIDERS,
@@ -2689,7 +2691,7 @@ export const USAGE_SUPPORTED_PROVIDERS = [
 // ── Zod validation at module load (Phase 7.2) ──
 import { validateProviders } from "../validation/providerSchema";
 
-validateProviders(FREE_PROVIDERS, "FREE_PROVIDERS");
+validateProviders(NOAUTH_PROVIDERS, "NOAUTH_PROVIDERS");
 validateProviders(OAUTH_PROVIDERS, "OAUTH_PROVIDERS");
 validateProviders(APIKEY_PROVIDERS, "APIKEY_PROVIDERS");
 validateProviders(WEB_COOKIE_PROVIDERS, "WEB_COOKIE_PROVIDERS");

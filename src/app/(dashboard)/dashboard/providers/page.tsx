@@ -11,8 +11,6 @@ import {
   CollapsibleSection,
 } from "@/shared/components";
 import {
-  FREE_PROVIDERS,
-  OAUTH_PROVIDERS,
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
   ENTERPRISE_CLOUD_PROVIDER_IDS,
@@ -20,7 +18,6 @@ import {
   IMAGE_ONLY_PROVIDER_IDS,
   VIDEO_PROVIDER_IDS,
   isClaudeCodeCompatibleProvider,
-  CLOUD_AGENT_PROVIDERS,
 } from "@/shared/constants/providers";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
@@ -29,7 +26,6 @@ import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useTranslations } from "next-intl";
 import {
-  buildMergedOAuthProviderEntries,
   buildStaticProviderEntries,
   filterConfiguredProviderEntries,
   shouldApplyConfiguredOnlyFilter,
@@ -454,13 +450,17 @@ export default function ProvidersPage() {
     connections.length
   );
 
-  const oauthProviderEntriesAll = buildMergedOAuthProviderEntries(
-    OAUTH_PROVIDERS,
-    FREE_PROVIDERS,
-    getProviderStats
-  );
+  const oauthProviderEntriesAll = buildStaticProviderEntries("oauth", getProviderStats);
   const oauthProviderEntries = filterConfiguredProviderEntries(
     oauthProviderEntriesAll,
+    effectiveShowConfiguredOnly,
+    searchQuery,
+    showFreeOnly
+  );
+
+  const noAuthEntriesAll = buildStaticProviderEntries("no-auth", getProviderStats);
+  const noAuthEntries = filterConfiguredProviderEntries(
+    noAuthEntriesAll,
     effectiveShowConfiguredOnly,
     searchQuery,
     showFreeOnly
@@ -591,6 +591,7 @@ export default function ProvidersPage() {
 
   const staticProviderEntriesAll = dedupeProviderEntries([
     ...oauthProviderEntriesAll,
+    ...noAuthEntriesAll,
     ...apiKeyProviderEntriesAll,
     ...webCookieProviderEntriesAll,
     ...localProviderEntriesAll,
@@ -629,6 +630,7 @@ export default function ProvidersPage() {
   const summaryStats = {
     all: countConfigured(dashboardProviderEntriesAll),
     free: countConfigured(freeSectionEntriesAll),
+    noauth: countConfigured(noAuthEntriesAll),
     oauth: countConfigured(oauthOnlyEntriesAll),
     apikey: countConfigured(apiKeyProviderEntriesAll),
     compatible: countConfigured(compatibleProviderEntriesAll),
@@ -636,6 +638,7 @@ export default function ProvidersPage() {
     search: countConfigured(searchProviderEntriesAll),
     audio: countConfigured(audioProviderEntriesAll),
     local: countConfigured(localProviderEntriesAll),
+    upstreamproxy: countConfigured(upstreamProxyEntriesAll),
     cloudagent: countConfigured(cloudAgentProviderEntriesAll),
     ide: countConfigured(ideProviderEntriesAll),
   };
@@ -735,6 +738,18 @@ export default function ProvidersPage() {
               [
                 { key: null, color: null, label: t("providerSummaryAll"), stat: summaryStats.all },
                 {
+                  key: "oauth",
+                  color: "bg-blue-500",
+                  label: t("oauthLabel"),
+                  stat: summaryStats.oauth,
+                },
+                {
+                  key: "ide",
+                  color: "bg-cyan-500",
+                  label: "IDE",
+                  stat: summaryStats.ide,
+                },
+                {
                   key: "free",
                   color: "bg-green-500",
                   label: t("freeTier"),
@@ -742,22 +757,22 @@ export default function ProvidersPage() {
                   title: t("freeAggregated"),
                 },
                 {
-                  key: "oauth",
-                  color: "bg-blue-500",
-                  label: t("oauthLabel"),
-                  stat: summaryStats.oauth,
+                  key: "no-auth",
+                  color: "bg-stone-500",
+                  label: t("noAuthLabel"),
+                  stat: summaryStats.noauth,
+                },
+                {
+                  key: "upstream-proxy",
+                  color: "bg-indigo-500",
+                  label: t("upstreamProxyLabel"),
+                  stat: summaryStats.upstreamproxy,
                 },
                 {
                   key: "apikey",
                   color: "bg-amber-500",
                   label: t("apiKeyLabel"),
                   stat: summaryStats.apikey,
-                },
-                {
-                  key: "ide",
-                  color: "bg-cyan-500",
-                  label: "IDE",
-                  stat: summaryStats.ide,
                 },
                 {
                   key: "compatible",
@@ -990,6 +1005,46 @@ export default function ProvidersPage() {
                 />
               )
             )}
+          </div>
+        </div>
+      )}
+
+      {/* No Auth Providers */}
+      {showSection("no-auth") && noAuthEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("noAuthProviders")}{" "}
+              <span className="size-2.5 rounded-full bg-stone-500" title={t("noAuthLabel")} />
+              <ProviderCountBadge {...countConfigured(noAuthEntriesAll)} />
+            </h2>
+            <button
+              onClick={() => handleBatchTest("no-auth")}
+              disabled={!!testingMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                testingMode === "no-auth"
+                  ? "bg-primary/20 border-primary/40 text-primary animate-pulse"
+                  : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40"
+              }`}
+              title={t("testAll")}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {testingMode === "no-auth" ? "sync" : "play_arrow"}
+              </span>
+              {testingMode === "no-auth" ? t("testing") : t("testAll")}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
+              <ProviderCard
+                key={providerId}
+                providerId={providerId}
+                provider={provider}
+                stats={stats}
+                authType="no-auth"
+                onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -1502,7 +1557,7 @@ export default function ProvidersPage() {
       )}
 
       {/* Upstream Proxy Providers */}
-      {upstreamProxyEntries.length > 0 && (
+      {showSection("upstream-proxy") && upstreamProxyEntries.length > 0 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">

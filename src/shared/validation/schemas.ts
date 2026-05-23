@@ -1794,6 +1794,7 @@ export const providersBatchTestSchema = z
       "provider",
       "oauth",
       "free",
+      "no-auth",
       "apikey",
       "compatible",
       "all",
