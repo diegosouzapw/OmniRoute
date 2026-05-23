@@ -2107,6 +2107,7 @@ export async function handleChatCore({
   const allMessages = compressionBody?.messages || body?.contents || body?.request?.contents || [];
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
+  let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let promptCompressionEnabled = false;
@@ -2558,6 +2559,10 @@ export async function handleChatCore({
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
 
+    // Capture pre-compression body so translators can access original message
+    // content even after compression alters it (e.g. stable Kiro conversationId).
+    preCompressionBody = body;
+
     if (promptCompressionEnabled && estimatedTokens > threshold) {
       log?.info?.(
         "CONTEXT",
@@ -2964,6 +2969,7 @@ export async function handleChatCore({
           preserveDeveloperRole,
           preserveCacheControl,
           signatureNamespace: connectionId,
+          ...(preCompressionBody ? { preCompressionBody } : {}),
         }
       );
     }
