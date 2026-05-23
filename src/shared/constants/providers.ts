@@ -196,7 +196,7 @@ export const WEB_COOKIE_PROVIDERS = {
   "adapta-web": {
     id: "adapta-web",
     alias: "adp-web",
-    name: "Adapta Web (Gold/Business)",
+    name: "Adapta.org (Adapta One Web)",
     icon: "auto_awesome",
     color: "#6E3AD3",
     textIcon: "AW",

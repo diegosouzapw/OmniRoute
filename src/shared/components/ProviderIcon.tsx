@@ -53,6 +53,7 @@ const KNOWN_PNGS = new Set([
   "oai-r",
   "openclaw",
   "zeroclaw",
+  "adapta-web",
   "blackbox-web",
   "cliproxyapi",
   "empower",
