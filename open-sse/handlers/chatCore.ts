@@ -2833,11 +2833,14 @@ export async function handleChatCore({
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
 
-      // Fix #2468: extract role:"system" from messages → top-level system
-      // in the compatible bridge path. The preserveClaudeMessages flag
-      // skips the OpenAI round-trip but may leave system-role messages in
-      // the array, which Anthropic's Messages API now rejects (400).
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Semantic passthrough: only lift system/developer role messages
+        // without converting file/document blocks, tool history, etc.
+        extractSystemMessagesToBody(translatedBody);
+      } else {
+        // Non-CC path: full normalization including content type conversion.
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
     } else if (isClaudePassthrough) {
       // Pure passthrough: forward the body as-is without OpenAI round-trip.
       // The Claude→OpenAI→Claude double translation was lossy and corrupted
@@ -2862,7 +2865,13 @@ export async function handleChatCore({
       // round-trip, but even pure Claude bodies may carry system content as
       // role:"system" messages rather than the top-level system field, which
       // Anthropic's Messages API now rejects with a 400.
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Only lift system/developer messages — preserves Claude Code's
+        // native payload structure (documents, tool chains, thinking, etc.)
+        extractSystemMessagesToBody(translatedBody);
+      } else {
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
