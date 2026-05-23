@@ -224,8 +224,9 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   assert.equal(entry.options.baseURL, "https://or.example.com/v1");
   assert.equal(entry.options.apiKey, "sk-test-1");
 
-  // Stripped per-model shape: name + cap flags only, NO nested
-  // capabilities.input.* tree, NO cost block.
+  // Stripped per-model shape: name + cap flags + modalities + (optional)
+  // cost. OC's SDK static schema accepts only `limit.{context,output}` —
+  // `limit.input` is NOT in the SDK shape and gets dropped silently.
   const claude = entry.models["claude-sonnet-4-6"];
   assert.ok(claude, "claude model surfaced");
   assert.equal(claude.name, "claude-sonnet-4-6");
@@ -234,8 +235,16 @@ test("config: with valid auth.json + apiKey + baseURL → mutates input.provider
   assert.equal(claude.temperature, true);
   assert.equal(claude.tool_call, true);
   assert.equal(claude.limit?.context, 200_000);
-  assert.equal(claude.limit?.input, 180_000);
   assert.equal(claude.limit?.output, 64_000);
+  assert.equal(
+    (claude.limit as Record<string, unknown>).input,
+    undefined,
+    "limit.input is NOT in OC's SDK schema — must not emit"
+  );
+  // Modalities — without this field OC defaults `input.image: false`
+  // even when `attachment: true`, blocking clipboard paste in the TUI.
+  assert.deepEqual(claude.modalities?.input, ["text", "image"]);
+  assert.deepEqual(claude.modalities?.output, ["text"]);
 
   // Combo surfaces under `combo/<friendly-name>` namespace + LCD'd
   // (gemini's reasoning=false → combo reasoning=false).
@@ -615,33 +624,31 @@ test("buildStaticProviderEntry: stripped per-model shape matches sibling @omniro
   assert.equal(block.name, "OmniRoute");
   assert.deepEqual(Object.keys(block.options).sort(), ["apiKey", "baseURL"]);
 
-  // Per-model entry shape — STRIPPED (no nested capabilities tree, no
-  // cost block, no providerID/api/status/headers/release_date that
-  // ModelV2 carries). Allowed keys: name, attachment, reasoning,
-  // temperature, tool_call, limit.
+  // Per-model entry shape — the keys OC's SDK static schema accepts
+  // (see @opencode-ai/sdk types.gen.d.ts). NO nested capabilities tree,
+  // NO providerID/api fields from ModelV2 (those belong on the dynamic
+  // hook path).
   const allowedKeys = new Set([
     "name",
+    "release_date",
     "attachment",
     "reasoning",
     "temperature",
     "tool_call",
+    "cost",
     "limit",
+    "modalities",
   ]);
   for (const [id, entry] of Object.entries(block.models)) {
     for (const key of Object.keys(entry)) {
-      assert.ok(allowedKeys.has(key), `${id}.${key} is not in the stripped sibling shape`);
+      assert.ok(allowedKeys.has(key), `${id}.${key} is not in the SDK static shape`);
     }
-    // capabilities (ModelV2-only) must NOT leak.
+    // capabilities (ModelV2-only) must NOT leak — that's the dynamic-
+    // hook nested shape, not the static SDK schema.
     assert.equal(
       (entry as Record<string, unknown>).capabilities,
       undefined,
       `${id} must not carry nested capabilities tree`
-    );
-    // cost (ModelV2-only) must NOT leak.
-    assert.equal(
-      (entry as Record<string, unknown>).cost,
-      undefined,
-      `${id} must not carry cost block`
     );
   }
 
@@ -673,6 +680,119 @@ test("buildStaticProviderEntry: hidden combos are excluded", () => {
   );
   assert.equal(block.models["combo-claude-tier"], undefined);
   assert.ok(block.models["claude-sonnet-4-6"]);
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Schema parity (modalities / cost / release_date / limit cleanup)
+// ────────────────────────────────────────────────────────────────────────────
+
+test("buildStaticProviderEntry: emits modalities.input from raw.input_modalities", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const block = buildStaticProviderEntry(
+    [MODEL_CLAUDE, MODEL_GEMINI],
+    [],
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+  const claude = block.models["claude-sonnet-4-6"];
+  assert.deepEqual(claude.modalities?.input, ["text", "image"]);
+  assert.deepEqual(claude.modalities?.output, ["text"]);
+});
+
+test("buildStaticProviderEntry: never emits limit.input (OC SDK rejects it)", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const block = buildStaticProviderEntry(
+    [MODEL_CLAUDE],
+    [],
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+  const claude = block.models["claude-sonnet-4-6"];
+  assert.equal((claude.limit as Record<string, unknown>).input, undefined);
+  assert.equal(typeof claude.limit?.context, "number");
+  assert.equal(typeof claude.limit?.output, "number");
+});
+
+test("buildStaticProviderEntry: emits cost when enrichment carries pricing", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const enrichment = new Map([
+    [
+      "claude-sonnet-4-6",
+      {
+        name: "Claude Sonnet 4.6",
+        providerAlias: "cc",
+        providerCanonical: "claude",
+        providerDisplayName: "Claude",
+        pricing: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
+      },
+    ],
+  ]);
+  const block = buildStaticProviderEntry(
+    [MODEL_CLAUDE],
+    [],
+    resolved,
+    "https://or.example/v1",
+    "sk-test",
+    enrichment
+  );
+  const claude = block.models["claude-sonnet-4-6"];
+  assert.equal(claude.cost?.input, 3);
+  assert.equal(claude.cost?.output, 15);
+  assert.equal(claude.cost?.cache_read, 0.3);
+  assert.equal(claude.cost?.cache_write, 3.75);
+});
+
+test("buildStaticProviderEntry: emits release_date when raw carries it; omits when null", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const withDate: OmniRouteRawModelEntry = {
+    ...MODEL_CLAUDE,
+    id: "claude-with-date",
+    release_date: "2026-02-19",
+  };
+  const block = buildStaticProviderEntry(
+    [withDate, MODEL_GEMINI],
+    [],
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+  assert.equal(block.models["claude-with-date"].release_date, "2026-02-19");
+  assert.equal(block.models["gemini-3-flash"].release_date, undefined);
+});
+
+test("buildStaticProviderEntry: combo modalities = intersection of members (LCD)", () => {
+  const resolved = resolveOmniRoutePluginOptions({ providerId: "omniroute" });
+  const TEXT_ONLY: OmniRouteRawModelEntry = {
+    id: "text-only",
+    capabilities: { tool_calling: true, reasoning: false, vision: false, thinking: false },
+    context_length: 100_000,
+    max_output_tokens: 4_096,
+    input_modalities: ["text"],
+    output_modalities: ["text"],
+  };
+  const block = buildStaticProviderEntry(
+    [MODEL_CLAUDE, TEXT_ONLY],
+    [
+      {
+        id: "combo-mixed",
+        name: "Mixed Tier",
+        models: [
+          { id: "s1", kind: "model", model: "claude-sonnet-4-6", weight: 100 },
+          { id: "s2", kind: "model", model: "text-only", weight: 50 },
+        ],
+      },
+    ],
+    resolved,
+    "https://or.example/v1",
+    "sk-test"
+  );
+  const combo = block.models["combo/mixed-tier"];
+  assert.ok(combo, "combo emitted under slug key");
+  // claude has text+image, text-only has text → intersection drops image.
+  assert.deepEqual(combo.modalities?.input, ["text"]);
+  assert.deepEqual(combo.modalities?.output, ["text"]);
 });
 
 // ────────────────────────────────────────────────────────────────────────────

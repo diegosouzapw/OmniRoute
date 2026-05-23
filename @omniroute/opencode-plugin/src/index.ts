@@ -2632,9 +2632,38 @@ export function __resetGeminiStreamingWarning(): void {
  * resulting JSON must be diffable across OmniRoute deployments without
  * `undefined` noise.
  */
+/** Modalities accepted by OC's static catalog reader (see `@opencode-ai/sdk`). */
+export type OmniRouteModalityKind = "text" | "audio" | "image" | "video" | "pdf";
+
+const STATIC_MODALITY_VALUES: ReadonlySet<OmniRouteModalityKind> = new Set([
+  "text",
+  "audio",
+  "image",
+  "video",
+  "pdf",
+]);
+
+/** Normalise + filter raw modality list to the values OC accepts. Deduped. */
+function normaliseModalities(raw: unknown): OmniRouteModalityKind[] {
+  if (!Array.isArray(raw)) return [];
+  const out: OmniRouteModalityKind[] = [];
+  const seen = new Set<string>();
+  for (const v of raw) {
+    if (typeof v !== "string") continue;
+    const lower = v.toLowerCase() as OmniRouteModalityKind;
+    if (!STATIC_MODALITY_VALUES.has(lower)) continue;
+    if (seen.has(lower)) continue;
+    seen.add(lower);
+    out.push(lower);
+  }
+  return out;
+}
+
 export interface OmniRouteStaticModelEntry {
   /** Display label rendered in OC's model picker. Defaults to the model id. */
   name: string;
+  /** ISO date the model was released. Surfaces in OC's model card when present. */
+  release_date?: string;
   /** Model accepts image / file attachments. */
   attachment?: boolean;
   /** Model exposes a reasoning / extended-thinking surface. */
@@ -2643,11 +2672,37 @@ export interface OmniRouteStaticModelEntry {
   temperature?: boolean;
   /** Model supports function / tool calling. */
   tool_call?: boolean;
-  /** Context-window limits. */
+  /**
+   * Per-million-token cost. Maps from OmniRoute `/api/pricing` shape:
+   * `input`/`output` pass through; `cached` → `cache_read`;
+   * `cache_creation` → `cache_write`. Omitted when no pricing slot resolves.
+   */
+  cost?: {
+    input: number;
+    output: number;
+    cache_read?: number;
+    cache_write?: number;
+  };
+  /**
+   * Context-window limits. OC's static reader requires both `context` AND
+   * `output` when `limit` is present, so the field is only emitted when
+   * BOTH are known.
+   */
   limit?: {
     context: number;
-    input?: number;
-    output?: number;
+    output: number;
+  };
+  /**
+   * Modality lists the model accepts (input) and emits (output). Maps from
+   * OmniRoute's `input_modalities` / `output_modalities` on `/v1/models`.
+   * Emitted only when at least one modality is known — without this field
+   * OC's runtime catalog defaults `input.image: false` even when the model
+   * card has `attachment: true`, which blocks clipboard image paste in the
+   * TUI for vision-capable models.
+   */
+  modalities?: {
+    input: OmniRouteModalityKind[];
+    output: OmniRouteModalityKind[];
   };
 }
 
@@ -2820,28 +2875,50 @@ export function buildStaticProviderEntry(
       entry.tool_call = caps.tool_calling;
     }
 
-    const limit: OmniRouteStaticModelEntry["limit"] = {} as { context: number };
-    let hasLimit = false;
-    if (typeof raw.context_length === "number" && raw.context_length > 0) {
-      (limit as { context: number }).context = raw.context_length;
-      hasLimit = true;
+    // OC's SDK schema requires BOTH `context` and `output` when `limit` is
+    // present. We previously emitted `limit.input` too, but the SDK reader
+    // doesn't accept it — drop it. Only emit `limit` when both required
+    // values are known.
+    if (
+      typeof raw.context_length === "number" &&
+      raw.context_length > 0 &&
+      typeof raw.max_output_tokens === "number" &&
+      raw.max_output_tokens > 0
+    ) {
+      entry.limit = {
+        context: raw.context_length,
+        output: raw.max_output_tokens,
+      };
     }
-    if (typeof raw.max_input_tokens === "number" && raw.max_input_tokens > 0) {
-      (limit as { input?: number }).input = raw.max_input_tokens;
-      hasLimit = true;
+
+    // Modalities — emit when OmniRoute surfaced any. Without this field
+    // OC's runtime model defaults `input.image: false` even for vision-
+    // capable models, blocking clipboard image paste in the TUI.
+    const inModalities = normaliseModalities(raw.input_modalities);
+    const outModalities = normaliseModalities(raw.output_modalities);
+    if (inModalities.length > 0 || outModalities.length > 0) {
+      entry.modalities = {
+        input: inModalities.length > 0 ? inModalities : ["text"],
+        output: outModalities.length > 0 ? outModalities : ["text"],
+      };
     }
-    if (typeof raw.max_output_tokens === "number" && raw.max_output_tokens > 0) {
-      (limit as { output?: number }).output = raw.max_output_tokens;
-      hasLimit = true;
+
+    // Cost from enrichment pricing (sourced from `/api/pricing`). Map
+    // OmniRoute field names to OC's static-schema field names.
+    const pricing = enrichmentEntry?.pricing;
+    if (pricing && (typeof pricing.input === "number" || typeof pricing.output === "number")) {
+      const cost: NonNullable<OmniRouteStaticModelEntry["cost"]> = {
+        input: typeof pricing.input === "number" ? pricing.input : 0,
+        output: typeof pricing.output === "number" ? pricing.output : 0,
+      };
+      if (typeof pricing.cacheRead === "number") cost.cache_read = pricing.cacheRead;
+      if (typeof pricing.cacheWrite === "number") cost.cache_write = pricing.cacheWrite;
+      entry.cost = cost;
     }
-    if (hasLimit) {
-      // Static shape requires `context: number` when limit is present —
-      // fill with 0 when only input/output were declared (matches the
-      // sibling provider's behaviour for partial limits).
-      if (typeof (limit as { context?: number }).context !== "number") {
-        (limit as { context: number }).context = 0;
-      }
-      entry.limit = limit as OmniRouteStaticModelEntry["limit"];
+
+    // release_date from /v1/models — surfaces in OC's model card when present.
+    if (typeof raw.release_date === "string" && raw.release_date.length > 0) {
+      entry.release_date = raw.release_date;
     }
 
     models[raw.id] = entry;
@@ -2913,29 +2990,44 @@ export function buildStaticProviderEntry(
       );
       entry.tool_call = memberEntries.every((m) => Boolean(m.capabilities?.tool_calling ?? false));
 
-      // LCD across limits — min over declared values, omit `input` unless
-      // EVERY member declares one (matches mapComboToModelV2).
+      // LCD across limits — min over declared values. OC's SDK static schema
+      // accepts only `context` + `output` on `limit`, so we drop the legacy
+      // `input` emission. Emit only when BOTH context AND output are known
+      // across at least one member (mirrors the required-field constraint).
       const contextValues = memberEntries
         .map((m) => m.context_length)
         .filter((v): v is number => typeof v === "number" && v > 0);
       const outputValues = memberEntries
         .map((m) => m.max_output_tokens)
         .filter((v): v is number => typeof v === "number" && v > 0);
-      const inputValues = memberEntries
-        .map((m) => m.max_input_tokens)
-        .filter((v): v is number => typeof v === "number" && v > 0);
-      const everyDeclaresInput = inputValues.length === memberEntries.length;
 
-      if (contextValues.length > 0 || outputValues.length > 0 || everyDeclaresInput) {
-        const limit = {} as { context: number; input?: number; output?: number };
-        limit.context = contextValues.length > 0 ? Math.min(...contextValues) : 0;
-        if (everyDeclaresInput && inputValues.length > 0) {
-          limit.input = Math.min(...inputValues);
+      if (contextValues.length > 0 && outputValues.length > 0) {
+        entry.limit = {
+          context: Math.min(...contextValues),
+          output: Math.min(...outputValues),
+        };
+      }
+
+      // LCD across modalities — combo accepts modality M iff every member
+      // accepts M. Same intersection rule as runtime capabilities.
+      const inSets = memberEntries.map((m) => new Set(normaliseModalities(m.input_modalities)));
+      const outSets = memberEntries.map((m) => new Set(normaliseModalities(m.output_modalities)));
+      const intersect = (sets: Set<OmniRouteModalityKind>[]): OmniRouteModalityKind[] => {
+        if (sets.length === 0) return [];
+        const [first, ...rest] = sets;
+        const out: OmniRouteModalityKind[] = [];
+        for (const v of first) {
+          if (rest.every((s) => s.has(v))) out.push(v);
         }
-        if (outputValues.length > 0) {
-          limit.output = Math.min(...outputValues);
-        }
-        entry.limit = limit;
+        return out;
+      };
+      const inModalities = intersect(inSets);
+      const outModalities = intersect(outSets);
+      if (inModalities.length > 0 || outModalities.length > 0) {
+        entry.modalities = {
+          input: inModalities.length > 0 ? inModalities : ["text"],
+          output: outModalities.length > 0 ? outModalities : ["text"],
+        };
       }
     } else {
       // Empty members → safety posture: all caps false. Caller's OC picker
