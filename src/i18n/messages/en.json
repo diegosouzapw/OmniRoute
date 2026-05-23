@@ -3265,6 +3265,8 @@
     "expiringSoonBadge": "Expiring Soon",
     "freeTier": "Free Tier",
     "freeTierAvailable": "Free tier available",
+    "hasFreeTooltip": "Free tier available",
+    "freeAggregated": "All providers with free tier (also shown in their native category)",
     "deprecated": "Deprecated",
     "deprecatedProvider": "This provider has been deprecated",
     "disabled": "Disabled",

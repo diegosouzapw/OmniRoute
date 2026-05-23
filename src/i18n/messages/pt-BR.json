@@ -3262,6 +3262,8 @@
     "expiringSoonBadge": "Expirando em Breve",
     "freeTier": "Plano gratuito",
     "freeTierAvailable": "Nível gratuito disponível",
+    "hasFreeTooltip": "Tier gratuito disponível",
+    "freeAggregated": "Todos os providers com tier gratuito (também aparecem na categoria nativa)",
     "deprecated": "Depreciado",
     "deprecatedProvider": "Este provedor foi depreciado",
     "disabled": "Desativado",
