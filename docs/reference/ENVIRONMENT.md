@@ -93,6 +93,9 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `OMNIROUTE_MIGRATIONS_DIR`             | _(auto-detect)_      | `src/lib/db/migrationRunner.ts`                       | Override the directory that the migration runner scans. Useful when shipping bundled migrations in custom builds.                 |
 | `OMNIROUTE_SPEND_FLUSH_INTERVAL_MS`    | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Flush interval (ms) for the batched spend/cost writer. Lower values reduce write coalescing; higher values reduce DB contention.  |
 | `OMNIROUTE_SPEND_MAX_BUFFER_SIZE`      | _(default in code)_  | `src/lib/spend/batchWriter.ts`                        | Max buffered spend entries before a forced flush. Raise on high-QPS deployments; lower when bounded memory matters more.          |
+| `BATCH_RETRY_DURATION_MS`              | `86400000` (24h)     | `open-sse/services/batchProcessor.ts`                 | Maximum retry window for individual batch items (ms). Items exceeding this duration are marked failed.                            |
+| `BATCH_BACKOFF_BASE_MS`                | `5000`               | `open-sse/services/batchProcessor.ts`                 | Base delay (ms) for exponential backoff on batch item retries.                                                                    |
+| `BATCH_BACKOFF_MAX_MS`                 | `3600000` (1h)       | `open-sse/services/batchProcessor.ts`                 | Cap (ms) for exponential backoff between batch item retries.                                                                      |
 
 ### Scenarios
 

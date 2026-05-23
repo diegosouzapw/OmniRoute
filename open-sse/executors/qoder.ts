@@ -143,7 +143,7 @@ export class QoderExecutor extends BaseExecutor {
         if (cosyRes.ok || cosyRes.status === 200) {
           // Cosy SSE response - read full body and parse
           const rawText = await cosyRes.text();
-          const lines = rawText.split("\n").filter(l => l.startsWith("data: "));
+          const lines = rawText.split("\n").filter((l) => l.startsWith("data: "));
           let fullContent = "";
           for (const line of lines) {
             try {
@@ -156,7 +156,10 @@ export class QoderExecutor extends BaseExecutor {
             }
           }
           const { buildQoderCompletionPayload } = await import("../services/qoderCli.ts");
-          const cosyPayload = buildQoderCompletionPayload({ model: mappedModel || resolvedModel, text: fullContent });
+          const cosyPayload = buildQoderCompletionPayload({
+            model: mappedModel || resolvedModel,
+            text: fullContent,
+          });
           return {
             response: new Response(JSON.stringify(cosyPayload), {
               status: 200,
@@ -174,7 +177,8 @@ export class QoderExecutor extends BaseExecutor {
           response: new Response(
             JSON.stringify({
               error: {
-                message: `Qoder API (Cosy) failed with status ${cosyRes.status}: ${errText}. Your PAT token may not be valid for the chat API.` +
+                message:
+                  `Qoder API (Cosy) failed with status ${cosyRes.status}: ${errText}. Your PAT token may not be valid for the chat API.` +
                   " Try using an OAuth token or a different auth method.",
                 type: "authentication_error",
                 code: "token_invalid",
