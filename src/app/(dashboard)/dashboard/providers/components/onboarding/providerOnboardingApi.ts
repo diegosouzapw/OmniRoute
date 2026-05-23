@@ -1,3 +1,11 @@
+import { z } from "zod";
+
+import {
+  createProviderNodeSchema,
+  createProviderSchema,
+  validateProviderApiKeySchema,
+} from "@/shared/validation/schemas";
+
 export type OnboardingConnection = {
   id: string;
   provider: string;
@@ -26,6 +34,10 @@ export type CompatibleProviderNode = {
   [key: string]: unknown;
 };
 
+export type OnboardingProviderNodes = {
+  ccCompatibleProviderEnabled: boolean;
+};
+
 export type CreateCompatibleProviderNodeInput = {
   mode: CompatibleNodeMode;
   name: string;
@@ -35,6 +47,41 @@ export type CreateCompatibleProviderNodeInput = {
   chatPath?: string;
   modelsPath?: string;
 };
+
+export type ValidateOnboardingApiKeyInput = z.input<typeof validateProviderApiKeySchema>;
+
+export type CreateOnboardingConnectionInput = {
+  provider: string;
+  name: string;
+  apiKey?: string;
+  providerSpecificData?: Record<string, unknown> | null;
+  testStatus?: string;
+};
+
+const compatibleProviderNodeInputSchema = z.object({
+  mode: z.enum(["openai", "anthropic", "cc"]),
+  name: z.string().trim().min(1, "Name is required"),
+  prefix: z.string().trim().min(1, "Prefix is required"),
+  baseUrl: z.string().trim().min(1, "Base URL is required"),
+  apiType: z
+    .enum([
+      "chat",
+      "responses",
+      "embeddings",
+      "audio-transcriptions",
+      "audio-speech",
+      "images-generations",
+    ])
+    .optional(),
+  chatPath: z.string().trim().optional(),
+  modelsPath: z.string().trim().optional(),
+});
+
+const providerNodesResponseSchema = z
+  .object({
+    ccCompatibleProviderEnabled: z.boolean().optional(),
+  })
+  .catchall(z.unknown());
 
 async function parseJson(response: Response): Promise<Record<string, unknown>> {
   try {
@@ -55,6 +102,24 @@ function extractError(data: Record<string, unknown>, fallback: string): string {
   return fallback;
 }
 
+function formatZodError(error: z.ZodError): string {
+  return error.issues
+    .map((issue) => {
+      const path = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
+      return `${path}${issue.message}`;
+    })
+    .join("; ");
+}
+
+function parseOrThrow<T>(schema: z.ZodType<T>, value: unknown, fallback: string): T {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    const message = formatZodError(result.error);
+    throw new Error(message ? `${fallback}: ${message}` : fallback);
+  }
+  return result.data;
+}
+
 async function expectOk<T>(response: Response, fallback: string): Promise<T> {
   const data = await parseJson(response);
   if (!response.ok) {
@@ -72,19 +137,25 @@ export async function fetchOnboardingConnections(): Promise<OnboardingConnection
   return Array.isArray(data.connections) ? data.connections : [];
 }
 
-export async function validateOnboardingApiKey(input: {
-  provider: string;
-  apiKey?: string;
-  baseUrl?: string;
-  region?: string;
-  cx?: string;
-  customUserAgent?: string;
-  validationModelId?: string;
-}): Promise<Record<string, unknown>> {
+export async function fetchOnboardingProviderNodes(): Promise<OnboardingProviderNodes> {
+  const response = await fetch("/api/provider-nodes");
+  const data = await expectOk<Record<string, unknown>>(response, "Failed to load provider nodes");
+  const parsed = parseOrThrow(providerNodesResponseSchema, data, "Invalid provider node response");
+  return { ccCompatibleProviderEnabled: parsed.ccCompatibleProviderEnabled === true };
+}
+
+export async function validateOnboardingApiKey(
+  input: ValidateOnboardingApiKeyInput
+): Promise<Record<string, unknown>> {
+  const payload = parseOrThrow(
+    validateProviderApiKeySchema,
+    input,
+    "Provider credentials are not valid"
+  );
   const response = await fetch("/api/providers/validate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
+    body: JSON.stringify(payload),
   });
   const data = await expectOk<Record<string, unknown>>(
     response,
@@ -96,24 +167,25 @@ export async function validateOnboardingApiKey(input: {
   return data;
 }
 
-export async function createOnboardingConnection(input: {
-  provider: string;
-  name: string;
-  apiKey?: string;
-  providerSpecificData?: Record<string, unknown> | null;
-  testStatus?: string;
-}): Promise<OnboardingConnection> {
-  const response = await fetch("/api/providers", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+export async function createOnboardingConnection(
+  input: CreateOnboardingConnectionInput
+): Promise<OnboardingConnection> {
+  const payload = parseOrThrow(
+    createProviderSchema,
+    {
       provider: input.provider,
       name: input.name,
       apiKey: input.apiKey,
       priority: 1,
       testStatus: input.testStatus || "unknown",
       providerSpecificData: input.providerSpecificData || undefined,
-    }),
+    },
+    "Provider connection data is invalid"
+  );
+  const response = await fetch("/api/providers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   const data = await expectOk<{ connection?: OnboardingConnection }>(
     response,
@@ -135,6 +207,11 @@ export async function testOnboardingConnection(
 }
 
 export function buildCompatibleNodeRequest(input: CreateCompatibleProviderNodeInput) {
+  const sanitizedInput = parseOrThrow(
+    compatibleProviderNodeInputSchema,
+    input,
+    "Compatible provider data is invalid"
+  );
   const modeDefaults = {
     openai: {
       type: "openai-compatible",
@@ -156,18 +233,18 @@ export function buildCompatibleNodeRequest(input: CreateCompatibleProviderNodeIn
       chatPath: "/v1/messages?beta=true",
     },
   } as const;
-  const defaults = modeDefaults[input.mode];
+  const defaults = modeDefaults[sanitizedInput.mode];
   const body: Record<string, unknown> = {
-    name: input.name,
-    prefix: input.prefix,
-    baseUrl: input.baseUrl,
+    name: sanitizedInput.name,
+    prefix: sanitizedInput.prefix,
+    baseUrl: sanitizedInput.baseUrl,
     type: defaults.type,
-    chatPath: input.chatPath || defaults.chatPath,
+    chatPath: sanitizedInput.chatPath || defaults.chatPath,
   };
-  if (defaults.hasApiType) body.apiType = input.apiType || "chat";
-  if (defaults.hasModelsPath) body.modelsPath = input.modelsPath || "";
+  if (defaults.hasApiType) body.apiType = sanitizedInput.apiType || "chat";
+  if (defaults.hasModelsPath) body.modelsPath = sanitizedInput.modelsPath || "";
   if ("compatMode" in defaults) body.compatMode = defaults.compatMode;
-  return body;
+  return parseOrThrow(createProviderNodeSchema, body, "Compatible provider data is invalid");
 }
 
 export async function createCompatibleProviderNode(

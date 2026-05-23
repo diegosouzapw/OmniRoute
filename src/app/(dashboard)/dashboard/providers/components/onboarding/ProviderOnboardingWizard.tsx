@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import {
   Badge,
@@ -17,7 +18,6 @@ import {
 import {
   buildProviderSpecificData,
   filterWizardProviderOptions,
-  getDefaultConnectionName,
   getWizardApiKeyProviderOptions,
   getWizardOAuthProviderOptions,
   type WizardProviderOption,
@@ -26,6 +26,7 @@ import {
   createCompatibleProviderNode,
   createOnboardingConnection,
   fetchOnboardingConnections,
+  fetchOnboardingProviderNodes,
   testOnboardingConnection,
   validateOnboardingApiKey,
   type CompatibleNodeMode,
@@ -74,6 +75,28 @@ const DEFAULT_CUSTOM_FORM: CustomFormState = {
   modelsPath: "",
 };
 
+type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+function providerText(
+  t: ProviderMessageTranslator,
+  key: string,
+  fallback: string,
+  values?: Record<string, unknown>
+): string {
+  if (typeof t.has === "function" && t.has(key)) {
+    return t(key, values);
+  }
+  if (values) {
+    return Object.entries(values).reduce(
+      (acc, [name, value]) => acc.replaceAll(`{${name}}`, String(value)),
+      fallback
+    );
+  }
+  return fallback;
+}
+
 function StepPill({ active, done, label }: { active: boolean; done: boolean; label: string }) {
   return (
     <div
@@ -97,10 +120,12 @@ function ProviderOptionCard({
   option,
   selected,
   onSelect,
+  t,
 }: {
   option: WizardProviderOption;
   selected: boolean;
   onSelect: () => void;
+  t: ProviderMessageTranslator;
 }) {
   return (
     <button
@@ -125,11 +150,15 @@ function ProviderOptionCard({
             <div className="text-xs text-text-muted">{option.id}</div>
           </div>
         </div>
-        {option.deprecated && <Badge variant="warning">Deprecated</Badge>}
+        {option.deprecated && (
+          <Badge variant="warning">{providerText(t, "deprecated", "Deprecated")}</Badge>
+        )}
       </div>
       <p className="line-clamp-3 text-sm text-text-muted">{option.description}</p>
       {option.apiKeyOptional && option.authKind === "apikey" && (
-        <span className="text-xs font-medium text-success">API key optional</span>
+        <span className="text-xs font-medium text-success">
+          {providerText(t, "onboardingApiKeyOptional", "API key optional")}
+        </span>
       )}
     </button>
   );
@@ -139,10 +168,12 @@ function ResultSummary({
   connection,
   testResult,
   error,
+  t,
 }: {
   connection: OnboardingConnection | null;
   testResult: OnboardingTestResult | null;
   error: string | null;
+  t: ProviderMessageTranslator;
 }) {
   const valid = testResult?.valid === true;
   const failed = Boolean(error || testResult?.valid === false);
@@ -167,13 +198,19 @@ function ResultSummary({
           <div>
             <h2 className="text-xl font-semibold text-text-main">
               {valid
-                ? "Provider connected"
+                ? providerText(t, "onboardingProviderConnected", "Provider connected")
                 : failed
-                  ? "Provider saved with warnings"
-                  : "Provider onboarding finished"}
+                  ? providerText(
+                      t,
+                      "onboardingProviderSavedWithWarnings",
+                      "Provider saved with warnings"
+                    )
+                  : providerText(t, "onboardingProviderFinished", "Provider onboarding finished")}
             </h2>
             <p className="text-sm text-text-muted">
-              {connection?.name || connection?.provider || "Your provider connection"}
+              {connection?.name ||
+                connection?.provider ||
+                providerText(t, "onboardingYourProviderConnection", "Your provider connection")}
             </p>
           </div>
         </div>
@@ -182,7 +219,9 @@ function ResultSummary({
           <div className="rounded-lg border border-border bg-bg-subtle p-3 text-sm text-text-muted">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant={valid ? "success" : "error"}>
-                {valid ? "Test passed" : "Test failed"}
+                {valid
+                  ? providerText(t, "onboardingTestPassed", "Test passed")
+                  : providerText(t, "onboardingTestFailed", "Test failed")}
               </Badge>
               {typeof testResult.latencyMs === "number" && <span>{testResult.latencyMs} ms</span>}
               {typeof testResult.statusCode === "number" && (
@@ -209,20 +248,20 @@ function ResultSummary({
               href={`/dashboard/providers/${connection.provider}`}
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90"
             >
-              Open provider details
+              {providerText(t, "onboardingOpenProviderDetails", "Open provider details")}
             </Link>
           )}
           <Link
             href="/dashboard/providers"
             className="inline-flex items-center justify-center rounded-lg border border-border bg-bg-subtle px-4 py-2 text-sm font-medium text-text-main transition-colors hover:bg-bg-card"
           >
-            Back to providers
+            {providerText(t, "backToProviders", "Back to providers")}
           </Link>
           <Link
             href="/dashboard/playground"
             className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-bg-subtle hover:text-text-main"
           >
-            Try in playground
+            {providerText(t, "onboardingTryInPlayground", "Try in playground")}
           </Link>
         </div>
       </div>
@@ -232,6 +271,11 @@ function ResultSummary({
 
 export default function ProviderOnboardingWizard() {
   const router = useRouter();
+  const t = useTranslations("providers");
+  const text = (key: string, fallback: string, values?: Record<string, unknown>) =>
+    providerText(t, key, fallback, values);
+  const defaultConnectionName = (provider: string) =>
+    text("onboardingDefaultConnectionName", "{provider} Primary", { provider });
   const apiKeyOptions = useMemo(() => getWizardApiKeyProviderOptions(), []);
   const oauthOptions = useMemo(() => getWizardOAuthProviderOptions(), []);
   const [kind, setKind] = useState<WizardKind>("apikey");
@@ -255,14 +299,10 @@ export default function ProviderOnboardingWizard() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/provider-nodes")
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as { ccCompatibleProviderEnabled?: boolean };
-      })
+    fetchOnboardingProviderNodes()
       .then((data) => {
         if (!cancelled) {
-          setCcCompatibleProviderEnabled(data?.ccCompatibleProviderEnabled === true);
+          setCcCompatibleProviderEnabled(data.ccCompatibleProviderEnabled);
         }
       })
       .catch(() => {
@@ -275,9 +315,9 @@ export default function ProviderOnboardingWizard() {
 
   useEffect(() => {
     if (!ccCompatibleProviderEnabled && customForm.mode === "cc") {
-      setCustomForm({ ...customForm, mode: "openai", baseUrl: "https://api.openai.com/v1" });
+      setCustomForm((prev) => ({ ...prev, mode: "openai", baseUrl: "https://api.openai.com/v1" }));
     }
-  }, [ccCompatibleProviderEnabled, customForm]);
+  }, [ccCompatibleProviderEnabled, customForm.mode]);
 
   const resetProviderSelection = (nextKind: WizardKind) => {
     setKind(nextKind);
@@ -293,13 +333,13 @@ export default function ProviderOnboardingWizard() {
 
   const selectProvider = (option: WizardProviderOption) => {
     setSelectedProvider(option);
-    setApiKeyForm({ ...EMPTY_API_KEY_FORM, name: getDefaultConnectionName(option) });
+    setApiKeyForm({ ...EMPTY_API_KEY_FORM, name: defaultConnectionName(option.name) });
     setError(null);
     setStep(option.authKind === "oauth" ? "oauth" : "credentials");
   };
 
   const runConnectionTest = async (connection: OnboardingConnection) => {
-    setStatus("Testing provider connection…");
+    setStatus(text("onboardingTestingConnection", "Testing provider connection…"));
     const result = await testOnboardingConnection(connection.id);
     setTestResult(result);
     setStatus("");
@@ -314,7 +354,7 @@ export default function ProviderOnboardingWizard() {
     try {
       const providerSpecificData = buildProviderSpecificData(apiKeyForm);
       if (apiKeyForm.apiKey.trim()) {
-        setStatus("Validating credentials…");
+        setStatus(text("onboardingValidatingCredentials", "Validating credentials…"));
         await validateOnboardingApiKey({
           provider: selectedProvider.id,
           apiKey: apiKeyForm.apiKey.trim() || undefined,
@@ -324,10 +364,10 @@ export default function ProviderOnboardingWizard() {
           customUserAgent: apiKeyForm.customUserAgent.trim() || undefined,
         });
       }
-      setStatus("Saving provider connection…");
+      setStatus(text("onboardingSavingConnection", "Saving provider connection…"));
       const connection = await createOnboardingConnection({
         provider: selectedProvider.id,
-        name: apiKeyForm.name.trim() || getDefaultConnectionName(selectedProvider),
+        name: apiKeyForm.name.trim() || defaultConnectionName(selectedProvider.name),
         apiKey: apiKeyForm.apiKey.trim() || undefined,
         providerSpecificData,
         testStatus: "unknown",
@@ -336,7 +376,11 @@ export default function ProviderOnboardingWizard() {
       await runConnectionTest(connection);
       setStep("result");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Provider onboarding failed");
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : text("onboardingProviderFailed", "Provider onboarding failed")
+      );
       setStep("result");
     } finally {
       setSubmitting(false);
@@ -349,12 +393,16 @@ export default function ProviderOnboardingWizard() {
     setError(null);
     setTestResult(null);
     try {
-      setStatus("Creating compatible provider…");
+      setStatus(text("onboardingCreatingCompatibleProvider", "Creating compatible provider…"));
       const node = await createCompatibleProviderNode(customForm);
-      setStatus("Saving compatible provider connection…");
+      setStatus(
+        text("onboardingSavingCompatibleConnection", "Saving compatible provider connection…")
+      );
+      const providerName =
+        node.name || text("onboardingCustomProviderFallbackName", "Custom provider");
       const connection = await createOnboardingConnection({
         provider: node.id,
-        name: customForm.name.trim() || `${node.name || "Custom provider"} Primary`,
+        name: customForm.name.trim() || defaultConnectionName(providerName),
         apiKey: customForm.apiKey.trim() || undefined,
         testStatus: "unknown",
       });
@@ -363,7 +411,9 @@ export default function ProviderOnboardingWizard() {
       setStep("result");
     } catch (submitError) {
       setError(
-        submitError instanceof Error ? submitError.message : "Custom provider onboarding failed"
+        submitError instanceof Error
+          ? submitError.message
+          : text("onboardingCustomProviderFailed", "Custom provider onboarding failed")
       );
       setStep("result");
     } finally {
@@ -386,7 +436,7 @@ export default function ProviderOnboardingWizard() {
     setSubmitting(true);
     setError(null);
     try {
-      setStatus("Loading OAuth connection…");
+      setStatus(text("onboardingLoadingOAuthConnection", "Loading OAuth connection…"));
       const connections = await fetchOnboardingConnections();
       const matchingConnections = connections.filter(
         (connection) => connection.provider === selectedProvider.id
@@ -396,13 +446,22 @@ export default function ProviderOnboardingWizard() {
         matchingConnections[0] ||
         null;
       if (!connection) {
-        throw new Error("OAuth finished, but no provider connection was found.");
+        throw new Error(
+          text(
+            "onboardingOAuthNoConnectionFound",
+            "OAuth finished, but no provider connection was found."
+          )
+        );
       }
       setCreatedConnection(connection);
       await runConnectionTest(connection);
       setStep("result");
     } catch (oauthError) {
-      setError(oauthError instanceof Error ? oauthError.message : "OAuth onboarding failed");
+      setError(
+        oauthError instanceof Error
+          ? oauthError.message
+          : text("onboardingOAuthFailed", "OAuth onboarding failed")
+      );
       setStep("result");
     } finally {
       setSubmitting(false);
@@ -427,28 +486,44 @@ export default function ProviderOnboardingWizard() {
             href="/dashboard/providers"
             className="text-sm text-text-muted hover:text-text-main"
           >
-            ← Back to providers
+            ← {text("backToProviders", "Back to providers")}
           </Link>
-          <h1 className="mt-2 text-3xl font-bold text-text-main">Provider Onboarding Wizard</h1>
+          <h1 className="mt-2 text-3xl font-bold text-text-main">
+            {text("onboardingWizard", "Provider Onboarding Wizard")}
+          </h1>
           <p className="mt-2 max-w-2xl text-sm text-text-muted">
-            Connect API-key, custom compatible, and OAuth providers with validation, persistence,
-            and an immediate connection test.
+            {text(
+              "onboardingWizardDescription",
+              "Connect API-key, custom compatible, and OAuth providers with validation, persistence, and an immediate connection test."
+            )}
           </p>
         </div>
         <Button variant="ghost" onClick={() => router.push("/dashboard/providers")}>
-          Close
+          {text("close", "Close")}
         </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <StepPill label="Type" active={step === "type"} done={currentStepIndex > 0} />
-        <StepPill label="Provider" active={step === "provider"} done={currentStepIndex > 1} />
         <StepPill
-          label="Credentials"
+          label={text("onboardingStepType", "Type")}
+          active={step === "type"}
+          done={currentStepIndex > 0}
+        />
+        <StepPill
+          label={text("onboardingStepProvider", "Provider")}
+          active={step === "provider"}
+          done={currentStepIndex > 1}
+        />
+        <StepPill
+          label={text("onboardingStepCredentials", "Credentials")}
           active={step === "credentials" || step === "oauth"}
           done={currentStepIndex > 3}
         />
-        <StepPill label="Result" active={step === "result"} done={false} />
+        <StepPill
+          label={text("onboardingStepResult", "Result")}
+          active={step === "result"}
+          done={false}
+        />
       </div>
 
       {status && (
@@ -464,20 +539,29 @@ export default function ProviderOnboardingWizard() {
               {
                 id: "apikey" as const,
                 icon: "key",
-                title: "API-key provider",
-                text: "Use built-in providers such as OpenAI, Anthropic, Gemini, Groq, Azure, and more.",
+                title: text("onboardingTypeApiKeyTitle", "API-key provider"),
+                text: text(
+                  "onboardingTypeApiKeyText",
+                  "Use built-in providers such as OpenAI, Anthropic, Gemini, Groq, Azure, and more."
+                ),
               },
               {
                 id: "custom" as const,
                 icon: "hub",
-                title: "Custom compatible provider",
-                text: "Create an OpenAI-, Anthropic-, or Claude Code-compatible endpoint and add its key.",
+                title: text("onboardingTypeCustomTitle", "Custom compatible provider"),
+                text: text(
+                  "onboardingTypeCustomText",
+                  "Create an OpenAI-, Anthropic-, or Claude Code-compatible endpoint and add its key."
+                ),
               },
               {
                 id: "oauth" as const,
                 icon: "account_circle",
-                title: "OAuth provider",
-                text: "Reuse the existing OAuth, device-code, or local import flows for coding providers.",
+                title: text("onboardingTypeOAuthTitle", "OAuth provider"),
+                text: text(
+                  "onboardingTypeOAuthText",
+                  "Reuse the existing OAuth, device-code, or local import flows for coding providers."
+                ),
               },
             ].map((item) => (
               <button
@@ -503,20 +587,25 @@ export default function ProviderOnboardingWizard() {
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-text-main">
-                  Choose {kind === "oauth" ? "an OAuth" : "an API-key"} provider
+                  {kind === "oauth"
+                    ? text("onboardingChooseOAuthProvider", "Choose an OAuth provider")
+                    : text("onboardingChooseApiKeyProvider", "Choose an API-key provider")}
                 </h2>
                 <p className="text-sm text-text-muted">
-                  Select a provider, then the wizard will guide you through credentials and testing.
+                  {text(
+                    "onboardingChooseProviderDescription",
+                    "Select a provider, then the wizard will guide you through credentials and testing."
+                  )}
                 </p>
               </div>
               <Button variant="secondary" onClick={() => setStep("type")}>
-                Change type
+                {text("onboardingChangeType", "Change type")}
               </Button>
             </div>
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search providers…"
+              placeholder={text("onboardingSearchProviders", "Search providers…")}
               icon="search"
             />
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -526,6 +615,7 @@ export default function ProviderOnboardingWizard() {
                   option={option}
                   selected={selectedProvider?.id === option.id}
                   onSelect={() => selectProvider(option)}
+                  t={t}
                 />
               ))}
             </div>
@@ -539,62 +629,76 @@ export default function ProviderOnboardingWizard() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-text-main">
-                  Add {selectedProvider.name}
+                  {text("onboardingAddProvider", "Add {provider}", {
+                    provider: selectedProvider.name,
+                  })}
                 </h2>
                 <p className="text-sm text-text-muted">{selectedProvider.description}</p>
               </div>
               <Button variant="secondary" onClick={() => setStep("provider")}>
-                Change provider
+                {text("onboardingChangeProvider", "Change provider")}
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
-                label="Connection name"
+                label={text("onboardingConnectionName", "Connection name")}
                 value={apiKeyForm.name}
                 onChange={(event) => setApiKeyForm({ ...apiKeyForm, name: event.target.value })}
-                placeholder={`${selectedProvider.name} Primary`}
+                placeholder={defaultConnectionName(selectedProvider.name)}
               />
               <Input
-                label={selectedProvider.apiKeyOptional ? "API key (optional)" : "API key"}
+                label={
+                  selectedProvider.apiKeyOptional
+                    ? text("onboardingApiKeyOptionalLabel", "API key (optional)")
+                    : text("apiKeyLabel", "API key")
+                }
                 type="password"
                 value={apiKeyForm.apiKey}
                 onChange={(event) => setApiKeyForm({ ...apiKeyForm, apiKey: event.target.value })}
                 placeholder="sk-…"
               />
               <Input
-                label="Base URL override"
+                label={text("onboardingBaseUrlOverride", "Base URL override")}
                 value={apiKeyForm.baseUrl}
                 onChange={(event) => setApiKeyForm({ ...apiKeyForm, baseUrl: event.target.value })}
                 placeholder="https://api.example.com/v1"
-                hint="Optional. Stored as providerSpecificData.baseUrl."
+                hint={text(
+                  "onboardingBaseUrlOverrideHint",
+                  "Optional. Stored as providerSpecificData.baseUrl."
+                )}
               />
               <Input
-                label="Region"
+                label={text("onboardingRegion", "Region")}
                 value={apiKeyForm.region}
                 onChange={(event) => setApiKeyForm({ ...apiKeyForm, region: event.target.value })}
                 placeholder="us-east-1"
               />
               <Input
-                label="Search CX / Engine id"
+                label={text("onboardingSearchCx", "Search CX / Engine id")}
                 value={apiKeyForm.cx}
                 onChange={(event) => setApiKeyForm({ ...apiKeyForm, cx: event.target.value })}
-                placeholder="Optional provider-specific id"
+                placeholder={text(
+                  "onboardingProviderSpecificIdPlaceholder",
+                  "Optional provider-specific id"
+                )}
               />
               <Input
-                label="Custom User-Agent"
+                label={text("onboardingCustomUserAgent", "Custom User-Agent")}
                 value={apiKeyForm.customUserAgent}
                 onChange={(event) =>
                   setApiKeyForm({ ...apiKeyForm, customUserAgent: event.target.value })
                 }
-                placeholder="Optional"
+                placeholder={text("optional", "Optional")}
               />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={submitApiKeyProvider} disabled={!apiKeyReady || submitting}>
-                {submitting ? "Working…" : "Validate, save and test"}
+                {submitting
+                  ? text("onboardingWorking", "Working…")
+                  : text("onboardingValidateSaveTest", "Validate, save and test")}
               </Button>
               <Button variant="ghost" onClick={() => setStep("provider")}>
-                Back
+                {text("onboardingBack", "Back")}
               </Button>
             </div>
           </div>
@@ -607,20 +711,25 @@ export default function ProviderOnboardingWizard() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-text-main">
-                  Create custom compatible provider
+                  {text(
+                    "onboardingCreateCustomCompatibleProvider",
+                    "Create custom compatible provider"
+                  )}
                 </h2>
                 <p className="text-sm text-text-muted">
-                  The wizard creates a provider node first, then stores and tests its API-key
-                  connection.
+                  {text(
+                    "onboardingCreateCustomCompatibleDescription",
+                    "The wizard creates a provider node first, then stores and tests its API-key connection."
+                  )}
                 </p>
               </div>
               <Button variant="secondary" onClick={() => setStep("type")}>
-                Change type
+                {text("onboardingChangeType", "Change type")}
               </Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="flex flex-col gap-1 text-sm font-medium text-text-main">
-                Protocol
+                {text("onboardingProtocol", "Protocol")}
                 <select
                   className="rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
                   value={customForm.mode}
@@ -638,62 +747,75 @@ export default function ProviderOnboardingWizard() {
                     })
                   }
                 >
-                  <option value="openai">OpenAI-compatible</option>
-                  <option value="anthropic">Anthropic-compatible</option>
+                  <option value="openai">
+                    {text("onboardingOpenAiCompatible", "OpenAI-compatible")}
+                  </option>
+                  <option value="anthropic">
+                    {text("onboardingAnthropicCompatible", "Anthropic-compatible")}
+                  </option>
                   {ccCompatibleProviderEnabled && (
-                    <option value="cc">Claude Code-compatible</option>
+                    <option value="cc">
+                      {text("onboardingClaudeCodeCompatible", "Claude Code-compatible")}
+                    </option>
                   )}
                 </select>
               </label>
               <Input
-                label="Display name"
+                label={text("displayName", "Display name")}
                 value={customForm.name}
                 onChange={(event) => setCustomForm({ ...customForm, name: event.target.value })}
                 placeholder="My Gateway"
               />
               <Input
-                label="Provider prefix"
+                label={text("onboardingProviderPrefix", "Provider prefix")}
                 value={customForm.prefix}
                 onChange={(event) => setCustomForm({ ...customForm, prefix: event.target.value })}
                 placeholder="my-gateway"
-                hint="Used to generate the managed provider id."
+                hint={text(
+                  "onboardingProviderPrefixHint",
+                  "Used to generate the managed provider id."
+                )}
               />
               <Input
-                label="Base URL"
+                label={text("baseUrlLabel", "Base URL")}
                 value={customForm.baseUrl}
                 onChange={(event) => setCustomForm({ ...customForm, baseUrl: event.target.value })}
                 placeholder="https://api.example.com/v1"
               />
               <Input
-                label="API key"
+                label={text("apiKeyLabel", "API key")}
                 type="password"
                 value={customForm.apiKey}
                 onChange={(event) => setCustomForm({ ...customForm, apiKey: event.target.value })}
                 placeholder="sk-…"
               />
               <Input
-                label="Chat path"
+                label={text("onboardingChatPath", "Chat path")}
                 value={customForm.chatPath}
                 onChange={(event) => setCustomForm({ ...customForm, chatPath: event.target.value })}
-                placeholder={customForm.mode === "cc" ? "/v1/messages?beta=true" : "Optional"}
+                placeholder={
+                  customForm.mode === "cc" ? "/v1/messages?beta=true" : text("optional", "Optional")
+                }
               />
               {customForm.mode !== "cc" && (
                 <Input
-                  label="Models path"
+                  label={text("onboardingModelsPath", "Models path")}
                   value={customForm.modelsPath}
                   onChange={(event) =>
                     setCustomForm({ ...customForm, modelsPath: event.target.value })
                   }
-                  placeholder="Optional"
+                  placeholder={text("optional", "Optional")}
                 />
               )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={submitCustomProvider} disabled={!customReady || submitting}>
-                {submitting ? "Working…" : "Create, save and test"}
+                {submitting
+                  ? text("onboardingWorking", "Working…")
+                  : text("onboardingCreateSaveTest", "Create, save and test")}
               </Button>
               <Button variant="ghost" onClick={() => setStep("type")}>
-                Back
+                {text("onboardingBack", "Back")}
               </Button>
             </div>
           </div>
@@ -706,24 +828,28 @@ export default function ProviderOnboardingWizard() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-text-main">
-                  Connect {selectedProvider.name}
+                  {text("onboardingConnectProvider", "Connect {provider}", {
+                    provider: selectedProvider.name,
+                  })}
                 </h2>
                 <p className="text-sm text-text-muted">{selectedProvider.description}</p>
               </div>
               <Button variant="secondary" onClick={() => setStep("provider")}>
-                Change provider
+                {text("onboardingChangeProvider", "Change provider")}
               </Button>
             </div>
             <div className="rounded-lg border border-border bg-bg-subtle p-4 text-sm text-text-muted">
-              OmniRoute will open the existing OAuth flow for this provider. After login, the wizard
-              reloads the saved connection and runs the same connection test as the provider page.
+              {text(
+                "onboardingOAuthFlowDescription",
+                "OmniRoute will open the existing OAuth flow for this provider. After login, the wizard reloads the saved connection and runs the same connection test as the provider page."
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={openOAuth} disabled={submitting}>
-                Start OAuth flow
+                {text("onboardingStartOAuthFlow", "Start OAuth flow")}
               </Button>
               <Button variant="ghost" onClick={() => setStep("provider")}>
-                Back
+                {text("onboardingBack", "Back")}
               </Button>
             </div>
           </div>
@@ -731,7 +857,7 @@ export default function ProviderOnboardingWizard() {
       )}
 
       {step === "result" && (
-        <ResultSummary connection={createdConnection} testResult={testResult} error={error} />
+        <ResultSummary connection={createdConnection} testResult={testResult} error={error} t={t} />
       )}
 
       {selectedProvider &&

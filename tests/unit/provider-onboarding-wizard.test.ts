@@ -192,6 +192,57 @@ test("provider onboarding validation rejects HTTP 200 responses with valid false
   }
 });
 
+test("provider onboarding validates API payloads before sending requests", async () => {
+  const originalFetch = globalThis.fetch;
+  let fetchCalled = false;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return Response.json({ valid: true });
+  };
+
+  try {
+    await assert.rejects(
+      () =>
+        api.validateOnboardingApiKey({
+          provider: "openai",
+          apiKey: "sk-test",
+          baseUrl: "not-a-url",
+        }),
+      /Provider credentials are not valid/
+    );
+    await assert.rejects(
+      () =>
+        api.createOnboardingConnection({
+          provider: "openai",
+          name: "OpenAI Primary",
+        }),
+      /Provider connection data is invalid/
+    );
+    assert.equal(fetchCalled, false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("provider onboarding loads provider node feature flags through the API helper", async () => {
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init });
+    return Response.json({ ccCompatibleProviderEnabled: true });
+  };
+
+  try {
+    const result = await api.fetchOnboardingProviderNodes();
+
+    assert.deepEqual(result, { ccCompatibleProviderEnabled: true });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "/api/provider-nodes");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("provider onboarding can create compatible connections without an API key", async () => {
   const calls = [];
   const originalFetch = globalThis.fetch;
@@ -257,5 +308,19 @@ test("provider onboarding API builds compatible provider node request bodies", (
       chatPath: "/v1/messages?beta=true",
       compatMode: "cc",
     }
+  );
+});
+
+test("provider onboarding validates compatible provider node request bodies", () => {
+  assert.throws(
+    () =>
+      api.buildCompatibleNodeRequest({
+        mode: "openai",
+        name: "Local Gateway",
+        prefix: "local-gw",
+        baseUrl: "https://gateway.example/v1",
+        chatPath: "chat/completions",
+      }),
+    /Compatible provider data is invalid/
   );
 });

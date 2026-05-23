@@ -685,7 +685,7 @@ export default function ProvidersPage() {
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <Button icon="add" onClick={() => router.push("/dashboard/providers/new")}>
-                Provider Onboarding Wizard
+                {providerText(t, "onboardingWizard", "Provider Onboarding Wizard")}
               </Button>
               <a
                 href="https://docs.omniroute.io/providers"
@@ -734,7 +734,7 @@ export default function ProvidersPage() {
               className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
             />
             <Button size="sm" icon="add" onClick={() => router.push("/dashboard/providers/new")}>
-              Onboarding Wizard
+              {providerText(t, "onboardingWizardShort", "Onboarding Wizard")}
             </Button>
             <button
               onClick={() => handleBatchTest("all")}
