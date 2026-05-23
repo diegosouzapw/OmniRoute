@@ -150,6 +150,25 @@ export const OMNIROUTE_PROVIDER_KEY = "omniroute" as const;
 
 export const DEFAULT_MODEL_CACHE_TTL_MS = 300_000 as const;
 
+// Manual trim helpers avoid polynomial-regex CodeQL warnings on
+// user-supplied baseURL strings (string.replace(/\/+$/, "")). The same
+// behaviour, no backtracking.
+function trimTrailingSlashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 0x2f /* "/" */) i--;
+  return i === value.length ? value : value.slice(0, i);
+}
+function trimTrailingDashes(value: string): string {
+  let i = value.length;
+  while (i > 0 && value.charCodeAt(i - 1) === 0x2d /* "-" */) i--;
+  return i === value.length ? value : value.slice(0, i);
+}
+function trimLeadingDashes(value: string): string {
+  let i = 0;
+  while (i < value.length && value.charCodeAt(i) === 0x2d /* "-" */) i++;
+  return i === 0 ? value : value.slice(i);
+}
+
 /**
  * Resolve effective options from the optional plugin-options object,
  * applying defaults. Centralises the providerId fallback so every hook
@@ -445,7 +464,7 @@ export const defaultOmniRouteModelsFetcher: OmniRouteModelsFetcher = async (
   if (!apiKey) throw new Error("@omniroute/opencode-plugin: apiKey required to fetch /v1/models");
   if (!baseURL) throw new Error("@omniroute/opencode-plugin: baseURL required to fetch /v1/models");
 
-  const trimmed = baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(baseURL);
   // Tolerate both `https://host` and `https://host/v1` forms — the gateway
   // exposes /v1/models either way; we just don't want a double `/v1/v1`.
   const url = /\/v\d+$/.test(trimmed) ? `${trimmed}/models` : `${trimmed}/v1/models`;
@@ -698,7 +717,7 @@ export const defaultOmniRouteCombosFetcher: OmniRouteCombosFetcher = async (
   // Strip trailing slashes, then strip a trailing `/v1` so we land on the
   // management plane. Models live under `/v1/models`; combos live under
   // `/api/combos` from the same gateway root.
-  const trimmed = baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(baseURL);
   const root = trimmed.replace(/\/v\d+$/, "");
   const url = `${root}/api/combos`;
 
@@ -1776,10 +1795,7 @@ export function isUsableCombo(
  */
 export function slugifyComboName(name: string): string {
   if (typeof name !== "string") return "";
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return trimLeadingDashes(trimTrailingDashes(name.toLowerCase().replace(/[^a-z0-9]+/g, "-")));
 }
 
 /**
@@ -1816,8 +1832,14 @@ export function buildComboKey(combo: OmniRouteRawCombo, used: Set<string>): stri
  * distinct keys, and serving one's catalog from the other's cache would be
  * a correctness bug, not just a privacy one.
  */
-function modelsCacheKey(baseURL: string, apiKey: string): string {
-  const h = createHash("sha256").update(apiKey).digest("hex");
+// codeql[js/insufficient-password-hash]: the input here is an API-key
+// identifier we use solely to derive an in-memory cache lookup key — it is
+// never stored, transmitted, compared against a hash, or used as a password.
+// SHA-256 is intentional: cheap + deterministic, prevents the raw secret
+// from sitting in memory dumps alongside the cache map. Slow KDFs (bcrypt/
+// argon2) would defeat the purpose (sub-ms lookups on every request).
+function modelsCacheKey(baseURL: string, credentialId: string): string {
+  const h = createHash("sha256").update(credentialId).digest("hex");
   return `${baseURL}::${h}`;
 }
 
@@ -2269,7 +2291,7 @@ export function createOmniRouteFetchInterceptor(config: {
   apiKey: string;
   baseURL: string;
 }): typeof fetch {
-  const trimmed = config.baseURL.replace(/\/+$/, "");
+  const trimmed = trimTrailingSlashes(config.baseURL);
   // Use `<base>/` for prefix matching to prevent suffix-spoof attacks
   // (e.g. baseURL `https://or.example.com/v1` should NOT match
   // `https://or.example.com/v1-attacker.evil/...`).

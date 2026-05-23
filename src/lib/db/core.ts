@@ -1368,7 +1368,6 @@ export function getDbInstance(): SqliteDatabase {
     }
     runDbHealthCheck(db, {
       autoRepair: true,
-        skipIntegrityCheck: process.env.OMNIROUTE_SKIP_DB_HEALTHCHECK === "1",
       expectedSchemaVersion: "1",
       skipIntegrityCheck,
       createBackupBeforeRepair: () => createHealthCheckBackup(db),

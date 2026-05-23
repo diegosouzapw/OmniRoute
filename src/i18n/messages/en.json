@@ -924,6 +924,8 @@
     "settingsAdvancedSubtitle": "Power user options",
     "settingsSecuritySubtitle": "Auth and encryption",
     "settingsFeatureFlagsSubtitle": "Toggle system capabilities",
+    "settingsSidebar": "Sidebar",
+    "settingsSidebarSubtitle": "Customize sidebar layout",
     "settingsAuthzSubtitle": "Route inventory and bypass policy",
     "docsSubtitle": "Documentation",
     "issuesSubtitle": "Report a bug",
@@ -6857,8 +6859,8 @@
     "equalSplit": "Equal split",
     "save": "Save allocations",
     "betaPreviewLabel": "Beta — UI preview.",
-    "betaConfigSavedPrefix": "A configuração é salva em",
-    "betaConfigSavedSuffix": "(não persiste no servidor ainda). A aplicação dos caps por request ainda não está conectada ao pipeline da proxy. Esta tela permite desenhar e visualizar a divisão de cota;",
+    "betaConfigSavedPrefix": "Configuration is saved to",
+    "betaConfigSavedSuffix": "(not yet persisted to the server). Per-request cap enforcement is not yet wired into the proxy pipeline. This screen lets you draft and preview the quota split;",
     "policyLabel": "Policy:"
   }
 }

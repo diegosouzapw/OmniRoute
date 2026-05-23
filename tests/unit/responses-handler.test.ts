@@ -201,7 +201,9 @@ test("handleResponsesCore preserves store for Codex responses when connection op
   });
 
   assert.equal(result.success, true);
-  assert.equal(call.body.previous_response_id, undefined);
+  // When openaiStoreEnabled=true, the request keeps previous_response_id and
+  // store=true so the upstream Codex Responses session continues from prior turn.
+  assert.equal(call.body.previous_response_id, "resp_prev_store");
   assert.equal(call.body.store, true);
   assert.equal(call.body.stream, true);
 });

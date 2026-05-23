@@ -6,7 +6,7 @@ import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
 import { PROVIDER_ID_TO_ALIAS } from "@omniroute/open-sse/config/providerModels.ts";
 import { invalidateDbCache } from "./readCache";
-import { getProxyRegistryGeneration, resolveProxyForConnectionFromRegistry } from "./proxies";
+import { getProxyRegistryGeneration, resolveProxyForScopeFromRegistry } from "./proxies";
 import { getComboModelProvider as getComboEntryProvider } from "@/lib/combos/steps";
 import { requestBodyLimitMbFromEnv } from "@/shared/constants/bodySize";
 
@@ -603,20 +603,17 @@ export async function resolveProxyForConnection(connectionId: string) {
     return cached.result;
   }
 
-  const registryResolved = await resolveProxyForConnectionFromRegistry(connectionId);
-  if (registryResolved?.proxy) {
-    if (registryResolved.level === "account") {
-      cacheProxyResolution(
-        connectionId,
-        startGeneration,
-        startRegistryGeneration,
-        registryResolved
-      );
-    }
-    return registryResolved;
-  }
-
   const config = await getProxyConfig();
+
+  // Resolve by specificity across both proxy storage backends. The dashboard
+  // Custom tab still writes account/provider proxies to the legacy config,
+  // while Saved Proxy writes registry assignments. Do not let a registry-global
+  // fallback shadow a more-specific legacy account/provider proxy (#2601).
+  const registryAccount = await resolveProxyForScopeFromRegistry("account", connectionId);
+  if (registryAccount?.proxy) {
+    cacheProxyResolution(connectionId, startGeneration, startRegistryGeneration, registryAccount);
+    return registryAccount;
+  }
 
   if (connectionId && config.keys?.[connectionId]) {
     const result = { proxy: config.keys[connectionId], level: "key", levelId: connectionId };
@@ -633,6 +630,12 @@ export async function resolveProxyForConnection(connectionId: string) {
     const connectionRecord = toRecord(connection);
     const provider =
       typeof connectionRecord.provider === "string" ? connectionRecord.provider : null;
+
+    if (provider) {
+      const registryProvider = await resolveProxyForScopeFromRegistry("provider", provider);
+      if (registryProvider?.proxy) return registryProvider;
+    }
+
     if (config.combos && Object.keys(config.combos).length > 0) {
       const combos = db.prepare("SELECT id, data FROM combos").all();
       for (const comboRow of combos) {
@@ -665,6 +668,9 @@ export async function resolveProxyForConnection(connectionId: string) {
       };
     }
   }
+
+  const registryGlobal = await resolveProxyForScopeFromRegistry("global");
+  if (registryGlobal?.proxy) return registryGlobal;
 
   if (config.global) {
     return { proxy: config.global, level: "global", levelId: null };

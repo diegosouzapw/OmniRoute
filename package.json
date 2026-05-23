@@ -254,6 +254,7 @@
   "overrides": {
     "dompurify": "^3.4.3",
     "postcss": "^8.5.14",
-    "ip-address": "10.2.0"
+    "ip-address": "10.2.0",
+    "qs": "^6.15.2"
   }
 }

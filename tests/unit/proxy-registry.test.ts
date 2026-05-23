@@ -46,7 +46,7 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
   );
 });
 
-test("registry assignment takes precedence over legacy proxy config", async () => {
+test("specific registry account assignment takes precedence over legacy key proxy config", async () => {
   await resetStorage();
 
   const conn = await providersDb.createProviderConnection({
@@ -175,6 +175,32 @@ test("resolveProxyForProvider still prefers a registry assignment over legacy co
   const resolved = await proxiesDb.resolveProxyForProvider("openai");
   assert.ok(resolved);
   assert.equal((resolved as any).host, "registry-openai.local", "registry assignment must win");
+});
+
+test("resolveProxyForProvider prefers legacy provider proxy over registry global fallback (#2601)", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "claude", {
+    type: "http",
+    host: "legacy-claude-provider.local",
+    port: 3128,
+  });
+
+  const globalProxy = await proxiesDb.createProxy({
+    name: "Registry Global",
+    type: "https",
+    host: "registry-global.local",
+    port: 443,
+  });
+  await proxiesDb.assignProxyToScope("global", null, globalProxy.id);
+
+  const resolved = await proxiesDb.resolveProxyForProvider("claude");
+  assert.ok(resolved);
+  assert.equal(
+    (resolved as any).host,
+    "legacy-claude-provider.local",
+    "provider-specific custom proxy must beat global registry fallback"
+  );
 });
 
 test("resolveProxyForProvider returns null when neither registry nor legacy config has a proxy (#2456)", async () => {
