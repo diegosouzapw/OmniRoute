@@ -1,3 +1,7 @@
+---
+title: "Kiro Setup Guide"
+---
+
 # Kiro Setup Guide
 
 This guide covers adding Kiro (AWS-hosted AI coding assistant) accounts to OmniRoute,

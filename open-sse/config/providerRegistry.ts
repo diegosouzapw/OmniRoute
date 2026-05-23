@@ -838,7 +838,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "qwen3-max", name: "Qwen3 Max" },
-      { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
+      { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus", supportsVision: true },
       { id: "kimi-k2-0905", name: "Kimi K2 0905" },
       { id: "qwen3-max-preview", name: "Qwen3 Max Preview" },
       { id: "kimi-k2", name: "Kimi K2" },
