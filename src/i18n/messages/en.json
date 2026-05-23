@@ -1455,7 +1455,22 @@
     "managementApiAccess": "Management API Access",
     "expirationDate": "Expiration Date",
     "managementAccess": "Management Access",
-    "allowedConnections": "Allowed Connections"
+    "allowedConnections": "Allowed Connections",
+    "searchPlaceholder": "Search by name or token...",
+    "activeOnly": "Active only",
+    "filterStatus": "STATUS",
+    "filterType": "TYPE",
+    "filterAll": "All",
+    "filterStatusActive": "Active",
+    "filterStatusDisabled": "Disabled",
+    "filterStatusBanned": "Banned",
+    "filterStatusExpired": "Expired",
+    "filterTypeStandard": "Standard",
+    "filterTypeManage": "Manage",
+    "filterTypeRestricted": "Restricted",
+    "shownOf": "{shown} of {total} shown",
+    "emptyFilterTitle": "No keys match your filters",
+    "emptyFilterClear": "Clear filters"
   },
   "auditLog": {
     "title": "Audit Log",

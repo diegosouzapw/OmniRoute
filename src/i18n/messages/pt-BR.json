@@ -1453,7 +1453,22 @@
     "managementApiAccess": "Acesso à API de Gerenciamento",
     "expirationDate": "Data de Expiração",
     "managementAccess": "Acesso de Gerenciamento",
-    "allowedConnections": "Conexões Permitidas"
+    "allowedConnections": "Conexões Permitidas",
+    "searchPlaceholder": "Buscar por nome ou token...",
+    "activeOnly": "Apenas ativas",
+    "filterStatus": "STATUS",
+    "filterType": "TIPO",
+    "filterAll": "Todas",
+    "filterStatusActive": "Ativa",
+    "filterStatusDisabled": "Desativada",
+    "filterStatusBanned": "Banida",
+    "filterStatusExpired": "Expirada",
+    "filterTypeStandard": "Padrão",
+    "filterTypeManage": "Gerenciamento",
+    "filterTypeRestricted": "Restrita",
+    "shownOf": "{shown} de {total} exibidas",
+    "emptyFilterTitle": "Nenhuma chave corresponde aos filtros",
+    "emptyFilterClear": "Limpar filtros"
   },
   "auditLog": {
     "title": "Log de Auditoria",
