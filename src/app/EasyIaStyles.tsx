@@ -4,22 +4,21 @@ export default function EasyIaStyles() {
   return (
     <style jsx global>{`
       .easyia-root {
-        --ink: #09111f;
-        --muted: #617086;
-        --panel: rgba(255, 255, 255, 0.78);
-        --line: rgba(22, 39, 65, 0.12);
-        --brand: #f45b45;
-        --brand-2: #16b8c9;
+        --ink: #d9e7ff;
+        --muted: #8ea4c7;
+        --panel: rgba(10, 18, 34, 0.72);
+        --line: rgba(111, 138, 190, 0.28);
+        --brand: #16b8c9;
+        --brand-2: #4f7cff;
         --gold: #f0b83f;
-        --deep: #0c172a;
-        --soft: #eef6f7;
+        --deep: #0a1224;
         --radius: 28px;
         color: var(--ink);
         background:
-          radial-gradient(circle at top left, rgba(244, 91, 69, 0.22), transparent 34rem),
-          radial-gradient(circle at 88% 12%, rgba(22, 184, 201, 0.2), transparent 30rem),
-          linear-gradient(135deg, #fff7ec 0%, #eef8fb 52%, #f8fbff 100%);
-        font-family: Georgia, "Times New Roman", serif;
+          radial-gradient(circle at top left, rgba(22, 184, 201, 0.26), transparent 34rem),
+          radial-gradient(circle at 88% 12%, rgba(79, 124, 255, 0.24), transparent 30rem),
+          linear-gradient(135deg, #050a14 0%, #0a1224 52%, #111d35 100%);
+        font-family: "Inter", "Segoe UI", "Helvetica Neue", sans-serif;
         min-height: 100vh;
       }
       .easyia-root * {
@@ -47,13 +46,13 @@ export default function EasyIaStyles() {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
+        gap: 14px;
         padding: 14px 16px;
         border: 1px solid var(--line);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.72);
+        background: rgba(10, 18, 34, 0.74);
         backdrop-filter: blur(18px);
-        box-shadow: 0 18px 60px rgba(15, 35, 60, 0.08);
+        box-shadow: 0 18px 60px rgba(5, 14, 30, 0.35);
       }
       .easyia-root .logo {
         display: flex;
@@ -67,14 +66,13 @@ export default function EasyIaStyles() {
         height: 38px;
         border-radius: 14px;
         background: linear-gradient(135deg, var(--brand), var(--brand-2));
-        box-shadow: 0 10px 26px rgba(244, 91, 69, 0.25);
+        box-shadow: 0 10px 26px rgba(79, 124, 255, 0.35);
       }
       .easyia-root .nav-links {
         display: flex;
         gap: 8px;
         align-items: center;
         color: var(--muted);
-        font-family: "Trebuchet MS", sans-serif;
         font-size: 14px;
       }
       .easyia-root .nav-links a {
@@ -82,8 +80,29 @@ export default function EasyIaStyles() {
         border-radius: 999px;
       }
       .easyia-root .nav-links a:hover {
-        background: rgba(9, 17, 31, 0.06);
-        color: var(--ink);
+        background: rgba(79, 124, 255, 0.15);
+        color: #dff0ff;
+      }
+      .easyia-root .lang-switch {
+        display: inline-flex;
+        border: 1px solid rgba(111, 138, 190, 0.35);
+        border-radius: 999px;
+        padding: 3px;
+        background: rgba(9, 16, 30, 0.85);
+      }
+      .easyia-root .lang-switch button {
+        border: 0;
+        background: transparent;
+        color: #a5bddf;
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .easyia-root .lang-switch button.active {
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        color: #ffffff;
       }
       .easyia-root .cta,
       .easyia-root .ghost,
@@ -93,7 +112,6 @@ export default function EasyIaStyles() {
         cursor: pointer;
         border-radius: 999px;
         padding: 12px 18px;
-        font-family: "Trebuchet MS", sans-serif;
         font-weight: 800;
         transition:
           transform 0.2s ease,
@@ -102,23 +120,23 @@ export default function EasyIaStyles() {
       }
       .easyia-root .cta {
         color: white;
-        background: linear-gradient(135deg, var(--brand), #d9345a);
-        box-shadow: 0 16px 42px rgba(217, 52, 90, 0.25);
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        box-shadow: 0 16px 42px rgba(79, 124, 255, 0.32);
       }
       .easyia-root .ghost {
-        background: rgba(255, 255, 255, 0.68);
-        border: 1px solid var(--line);
-        color: var(--ink);
+        background: rgba(20, 33, 56, 0.72);
+        border: 1px solid rgba(130, 154, 201, 0.35);
+        color: #dce9ff;
       }
       .easyia-root .danger {
         background: rgba(244, 91, 69, 0.1);
-        color: #ad2c1b;
+        color: #ff8d7b;
         border: 1px solid rgba(244, 91, 69, 0.2);
       }
       .easyia-root .small-btn {
         padding: 9px 12px;
         font-size: 13px;
-        background: var(--deep);
+        background: #122445;
         color: white;
       }
       .easyia-root .cta:hover,
@@ -138,22 +156,21 @@ export default function EasyIaStyles() {
         gap: 8px;
         align-items: center;
         padding: 8px 12px;
-        border: 1px solid rgba(22, 184, 201, 0.25);
+        border: 1px solid rgba(79, 124, 255, 0.4);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.62);
-        color: #147f8a;
-        font-family: "Trebuchet MS", sans-serif;
+        background: rgba(13, 23, 41, 0.7);
+        color: #8fd7ff;
         font-weight: 800;
         font-size: 13px;
       }
       .easyia-root h1 {
         margin: 18px 0;
-        font-size: clamp(48px, 7vw, 94px);
-        line-height: 0.91;
-        letter-spacing: -0.07em;
+        font-size: clamp(44px, 6.5vw, 82px);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
       }
       .easyia-root .lead {
-        color: #324154;
+        color: #aac0df;
         font-size: clamp(18px, 2.2vw, 24px);
         line-height: 1.45;
         max-width: 680px;
@@ -173,8 +190,8 @@ export default function EasyIaStyles() {
       .easyia-root .metric {
         padding: 18px;
         border-radius: 22px;
-        background: rgba(255, 255, 255, 0.64);
-        border: 1px solid var(--line);
+        background: rgba(13, 23, 41, 0.7);
+        border: 1px solid rgba(111, 138, 190, 0.24);
       }
       .easyia-root .metric strong {
         display: block;
@@ -183,28 +200,25 @@ export default function EasyIaStyles() {
       }
       .easyia-root .metric span {
         color: var(--muted);
-        font-family: "Trebuchet MS", sans-serif;
         font-size: 13px;
       }
       .easyia-root .chat-card,
       .easyia-root .card,
       .easyia-root .portal-card {
         background: var(--panel);
-        border: 1px solid var(--line);
+        border: 1px solid rgba(111, 138, 190, 0.24);
         border-radius: var(--radius);
-        box-shadow: 0 24px 80px rgba(12, 23, 42, 0.12);
+        box-shadow: 0 24px 80px rgba(6, 14, 28, 0.45);
         backdrop-filter: blur(16px);
       }
       .easyia-root .chat-card {
         padding: 20px;
-        transform: rotate(1deg);
       }
       .easyia-root .chat-top {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
-        font-family: "Trebuchet MS", sans-serif;
         color: var(--muted);
       }
       .easyia-root .dots {
@@ -229,16 +243,15 @@ export default function EasyIaStyles() {
         border-radius: 18px;
         margin: 10px 0;
         line-height: 1.45;
-        font-family: "Trebuchet MS", sans-serif;
       }
       .easyia-root .bubble.user {
-        background: #0d1b2f;
+        background: #122445;
         color: white;
         margin-left: 54px;
       }
       .easyia-root .bubble.ai {
-        background: white;
-        border: 1px solid var(--line);
+        background: rgba(19, 33, 58, 0.8);
+        border: 1px solid rgba(111, 138, 190, 0.24);
         margin-right: 30px;
       }
       .easyia-root .chat-form {
@@ -250,21 +263,52 @@ export default function EasyIaStyles() {
       .easyia-root input,
       .easyia-root select {
         width: 100%;
-        border: 1px solid var(--line);
+        border: 1px solid rgba(111, 138, 190, 0.28);
         border-radius: 16px;
         padding: 13px 14px;
-        background: rgba(255, 255, 255, 0.78);
-        color: var(--ink);
+        background: rgba(8, 16, 31, 0.72);
+        color: #dce9ff;
         outline: none;
       }
       .easyia-root textarea:focus,
       .easyia-root input:focus,
       .easyia-root select:focus {
-        border-color: rgba(22, 184, 201, 0.55);
-        box-shadow: 0 0 0 4px rgba(22, 184, 201, 0.12);
+        border-color: rgba(79, 124, 255, 0.58);
+        box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.16);
       }
       .easyia-root .section {
         padding: 58px 0;
+      }
+      .easyia-root .team-strip {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: -12px;
+      }
+      .easyia-root .team-card {
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid rgba(111, 138, 190, 0.24);
+        background: rgba(9, 17, 33, 0.7);
+      }
+      .easyia-root .team-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+      }
+      .easyia-root .team-card div {
+        padding: 16px 18px 18px;
+      }
+      .easyia-root .team-card h3 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        letter-spacing: -0.03em;
+      }
+      .easyia-root .team-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.45;
       }
       .easyia-root .section-title {
         display: flex;
@@ -275,14 +319,13 @@ export default function EasyIaStyles() {
       }
       .easyia-root h2 {
         margin: 0;
-        font-size: clamp(34px, 4.4vw, 60px);
-        line-height: 0.96;
-        letter-spacing: -0.055em;
+        font-size: clamp(32px, 4.4vw, 56px);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
       }
       .easyia-root .section-title p {
         color: var(--muted);
         max-width: 520px;
-        font-family: "Trebuchet MS", sans-serif;
       }
       .easyia-root .grid {
         display: grid;
@@ -302,7 +345,7 @@ export default function EasyIaStyles() {
         height: 130px;
         right: -45px;
         bottom: -45px;
-        background: radial-gradient(circle, rgba(22, 184, 201, 0.28), transparent 65%);
+        background: radial-gradient(circle, rgba(79, 124, 255, 0.28), transparent 65%);
       }
       .easyia-root .price {
         font-size: 42px;
@@ -312,7 +355,6 @@ export default function EasyIaStyles() {
       }
       .easyia-root .muted {
         color: var(--muted);
-        font-family: "Trebuchet MS", sans-serif;
       }
       .easyia-root .combo-list {
         display: flex;
@@ -321,13 +363,12 @@ export default function EasyIaStyles() {
         margin-top: 18px;
       }
       .easyia-root .combo-pill {
-        border: 1px solid rgba(12, 23, 42, 0.12);
-        background: rgba(255, 255, 255, 0.68);
+        border: 1px solid rgba(111, 138, 190, 0.22);
+        background: rgba(12, 22, 39, 0.72);
         padding: 7px 10px;
         border-radius: 999px;
-        font-family: "Trebuchet MS", sans-serif;
         font-size: 12px;
-        color: #304158;
+        color: #b8ccef;
       }
       .easyia-root .signup-panel {
         display: grid;
@@ -341,9 +382,8 @@ export default function EasyIaStyles() {
       .easyia-root .notice {
         padding: 14px 16px;
         border-radius: 18px;
-        background: rgba(22, 184, 201, 0.1);
-        color: #106d77;
-        font-family: "Trebuchet MS", sans-serif;
+        background: rgba(79, 124, 255, 0.14);
+        color: #98dfff;
       }
       .easyia-root .codebox {
         word-break: break-all;
@@ -356,7 +396,6 @@ export default function EasyIaStyles() {
       .easyia-root .footer {
         padding: 32px 0 48px;
         color: var(--muted);
-        font-family: "Trebuchet MS", sans-serif;
       }
       .easyia-root .portal-wrap {
         min-height: 100vh;
@@ -379,13 +418,13 @@ export default function EasyIaStyles() {
       .easyia-root .stat {
         padding: 16px;
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.64);
-        border: 1px solid var(--line);
+        background: rgba(13, 23, 41, 0.7);
+        border: 1px solid rgba(111, 138, 190, 0.24);
       }
       .easyia-root .progress {
         height: 10px;
         border-radius: 999px;
-        background: rgba(12, 23, 42, 0.1);
+        background: rgba(150, 170, 210, 0.15);
         overflow: hidden;
         margin-top: 10px;
       }
@@ -397,22 +436,29 @@ export default function EasyIaStyles() {
       .easyia-root .table {
         width: 100%;
         border-collapse: collapse;
-        font-family: "Trebuchet MS", sans-serif;
       }
       .easyia-root .table th,
       .easyia-root .table td {
         text-align: left;
         padding: 13px;
-        border-bottom: 1px solid var(--line);
+        border-bottom: 1px solid rgba(111, 138, 190, 0.24);
       }
       .easyia-root .table th {
         color: var(--muted);
         font-size: 13px;
       }
+      @media (max-width: 980px) {
+        .easyia-root .nav {
+          border-radius: 24px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+      }
       @media (max-width: 860px) {
         .easyia-root .hero,
         .easyia-root .signup-panel,
-        .easyia-root .portal-grid {
+        .easyia-root .portal-grid,
+        .easyia-root .team-strip {
           grid-template-columns: 1fr;
         }
         .easyia-root .grid,
@@ -420,15 +466,8 @@ export default function EasyIaStyles() {
         .easyia-root .stat-grid {
           grid-template-columns: 1fr;
         }
-        .easyia-root .nav {
-          align-items: flex-start;
-          border-radius: 24px;
-        }
         .easyia-root .nav-links {
           display: none;
-        }
-        .easyia-root .chat-card {
-          transform: none;
         }
       }
     `}</style>

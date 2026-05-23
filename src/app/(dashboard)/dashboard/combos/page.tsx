@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
@@ -124,11 +124,11 @@ const STRATEGY_GUIDANCE_FALLBACK = {
   },
   p2c: {
     when: "Use when you want low-latency selection using Power-of-Two-Choices algorithm.",
-    avoid: "Avoid for small combos with 2 or fewer models — no benefit over round-robin.",
+    avoid: "Avoid for small combos with 2 or fewer models â€” no benefit over round-robin.",
     example: "Example: High-throughput inference across 4+ equivalent model endpoints.",
   },
   "strict-random": {
-    when: "Use when you want perfectly even spread — each model used once before repeating.",
+    when: "Use when you want perfectly even spread â€” each model used once before repeating.",
     avoid: "Avoid when models have different quality or latency and order matters.",
     example: "Example: Multiple accounts of the same model to distribute usage evenly.",
   },
@@ -258,15 +258,15 @@ const STRATEGY_RECOMMENDATIONS_FALLBACK = {
     title: "Quota drain strategy",
     description: "Exhausts one provider's quota before moving to the next in chain.",
     tips: [
-      "Order models by free quota size — biggest first.",
+      "Order models by free quota size â€” biggest first.",
       "Enable health checks to skip drained providers.",
-      "Ideal for free-tier stacking (Deepgram → Groq → NIM).",
+      "Ideal for free-tier stacking (Deepgram â†’ Groq â†’ NIM).",
     ],
   },
   p2c: {
     title: "Power-of-Two-Choices",
     description:
-      "Picks the less-loaded of two random candidates per request — low latency at scale.",
+      "Picks the less-loaded of two random candidates per request â€” low latency at scale.",
     tips: [
       "Use with 4+ models for best effect.",
       "Requires latency telemetry enabled in Settings.",
@@ -509,9 +509,9 @@ function getStrategyRecommendationText(t, strategy, field) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Helper: normalize model entry (legacy string ↔ new object)
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Helper: normalize model entry (legacy string â†” new object)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function normalizeModelEntry(entry) {
   if (typeof entry === "string") return { model: entry, weight: 0 };
   if (entry?.kind === "combo-ref") {
@@ -565,7 +565,7 @@ function formatComboEntryDisplay(
 ) {
   const normalizedEntry = normalizeModelEntry(entry);
   if (normalizedEntry.kind === "combo-ref") {
-    return `Combo → ${normalizedEntry.comboName}`;
+    return `Combo â†’ ${normalizedEntry.comboName}`;
   }
 
   const parsed = parseQualifiedModel(normalizedEntry.model);
@@ -593,19 +593,19 @@ function formatComboEntryDisplay(
     : null;
 
   if (connectionId) {
-    return `${providerLabel}/${modelLabel} · ${connectionLabel || `acct ${connectionId.slice(0, 8)}`}`;
+    return `${providerLabel}/${modelLabel} Â· ${connectionLabel || `acct ${connectionId.slice(0, 8)}`}`;
   }
 
   if (normalizedEntry.providerId || builderProvider) {
-    return `${providerLabel}/${modelLabel} · dynamic account`;
+    return `${providerLabel}/${modelLabel} Â· dynamic account`;
   }
 
   return `${providerLabel}/${modelLabel}`;
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Main Page
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function CombosPage() {
   const t = useTranslations("combos");
   const tc = useTranslations("common");
@@ -615,6 +615,7 @@ export default function CombosPage() {
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAiCreateModal, setShowAiCreateModal] = useState(false);
   const [editingCombo, setEditingCombo] = useState(null);
   const [activeProviders, setActiveProviders] = useState([]);
   const [metrics, setMetrics] = useState({});
@@ -737,12 +738,15 @@ export default function CombosPage() {
         setShowCreateModal(false);
         setRecentlyCreatedCombo(data.name?.trim() || "");
         notify.success(t("comboCreated"));
+        return true;
       } else {
         const err = await res.json();
         notify.error(err.error?.message || err.error || t("failedCreate"));
+        return false;
       }
     } catch (error) {
       notify.error(t("errorCreating"));
+      return false;
     }
   };
 
@@ -1003,6 +1007,7 @@ export default function CombosPage() {
           onHide={() => setShowUsageGuide(false)}
           onHideForever={handleHideUsageGuideForever}
           onCreateCombo={() => setShowCreateModal(true)}
+          onCreateWithAi={() => setShowAiCreateModal(true)}
         />
       )}
 
@@ -1109,7 +1114,7 @@ export default function CombosPage() {
       {/* Combos List */}
       {combos.length === 0 ? (
         <EmptyState
-          icon="🧩"
+          icon="ðŸ§©"
           title={t("noCombosYet")}
           description={t("description")}
           actionLabel={t("createCombo")}
@@ -1210,6 +1215,12 @@ export default function CombosPage() {
         comboConfigMode={comboConfigMode}
       />
 
+      <AiComboCreatorModal
+        isOpen={showAiCreateModal}
+        onClose={() => setShowAiCreateModal(false)}
+        onSave={handleCreate}
+      />
+
       {/* Edit Modal */}
       <ComboFormModal
         key={editingCombo?.id || "new"}
@@ -1262,7 +1273,296 @@ const COMBO_WIZARD_STEPS = [
   },
 ];
 
-function ComboUsageGuide({ onHide, onHideForever, onCreateCombo }) {
+function AiComboCreatorModal({ isOpen, onClose, onSave }) {
+  const t = useTranslations("combos");
+  const notify = useNotificationStore();
+  const [loading, setLoading] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [comboName, setComboName] = useState("");
+  const [goal, setGoal] = useState("");
+  const [planningLog, setPlanningLog] = useState([]);
+  const [draft, setDraft] = useState(null);
+  const [builderProviders, setBuilderProviders] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    setPlanning(false);
+    setSaving(false);
+    setComboName("");
+    setGoal("");
+    setDraft(null);
+    setPlanningLog([]);
+    fetch("/api/combos/builder/options")
+      .then((r) => (r.ok ? r.json() : { providers: [] }))
+      .then((data) => setBuilderProviders(data.providers || []))
+      .catch(() => setBuilderProviders([]))
+      .finally(() => setLoading(false));
+  }, [isOpen]);
+
+  const availableModels = useMemo(
+    () =>
+      (builderProviders || []).flatMap((provider) =>
+        (provider.models || []).map((model) => ({
+          providerId: provider.providerId,
+          modelId: model.id,
+          qualifiedModel: `${provider.providerId}/${model.id}`,
+        }))
+      ),
+    [builderProviders]
+  );
+
+  const canPlan = comboName.trim().length >= 3 && goal.trim().length >= 12 && !planning && !loading;
+  const canSave = !!draft && Array.isArray(draft.models) && draft.models.length > 0 && !saving;
+
+  const parseJsonFromText = (text) => {
+    if (!text || typeof text !== "string") return null;
+    const trimmed = text.trim();
+    try {
+      return JSON.parse(trimmed);
+    } catch {}
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(trimmed.slice(start, end + 1));
+      } catch {}
+    }
+    return null;
+  };
+
+  const buildFallbackDraft = () => {
+    const selected = availableModels.slice(0, 3);
+    return {
+      strategy: "round-robin",
+      reasoning: "Fallback local: sem resposta JSON válida da IA.",
+      tasks: ["Selecionar modelos ativos", "Definir estratégia", "Aplicar fallback"],
+      models: selected.map((item) =>
+        buildPrecisionComboModelStep({
+          providerId: item.providerId,
+          modelId: item.modelId,
+          connectionId: null,
+          connectionLabel: null,
+        })
+      ),
+      config: { maxRetries: 2, retryDelayMs: 1000 },
+    };
+  };
+
+  const runAiPlanning = async () => {
+    if (!canPlan) return;
+    setPlanning(true);
+    setDraft(null);
+    setPlanningLog(["Analisando objetivo...", "Lendo modelos ativos...", "Montando estratégia..."]);
+    try {
+      const promptPayload = {
+        comboName: comboName.trim(),
+        goal: goal.trim(),
+        availableModels: availableModels.map((m) => m.qualifiedModel).slice(0, 80),
+      };
+
+      const instruction = [
+        "Você é especialista em roteamento de LLM no OmniRoute.",
+        "Com base no objetivo e modelos disponíveis, devolva JSON puro com:",
+        "{ strategy, reasoning, tasks[], selectedModels[], config{maxRetries,retryDelayMs} }",
+        "Regra: selectedModels deve ter 2 a 5 itens e usar somente modelos da lista.",
+        "Priorize chat/texto quando o usuário mencionar atendimento via chat sem imagem/áudio.",
+        `Dados: ${JSON.stringify(promptPayload)}`,
+      ].join("\n");
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "global",
+          message: instruction,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (data?.demo) {
+        throw new Error("OMNIROUTE_DEMO_API_KEY não configurada para planejamento com IA.");
+      }
+      const content = data?.content || "";
+      let parsed = parseJsonFromText(content);
+      if (!parsed) {
+        setPlanningLog((prev) => [...prev, "Resposta fora do padrão. Pedindo JSON novamente..."]);
+        const repairRes = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "global",
+            message:
+              "Converta a resposta anterior em JSON válido puro no formato {strategy,reasoning,tasks,selectedModels,config}. Sem markdown.",
+          }),
+        });
+        const repairData = await repairRes.json().catch(() => ({}));
+        if (!repairData?.demo) {
+          parsed = parseJsonFromText(repairData?.content || "");
+        }
+      }
+      const selectedModelsRaw = Array.isArray(parsed?.selectedModels) ? parsed.selectedModels : [];
+      const selectedModels = selectedModelsRaw
+        .filter((qualified) => availableModels.some((item) => item.qualifiedModel === qualified))
+        .slice(0, 5);
+      const autoSelectedModels = availableModels
+        .slice(0, 3)
+        .map((item) => item.qualifiedModel)
+        .filter(Boolean);
+      const finalSelectedModels = selectedModels.length > 0 ? selectedModels : autoSelectedModels;
+
+      const nextDraft =
+        finalSelectedModels.length > 0
+          ? {
+              strategy: parsed?.strategy || "round-robin",
+              reasoning:
+                parsed?.reasoning ||
+                (selectedModels.length > 0
+                  ? "Estratégia gerada pela IA."
+                  : "Estratégia gerada pela IA com seleção automática de modelos ativos."),
+              tasks: Array.isArray(parsed?.tasks) ? parsed.tasks.slice(0, 6) : [],
+              models: finalSelectedModels.map((qualified) => {
+                const [providerId, ...rest] = String(qualified).split("/");
+                const modelId = rest.join("/");
+                return buildPrecisionComboModelStep({
+                  providerId,
+                  modelId,
+                  connectionId: null,
+                  connectionLabel: null,
+                });
+              }),
+              config: {
+                maxRetries: Number(parsed?.config?.maxRetries) > 0 ? Number(parsed.config.maxRetries) : 2,
+                retryDelayMs:
+                  Number(parsed?.config?.retryDelayMs) > 0 ? Number(parsed.config.retryDelayMs) : 1000,
+              },
+            }
+          : buildFallbackDraft();
+
+      setPlanningLog((prev) => [
+        ...prev,
+        selectedModels.length > 0
+          ? "Plano gerado."
+          : "Plano gerado (modelos selecionados automaticamente).",
+        "Pronto para revisão e salvar.",
+      ]);
+      setDraft(nextDraft);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      setPlanningLog((prev) => [...prev, `Falha na IA (${detail}). Aplicando fallback local.`]);
+      setDraft(buildFallbackDraft());
+    } finally {
+      setPlanning(false);
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!canSave) return;
+    setSaving(true);
+    try {
+      const created = await onSave({
+        name: comboName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9_/.-]/g, ""),
+        strategy: draft.strategy || "round-robin",
+        models: draft.models || [],
+        config: draft.config || { maxRetries: 2, retryDelayMs: 1000 },
+      });
+      if (created) {
+        notify.success(getI18nOrFallback(t, "aiComboCreated", "Combo criado com IA com sucesso."));
+        onClose();
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={getI18nOrFallback(t, "aiComboModalTitle", "Criar combo com IA")}
+      maxWidth="2xl"
+    >
+      <div className="space-y-3 text-sm">
+        <p className="text-xs text-text-muted">
+          {getI18nOrFallback(
+            t,
+            "aiComboModalDesc",
+            "Descreva seu cenário em texto livre. A IA gera tarefas, estratégia e combo completo antes de salvar."
+          )}
+        </p>
+
+        <div>
+          <label className="text-xs text-text-muted">
+            Nome do combo
+          </label>
+          <Input
+            value={comboName}
+            onChange={(e) => setComboName(e.target.value)}
+            placeholder="ex: atendimento-chat-clientes"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-text-muted">
+            {getI18nOrFallback(t, "aiQuestionGoal", "Objetivo do combo")}
+          </label>
+          <textarea
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            rows={4}
+            className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 text-text-main focus:border-primary focus:outline-none"
+            placeholder="Ex: quero um combo para atender clientes via chat, sem imagem, com alta estabilidade e bom custo."
+          />
+        </div>
+
+        <div className="flex items-center justify-end">
+          <Button onClick={runAiPlanning} disabled={!canPlan}>
+            {planning ? "IA pensando..." : "Gerar plano com IA"}
+          </Button>
+        </div>
+
+        {planningLog.length > 0 && (
+          <div className="rounded-lg border border-black/10 dark:border-white/10 p-2.5 bg-black/[0.02] dark:bg-white/[0.02]">
+            <p className="text-xs font-semibold mb-1">Tarefas da IA</p>
+            <div className="space-y-0.5">
+              {planningLog.map((line, idx) => (
+                <p key={`${line}-${idx}`} className="text-xs text-text-muted">
+                  {idx + 1}. {line}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-lg border border-black/10 dark:border-white/10 p-2.5 bg-black/[0.02] dark:bg-white/[0.02]">
+          <p className="text-xs font-semibold mb-1">
+            {getI18nOrFallback(t, "aiSuggestionTitle", "Revisão da IA")}
+          </p>
+          <p className="text-xs text-text-muted">Nome: {comboName || "-"}</p>
+          <p className="text-xs text-text-muted">Estratégia: {draft?.strategy || "-"}</p>
+          <p className="text-xs text-text-muted">
+            Modelos: {draft?.models?.length || 0} {loading ? "(carregando opções...)" : ""}
+          </p>
+          {draft?.reasoning ? <p className="text-xs text-text-muted mt-1">{draft.reasoning}</p> : null}
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>
+            {getI18nOrFallback(t, "cancel", "Cancelar")}
+          </Button>
+          <Button onClick={handleCreate} disabled={!canSave}>
+            {saving
+              ? getI18nOrFallback(t, "saving", "Salvando...")
+              : getI18nOrFallback(t, "saveAiCombo", "Salvar combo com IA")}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function ComboUsageGuide({ onHide, onHideForever, onCreateCombo, onCreateWithAi }) {
   const t = useTranslations("combos");
 
   return (
@@ -1337,6 +1637,14 @@ function ComboUsageGuide({ onHide, onHideForever, onCreateCombo }) {
         <Button size="sm" icon="add" onClick={onCreateCombo}>
           {getI18nOrFallback(t, "createFirstCombo", "Create Your First Combo")}
         </Button>
+        <Button
+          size="sm"
+          icon="auto_awesome"
+          onClick={onCreateWithAi}
+          className="animate-pulse !bg-emerald-500 hover:!bg-emerald-600 !text-white"
+        >
+          {getI18nOrFallback(t, "createComboWithAi", "Criar combo com IA")}
+        </Button>
         <span className="text-[10px] text-text-muted">
           {getI18nOrFallback(t, "wizardGuideHint", "or click + Create Combo above")}
         </span>
@@ -1391,7 +1699,7 @@ function StrategyRecommendationsPanel({ strategy, onApply, showNudge }) {
             {getI18nOrFallback(t, "recommendationsLabel", "Recommended setup")}
           </p>
           <p className="text-xs font-semibold text-text-main mt-0.5">
-            {title} · <span className="text-primary">{strategyLabel}</span>
+            {title} Â· <span className="text-primary">{strategyLabel}</span>
           </p>
           <p className="text-[10px] text-text-muted mt-0.5">{description}</p>
         </div>
@@ -1517,7 +1825,7 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
                 key={`${blocker}-${index}`}
                 className="text-[10px] text-amber-700 dark:text-amber-300"
               >
-                • {blocker}
+                â€¢ {blocker}
               </p>
             ))}
           </div>
@@ -1527,9 +1835,9 @@ function ComboReadinessPanel({ checks, blockers, showDescription = true }) {
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Combo Card
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ComboCard({
   combo,
   metrics,
@@ -1795,9 +2103,9 @@ function ComboCard({
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Test Results View
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function TestResultsView({ results }) {
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
 
@@ -1830,7 +2138,7 @@ function TestResultsView({ results }) {
                   ? `account ${results.resolvedByTarget.connectionId.slice(0, 8)}`
                   : "dynamic account"}
                 {results.resolvedByTarget?.stepId
-                  ? ` · step ${results.resolvedByTarget.stepId}`
+                  ? ` Â· step ${results.resolvedByTarget.stepId}`
                   : ""}
               </div>
             ) : null}
@@ -1861,7 +2169,7 @@ function TestResultsView({ results }) {
             {r.connectionId || r.stepId ? (
               <div className="mt-0.5 text-[10px] text-text-muted">
                 {r.connectionId ? `acct ${r.connectionId.slice(0, 8)}` : "dynamic account"}
-                {r.stepId ? ` · ${r.stepId}` : ""}
+                {r.stepId ? ` Â· ${r.stepId}` : ""}
               </div>
             ) : null}
           </div>
@@ -1883,9 +2191,9 @@ function TestResultsView({ results }) {
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Combo Form Modal
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, comboConfigMode }) {
   type CreateDraftSnapshot = {
     name: string;
@@ -2899,7 +3207,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                         <p
                           className={`text-[10px] mt-1.5 font-medium ${template.isFeatured ? "text-emerald-500" : "text-primary"}`}
                         >
-                          {getI18nOrFallback(t, "templateApply", COMBO_TEMPLATE_FALLBACK.apply)} →
+                          {getI18nOrFallback(t, "templateApply", COMBO_TEMPLATE_FALLBACK.apply)} â†’
                         </p>
                       </button>
                     ))}
@@ -3085,7 +3393,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     >
                       <option value="">
                         {builderLoading
-                          ? getI18nOrFallback(t, "builderLoadingProviders", "Loading providers…")
+                          ? getI18nOrFallback(t, "builderLoadingProviders", "Loading providersâ€¦")
                           : getI18nOrFallback(t, "builderSelectProvider", "Select provider")}
                       </option>
                       {builderProviders.map((provider) => (
@@ -3116,7 +3424,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       {(selectedBuilderProvider?.models || []).map((model) => (
                         <option key={model.id} value={model.id}>
                           {model.name}
-                          {model.source ? ` · ${model.source}` : ""}
+                          {model.source ? ` Â· ${model.source}` : ""}
                         </option>
                       ))}
                     </select>
@@ -3143,7 +3451,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       {selectedBuilderConnections.map((connection) => (
                         <option key={connection.id} value={connection.id}>
                           {pickDisplayValue([connection.label], emailsVisible, connection.label)}
-                          {connection.status !== "active" ? ` · ${connection.status}` : ""}
+                          {connection.status !== "active" ? ` Â· ${connection.status}` : ""}
                         </option>
                       ))}
                     </select>
@@ -3225,7 +3533,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                       </option>
                       {builderComboRefs.map((comboRef) => (
                         <option key={comboRef.id} value={comboRef.name}>
-                          {comboRef.name} · {comboRef.strategy} · {comboRef.stepCount} step
+                          {comboRef.name} Â· {comboRef.strategy} Â· {comboRef.stepCount} step
                           {comboRef.stepCount === 1 ? "" : "s"}
                         </option>
                       ))}
@@ -3971,7 +4279,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                     {getI18nOrFallback(t, "reviewName", "Name")}
                   </p>
                   <p className="text-sm font-semibold text-text-main mt-1 break-all">
-                    {name || "—"}
+                    {name || "â€”"}
                   </p>
                 </div>
                 <div className="rounded-lg border border-black/8 dark:border-white/8 bg-black/[0.02] dark:bg-white/[0.02] p-3">
@@ -4132,7 +4440,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                                         "Legacy model entry"
                                       )}
                               {strategy === "weighted" && entry.weight > 0
-                                ? ` · ${entry.weight}%`
+                                ? ` Â· ${entry.weight}%`
                                 : ""}
                             </p>
                           </div>
@@ -4219,9 +4527,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Weight Total Bar
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function WeightTotalBar({ models }) {
   const total = models.reduce((sum, m) => sum + (m.weight || 0), 0);
   const isValid = total === 100;
@@ -4270,9 +4578,10 @@ function WeightTotalBar({ models }) {
             isValid ? "text-emerald-500" : total > 100 ? "text-red-500" : "text-amber-500"
           }`}
         >
-          {total}%{!isValid && total > 0 && " ≠ 100%"}
+          {total}%{!isValid && total > 0 && " â‰  100%"}
         </span>
       </div>
     </div>
   );
 }
+

@@ -1,31 +1,74 @@
-﻿import { getOmniRouteApiUrl } from "@/lib/site/omniroute";
+﻿import { getApiKeys } from "@/lib/localDb";
+import { getOmniRouteApiUrl } from "@/lib/site/omniroute";
+
+function isUsableKey(row: any): boolean {
+  if (!row || typeof row.key !== "string" || !row.key.trim()) return false;
+  if (row.isActive === false || row.isBanned === true) return false;
+  if (row.revokedAt) return false;
+  if (row.expiresAt) {
+    const expiresAt = new Date(row.expiresAt).getTime();
+    if (!Number.isNaN(expiresAt) && expiresAt <= Date.now()) return false;
+  }
+  return true;
+}
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const apiKey = typeof body.apiKey === "string" ? body.apiKey : process.env.OMNIROUTE_DEMO_API_KEY;
+  let apiKey =
+    typeof body.apiKey === "string" && body.apiKey.trim()
+      ? body.apiKey.trim()
+      : process.env.OMNIROUTE_DEMO_API_KEY;
+
   const model = typeof body.model === "string" && body.model.trim() ? body.model : "global";
   const message = typeof body.message === "string" ? body.message : "Ola";
+
+  if (!apiKey) {
+    try {
+      const keys = await getApiKeys();
+      const usable = Array.isArray(keys) ? keys.find(isUsableKey) : null;
+      if (usable?.key) apiKey = usable.key;
+    } catch {
+      // ignore fallback lookup errors; handled below
+    }
+  }
 
   if (!apiKey) {
     return Response.json({
       demo: true,
       content:
-        "Demo pronta. Configure OMNIROUTE_DEMO_API_KEY para o chat publico falar com a plataforma em tempo real.",
+        "Nenhuma API key ativa encontrada. Configure OMNIROUTE_DEMO_API_KEY ou ative uma API key no painel.",
     });
   }
 
-  const upstream = await fetch(`${getOmniRouteApiUrl()}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: "user", content: message }],
-      stream: false,
-    }),
+  const payload = JSON.stringify({
+    model,
+    messages: [{ role: "user", content: message }],
+    stream: false,
   });
+  const headers = {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+  };
+
+  const configuredBase = getOmniRouteApiUrl().replace(/\/+$/, "");
+  const localBase = new URL(request.url).origin;
+  const primaryUrl = `${configuredBase}/v1/chat/completions`;
+  const secondaryUrl = `${localBase}/api/v1/chat/completions`;
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(primaryUrl, {
+      method: "POST",
+      headers,
+      body: payload,
+    });
+  } catch {
+    upstream = await fetch(secondaryUrl, {
+      method: "POST",
+      headers,
+      body: payload,
+    });
+  }
 
   const text = await upstream.text();
   let data: any = {};

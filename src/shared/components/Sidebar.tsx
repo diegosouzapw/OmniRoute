@@ -15,6 +15,7 @@ import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTIONS,
+  getSectionItems,
   normalizeHiddenSidebarItems,
 } from "@/shared/constants/sidebarVisibility";
 
@@ -144,7 +145,7 @@ export default function Sidebar({
     .map((section) => ({
       ...section,
       title: getSidebarLabel(section.titleKey, section.titleFallback),
-      items: section.items
+      items: getSectionItems(section)
         .map((item) => ({ ...item, label: getItemLabel(item.i18nKey) }))
         .filter((item) => !hiddenSidebarSet.has(item.id)),
     }))
@@ -357,7 +358,7 @@ export default function Sidebar({
           )}
         >
           {visibleSections.map((section) => {
-            const showTitle = section.showTitleInSidebar !== false;
+            const showTitle = section.showTitle !== false;
 
             return (
               <div key={section.id} className={showTitle ? "pt-4 mt-2" : undefined}>

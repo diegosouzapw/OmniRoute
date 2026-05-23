@@ -1888,7 +1888,8 @@ export const v1betaGeminiGenerateSchema = z
   });
 
 export const cliMitmStartSchema = z.object({
-  apiKey: z.string().trim().min(1, "Missing apiKey"),
+  // apiKey can be omitted when keyId is supplied and resolved server-side.
+  apiKey: z.string().trim().nullish(),
   sudoPassword: z.string().optional(),
 });
 

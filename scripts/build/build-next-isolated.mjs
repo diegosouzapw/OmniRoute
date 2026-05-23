@@ -107,9 +107,15 @@ export function resolveNextBuildBundlerFlag(baseEnv = process.env) {
 }
 
 export function resolveNextBuildEnv(baseEnv = process.env) {
+  const buildHome = path.join(projectRoot, ".tmp", "next-build-home");
   return {
     ...baseEnv,
     NEXT_PRIVATE_BUILD_WORKER: baseEnv.NEXT_PRIVATE_BUILD_WORKER || "0",
+    HOME: baseEnv.OMNIROUTE_BUILD_HOME || buildHome,
+    USERPROFILE: baseEnv.OMNIROUTE_BUILD_HOME || buildHome,
+    APPDATA: baseEnv.OMNIROUTE_BUILD_APPDATA || path.join(buildHome, "AppData", "Roaming"),
+    LOCALAPPDATA:
+      baseEnv.OMNIROUTE_BUILD_LOCALAPPDATA || path.join(buildHome, "AppData", "Local"),
   };
 }
 
@@ -183,6 +189,12 @@ export async function main() {
     }
 
     await resetStandaloneOutput(projectRoot);
+    await fs.mkdir(path.join(projectRoot, ".tmp", "next-build-home", "AppData", "Roaming"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(projectRoot, ".tmp", "next-build-home", "AppData", "Local"), {
+      recursive: true,
+    });
 
     console.log("[build-next-isolated] Generating docs index...");
     try {
