@@ -737,7 +737,7 @@ export default function ProvidersPage() {
                 {
                   key: "free",
                   color: "bg-green-500",
-                  label: tc("free"),
+                  label: t("freeTier"),
                   stat: summaryStats.free,
                   title: t("freeAggregated"),
                 },
@@ -832,14 +832,7 @@ export default function ProvidersPage() {
                   }`}
                   title={cat.title || cat.label}
                 >
-                  {cat.color && (
-                    <CategoryDot
-                      color={cat.color}
-                      hasFree={cat.key === "free"}
-                      label={cat.label}
-                      freeLabel={t("hasFreeTooltip")}
-                    />
-                  )}
+                  {cat.color && <CategoryDot color={cat.color} label={cat.label} />}
                   <span>{cat.label}</span>
                   <span className={`text-[11px] ${isActive ? "text-white/80" : "text-text-muted"}`}>
                     {cat.stat.configured}
@@ -963,12 +956,7 @@ export default function ProvidersPage() {
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 {t("freeTierProviders")}
-                <CategoryDot
-                  color="bg-green-500"
-                  hasFree
-                  label={t("freeTierLabel")}
-                  freeLabel={t("hasFreeTooltip")}
-                />
+                <CategoryDot color="bg-green-500" label={t("freeTierLabel")} />
                 <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
               </h2>
               <p className="text-sm text-text-muted mt-1">{t("freeAggregated")}</p>

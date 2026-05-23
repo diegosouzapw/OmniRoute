@@ -198,9 +198,7 @@ export default function ProviderCard({
                 )}
                 <CategoryDot
                   color={DOT_COLORS[authType] || DOT_COLORS.apikey}
-                  hasFree={provider.hasFree === true}
                   label={dotLabels[authType] || t("apiKeyLabel")}
-                  freeLabel={t("hasFreeTooltip")}
                 />
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
