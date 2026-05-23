@@ -1,0 +1,15 @@
+{
+  "title": "Frameworks",
+  "pages": [
+    "MCP-SERVER",
+    "A2A-SERVER",
+    "AGENT_PROTOCOLS_GUIDE",
+    "CLOUD_AGENT",
+    "EVALS",
+    "GAMIFICATION",
+    "MEMORY",
+    "OPENCODE",
+    "SKILLS",
+    "WEBHOOKS"
+  ]
+}

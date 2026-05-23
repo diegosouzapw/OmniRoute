@@ -13,6 +13,8 @@ import {
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
 
+import { CategoryDot } from "./CategoryDot";
+
 interface ProviderStats {
   total?: number;
   connected?: number;
@@ -194,16 +196,12 @@ export default function ProviderCard({
                     </span>
                   </Badge>
                 )}
-                <span
-                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
-                  title={dotLabels[authType] || t("apiKeyLabel")}
+                <CategoryDot
+                  color={DOT_COLORS[authType] || DOT_COLORS.apikey}
+                  hasFree={provider.hasFree === true}
+                  label={dotLabels[authType] || t("apiKeyLabel")}
+                  freeLabel={t("hasFreeTooltip")}
                 />
-                {provider.hasFree === true && authType !== "free" && (
-                  <span
-                    className="size-2 rounded-full shrink-0 bg-green-500"
-                    title={provider.freeNote || t("freeTierAvailable")}
-                  />
-                )}
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {allDisabled ? (

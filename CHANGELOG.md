@@ -103,6 +103,7 @@
 - **fix(mimo):** add `supportsVision` flag to Kimi K2.6 in providerRegistry + comprehensive vision tests for MiMo V2.5/V2.5-Pro/V2-Omni. ([#2600](https://github.com/diegosouzapw/OmniRoute/pull/2600) — thanks @herjarsa)
 - **fix(proxy):** prefer scoped proxies over registry global fallback — legacy provider-specific proxy was being shadowed by a registry-global fallback across both storage backends. Resolution now follows strict specificity: account → provider → combo → global. ([#2606](https://github.com/diegosouzapw/OmniRoute/pull/2606) — thanks @terence71-glitch)
 - **fix(@omniroute/opencode-plugin):** canonical-twin dedup + alias-fallback enrichment — `/v1/models` returned the same model under both alias (`cc/claude-opus-4-7`) and canonical (`claude/claude-opus-4-7`) names; now drops ~75 canonical duplicates and rescues ~88 raw-id rows with proper provider prefix via alias-index fallback. Also emits `cost`, `release_date`, `modalities` fields in static catalog and raises provider label threshold to 12 chars (preserves `AssemblyAI`, `Antigravity` verbatim). ([#2607](https://github.com/diegosouzapw/OmniRoute/pull/2607) — thanks @mrmm)
+- **fix(registry):** populate empty models arrays for HuggingFace (6 models) and HackClub (3 models) + fix Snowflake placeholder baseUrl to `{account}` template pattern. ([#2611](https://github.com/diegosouzapw/OmniRoute/pull/2611) — thanks @oyi77)
 
 ### 🌐 Internationalization
 
@@ -112,6 +113,7 @@
 - **i18n(ru):** comprehensive Russian translation update — ~2000 lines of corrected and filled translations. ([#2550](https://github.com/diegosouzapw/OmniRoute/pull/2550) — thanks @AgentAlexAI)
 - **i18n(all):** comprehensive localization and UI refactoring — 42 locale files synchronized with missing keys, cloud-agents page i18n rewrite, and consistent `t()` usage across 21 dashboard components. ([#2580](https://github.com/diegosouzapw/OmniRoute/pull/2580) — thanks @alltomatos)
 - **i18n(all):** translate freeTier provider strings across 41 locales — replaces `__MISSING__:Free Tier Providers` placeholders with proper translations in both `common` and `providers` namespaces. ([#2609](https://github.com/diegosouzapw/OmniRoute/pull/2609) — thanks @leninejunior)
+- **i18n(pt-BR):** eliminate all 1270 remaining `__MISSING__` markers — completes pt-BR translation across 41 namespaces to true 100% coverage. ([#2610](https://github.com/diegosouzapw/OmniRoute/pull/2610) — thanks @leninejunior)
 
 ### 📝 Maintenance
 

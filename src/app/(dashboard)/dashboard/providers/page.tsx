@@ -42,14 +42,42 @@ import {
   isCodexGlobalFastServiceTierEnabled,
 } from "@/lib/providers/codexFastTier";
 import AddCompatibleProviderModal from "./components/AddCompatibleProviderModal";
+import { CategoryDot } from "./components/CategoryDot";
 import ProviderCard from "./components/ProviderCard";
 import ProviderCountBadge from "./components/ProviderCountBadge";
+
+type DashboardProviderInfo = {
+  id?: string;
+  name: string;
+  color?: string;
+  apiType?: string;
+  deprecated?: boolean;
+  deprecationReason?: string;
+  hasFree?: boolean;
+  freeNote?: string;
+  [key: string]: unknown;
+};
+
+type DashboardProviderEntry = ProviderEntry<DashboardProviderInfo>;
 
 function countConfigured<T>(entries: ProviderEntry<T>[]) {
   return {
     configured: entries.filter((entry) => Number(entry.stats?.total || 0) > 0).length,
     total: entries.length,
   };
+}
+
+function dedupeProviderEntries(entries: DashboardProviderEntry[]): DashboardProviderEntry[] {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    if (seen.has(entry.providerId)) return false;
+    seen.add(entry.providerId);
+    return true;
+  });
+}
+
+function providerEntryHasFree(entry: DashboardProviderEntry): boolean {
+  return entry.provider.hasFree === true;
 }
 
 type ProviderBatchTestResult = {
@@ -137,7 +165,12 @@ export default function ProvidersPage() {
   const [showFreeOnly, setShowFreeOnly] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const notify = useNotificationStore();
-  const showSection = (category: string) => !activeCategory || activeCategory === category;
+  const hasSearchQuery = searchQuery.trim().length > 0;
+  const showSection = (category: string) => {
+    if (showFreeOnly) return category === "free";
+    if (hasSearchQuery && !activeCategory) return category !== "free";
+    return !activeCategory || activeCategory === category;
+  };
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const ccCompatibleLabel = t("ccCompatibleLabel");
@@ -556,38 +589,21 @@ export default function ProvidersPage() {
     showFreeOnly
   );
 
-  const FREE_SECTION_IDS = new Set([
-    "kiro",
-    "amazon-q",
-    "gemini-cli",
-    "qoder",
-    "pollinations",
-    "llm7",
-    "opencode",
-    "gemini",
-    "groq",
-    "cerebras",
-    "mistral",
-    "nvidia",
-    "openrouter",
-    "cloudflare-ai",
-    "together",
-    "siliconflow",
-    "deepseek",
-    "longcat",
-    "glhf",
-    "morph",
-    "bazaarlink",
-    "uncloseai",
-    "completions",
-    "freetheai",
-    "enally",
-    "puter",
-    "blackbox",
+  const staticProviderEntriesAll = dedupeProviderEntries([
+    ...oauthProviderEntriesAll,
+    ...apiKeyProviderEntriesAll,
+    ...webCookieProviderEntriesAll,
+    ...localProviderEntriesAll,
+    ...searchProviderEntriesAll,
+    ...audioProviderEntriesAll,
+    ...cloudAgentProviderEntriesAll,
+    ...upstreamProxyEntriesAll,
+  ] as DashboardProviderEntry[]);
+  const dashboardProviderEntriesAll = dedupeProviderEntries([
+    ...staticProviderEntriesAll,
+    ...compatibleProviderEntriesAll,
   ]);
-  const freeSectionEntriesAll = [...oauthProviderEntriesAll, ...apiKeyProviderEntriesAll].filter(
-    (e) => FREE_SECTION_IDS.has(e.providerId)
-  );
+  const freeSectionEntriesAll = dashboardProviderEntriesAll.filter(providerEntryHasFree);
   const freeSectionEntries = filterConfiguredProviderEntries(
     freeSectionEntriesAll,
     effectiveShowConfiguredOnly,
@@ -611,12 +627,7 @@ export default function ProvidersPage() {
     .filter((e) => e.toggleAuthType === "oauth")
     .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId));
   const summaryStats = {
-    all: {
-      configured:
-        oauthProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length +
-        apiKeyProviderEntriesAll.filter((e) => Number(e.stats?.total || 0) > 0).length,
-      total: oauthProviderEntriesAll.length + apiKeyProviderEntriesAll.length,
-    },
+    all: countConfigured(dashboardProviderEntriesAll),
     free: countConfigured(freeSectionEntriesAll),
     oauth: countConfigured(oauthOnlyEntriesAll),
     apikey: countConfigured(apiKeyProviderEntriesAll),
@@ -728,6 +739,7 @@ export default function ProvidersPage() {
                   color: "bg-green-500",
                   label: tc("free"),
                   stat: summaryStats.free,
+                  title: t("freeAggregated"),
                 },
                 {
                   key: "oauth",
@@ -788,6 +800,7 @@ export default function ProvidersPage() {
                 color: string | null;
                 label: string;
                 stat: { configured: number; total: number };
+                title?: string;
               }>
             ).map((cat) => {
               const isActive =
@@ -817,9 +830,16 @@ export default function ProvidersPage() {
                       ? "bg-primary text-white border-primary"
                       : "bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/30"
                   }`}
-                  title={cat.label}
+                  title={cat.title || cat.label}
                 >
-                  {cat.color && <span className={`size-2 rounded-full shrink-0 ${cat.color}`} />}
+                  {cat.color && (
+                    <CategoryDot
+                      color={cat.color}
+                      hasFree={cat.key === "free"}
+                      label={cat.label}
+                      freeLabel={t("hasFreeTooltip")}
+                    />
+                  )}
                   <span>{cat.label}</span>
                   <span className={`text-[11px] ${isActive ? "text-white/80" : "text-text-muted"}`}>
                     {cat.stat.configured}
@@ -943,10 +963,15 @@ export default function ProvidersPage() {
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 {t("freeTierProviders")}
-                <span className="size-2.5 rounded-full bg-green-500" title={t("freeTierLabel")} />
+                <CategoryDot
+                  color="bg-green-500"
+                  hasFree
+                  label={t("freeTierLabel")}
+                  freeLabel={t("hasFreeTooltip")}
+                />
                 <ProviderCountBadge {...countConfigured(freeSectionEntriesAll)} />
               </h2>
-              <p className="text-sm text-text-muted mt-1">{t("freeTierProvidersDesc")}</p>
+              <p className="text-sm text-text-muted mt-1">{t("freeAggregated")}</p>
             </div>
             <button
               onClick={() => handleBatchTest("free")}
@@ -970,7 +995,7 @@ export default function ProvidersPage() {
                 <ProviderCard
                   key={`free-section-${providerId}`}
                   providerId={providerId}
-                  provider={{ ...provider, hasFree: false }}
+                  provider={provider}
                   stats={stats}
                   authType={toggleAuthType === "free" ? "free" : displayAuthType}
                   onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}

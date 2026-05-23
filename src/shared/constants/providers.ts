@@ -2,7 +2,14 @@
 
 // Free Providers
 export const FREE_PROVIDERS = {
-  qoder: { id: "qoder", alias: "if", name: "Qoder AI", icon: "water_drop", color: "#6366F1" },
+  qoder: {
+    id: "qoder",
+    alias: "if",
+    name: "Qoder AI",
+    icon: "water_drop",
+    color: "#6366F1",
+    hasFree: true,
+  },
   qwen: {
     id: "qwen",
     alias: "qw",
@@ -19,10 +26,18 @@ export const FREE_PROVIDERS = {
     name: "Gemini CLI",
     icon: "terminal",
     color: "#4285F4",
+    hasFree: true,
     authHint:
       "Uses Gemini CLI OAuth / Cloud Code credentials. Pro models require an eligible Google account or paid plan.",
   },
-  kiro: { id: "kiro", alias: "kr", name: "Kiro AI", icon: "psychology_alt", color: "#FF6B35" },
+  kiro: {
+    id: "kiro",
+    alias: "kr",
+    name: "Kiro AI",
+    icon: "psychology_alt",
+    color: "#FF6B35",
+    hasFree: true,
+  },
   "amazon-q": {
     id: "amazon-q",
     alias: "aq",
@@ -31,6 +46,7 @@ export const FREE_PROVIDERS = {
     color: "#FF9900",
     textIcon: "AQ",
     website: "https://aws.amazon.com/q/developer/",
+    hasFree: true,
     authHint:
       "Uses the same AWS Builder ID or imported refresh-token flow as Kiro, but keeps Amazon Q connections separate.",
   },
@@ -43,6 +59,7 @@ export const FREE_PROVIDERS = {
     textIcon: "OC",
     website: "https://opencode.ai",
     noAuth: true,
+    hasFree: true,
     authHint: "No API key required — uses OpenCode's public free endpoint.",
     freeNote:
       "No API key required — public OpenCode endpoint with Kimi, GLM, Qwen, MiMo, MiniMax models.",
@@ -848,6 +865,7 @@ export const APIKEY_PROVIDERS = {
     color: "#58A6FF",
     textIcon: "OC",
     website: "https://ollama.com/settings/api-keys",
+    hasFree: true,
   },
   huggingface: {
     id: "huggingface",
@@ -888,6 +906,7 @@ export const APIKEY_PROVIDERS = {
     color: "#4285F4",
     textIcon: "VA",
     website: "https://cloud.google.com/vertex-ai",
+    hasFree: true,
     authHint: "Provide Service Account JSON or OAuth access_token",
   },
   "vertex-partner": {
@@ -2227,6 +2246,7 @@ export const LOCAL_PROVIDERS = {
     color: "#FF7043",
     textIcon: "SD",
     website: "https://github.com/AUTOMATIC1111/stable-diffusion-webui",
+    hasFree: true,
     authHint:
       "No API key required. Configure the local WebUI base URL (default: http://localhost:7860).",
     localDefault: "http://localhost:7860",
@@ -2239,6 +2259,7 @@ export const LOCAL_PROVIDERS = {
     color: "#4CAF50",
     textIcon: "CF",
     website: "https://github.com/comfyanonymous/ComfyUI",
+    hasFree: true,
     authHint:
       "No API key required. Configure the local ComfyUI base URL (default: http://localhost:8188).",
     localDefault: "http://localhost:8188",
@@ -2265,6 +2286,7 @@ export const SEARCH_PROVIDERS = {
     color: "#4285F4",
     textIcon: "SP",
     website: "https://serper.dev",
+    hasFree: true,
     authHint: "API key from serper.dev dashboard",
   },
   "brave-search": {
@@ -2275,6 +2297,7 @@ export const SEARCH_PROVIDERS = {
     color: "#FB542B",
     textIcon: "BR",
     website: "https://brave.com/search/api",
+    hasFree: true,
     authHint: "Subscription token from Brave Search API dashboard",
   },
   "exa-search": {
@@ -2285,6 +2308,7 @@ export const SEARCH_PROVIDERS = {
     color: "#1E40AF",
     textIcon: "EX",
     website: "https://exa.ai",
+    hasFree: true,
     authHint: "API key from dashboard.exa.ai",
   },
   "tavily-search": {
@@ -2295,6 +2319,7 @@ export const SEARCH_PROVIDERS = {
     color: "#5B4FDB",
     textIcon: "TV",
     website: "https://tavily.com",
+    hasFree: true,
     authHint: "API key from app.tavily.com (format: tvly-...)",
   },
   "google-pse-search": {
@@ -2345,6 +2370,7 @@ export const SEARCH_PROVIDERS = {
     color: "#1A237E",
     textIcon: "SX",
     website: "https://docs.searxng.org",
+    hasFree: true,
     authHint:
       "API key is optional. Set your SearXNG base URL. Some instances may require a bearer token for access.",
   },
