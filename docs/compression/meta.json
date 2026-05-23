@@ -1,0 +1,10 @@
+{
+  "title": "Compression",
+  "pages": [
+    "COMPRESSION_GUIDE",
+    "COMPRESSION_ENGINES",
+    "RTK_COMPRESSION",
+    "COMPRESSION_LANGUAGE_PACKS",
+    "COMPRESSION_RULES_FORMAT"
+  ]
+}

@@ -41,6 +41,10 @@ for (const [k, v] of Object.entries(TOOL_RENAME_MAP)) {
 export function remapToolNamesInRequest(body: Record<string, unknown>): boolean {
   let hasLowercase = false;
   let hasTitleCase = false;
+  const toolNameMap =
+    body._toolNameMap instanceof Map
+      ? (body._toolNameMap as Map<string, string>)
+      : new Map<string, string>();
 
   // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
@@ -48,7 +52,9 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
     for (const tool of tools) {
       const name = String(tool.name || "");
       if (TOOL_RENAME_MAP[name]) {
-        tool.name = TOOL_RENAME_MAP[name];
+        const mapped = TOOL_RENAME_MAP[name];
+        tool.name = mapped;
+        toolNameMap.set(mapped, name);
         hasLowercase = true;
       } else if (REVERSE_MAP[name]) {
         hasTitleCase = true;
@@ -66,6 +72,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
         if (block.type === "tool_use" && typeof block.name === "string") {
           const mapped = TOOL_RENAME_MAP[block.name];
           if (mapped) {
+            toolNameMap.set(mapped, block.name);
             block.name = mapped;
             hasLowercase = true;
           } else if (REVERSE_MAP[block.name]) {
@@ -81,6 +88,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
     const mapped = TOOL_RENAME_MAP[toolChoice.name];
     if (mapped) {
+      toolNameMap.set(mapped, toolChoice.name);
       toolChoice.name = mapped;
       hasLowercase = true;
     } else if (REVERSE_MAP[toolChoice.name]) {
@@ -93,13 +101,32 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   // request body, causing HTTP 400 (Extra inputs are not permitted).
   // The response-side remap is unconditional via remapToolNamesInResponse.
 
+  if (toolNameMap.size > 0) {
+    Object.defineProperty(body, "_toolNameMap", {
+      value: toolNameMap,
+      enumerable: false,
+      configurable: true,
+      writable: true,
+    });
+  }
+
   return hasLowercase && !hasTitleCase;
 }
 
-export function remapToolNamesInResponse(text: string, forceLowercase = true): string {
+export function remapToolNamesInResponse(
+  text: string,
+  forceLowercase = true,
+  toolNameMap?: Map<string, string>
+): string {
   if (!forceLowercase) return text;
 
   // Replace TitleCase tool names back to lowercase in SSE chunks
+  if (toolNameMap?.size) {
+    for (const [mapped, original] of toolNameMap.entries()) {
+      text = text.replaceAll(`"name":"${mapped}"`, `"name":"${original}"`);
+      text = text.replaceAll(`"name": "${mapped}"`, `"name": "${original}"`);
+    }
+  }
   for (const [titleCase, lower] of Object.entries(REVERSE_MAP)) {
     // Match in "name":"ToolName" patterns
     text = text.replaceAll(`"name":"${titleCase}"`, `"name":"${lower}"`);

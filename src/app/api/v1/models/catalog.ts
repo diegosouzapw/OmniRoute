@@ -18,7 +18,7 @@ import { getAllMusicModels } from "@omniroute/open-sse/config/musicRegistry";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry";
 import { CODEX_NATIVE_UNPREFIXED_MODELS } from "@omniroute/open-sse/services/model";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo";
-import { getAllSyncedAvailableModels } from "@/lib/db/models";
+import { getAllSyncedAvailableModels, type SyncedAvailableModel } from "@/lib/db/models";
 import { getCompatibleFallbackModels } from "@/lib/providers/managedAvailableModels";
 import { hasEligibleConnectionForModel } from "@/domain/connectionModelRules";
 import {
@@ -596,6 +596,22 @@ export async function getUnifiedModelsResponse(
       });
     }
 
+    // Resolve synced available models (from auto-sync) — used to skip static
+    // PROVIDER_MODELS entries for providers that have a live, API-fresh list.
+    let syncedModelsByProvider: Record<string, SyncedAvailableModel[]> = {};
+    try {
+      syncedModelsByProvider = await getAllSyncedAvailableModels();
+    } catch (e) {
+      // DB unavailable — log and fall through; static models remain as defaults.
+      console.log("[catalog] Could not fetch synced available models:", e);
+    }
+    const providersWithSyncedModels = new Set(
+      Object.keys(syncedModelsByProvider).filter((pid) => {
+        const models = syncedModelsByProvider[pid];
+        return Array.isArray(models) && models.length > 0;
+      })
+    );
+
     // Add provider models (chat)
     for (const [alias, providerModels] of Object.entries(PROVIDER_MODELS)) {
       const providerId = aliasToProviderId[alias] || alias;
@@ -608,6 +624,10 @@ export async function getUnifiedModelsResponse(
       if (!activeAliases.has(alias) && !activeAliases.has(canonicalProviderId)) {
         continue;
       }
+
+      // Skip static models for providers that have synced available models
+      // (auto-sync provides the authoritative, up-to-date list from the API).
+      if (providersWithSyncedModels.has(canonicalProviderId)) continue;
 
       for (const model of providerModels) {
         if (!providerSupportsModel(canonicalProviderId, model.id)) continue;
@@ -676,7 +696,8 @@ export async function getUnifiedModelsResponse(
     }
 
     try {
-      const syncedModelsByProvider = await getAllSyncedAvailableModels();
+      // Data already loaded above into syncedModelsByProvider; the try block
+      // here protects the for-loop / model processing from unexpected errors.
       for (const [providerId, syncedModels] of Object.entries(syncedModelsByProvider)) {
         if (!Array.isArray(syncedModels) || syncedModels.length === 0) continue;
         if (blockedProviders.has(providerId)) continue;
