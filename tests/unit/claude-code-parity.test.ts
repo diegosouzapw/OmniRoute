@@ -267,6 +267,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
   it("removes thinking when tool_choice forces a specific tool", () => {
     const body = {
       thinking: { type: "enabled", budget_tokens: 1000 },
+      context_management: { edits: [{ type: "clear_thinking_20251015", keep: "all" }] },
       tool_choice: { type: "tool", name: "Bash" },
       tools: [{ name: "Bash" }],
     };
@@ -277,6 +278,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
       !thinkingType || thinkingType === "disabled" || thinkingType === "none",
       "thinking must be disabled when tool_choice forces a specific tool"
     );
+    assert.equal(body.context_management, undefined);
   });
 
   it("does not modify thinking when tool_choice is auto", () => {
