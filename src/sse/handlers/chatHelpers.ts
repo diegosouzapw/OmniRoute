@@ -175,6 +175,17 @@ export async function resolveModelOrError(
   }
 
   if (!modelInfo.provider) {
+    // model_not_found: raised by resolveModelByProviderInference when no
+    // provider could be inferred — return a clear error instead of the
+    // misleading "openai" default that the old code silently fell back to.
+    if ((modelInfo as any).errorType === "model_not_found") {
+      const message =
+        (modelInfo as any).errorMessage ||
+        `Model '${modelStr}' could not be resolved to a known provider.`;
+      log.warn("CHAT", message, { model: modelStr });
+      return { error: errorResponse(HTTP_STATUS.BAD_REQUEST, message) };
+    }
+
     if ((modelInfo as any).errorType === "ambiguous_model") {
       // Family disambiguation: if the model name begins with a known
       // non-OAuth family prefix, auto-pick the family-native provider

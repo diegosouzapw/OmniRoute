@@ -875,9 +875,15 @@ export async function GET(
       return localCatalog.map((model) => ({
         id: model.id,
         name: model.name || model.id,
-        ...((model as any).apiFormat ? { apiFormat: (model as any).apiFormat } : {}),
-        ...((model as any).supportedEndpoints
-          ? { supportedEndpoints: (model as any).supportedEndpoints }
+        ...((model as Record<string, unknown>).apiFormat
+          ? { apiFormat: (model as Record<string, unknown>).apiFormat as string | undefined }
+          : {}),
+        ...((model as Record<string, unknown>).supportedEndpoints
+          ? {
+              supportedEndpoints: (model as Record<string, unknown>).supportedEndpoints as
+                | string[]
+                | undefined,
+            }
           : {}),
         ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
       }));
@@ -1876,9 +1882,15 @@ export async function GET(
         models: localCatalog.map((m) => ({
           id: m.id,
           name: m.name || m.id,
-          ...((m as any).apiFormat ? { apiFormat: (m as any).apiFormat } : {}),
-          ...((m as any).supportedEndpoints
-            ? { supportedEndpoints: (m as any).supportedEndpoints }
+          ...((m as Record<string, unknown>).apiFormat
+            ? { apiFormat: (m as Record<string, unknown>).apiFormat as string | undefined }
+            : {}),
+          ...((m as Record<string, unknown>).supportedEndpoints
+            ? {
+                supportedEndpoints: (m as Record<string, unknown>).supportedEndpoints as
+                  | string[]
+                  | undefined,
+              }
             : {}),
           ...(registryCatalogModels.length > 0 ? { owned_by: provider } : {}),
         })),

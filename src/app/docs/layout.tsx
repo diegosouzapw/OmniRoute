@@ -3,11 +3,31 @@ import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { source } from "@/lib/source";
 import type { ReactNode } from "react";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import { Suspense } from "react";
+import LanguageSelector from "@/shared/components/LanguageSelector";
+
+export const metadata = {
+  title: {
+    template: "%s — OmniRoute Docs",
+    default: "OmniRoute Documentation",
+  },
+  description:
+    "Comprehensive documentation for OmniRoute AI gateway — setup, API, compression, deployment, and more.",
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const docsLayoutOptions: BaseLayoutProps = {
   nav: {
     title: "OmniRoute Docs",
     url: "/docs",
+    children: (
+      <Suspense fallback={<div className="w-24 h-8" />}>
+        <LanguageSelector />
+      </Suspense>
+    ),
   },
   links: [
     {

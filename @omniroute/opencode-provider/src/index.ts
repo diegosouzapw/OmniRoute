@@ -79,6 +79,20 @@ export interface ModelCapabilities {
 }
 
 /**
+ * Default per-model context window sizes (tokens) for the curated default catalog.
+ * Matches the context lengths used by OmniRoute's provider registry.
+ */
+export const OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS: Record<string, number> = {
+  "cc/claude-opus-4-7": 200_000,
+  "cc/claude-sonnet-4-6": 200_000,
+  "cc/claude-haiku-4-5-20251001": 200_000,
+  "claude-opus-4-5-thinking": 200_000,
+  "claude-sonnet-4-5-thinking": 200_000,
+  "gemini-3.1-pro-high": 1_000_000,
+  "gemini-3-flash": 1_000_000,
+};
+
+/**
  * Default per-model capability hints for the curated default catalog.
  *
  * Conservative defaults: every default model accepts attachments, tool calls
@@ -141,6 +155,19 @@ export interface OpenCodeModelEntry {
   reasoning?: boolean;
   temperature?: boolean;
   tool_call?: boolean;
+  /**
+   * Context window limit. OpenCode reads this to determine usable context
+   * length for compaction, overflow detection, and router decisions.
+   * Maps to `limit.context` in OpenCode's provider config schema.
+   */
+  limit?: {
+    /** Maximum context length in tokens (e.g. 200000 for Claude, 1000000 for Gemini). */
+    context: number;
+    /** Optional per-request max input tokens. */
+    input?: number;
+    /** Optional max output tokens. */
+    output?: number;
+  };
 }
 
 export interface OpenCodeProviderEntry {
@@ -235,6 +262,14 @@ export function createOmniRouteProvider(options: OmniRouteProviderOptions): Open
     if (typeof merged.reasoning === "boolean") entry.reasoning = merged.reasoning;
     if (typeof merged.temperature === "boolean") entry.temperature = merged.temperature;
     if (typeof merged.tool_call === "boolean") entry.tool_call = merged.tool_call;
+
+    // Include context window limit when known — OpenCode reads this to
+    // determine usable context length for compaction & overflow detection.
+    const contextLength = OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    if (typeof contextLength === "number" && contextLength > 0) {
+      entry.limit = { context: contextLength };
+    }
+
     models[id] = entry;
   }
 
@@ -445,6 +480,8 @@ async function fetchJSON<T>(url: string, apiKey: string, timeoutMs: number): Pro
 export interface OmniRouteLiveModel {
   id: string;
   name: string;
+  /** Context window length in tokens (e.g. 200000 for Claude, 1000000 for Gemini). */
+  contextLength?: number;
 }
 
 /**
@@ -514,7 +551,18 @@ export async function fetchLiveModels(
             ? r.display_name.trim()
             : id;
 
-    models.push({ id, name: name || id });
+    // Extract context_length from OmniRoute's /v1/models response.
+    // OmniRoute returns context_length in snake_case for both synced
+    // models (with inputTokenLimit) and custom models; the catalog's
+    // getDefaultContextFallback also injects it from registry defaults.
+    const contextLength =
+      typeof r.context_length === "number" && r.context_length > 0
+        ? r.context_length
+        : typeof r.max_context_window_tokens === "number" && r.max_context_window_tokens > 0
+          ? r.max_context_window_tokens
+          : undefined;
+
+    models.push({ id, name: name || id, ...(contextLength ? { contextLength } : {}) });
   }
 
   return models;

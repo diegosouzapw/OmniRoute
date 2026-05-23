@@ -88,7 +88,7 @@ test("handleChat waits for a short cooldown and retries once within the configur
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "retry after short cooldown" }],
       },
@@ -139,7 +139,7 @@ test("handleChat recovers from a real 429 once the connection cooldown expires",
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "trigger upstream 429 then recover" }],
       },
@@ -175,7 +175,7 @@ test("handleChat does not wait when the cooldown exceeds maxRetryIntervalSec", a
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "do not wait beyond configured interval" }],
       },
@@ -260,7 +260,7 @@ test("handleChat returns stream readiness timeout without entering cooldown-awar
   const response = await handleChat(
     buildRequest({
       body: {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: true,
         messages: [{ role: "user", content: "trigger zombie stream" }],
       },
@@ -304,7 +304,7 @@ test("handleChat aborts the pending cooldown wait when the client disconnects", 
   const response = await handleChat(
     buildRequestWithSignal(
       {
-        model: "openai/gpt-4o-mini",
+        model: "openai/gpt-4.1",
         stream: false,
         messages: [{ role: "user", content: "abort retry wait" }],
       },

@@ -61,10 +61,11 @@ function makeRequest(extraHeaders = {}) {
       ...extraHeaders,
     },
     body: JSON.stringify({
-      model: "openai/gpt-4o-mini",
+      model: "openai/gpt-4.1",
       messages: [{ role: "user", content: "Reply with OK only." }],
       max_tokens: 16,
       stream: false,
+      temperature: 0,
     }),
   });
 }
@@ -139,13 +140,13 @@ test("combo live test bypasses semantic cache and forces a fresh upstream reques
   await seedHealthyConnection();
 
   const signature = generateSignature(
-    "gpt-4o-mini",
+    "gpt-4.1",
     [{ role: "user", content: "Reply with OK only." }],
     0,
     1
   );
 
-  setCachedResponse(signature, "gpt-4o-mini", {
+  setCachedResponse(signature, "gpt-4.1", {
     id: "chatcmpl-cached",
     choices: [
       {

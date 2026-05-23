@@ -22,6 +22,7 @@ function ServiceToggle({
   onToggle: () => void;
   toggling: boolean;
 }) {
+  const t = useTranslations("mcpDashboard");
   const online = enabled && status.online;
   const loading = enabled && status.loading;
 
@@ -54,7 +55,7 @@ function ServiceToggle({
             animation: online ? "pulse 2s infinite" : "none",
           }}
         />
-        {loading ? "..." : online ? "Online" : "Offline"}
+        {loading ? "..." : online ? t("online") : t("offline")}
       </div>
 
       <button
@@ -67,7 +68,7 @@ function ServiceToggle({
           opacity: toggling ? 0.6 : 1,
           cursor: toggling ? "wait" : "pointer",
         }}
-        title={enabled ? `Disable ${label}` : `Enable ${label}`}
+        title={enabled ? t("disableLabel", { label }) : t("enableLabel", { label })}
       >
         <span
           className="inline-block w-5 h-5 rounded-full shadow-md transition-all duration-300"
@@ -101,12 +102,12 @@ function TransportSelector({
 }) {
   const t = useTranslations("mcpDashboard");
   const options: { value: McpTransport; label: string; desc: string }[] = [
-    { value: "stdio", label: "stdio", desc: "Local — IDE spawns process via omniroute --mcp" },
-    { value: "sse", label: "SSE", desc: "Remote — Server-Sent Events over HTTP" },
+    { value: "stdio", label: "stdio", desc: t("transportStdioDesc") },
+    { value: "sse", label: "SSE", desc: t("transportSseDesc") },
     {
       value: "streamable-http",
       label: "Streamable HTTP",
-      desc: "Remote — Modern bidirectional HTTP",
+      desc: t("transportStreamableHttpDesc"),
     },
   ];
 
@@ -129,7 +130,7 @@ function TransportSelector({
           swap_horiz
         </span>
         <span className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
-          Transport Mode
+          {t("transportMode")}
         </span>
       </div>
 
@@ -185,7 +186,7 @@ function TransportSelector({
             onClick={() => void copyToClipboard(urlMap[value])}
             title={t("mcpDashboardCopyUrl")}
           >
-            Copy
+            {t("copy")}
           </button>
         )}
       </div>
@@ -194,6 +195,7 @@ function TransportSelector({
 }
 
 function DisabledPanel() {
+  const t = useTranslations("mcpDashboard");
   return (
     <Card className="p-6">
       <div className="flex items-start gap-3">
@@ -214,10 +216,10 @@ function DisabledPanel() {
         </div>
         <div>
           <h2 className="text-base font-semibold" style={{ color: "var(--color-text)" }}>
-            MCP is disabled
+            {t("mcpDisabledTitle")}
           </h2>
           <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
-            Enable MCP above to configure transport mode and view server telemetry.
+            {t("mcpDisabledDesc")}
           </p>
         </div>
       </div>
@@ -226,6 +228,7 @@ function DisabledPanel() {
 }
 
 export default function McpPage() {
+  const t = useTranslations("mcpDashboard");
   const [mcpStatus, setMcpStatus] = useState<ServiceStatus>({ online: false, loading: true });
   const [mcpEnabled, setMcpEnabled] = useState(false);
   const [mcpToggling, setMcpToggling] = useState(false);
@@ -313,20 +316,23 @@ export default function McpPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              Model Context Protocol — 37 tools across 13 scopes, 3 transports (stdio / SSE /
-              Streamable HTTP).
+              {t("mcpIntro", { tools: 37, scopes: 13, transports: 3 })}
             </p>
             <ol
               className="mt-2 text-sm space-y-0.5 list-decimal list-inside"
               style={{ color: "var(--color-text-muted)" }}
             >
               <li>
-                Run via <code className="text-xs">omniroute --mcp</code>
+                {t.rich("mcpStep1", {
+                  code: (chunks) => <code className="text-xs">{chunks}</code>,
+                })}
               </li>
-              <li>Configure your MCP client to connect over stdio transport.</li>
+              <li>{t("mcpStep2")}</li>
               <li>
-                Invoke tools like <code className="text-xs">omniroute_get_health</code> and{" "}
-                <code className="text-xs">omniroute_list_combos</code>.
+                {t.rich("mcpStep3", {
+                  code1: (chunks) => <code className="text-xs">omniroute_get_health</code>,
+                  code2: (chunks) => <code className="text-xs">omniroute_list_combos</code>,
+                })}
               </li>
             </ol>
           </div>

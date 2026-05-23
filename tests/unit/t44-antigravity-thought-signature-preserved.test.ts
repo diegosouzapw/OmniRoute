@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
 
-test("T44: Antigravity preserves thoughtSignature for functionCall turns", () => {
+test("T44: Antigravity preserves thoughtSignature for functionCall turns", async () => {
   const executor = new AntigravityExecutor();
-  const transformed = executor.transformRequest(
+  const transformed = await executor.transformRequest(
     "gemini-3-flash",
     {
       request: {
@@ -51,9 +51,9 @@ test("T44: Antigravity preserves thoughtSignature for functionCall turns", () =>
   );
 });
 
-test("T44: Antigravity still strips standalone thoughtSignature without tool calls", () => {
+test("T44: Antigravity still strips standalone thoughtSignature without tool calls", async () => {
   const executor = new AntigravityExecutor();
-  const transformed = executor.transformRequest(
+  const transformed = await executor.transformRequest(
     "gemini-3-flash",
     {
       request: {

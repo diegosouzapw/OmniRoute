@@ -1,6 +1,6 @@
 ---
 title: "Memory System"
-version: 3.8.1
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -314,7 +314,6 @@ default TTL 5 min).
   definitions alongside memory.
 - [MCP-SERVER.md](./MCP-SERVER.md) — MCP transport / scopes.
 - [API_REFERENCE.md](../reference/API_REFERENCE.md) — broader API surface.
-- [Tuto_Qdrant.md](../../Tuto_Qdrant.md) — repository-root Qdrant setup tutorial (integration currently dormant — see status banner at top of that file).
 - Source modules:
   - `src/lib/memory/types.ts`, `schemas.ts`
   - `src/lib/memory/store.ts`, `retrieval.ts`, `injection.ts`

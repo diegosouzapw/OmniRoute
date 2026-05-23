@@ -46,7 +46,7 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
   );
 });
 
-test("registry assignment takes precedence over legacy proxy config", async () => {
+test("specific registry account assignment takes precedence over legacy key proxy config", async () => {
   await resetStorage();
 
   const conn = await providersDb.createProviderConnection({
@@ -118,4 +118,93 @@ test("legacy proxy config migration imports global/provider/key assignments", as
   assert.equal(resolved.level, "account");
   assert.equal(resolved.source, "registry");
   assert.equal(resolved.proxy.host, "account-legacy.local");
+});
+
+// #2456: resolveProxyForProvider (used by the OAuth token exchange + token refresh,
+// before any connection exists) only consulted the proxy registry. A proxy set the
+// legacy way (/api/settings/proxy?level=provider) was ignored, so on a VPS the OAuth
+// exchange went out direct and tripped Anthropic's IP rate limit. It must fall back to
+// the legacy per-provider config, mirroring resolveProxyForConnection.
+test("resolveProxyForProvider falls back to the legacy provider proxy config (#2456)", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "claude", {
+    type: "http",
+    host: "legacy-claude-proxy.local",
+    port: 3128,
+  });
+
+  // No proxy_registry assignment exists for "claude" — only the legacy config.
+  const resolved = await proxiesDb.resolveProxyForProvider("claude");
+  assert.ok(resolved, "expected the legacy provider proxy to be resolved");
+  assert.equal((resolved as any).host, "legacy-claude-proxy.local");
+  assert.equal((resolved as any).type, "http");
+});
+
+test("resolveProxyForProvider falls back to the legacy global proxy when no provider proxy (#2456)", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("global", null, {
+    type: "socks5",
+    host: "legacy-global.local",
+    port: 1080,
+  });
+
+  const resolved = await proxiesDb.resolveProxyForProvider("anthropic");
+  assert.ok(resolved, "expected the legacy global proxy to be resolved");
+  assert.equal((resolved as any).host, "legacy-global.local");
+});
+
+test("resolveProxyForProvider still prefers a registry assignment over legacy config (#2456)", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "openai", {
+    type: "http",
+    host: "legacy-openai.local",
+    port: 8080,
+  });
+
+  const registryProxy = await proxiesDb.createProxy({
+    name: "Registry OpenAI",
+    type: "https",
+    host: "registry-openai.local",
+    port: 443,
+  });
+  await proxiesDb.assignProxyToScope("provider", "openai", registryProxy.id);
+
+  const resolved = await proxiesDb.resolveProxyForProvider("openai");
+  assert.ok(resolved);
+  assert.equal((resolved as any).host, "registry-openai.local", "registry assignment must win");
+});
+
+test("resolveProxyForProvider prefers legacy provider proxy over registry global fallback (#2601)", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "claude", {
+    type: "http",
+    host: "legacy-claude-provider.local",
+    port: 3128,
+  });
+
+  const globalProxy = await proxiesDb.createProxy({
+    name: "Registry Global",
+    type: "https",
+    host: "registry-global.local",
+    port: 443,
+  });
+  await proxiesDb.assignProxyToScope("global", null, globalProxy.id);
+
+  const resolved = await proxiesDb.resolveProxyForProvider("claude");
+  assert.ok(resolved);
+  assert.equal(
+    (resolved as any).host,
+    "legacy-claude-provider.local",
+    "provider-specific custom proxy must beat global registry fallback"
+  );
+});
+
+test("resolveProxyForProvider returns null when neither registry nor legacy config has a proxy (#2456)", async () => {
+  await resetStorage();
+  const resolved = await proxiesDb.resolveProxyForProvider("gemini");
+  assert.equal(resolved, null);
 });

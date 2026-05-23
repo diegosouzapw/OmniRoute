@@ -373,7 +373,7 @@ function messagesToPrompt(messages: Array<{ role: string; content: string }>): s
     parts.push(lastUserContent);
   }
 
-  return parts.join("\n\n").replace(/!\[.+\]\(.+\)/g, "");
+  return parts.join("\n\n").replace(/!\[.*?\]\(.*?\)/g, "");
 }
 
 // ── DeepSeek API calls (Bearer token auth, like Chat2API) ───────────────
@@ -602,7 +602,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         let errMsg = `DeepSeek API error (${status})`;
         if (status === 401 || status === 403) {
           tokenCache.delete(userToken);
-          sessionCache.delete((rawCreds.connectionId as string) || "");
+          sessionCache.delete((rawCreds.connectionId as string) || accessToken);
           errMsg = "DeepSeek token expired — get a fresh userToken from localStorage.";
         } else if (status === 429) {
           errMsg = "DeepSeek rate limited. Wait and retry.";
@@ -637,7 +637,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
             const status = json.code === 40003 ? 401 : json.code === 40002 ? 429 : 502;
             if (json.code === 40003) {
               tokenCache.delete(userToken);
-              sessionCache.delete((rawCreds.connectionId as string) || "");
+              sessionCache.delete((rawCreds.connectionId as string) || accessToken);
             }
             return {
               response: errorResponse(status, errMsg, json.code),

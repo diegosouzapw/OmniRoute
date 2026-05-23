@@ -49,7 +49,8 @@ test("combo failover skips the cooled provider target on the next request", asyn
     name: "provider-cooldown-combo",
     strategy: "priority",
     config: { maxRetries: 0, retryDelayMs: 0 },
-    models: ["openai/gpt-4o-mini", "claude/claude-3-5-sonnet-20241022"],
+    // openai/gpt-4o-mini is now ambiguous (multi-provider); use o3-mini which resolves unambiguously to openai
+    models: ["openai/o3-mini", "claude/claude-3-5-sonnet-20241022"],
   });
 
   let openaiCalls = 0;

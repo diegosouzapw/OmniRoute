@@ -1,3 +1,4 @@
+import { getModelSpec } from "../../src/shared/constants/modelSpecs.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -95,4 +96,14 @@ test("xiaomi-mimo update schema accepts custom regional baseUrl", () => {
       "https://token-plan-cn.xiaomimimo.com/v1"
     );
   }
+});
+
+
+test("MiMo-V2.5, V2.5-Pro, and V2-Omni report vision capability", () => {
+  // Omnimodal models should have supportsVision
+  assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, true);
+  assert.equal(getModelSpec("mimo-v2.5")?.supportsVision, true);
+  assert.equal(getModelSpec("mimo-v2-omni")?.supportsVision, true);
+  // Flash is text-only — should NOT have vision
+  assert.equal(getModelSpec("mimo-v2-flash")?.supportsVision, undefined);
 });

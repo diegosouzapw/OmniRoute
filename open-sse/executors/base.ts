@@ -715,7 +715,9 @@ export class BaseExecutor {
             // Default CC logic when no override headers are present
             const isHaiku = typeof tb.model === "string" && tb.model.includes("haiku");
             if (isHaiku) {
-              delete tb.thinking;
+              // Keep tb.thinking — real Claude Desktop keeps thinking enabled for Haiku
+              // (issue #2454). Only strip output_config (effort) which Haiku rejects;
+              // context_management is re-paired with the preserved thinking below.
               delete tb.output_config;
               delete tb.context_management;
             } else if (tb.thinking === undefined && tb.output_config === undefined) {

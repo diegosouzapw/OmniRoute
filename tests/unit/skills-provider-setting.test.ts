@@ -10,9 +10,9 @@ test("normalizeSkillsProvider keeps valid values", () => {
 });
 
 test("normalizeSkillsProvider falls back for invalid values", () => {
-  assert.equal(DEFAULT_SKILLS_PROVIDER, "skillsmp");
-  assert.equal(normalizeSkillsProvider(undefined), "skillsmp");
-  assert.equal(normalizeSkillsProvider(null), "skillsmp");
-  assert.equal(normalizeSkillsProvider(""), "skillsmp");
-  assert.equal(normalizeSkillsProvider("invalid"), "skillsmp");
+  assert.equal(DEFAULT_SKILLS_PROVIDER, "skillssh");
+  assert.equal(normalizeSkillsProvider(undefined), "skillssh");
+  assert.equal(normalizeSkillsProvider(null), "skillssh");
+  assert.equal(normalizeSkillsProvider(""), "skillssh");
+  assert.equal(normalizeSkillsProvider("invalid"), "skillssh");
 });

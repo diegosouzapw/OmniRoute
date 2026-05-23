@@ -78,7 +78,7 @@ export default function CachePerformance({
       <div data-testid="cache-performance" className="p-5 flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-medium text-sm">Performance</h2>
+          <h2 className="font-medium text-sm">{t("performanceTitle")}</h2>
         </div>
 
         {/* Error state */}
@@ -91,7 +91,7 @@ export default function CachePerformance({
                 className="self-start text-xs px-3 py-1.5 rounded bg-surface border border-border/50 hover:bg-surface/80 transition-colors"
                 aria-label={t("cachePerformanceRetry")}
               >
-                Retry
+                {t("retry")}
               </button>
             )}
           </div>
@@ -127,15 +127,15 @@ export default function CachePerformance({
             <div className="grid grid-cols-3 gap-4 pt-3 border-t border-border/30 text-center">
               <div>
                 <div className="text-lg font-semibold tabular-nums text-green-500">{hits}</div>
-                <div className="text-xs text-text-muted mt-0.5">Hits</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("hits")}</div>
               </div>
               <div>
                 <div className="text-lg font-semibold tabular-nums text-red-400">{misses}</div>
-                <div className="text-xs text-text-muted mt-0.5">Misses</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("misses")}</div>
               </div>
               <div>
                 <div className="text-lg font-semibold tabular-nums">{totalRequests}</div>
-                <div className="text-xs text-text-muted mt-0.5">Total</div>
+                <div className="text-xs text-text-muted mt-0.5">{t("total")}</div>
               </div>
             </div>
 

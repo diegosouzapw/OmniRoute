@@ -1,4 +1,8 @@
 import { FORMATS } from "../translator/formats.ts";
+import {
+  buildGeminiThoughtSignatureKey,
+  storeGeminiThoughtSignature,
+} from "../services/geminiThoughtSignatureStore.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -278,6 +282,7 @@ export function translateNonStreamingResponse(
               const contentParts: JsonRecord[] = [];
               const toolCalls: JsonRecord[] = [];
               let reasoningContent = "";
+              let pendingThoughtSignature = "";
 
               if (Array.isArray(content.parts)) {
                 for (const part of content.parts) {
@@ -285,6 +290,15 @@ export function translateNonStreamingResponse(
                   if (partObj.thought === true && typeof partObj.text === "string") {
                     reasoningContent += partObj.text;
                     continue;
+                  }
+
+                  // Capture thoughtSignature from thinking parts (Gemini thinking models)
+                  // so it can be stored alongside any subsequent functionCall part.
+                  const partThoughtSig = toString(
+                    partObj.thoughtSignature ?? partObj.thought_signature
+                  );
+                  if (partThoughtSig) {
+                    pendingThoughtSignature = partThoughtSig;
                   }
 
                   if (typeof partObj.text === "string") {
@@ -309,11 +323,23 @@ export function translateNonStreamingResponse(
                     const rawName = toString(fn.name);
                     const restoredName = toolNameMap?.get(rawName) ?? rawName;
                     const nativeId = toString(fn.id);
+                    const toolCallId =
+                      nativeId.length > 0
+                        ? nativeId
+                        : `call_${toString(restoredName, "unknown")}_${Date.now()}_${toolCalls.length}`;
+
+                    // Persist the thought signature so openai-to-gemini can
+                    // resolve it on the next turn. Use the part-level field
+                    // (part.thoughtSignature) and fall back to any signature
+                    // captured from an earlier thinking-only part.
+                    const sig = partThoughtSig || pendingThoughtSignature;
+                    if (sig) {
+                      const sigKey = buildGeminiThoughtSignatureKey(null, toolCallId);
+                      storeGeminiThoughtSignature(sigKey, sig);
+                    }
+
                     toolCalls.push({
-                      id:
-                        nativeId.length > 0
-                          ? nativeId
-                          : `call_${toString(restoredName, "unknown")}_${Date.now()}_${toolCalls.length}`,
+                      id: toolCallId,
                       type: "function",
                       function: {
                         name: restoredName,
