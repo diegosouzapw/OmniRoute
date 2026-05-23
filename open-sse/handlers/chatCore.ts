@@ -1293,8 +1293,7 @@ export function extractSystemRoleMessages(payload: Record<string, unknown>): voi
   const messages = payload.messages as Array<{ role?: unknown; content?: unknown }>;
   // Treat both `system` and `developer` as system-equivalent (OpenAI's Responses
   // API renamed system → developer). Anthropic rejects either as a chat role, so
-  // both must be lifted into the top-level `system` field — parity with the
-  // normal-path extractSystemMessagesToBody closure.
+  // both must be lifted into the top-level `system` field.
   const isSystemRole = (role: unknown): boolean =>
     typeof role === "string" &&
     (role.toLowerCase() === "system" || role.toLowerCase() === "developer");
@@ -2661,45 +2660,6 @@ export async function handleChatCore({
     content?: unknown;
   };
 
-  // Shared helper: lift any system/developer role messages out of the messages
-  // array into the top-level system parameter. Anthropic's Messages API rejects
-  // system/developer roles inside messages[]. Case-insensitive to be defensive.
-  const extractSystemMessagesToBody = (payload: Record<string, unknown>) => {
-    if (!Array.isArray(payload.messages)) return;
-    const messages = payload.messages as ClaudeMessage[];
-    const systemMessages = messages.filter((m) => {
-      const role = String(m.role || "").toLowerCase();
-      return role === "system" || role === "developer";
-    });
-    if (systemMessages.length === 0) return;
-    const extraBlocks: ClaudeContentBlock[] = [];
-    for (const sm of systemMessages) {
-      if (typeof sm.content === "string" && sm.content.length > 0) {
-        extraBlocks.push({ type: "text", text: sm.content });
-      } else if (Array.isArray(sm.content)) {
-        for (const block of sm.content as ClaudeContentBlock[]) {
-          if (block?.type === "text" && typeof block.text === "string" && block.text.length > 0) {
-            extraBlocks.push(block);
-          }
-        }
-      }
-    }
-    if (extraBlocks.length > 0) {
-      const existingSystem = payload.system;
-      if (typeof existingSystem === "string" && existingSystem.length > 0) {
-        payload.system = [{ type: "text", text: existingSystem }, ...extraBlocks];
-      } else if (Array.isArray(existingSystem)) {
-        payload.system = [...(existingSystem as ClaudeContentBlock[]), ...extraBlocks];
-      } else {
-        payload.system = extraBlocks;
-      }
-    }
-    payload.messages = messages.filter((m) => {
-      const role = String(m.role || "").toLowerCase();
-      return role !== "system" && role !== "developer";
-    });
-  };
-
   const normalizeClaudeUpstreamMessages = (
     payload: Record<string, unknown>,
     options?: { preserveToolResultBlocks?: boolean }
@@ -2709,7 +2669,7 @@ export async function handleChatCore({
     let messages = payload.messages as ClaudeMessage[];
 
     // Extract system/developer role messages into top-level system parameter.
-    extractSystemMessagesToBody(payload);
+    extractSystemRoleMessages(payload);
     messages = payload.messages as ClaudeMessage[];
 
     // Anthropic rejects empty text blocks in native Messages payloads.
@@ -2836,7 +2796,7 @@ export async function handleChatCore({
       if (isClaudeCodeSemanticPassthrough) {
         // Semantic passthrough: only lift system/developer role messages
         // without converting file/document blocks, tool history, etc.
-        extractSystemMessagesToBody(translatedBody);
+        extractSystemRoleMessages(translatedBody);
       } else {
         // Non-CC path: full normalization including content type conversion.
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
@@ -2868,7 +2828,7 @@ export async function handleChatCore({
       if (isClaudeCodeSemanticPassthrough) {
         // Only lift system/developer messages — preserves Claude Code's
         // native payload structure (documents, tool chains, thinking, etc.)
-        extractSystemMessagesToBody(translatedBody);
+        extractSystemRoleMessages(translatedBody);
       } else {
         normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
       }
