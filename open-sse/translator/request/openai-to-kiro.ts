@@ -284,7 +284,11 @@ function convertMessages(messages, tools, model) {
 
       // Handle tool role (from normalized)
       if (msg.role === "tool") {
-        const toolContent = typeof msg.content === "string" ? msg.content : "";
+        // Reuse the shared serializer so non-string content (arrays, structured/JSON
+        // blocks, images) is never collapsed to an empty string. CodeWhisperer rejects a
+        // toolResult whose content is [{ text: "" }] with 400 "Improperly formed request"
+        // — the same failure mode that hit the Anthropic tool_result path (issue #2446).
+        const toolContent = serializeToolResultContent(msg.content);
         pendingToolResults.push({
           toolUseId: msg.tool_call_id,
           status: "success",

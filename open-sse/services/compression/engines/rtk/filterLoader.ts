@@ -10,6 +10,24 @@ let cache: RtkFilterDefinition[] | null = null;
 let cacheKey: string | null = null;
 let diagnostics: RtkFilterLoadDiagnostic[] = [];
 
+// RegExp cache for matchPatterns — same pattern strings are tested against
+// many different lines across requests; avoid compiling them every time.
+const regexCache = new Map<string, RegExp>();
+
+function cachedMatchPattern(pattern: string, value: string): boolean {
+  const key = `${pattern}::im`;
+  let re = regexCache.get(key);
+  if (!re) {
+    try {
+      re = new RegExp(pattern, "im");
+      regexCache.set(key, re);
+    } catch {
+      return false;
+    }
+  }
+  return re.test(value);
+}
+
 export interface RtkFilterLoadDiagnostic {
   source: "project" | "global" | "builtin";
   path?: string;
@@ -196,23 +214,16 @@ export function matchRtkFilter(
 ): RtkFilterDefinition | null {
   const detection = detectCommandType(text, command);
   const detectedCommand = detection.command ?? command ?? "";
-  const matchesPattern = (pattern: string, value: string): boolean => {
-    try {
-      return new RegExp(pattern, "im").test(value);
-    } catch {
-      return false;
-    }
-  };
   const filters = loadRtkFilters(options);
   return (
     filters.find((filter) => filter.commandTypes.includes(detection.type)) ??
     filters.find(
       (filter) =>
         detectedCommand &&
-        filter.commandPatterns.some((pattern) => matchesPattern(pattern, detectedCommand))
+        filter.commandPatterns.some((pattern) => cachedMatchPattern(pattern, detectedCommand))
     ) ??
     filters.find((filter) =>
-      filter.matchPatterns.some((pattern) => matchesPattern(pattern, text))
+      filter.matchPatterns.some((pattern) => cachedMatchPattern(pattern, text))
     ) ??
     filters.find((filter) => filter.commandTypes.includes("generic-output")) ??
     null

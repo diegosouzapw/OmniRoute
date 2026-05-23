@@ -13,11 +13,6 @@ import {
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
-  clearRememberedResponseFunctionCallsForTesting,
-  rememberResponseConversationState,
-  rememberResponseFunctionCalls,
-} from "../../open-sse/services/responsesToolCallState.ts";
-import {
   DEFAULT_THINKING_CONFIG,
   setThinkingBudgetConfig,
   ThinkingMode,
@@ -42,7 +37,6 @@ function getRecord(value: unknown): Record<string, unknown> {
 test.afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
   __setCodexWebSocketTransportForTesting(undefined);
-  clearRememberedResponseFunctionCallsForTesting();
 });
 
 async function withEnv<T>(entries: Record<string, string | undefined>, fn: () => T | Promise<T>) {
@@ -156,7 +150,7 @@ test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for
   assert.equal(standardHeaders.Authorization, "Bearer codex-token");
   assert.equal(standardHeaders.Accept, "text/event-stream");
   assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.131.0");
+  assert.equal(standardHeaders.Version, "0.132.0");
   assert.equal(standardHeaders["Openai-Beta"], "responses=experimental");
   assert.equal(standardHeaders["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(standardHeaders["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");
@@ -294,7 +288,7 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
+test("CodexExecutor.transformRequest preserves previous_response_id without local handling", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -314,7 +308,7 @@ test("CodexExecutor.transformRequest preserves store-enabled responses state whe
 
   assert.equal(result._omnirouteResponsesStore, undefined);
   assert.equal(result.store, true);
-  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.previous_response_id, "resp_prev_123");
 });
 test("CodexExecutor.transformRequest strips store from compact requests even when store is enabled", () => {
   const executor = new CodexExecutor();
@@ -338,185 +332,6 @@ test("CodexExecutor.transformRequest strips store from compact requests even whe
   assert.equal(result.store, undefined);
   assert.equal(result.stream, undefined);
   assert.equal(result.instructions, "keep this");
-});
-
-test("CodexExecutor.transformRequest expands remembered conversation state for stateful tool outputs", () => {
-  const executor = new CodexExecutor();
-  rememberResponseConversationState(
-    "resp_prev_tool_123",
-    [
-      {
-        type: "message",
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: "Read README.md and summarize it.",
-          },
-        ],
-      },
-    ],
-    [
-      {
-        type: "function_call",
-        call_id: "call_tool_123",
-        name: "workspace_read_file",
-        arguments: '{"path":"README.md"}',
-      },
-    ]
-  );
-  const body = {
-    _nativeCodexPassthrough: true,
-    previous_response_id: "resp_prev_tool_123",
-    input: [
-      {
-        type: "function_call_output",
-        call_id: "call_tool_123",
-        output: '{"ok":true}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.equal(result.store, false);
-  assert.equal(result.input.length, 3);
-  assert.deepEqual(result.input[0], {
-    type: "message",
-    role: "user",
-    content: [
-      {
-        type: "input_text",
-        text: "Read README.md and summarize it.",
-      },
-    ],
-  });
-  assert.deepEqual(result.input[1], {
-    type: "function_call",
-    call_id: "call_tool_123",
-    name: "workspace_read_file",
-    arguments: '{"path":"README.md"}',
-  });
-  assert.deepEqual(result.input[2], {
-    type: "function_call_output",
-    call_id: "call_tool_123",
-    output: '{"ok":true}',
-  });
-});
-
-test("CodexExecutor.transformRequest does not replay internal assistant commentary", () => {
-  const executor = new CodexExecutor();
-  rememberResponseConversationState(
-    "resp_prev_commentary_123",
-    [
-      {
-        type: "message",
-        role: "user",
-        content: [{ type: "input_text", text: "Summarize the previous result." }],
-      },
-      {
-        role: "assistant",
-        phase: "commentary",
-        content: [{ type: "output_text", text: "Need inspect raw tool output first." }],
-      },
-      {
-        type: "message",
-        role: "assistant",
-        content: [{ type: "output_text", text: "Visible assistant answer." }],
-      },
-    ],
-    [
-      {
-        type: "function_call",
-        call_id: "call_safe_123",
-        name: "workspace_read_file",
-        arguments: '{"path":"README.md"}',
-      },
-    ]
-  );
-
-  const body = {
-    _nativeCodexPassthrough: true,
-    previous_response_id: "resp_prev_commentary_123",
-    input: [
-      {
-        type: "function_call_output",
-        call_id: "call_safe_123",
-        output: '{"ok":true}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.equal(result.input.length, 4);
-  assert.equal(
-    result.input.some((item) => JSON.stringify(item).includes("Need inspect raw tool output")),
-    false
-  );
-  assert.equal(result.input[0].role, "user");
-  assert.equal(result.input[1].role, "assistant");
-  assert.equal(result.input[2].type, "function_call");
-  assert.equal(result.input[3].type, "function_call_output");
-});
-
-test("CodexExecutor.transformRequest preserves replayed assistant final_answer messages", () => {
-  const executor = new CodexExecutor();
-  rememberResponseConversationState(
-    "resp_prev_final_answer_123",
-    [
-      {
-        type: "message",
-        role: "user",
-        content: [{ type: "input_text", text: "9+10?" }],
-      },
-      {
-        type: "message",
-        role: "assistant",
-        phase: "final_answer",
-        content: [{ type: "output_text", text: "19" }],
-      },
-    ],
-    []
-  );
-
-  const result = executor.transformRequest(
-    "gpt-5.5-low",
-    {
-      _nativeCodexPassthrough: true,
-      previous_response_id: "resp_prev_final_answer_123",
-      input: [
-        {
-          type: "message",
-          role: "user",
-          content: [{ type: "input_text", text: "did you answered?" }],
-        },
-      ],
-      stream: false,
-    },
-    false,
-    { requestEndpointPath: "/responses" }
-  );
-
-  assert.equal(
-    result.input.some((item) => JSON.stringify(item).includes('"text":"19"')),
-    true
-  );
-  assert.equal(
-    result.input.some((item) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) return false;
-      return item.role === "assistant" && item.phase === "final_answer";
-    }),
-    true
-  );
 });
 
 test("CodexExecutor.transformRequest strips raw internal assistant commentary without dropping useful Responses items", () => {
@@ -645,16 +460,8 @@ test("CodexExecutor.transformRequest strips internal assistant commentary before
   assert.equal(result.messages, undefined);
 });
 
-test("CodexExecutor.transformRequest rehydrates missing function_call items for stateful tool outputs", () => {
+test("CodexExecutor.transformRequest does not locally replay previous_response_id tool follow-ups", () => {
   const executor = new CodexExecutor();
-  rememberResponseFunctionCalls("resp_prev_tool_123", [
-    {
-      type: "function_call",
-      call_id: "call_tool_123",
-      name: "workspace_read_file",
-      arguments: '{"path":"README.md"}',
-    },
-  ]);
   const body = {
     _nativeCodexPassthrough: true,
     previous_response_id: "resp_prev_tool_123",
@@ -672,177 +479,13 @@ test("CodexExecutor.transformRequest rehydrates missing function_call items for 
     requestEndpointPath: "/responses",
   });
 
-  assert.equal(result.previous_response_id, undefined);
+  assert.equal(result.previous_response_id, "resp_prev_tool_123");
   assert.equal(result.store, false);
+  assert.equal(result.input.length, 1);
   assert.deepEqual(result.input[0], {
-    type: "function_call",
-    call_id: "call_tool_123",
-    name: "workspace_read_file",
-    arguments: '{"path":"README.md"}',
-  });
-  assert.deepEqual(result.input[1], {
     type: "function_call_output",
     call_id: "call_tool_123",
     output: '{"ok":true}',
-  });
-});
-
-test("CodexExecutor.transformRequest filters orphaned function_call_output items after replay repair", () => {
-  const executor = new CodexExecutor();
-  const body = {
-    _nativeCodexPassthrough: true,
-    previous_response_id: "resp_prev_orphan_123",
-    input: [
-      {
-        type: "function_call",
-        call_id: "call_valid_123",
-        name: "workspace_read_file",
-        arguments: '{"path":"README.md"}',
-      },
-      {
-        type: "function_call_output",
-        call_id: "call_valid_123",
-        output: '{"ok":true}',
-      },
-      {
-        type: "function_call_output",
-        call_id: "call_orphan_123",
-        output: '{"stale":true}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.equal(result.input.filter((item) => item.type === "function_call_output").length, 1);
-  assert.equal(
-    result.input.find((item) => item.type === "function_call_output")?.call_id,
-    "call_valid_123"
-  );
-});
-
-test("CodexExecutor.transformRequest filters orphaned function_call items after replay repair", () => {
-  const executor = new CodexExecutor();
-  const body = {
-    _nativeCodexPassthrough: true,
-    previous_response_id: "resp_prev_orphan_call_123",
-    input: [
-      {
-        type: "function_call",
-        call_id: "call_valid_456",
-        name: "workspace_read_file",
-        arguments: '{"path":"README.md"}',
-      },
-      {
-        type: "function_call_output",
-        call_id: "call_valid_456",
-        output: '{"ok":true}',
-      },
-      {
-        type: "function_call",
-        call_id: "call_orphan_456",
-        name: "workspace_search",
-        arguments: '{"query":"Authorization"}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.equal(result.input.filter((item) => item.type === "function_call").length, 1);
-  assert.equal(
-    result.input.find((item) => item.type === "function_call")?.call_id,
-    "call_valid_456"
-  );
-});
-
-test("CodexExecutor.transformRequest synthesizes a recovery message when orphan cleanup empties input", () => {
-  const executor = new CodexExecutor();
-  const body = {
-    _nativeCodexPassthrough: true,
-    conversation_id: "conv_empty_after_cleanup",
-    session_id: "sess_empty_after_cleanup",
-    previous_response_id: "resp_prev_empty_after_cleanup",
-    input: [
-      {
-        type: "function_call",
-        call_id: "call_orphan_only_1",
-        name: "workspace_search",
-        arguments: '{"query":"auth"}',
-      },
-      {
-        type: "function_call_output",
-        call_id: "call_orphan_only_2",
-        output: '{"matches":1}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.equal(result.conversation_id, undefined);
-  assert.equal(result.session_id, undefined);
-  assert.equal(result.prompt_cache_key, "sess_empty_after_cleanup");
-  assert.equal(Array.isArray(result.input), true);
-  assert.equal(result.input.length, 1);
-  assert.deepEqual(result.input[0].type, "message");
-  assert.deepEqual(result.input[0].role, "user");
-  assert.match(result.input[0].content[0].text, /Recovered tool context from the previous turn/);
-  assert.match(result.input[0].content[0].text, /call_orphan_only_1/);
-  assert.match(result.input[0].content[0].text, /call_orphan_only_2/);
-});
-
-test("CodexExecutor.transformRequest repairs orphan function_call_output from global remembered call_id cache", () => {
-  const executor = new CodexExecutor();
-  rememberResponseFunctionCalls("resp_older_tool_123", [
-    {
-      type: "function_call",
-      call_id: "call_old_123",
-      name: "workspace_search",
-      arguments: '{"query":"Authorization"}',
-    },
-  ]);
-
-  const body = {
-    _nativeCodexPassthrough: true,
-    previous_response_id: "resp_prev_without_that_call",
-    input: [
-      {
-        type: "function_call_output",
-        call_id: "call_old_123",
-        output: '{"matches":1}',
-      },
-    ],
-    stream: false,
-  };
-
-  const result = executor.transformRequest("gpt-5.5-low", body, false, {
-    requestEndpointPath: "/responses",
-  });
-
-  assert.equal(result.previous_response_id, undefined);
-  assert.deepEqual(result.input[0], {
-    type: "function_call",
-    call_id: "call_old_123",
-    name: "workspace_search",
-    arguments: '{"query":"Authorization"}',
-  });
-  assert.deepEqual(result.input[1], {
-    type: "function_call_output",
-    call_id: "call_old_123",
-    output: '{"matches":1}',
   });
 });
 test("CodexExecutor.transformRequest applies per-connection reasoning and service tier defaults", () => {
@@ -1219,7 +862,11 @@ test("CodexExecutor.refreshCredentials refreshes OAuth tokens and returns null w
   }
 });
 
-test("CodexExecutor.refreshCredentials propagates unrecoverable error object instead of returning null", async () => {
+test("CodexExecutor.refreshCredentials returns null for unrecoverable errors to preserve original credentials", async () => {
+  // Source intentionally returns null (not an error object) so that base.ts does
+  // not spread stale error fields onto activeCredentials. The upstream 401/403
+  // drives the proper re-auth / mark-expired path instead.
+  // Source: open-sse/executors/codex.ts — refreshCredentials(), lines ~1205-1216.
   const executor = new CodexExecutor();
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
@@ -1230,8 +877,7 @@ test("CodexExecutor.refreshCredentials propagates unrecoverable error object ins
 
   try {
     const result = await executor.refreshCredentials({ refreshToken: "dead-token" }, null);
-    assert.ok(result !== null, "should return error object, not null");
-    assert.equal((result as any).error, "unrecoverable_refresh_error");
+    assert.equal(result, null, "should return null to leave original credentials untouched");
   } finally {
     globalThis.fetch = originalFetch;
   }

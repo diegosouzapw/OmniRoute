@@ -105,4 +105,4 @@ Plugins run with the same Node.js process privileges as `omniroute`. Only instal
 
 ## Example plugin
 
-See [`examples/omniroute-cmd-hello/`](../../examples/omniroute-cmd-hello/) for a minimal working example.
+See [`examples/omniroute-cmd-hello/`](../../examples/omniroute-cmd-hello/index.mjs) for a minimal working example with `meta` + `register()`.

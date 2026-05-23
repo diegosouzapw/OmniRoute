@@ -188,7 +188,11 @@ test("parseRetryFromErrorText: parses will reset after variant", () => {
 
 // ─── T06: Keyword Matching for Long Cooldowns ────────────────────────────────
 
-test("quota reset text is ignored when upstream retry hints are disabled", () => {
+// Fix #2321: QUOTA_EXHAUSTED text now sets the upstream cooldown duration even when
+// useUpstreamRetryHints = false (e.g., OAuth providers like antigravity). The generic
+// upstream-retry-hint opt-in only governs transient rate-limit hints; subscription
+// quota resets always carry a definite recovery time, so the text is always honored.
+test("quota reset text is honored for oauth providers even when generic retry hints are disabled", () => {
   const result = checkFallbackError(
     429,
     "Your quota will reset after 27h41m36s",
@@ -197,10 +201,11 @@ test("quota reset text is ignored when upstream retry hints are disabled", () =>
     "antigravity",
     null
   );
+  // 27*3600 + 41*60 + 36 = 99696 seconds = 99696000 ms
   assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, PROVIDER_PROFILES.oauth.transientCooldown);
-  assert.equal(result.newBackoffLevel, 1);
-  assert.equal(result.usedUpstreamRetryHint, false);
+  assert.equal(result.cooldownMs, 99696000);
+  assert.equal(result.usedUpstreamRetryHint, true);
+  assert.equal(result.reason, "quota_exhausted");
 });
 
 test("quota reset text is honored when upstream retry hints are enabled", () => {

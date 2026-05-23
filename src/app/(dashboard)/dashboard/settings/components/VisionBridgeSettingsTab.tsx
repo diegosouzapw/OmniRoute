@@ -66,20 +66,15 @@ export default function VisionBridgeSettingsTab() {
         </div>
         <div>
           <h3 className="text-lg font-semibold">{t("visionBridge")}</h3>
-          <p className="text-sm text-text-muted">
-            Run an automatic vision-to-text fallback before routing image requests to text-only
-            models.
-          </p>
+          <p className="text-sm text-text-muted">{t("visionBridgeDesc")}</p>
         </div>
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-medium">Enabled</p>
-            <p className="text-sm text-text-muted">
-              Toggle the pre-call bridge that replaces image parts with extracted text.
-            </p>
+            <p className="font-medium">{t("visionBridgeEnabledLabel")}</p>
+            <p className="text-sm text-text-muted">{t("visionBridgeEnabledDesc")}</p>
           </div>
           <Toggle
             checked={settings.visionBridgeEnabled}
@@ -101,9 +96,7 @@ export default function VisionBridgeSettingsTab() {
               className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
               placeholder={t("visionBridgeModelPlaceholder")}
             />
-            <p className="text-xs text-text-muted mt-1">
-              Any OmniRoute model ID that supports vision can be used here.
-            </p>
+            <p className="text-xs text-text-muted mt-1">{t("visionBridgeModelHint")}</p>
           </div>
 
           <div>
@@ -119,10 +112,7 @@ export default function VisionBridgeSettingsTab() {
               className="min-h-[100px] w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
               placeholder={t("visionBridgePromptPlaceholder")}
             />
-            <p className="text-xs text-text-muted mt-1">
-              Sent to the vision model before the extracted description is injected back into the
-              original request.
-            </p>
+            <p className="text-xs text-text-muted mt-1">{t("visionBridgePromptHint")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

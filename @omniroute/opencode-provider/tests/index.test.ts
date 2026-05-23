@@ -15,6 +15,7 @@ import {
   mergeIntoExistingConfig,
   normalizeBaseURL,
   OMNIROUTE_DEFAULT_MODEL_CAPABILITIES,
+  OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS,
   OMNIROUTE_DEFAULT_OPENCODE_MODELS,
   OMNIROUTE_MCP_DEFAULT_SCOPES,
   OMNIROUTE_PROVIDER_NPM,
@@ -392,6 +393,77 @@ test("OMNIROUTE_DEFAULT_OPENCODE_MODELS includes cc/ prefixed models", () => {
     "should have cc/ prefixed models"
   );
   assert.ok(defaults.length >= 7, "should have at least 7 models");
+});
+
+test("OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS covers every default model id", () => {
+  for (const id of OMNIROUTE_DEFAULT_OPENCODE_MODELS) {
+    const ctx = OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    assert.ok(
+      typeof ctx === "number" && ctx > 0,
+      `default context_length for ${id} missing — should be a positive number`
+    );
+    // Sanity: context should be at least 8K, at most 2M tokens
+    assert.ok(ctx >= 8_000, `${id} context_length ${ctx} seems too low`);
+    assert.ok(ctx <= 2_000_000, `${id} context_length ${ctx} seems too high`);
+  }
+});
+
+test("createOmniRouteProvider emits limit.context on default model entries", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+  });
+  const entry = provider.models["cc/claude-opus-4-7"];
+  assert.ok(entry.limit, "model entry should have a limit field");
+  assert.equal(entry.limit!.context, 200_000);
+});
+
+test("createOmniRouteProvider omits limit.context for unknown model ids", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+    models: ["completely-unknown-model"],
+  });
+  const entry = provider.models["completely-unknown-model"];
+  assert.equal(entry.limit, undefined);
+});
+
+test("createOmniRouteProvider serialises limit.context to JSON", () => {
+  const provider = createOmniRouteProvider({
+    baseURL: "http://localhost:20128",
+    apiKey: "sk_omniroute",
+  });
+  const round = JSON.parse(JSON.stringify(provider));
+  for (const id of OMNIROUTE_DEFAULT_OPENCODE_MODELS) {
+    const expectedContext = OMNIROUTE_DEFAULT_MODEL_CONTEXT_LENGTHS[id];
+    assert.equal(
+      round.models[id].limit?.context,
+      expectedContext,
+      `${id} should serialise limit.context=${expectedContext}`
+    );
+  }
+});
+
+test("fetchLiveModels extracts context_length from snake_case field", async () => {
+  const { url, close } = await startMockServer(() => ({
+    data: [
+      { id: "cc/claude-opus-4-7", name: "Claude Opus 4.7", context_length: 200_000 },
+      { id: "gemini-3.1-pro-high", name: "Gemini 3.1 Pro", context_length: 1_000_000 },
+      { id: "no-context", name: "No Context" },
+    ],
+  }));
+  try {
+    const models = await fetchLiveModels(url, "sk_test");
+    const claude = models.find((m) => m.id === "cc/claude-opus-4-7");
+    assert.ok(claude, "claude model should be present");
+    assert.equal(claude!.contextLength, 200_000);
+    const gemini = models.find((m) => m.id === "gemini-3.1-pro-high");
+    assert.equal(gemini!.contextLength, 1_000_000);
+    const noCtx = models.find((m) => m.id === "no-context");
+    assert.equal(noCtx!.contextLength, undefined);
+  } finally {
+    close();
+  }
 });
 
 test("OMNIROUTE_DEFAULT_MODEL_CAPABILITIES covers every default model id", () => {

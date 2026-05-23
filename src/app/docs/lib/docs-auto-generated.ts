@@ -719,7 +719,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "reference/FREE_TIERS.md",
     section: "Reference",
     content:
-      "Last consolidated: 2026-05-13 — OmniRoute v3.8.0 Source of truth: src/shared/constants/providers.ts (FREEPROVIDERS, OAUTHPROVIDERS, and APIKEYPROVIDERS entries flagged with hasFree: true + freeNote) This page lists providers with usable free tiers shipped in OmniRoute v3.8.0. The data is derived fro",
+      "Last consolidated: 2026-05-13 — OmniRoute v3.8.2 Source of truth: src/shared/constants/providers.ts (FREEPROVIDERS, OAUTHPROVIDERS, and APIKEYPROVIDERS entries flagged with hasFree: true + freeNote) This page lists providers with usable free tiers shipped in OmniRoute v3.8.2. The data is derived fro",
     headings: [
       "How free providers are wired",
       "Quick reference (API key providers with hasFree: true)",
@@ -863,6 +863,7 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     headings: [
       "Installation",
       "Transports",
+      "Remote access (manage-scope bypass)",
       "IDE Configuration",
       "Essential Tools (8) — Phase 1",
       "Phase 1 — Search",
@@ -870,7 +871,6 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
       "Cache Tools (2)",
       "Compression Tools (5)",
       "MCP Accessibility Tree Filter (v3.8.0)",
-      "1Proxy Tools (3)",
     ],
   },
   {
@@ -1105,17 +1105,18 @@ export const autoSearchIndex: AutoGenSearchItem[] = [
     fileName: "security/ROUTE_GUARD_TIERS.md",
     section: "Security",
     content:
-      "All OmniRoute management API routes are classified into one of three protection tiers. Classification is static, defined in src/server/authz/routeGuard.ts, and evaluated unconditionally on every request before any auth logic runs. Enforced by: isLocalOnlyPath(path) → loopback host check Bypass: None",
+      "All OmniRoute management API routes are classified into one of three protection tiers. Classification is static, defined in src/server/authz/routeGuard.ts, and evaluated before any other auth branch runs. Enforced by: isLocalOnlyPath(path) → loopback host check Bypass: None by default. Narrow carve-",
     headings: [
       "Overview",
       "Tiers",
       "Tier 1 — LOCAL_ONLY",
+      "Manage-scope carve-out",
       "Tier 2 — ALWAYS_PROTECTED",
       "Tier 3 — MANAGEMENT (default)",
       "Evaluation order",
       "Adding a new spawn-capable route",
+      "Adding a manage-scope-bypassable path",
       "Files",
-      "See also",
     ],
   },
   {

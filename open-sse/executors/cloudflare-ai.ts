@@ -69,9 +69,28 @@ export class CloudflareAIExecutor extends BaseExecutor {
     _stream: boolean,
     _credentials: CloudflareCredentials
   ): Record<string, unknown> {
-    // Cloudflare uses full model paths like @cf/meta/llama-3.3-70b-instruct
-    // No transformation needed — user sends the full Cloudflare model path.
-    return body;
+    // Cloudflare uses full model paths like @cf/meta/llama-3.3-70b-instruct — the model id
+    // needs no transformation. But the Workers AI /ai/v1/chat/completions endpoint requires
+    // each message `content` to be a plain string; it rejects the OpenAI content-part array
+    // shape (`[{ type:"text", text }]`) with HTTP 400 (#2539). Flatten text parts to a string.
+    if (!Array.isArray(body.messages)) return body;
+
+    const flattenContent = (content: unknown): unknown => {
+      if (typeof content === "string" || !Array.isArray(content)) return content;
+      return content
+        .map((part) => {
+          if (!part || typeof part !== "object") return "";
+          const p = part as Record<string, unknown>;
+          return p.type === "text" && typeof p.text === "string" ? p.text : "";
+        })
+        .join("");
+    };
+
+    const messages = (body.messages as Array<Record<string, unknown>>).map((msg) =>
+      msg && Array.isArray(msg.content) ? { ...msg, content: flattenContent(msg.content) } : msg
+    );
+
+    return { ...body, messages };
   }
 }
 

@@ -12,9 +12,9 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 
 // ---------- Versions ------------------------------------------------------
 
-export const CLAUDE_CODE_VERSION = "2.1.131";
+export const CLAUDE_CODE_VERSION = "2.1.146";
 /** Bundled @anthropic-ai/sdk version for the pinned CLI release. */
-export const CLAUDE_CODE_STAINLESS_VERSION = "0.81.0";
+export const CLAUDE_CODE_STAINLESS_VERSION = "0.94.0";
 
 // ---------- Stainless OS / Arch / Runtime --------------------------------
 
@@ -285,11 +285,45 @@ export function parseUpstreamMetadataUserId(
 // ---------- anthropic-beta selector --------------------------------------
 
 /**
+ * Models that support the heavy-agent beta tier (effort, advanced-tool-use).
+ * Only Opus/Sonnet are eligible — Haiku with OAuth authentication rejects
+ * heavy agent flags (issue #2454). Matches real Claude Code captures.
+ */
+const HEAVY_AGENT_BETA_MODEL_PREFIXES = ["claude-opus", "claude-sonnet"];
+/**
+ * Models that support the context-1m beta tier. Only Opus is eligible;
+ * Sonnet trips long-context credit gates under OAuth full-agent traffic.
+ */
+const CONTEXT_1M_BETA_MODEL_PREFIXES = ["claude-opus"];
+
+function matchesModelPrefix(model: unknown, prefixes: string[]): boolean {
+  if (typeof model !== "string") return false;
+  const normalized = model.toLowerCase();
+  return prefixes.some((prefix) => normalized.includes(prefix));
+}
+
+function isHeavyAgentModel(model: unknown): boolean {
+  return matchesModelPrefix(model, HEAVY_AGENT_BETA_MODEL_PREFIXES);
+}
+
+function isContext1mModel(model: unknown): boolean {
+  return matchesModelPrefix(model, CONTEXT_1M_BETA_MODEL_PREFIXES);
+}
+
+/**
  * Pick the anthropic-beta flag set that matches the request shape. Real CLI
  * uses three patterns: minimal probe, structured-output, and full agent.
  * Sending the full set on every shape is itself a fingerprint.
+ *
+ * The heavy-agent flags are gated on the model as well as the shape. In direct
+ * Claude Code captures, Sonnet receives effort/advanced-tool-use but not
+ * context-1m; sending context-1m to Sonnet trips Anthropic's long-context credit
+ * gate for accounts where direct Claude Code works.
  */
-export function selectBetaFlags(body: Record<string, unknown> | null | undefined): string {
+export function selectBetaFlags(
+  body: Record<string, unknown> | null | undefined,
+  model?: string | null
+): string {
   const b = body || {};
   const hasSystem =
     !!b.system &&
@@ -301,25 +335,29 @@ export function selectBetaFlags(body: Record<string, unknown> | null | undefined
     !!(outputCfg && (outputCfg.format as { type?: string } | undefined)?.type === "json_schema") ||
     !!(b.response_format as { type?: string } | undefined)?.type;
   const isFullAgent = hasTools && hasSystem;
+  const effectiveModel = model ?? (typeof b.model === "string" ? b.model : "");
+  const isHeavyAgent = isFullAgent && isHeavyAgentModel(effectiveModel);
+  const isContext1m = isFullAgent && isContext1mModel(effectiveModel);
 
   const flags: string[] = [];
   if (isFullAgent) flags.push("claude-code-20250219");
   flags.push("oauth-2025-04-20");
-  if (isFullAgent) flags.push("context-1m-2025-08-07");
+  if (isContext1m) flags.push("context-1m-2025-08-07");
   flags.push(
     "interleaved-thinking-2025-05-14",
-    "redact-thinking-2026-02-12",
+    "thinking-token-count-2026-05-13",
     "context-management-2025-06-27",
     "prompt-caching-scope-2026-01-05"
   );
   if (hasStructuredOutput || isFullAgent) flags.push("advisor-tool-2026-03-01");
   if (hasStructuredOutput && !isFullAgent) flags.push("structured-outputs-2025-12-15");
+  // extended-cache-ttl is sent for all full-agent shapes (incl. Haiku); the
+  // heavier afk-mode / advanced-tool-use / effort flags are Opus/Sonnet-only.
   if (isFullAgent) {
-    flags.push(
-      "advanced-tool-use-2025-11-20",
-      "effort-2025-11-24",
-      "extended-cache-ttl-2025-04-11"
-    );
+    flags.push("extended-cache-ttl-2025-04-11", "cache-diagnosis-2026-04-07");
+  }
+  if (isHeavyAgent) {
+    flags.push("afk-mode-2026-01-31", "advanced-tool-use-2025-11-20", "effort-2025-11-24");
   }
   return flags.join(",");
 }

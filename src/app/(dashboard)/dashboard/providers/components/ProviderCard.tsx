@@ -115,10 +115,10 @@ export default function ProviderCard({
       <span
         key="fast"
         className="inline-flex items-center gap-0.5 rounded-full bg-sky-500/10 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-sky-600 dark:text-sky-400"
-        title="Codex Fast tier is active"
+        title={t("codexFastTierActiveChip")}
       >
         <span className="material-symbols-outlined text-[10px] leading-none">bolt</span>
-        Fast
+        {t("tierFast")}
       </span>
     ) : null;
 

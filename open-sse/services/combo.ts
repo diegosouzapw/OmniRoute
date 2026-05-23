@@ -28,6 +28,8 @@ import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
 import { getTaskFitness } from "./autoCombo/taskFitness.ts";
+import { parseAutoPrefix } from "./autoCombo/autoPrefix.ts";
+import { handlePipelineCombo, buildPipelineResponse } from "./autoCombo/pipelineRouter.ts";
 import {
   calculateFactors,
   calculateScore,
@@ -290,7 +292,7 @@ function buildExecutionKey(path: string[], stepId: string): string {
   return [...path, stepId].join(">");
 }
 
-function normalizeRuntimeStep(entry, comboName, index, allCombos, path = []) {
+function normalizeRuntimeStep(entry, comboName, index, allCombos, path: string[] = []) {
   const step = normalizeComboStep(entry, {
     comboName,
     index,
@@ -335,7 +337,7 @@ function getDirectComboTargets(combo) {
   );
 }
 
-function getTopLevelRuntimeSteps(combo, allCombos, path = []) {
+function getTopLevelRuntimeSteps(combo, allCombos, path: string[] = []) {
   return (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, allCombos, path))
     .filter((entry): entry is ComboRuntimeStep => entry !== null);
@@ -362,10 +364,10 @@ function getCompositeTierStepOrder(combo): string[] {
         if (!normalizedTierName || !stepId) return null;
         return [normalizedTierName, { stepId, fallbackTier }] as const;
       })
-      .filter(Boolean)
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
   );
 
-  let currentTier = defaultTier;
+  let currentTier: string | null = defaultTier;
   while (currentTier && tierEntries.has(currentTier) && !visitedTiers.has(currentTier)) {
     visitedTiers.add(currentTier);
     const entry = tierEntries.get(currentTier);
@@ -415,11 +417,11 @@ function orderRuntimeStepsByCompositeTiers(steps: ComboRuntimeStep[], combo): Co
   return ordered;
 }
 
-function getOrderedTopLevelRuntimeSteps(combo, allCombos, path = []) {
+function getOrderedTopLevelRuntimeSteps(combo, allCombos, path: string[] = []) {
   return orderRuntimeStepsByCompositeTiers(getTopLevelRuntimeSteps(combo, allCombos, path), combo);
 }
 
-function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path = []) {
+function expandRuntimeStep(step, allCombos, visited = new Set(), depth = 0, path: string[] = []) {
   if (step.kind === "model") return [step];
   if (depth > MAX_COMBO_DEPTH) return [];
 
@@ -438,7 +440,7 @@ export function resolveNestedComboTargets(
   allCombos,
   visited = new Set(),
   depth = 0,
-  path = []
+  path: string[] = []
 ) {
   const directTargets = (combo.models || [])
     .map((entry, index) => normalizeRuntimeStep(entry, combo.name, index, null, path))
@@ -532,7 +534,7 @@ export function resolveNestedComboModels(combo, allCombos, visited = new Set(), 
   visited.add(combo.name);
 
   const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
-  const resolved = [];
+  const resolved: string[] = [];
 
   for (const entry of combo.models || []) {
     const modelName = normalizeModelEntry(entry).model;
@@ -1415,6 +1417,7 @@ function resolveWeightedTargets(combo, allCombos) {
     hasCompositeTierRuntimeOrder(combo)
   );
   const expandedTargets = orderedSteps.flatMap((step) => {
+    if (!step) return [];
     if (!allCombos) {
       return step.kind === "model" ? [step] : [];
     }
@@ -1446,7 +1449,7 @@ function scoreAutoTargets(
       const factors = calculateFactors(
         candidate as ProviderCandidate,
         candidates,
-        taskType,
+        taskType ?? "",
         getTaskFitness
       );
       return {
@@ -1454,7 +1457,7 @@ function scoreAutoTargets(
         score: calculateScore(factors, weights),
       };
     })
-    .filter(Boolean)
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
     .sort((a, b) => b.score - a.score);
 }
 
@@ -1709,6 +1712,45 @@ export async function handleComboChat({
     log.info("COMBO", `${strategy} with nested resolution: ${orderedTargets.length} total targets`);
   }
 
+  // Pipeline dispatch: route smart/pipeline-enabled combos through the multi-stage pipeline
+  if (strategy === "auto") {
+    const autoParsed = parseAutoPrefix(combo.name);
+    const autoVariant = autoParsed.valid ? autoParsed.variant : undefined;
+    if (autoVariant === "smart" || config.pipeline_enabled) {
+      try {
+        const pipelineRaw = await handlePipelineCombo({
+          body,
+          combo,
+          handleChatCore: handleSingleModel,
+          log,
+          settings,
+          signal,
+        });
+        // handlePipelineCombo resolves to a PipelineResult (buffered text) or,
+        // in the streaming-final-stage case, a Response. Callers downstream
+        // (chat.ts → withSessionHeader) require a Response, so adapt the
+        // PipelineResult here instead of leaking the raw object.
+        return pipelineRaw instanceof Response
+          ? pipelineRaw
+          : buildPipelineResponse(pipelineRaw, body);
+      } catch (pipelineErr) {
+        const pipelineMsg = pipelineErr instanceof Error ? pipelineErr.message : "";
+        if (pipelineMsg === "PIPELINE_DISABLED") {
+          log.info("COMBO", "Pipeline disabled, falling through to standard auto routing");
+        } else if (pipelineMsg === "PIPELINE_TOKEN_THRESHOLD") {
+          log.info(
+            "COMBO",
+            "Pipeline skipped (prompt below token threshold), falling through to standard auto routing"
+          );
+        } else {
+          log.warn("COMBO", "Pipeline dispatch failed, falling through to standard auto routing", {
+            err: pipelineErr,
+          });
+        }
+      }
+    }
+  }
+
   if (strategy === "auto") {
     const requestHasTools = Array.isArray(body?.tools) && body.tools.length > 0;
     let eligibleTargets = [...orderedTargets];
@@ -1797,8 +1839,8 @@ export async function handleComboChat({
 
     const candidates = await buildAutoCandidates(eligibleTargets, combo.name);
     if (candidates.length > 0) {
-      let selectedProvider = null;
-      let selectedModel = null;
+      let selectedProvider: string | null = null;
+      let selectedModel: string | null = null;
       let selectionReason = "";
 
       if (routingStrategy !== "rules") {
@@ -2019,9 +2061,9 @@ export async function handleComboChat({
       }
     }
 
-    let lastError = null;
-    let earliestRetryAfter = null;
-    let lastStatus = null;
+    let lastError: string | null = null;
+    let earliestRetryAfter: string | null = null;
+    let lastStatus: number | null = null;
     const startTime = Date.now();
     let fallbackCount = 0;
     let recordedAttempts = 0;
@@ -2042,11 +2084,11 @@ export async function handleComboChat({
         continue;
       }
 
-      // Pre-check: skip models where all accounts are in cooldown
+      // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
       if (isModelAvailable) {
         const available = await isModelAvailable(modelStr, target);
         if (!available) {
-          log.info("COMBO", `Skipping ${modelStr} (all accounts in cooldown)`);
+          log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
           continue;
         }
@@ -2198,8 +2240,12 @@ export async function handleComboChat({
 
         // Extract error info from response
         let errorText = result.statusText || "";
-        let errorBody = null;
-        let retryAfter = null;
+        let errorBody: {
+          error?: { code?: string | null; message?: string | null } | string;
+          message?: string | null;
+          retryAfter?: string | null;
+        } | null = null;
+        let retryAfter: string | null = null;
         try {
           const cloned = result.clone();
           try {
@@ -2207,8 +2253,12 @@ export async function handleComboChat({
             if (text) {
               errorText = text.substring(0, 500);
               errorBody = JSON.parse(text);
+              const parsedError = errorBody?.error;
               errorText =
-                errorBody?.error?.message || errorBody?.error || errorBody?.message || errorText;
+                (typeof parsedError === "object" && parsedError?.message) ||
+                (typeof parsedError === "string" ? parsedError : null) ||
+                errorBody?.message ||
+                errorText;
               retryAfter = errorBody?.retryAfter || null;
             }
           } catch {
@@ -2258,6 +2308,14 @@ export async function handleComboChat({
         // treated as local to that target and the combo continues to the next target.
         // Error classification is retained only for retry/cooldown pacing; it must
         // not decide whether fallback happens, including for generic 400 responses.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2265,7 +2323,8 @@ export async function handleComboChat({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 
@@ -2425,9 +2484,9 @@ async function handleRoundRobinCombo({
 
   const clientRequestedStream = body?.stream === true;
   const startTime = Date.now();
-  let lastError = null;
-  let lastStatus = null;
-  let earliestRetryAfter = null;
+  let lastError: string | null = null;
+  let lastStatus: number | null = null;
+  let earliestRetryAfter: string | number | null = null;
   let globalAttempts = 0;
   let fallbackCount = 0;
   let recordedAttempts = 0;
@@ -2450,7 +2509,7 @@ async function handleRoundRobinCombo({
     if (isModelAvailable) {
       const available = await isModelAvailable(modelStr, target);
       if (!available) {
-        log.info("COMBO-RR", `Skipping ${modelStr} (all accounts in cooldown)`);
+        log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
         if (offset > 0) fallbackCount++;
         continue;
       }
@@ -2576,7 +2635,7 @@ async function handleRoundRobinCombo({
 
         // Extract error info
         let errorText = result.statusText || "";
-        let retryAfter = null;
+        let retryAfter: string | number | null = null;
         let errorBody: {
           error?: { code?: string | null; message?: string | null } | string;
           message?: string | null;
@@ -2643,6 +2702,14 @@ async function handleRoundRobinCombo({
         // strategies: non-ok target responses fall through to the next target.
         // Classification stays here only to support cooldown/semaphore pacing,
         // not to decide whether fallback is allowed.
+        const rawError = errorBody?.error;
+        const structuredError =
+          rawError && typeof rawError === "object"
+            ? {
+                code: (rawError as Record<string, unknown>).code as string,
+                type: (rawError as Record<string, unknown>).type as string,
+              }
+            : undefined;
         const fallbackResult = checkFallbackError(
           result.status,
           errorText,
@@ -2650,7 +2717,8 @@ async function handleRoundRobinCombo({
           null,
           provider,
           result.headers,
-          profile
+          profile,
+          structuredError
         );
         const { cooldownMs } = fallbackResult;
 

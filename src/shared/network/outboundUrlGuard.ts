@@ -1,4 +1,5 @@
 import { isIP } from "node:net";
+import { resolveFeatureFlag } from "@/shared/utils/featureFlags";
 
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
@@ -127,6 +128,14 @@ export function arePrivateProviderUrlsAllowed() {
   const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
   if (legacyValue && ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase()))
     return true;
+
+  // Check feature flag DB override — supports runtime toggle without restart
+  try {
+    const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
+    if (dbValue && TRUE_ENV_VALUES.has(dbValue.trim().toLowerCase())) return true;
+  } catch {
+    // DB not initialized yet — fall back to env-only check
+  }
 
   return false;
 }

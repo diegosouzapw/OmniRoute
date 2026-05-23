@@ -47,15 +47,21 @@ export function setFeatureFlagOverride(key: string, value: string): void {
   if (!definition) {
     throw new Error(`Unknown feature flag key: ${key}`);
   }
-  if (definition.type === "enum" && definition.enumValues && !definition.enumValues.includes(value)) {
+  if (
+    definition.type === "enum" &&
+    definition.enumValues &&
+    !definition.enumValues.includes(value)
+  ) {
     throw new Error(
       `Invalid value "${value}" for enum flag ${key}. Allowed: ${definition.enumValues.join(", ")}`
     );
   }
   const db = getDbInstance();
-  db.prepare(
-    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)"
-  ).run(NAMESPACE, key, value);
+  db.prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)").run(
+    NAMESPACE,
+    key,
+    value
+  );
 }
 
 /**

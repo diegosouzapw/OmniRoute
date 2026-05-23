@@ -24,11 +24,6 @@ import {
   type CodexClientIdentity,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
-import {
-  getRememberedFunctionCallsByIds,
-  getRememberedResponseConversationItems,
-  getRememberedResponseFunctionCalls,
-} from "../services/responsesToolCallState.ts";
 import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudget.ts";
 import { CORS_HEADERS } from "../utils/cors.ts";
@@ -67,6 +62,7 @@ function getCodexWebSocketTransport(): WebsocketFn | null {
     const mod = _wreqRequire("wreq-js") as { websocket?: WebsocketFn };
     _websocketFn = typeof mod.websocket === "function" ? mod.websocket : null;
   } catch {
+    console.warn("[codex] wreq-js import failed, websocket disabled");
     _websocketFn = null;
   }
   return _websocketFn;
@@ -309,23 +305,6 @@ function convertSystemToDeveloperRole(body: Record<string, unknown>): void {
   }
 }
 
-function buildRecoveredToolContextMessage(
-  droppedItems: Array<Record<string, unknown>>
-): Record<string, unknown> {
-  return {
-    type: "message",
-    role: "user",
-    content: [
-      {
-        type: "input_text",
-        text:
-          "Recovered tool context from the previous turn. Continue using this context instead of calling the same tools again unless you must.\n" +
-          JSON.stringify(droppedItems),
-      },
-    ],
-  };
-}
-
 /**
  * Strip server-generated item IDs from the input array.
  *
@@ -342,156 +321,8 @@ function buildRecoveredToolContextMessage(
  *   3. Strips the "id" field from any object in input whose id matches a
  *      server-generated prefix (rs_, fc_, resp_, msg_) — so the content is
  *      preserved but the backend won't try to look it up
- *   4. Expands locally remembered conversation snapshots for stateful follow-ups
- *      when the upstream backend rejects previous_response_id
- *   5. Falls back to rehydrating missing function_call items if only the older
- *      tool-call state is available
- *   6. Filters orphaned function_call/function_call_output items when one side
- *      of the tool exchange is still missing after local replay/fallback repair
  */
 function stripStoredItemReferences(body: Record<string, unknown>): void {
-  const hasInput = Array.isArray(body.input) && body.input.length > 0;
-  const inputItems = Array.isArray(body.input) ? body.input : [];
-  const previousResponseId =
-    typeof body.previous_response_id === "string" ? body.previous_response_id : "";
-  const rememberedConversationItems =
-    hasInput && previousResponseId
-      ? getRememberedResponseConversationItems(previousResponseId)
-      : [];
-
-  if (rememberedConversationItems.length > 0) {
-    body.input = [...rememberedConversationItems, ...inputItems];
-  }
-  const inputFunctionCallIds = new Set<string>();
-  const inputFunctionCallOutputIds = new Set<string>();
-
-  for (const item of Array.isArray(body.input) ? body.input : []) {
-    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-    const record = item as Record<string, unknown>;
-    const type = typeof record.type === "string" ? record.type : "";
-    const callId = typeof record.call_id === "string" ? record.call_id : "";
-    if (!callId) continue;
-    if (type === "function_call") {
-      inputFunctionCallIds.add(callId);
-      continue;
-    }
-    if (type === "function_call_output") {
-      inputFunctionCallOutputIds.add(callId);
-    }
-  }
-
-  const missingFunctionCallIds = [...inputFunctionCallOutputIds].filter(
-    (callId) => !inputFunctionCallIds.has(callId)
-  );
-
-  if (hasInput && previousResponseId && missingFunctionCallIds.length > 0) {
-    const rememberedFunctionCalls = getRememberedResponseFunctionCalls(previousResponseId);
-    const globallyRememberedFunctionCalls = getRememberedFunctionCallsByIds(missingFunctionCallIds);
-    const injectedFunctionCalls = [...rememberedFunctionCalls, ...globallyRememberedFunctionCalls]
-      .filter((functionCall) => missingFunctionCallIds.includes(functionCall.call_id))
-      .filter((functionCall) => !inputFunctionCallIds.has(functionCall.call_id))
-      .filter(
-        (functionCall, index, allFunctionCalls) =>
-          allFunctionCalls.findIndex((candidate) => candidate.call_id === functionCall.call_id) ===
-          index
-      )
-      .map((functionCall) => ({
-        type: "function_call",
-        call_id: functionCall.call_id,
-        name:
-          typeof functionCall.name === "string"
-            ? functionCall.name.slice(0, 128)
-            : functionCall.name,
-        arguments: functionCall.arguments,
-      }));
-
-    if (injectedFunctionCalls.length > 0) {
-      body.input = [...injectedFunctionCalls, ...inputItems];
-      for (const functionCall of injectedFunctionCalls) {
-        inputFunctionCallIds.add(functionCall.call_id);
-      }
-    }
-  }
-
-  const finalFunctionCallIds = new Set<string>();
-  const finalFunctionCallOutputIds = new Set<string>();
-  if (Array.isArray(body.input)) {
-    for (const item of body.input) {
-      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
-      const record = item as Record<string, unknown>;
-      const type = typeof record.type === "string" ? record.type : "";
-      const callId = typeof record.call_id === "string" ? record.call_id : "";
-      if (!callId) continue;
-      if (type === "function_call") {
-        finalFunctionCallIds.add(callId);
-        continue;
-      }
-      if (type === "function_call_output") {
-        finalFunctionCallOutputIds.add(callId);
-      }
-    }
-  }
-
-  const droppedOrphanFunctionCallIds: string[] = [];
-  const droppedOrphanFunctionCallOutputIds: string[] = [];
-  const droppedOrphanItems: Array<Record<string, unknown>> = [];
-  if (Array.isArray(body.input)) {
-    body.input = body.input.filter((item) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) {
-        return true;
-      }
-
-      const record = item as Record<string, unknown>;
-      const callId = typeof record.call_id === "string" ? record.call_id : "";
-      if (!callId) {
-        return true;
-      }
-
-      if (record.type === "function_call") {
-        if (finalFunctionCallOutputIds.has(callId)) {
-          return true;
-        }
-
-        droppedOrphanFunctionCallIds.push(callId);
-        droppedOrphanItems.push({ ...record });
-        return false;
-      }
-
-      if (record.type === "function_call_output") {
-        if (finalFunctionCallIds.has(callId)) {
-          return true;
-        }
-
-        droppedOrphanFunctionCallOutputIds.push(callId);
-        droppedOrphanItems.push({ ...record });
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  if (droppedOrphanFunctionCallIds.length > 0) {
-    console.warn(
-      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallIds.length} orphan function_call item(s): ${droppedOrphanFunctionCallIds.join(", ")}`
-    );
-  }
-
-  if (droppedOrphanFunctionCallOutputIds.length > 0) {
-    console.warn(
-      `[Codex] stripStoredItemReferences: dropped ${droppedOrphanFunctionCallOutputIds.length} orphan function_call_output item(s): ${droppedOrphanFunctionCallOutputIds.join(", ")}`
-    );
-  }
-
-  if (Array.isArray(body.input) && body.input.length === 0 && droppedOrphanItems.length > 0) {
-    body.input = [buildRecoveredToolContextMessage(droppedOrphanItems)];
-    console.warn(
-      `[Codex] stripStoredItemReferences: synthesized recovery message from ${droppedOrphanItems.length} dropped orphan tool item(s)`
-    );
-  }
-
-  // Codex rejects previous_response_id for passthrough requests.
-  delete body.previous_response_id;
   if (Array.isArray(body.input) && body.input.length === 0) {
     body.input = [
       {
@@ -847,6 +678,7 @@ export function encodeResponseSseEvent(raw: string): { sse: string; terminal: bo
       terminal = eventType === "response.completed" || eventType === "response.failed";
     }
   } catch {
+    console.warn("[codex] SSE payload parse failed, using raw payload");
     // Keep message as the generic SSE event for non-JSON upstream payloads.
   }
 
@@ -952,6 +784,7 @@ export class CodexExecutor extends BaseExecutor {
       try {
         ws?.close(1000, reason);
       } catch {
+        console.warn("[codex] closeUpstream: socket close race ignored");
         // ignore close races
       }
     };
@@ -985,12 +818,14 @@ export class CodexExecutor extends BaseExecutor {
         try {
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch {
+          console.warn("[codex] finishStream: failed to enqueue [DONE]");
           // The downstream may already have gone away.
         }
       }
       try {
         controller.close();
       } catch {
+        console.warn("[codex] finishStream: failed to close controller");
         // The controller may already be closed.
       }
     };
@@ -1407,9 +1242,6 @@ export class CodexExecutor extends BaseExecutor {
       };
     }
     delete body.reasoning_effort;
-
-    // previous_response_id is expanded into a self-contained local replay when
-    // input is present because Codex rejects that parameter upstream.
 
     // Remove unsupported token limit parameters BEFORE the passthrough return.
     // Codex API rejects both max_tokens and max_output_tokens regardless of

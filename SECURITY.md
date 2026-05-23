@@ -38,15 +38,17 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 
 ### 🔐 Authentication & Authorization
 
-| Feature              | Implementation                                                                                                                            |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dashboard Login**  | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
-| **API Key Auth**     | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE** | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
-| **Token Refresh**    | Automatic OAuth token refresh before expiry                                                                                               |
-| **Secure Cookies**   | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
-| **Authz Pipeline**   | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
-| **MCP Scopes**       | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
+| Feature               | Implementation                                                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
+| **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
+| **OAuth 2.0 + PKCE**  | 14 providers (Claude, Codex, GitHub, Cursor, Antigravity, Gemini, Kimi Coding, Kilo Code, Cline, Qwen, Kiro, Qoder, Windsurf, GitLab Duo) |
+| **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
+| **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
+| **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |
+| **Route Guard Tiers** | 3-tier model for management routes (LOCAL_ONLY / ALWAYS_PROTECTED / MANAGEMENT) — see `docs/security/ROUTE_GUARD_TIERS.md`                |
+| **Manage-Scope MCP**  | Remote `/api/mcp/*` access gated by API keys with `manage` scope; `/api/cli-tools/runtime/*` stays strict-loopback. See ROUTE_GUARD_TIERS |
+| **MCP Scopes**        | ~13 granular scopes (read:health, write:combos, execute:completions, etc.) — see `docs/frameworks/MCP-SERVER.md`                          |
 
 ### 🛡️ Encryption at Rest
 

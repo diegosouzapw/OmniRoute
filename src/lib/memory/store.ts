@@ -426,3 +426,18 @@ export async function listMemories(filters: {
     byType,
   };
 }
+
+/**
+ * Total estimated tokens across stored memories (4 chars ≈ 1 token), computed in
+ * SQL so we never load every memory's content into process memory. Scoped to a
+ * single API key when `apiKeyId` is provided, otherwise counts all memories.
+ */
+export function getMemoryTokensUsed(apiKeyId?: string): number {
+  const db = getDbInstance();
+  const stmt = db.prepare(
+    "SELECT COALESCE(SUM((LENGTH(content) + 3) / 4), 0) as tokensUsed FROM memories" +
+      (apiKeyId ? " WHERE api_key_id = ?" : "")
+  );
+  const row = stmt.get(...(apiKeyId ? [apiKeyId] : [])) as { tokensUsed: number } | undefined;
+  return row?.tokensUsed ?? 0;
+}

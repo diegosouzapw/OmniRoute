@@ -1,6 +1,6 @@
 ---
 title: "Authorization Guide"
-version: 3.8.1
+version: 3.8.2
 lastUpdated: 2026-05-13
 ---
 
@@ -74,7 +74,7 @@ Each route class has a policy in `src/server/authz/policies/`:
 
 - **`publicPolicy`** (`policies/public.ts`) — always returns `allow({ kind: "anonymous", id: "anonymous" })`.
 - **`clientApiPolicy`** (`policies/clientApi.ts`) — extracts Bearer, validates via `validateApiKey()`. Falls through to anonymous if `REQUIRE_API_KEY != "true"`. Allows dashboard-session GET on `/api/v1/models` (used by the dashboard model catalog).
-- **`managementPolicy`** (`policies/management.ts`) — accepts dashboard session, internal model-sync requests (matched against `/api/providers/[name]/(sync-models|models)`), or skips entirely if `isAuthRequired()` returns false. Returns 403 (`AUTH_001`) when a Bearer token is present but invalid, 401 otherwise.
+- **`managementPolicy`** (`policies/management.ts`) — accepts dashboard session, internal model-sync requests (matched against `/api/providers/[name]/(sync-models|models)`), or skips entirely if `isAuthRequired()` returns false. Returns 403 (`AUTH_001`) when a Bearer token is present but invalid, 401 otherwise. Also enforces the route-guard tiers (LOCAL_ONLY / ALWAYS_PROTECTED) before any auth branch — see [Route Guard Tiers](../security/ROUTE_GUARD_TIERS.md). LOCAL_ONLY paths in `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` (today: `/api/mcp/`) may be accessed from non-loopback when the Bearer key carries the `manage` scope; all other LOCAL_ONLY paths remain strict-loopback regardless of scope.
 
 A successful policy returns `AuthSubject` with `kind ∈ { client_api_key, dashboard_session, management_key, anonymous }`. Downstream handlers can read it via `assertAuth(request, "CLIENT_API")` in `src/server/authz/assertAuth.ts` instead of re-running auth logic.
 
@@ -176,6 +176,10 @@ Preset bundles (`MCP_SCOPE_PRESETS`): `readonly`, `full`, `monitor`, `agent`. Us
 ## Breaking Change — v3.8.0
 
 The `/api/v1/agents/tasks/*` and `/api/resilience/model-cooldowns` endpoints **now require management auth** (commit `588a0333`). Clients previously sending a normal API key without the `manage` scope receive `403`. Migration: either issue the key the `manage` scope in the API Manager dashboard, or use a logged-in dashboard session.
+
+## Behaviour Change — v3.8.2
+
+`/api/mcp/*` (the remote MCP server) is still LOCAL_ONLY by default but now accepts non-loopback requests when the `Authorization: Bearer <api-key>` header carries the `manage` scope. The carve-out is gated explicitly per-path via `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` in `src/server/authz/routeGuard.ts`; the sibling LOCAL_ONLY prefix `/api/cli-tools/runtime/*` is intentionally NOT bypassable because it can spawn arbitrary subprocesses. Anonymous requests to `/api/mcp/*` from non-loopback continue to return `403 LOCAL_ONLY` — the default for any new LOCAL_ONLY path remains strict-loopback. See [Route Guard Tiers](../security/ROUTE_GUARD_TIERS.md#manage-scope-carve-out).
 
 ## Testing
 

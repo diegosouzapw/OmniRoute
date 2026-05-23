@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import Card from "./Card";
 import { CardSkeleton } from "./Loading";
 import { fmtCompact as fmt, fmtFull, fmtCost } from "@/shared/utils/formatting";
@@ -28,6 +29,8 @@ import {
 // ============================================================================
 
 export default function UsageAnalytics() {
+  const t = useTranslations("analytics");
+  const tCommon = useTranslations("common");
   const [range, setRange] = useState("30d");
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +59,7 @@ export default function UsageAnalytics() {
         params.set("apiKeyIds", selectedApiKeys.join(","));
       }
       const res = await fetch(`/api/usage/analytics?${params.toString()}`);
-      if (!res.ok) throw new Error("Failed to fetch");
+      if (!res.ok) throw new Error(tCommon("error"));
       const data = await res.json();
       setAnalytics(data);
       setError(null);
@@ -66,8 +69,8 @@ export default function UsageAnalytics() {
         const seen = new Set<string>();
         const keys: { id: string; name: string }[] = [];
         for (const k of data.byApiKey) {
-          const id = k.apiKeyId || k.apiKeyName || "unknown";
-          const name = k.apiKeyName || k.apiKeyId || "unknown";
+          const id = k.apiKeyId || k.apiKeyName || tCommon("unknownProvider");
+          const name = k.apiKeyName || k.apiKeyId || tCommon("unknownProvider");
           if (seen.has(id)) continue;
           seen.add(id);
           keys.push({ id, name });
@@ -79,7 +82,7 @@ export default function UsageAnalytics() {
     } finally {
       setLoading(false);
     }
-  }, [range, customStart, customEnd, selectedApiKeys]);
+  }, [range, customStart, customEnd, selectedApiKeys, tCommon]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -117,12 +120,12 @@ export default function UsageAnalytics() {
   }, [range, customStart, customEnd]);
 
   const ranges = [
-    { value: "1d", label: "1D" },
-    { value: "7d", label: "7D" },
-    { value: "30d", label: "30D" },
-    { value: "90d", label: "90D" },
-    { value: "ytd", label: "YTD" },
-    { value: "all", label: "All" },
+    { value: "1d", label: t("period1D") },
+    { value: "7d", label: t("period7D") },
+    { value: "30d", label: t("period30D") },
+    { value: "90d", label: t("period90D") },
+    { value: "ytd", label: t("periodYTD") },
+    { value: "all", label: t("periodAll") },
   ];
 
   const topModel = useMemo(() => {
@@ -167,7 +170,12 @@ export default function UsageAnalytics() {
   }, [analytics]);
 
   if (loading && !analytics) return <CardSkeleton />;
-  if (error) return <Card className="p-6 text-center text-red-500">Error: {error}</Card>;
+  if (error)
+    return (
+      <Card className="p-6 text-center text-red-500">
+        {tCommon("errorShort")}: {error}
+      </Card>
+    );
 
   const s = analytics?.summary || {};
 
@@ -182,7 +190,7 @@ export default function UsageAnalytics() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
-          Usage Analytics
+          {t("usageAnalyticsTitle")}
         </h2>
         <div className="flex items-center gap-2.5">
           {/* API Key Filter */}
@@ -219,7 +227,7 @@ export default function UsageAnalytics() {
               }`}
             >
               <span className="material-symbols-outlined text-[13px]">date_range</span>
-              {customRangeLabel || "Custom"}
+              {customRangeLabel || t("customRange")}
               {range === "custom" && customRangeLabel && (
                 <span
                   role="button"
@@ -253,25 +261,25 @@ export default function UsageAnalytics() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard
           icon="generating_tokens"
-          label="Total Tokens"
+          label={t("totalTokens")}
           value={fmt(s.totalTokens)}
-          subValue={`${fmtFull(s.totalRequests)} requests`}
+          subValue={`${fmtFull(s.totalRequests)} ${t("chartRequests")}`}
         />
         <StatCard
           icon="input"
-          label="Input Tokens"
+          label={t("inputTokens")}
           value={fmt(s.promptTokens)}
           color="text-primary"
         />
         <StatCard
           icon="output"
-          label="Output Tokens"
+          label={t("outputTokens")}
           value={fmt(s.completionTokens)}
           color="text-emerald-500"
         />
         <StatCard
           icon="payments"
-          label="Est. Cost"
+          label={t("estCost")}
           value={fmtCost(s.totalCost)}
           color="text-amber-500"
         />
@@ -281,59 +289,79 @@ export default function UsageAnalytics() {
       <CompactStatGrid
         sections={[
           {
-            title: "Infrastructure",
+            title: t("infraTitle"),
             items: [
-              { icon: "group", label: "Accounts", value: s.uniqueAccounts || 0 },
-              { icon: "dns", label: "Providers", value: providerCount, color: "text-indigo-500" },
-              { icon: "vpn_key", label: "API Keys", value: s.uniqueApiKeys || 0 },
-              { icon: "model_training", label: "Models", value: s.uniqueModels || 0 },
+              { icon: "group", label: t("infraAccounts"), value: s.uniqueAccounts || 0 },
+              {
+                icon: "dns",
+                label: t("infraProviders"),
+                value: providerCount,
+                color: "text-indigo-500",
+              },
+              { icon: "vpn_key", label: t("infraApiKeys"), value: s.uniqueApiKeys || 0 },
+              { icon: "model_training", label: t("infraModels"), value: s.uniqueModels || 0 },
             ],
           },
           {
-            title: "Performance",
+            title: t("perfTitle"),
             items: [
               {
                 icon: "speed",
-                label: "Avg Tokens/Req",
+                label: t("perfAvgTokens"),
                 value: fmt(avgTokensPerReq),
                 color: "text-cyan-500",
               },
               {
                 icon: "request_quote",
-                label: "Cost/Req",
+                label: t("perfCostReq"),
                 value: fmtCost(costPerReq),
                 color: "text-orange-500",
               },
               {
                 icon: "compare_arrows",
-                label: "I/O Ratio",
+                label: t("perfIoRatio"),
                 value: `${ioRatio}x`,
                 color: "text-violet-500",
               },
               {
                 icon: "bolt",
-                label: "Fast Requests",
+                label: t("perfFastReq"),
                 value: fmt(s.fastRequests || 0),
                 color: "text-sky-500",
               },
             ],
           },
           {
-            title: "Highlights",
+            title: t("highlightsTitle"),
             wideValues: true,
             items: [
-              { icon: "star", label: "Top Model", value: topModel, color: "text-pink-500" },
-              { icon: "cloud", label: "Top Provider", value: topProvider, color: "text-teal-500" },
-              { icon: "today", label: "Busiest Day", value: busiestDay, color: "text-rose-500" },
+              {
+                icon: "star",
+                label: t("highlightsTopModel"),
+                value: topModel,
+                color: "text-pink-500",
+              },
+              {
+                icon: "cloud",
+                label: t("highlightsTopProvider"),
+                value: topProvider,
+                color: "text-teal-500",
+              },
+              {
+                icon: "today",
+                label: t("highlightsBusiestDay"),
+                value: busiestDay,
+                color: "text-rose-500",
+              },
               {
                 icon: "network_node",
-                label: "Diversity",
+                label: t("highlightsDiversity"),
                 value: `${providerDiversity.toFixed(1)}%`,
                 color: "text-sky-500",
               },
               {
                 icon: "swap_horiz",
-                label: "Fallback Rate",
+                label: t("highlightsFallbackRate"),
                 value: `${Number(s.fallbackRatePct || 0).toFixed(1)}%`,
                 color: "text-amber-500",
               },
