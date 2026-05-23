@@ -1,4 +1,4 @@
-import { isDeepSeekReasoningModel } from "../../services/reasoningCache.ts";
+import { isDeepSeekReasoningModel, requiresReasoningReplay } from "../../services/reasoningCache.ts";
 
 /**
  * Shared sanitizers for tool payloads that arrive from IDEs/SDKs with
@@ -201,14 +201,17 @@ export function injectEmptyReasoningContentForToolCalls(
   provider: unknown,
   model: unknown
 ): unknown {
-  if (
-    !Array.isArray(messages) ||
-    !isDeepSeekReasoningModel({
-      provider: String(provider ?? ""),
-      model: String(model ?? ""),
-      thinkingEnabled: true,
-    })
-  ) {
+  const normalizedProvider = String(provider ?? "");
+  const normalizedModel = String(model ?? "");
+
+  // Check if this provider/model requires reasoning replay (DeepSeek V4, Kimi K2, etc.)
+  const needsReasoning = requiresReasoningReplay({
+    provider: normalizedProvider,
+    model: normalizedModel,
+    thinkingEnabled: true,
+  });
+
+  if (!Array.isArray(messages) || !needsReasoning) {
     return messages;
   }
 
