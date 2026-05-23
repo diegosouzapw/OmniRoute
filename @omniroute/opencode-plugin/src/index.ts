@@ -609,7 +609,7 @@ export function mapRawModelToModelV2(
  * Raw shape of a single combo entry as returned by OmniRoute's `/api/combos`.
  *
  * Schema established via a live probe against
- * `https://or4269-preprod.mrmm.xyz/api/combos` with a management-scoped key
+ * an OmniRoute `/api/combos` endpoint with a management-scoped key
  * (response saved at /tmp/t05-combos.json) cross-referenced against the
  * source-of-truth in this repo:
  *

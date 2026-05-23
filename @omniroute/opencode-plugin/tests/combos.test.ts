@@ -405,11 +405,11 @@ test("mapComboToModelV2: api block matches providerId + baseURL", () => {
     { id: "c" },
     [MODEL_PRIMARY],
     "omniroute-preprod",
-    "https://or4269-preprod.mrmm.xyz/v1"
+    "https://or-preprod.example.com/v1"
   );
   assert.equal(m.providerID, "omniroute-preprod");
   assert.equal(m.api.id, "openai-compatible");
-  assert.equal(m.api.url, "https://or4269-preprod.mrmm.xyz/v1");
+  assert.equal(m.api.url, "https://or-preprod.example.com/v1");
   assert.equal(m.api.npm, "@ai-sdk/openai-compatible");
   assert.equal(m.status, "active");
 });
