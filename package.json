@@ -1,6 +1,6 @@
 {
   "name": "omniroute",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "Unified AI router with 160+ providers, RTK+Caveman compression, auto fallback, MCP/A2A, desktop, PWA, and OpenAI-compatible APIs.",
   "type": "module",
   "bin": {
@@ -80,7 +80,7 @@
     "electron:build:linux": "npm run build && cd electron && npm run build:linux",
     "electron:smoke:packaged": "node scripts/dev/smoke-electron-packaged.mjs",
     "test": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test --test-concurrency=10 tests/unit/*.test.ts",
-    "test:unit": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test --test-concurrency=10 tests/unit/*.test.ts",
+    "test:unit": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test --test-force-exit --test-concurrency=10 tests/unit/*.test.ts",
     "test:plan3": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test tests/unit/plan3-p0.test.ts",
     "test:fixes": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test tests/unit/fixes-p1.test.ts",
     "test:security": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx --test tests/unit/security-fase01.test.ts",
@@ -131,6 +131,9 @@
     "build:cli-api": "node --import tsx/esm scripts/cli/generate-api-commands.mjs"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@lobehub/icons": "^5.8.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@monaco-editor/react": "^4.7.0",
@@ -248,6 +251,7 @@
   "overrides": {
     "dompurify": "^3.4.3",
     "postcss": "^8.5.14",
-    "ip-address": "10.2.0"
+    "ip-address": "10.2.0",
+    "qs": "^6.15.2"
   }
 }

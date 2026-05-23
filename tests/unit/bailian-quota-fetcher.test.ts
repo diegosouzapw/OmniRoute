@@ -511,6 +511,9 @@ test("registerBailianCodingPlanQuotaFetcher exposes Bailian quota to preflight a
 
   registerBailianCodingPlanQuotaFetcher();
 
+  // Use 100/100 (fully exhausted) to avoid floating-point boundary issues:
+  // (1 - 0.98) * 100 = 2.0000000000000018, which is > DEFAULT_MIN_REMAINING_PERCENT (2),
+  // so the preflight wouldn't block. 100% used → 0% remaining, clearly below 2%.
   globalThis.fetch = async () =>
     new Response(
       JSON.stringify({
@@ -520,7 +523,7 @@ test("registerBailianCodingPlanQuotaFetcher exposes Bailian quota to preflight a
             {
               planName: "Qwen3 Coder Next",
               codingPlanQuotaInfo: {
-                per5HourUsedQuota: 98,
+                per5HourUsedQuota: 100,
                 per5HourTotalQuota: 100,
                 per5HourQuotaNextRefreshTime: 1718304000,
                 perWeekUsedQuota: 90,

@@ -39,17 +39,6 @@ interface ReasoningCacheData {
 
 // ──────────────── Helpers ────────────────
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
 function formatChars(chars: number): string {
   if (chars >= 1_000_000) return `${(chars / 1_000_000).toFixed(1)}M`;
   if (chars >= 1_000) return `${(chars / 1_000).toFixed(1)}K`;
@@ -141,6 +130,17 @@ export default function ReasoningCacheTab() {
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const timeAgo = (dateStr: string): string => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return t("justNow");
+    if (minutes < 60) return t("minutesAgo", { minutes });
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return t("hoursAgo", { hours });
+    const days = Math.floor(hours / 24);
+    return t("daysAgo", { days });
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -281,10 +281,10 @@ export default function ReasoningCacheTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
-                  <th className="px-4 py-3">Provider</th>
+                  <th className="px-4 py-3">{t("tableProvider")}</th>
                   <th className="px-4 py-3">{t("reasoningEntries")}</th>
                   <th className="px-4 py-3">{t("reasoningChars")}</th>
-                  <th className="px-4 py-3">Share</th>
+                  <th className="px-4 py-3">{t("tableShare")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -334,7 +334,7 @@ export default function ReasoningCacheTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/20 text-left text-[11px] uppercase tracking-[0.12em] text-text-muted">
-                  <th className="px-4 py-3">Model</th>
+                  <th className="px-4 py-3">{t("tableModel")}</th>
                   <th className="px-4 py-3">{t("reasoningEntries")}</th>
                   <th className="px-4 py-3">{t("reasoningAvgChars")}</th>
                   <th className="px-4 py-3">{t("reasoningChars")}</th>
@@ -379,8 +379,8 @@ export default function ReasoningCacheTab() {
           <div className="overflow-hidden rounded-2xl border border-border/20 bg-surface/35">
             <div className="grid grid-cols-[minmax(120px,1fr)_100px_minmax(100px,1fr)_80px_80px_60px] gap-3 border-b border-border/20 px-4 py-3 text-[11px] font-medium uppercase tracking-[0.12em] text-text-muted">
               <span>{t("reasoningToolCallId")}</span>
-              <span>Provider</span>
-              <span>Model</span>
+              <span>{t("tableProvider")}</span>
+              <span>{t("tableModel")}</span>
               <span>{t("reasoningChars")}</span>
               <span>{t("reasoningAge")}</span>
               <span />
@@ -433,19 +433,20 @@ export default function ReasoningCacheTab() {
                       </pre>
                       <div className="mt-3 flex flex-wrap gap-4 text-xs text-text-muted">
                         <span>
-                          Provider: <span className="text-text-main">{entry.provider}</span>
+                          {t("tableProvider")}:{" "}
+                          <span className="text-text-main">{entry.provider}</span>
                         </span>
                         <span>
-                          Model: <span className="text-text-main">{entry.model}</span>
+                          {t("tableModel")}: <span className="text-text-main">{entry.model}</span>
                         </span>
                         <span>
-                          Created:{" "}
+                          {t("created")}:{" "}
                           <span className="text-text-main">
                             {new Date(entry.createdAt).toLocaleString()}
                           </span>
                         </span>
                         <span>
-                          Expires:{" "}
+                          {t("expires")}:{" "}
                           <span className="text-text-main">
                             {new Date(entry.expiresAt).toLocaleString()}
                           </span>

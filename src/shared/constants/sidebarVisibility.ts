@@ -75,6 +75,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "settings-advanced",
   "settings-security",
   "settings-feature-flags",
+  "settings-sidebar",
   // Help
   "docs",
   "issues",
@@ -659,6 +660,13 @@ const CONFIGURATION_ITEMS: readonly SidebarItemDefinition[] = [
     subtitleKey: "settingsFeatureFlagsSubtitle",
     icon: "flag",
   },
+  {
+    id: "settings-sidebar",
+    href: "/dashboard/settings/sidebar",
+    i18nKey: "settingsSidebar",
+    subtitleKey: "settingsSidebarSubtitle",
+    icon: "view_sidebar",
+  },
 ];
 
 const HELP_ITEMS: readonly SidebarItemDefinition[] = [
@@ -755,10 +763,158 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
   },
 ] as const;
 
-// ─── Settings helpers ─────────────────────────────────────────────────────────
+// ─── Ordering & preset setting keys ──────────────────────────────────────────
 
 export const HIDDEN_SIDEBAR_ITEMS_SETTING_KEY = "hiddenSidebarItems";
+export const SIDEBAR_SECTION_ORDER_KEY = "sidebarSectionOrder";
+export const SIDEBAR_ITEM_ORDER_KEY = "sidebarItemOrder";
+export const SIDEBAR_PRESET_KEY = "sidebarActivePreset";
 export const SIDEBAR_SETTINGS_UPDATED_EVENT = "omniroute:settings-updated";
+
+// ─── Preset types & definitions ───────────────────────────────────────────────
+
+export type SidebarPresetId = "all" | "minimal" | "developer" | "admin";
+
+export interface SidebarPresetDefinition {
+  id: SidebarPresetId;
+  icon: string;
+  hiddenItems: HideableSidebarItemId[];
+}
+
+const MINIMAL_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
+  "home",
+  "endpoints",
+  "api-manager",
+  "providers",
+  "combos",
+  "analytics",
+  "costs",
+  "logs",
+  "health",
+  "settings",
+  "settings-sidebar",
+  "docs",
+  "changelog",
+]);
+
+const DEVELOPER_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
+  "home",
+  "endpoints",
+  "api-manager",
+  "providers",
+  "combos",
+  "quota",
+  "context-caveman",
+  "context-rtk",
+  "context-combos",
+  "cli-tools",
+  "agents",
+  "api-endpoints",
+  "analytics",
+  "analytics-combo-health",
+  "costs",
+  "cache",
+  "logs",
+  "health",
+  "runtime",
+  "translator",
+  "playground",
+  "memory",
+  "skills",
+  "mcp",
+  "a2a",
+  "settings",
+  "settings-routing",
+  "settings-resilience",
+  "settings-sidebar",
+  "docs",
+  "issues",
+  "changelog",
+]);
+
+const ADMIN_SHOWN: ReadonlySet<HideableSidebarItemId> = new Set([
+  "home",
+  "endpoints",
+  "api-manager",
+  "providers",
+  "combos",
+  "quota",
+  "analytics",
+  "analytics-combo-health",
+  "analytics-utilization",
+  "costs",
+  "costs-pricing",
+  "costs-budget",
+  "costs-quota-share",
+  "cache",
+  "logs",
+  "logs-activity",
+  "health",
+  "runtime",
+  "audit",
+  "audit-mcp",
+  "audit-a2a",
+  "settings",
+  "settings-general",
+  "settings-routing",
+  "settings-resilience",
+  "settings-security",
+  "settings-feature-flags",
+  "settings-sidebar",
+  "docs",
+  "changelog",
+]);
+
+function buildHiddenList(shown: ReadonlySet<HideableSidebarItemId>): HideableSidebarItemId[] {
+  return HIDEABLE_SIDEBAR_ITEM_IDS.filter((id) => !shown.has(id));
+}
+
+export const SIDEBAR_PRESETS: readonly SidebarPresetDefinition[] = [
+  { id: "all", icon: "select_all", hiddenItems: [] },
+  { id: "minimal", icon: "minimize", hiddenItems: buildHiddenList(MINIMAL_SHOWN) },
+  { id: "developer", icon: "code", hiddenItems: buildHiddenList(DEVELOPER_SHOWN) },
+  { id: "admin", icon: "admin_panel_settings", hiddenItems: buildHiddenList(ADMIN_SHOWN) },
+];
+
+export type SidebarItemOrder = Partial<Record<SidebarSectionId, string[]>>;
+
+// ─── Ordering utilities ───────────────────────────────────────────────────────
+
+export function applySectionOrder(
+  sections: readonly SidebarSectionDefinition[],
+  order: SidebarSectionId[]
+): SidebarSectionDefinition[] {
+  if (order.length === 0) return [...sections];
+  const knownIds = new Set(sections.map((s) => s.id));
+  const validOrder = order.filter((id) => knownIds.has(id));
+  const orderMap = new Map(validOrder.map((id, i) => [id, i]));
+  return [...sections].sort((a, b) => {
+    const ai = orderMap.get(a.id) ?? validOrder.length + sections.indexOf(a);
+    const bi = orderMap.get(b.id) ?? validOrder.length + sections.indexOf(b);
+    return ai - bi;
+  });
+}
+
+export function applyItemOrder(
+  children: readonly SidebarSectionChild[],
+  order: string[]
+): SidebarSectionChild[] {
+  if (order.length === 0) return [...children];
+  const getChildId = (c: SidebarSectionChild): string =>
+    "type" in c && c.type === "group" ? c.id : (c as SidebarItemDefinition).id;
+  const knownIds = new Set(children.map(getChildId));
+  const validOrder = order.filter((id) => knownIds.has(id));
+  const orderMap = new Map(validOrder.map((id, i) => [id, i]));
+  return [...children].sort((a, b) => {
+    const aId = getChildId(a);
+    const bId = getChildId(b);
+    const ai = orderMap.get(aId) ?? validOrder.length + children.indexOf(a);
+    const bi = orderMap.get(bId) ?? validOrder.length + children.indexOf(b);
+    return ai - bi;
+  });
+}
+
+// ─── Settings helpers ─────────────────────────────────────────────────────────
 
 export function normalizeHiddenSidebarItems(value: unknown): HideableSidebarItemId[] {
   if (!Array.isArray(value)) return [];

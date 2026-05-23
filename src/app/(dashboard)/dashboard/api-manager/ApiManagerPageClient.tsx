@@ -108,6 +108,7 @@ export default function ApiManagerPageClient() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [newKeyManageEnabled, setNewKeyManageEnabled] = useState(false);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<ApiKey | null>(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
@@ -255,7 +256,10 @@ export default function ApiManagerPageClient() {
       const res = await fetch("/api/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: sanitizedName }),
+        body: JSON.stringify({
+          name: sanitizedName,
+          scopes: newKeyManageEnabled ? ["manage"] : [],
+        }),
       });
       const data = await res.json();
 
@@ -263,6 +267,7 @@ export default function ApiManagerPageClient() {
         setCreatedKey(data.key);
         await fetchData();
         setNewKeyName("");
+        setNewKeyManageEnabled(false);
         setShowAddModal(false);
       } else {
         setCreateError(data.error || t("failedCreateKey"));
@@ -829,6 +834,7 @@ export default function ApiManagerPageClient() {
         onClose={() => {
           setShowAddModal(false);
           setNewKeyName("");
+          setNewKeyManageEnabled(false);
           setNameError(null);
           setCreateError(null);
         }}
@@ -851,6 +857,26 @@ export default function ApiManagerPageClient() {
             />
             <p className="text-xs text-text-muted mt-1.5">{t("keyNameDesc")}</p>
           </div>
+          <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium text-text-main">{t("managementAccess")}</p>
+              <p className="text-xs text-text-muted">{t("managementAccessDesc")}</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={newKeyManageEnabled}
+              onClick={() => setNewKeyManageEnabled((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors shrink-0 ${
+                newKeyManageEnabled
+                  ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
+                  : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+              {newKeyManageEnabled ? tc("enabled") : tc("disabled")}
+            </button>
+          </div>
           {createError && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
               <span className="material-symbols-outlined text-red-500 text-sm">error</span>
@@ -862,6 +888,7 @@ export default function ApiManagerPageClient() {
               onClick={() => {
                 setShowAddModal(false);
                 setNewKeyName("");
+                setNewKeyManageEnabled(false);
                 setNameError(null);
                 setCreateError(null);
               }}
@@ -1539,31 +1566,6 @@ const PermissionsModal = memo(function PermissionsModal({
             {keyIsBanned ? "Banned" : "Active"}
           </button>
         </div>
-        {/* Management API Access Toggle */}
-        <div className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border bg-surface/40">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium text-text-main">{t("managementApiAccess")}</p>
-            <p className="text-xs text-text-muted">
-              Allow this key to call management routes (providers, combos, settings) via{" "}
-              <code className="font-mono">Authorization: Bearer</code>. Use for LLM agents only.
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={keyIsBanned}
-            onClick={() => setKeyIsBanned((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-bold transition-colors ${
-              keyIsBanned
-                ? "bg-red-600 text-white shadow-lg shadow-red-500/20"
-                : "bg-black/5 dark:bg-white/5 text-text-muted border border-border"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">gavel</span>
-            {keyIsBanned ? "BANNED" : "UNBANNED"}
-          </button>
-        </div>
-
         {/* Expiration Date */}
         <div className="flex flex-col gap-2 p-3 rounded-lg border border-border bg-surface/40">
           <div className="flex flex-col gap-1">

@@ -173,7 +173,11 @@ function sendToRenderer(channel, data) {
 }
 
 // ── Helper: Wait for server readiness (#1, #10) ────────────
-async function waitForServer(url, timeoutMs = 30000) {
+// Default raised to 180s: the first launch after an upgrade can run long DB
+// migrations, during which the server accepts the TCP connection but holds the
+// HTTP response until handlers initialize. The previous 30s cap timed out and
+// left the window stuck on a hanging connection (#2460).
+async function waitForServer(url, timeoutMs = 180000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
@@ -711,14 +715,26 @@ app.whenReady().then(async () => {
 
   // Fix #1: Start server and WAIT for readiness before showing window
   startNextServer();
+  let serverReady = true;
   if (!isDev) {
-    await waitForServer(getServerUrl());
+    // Probe the auth-exempt health endpoint (not the root URL, which may redirect).
+    serverReady = await waitForServer(`${getServerUrl()}/api/monitoring/health`);
   }
 
   createWindow();
   createTray();
   setupIpcHandlers();
   setupAutoUpdater();
+
+  // If readiness timed out (e.g. very long first-launch migrations), don't leave the
+  // window stuck on a hanging connection — keep polling and reload once it responds (#2460).
+  if (!isDev && !serverReady) {
+    void waitForServer(`${getServerUrl()}/api/monitoring/health`, 300000).then((ready) => {
+      if (ready && mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.loadURL(getServerUrl());
+      }
+    });
+  }
 
   // Check for updates after a short delay (don't block startup)
   if (!isDev) {

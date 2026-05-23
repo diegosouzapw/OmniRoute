@@ -866,3 +866,52 @@ test("OpenAI -> Kiro generates stable non-random toolUseId when tool_call has no
   assert.ok(id1, "toolUseId must be set even when id is absent");
   assert.equal(id1, id2, "toolUseId must be deterministic (same input → same id)");
 });
+
+// Regression for #2446: an OpenAI-style `role:"tool"` message carrying NON-string
+// (structured / array) content must not collapse to `content:[{ text: "" }]` —
+// CodeWhisperer rejects an empty toolResult with 400 "Improperly formed request".
+test("OpenAI -> Kiro serializes non-string role:tool content to non-empty text (#2446)", () => {
+  const result = buildKiroPayload(
+    "claude-sonnet-4",
+    {
+      messages: [
+        { role: "user", content: "list the files" },
+        {
+          role: "assistant",
+          tool_calls: [
+            {
+              id: "call_mem",
+              type: "function",
+              function: { name: "read_memory", arguments: "{}" },
+            },
+          ],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_mem",
+          content: [
+            { type: "text", text: "entry A" },
+            { type: "text", text: "entry B" },
+          ],
+        },
+        { role: "user", content: "thanks" },
+      ],
+    },
+    true,
+    null
+  );
+
+  const cs = result.conversationState as any;
+  const contexts = [
+    cs.currentMessage?.userInputMessage?.userInputMessageContext,
+    ...(cs.history as any[]).map((h) => h.userInputMessage?.userInputMessageContext),
+  ];
+  const toolResults = contexts
+    .map((c) => c?.toolResults)
+    .find((tr) => Array.isArray(tr) && tr.some((r: any) => r.toolUseId === "call_mem"));
+  assert.ok(toolResults, "tool role must produce a toolResult");
+  const result0 = toolResults.find((r: any) => r.toolUseId === "call_mem");
+  const text = result0.content[0].text as string;
+  assert.notEqual(text, "", "non-string tool content must not collapse to empty string");
+  assert.match(text, /entry A/, "serialized content preserves the structured text blocks");
+});

@@ -192,74 +192,50 @@ type TransformOpKind =
   | "obfuscate_words";
 
 const OP_KIND_LABELS: Record<TransformOpKind, string> = {
-  drop_paragraph_if_contains: "Drop paragraph (contains)",
-  drop_paragraph_if_starts_with: "Drop paragraph (starts with)",
-  replace_text: "Replace text",
-  replace_regex: "Replace regex",
-  drop_block_if_contains: "Drop block (contains)",
-  prepend_system_block: "Prepend system block",
-  append_system_block: "Append system block",
-  inject_billing_header: "Inject billing header",
-  obfuscate_words: "Obfuscate words (ZWJ)",
+  drop_paragraph_if_contains: "routingOpDropParagraphContainsLabel",
+  drop_paragraph_if_starts_with: "routingOpDropParagraphStartsWithLabel",
+  replace_text: "routingOpReplaceTextLabel",
+  replace_regex: "routingOpReplaceRegexLabel",
+  drop_block_if_contains: "routingOpDropBlockContainsLabel",
+  prepend_system_block: "routingOpPrependSystemBlockLabel",
+  append_system_block: "routingOpAppendSystemBlockLabel",
+  inject_billing_header: "routingOpInjectBillingHeaderLabel",
+  obfuscate_words: "routingOpObfuscateWordsLabel",
 };
 
 // Human-readable description shown above each op's editor. Explains in one
 // sentence what the op DOES (transformation effect) and one sentence WHEN
 // to use it (the typical fingerprint-sanitization use-case).
 const OP_KIND_DESCRIPTIONS: Record<TransformOpKind, string> = {
-  drop_paragraph_if_contains:
-    "Removes any paragraph (text block split on blank lines) inside the system prompt whose text contains ANY of the listed substrings. Use to strip third-party client fingerprints like 'github.com/anomalyco/opencode' or 'docs.openwebui.com' that Anthropic's classifier flags.",
-  drop_paragraph_if_starts_with:
-    "Removes any paragraph that STARTS WITH one of the listed prefixes. Use for identity lines like 'You are OpenCode' or 'You are Open WebUI' that announce the calling client.",
-  replace_text:
-    "Replaces a literal substring with another literal substring. Use for known trigger phrases — e.g. rewrite 'Here is some useful information about the environment you are running in:' to 'Environment context you are running in:' (an empirically-validated trigger phrase).",
-  replace_regex:
-    "Replaces text matching a regular expression. Use when you need patterns (character classes, optional whitespace, anchors) instead of literal substrings. A malformed pattern is caught at runtime when the op runs.",
-  drop_block_if_contains:
-    "Removes ENTIRE system blocks (not just paragraphs) whose text contains any of the listed substrings. Use when a whole block is fingerprint-bearing and you want it gone — e.g. an injected MCP-server description.",
-  prepend_system_block:
-    "Inserts a new text block at the FRONT of the system array. Use to add the SDK identity 'You are a Claude agent, built on Anthropic's Claude Agent SDK.' that Anthropic's classifier expects.",
-  append_system_block:
-    "Inserts a new text block at the END of the system array. Use for cosmetic additions that don't need to be at position [0].",
-  inject_billing_header:
-    "Prepends the special 'x-anthropic-billing-header: cc_version=...; cc_entrypoint=...; cch=...;' text block that Anthropic's classifier validates. Required for CC bridge relay endpoints; for the native claude provider OmniRoute already injects its own billing line so this op is usually redundant there.",
-  obfuscate_words:
-    "Inserts a Zero-Width-Joiner character after the first letter of each listed word, so 'opencode' becomes 'o\u200dpencode'. Reads identical to humans but bypasses classifier word matches. Targets system blocks, user/assistant messages, and tool descriptions.",
+  drop_paragraph_if_contains: "routingOpDropParagraphContainsDesc",
+  drop_paragraph_if_starts_with: "routingOpDropParagraphStartsWithDesc",
+  replace_text: "routingOpReplaceTextDesc",
+  replace_regex: "routingOpReplaceRegexDesc",
+  drop_block_if_contains: "routingOpDropBlockContainsDesc",
+  prepend_system_block: "routingOpPrependSystemBlockDesc",
+  append_system_block: "routingOpAppendSystemBlockDesc",
+  inject_billing_header: "routingOpInjectBillingHeaderDesc",
+  obfuscate_words: "routingOpObfuscateWordsDesc",
 };
 
 // Per-field hints rendered under each Input/Select/Toggle inside the
 // editor. Short, plain-English. Keep under ~120 chars each.
 const FIELD_HINTS = {
-  needles:
-    "List of substrings. A paragraph matches if it contains ANY one of them. Add one per line via 'Add entry'.",
-  prefixes:
-    "List of strings. A paragraph matches if it starts with any one of them (leading whitespace is trimmed before matching).",
-  caseSensitive:
-    "When ON, 'OpenCode' and 'opencode' are different strings. When OFF (default), the comparison ignores case.",
-  matchLiteral:
-    "Exact literal substring to find. No regex syntax — special chars like . * ? are treated as themselves.",
-  replacementText:
-    "Replacement string. Leave blank to delete the match. The output preserves surrounding text.",
-  allOccurrences:
-    "When ON (default), every instance is replaced. When OFF, only the first match is replaced.",
-  pattern:
-    "JavaScript regex source. Don't wrap in slashes — just 'foo(.*)bar'. Server rejects patterns that fail to compile.",
-  regexFlags:
-    "JavaScript regex flags (g = all matches, i = case-insensitive, s = dot matches newline, m = multiline). Default 'g'.",
-  blockText:
-    "Full text of the new system block. Use a literal string; the system block stores text only.",
-  idempotencyKey:
-    "Optional. If set, the op skips when a block whose text starts with this key is already present. Prevents double-prepend on retries.",
-  billingEntrypoint:
-    "Value injected as 'cc_entrypoint='. Anthropic accepts 'sdk-cli' (Agent SDK), 'cli' (Claude Code CLI), or other documented values.",
-  billingVersionFormat:
-    "How the 3-char build hash after cc_version= is computed. 'ex-machina' = sha256 of CCH_SALT+chars-from-first-user-msg+version (per-message). 'omniroute-daystamp' = sha256 of YYYY-MM-DD+version (stable per-day).",
-  billingCchAlgo:
-    "How the 5-char cch= token is computed. 'sha256-first-user' = sha256 of first user message text. 'xxhash64-body' = body-level signing fills it later. 'static-zero' = literal '00000' placeholder.",
-  obfuscateWords:
-    "Lowercase words to obfuscate. ZWJ insertion is applied case-insensitively, so 'opencode' also matches 'OpenCode' and 'OPENCODE'.",
-  obfuscateTargets:
-    "Which body regions to scan for the words: system blocks, user/assistant messages, and/or tool descriptions.",
+  needles: "routingNeedlesHint",
+  prefixes: "routingPrefixesHint",
+  caseSensitive: "routingCaseSensitiveHint",
+  matchLiteral: "routingMatchLiteralHint",
+  replacementText: "routingReplacementTextHint",
+  allOccurrences: "routingAllOccurrencesHint",
+  pattern: "routingPatternHint",
+  regexFlags: "routingRegexFlagsHint",
+  blockText: "routingBlockTextHint",
+  idempotencyKey: "routingIdempotencyKeyHint",
+  billingEntrypoint: "routingBillingEntrypointHint",
+  billingVersionFormat: "routingBillingVersionFormatHint",
+  billingCchAlgo: "routingBillingCchAlgoHint",
+  obfuscateWords: "routingObfuscateWordsHint",
+  obfuscateTargets: "routingObfuscateTargetsHint",
 };
 
 function makeDefaultOp(kind: TransformOpKind): any {
@@ -304,6 +280,7 @@ function StringListEditor({
   disabled?: boolean;
 }) {
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs font-medium text-text-main">{label}</span>
@@ -342,7 +319,7 @@ function StringListEditor({
         onClick={() => onChange([...items, ""])}
         className="self-start"
       >
-        Add entry
+        {tCommon("add") || "Add entry"}
       </Button>
     </div>
   );
@@ -360,7 +337,7 @@ function OpEditor({
   const t = useTranslations("settings");
   const updateField = (field: string, value: any) => onChange({ ...op, [field]: value });
   const kind = op?.kind as TransformOpKind | undefined;
-  const opDescription = kind ? OP_KIND_DESCRIPTIONS[kind] : null;
+  const opDescription = kind ? t(OP_KIND_DESCRIPTIONS[kind]) : null;
 
   const wrap = (body: React.ReactNode) => (
     <div className="flex flex-col gap-3">
@@ -379,14 +356,14 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <StringListEditor
             label={t("routingNeedlesSubstrings")}
-            hint={FIELD_HINTS.needles}
+            hint={t(FIELD_HINTS.needles)}
             items={op.needles || []}
             onChange={(next) => updateField("needles", next)}
             disabled={disabled}
           />
           <Toggle
             label={t("routingCaseSensitive")}
-            description={FIELD_HINTS.caseSensitive}
+            description={t(FIELD_HINTS.caseSensitive)}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
             size="sm"
@@ -399,14 +376,14 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <StringListEditor
             label={t("routingPrefixes")}
-            hint={FIELD_HINTS.prefixes}
+            hint={t(FIELD_HINTS.prefixes)}
             items={op.prefixes || []}
             onChange={(next) => updateField("prefixes", next)}
             disabled={disabled}
           />
           <Toggle
             label={t("routingCaseSensitive")}
-            description={FIELD_HINTS.caseSensitive}
+            description={t(FIELD_HINTS.caseSensitive)}
             checked={op.caseSensitive !== false}
             onChange={(c) => updateField("caseSensitive", c)}
             size="sm"
@@ -419,21 +396,21 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <Input
             label={t("routingMatch")}
-            hint={FIELD_HINTS.matchLiteral}
+            hint={t(FIELD_HINTS.matchLiteral)}
             value={op.match || ""}
             disabled={disabled}
             onChange={(e) => updateField("match", e.target.value)}
           />
           <Input
             label={t("routingReplacement")}
-            hint={FIELD_HINTS.replacementText}
+            hint={t(FIELD_HINTS.replacementText)}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
           />
           <Toggle
             label={t("routingReplaceAllOccurrences")}
-            description={FIELD_HINTS.allOccurrences}
+            description={t(FIELD_HINTS.allOccurrences)}
             checked={op.allOccurrences !== false}
             onChange={(c) => updateField("allOccurrences", c)}
             size="sm"
@@ -446,21 +423,21 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <Input
             label={t("routingPatternRegex")}
-            hint={FIELD_HINTS.pattern}
+            hint={t(FIELD_HINTS.pattern)}
             value={op.pattern || ""}
             disabled={disabled}
             onChange={(e) => updateField("pattern", e.target.value)}
           />
           <Input
             label={t("routingFlags")}
-            hint={FIELD_HINTS.regexFlags}
+            hint={t(FIELD_HINTS.regexFlags)}
             value={op.flags || "g"}
             disabled={disabled}
             onChange={(e) => updateField("flags", e.target.value)}
           />
           <Input
             label={t("routingReplacement")}
-            hint={FIELD_HINTS.replacementText}
+            hint={t(FIELD_HINTS.replacementText)}
             value={op.replacement || ""}
             disabled={disabled}
             onChange={(e) => updateField("replacement", e.target.value)}
@@ -471,7 +448,7 @@ function OpEditor({
       return wrap(
         <StringListEditor
           label={t("routingNeedles")}
-          hint={FIELD_HINTS.needles}
+          hint={t(FIELD_HINTS.needles)}
           items={op.needles || []}
           onChange={(next) => updateField("needles", next)}
           disabled={disabled}
@@ -490,11 +467,11 @@ function OpEditor({
               onChange={(e) => updateField("text", e.target.value)}
               className="w-full rounded-md border border-black/10 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-text-main font-mono focus:ring-1 focus:ring-primary/30 focus:border-primary/50 focus:outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <p className="text-xs text-text-muted">{FIELD_HINTS.blockText}</p>
+            <p className="text-xs text-text-muted">{t(FIELD_HINTS.blockText)}</p>
           </div>
           <Input
             label={t("routingIdempotencyKey")}
-            hint={FIELD_HINTS.idempotencyKey}
+            hint={t(FIELD_HINTS.idempotencyKey)}
             value={op.idempotencyKey || ""}
             disabled={disabled}
             onChange={(e) => updateField("idempotencyKey", e.target.value)}
@@ -506,14 +483,14 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <Input
             label={t("routingEntrypoint")}
-            hint={FIELD_HINTS.billingEntrypoint}
+            hint={t(FIELD_HINTS.billingEntrypoint)}
             value={op.entrypoint || "sdk-cli"}
             disabled={disabled}
             onChange={(e) => updateField("entrypoint", e.target.value)}
           />
           <Select
             label={t("routingVersionFormat")}
-            hint={FIELD_HINTS.billingVersionFormat}
+            hint={t(FIELD_HINTS.billingVersionFormat)}
             value={op.versionFormat || "ex-machina"}
             disabled={disabled}
             onChange={(e) => updateField("versionFormat", e.target.value)}
@@ -524,7 +501,7 @@ function OpEditor({
           />
           <Select
             label={t("routingCchAlgorithm")}
-            hint={FIELD_HINTS.billingCchAlgo}
+            hint={t(FIELD_HINTS.billingCchAlgo)}
             value={op.cchAlgo || "sha256-first-user"}
             disabled={disabled}
             onChange={(e) => updateField("cchAlgo", e.target.value)}
@@ -541,14 +518,16 @@ function OpEditor({
         <div className="flex flex-col gap-2">
           <StringListEditor
             label={t("routingWordsToObfuscate")}
-            hint={FIELD_HINTS.obfuscateWords}
+            hint={t(FIELD_HINTS.obfuscateWords)}
             items={op.words || []}
             onChange={(next) => updateField("words", next)}
             disabled={disabled}
           />
           <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-medium text-text-main">Targets</span>
-            <p className="text-xs text-text-muted">{FIELD_HINTS.obfuscateTargets}</p>
+            <span className="text-xs font-medium text-text-main">
+              {t("routingObfuscateTargetsLabel")}
+            </span>
+            <p className="text-xs text-text-muted">{t(FIELD_HINTS.obfuscateTargets)}</p>
             <div className="flex flex-wrap gap-4">
               {(["system", "messages", "tools"] as const).map((target) => {
                 const targets: string[] = op.targets || ["system", "messages", "tools"];
@@ -576,26 +555,53 @@ function OpEditor({
   }
 }
 
-function summarizeTransformOp(op: any): string {
+function summarizeTransformOp(op: any, t: any): string {
   switch (op?.kind) {
     case "drop_paragraph_if_contains":
-      return `drop paragraphs containing: ${(op.needles || []).slice(0, 3).join(", ")}${(op.needles || []).length > 3 ? "…" : ""}`;
+      return t("routingSummarizeDropParagraphContains", {
+        items:
+          (op.needles || []).slice(0, 3).join(", ") + ((op.needles || []).length > 3 ? "…" : ""),
+      });
     case "drop_paragraph_if_starts_with":
-      return `drop paragraphs starting with: ${(op.prefixes || []).slice(0, 3).join(", ")}${(op.prefixes || []).length > 3 ? "…" : ""}`;
+      return t("routingSummarizeDropParagraphStartsWith", {
+        items:
+          (op.prefixes || []).slice(0, 3).join(", ") + ((op.prefixes || []).length > 3 ? "…" : ""),
+      });
     case "replace_text":
-      return `replace "${(op.match || "").slice(0, 40)}${(op.match || "").length > 40 ? "…" : ""}" → "${(op.replacement || "").slice(0, 40)}${(op.replacement || "").length > 40 ? "…" : ""}"`;
+      return t("routingSummarizeReplaceText", {
+        match: (op.match || "").slice(0, 40) + ((op.match || "").length > 40 ? "…" : ""),
+        replacement:
+          (op.replacement || "").slice(0, 40) + ((op.replacement || "").length > 40 ? "…" : ""),
+      });
     case "replace_regex":
-      return `regex /${op.pattern}/${op.flags || ""} → "${(op.replacement || "").slice(0, 40)}"`;
+      return t("routingSummarizeReplaceRegex", {
+        pattern: op.pattern,
+        flags: op.flags || "",
+        replacement: (op.replacement || "").slice(0, 40),
+      });
     case "drop_block_if_contains":
-      return `drop blocks containing: ${(op.needles || []).slice(0, 3).join(", ")}`;
+      return t("routingSummarizeDropBlockContains", {
+        items: (op.needles || []).slice(0, 3).join(", "),
+      });
     case "prepend_system_block":
-      return `prepend block: "${(op.text || "").slice(0, 60)}${(op.text || "").length > 60 ? "…" : ""}"`;
+      return t("routingSummarizePrependSystemBlock", {
+        text: (op.text || "").slice(0, 60) + ((op.text || "").length > 60 ? "…" : ""),
+      });
     case "append_system_block":
-      return `append block: "${(op.text || "").slice(0, 60)}${(op.text || "").length > 60 ? "…" : ""}"`;
+      return t("routingSummarizeAppendSystemBlock", {
+        text: (op.text || "").slice(0, 60) + ((op.text || "").length > 60 ? "…" : ""),
+      });
     case "inject_billing_header":
-      return `inject billing header (entrypoint=${op.entrypoint}, version=${op.versionFormat}, cch=${op.cchAlgo})`;
+      return t("routingSummarizeInjectBillingHeader", {
+        entrypoint: op.entrypoint,
+        versionFormat: op.versionFormat,
+        cchAlgo: op.cchAlgo,
+      });
     case "obfuscate_words":
-      return `obfuscate ${(op.words || []).length} word(s) via ZWJ in ${(op.targets || ["system", "messages", "tools"]).join("+")}`;
+      return t("routingSummarizeObfuscateWords", {
+        count: (op.words || []).length,
+        targets: (op.targets || ["system", "messages", "tools"]).join("+"),
+      });
     default:
       return JSON.stringify(op);
   }
@@ -658,6 +664,7 @@ export default function RoutingTab() {
   const [lkgpCacheLoading, setLkgpCacheLoading] = useState(false);
   const [lkgpCacheStatus, setLkgpCacheStatus] = useState({ type: "", message: "" });
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   const notify = useNotificationStore();
 
   useEffect(() => {
@@ -997,10 +1004,7 @@ export default function RoutingTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">{t("routingAntigravitySignatureTitle")}</h3>
-            <p className="text-sm text-text-muted">
-              Control whether OmniRoute reuses only stored Gemini thought signatures or accepts
-              validated client-provided signatures in Antigravity-compatible tool-call flows.
-            </p>
+            <p className="text-sm text-text-muted">{t("routingAntigravitySignatureDesc")}</p>
           </div>
         </div>
 
@@ -1008,18 +1012,18 @@ export default function RoutingTab() {
           {[
             {
               value: "enabled",
-              label: "Enabled",
-              desc: "Current behavior. Ignore client-provided signatures and keep using the stored OmniRoute flow.",
+              label: t("routingAntigravitySignatureEnabledLabel"),
+              desc: t("routingAntigravitySignatureEnabledDesc"),
             },
             {
               value: "bypass",
-              label: "Bypass",
-              desc: "Accept client-provided signatures after lightweight validation and fall back to the stored signature when invalid.",
+              label: t("routingAntigravitySignatureBypassLabel"),
+              desc: t("routingAntigravitySignatureBypassDesc"),
             },
             {
               value: "bypass-strict",
-              label: "Bypass Strict",
-              desc: "Require full protobuf validation before accepting a client-provided signature.",
+              label: t("routingAntigravitySignatureBypassStrictLabel"),
+              desc: t("routingAntigravitySignatureBypassStrictDesc"),
             },
           ].map((option) => (
             <button
@@ -1201,14 +1205,20 @@ export default function RoutingTab() {
                     <span className="text-sm font-medium">{display.name}</span>
                   </div>
                 }
-                subtitle={`${opCount} op${opCount === 1 ? "" : "s"} · ${enabled ? "enabled" : "disabled"}`}
+                subtitle={
+                  t("routingOpSummaryCount", { count: opCount }) +
+                  t("routingOpStatusSeparator") +
+                  (enabled ? t("routingOpEnabled") : t("routingOpDisabled"))
+                }
                 trailing={
                   <>
                     <Toggle
                       checked={enabled}
                       onChange={(checked) => toggleProviderEnabled(providerId, checked)}
                       disabled={loading}
-                      ariaLabel={`Enable ${display.name} transforms`}
+                      ariaLabel={
+                        tCommon("enable") + " " + display.name + " " + t("systemTransforms")
+                      }
                     />
                     {!isBuiltin && (
                       <Button
@@ -1232,10 +1242,7 @@ export default function RoutingTab() {
                   >
                     <span className="font-medium">{t("routingServerRejectedSave")}</span>{" "}
                     <span className="break-words font-mono">{providerSaveErrors[providerId]}</span>
-                    <p className="mt-1 text-[11px] text-red-200/80">
-                      Your local edits are kept. Fix the field above and the next change will
-                      re-save.
-                    </p>
+                    <p className="mt-1 text-[11px] text-red-200/80">{tCommon("error")}</p>
                   </div>
                 )}
 
@@ -1252,9 +1259,12 @@ export default function RoutingTab() {
                               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-[10px] font-semibold text-purple-400">
                                 {index + 1}
                               </span>
-                              <span className="font-mono text-purple-300 text-xs">{op?.kind}</span>
+                              <span className="font-mono text-purple-300 text-xs">
+                                {t(OP_KIND_LABELS[op?.kind as TransformOpKind] || op?.kind)}
+                              </span>
                             </div>
                           }
+                          subtitle={summarizeTransformOp(op, t)}
                           trailing={
                             <>
                               <Button
@@ -1313,7 +1323,7 @@ export default function RoutingTab() {
                     disabled={loading}
                     options={(Object.keys(OP_KIND_LABELS) as TransformOpKind[]).map((kind) => ({
                       value: kind,
-                      label: OP_KIND_LABELS[kind],
+                      label: t(OP_KIND_LABELS[kind]),
                     }))}
                   />
                   <Button
@@ -1323,7 +1333,7 @@ export default function RoutingTab() {
                     size="sm"
                     icon="add"
                   >
-                    Add op
+                    {tCommon("add")}
                   </Button>
                 </div>
 
@@ -1336,12 +1346,14 @@ export default function RoutingTab() {
                     }
                     className="text-[11px] text-primary hover:underline"
                   >
-                    {isJsonOpen ? "▾ Hide JSON editor" : "▸ Import / export JSON"}
+                    {isJsonOpen
+                      ? "▾ " + tCommon("hide") + " JSON editor"
+                      : "▸ Import / export JSON"}
                   </button>
                   {isJsonOpen && (
                     <div className="mt-2">
                       <label className="text-[11px] font-medium text-text-muted block mb-1">
-                        JSON (edit &amp; Apply, or paste to import)
+                        JSON ({tCommon("edit")} &amp; Apply, or paste to import)
                       </label>
                       <textarea
                         value={draft}
@@ -1374,7 +1386,7 @@ export default function RoutingTab() {
                             size="sm"
                             icon="restart_alt"
                           >
-                            Reset to defaults
+                            {tCommon("reset")}
                           </Button>
                         )}
                       </div>
@@ -1401,9 +1413,7 @@ export default function RoutingTab() {
           </div>
           <div>
             <h3 className="text-lg font-semibold">{t("routingClientCacheControlTitle")}</h3>
-            <p className="text-sm text-text-muted">
-              Configure whether OmniRoute preserves client-provided cache_control markers
-            </p>
+            <p className="text-sm text-text-muted">{t("routingClientCacheControlDesc")}</p>
           </div>
         </div>
 
@@ -1411,18 +1421,18 @@ export default function RoutingTab() {
           {[
             {
               value: "auto",
-              label: "Auto (Recommended)",
-              desc: "For deterministic Claude-compatible flows, preserve client-provided cache_control as-is. If the request has no cache_control, OmniRoute does not inject any bridge-owned markers for CC-compatible third-party proxy compatibility.",
+              label: tCommon("auto") + " (" + tCommon("recommended") + ")",
+              desc: t("routingClientCacheControlAutoDesc"),
             },
             {
               value: "always",
-              label: "Always Preserve",
-              desc: "Always forward client-provided cache_control headers to upstream providers as-is.",
+              label: t("routingClientCacheControlAlwaysLabel"),
+              desc: t("routingClientCacheControlAlwaysDesc"),
             },
             {
               value: "never",
-              label: "Never Preserve",
-              desc: "Always remove client cache_control headers and let OmniRoute manage caching where native provider flows support it.",
+              label: t("routingClientCacheControlNeverLabel"),
+              desc: t("routingClientCacheControlNeverDesc"),
             },
           ].map((option) => (
             <button
@@ -1469,11 +1479,7 @@ export default function RoutingTab() {
             </div>
             <div>
               <h3 className="text-lg font-semibold">{t("routingZeroConfigTitle")}</h3>
-              <p className="text-sm text-text-muted mt-1">
-                Enable automatic provider selection using the auto/ prefix. When enabled, requests
-                to auto, auto/coding, auto/fast, etc. will dynamically route across all connected
-                providers.
-              </p>
+              <p className="text-sm text-text-muted mt-1">{t("routingZeroConfigDesc")}</p>
             </div>
           </div>
           <div className="pt-1">
@@ -1493,12 +1499,36 @@ export default function RoutingTab() {
           <label className="block text-sm font-medium mb-2">{t("routingDefaultAutoVariant")}</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
-              { value: "lkgp", label: "LKGP", desc: "Last Known Good Provider" },
-              { value: "coding", label: "Coding", desc: "Quality-first for code" },
-              { value: "fast", label: "Fast", desc: "Low-latency routing" },
-              { value: "cheap", label: "Cheap", desc: "Cost-optimized" },
-              { value: "offline", label: "Offline", desc: "High availability" },
-              { value: "smart", label: "Smart", desc: "Best discovery (10% explore)" },
+              {
+                value: "lkgp",
+                label: t("routingDefaultAutoVariantLKGP"),
+                desc: t("routingDefaultAutoVariantLKGPDesc"),
+              },
+              {
+                value: "coding",
+                label: t("routingDefaultAutoVariantCoding"),
+                desc: t("routingDefaultAutoVariantCodingDesc"),
+              },
+              {
+                value: "fast",
+                label: t("routingDefaultAutoVariantFast"),
+                desc: t("routingDefaultAutoVariantFastDesc"),
+              },
+              {
+                value: "cheap",
+                label: t("routingDefaultAutoVariantCheap"),
+                desc: t("routingDefaultAutoVariantCheapDesc"),
+              },
+              {
+                value: "offline",
+                label: t("routingDefaultAutoVariantOffline"),
+                desc: t("routingDefaultAutoVariantOfflineDesc"),
+              },
+              {
+                value: "smart",
+                label: t("routingDefaultAutoVariantSmart"),
+                desc: t("routingDefaultAutoVariantSmartDesc"),
+              },
             ].map((option) => (
               <button
                 key={option.value}

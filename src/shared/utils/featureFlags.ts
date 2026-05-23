@@ -1,5 +1,8 @@
 import { getFeatureFlagOverride } from "@/lib/db/featureFlags";
-import { FEATURE_FLAG_DEFINITIONS, type FeatureFlagDefinition } from "@/shared/constants/featureFlagDefinitions";
+import {
+  FEATURE_FLAG_DEFINITIONS,
+  type FeatureFlagDefinition,
+} from "@/shared/constants/featureFlagDefinitions";
 
 /**
  * Resolve the effective value of a feature flag.
@@ -43,7 +46,12 @@ export function resolveAllFeatureFlags(): Array<{
     if (envValue !== undefined && envValue !== "") {
       return { key: definition.key, effectiveValue: envValue, source: "env", definition };
     }
-    return { key: definition.key, effectiveValue: definition.defaultValue, source: "default", definition };
+    return {
+      key: definition.key,
+      effectiveValue: definition.defaultValue,
+      source: "default",
+      definition,
+    };
   });
 }
 

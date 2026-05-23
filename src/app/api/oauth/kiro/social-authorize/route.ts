@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { generatePKCE } from "@/lib/oauth/utils/pkce";
-import { KiroService } from "@/lib/oauth/services/kiro";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+
+const KIRO_AUTH_SERVICE = "https://prod.us-east-1.auth.desktop.kiro.dev";
 
 /**
  * GET /api/oauth/kiro/social-authorize
- * Generate Google/GitHub social login URL for manual callback flow
- * Uses kiro:// custom protocol as required by AWS Cognito
+ * Initiate Google/GitHub social login via device flow.
+ * Returns a verification URL for the user to open in their browser.
  */
 export async function GET(request) {
   if ((await isAuthRequired(request)) && !(await isAuthenticated(request))) {
@@ -15,7 +15,7 @@ export async function GET(request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const provider = searchParams.get("provider"); // "google" or "github"
+    const provider = searchParams.get("provider");
 
     if (!provider || !["google", "github"].includes(provider)) {
       return NextResponse.json(
@@ -24,17 +24,30 @@ export async function GET(request) {
       );
     }
 
-    // Generate PKCE for social auth
-    const { codeVerifier, codeChallenge, state } = generatePKCE();
+    const loginProvider = provider === "google" ? "Google" : "Github";
 
-    const kiroService = new KiroService();
-    const authUrl = kiroService.buildSocialLoginUrl(provider, codeChallenge, state);
+    const response = await fetch(`${KIRO_AUTH_SERVICE}/oauth/device/authorization`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: "kiro-cli",
+        loginProvider,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      return NextResponse.json({ error: `Device authorization failed: ${error}` }, { status: 502 });
+    }
+
+    const data = await response.json();
 
     return NextResponse.json({
-      authUrl,
-      state,
-      codeVerifier,
-      codeChallenge,
+      authUrl: data.verificationUriComplete,
+      deviceCode: data.deviceCode,
+      userCode: data.userCode,
+      expiresIn: Math.floor((data.expiresInMilliseconds || 300000) / 1000),
+      interval: Math.floor((data.intervalInMilliseconds || 5000) / 1000),
       provider,
     });
   } catch (error) {

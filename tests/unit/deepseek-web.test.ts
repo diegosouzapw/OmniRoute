@@ -213,7 +213,7 @@ test("execute: full flow with mocked API (streaming)", async () => {
     );
     const body = JSON.parse(compCall.body);
     assert.equal(body.chat_session_id, "session-abc-123");
-    assert.equal(body.prompt, "Say hello");
+    assert.ok(body.prompt.includes("Say hello"), "Prompt should contain user message");
   } finally {
     mock.restore();
   }

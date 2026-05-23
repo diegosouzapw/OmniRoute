@@ -6,6 +6,8 @@ import os from "os";
 import { getDbInstance, resetDbInstance, SQLITE_FILE } from "@/lib/db/core";
 import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { getSettings } from "@/lib/db/settings";
+import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -153,6 +155,17 @@ export async function POST(request: Request) {
     console.log(
       `[DB] Imported database from upload: ${connCount} connections, ${nodeCount} nodes, ${comboCount} combos, ${keyCount} API keys`
     );
+
+    // The DB was replaced wholesale — re-hydrate the in-memory Global System Prompt so it
+    // reflects the imported settings without requiring a restart (#2470).
+    try {
+      const importedSettings = await getSettings();
+      if (importedSettings.systemPrompt) {
+        setSystemPromptConfig(importedSettings.systemPrompt);
+      }
+    } catch {
+      // non-fatal: import succeeded; system prompt will hydrate on next restart
+    }
 
     return NextResponse.json({
       imported: true,

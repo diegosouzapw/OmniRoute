@@ -28,6 +28,11 @@ function hasUsefulValue(value: unknown): boolean {
     "delta",
     "reasoning_content",
     "reasoning",
+    // Mistral/Magistral thinking arrays and StepFun/OpenRouter reasoning_details are
+    // valid model output — without these a reasoning-only stream was misclassified as
+    // "no useful content" and turned into a spurious 502 (#2520).
+    "thinking",
+    "reasoning_details",
     "partial_json",
     "arguments",
     "name",

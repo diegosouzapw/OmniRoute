@@ -387,3 +387,17 @@ test("withSessionHeader adds headers to mutable and immutable responses", async 
   assert.equal(immutable.status, 302);
   assert.equal(await immutable.text(), "");
 });
+
+test("resolveModelOrError returns model_not_found error for unrecognised bare model names", async () => {
+  const result = await resolveModelOrError(
+    "completely-unknown-model-xyz",
+    { messages: [{ role: "user", content: "hello" }] },
+    "/v1/chat/completions"
+  );
+
+  assert.ok(result.error);
+  assert.equal(result.error.status, 400);
+  const json = (await result.error.json()) as any;
+  assert.match(json.error.message, /Unable to determine provider/i);
+  assert.match(json.error.message, /completely-unknown-model-xyz/i);
+});
