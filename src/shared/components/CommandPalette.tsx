@@ -140,27 +140,27 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   }, [selectedIndex]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh] px-4">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[10vh] px-4">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="relative w-full max-w-lg bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative w-full max-w-3xl bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
       >
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5">
-          <span className="material-symbols-outlined text-[18px] text-text-muted shrink-0">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-black/5 dark:border-white/5">
+          <span className="material-symbols-outlined text-[20px] text-text-muted shrink-0">
             search
           </span>
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 bg-transparent text-text placeholder:text-text-muted outline-none text-sm"
-            placeholder="Go to..."
+            className="flex-1 bg-transparent text-text placeholder:text-text-muted outline-none text-base"
+            placeholder="Search pages, settings, tools..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -190,7 +190,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
         {filtered.length > 0 ? (
           <ul
             ref={listRef}
-            className="py-1.5 max-h-80 overflow-y-auto custom-scrollbar"
+            className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar"
             role="listbox"
           >
             {filtered.map((item, idx) => (
