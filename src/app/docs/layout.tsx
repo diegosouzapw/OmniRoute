@@ -1,6 +1,9 @@
-import Link from "next/link";
-import { ReactNode, Suspense } from "react";
-import { DocsSidebarClient } from "./components/DocsSidebarClient";
+import { RootProvider } from "fumadocs-ui/provider/next";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import { source } from "@/lib/source";
+import type { ReactNode } from "react";
+import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import { Suspense } from "react";
 import LanguageSelector from "@/shared/components/LanguageSelector";
 
 export const metadata = {
@@ -16,53 +19,46 @@ export const metadata = {
   },
 };
 
-export default function DocsLayout({ children }: { children: ReactNode }) {
+const docsLayoutOptions: BaseLayoutProps = {
+  nav: {
+    title: "OmniRoute Docs",
+    url: "/docs",
+    children: (
+      <Suspense fallback={<div className="w-24 h-8" />}>
+        <LanguageSelector />
+      </Suspense>
+    ),
+  },
+  links: [
+    {
+      text: "Docs Home",
+      url: "/docs",
+    },
+    {
+      text: "\u2190 Back to Dashboard",
+      url: "/dashboard",
+      secondary: true,
+    },
+  ],
+  githubUrl: "https://github.com/diegosouzapw/OmniRoute",
+};
+
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen">
-      <a
-        href="#docs-main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded"
-      >
-        Skip to main content
-      </a>
-
-      <aside
-        className="hidden lg:flex lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-border"
-        role="navigation"
-        aria-label="Documentation sidebar"
-      >
-        <DocsSidebarClient />
-      </aside>
-
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <DocsSidebarClient mobileOnly={true} />
-      </div>
-
-      <main id="docs-main-content" className="flex-1 overflow-y-auto bg-bg" tabIndex={-1}>
-        <div className="max-w-6xl mx-auto p-4 sm:px-6 lg:px-8 lg:py-8">
-          <nav
-            className="flex items-center justify-between gap-4 mb-6"
-            aria-label="Docs navigation"
-          >
-            <div className="flex items-center gap-4">
-              <Link href="/docs" className="text-text-muted hover:text-text-main transition-colors">
-                ← Back to Docs Overview
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-text-muted hover:text-text-main transition-colors"
-              >
-                ← Dashboard
-              </Link>
-            </div>
-            <Suspense fallback={<div className="w-24 h-8" />}>
-              <LanguageSelector />
-            </Suspense>
-          </nav>
-
-          {children}
-        </div>
-      </main>
-    </div>
+    <RootProvider
+      theme={{
+        defaultTheme: "dark",
+        attribute: "class",
+      }}
+      search={{
+        options: {
+          api: "/docs/api/search",
+        },
+      }}
+    >
+      <DocsLayout tree={source.pageTree} {...docsLayoutOptions}>
+        {children}
+      </DocsLayout>
+    </RootProvider>
   );
 }

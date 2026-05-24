@@ -25,6 +25,7 @@ export function disableThinkingIfToolChoiceForced(body: Record<string, unknown>)
 
   if (isForced && body.thinking) {
     delete body.thinking;
+    delete body.context_management;
   }
 }
 

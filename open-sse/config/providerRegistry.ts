@@ -838,7 +838,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "qoder-rome-30ba3b", name: "Qoder ROME" },
       { id: "qwen3-coder-plus", name: "Qwen3 Coder Plus" },
       { id: "qwen3-max", name: "Qwen3 Max" },
-      { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus" },
+      { id: "qwen3-vl-plus", name: "Qwen3 Vision Plus", supportsVision: true },
       { id: "kimi-k2-0905", name: "Kimi K2 0905" },
       { id: "qwen3-max-preview", name: "Qwen3 Max Preview" },
       { id: "kimi-k2", name: "Kimi K2" },
@@ -2718,10 +2718,8 @@ export const REGISTRY: Record<string, RegistryEntry> = {
     ],
   },
 
-  // TODO(post-devtools-capture): Confirm baseUrl after Step 0 DevTools capture.
-  // Current guess: "https://t3.chat/api/chat". May be a Convex deployment URL.
-  // TODO(post-devtools-capture): Trim duplicate model entries and update model IDs
-  // to match exact values seen in the DevTools request body (model field).
+  // t3.chat — Convex-based chat app. Cookie session auth via T3ChatWebExecutor.
+  // Base URL confirmed: POST https://t3.chat/api/chat (Convex HTTP action endpoint).
   "t3-web": {
     id: "t3-web",
     alias: "t3chat",
