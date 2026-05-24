@@ -352,7 +352,7 @@ function LogsTab({ providerId }: { providerId: string }) {
 
     async function load() {
       try {
-        const url = `/api/usage/call-logs?provider=${encodeURIComponent(providerId)}&limit=50`;
+        const url = `/api/usage/call-logs?provider=${encodeURIComponent(providerId)}&limit=20`;
         const res = await fetch(url, { signal: ctrl.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -366,7 +366,7 @@ function LogsTab({ providerId }: { providerId: string }) {
     }
 
     void load();
-    const interval = setInterval(load, 4000);
+    const interval = setInterval(load, 2000);
 
     return () => {
       cancelled = true;
@@ -420,8 +420,16 @@ function LogsTab({ providerId }: { providerId: string }) {
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex items-center justify-between px-4 py-2 border-b border-black/5 dark:border-white/5 shrink-0">
-        <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">
-          {state.logs.length} recent · auto-refresh
+        <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-text-muted font-medium">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="relative inline-flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-emerald-500">Live</span>
+          </span>
+          <span aria-hidden>·</span>
+          <span>tailing last {state.logs.length}</span>
         </span>
         <button
           type="button"
