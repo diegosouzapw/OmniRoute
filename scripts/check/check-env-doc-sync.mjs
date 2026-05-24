@@ -39,6 +39,8 @@ const IGNORE_FROM_CODE = new Set([
   "PATH",
   "HOME",
   "USER",
+  "LOGNAME",
+  "XDG_CURRENT_DESKTOP",
   "PWD",
   "SHELL",
   "TERM",

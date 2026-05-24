@@ -131,28 +131,6 @@ test("injectEmptyReasoningContentForToolCalls supports DeepSeek V4 models across
   }
 });
 
-test("injectEmptyReasoningContentForToolCalls skips non-reasoning models", () => {
-  const messages = [{ role: "assistant", tool_calls: [{ id: "call_1" }] }];
-
-  const result = injectEmptyReasoningContentForToolCalls(
-    messages,
-    "deepseek",
-    "deepseek-v3"
-  ) as Array<{ reasoning_content?: string }>;
-
-  assert.equal(result[0].reasoning_content, undefined);
-});
-  const messages = [{ role: "assistant", tool_calls: [{ id: "call_1" }] }];
-
-  const result = injectEmptyReasoningContentForToolCalls(
-    messages,
-    "deepseek",
-    "deepseek-reasoner"
-  ) as Array<{ reasoning_content?: string }>;
-
-  assert.equal(result[0].reasoning_content, undefined);
-});
-
 test("injectEmptyReasoningContentForToolCalls supports Kimi K2 models", () => {
   const messages = [
     { role: "user", content: "hello" },
@@ -160,11 +138,9 @@ test("injectEmptyReasoningContentForToolCalls supports Kimi K2 models", () => {
   ];
 
   for (const model of ["kimi-k2", "kimi-k2.5", "kimi-k2.6", "kimi-k2-thinking"]) {
-    const result = injectEmptyReasoningContentForToolCalls(
-      messages,
-      "moonshot",
-      model
-    ) as Array<{ reasoning_content?: string }>;
+    const result = injectEmptyReasoningContentForToolCalls(messages, "moonshot", model) as Array<{
+      reasoning_content?: string;
+    }>;
 
     assert.equal(result[1].reasoning_content, "", `should inject reasoning_content for ${model}`);
   }
@@ -204,13 +180,15 @@ test("injectEmptyReasoningContentForToolCalls supports all reasoning replay prov
   ];
 
   for (const { provider, model } of reasoningProviders) {
-    const result = injectEmptyReasoningContentForToolCalls(
-      messages,
-      provider,
-      model
-    ) as Array<{ reasoning_content?: string }>;
+    const result = injectEmptyReasoningContentForToolCalls(messages, provider, model) as Array<{
+      reasoning_content?: string;
+    }>;
 
-    assert.equal(result[1].reasoning_content, "", `should inject reasoning_content for ${provider}/${model}`);
+    assert.equal(
+      result[1].reasoning_content,
+      "",
+      `should inject reasoning_content for ${provider}/${model}`
+    );
   }
 });
 
@@ -225,12 +203,14 @@ test("injectEmptyReasoningContentForToolCalls skips non-reasoning models", () =>
   ];
 
   for (const { provider, model } of nonReasoningModels) {
-    const result = injectEmptyReasoningContentForToolCalls(
-      messages,
-      provider,
-      model
-    ) as Array<{ reasoning_content?: string }>;
+    const result = injectEmptyReasoningContentForToolCalls(messages, provider, model) as Array<{
+      reasoning_content?: string;
+    }>;
 
-    assert.equal(result[0].reasoning_content, undefined, `should NOT inject reasoning_content for ${provider}/${model}`);
+    assert.equal(
+      result[0].reasoning_content,
+      undefined,
+      `should NOT inject reasoning_content for ${provider}/${model}`
+    );
   }
 });

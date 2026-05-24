@@ -3934,7 +3934,10 @@
     "providerDetailValidClaudeCredentialsFile": "Valid Claude credentials file",
     "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows).",
     "providerDetailMyClaudeAccountPlaceholder": "My Claude account",
-    "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac)."
+    "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac).",
+    "webFetch": "Web Fetch",
+    "webFetchTooltip": "Providers that extract content from web URLs (HTML → Markdown, scrape, screenshot)",
+    "webFetchProvidersHeading": "Web Fetch Providers"
   },
   "settings": {
     "title": "Settings",

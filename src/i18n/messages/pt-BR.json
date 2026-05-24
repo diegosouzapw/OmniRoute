@@ -3931,7 +3931,10 @@
     "providerDetailValidClaudeCredentialsFile": "Arquivo de credenciais do Claude válido",
     "providerDetailPathAutoDetectedAllOs": "O caminho é detectado automaticamente por SO (Linux/Mac/Windows).",
     "providerDetailMyClaudeAccountPlaceholder": "Minha conta do Claude",
-    "providerDetailPathAutoDetected": "O caminho é detectado automaticamente por SO (Linux/Mac)."
+    "providerDetailPathAutoDetected": "O caminho é detectado automaticamente por SO (Linux/Mac).",
+    "webFetch": "Web Fetch",
+    "webFetchTooltip": "Provedores que extraem conteúdo de URLs (HTML → Markdown, scraping, screenshot)",
+    "webFetchProvidersHeading": "Provedores Web Fetch"
   },
   "settings": {
     "title": "Configurações",

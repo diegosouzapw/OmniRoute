@@ -650,6 +650,21 @@ export default function ProvidersPage() {
   const oauthOnlyEntriesAll = oauthProviderEntriesAll
     .filter((e) => e.toggleAuthType === "oauth")
     .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId));
+
+  // Web Fetch providers: filter across all entries by serviceKinds
+  const webFetchEntriesAll = dedupeProviderEntries(
+    [...staticProviderEntriesAll, ...compatibleProviderEntriesAll].filter((e) => {
+      const p = e.provider as DashboardProviderInfo & { serviceKinds?: string[] };
+      return p.serviceKinds?.includes("webFetch") === true;
+    }) as DashboardProviderEntry[]
+  );
+  const webFetchEntries = filterConfiguredProviderEntries(
+    webFetchEntriesAll,
+    effectiveShowConfiguredOnly,
+    searchQuery,
+    showFreeOnly
+  );
+
   const summaryStats = {
     all: countConfigured(dashboardProviderEntriesAll),
     free: countConfigured(freeSectionEntriesAll),
@@ -664,6 +679,7 @@ export default function ProvidersPage() {
     upstreamproxy: countConfigured(upstreamProxyEntriesAll),
     cloudagent: countConfigured(cloudAgentProviderEntriesAll),
     ide: countConfigured(ideProviderEntriesAll),
+    webfetch: countConfigured(webFetchEntriesAll),
   };
 
   if (loading) {
@@ -814,6 +830,13 @@ export default function ProvidersPage() {
                   color: "bg-teal-500",
                   label: "Search",
                   stat: summaryStats.search,
+                },
+                {
+                  key: "webfetch",
+                  color: "bg-orange-500",
+                  label: t("webFetch"),
+                  stat: summaryStats.webfetch,
+                  title: t("webFetchTooltip"),
                 },
                 {
                   key: "audio",
@@ -1329,6 +1352,33 @@ export default function ProvidersPage() {
                 onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Web Fetch Providers */}
+      {showSection("webfetch") && webFetchEntries.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 flex-1 min-w-0">
+              {t("webFetchProvidersHeading")}{" "}
+              <span className="size-2.5 rounded-full bg-orange-500" title={t("webFetchTooltip")} />
+              <ProviderCountBadge {...countConfigured(webFetchEntriesAll)} />
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {webFetchEntries.map(
+              ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
+                <ProviderCard
+                  key={`webfetch-${providerId}`}
+                  providerId={providerId}
+                  provider={provider}
+                  stats={stats}
+                  authType={displayAuthType}
+                  onToggle={(active) => handleToggleProvider(providerId, toggleAuthType, active)}
+                />
+              )
+            )}
           </div>
         </div>
       )}
