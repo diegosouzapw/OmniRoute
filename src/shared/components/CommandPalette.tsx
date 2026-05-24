@@ -27,6 +27,14 @@ interface PaletteItem {
   label: string;
   subtitle?: string;
   external: boolean;
+  sectionId: string;
+  sectionLabel: string;
+}
+
+interface PaletteGroup {
+  sectionId: string;
+  sectionLabel: string;
+  items: { item: PaletteItem; flatIndex: number }[];
 }
 
 function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
@@ -71,8 +79,9 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
 
   const allItems = useMemo<PaletteItem[]>(
     () =>
-      SIDEBAR_SECTIONS.flatMap((section) =>
-        getSectionItems(section)
+      SIDEBAR_SECTIONS.flatMap((section) => {
+        const sectionLabel = safeTranslate(section.titleKey, section.titleFallback);
+        return getSectionItems(section)
           .filter((item) => !hiddenItems.has(item.id))
           .map((item) => ({
             id: item.id,
@@ -81,8 +90,10 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
             label: safeTranslate(item.i18nKey, item.id),
             subtitle: item.subtitleKey ? safeTranslate(item.subtitleKey, "") : undefined,
             external: item.external ?? false,
-          }))
-      ),
+            sectionId: section.id,
+            sectionLabel,
+          }));
+      }),
     [hiddenItems, safeTranslate]
   );
 
@@ -90,9 +101,29 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
     const q = query.trim().toLowerCase();
     if (!q) return allItems;
     return allItems.filter(
-      (item) => item.label.toLowerCase().includes(q) || item.subtitle?.toLowerCase().includes(q)
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.subtitle?.toLowerCase().includes(q) ||
+        item.sectionLabel.toLowerCase().includes(q)
     );
   }, [allItems, query]);
+
+  const grouped = useMemo<PaletteGroup[]>(() => {
+    const groups: PaletteGroup[] = [];
+    filtered.forEach((item, flatIndex) => {
+      const last = groups[groups.length - 1];
+      if (last && last.sectionId === item.sectionId) {
+        last.items.push({ item, flatIndex });
+      } else {
+        groups.push({
+          sectionId: item.sectionId,
+          sectionLabel: item.sectionLabel,
+          items: [{ item, flatIndex }],
+        });
+      }
+    });
+    return groups;
+  }, [filtered]);
 
   const handleNavigate = useCallback(
     (href: string, external: boolean) => {
@@ -135,7 +166,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
-    const el = list.children[selectedIndex] as HTMLElement | undefined;
+    const el = list.querySelector<HTMLElement>(`[data-flat-index="${selectedIndex}"]`);
     el?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 
@@ -187,48 +218,62 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
           </kbd>
         </div>
 
-        {filtered.length > 0 ? (
+        {grouped.length > 0 ? (
           <ul
             ref={listRef}
             className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar"
             role="listbox"
           >
-            {filtered.map((item, idx) => (
-              <li key={item.id} role="option" aria-selected={idx === selectedIndex}>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                    idx === selectedIndex
-                      ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
-                      : "text-text hover:bg-black/5 dark:hover:bg-white/5"
-                  }`}
-                  onClick={() => handleNavigate(item.href, item.external)}
-                  onMouseEnter={() => setSelectedIndex(idx)}
-                >
-                  <span
-                    className={`material-symbols-outlined text-[18px] shrink-0 ${
-                      idx === selectedIndex ? "text-accent" : "text-text-muted"
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.label}</p>
-                    {item.subtitle && (
-                      <p
-                        className={`text-xs truncate ${
-                          idx === selectedIndex ? "text-accent/70" : "text-text-muted"
+            {grouped.map((group) => (
+              <li key={group.sectionId} role="presentation">
+                <div className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm px-6 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted border-b border-black/5 dark:border-white/5">
+                  {group.sectionLabel}
+                </div>
+                <ul role="group" aria-label={group.sectionLabel}>
+                  {group.items.map(({ item, flatIndex }) => (
+                    <li
+                      key={item.id}
+                      role="option"
+                      aria-selected={flatIndex === selectedIndex}
+                      data-flat-index={flatIndex}
+                    >
+                      <button
+                        className={`w-full flex items-center gap-3 px-6 py-2.5 text-left transition-colors ${
+                          flatIndex === selectedIndex
+                            ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
+                            : "text-text hover:bg-black/5 dark:hover:bg-white/5"
                         }`}
+                        onClick={() => handleNavigate(item.href, item.external)}
+                        onMouseEnter={() => setSelectedIndex(flatIndex)}
                       >
-                        {item.subtitle}
-                      </p>
-                    )}
-                  </div>
-                  {item.external && (
-                    <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
-                      open_in_new
-                    </span>
-                  )}
-                </button>
+                        <span
+                          className={`material-symbols-outlined text-[18px] shrink-0 ${
+                            flatIndex === selectedIndex ? "text-accent" : "text-text-muted"
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{item.label}</p>
+                          {item.subtitle && (
+                            <p
+                              className={`text-xs truncate ${
+                                flatIndex === selectedIndex ? "text-accent/70" : "text-text-muted"
+                              }`}
+                            >
+                              {item.subtitle}
+                            </p>
+                          )}
+                        </div>
+                        {item.external && (
+                          <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
+                            open_in_new
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>
