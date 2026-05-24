@@ -16,7 +16,8 @@ import {
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
-import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
+import { maybeGenerateHandoff, resolveContextRelayConfig, maybeGenerateUniversalHandoff, injectUniversalHandoffBody, resolveUniversalHandoffConfig, SKIP_UNIVERSAL_HANDOFF_FLAG } from "./contextHandoff.ts";
+import { recordSessionModelUsage, getLastSessionModel, getHandoff } from "../../src/lib/db/contextHandoffs.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -1488,6 +1489,10 @@ export async function handleComboChat({
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
+  const universalHandoffConfig = resolveUniversalHandoffConfig(
+    (combo.universal_handoff || combo.universalHandoff) as Record<string, unknown> | null | undefined,
+    relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
+  );
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
   // from context caching tag. These are all opt-in per combo config.
@@ -2136,6 +2141,24 @@ export async function handleComboChat({
           `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
+        // Universal handoff: inject existing handoff if model changed
+        if (
+          universalHandoffConfig.enabled &&
+          relayOptions?.sessionId &&
+          !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+        ) {
+          const lastModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+          if (lastModel && lastModel !== modelStr) {
+            const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
+            body = injectUniversalHandoffBody(
+              body,
+              lastModel,
+              modelStr,
+              `Model routing: ${lastModel} → ${modelStr}`,
+              existingHandoff
+            );
+          }
+        }
         const result = await handleSingleModelWrapped(body, modelStr, {
           ...target,
           failoverBeforeRetry: config.failoverBeforeRetry,
@@ -2178,6 +2201,40 @@ export async function handleComboChat({
           });
           recordedAttempts++;
 
+          // Universal handoff: record model usage for session
+          if (
+            universalHandoffConfig.enabled &&
+            relayOptions?.sessionId &&
+            !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+          ) {
+            recordSessionModelUsage(
+              relayOptions.sessionId,
+              combo.name,
+              modelStr,
+              provider,
+              target.connectionId
+            );
+
+            const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+            if (prevModel && prevModel !== modelStr) {
+              const handoffSourceMessages =
+                Array.isArray(body?.messages) && body.messages.length > 0
+                  ? body.messages
+                  : Array.isArray(body?.input)
+                    ? body.input
+                    : [];
+
+              maybeGenerateUniversalHandoff({
+                sessionId: relayOptions.sessionId,
+                comboName: combo.name,
+                messages: handoffSourceMessages as any[],
+                prevModel,
+                currModel: modelStr,
+                universalConfig: universalHandoffConfig,
+                handleSingleModel: handleSingleModelWrapped,
+              });
+            }
+          }
           // Context-relay intentionally splits responsibilities:
           // combo.ts decides whether a successful turn should generate a handoff,
           // while chat.ts injects the handoff after the real connectionId is resolved.
