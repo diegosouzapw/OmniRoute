@@ -351,6 +351,8 @@ function isSchemaAlreadyApplied(
       return !hasColumn(db, "files", "status");
     case "054":
       return hasColumn(db, "usage_history", "service_tier");
+    case "062":
+      return hasColumn(db, "usage_history", "combo_strategy");
     default:
       return false;
   }

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 
@@ -273,8 +273,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
       const providerModels = models.filter((m) => providerKeys.has(m.provider));
 
-      const authType = FREE_PROVIDERS[providerId]
-        ? "free"
+      const authType = NOAUTH_PROVIDERS[providerId]
+        ? "no-auth"
         : OAUTH_PROVIDERS[providerId]
           ? "oauth"
           : "apikey";
@@ -774,75 +774,77 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </Link>
             </div>
 
-          <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
-                <span className="material-symbols-outlined text-[18px]">key</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step1Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step1Desc", {
-                    endpoint: (chunks) => (
-                      <Link href="/dashboard/endpoint" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">dns</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step2Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step2Desc", {
-                    providers: (chunks) => (
-                      <Link href="/dashboard/providers" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">link</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step3Title")}</span>
-                <p className="text-text-muted mt-0.5">{t("step3Desc", { url: currentEndpoint })}</p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">analytics</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step4Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step4Desc", {
-                    logs: (chunks) => (
-                      <Link href="/dashboard/logs" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                    analytics: (chunks) => (
-                      <Link href="/dashboard/analytics" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </Card>
+            <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step1Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step1Desc", {
+                      endpoint: (chunks) => (
+                        <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">dns</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step2Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step2Desc", {
+                      providers: (chunks) => (
+                        <Link href="/dashboard/providers" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">link</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step3Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t("step3Desc", { url: currentEndpoint })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">analytics</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step4Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step4Desc", {
+                      logs: (chunks) => (
+                        <Link href="/dashboard/logs" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                      analytics: (chunks) => (
+                        <Link href="/dashboard/analytics" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </Card>
       )}
 
       {/* Provider Topology (controlled by Appearance setting, default on) */}
@@ -903,6 +905,7 @@ function ProviderOverviewCard({
     item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
 
   const authTypeConfig = {
+    "no-auth": { color: "bg-stone-500", label: "No Auth" },
     free: { color: "bg-green-500", label: tc("free") },
     oauth: { color: "bg-blue-500", label: t("oauthLabel") },
     apikey: { color: "bg-amber-500", label: t("apiKeyLabel") },

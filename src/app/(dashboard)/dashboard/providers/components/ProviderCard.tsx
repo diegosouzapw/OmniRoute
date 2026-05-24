@@ -13,6 +13,8 @@ import {
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
 
+import { CategoryDot } from "./CategoryDot";
+
 interface ProviderStats {
   total?: number;
   connected?: number;
@@ -36,6 +38,7 @@ interface ProviderCardProps {
     deprecationReason?: string;
     hasFree?: boolean;
     freeNote?: string;
+    subscriptionRisk?: boolean;
   };
   stats: ProviderStats;
   authType?: string;
@@ -44,6 +47,7 @@ interface ProviderCardProps {
 
 const DOT_COLORS: Record<string, string> = {
   free: "bg-green-500",
+  "no-auth": "bg-stone-500",
   oauth: "bg-blue-500",
   apikey: "bg-amber-500",
   compatible: "bg-orange-500",
@@ -124,6 +128,7 @@ export default function ProviderCard({
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
+    "no-auth": t("noAuthLabel"),
     oauth: t("oauthLabel"),
     apikey: t("apiKeyLabel"),
     compatible: t("compatibleLabel"),
@@ -132,6 +137,7 @@ export default function ProviderCard({
     audio: t("audioProvidersHeading"),
     local: t("localProviders"),
     "upstream-proxy": t("upstreamProxyProviders"),
+    "cloud-agent": t("cloudAgentProviders"),
   };
 
   const staticIconPath = (() => {
@@ -182,6 +188,15 @@ export default function ProviderCard({
                 >
                   {provider.name}
                 </span>
+                {provider.subscriptionRisk === true && (
+                  <span
+                    className="material-symbols-outlined shrink-0 text-[15px] leading-none text-amber-500"
+                    title={t("riskNotice.tooltip")}
+                    aria-label={t("riskNotice.tooltip")}
+                  >
+                    info
+                  </span>
+                )}
                 {provider.deprecated && (
                   <Badge
                     variant="default"
@@ -194,16 +209,12 @@ export default function ProviderCard({
                     </span>
                   </Badge>
                 )}
-                <span
-                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
-                  title={dotLabels[authType] || t("apiKeyLabel")}
+                <CategoryDot
+                  color={DOT_COLORS[authType] || DOT_COLORS.apikey}
+                  hasFree={provider.hasFree === true}
+                  label={dotLabels[authType] || t("apiKeyLabel")}
+                  freeLabel={t("hasFreeTooltip")}
                 />
-                {provider.hasFree === true && authType !== "free" && (
-                  <span
-                    className="size-2 rounded-full shrink-0 bg-green-500"
-                    title={provider.freeNote || t("freeTierAvailable")}
-                  />
-                )}
               </h3>
               <div className="flex items-center gap-2 text-xs flex-wrap">
                 {allDisabled ? (
