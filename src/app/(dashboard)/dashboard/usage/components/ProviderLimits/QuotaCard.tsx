@@ -2,7 +2,13 @@
 
 import { useMemo } from "react";
 import Card from "@/shared/components/Card";
-import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
+import {
+  getNextResetSummary,
+  normalizePlanTier,
+  resolvePlanValue,
+  worstStatus,
+  type CardStatus,
+} from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardBody from "./parts/QuotaCardBody";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
@@ -50,6 +56,7 @@ export default function QuotaCard({
 }: QuotaCardProps) {
   const quotas = quota?.quotas ?? [];
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
+  const nextResetHint = useMemo(() => getNextResetSummary(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
       normalizePlanTier(
@@ -99,7 +106,15 @@ export default function QuotaCard({
           error={error}
           message={quota?.message ?? null}
         />
-        <div className="flex items-center justify-end px-3 pb-1.5">
+        <div className="flex items-center justify-between px-3 pb-1.5 gap-2">
+          {nextResetHint ? (
+            <span className="text-[10px] text-text-muted tabular-nums flex items-center gap-1">
+              <span className="material-symbols-outlined text-[12px]">schedule</span>
+              reset in {nextResetHint}
+            </span>
+          ) : (
+            <span />
+          )}
           <span className="material-symbols-outlined text-[14px] text-text-muted">
             {expanded ? "expand_less" : "expand_more"}
           </span>
