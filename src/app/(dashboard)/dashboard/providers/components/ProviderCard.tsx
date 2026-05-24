@@ -362,20 +362,24 @@ export default function ProviderCard({
           isOpen={testExpanded}
           onClose={() => setTestExpanded(false)}
           size="full"
+          compactHeader
+          bodyClassName="p-4 max-h-[calc(85vh-60px)] overflow-hidden flex flex-col"
           title={
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 min-w-0">
               <span
-                className="size-7 rounded-md flex items-center justify-center shrink-0"
+                className="size-6 rounded-md flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
               >
                 {staticIconPath ? (
-                  <Image src={staticIconPath} alt={provider.name} width={20} height={20} />
+                  <Image src={staticIconPath} alt={provider.name} width={18} height={18} />
                 ) : (
-                  <ProviderIcon providerId={provider.id || providerId} size={20} type="color" />
+                  <ProviderIcon providerId={provider.id || providerId} size={18} type="color" />
                 )}
               </span>
-              <span className="font-semibold">{provider.name}</span>
-              <span className="text-xs font-normal text-text-muted">· {tp("testLabel")}</span>
+              <span className="font-semibold truncate">{provider.name}</span>
+              <span className="text-xs font-normal text-text-muted shrink-0">
+                · {tp("testLabel")}
+              </span>
             </span>
           }
         >

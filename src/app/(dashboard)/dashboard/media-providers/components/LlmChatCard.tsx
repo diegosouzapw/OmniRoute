@@ -238,7 +238,7 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
     <div
       className={cn(
         "flex flex-col gap-3",
-        embedded ? "" : "rounded-lg border border-border bg-bg-card p-4"
+        embedded ? "flex-1 min-h-0" : "rounded-lg border border-border bg-bg-card p-4"
       )}
     >
       {/* Header controls */}
@@ -294,12 +294,10 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
         ref={scrollRef}
         className={cn(
           "flex flex-col gap-2 rounded-md border border-border bg-bg-subtle p-3 overflow-y-auto",
-          messages.length === 0
-            ? embedded
-              ? "min-h-[200px]"
-              : "min-h-[60px]"
-            : embedded
-              ? "min-h-[300px] max-h-[50vh]"
+          embedded
+            ? "flex-1 min-h-0"
+            : messages.length === 0
+              ? "min-h-[60px]"
               : "min-h-[80px] max-h-64"
         )}
       >
