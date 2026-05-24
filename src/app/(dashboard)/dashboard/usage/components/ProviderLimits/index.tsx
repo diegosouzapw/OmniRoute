@@ -17,9 +17,7 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
-import ProviderGroup, { buildGridTemplate } from "./ProviderGroup";
-import AccountRow from "./AccountRow";
-import { getProviderColumns, groupConnectionsByProvider } from "./providerColumns";
+import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
 const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
@@ -872,75 +870,25 @@ export default function ProviderLimits() {
           </div>
         )}
 
-        {[...providerGroups.entries()].map(([providerKey, conns]) => {
-          // The group schema reflects the union of quotas across accounts so
-          // an account that only has a session still lines up under the
-          // session column even when its siblings also have weekly. We then
-          // resolve per-row schemas using the same column *keys* so missing
-          // windows render as em-dash cells.
-          const allQuotas = conns.flatMap((c) => quotaData[c.id]?.quotas || []);
-          const groupSchema = getProviderColumns(providerKey, allQuotas);
-          const grid = buildGridTemplate(groupSchema.columns.length);
-          const accountIds = conns.map((c) => c.id);
-          const worstGroupStatus = aggregateWorst(
-            conns.map((c) => statusByConnection[c.id] || "empty")
-          );
-
-          return (
-            <ProviderGroup
-              key={providerKey}
-              providerKey={providerKey}
-              providerLabel={PROVIDER_LABEL[providerKey] || providerKey}
-              accountCount={conns.length}
-              worstStatus={worstGroupStatus}
-              columns={groupSchema.columns}
-              overflowMax={groupSchema.overflowCount}
-              isRefreshing={refreshingGroups.has(providerKey)}
-              onRefreshGroup={() => refreshProviderGroup(providerKey, accountIds)}
-            >
-              {conns.map((conn, idx) => {
-                const rowQuotas = quotaData[conn.id]?.quotas || [];
-                const rowSchema = getProviderColumns(providerKey, rowQuotas);
-                // Align each row's column array with the group header by key.
-                // Missing windows on a row → null-quota cell; this keeps the
-                // grid columns aligned even when accounts diverge.
-                const rowColumns = groupSchema.columns.map((groupCol) => {
-                  const match = rowSchema.columns.find((c) => c.key === groupCol.key);
-                  return match || { ...groupCol, quota: null };
-                });
-                return (
-                  <AccountRow
-                    key={conn.id}
-                    connection={conn}
-                    quota={quotaData[conn.id]}
-                    loading={!!loading[conn.id]}
-                    error={errors[conn.id] || null}
-                    refreshedAt={lastRefreshedAt[conn.id]}
-                    tierMeta={tierByConnection[conn.id] || normalizePlanTier(null)}
-                    resolvedPlan={resolvedPlanByConnection[conn.id]}
-                    status={statusByConnection[conn.id] || "empty"}
-                    statusTone={STATUS_TONE[statusByConnection[conn.id] || "empty"]}
-                    columns={rowColumns}
-                    overflowCount={rowSchema.overflowCount}
-                    isExpanded={expandedRows.has(conn.id)}
-                    emailsVisible={emailsVisible}
-                    gridTemplateColumns={grid}
-                    onToggle={() => toggleRow(conn.id)}
-                    onRefresh={() => refreshProvider(conn.id, conn.provider)}
-                    onOpenCutoff={() => {
-                      const windows = (quotaData[conn.id]?.quotas || []).filter(
-                        (q: any) => q && typeof q.name === "string" && !q.isCredits
-                      );
-                      setCutoffModalWindows(windows);
-                      setCutoffModalConn(conn);
-                    }}
-                    isLast={idx === conns.length - 1}
-                  />
-                );
-              })}
-            </ProviderGroup>
-          );
-        })}
+        <QuotaCardGrid
+          connections={visibleConnections}
+          quotaData={quotaData}
+          loading={loading}
+          errors={errors}
+          lastRefreshedAt={lastRefreshedAt}
+          expandedRows={expandedRows}
+          emailsVisible={emailsVisible}
+          providerLabels={PROVIDER_LABEL}
+          onToggle={toggleRow}
+          onRefresh={refreshProvider}
+          onOpenCutoff={(conn) => {
+            const windows = (quotaData[conn.id]?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            setCutoffModalWindows(windows);
+            setCutoffModalConn(conn);
+          }}
+        />
       </div>
 
       {cutoffModalConn && (
