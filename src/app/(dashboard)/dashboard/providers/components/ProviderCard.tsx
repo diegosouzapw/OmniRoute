@@ -29,53 +29,6 @@ interface ProviderStats {
   codexFastActive?: boolean;
 }
 
-const KIND_LABEL: Record<string, string> = {
-  llm: "Chat",
-  embedding: "Embed",
-  image: "Image",
-  imageToText: "I→T",
-  tts: "TTS",
-  stt: "STT",
-  webSearch: "Search",
-  webFetch: "Fetch",
-  video: "Video",
-  music: "Music",
-};
-
-interface ProviderCardProps {
-  providerId: string;
-  provider: {
-    id?: string;
-    name: string;
-    color?: string;
-    apiType?: string;
-    deprecated?: boolean;
-    deprecationReason?: string;
-    hasFree?: boolean;
-    freeNote?: string;
-    subscriptionRisk?: boolean;
-    /** Declared service kinds — "llm" enables the inline Test button */
-    serviceKinds?: string[];
-  };
-  stats: ProviderStats;
-  authType?: string;
-  onToggle: (active: boolean) => void;
-}
-
-const DOT_COLORS: Record<string, string> = {
-  free: "bg-green-500",
-  "no-auth": "bg-stone-500",
-  oauth: "bg-blue-500",
-  apikey: "bg-amber-500",
-  compatible: "bg-orange-500",
-  "web-cookie": "bg-purple-500",
-  search: "bg-teal-500",
-  audio: "bg-rose-500",
-  local: "bg-emerald-500",
-  "upstream-proxy": "bg-indigo-500",
-  "cloud-agent": "bg-violet-500",
-};
-
 function getStatusDisplay(
   connected: number,
   error: number,
@@ -123,6 +76,33 @@ export default function ProviderCard({
   authType = "apikey",
   onToggle,
 }: ProviderCardProps) {
+  const KIND_LABEL: Record<string, string> = {
+    llm: "Chat",
+    embedding: "Embed",
+    image: "Image",
+    imageToText: "I→T",
+    tts: "TTS",
+    stt: "STT",
+    webSearch: "Search",
+    webFetch: "Fetch",
+    video: "Video",
+    music: "Music",
+  };
+
+  const DOT_COLORS: Record<string, string> = {
+    free: "bg-green-500",
+    "no-auth": "bg-stone-500",
+    oauth: "bg-blue-500",
+    apikey: "bg-amber-500",
+    compatible: "bg-orange-500",
+    "web-cookie": "bg-purple-500",
+    search: "bg-teal-500",
+    audio: "bg-rose-500",
+    local: "bg-emerald-500",
+    "upstream-proxy": "bg-indigo-500",
+    "cloud-agent": "bg-violet-500",
+  };
+
   const t = useTranslations("providers");
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
