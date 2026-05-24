@@ -125,6 +125,13 @@ export function LlmChatCard({
 
   const firstModel = models[0]?.id ?? "";
   const effectiveModel = model || firstModel || initialModel || "";
+  // Auto-prefix model with providerId when no provider/model prefix present, to avoid
+  // OmniRoute "Ambiguous model" rejection when same alias is registered under multiple providers.
+  const qualifiedModel = effectiveModel.includes("/")
+    ? effectiveModel
+    : providerId
+      ? `${providerId}/${effectiveModel}`
+      : effectiveModel;
 
   // Autofocus textarea in embedded mode
   useEffect(() => {
@@ -149,7 +156,7 @@ export function LlmChatCard({
     if (!trimmed || streaming) return;
 
     const userMsg: Message = { role: "user", content: trimmed };
-    const assistantMsg: Message = { role: "assistant", content: "", model: effectiveModel };
+    const assistantMsg: Message = { role: "assistant", content: "", model: qualifiedModel };
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setInput("");
     setStreaming(true);
@@ -171,7 +178,7 @@ export function LlmChatCard({
           "x-connection-id": providerId,
         },
         body: JSON.stringify({
-          model: effectiveModel,
+          model: qualifiedModel,
           messages: [
             // Include history (all except the last assistant placeholder)
             ...messages,
@@ -274,7 +281,7 @@ export function LlmChatCard({
       // Refocus textarea so user can keep typing
       requestAnimationFrame(() => textareaRef.current?.focus());
     }
-  }, [input, streaming, selectedKey, apiKey, providerId, effectiveModel, messages]);
+  }, [input, streaming, selectedKey, apiKey, providerId, qualifiedModel, messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
