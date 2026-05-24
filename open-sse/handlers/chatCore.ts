@@ -2820,7 +2820,12 @@ export async function handleChatCore({
           credentials,
           provider,
           reqLogger,
-          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+          {
+            normalizeToolCallId,
+            preserveDeveloperRole,
+            preserveCacheControl,
+            copilotClient: copilotCompatibleReasoning,
+          }
         );
       }
 
@@ -2979,6 +2984,7 @@ export async function handleChatCore({
           preserveDeveloperRole,
           preserveCacheControl,
           signatureNamespace: connectionId,
+          copilotClient: copilotCompatibleReasoning,
           ...(preCompressionBody ? { preCompressionBody } : {}),
         }
       );
