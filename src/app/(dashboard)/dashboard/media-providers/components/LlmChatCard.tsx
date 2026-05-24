@@ -236,9 +236,9 @@ export function LlmChatCard({ providerId, initialModel }: Props) {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg-card p-4">
       {/* Header controls */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] items-center gap-2">
         {/* Model select */}
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0">
           <label className="text-xs text-text-muted shrink-0">{t("model")}:</label>
           <select
             value={model || firstModel}
@@ -255,12 +255,12 @@ export function LlmChatCard({ providerId, initialModel }: Props) {
         </div>
         {/* Key select */}
         {keys.length > 0 && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <label className="text-xs text-text-muted shrink-0">{t("selectKey")}:</label>
             <select
               value={selectedKey}
               onChange={(e) => setSelectedKey(e.target.value)}
-              className="rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
+              className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
             >
               <option value="">(default)</option>
               {keys.map((k) => (
@@ -276,7 +276,7 @@ export function LlmChatCard({ providerId, initialModel }: Props) {
           <button
             type="button"
             onClick={handleClear}
-            className="text-xs text-text-muted hover:text-text-primary transition-colors"
+            className="text-xs text-text-muted hover:text-text-primary transition-colors justify-self-start sm:justify-self-end"
           >
             Clear
           </button>

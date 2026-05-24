@@ -193,11 +193,11 @@ export default function ProviderCard({
   };
 
   return (
-    <div className="flex flex-col">
-      <Link href={`/dashboard/providers/${providerId}`} className="group">
+    <div className={`flex flex-col h-full ${testExpanded ? "col-span-full" : ""}`}>
+      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
         <Card
           padding="xs"
-          className={`hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
+          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
             testExpanded ? "rounded-b-none border-b-0" : ""
           } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
