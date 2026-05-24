@@ -131,3 +131,42 @@ jobs:
           echo "✅ Action finished for GitHub Packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-opencode-plugin:
+    runs-on: ubuntu-latest
+    environment: NPM_TOKEN
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NPM_PUBLISH_NODE_VERSION }}
+          registry-url: https://registry.npmjs.org
+
+      - name: Install plugin dependencies
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm install --no-audit --no-fund
+
+      - name: Build plugin
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm run clean && npm run build
+
+      - name: Test plugin
+        working-directory: "@omniroute/opencode-plugin"
+        run: npm test
+
+      - name: Publish @omniroute/opencode-plugin to npm
+        working-directory: "@omniroute/opencode-plugin"
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          PKG_NAME=$(node -p "require('./package.json').name")
+          if npm view "${PKG_NAME}@${PKG_VERSION}" version --silent 2>/dev/null | grep -q "^${PKG_VERSION}$"; then
+            echo "⚠️ ${PKG_NAME}@${PKG_VERSION} is already published on npm — skipping."
+            exit 0
+          fi
+          npm publish --access public --ignore-scripts
+          echo "✅ Published ${PKG_NAME}@${PKG_VERSION}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

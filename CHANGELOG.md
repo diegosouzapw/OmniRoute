@@ -2,6 +2,60 @@
 
 ## [Unreleased]
 
+### ✨ New Features
+
+### 🔧 Bug Fixes
+
+---
+
+## [3.8.3] — 2026-05-24
+
+### ✨ New Features
+
+- **feat(combos):** universal context handoff for cross-model conversation continuity — structured XML summary system (`<context_handoff>`) that preserves conversation continuity and handles state transfer when combo routing switches models. ([#2653](https://github.com/diegosouzapw/OmniRoute/pull/2653) — thanks @herjarsa)
+- **feat(docs):** migrate `/docs` to Fumadocs MDX with nested routes — replaces the custom docs engine with Fumadocs, adding `[...slug]` catch-all routing, search API at `/docs/api/search`, `source.config.ts` content configuration, and `meta.json` navigation files across 8 doc sections (`architecture/`, `compression/`, `frameworks/`, `guides/`, `ops/`, `reference/`, `routing/`, `security/`). Includes 50+ URL redirects for backward compatibility via `next.config.mjs`. ([#2614](https://github.com/diegosouzapw/OmniRoute/pull/2614) — thanks @ovehbe)
+- **feat(dashboard):** add search and filters to `/dashboard/api-manager` — filter bar with search by name/key, active-only toggle (persisted to localStorage), status filter (active/disabled/banned/expired), type filter (standard/manage/restricted), filter count badges, and empty state with "Clear Filters" button. ([#2628](https://github.com/diegosouzapw/OmniRoute/pull/2628) / [#2641](https://github.com/diegosouzapw/OmniRoute/pull/2641) — thanks @diegosouzapw)
+- **feat(dashboard):** free-tier grouping with symbolic link in `/dashboard/providers` — groups and displays all free-tier providers from all categories dynamically using `hasFree: true` properties without removing them from their native lists. Displays category dot and amber dot with localizable tooltips, dedupes search results by provider ID, and corrects free tier count statistics. ([#2632](https://github.com/diegosouzapw/OmniRoute/pull/2632) — thanks @diegosouzapw)
+- **feat(dashboard):** risk notice modal for sensitive providers — show a soft, informative warning modal when connecting to session-based or OAuth providers (like Claude, Cursor, Copilot) for the first time. Adds `subscriptionRisk` properties to 20 providers, localizable templates, and stores acknowledgment in localStorage. ([#2633](https://github.com/diegosouzapw/OmniRoute/pull/2633) / [#2638](https://github.com/diegosouzapw/OmniRoute/pull/2638) — thanks @diegosouzapw)
+- **feat(dashboard):** refactor free-tier provider dashboard layout — cleans up visual clutter, reorganizes categories, hides redundant banners, and integrates free-tier categories nicely into the primary provider interface. ([#2640](https://github.com/diegosouzapw/OmniRoute/pull/2640) — thanks @diegosouzapw)
+- **feat(dashboard):** mini-playground inline (Phase 4) — integrated interactive mini-playground capabilities to provider details pages, including support for specialized example cards (Embedding, Image, LLM Chat, Music, STT, TTS, Video, Web Fetch, Web Search), unified API key loading hooks, model listing hooks, and curl command builder. ([#2648](https://github.com/diegosouzapw/OmniRoute/pull/2648) — thanks @diegosouzapw)
+- **feat(webfetch):** category support with dedicated media providers page and executors for Firecrawl, Jina Reader, and Tavily. ([#2645](https://github.com/diegosouzapw/OmniRoute/pull/2645) — thanks @diegosouzapw)
+- **feat(adapta):** integrate Adapta Org (`adapta-web`) provider with automatic Clerk authentication refresh and custom onboarding tutorial modal. ([#2643](https://github.com/diegosouzapw/OmniRoute/pull/2643) — thanks @df4p)
+- **feat(i18n):** complete translations for Simplified Chinese — translates 1220 missing keys bringing UI coverage to 98.8% with 0 placeholders. ([#2655](https://github.com/diegosouzapw/OmniRoute/pull/2655) — thanks @L-aros)
+- **feat(dashboard):** add Cmd+K / Ctrl+K command palette for sidebar navigation and a slideover panel for LLM provider testing UI. ([#2656](https://github.com/diegosouzapw/OmniRoute/pull/2656) — thanks @mrmm)
+- **feat(i18n):** finish Simplified Chinese (zh-CN) UI coverage with 377 translated entries. ([#2659](https://github.com/diegosouzapw/OmniRoute/pull/2659) — thanks @L-aros)
+- **feat(dashboard):** chat-first test slide-over layout — consolidates header controls (Model/Key selects, Clear button) into a unified toolbar, maximizes vertical conversation space, integrates live tailing of provider logs in Logs tab, and locks composer focus for keyboard-only convenience. ([#2660](https://github.com/diegosouzapw/OmniRoute/pull/2660) — thanks @mrmm)
+- **feat(cli):** desktop updates, autostart, and headless CLI modes — integrates native auto-updater checks, login autostart (Linux .desktop, macOS/Windows login items), and a background headless server CLI daemon mode (`--headless` or `OMNIROUTE_HEADLESS=true`) into the Electron app wrapper. ([#2662](https://github.com/diegosouzapw/OmniRoute/pull/2662) — thanks @benzntech)
+
+### 🔧 Bug Fixes
+
+- **fix(settings):** Require Login modal Cancel button text and dismissal — modal now renders localized cancel label via the `common` namespace and closes correctly without modifying settings when cancelled. ([#2649](https://github.com/diegosouzapw/OmniRoute/pull/2649) — thanks @Chewji9875)
+- **fix(deepseek-web):** re-apply SSE parser, prompt format, and error handling fixes — handles all 3 DeepSeek SSE stream formats (initial fragments, APPEND operations, bare string tokens), uses non-greedy regex for markdown image stripping, simplifies prompt to single-turn, checks `json.code` before token extraction, and uses `accessToken` fallback for session cache eviction on auth errors. ([#2616](https://github.com/diegosouzapw/OmniRoute/pull/2616) — thanks @ovehbe)
+- **fix(deepseek-web):** SSE thinking/search routing and session lifecycle — properly routes thinking vs content fragments based on `thinking_enabled` flag, handles search results with citation indices, appends search result footnotes, refactors `transformSSE()` and `collectSSEContent()` with shared helpers. ([#2624](https://github.com/diegosouzapw/OmniRoute/pull/2624) — thanks @ovehbe)
+- **fix(codex):** use allowlist to strip non-Responses-API fields in non-passthrough path — strips residual Chat Completions fields (`stream_options`, `service_tier`, `store`, `metadata`) from the request body when routing through the non-passthrough (translation) code path, preventing GPT-5.5 from receiving invalid parameters. ([#2615](https://github.com/diegosouzapw/OmniRoute/pull/2615) — thanks @diegosouzapw)
+- **fix(catalog):** skip static PROVIDER_MODELS when synced models exist — prevents stale/duplicate model entries in `/v1/models` for auto-synced providers. ([#2625](https://github.com/diegosouzapw/OmniRoute/pull/2625) — thanks @herjarsa)
+- **fix(qoder):** Cosy auth fallback for PAT tokens + vision support for qwen3-vl-plus — when a PAT token gets 401, falls back to Cosy auth against `api1.qoder.sh`; adds `supportsVision: true` to qwen3-vl-plus. ([#2629](https://github.com/diegosouzapw/OmniRoute/pull/2629) — thanks @herjarsa)
+- **fix(cli):** register tsx loader and add opencode config subcommand — registers `tsx/esm` at CLI startup so dynamic `.ts` imports resolve; adds `omniroute config opencode` convenience alias. ([#2631](https://github.com/diegosouzapw/OmniRoute/pull/2631) — thanks @amogus22877769)
+- **fix(claude):** improve Pi and OpenCode compatibility — adds Pi Coding Agent anchors to system transform removal, stores `_toolNameMap` as non-enumerable, strips `context_management` when thinking is disabled. ([#2621](https://github.com/diegosouzapw/OmniRoute/pull/2621) — thanks @unitythemaker)
+- **fix(passthrough):** restore semantic passthrough system-role-only extraction — reverts full `normalizeClaudeUpstreamMessages()` to lighter `extractSystemRoleMessages()` in CC semantic passthrough paths, preventing document/tool chain corruption. ([#2620](https://github.com/diegosouzapw/OmniRoute/pull/2620) — thanks @Tentoxa)
+- **fix(kiro):** stabilize conversationId across prompt compression — captures pre-compression body and uses the original first user message as seed for UUID v5, keeping Kiro's AWS conversation context stable. ([#2630](https://github.com/diegosouzapw/OmniRoute/pull/2630) — thanks @HALDRO)
+- **fix(t3-chat-web):** close implementation gaps for t3.chat TanStack Start, tracking of stream_options, and retry configurations — parses TSS Turbo Stream Serialization from `_serverFn/*`, tracks request `combo_strategy` via database migration `062_usage_history_combo_strategy.sql`, and makes batch retry backoffs custom-configurable via environment variables. ([#2634](https://github.com/diegosouzapw/OmniRoute/pull/2634) — thanks @oyi77)
+- **fix(reasoning):** extend empty `reasoning_content` injection to prevent tool call loops in Kimi K2 and replay models — injects empty `reasoning_content` field to Kimi models during tool-calling sequences to bypass loop issues. ([#2639](https://github.com/diegosouzapw/OmniRoute/pull/2639) — thanks @herjarsa)
+- **fix(cli):** Linux autostart via systemd user service on headless VPS — adds auto-generating systemd user service unit for headless setups on Linux, updating tray configs and system variables allowlist (`LOGNAME` and `XDG_CURRENT_DESKTOP`). ([#2635](https://github.com/diegosouzapw/OmniRoute/pull/2635) — thanks @janeza2)
+- **fix(combo):** preserve `<omniModel>` tag in SSE stream output for combos when using `context_cache_protection` to ensure correct context pinning round-trips. ([#2646](https://github.com/diegosouzapw/OmniRoute/pull/2646) — thanks @herjarsa)
+- **fix(rtk):** prevent false positives in RTK compression by skipping content-based filter matching for non-shell tool results (e.g. read_file, grep_search). ([#2642](https://github.com/diegosouzapw/OmniRoute/pull/2642) — thanks @HALDRO)
+- **fix(translator):** enable Claude extended thinking for Copilot Responses-API requests — handles reasoning budget and translations for Copilot. ([#2647](https://github.com/diegosouzapw/OmniRoute/pull/2647) — thanks @ivan-mezentsev)
+- **fix(tests):** remove duplicate assertion in schema coercion & fix(cli): ignore system vars in env check. (thanks @diegosouzapw)
+- **fix(combo):** resolve pending request leaks on unresponsive combo targets — implements a default 60-second per-target timeout during combo routing loops to abort hanging upstream requests and release capacity limits. ([#2663](https://github.com/diegosouzapw/OmniRoute/pull/2663) — thanks @Chewji9875)
+- **fix(proxy):** save custom dashboard proxies directly in SQLite registry — writes new provider/account/global/combo custom proxies directly to the modern `proxy_registry` database and assigns them via `proxy_assignments` instead of creating duplicate configurations. ([#2661](https://github.com/diegosouzapw/OmniRoute/pull/2661) — thanks @terence71-glitch)
+- **fix(settings):** expand effortLevel enum to support xhigh and max reasoning efforts — adds `xhigh` and `max` levels to the updateThinkingBudgetSchema to resolve validation failures that silently discarded top-effort request payloads. ([#2666](https://github.com/diegosouzapw/OmniRoute/pull/2666) — thanks @mrmm)
+
+### 📝 Maintenance
+
+- **chore(config):** ignore additional agent workflow command files (`.agents/commands/`). (thanks @diegosouzapw)
+- **chore(config):** ignore `memory-bank` and Cursor agent rules from tracking. (thanks @ovehbe)
+- **chore(ci):** publish @omniroute/opencode-plugin to npm — adds a parallel build, test, and publish job to the npm release workflow for automated package deployment. ([#2666](https://github.com/diegosouzapw/OmniRoute/pull/2666) — thanks @mrmm)
+
 ---
 
 ## [3.8.2] — 2026-05-22
