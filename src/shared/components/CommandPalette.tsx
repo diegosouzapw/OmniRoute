@@ -1,0 +1,262 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import {
+  SIDEBAR_SECTIONS,
+  getSectionItems,
+  HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
+  normalizeHiddenSidebarItems,
+} from "@/shared/constants/sidebarVisibility";
+
+interface CommandPaletteProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
+  if (!isOpen) return null;
+  return <CommandPaletteDialog onClose={onClose} />;
+}
+
+interface PaletteItem {
+  id: string;
+  href: string;
+  icon: string;
+  label: string;
+  subtitle?: string;
+  external: boolean;
+}
+
+function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const t = useTranslations("sidebar");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    fetch("/api/settings", { signal: ctrl.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        setHiddenItems(
+          new Set(normalizeHiddenSidebarItems(data?.[HIDDEN_SIDEBAR_ITEMS_SETTING_KEY]))
+        );
+      })
+      .catch(() => {
+        // ignore aborts and fetch failures; palette still works with empty hidden set
+      });
+    return () => ctrl.abort();
+  }, []);
+
+  useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 30);
+    return () => clearTimeout(id);
+  }, []);
+
+  const safeTranslate = useCallback(
+    (key: string, fallback: string) => {
+      try {
+        return t(key);
+      } catch {
+        return fallback;
+      }
+    },
+    [t]
+  );
+
+  const allItems = useMemo<PaletteItem[]>(
+    () =>
+      SIDEBAR_SECTIONS.flatMap((section) =>
+        getSectionItems(section)
+          .filter((item) => !hiddenItems.has(item.id))
+          .map((item) => ({
+            id: item.id,
+            href: item.href,
+            icon: item.icon,
+            label: safeTranslate(item.i18nKey, item.id),
+            subtitle: item.subtitleKey ? safeTranslate(item.subtitleKey, "") : undefined,
+            external: item.external ?? false,
+          }))
+      ),
+    [hiddenItems, safeTranslate]
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return allItems;
+    return allItems.filter(
+      (item) => item.label.toLowerCase().includes(q) || item.subtitle?.toLowerCase().includes(q)
+    );
+  }, [allItems, query]);
+
+  const handleNavigate = useCallback(
+    (href: string, external: boolean) => {
+      onClose();
+      if (external) {
+        window.open(href, "_blank", "noopener,noreferrer");
+      } else {
+        router.push(href);
+      }
+    },
+    [onClose, router]
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % Math.max(1, filtered.length));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(
+          (prev) => (prev - 1 + Math.max(1, filtered.length)) % Math.max(1, filtered.length)
+        );
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const item = filtered[selectedIndex];
+        if (item) {
+          handleNavigate(item.href, item.external);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [filtered, selectedIndex, onClose, handleNavigate]);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const el = list.children[selectedIndex] as HTMLElement | undefined;
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex]);
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh] px-4">
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className="relative w-full max-w-lg bg-bg border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+      >
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-black/5 dark:border-white/5">
+          <span className="material-symbols-outlined text-[18px] text-text-muted shrink-0">
+            search
+          </span>
+          <input
+            ref={inputRef}
+            type="text"
+            className="flex-1 bg-transparent text-text placeholder:text-text-muted outline-none text-sm"
+            placeholder="Go to..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedIndex(0);
+            }}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          {query && (
+            <button
+              className="text-text-muted hover:text-text transition-colors"
+              onClick={() => {
+                setQuery("");
+                setSelectedIndex(0);
+              }}
+              tabIndex={-1}
+              aria-label="Clear search"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          )}
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono bg-black/5 dark:bg-white/5 text-text-muted border border-black/10 dark:border-white/10 shrink-0">
+            Esc
+          </kbd>
+        </div>
+
+        {filtered.length > 0 ? (
+          <ul
+            ref={listRef}
+            className="py-1.5 max-h-80 overflow-y-auto custom-scrollbar"
+            role="listbox"
+          >
+            {filtered.map((item, idx) => (
+              <li key={item.id} role="option" aria-selected={idx === selectedIndex}>
+                <button
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                    idx === selectedIndex
+                      ? "bg-accent/10 text-accent"
+                      : "text-text hover:bg-black/5 dark:hover:bg-white/5"
+                  }`}
+                  onClick={() => handleNavigate(item.href, item.external)}
+                  onMouseEnter={() => setSelectedIndex(idx)}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[18px] shrink-0 ${
+                      idx === selectedIndex ? "text-accent" : "text-text-muted"
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.label}</p>
+                    {item.subtitle && (
+                      <p
+                        className={`text-xs truncate ${
+                          idx === selectedIndex ? "text-accent/70" : "text-text-muted"
+                        }`}
+                      >
+                        {item.subtitle}
+                      </p>
+                    )}
+                  </div>
+                  {item.external && (
+                    <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
+                      open_in_new
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="py-10 text-center text-text-muted text-sm">No results</div>
+        )}
+
+        <div className="flex items-center gap-4 px-4 py-2 border-t border-black/5 dark:border-white/5 text-[11px] text-text-muted">
+          <span className="flex items-center gap-1">
+            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+              ↑↓
+            </kbd>
+            navigate
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+              ↵
+            </kbd>
+            open
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-mono">
+              Esc
+            </kbd>
+            close
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}

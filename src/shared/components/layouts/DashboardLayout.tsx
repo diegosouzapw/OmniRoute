@@ -5,6 +5,7 @@ import Sidebar from "../Sidebar";
 import Header from "../Header";
 import NotificationToast from "../NotificationToast";
 import MaintenanceBanner from "../MaintenanceBanner";
+import CommandPalette from "../CommandPalette";
 import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
@@ -12,6 +13,7 @@ const isE2EMode = process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE === "1";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const isElectron = useIsElectron();
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -34,6 +36,17 @@ export default function DashboardLayout({ children }) {
       document.body.classList.remove("electron-macos");
     };
   }, [isMacElectron]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleToggleCollapse = () => {
     const next = !collapsed;
@@ -83,6 +96,8 @@ export default function DashboardLayout({ children }) {
 
       {/* Global notification toast system */}
       <NotificationToast />
+
+      <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
     </div>
   );
 }
