@@ -11,6 +11,7 @@ const ENDPOINT = "/api/v1/chat/completions";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  model?: string;
 }
 
 interface Stats {
@@ -94,7 +95,7 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
     if (!trimmed || streaming) return;
 
     const userMsg: Message = { role: "user", content: trimmed };
-    const assistantMsg: Message = { role: "assistant", content: "" };
+    const assistantMsg: Message = { role: "assistant", content: "", model: effectiveModel };
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setInput("");
     setStreaming(true);
@@ -138,7 +139,8 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
             : `HTTP ${res.status}`;
         setMessages((prev) => {
           const next = [...prev];
-          next[next.length - 1] = { role: "assistant", content: `[Error: ${errMsg}]` };
+          const last = next[next.length - 1];
+          next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${errMsg}]` };
           return next;
         });
         return;
@@ -166,7 +168,8 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
             acc += delta;
             setMessages((prev) => {
               const next = [...prev];
-              next[next.length - 1] = { role: "assistant", content: acc };
+              const last = next[next.length - 1];
+              next[next.length - 1] = { ...last, role: "assistant", content: acc };
               return next;
             });
           }
@@ -187,7 +190,8 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
           acc += delta;
           setMessages((prev) => {
             const next = [...prev];
-            next[next.length - 1] = { role: "assistant", content: acc };
+            const last = next[next.length - 1];
+            next[next.length - 1] = { ...last, role: "assistant", content: acc };
             return next;
           });
         }
@@ -206,7 +210,8 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
       const msg = err instanceof Error ? err.message : "Request failed";
       setMessages((prev) => {
         const next = [...prev];
-        next[next.length - 1] = { role: "assistant", content: `[Error: ${msg}]` };
+        const last = next[next.length - 1];
+        next[next.length - 1] = { ...last, role: "assistant", content: `[Error: ${msg}]` };
         return next;
       });
     } finally {
@@ -345,9 +350,19 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
                     )}
                   </div>
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
-                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">
-                      {isUser ? "You" : isError ? "Error" : "Assistant"}
-                    </span>
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium shrink-0">
+                        {isUser ? "You" : isError ? "Error" : "Assistant"}
+                      </span>
+                      {!isUser && !isError && msg.model && (
+                        <span
+                          className="text-[10px] font-mono text-text-muted/60 truncate"
+                          title={msg.model}
+                        >
+                          · {msg.model}
+                        </span>
+                      )}
+                    </div>
                     <div
                       className={cn(
                         "text-sm whitespace-pre-wrap break-words leading-relaxed",

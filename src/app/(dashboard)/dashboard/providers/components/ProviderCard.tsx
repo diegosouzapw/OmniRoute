@@ -363,7 +363,7 @@ export default function ProviderCard({
           onClose={() => setTestExpanded(false)}
           size="full"
           compactHeader
-          bodyClassName="p-4 max-h-[calc(85vh-60px)] overflow-hidden flex flex-col"
+          bodyClassName="pl-4 pr-2 py-3 max-h-[calc(85vh-60px)] overflow-hidden flex flex-col"
           title={
             <span className="flex items-center gap-2 min-w-0">
               <span
