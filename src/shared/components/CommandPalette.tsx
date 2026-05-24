@@ -147,7 +147,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
         aria-hidden="true"
       />
       <div
-        className="relative w-full max-w-lg bg-bg border border-black/10 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-lg bg-surface border border-black/10 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
@@ -198,7 +198,7 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
                 <button
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                     idx === selectedIndex
-                      ? "bg-accent/10 text-accent"
+                      ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
                       : "text-text hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                   onClick={() => handleNavigate(item.href, item.external)}
