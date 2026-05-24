@@ -22,6 +22,7 @@ interface Stats {
 interface Props {
   providerId: string;
   initialModel?: string;
+  embedded?: boolean;
 }
 
 function extractDeltaContent(line: string): string {
@@ -58,7 +59,7 @@ function extractUsage(line: string): { prompt_tokens?: number; completion_tokens
   }
 }
 
-export function LlmChatCard({ providerId, initialModel }: Props) {
+export function LlmChatCard({ providerId, initialModel, embedded = false }: Props) {
   const t = useTranslations("miniPlayground");
   const { apiKey, keys } = useApiKey();
   const { models } = useProviderModels(providerId);
@@ -234,7 +235,12 @@ export function LlmChatCard({ providerId, initialModel }: Props) {
   const modelOptions = models.length > 0 ? models : initialModel ? [{ id: initialModel }] : [];
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-bg-card p-4">
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        embedded ? "" : "rounded-lg border border-border bg-bg-card p-4"
+      )}
+    >
       {/* Header controls */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Model select */}
@@ -288,7 +294,13 @@ export function LlmChatCard({ providerId, initialModel }: Props) {
         ref={scrollRef}
         className={cn(
           "flex flex-col gap-2 rounded-md border border-border bg-bg-subtle p-3 overflow-y-auto",
-          messages.length === 0 ? "min-h-[60px]" : "min-h-[80px] max-h-64"
+          messages.length === 0
+            ? embedded
+              ? "min-h-[200px]"
+              : "min-h-[60px]"
+            : embedded
+              ? "min-h-[300px] max-h-[50vh]"
+              : "min-h-[80px] max-h-64"
         )}
       >
         {messages.length === 0 && (

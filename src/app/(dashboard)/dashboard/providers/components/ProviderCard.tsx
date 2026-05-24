@@ -361,10 +361,25 @@ export default function ProviderCard({
         <Modal
           isOpen={testExpanded}
           onClose={() => setTestExpanded(false)}
-          title={`${tp("testLabel")} — ${provider.name}`}
-          size="lg"
+          size="full"
+          title={
+            <span className="flex items-center gap-2">
+              <span
+                className="size-7 rounded-md flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
+              >
+                {staticIconPath ? (
+                  <Image src={staticIconPath} alt={provider.name} width={20} height={20} />
+                ) : (
+                  <ProviderIcon providerId={provider.id || providerId} size={20} type="color" />
+                )}
+              </span>
+              <span className="font-semibold">{provider.name}</span>
+              <span className="text-xs font-normal text-text-muted">· {tp("testLabel")}</span>
+            </span>
+          }
         >
-          <LlmChatCard providerId={providerId} />
+          <LlmChatCard providerId={providerId} embedded />
         </Modal>
       )}
     </div>
