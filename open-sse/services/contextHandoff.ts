@@ -37,7 +37,7 @@ Generate a JSON object with this exact structure:
 
 Important: Return ONLY the JSON object, no markdown, no explanation.`;
 
-type MessageLike = {
+export type MessageLike = {
   role?: string;
   content?: unknown;
 };
@@ -85,19 +85,13 @@ export function resolveUniversalHandoffConfig(
   const rawCombo = comboConfig ?? {};
   const rawGlobal = globalConfig ?? {};
 
-  const getBool = (
-    key: keyof UniversalHandoffConfig,
-    fallback: boolean
-  ): boolean => {
+  const getBool = (key: keyof UniversalHandoffConfig, fallback: boolean): boolean => {
     if (typeof rawCombo[key] === "boolean") return rawCombo[key] as boolean;
     if (typeof rawGlobal[key] === "boolean") return rawGlobal[key] as boolean;
     return fallback;
   };
 
-  const getString = (
-    key: keyof UniversalHandoffConfig,
-    fallback: string
-  ): string => {
+  const getString = (key: keyof UniversalHandoffConfig, fallback: string): string => {
     if (typeof rawCombo[key] === "string") {
       const v = (rawCombo[key] as string).trim();
       if (v.length > 0) return v;
@@ -129,10 +123,7 @@ export function resolveUniversalHandoffConfig(
     return candidate;
   };
 
-  const getStringArray = (
-    key: keyof UniversalHandoffConfig,
-    fallback: string[]
-  ): string[] => {
+  const getStringArray = (key: keyof UniversalHandoffConfig, fallback: string[]): string[] => {
     const raw = rawCombo[key] ?? rawGlobal[key];
     if (!Array.isArray(raw)) return fallback;
     return raw
@@ -142,9 +133,7 @@ export function resolveUniversalHandoffConfig(
 
   const triggerRaw = getString("trigger", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.trigger);
   const trigger: UniversalHandoffConfig["trigger"] =
-    triggerRaw === "always" || triggerRaw === "on-error"
-      ? triggerRaw
-      : "on-switch";
+    triggerRaw === "always" || triggerRaw === "on-error" ? triggerRaw : "on-switch";
 
   return {
     enabled: getBool("enabled", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.enabled),
@@ -160,12 +149,7 @@ export function resolveUniversalHandoffConfig(
       100
     ),
     handoffModel: getString("handoffModel", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.handoffModel),
-    ttlMinutes: getNumber(
-      "ttlMinutes",
-      DEFAULT_UNIVERSAL_HANDOFF_CONFIG.ttlMinutes,
-      1,
-      10080
-    ),
+    ttlMinutes: getNumber("ttlMinutes", DEFAULT_UNIVERSAL_HANDOFF_CONFIG.ttlMinutes, 1, 10080),
     preserveSystemPrompt: getBool(
       "preserveSystemPrompt",
       DEFAULT_UNIVERSAL_HANDOFF_CONFIG.preserveSystemPrompt
@@ -549,9 +533,7 @@ export function buildUniversalHandoffSystemMessage(
 </context_handoff>`;
   }
 
-  const decisions = payload.keyDecisions
-    .map((d) => `  - ${escapeXml(d)}`)
-    .join("\n");
+  const decisions = payload.keyDecisions.map((d) => `  - ${escapeXml(d)}`).join("\n");
   const entities = payload.activeEntities.map((e) => escapeXml(e)).join(", ");
 
   return `<context_handoff>
@@ -641,7 +623,11 @@ async function generateUniversalHandoffAsync(options: {
     const json = (await response.clone().json()) as Record<string, unknown>;
     content = getResponseText(json);
   } catch {
-    try { content = await response.clone().text(); } catch { content = ""; }
+    try {
+      content = await response.clone().text();
+    } catch {
+      content = "";
+    }
   }
 
   const parsed = parseHandoffJSON(content);

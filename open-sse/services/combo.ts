@@ -16,8 +16,20 @@ import {
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
-import { maybeGenerateHandoff, resolveContextRelayConfig, maybeGenerateUniversalHandoff, injectUniversalHandoffBody, resolveUniversalHandoffConfig, SKIP_UNIVERSAL_HANDOFF_FLAG } from "./contextHandoff.ts";
-import { recordSessionModelUsage, getLastSessionModel, getHandoff } from "../../src/lib/db/contextHandoffs.ts";
+import {
+  maybeGenerateHandoff,
+  resolveContextRelayConfig,
+  maybeGenerateUniversalHandoff,
+  injectUniversalHandoffBody,
+  resolveUniversalHandoffConfig,
+  SKIP_UNIVERSAL_HANDOFF_FLAG,
+  type MessageLike,
+} from "./contextHandoff.ts";
+import {
+  recordSessionModelUsage,
+  getLastSessionModel,
+  getHandoff,
+} from "../../src/lib/db/contextHandoffs.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -1490,7 +1502,10 @@ export async function handleComboChat({
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
   const universalHandoffConfig = resolveUniversalHandoffConfig(
-    (combo.universal_handoff || combo.universalHandoff) as Record<string, unknown> | null | undefined,
+    (combo.universal_handoff || combo.universalHandoff) as
+      | Record<string, unknown>
+      | null
+      | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
@@ -1616,47 +1631,7 @@ export async function handleComboChat({
           },
         });
 
-        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
-        // visible content so they don't leak to the user. The tag is still
-        // present in the full response for round-trip context pinning, but
-        // we clean it from each SSE chunk's content field before delivery.
-        //
-        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
-        // The transform stream's decoder accumulates UTF-8 state; reusing it here
-        // would corrupt multi-byte characters split across chunk boundaries.
-        const sanitizeDecoder = new TextDecoder();
-        const sanitize = new TransformStream({
-          transform(chunk, controller) {
-            const text = sanitizeDecoder.decode(chunk, { stream: true });
-            if (text) {
-              if (text.includes("<omniModel>")) {
-                const cleaned = text.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(text));
-              }
-            }
-          },
-          flush(controller) {
-            const tail = sanitizeDecoder.decode();
-            if (tail) {
-              if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(tail));
-              }
-            }
-          },
-        });
-
-        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        const transformedStream = res.body.pipeThrough(transform);
         // Add model info as response header for clients that support it
         const headers = new Headers(res.headers);
         headers.set("X-OmniRoute-Model", modelStr);
@@ -2227,7 +2202,7 @@ export async function handleComboChat({
               maybeGenerateUniversalHandoff({
                 sessionId: relayOptions.sessionId,
                 comboName: combo.name,
-                messages: handoffSourceMessages as any[],
+                messages: handoffSourceMessages as MessageLike[],
                 prevModel,
                 currModel: modelStr,
                 universalConfig: universalHandoffConfig,

@@ -31,7 +31,12 @@ test("next config exposes standalone build settings and canonical rewrites", asy
   assert.equal(nextConfig.distDir, ".next-task607");
   assert.equal(nextConfig.output, "standalone");
   assert.equal(nextConfig.images.unoptimized, true);
-  assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse", "@lobehub/icons"]);
+  assert.deepEqual(nextConfig.transpilePackages, [
+    "@omniroute/open-sse",
+    "@lobehub/icons",
+    "fumadocs-ui",
+    "fumadocs-core",
+  ]);
   assert.equal(headers[0].source, "/:path*");
   assert.match(securityHeaders["Content-Security-Policy"], /default-src 'self'/);
   assert.match(securityHeaders["Content-Security-Policy"], /frame-ancestors 'none'/);
@@ -102,6 +107,7 @@ test("next-intl webpack hook preserves caller config and filters known extractor
 
   nextConfig.webpack(config, {
     isServer: false,
+    defaultLoaders: { babel: {} } as any,
     webpack: {
       IgnorePlugin: class {
         options: any;

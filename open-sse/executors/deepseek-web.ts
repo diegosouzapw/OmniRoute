@@ -42,7 +42,6 @@ interface TokenInfo {
 const tokenCache = new Map<string, TokenInfo>();
 const sessionCache = new Map<string, { sessionId: string; createdAt: number }>();
 
-const SESSION_CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE_MAX_SIZE = 100;
 
 function evictOldest(cache: Map<string, unknown>): void {
@@ -138,12 +137,56 @@ async function solvePow(challenge: PowChallenge): Promise<string> {
 
 // ── SSE Transform (DeepSeek → OpenAI) ───────────────────────────────────
 
+function isThinkingModel(model: string): boolean {
+  const m = model.toLowerCase();
+  return m.includes("think") || m.includes("r1") || m.includes("reason");
+}
+
+function isSearchModel(model: string): boolean {
+  const m = model.toLowerCase();
+  return m.includes("search") || m.includes("fold");
+}
+
+function cleanDeepSeekToken(text: string): string {
+  return text.replace(/FINISHED/g, "").replace(/^(SEARCH|WEB_SEARCH|SEARCHING)\s*/i, "");
+}
+
+function formatStreamContent(raw: string, model: string): string {
+  let text = cleanDeepSeekToken(raw);
+  if (!isSearchModel(model)) return text;
+  if (model.toLowerCase().includes("search-silent")) {
+    return text.replace(/\[citation:(\d+)\]/g, "");
+  }
+  return text.replace(/\[citation:(\d+)\]/g, "[$1]");
+}
+
+interface DeepSeekSearchResult {
+  cite_index?: number;
+  title?: string;
+  url?: string;
+}
+
+function appendSearchCitations(searchResults: DeepSeekSearchResult[], model: string): string {
+  if (searchResults.length === 0 || model.toLowerCase().includes("search-silent")) {
+    return "";
+  }
+  return searchResults
+    .filter((r) => r.cite_index)
+    .sort((a, b) => (a.cite_index || 0) - (b.cite_index || 0))
+    .map((r) => `[${r.cite_index}]: [${r.title}](${r.url})`)
+    .join("\n");
+}
+
 function transformSSE(deepseekStream: ReadableStream, model: string): ReadableStream {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
+  const streamModel = model || "deepseek-web";
   const id = `chatcmpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const created = Math.floor(Date.now() / 1000);
   let emittedRole = false;
+  let currentPath: "thinking" | "content" | "" = "";
+  const thinkingModel = isThinkingModel(streamModel);
+  const searchResults: DeepSeekSearchResult[] = [];
 
   return new ReadableStream({
     async start(controller) {
@@ -159,9 +202,59 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
           id,
           object: "chat.completion.chunk",
           created,
-          model,
+          model: streamModel,
           choices: [{ index: 0, delta, finish_reason: finish ?? null }],
         });
+      };
+
+      const ensureRole = () => {
+        if (!emittedRole) {
+          emittedRole = true;
+          chunk({ role: "assistant", content: "" });
+        }
+      };
+
+      const finishStream = () => {
+        const citations = appendSearchCitations(searchResults, streamModel);
+        if (citations) {
+          ensureRole();
+          chunk({ content: `\n\n${citations}` });
+        }
+        ensureRole();
+        chunk({}, "stop");
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
+      };
+
+      const sendByPath = (raw: string) => {
+        const text = formatStreamContent(raw, streamModel);
+        if (!text) return;
+        ensureRole();
+        let path = currentPath;
+        if (!path && thinkingModel) path = "thinking";
+        else if (!path && isSearchModel(streamModel)) path = "content";
+        if (path === "thinking") {
+          chunk({ reasoning_content: text });
+        } else {
+          chunk({ content: text });
+        }
+      };
+
+      const applyFragmentType = (frag: any) => {
+        const type = String(frag?.type || "").toUpperCase();
+        if (type === "THINK") currentPath = "thinking";
+        else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
+      };
+
+      const handleFragment = (frag: any, setPathFromType = false) => {
+        if (setPathFromType) applyFragmentType(frag);
+        if (typeof frag?.content !== "string" || frag.content.length === 0) return;
+        if (!setPathFromType) {
+          const type = String(frag?.type || "").toUpperCase();
+          if (type === "THINK") currentPath = "thinking";
+          else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
+        }
+        sendByPath(frag.content);
       };
 
       try {
@@ -178,13 +271,7 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
             const payload = line.replace(/^data:\s*/, "").trim();
 
             if (payload === "[DONE]") {
-              if (!emittedRole) {
-                emittedRole = true;
-                chunk({ role: "assistant", content: "" });
-              }
-              chunk({}, "stop");
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              controller.close();
+              finishStream();
               return;
             }
 
@@ -195,49 +282,67 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
               continue;
             }
 
-            const fragments = (data as any)?.v?.response?.fragments;
-            if (Array.isArray(fragments)) {
-              if (!emittedRole) {
-                emittedRole = true;
-                chunk({ role: "assistant", content: "" });
+            const p = (data as any)?.p;
+            const o = (data as any)?.o;
+            const v = (data as any)?.v;
+
+            if (v && typeof v === "object" && v.response) {
+              if (v.response.thinking_enabled === true) currentPath = "thinking";
+              else if (v.response.thinking_enabled === false) currentPath = "content";
+              const fragments = v.response.fragments;
+              if (Array.isArray(fragments)) {
+                for (const frag of fragments) handleFragment(frag, false);
               }
-              for (const frag of fragments) {
-                if (typeof frag.content === "string" && frag.content.length > 0) {
-                  if (frag.type === "THINK") {
-                    chunk({ reasoning_content: frag.content });
-                  } else {
-                    chunk({ content: frag.content });
-                  }
+            }
+
+            if (p === "response/fragments") {
+              if (Array.isArray(v)) {
+                for (const frag of v) handleFragment(frag, true);
+              } else if (v && typeof v === "object") {
+                handleFragment(v, true);
+              }
+            }
+
+            if (p === "response" && Array.isArray(v)) {
+              for (const entry of v) {
+                if (entry?.p === "response" && entry?.v?.thinking_enabled === true) {
+                  currentPath = "thinking";
                 }
               }
             }
 
-            // response/fragments path (incremental updates)
-            if ((data as any)?.p === "response/fragments" && Array.isArray((data as any)?.v)) {
-              if (!emittedRole) {
-                emittedRole = true;
-                chunk({ role: "assistant", content: "" });
-              }
-              for (const frag of (data as any).v) {
-                if (typeof frag.content === "string" && frag.content.length > 0) {
-                  if (frag.type === "THINK") {
-                    chunk({ reasoning_content: frag.content });
-                  } else {
-                    chunk({ content: frag.content });
+            if (p === "response/search_status") continue;
+
+            if (p === "response/search_results" && Array.isArray(v)) {
+              if (o !== "BATCH") {
+                searchResults.length = 0;
+                searchResults.push(...v);
+              } else {
+                for (const op of v) {
+                  const match = String(op?.p || "").match(/^(\d+)\/cite_index$/);
+                  if (match) {
+                    const index = parseInt(match[1], 10);
+                    if (searchResults[index]) searchResults[index].cite_index = op.v;
                   }
+                }
+              }
+              continue;
+            }
+
+            if (typeof v === "string") {
+              sendByPath(v);
+            } else if (Array.isArray(v) && p === "response") {
+              for (const entry of v) {
+                if (Array.isArray(entry?.v)) {
+                  const joined = entry.v.map((item: any) => item?.content || "").join("");
+                  if (joined) sendByPath(joined);
                 }
               }
             }
 
-            if ((data as any)?.p === "response/status" && (data as any)?.v === "FINISHED") {
-              if (!emittedRole) {
-                emittedRole = true;
-                chunk({ role: "assistant", content: "" });
-              }
-              chunk({}, "stop");
-              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-              controller.close();
-              return;
+            // Do not close on FINISHED — DeepSeek may still send search_results afterward.
+            if (p === "response/status" && v === "FINISHED") {
+              continue;
             }
           }
         }
@@ -246,22 +351,51 @@ function transformSSE(deepseekStream: ReadableStream, model: string): ReadableSt
         return;
       }
 
-      if (!emittedRole) {
-        emittedRole = true;
-        chunk({ role: "assistant", content: "" });
-      }
-      chunk({}, "stop");
-      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-      controller.close();
+      finishStream();
     },
   });
 }
 
-async function collectSSEContent(deepseekStream: ReadableStream): Promise<string> {
+async function collectSSEContent(
+  deepseekStream: ReadableStream,
+  model: string
+): Promise<{ content: string; reasoningContent: string }> {
   const decoder = new TextDecoder();
   const reader = deepseekStream.getReader();
   let buffer = "";
-  const parts: string[] = [];
+  let content = "";
+  let reasoningContent = "";
+  let currentPath: "thinking" | "content" | "" = "";
+  const streamModel = model || "deepseek-web";
+  const thinkingModel = isThinkingModel(streamModel);
+  const searchResults: DeepSeekSearchResult[] = [];
+
+  const appendByPath = (raw: string) => {
+    const text = formatStreamContent(raw, streamModel);
+    if (!text) return;
+    let path = currentPath;
+    if (!path && thinkingModel) path = "thinking";
+    else if (!path && isSearchModel(streamModel)) path = "content";
+    if (path === "thinking") reasoningContent += text;
+    else content += text;
+  };
+
+  const applyFragmentType = (frag: any) => {
+    const type = String(frag?.type || "").toUpperCase();
+    if (type === "THINK") currentPath = "thinking";
+    else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
+  };
+
+  const handleFragment = (frag: any, setPathFromType = false) => {
+    if (setPathFromType) applyFragmentType(frag);
+    if (typeof frag?.content !== "string" || frag.content.length === 0) return;
+    if (!setPathFromType) {
+      const type = String(frag?.type || "").toUpperCase();
+      if (type === "THINK") currentPath = "thinking";
+      else if (type === "ANSWER" || type === "RESPONSE") currentPath = "content";
+    }
+    appendByPath(frag.content);
+  };
 
   while (true) {
     const { done, value } = await reader.read();
@@ -275,15 +409,59 @@ async function collectSSEContent(deepseekStream: ReadableStream): Promise<string
       const payload = line.replace(/^data:\s*/, "").trim();
       try {
         const data = JSON.parse(payload);
-        const fragments = data?.v?.response?.fragments;
-        if (Array.isArray(fragments)) {
-          for (const frag of fragments) {
-            if (typeof frag.content === "string") parts.push(frag.content);
+        const p = data?.p;
+        const v = data?.v;
+
+        if (v && typeof v === "object" && v.response) {
+          if (v.response.thinking_enabled === true) currentPath = "thinking";
+          else if (v.response.thinking_enabled === false) currentPath = "content";
+          if (Array.isArray(v.response.fragments)) {
+            for (const frag of v.response.fragments) handleFragment(frag, false);
           }
         }
-        if (data?.p === "response/fragments" && Array.isArray(data?.v)) {
-          for (const frag of data.v) {
-            if (typeof frag.content === "string") parts.push(frag.content);
+
+        if (p === "response/fragments") {
+          if (Array.isArray(v)) {
+            for (const frag of v) handleFragment(frag, true);
+          } else if (v && typeof v === "object") {
+            handleFragment(v, true);
+          }
+        }
+
+        if (p === "response" && Array.isArray(v)) {
+          for (const entry of v) {
+            if (entry?.p === "response" && entry?.v?.thinking_enabled === true) {
+              currentPath = "thinking";
+            }
+          }
+        }
+
+        if (p === "response/search_status") continue;
+
+        if (p === "response/search_results" && Array.isArray(v)) {
+          if (data?.o !== "BATCH") {
+            searchResults.length = 0;
+            searchResults.push(...v);
+          } else {
+            for (const op of v) {
+              const match = String(op?.p || "").match(/^(\d+)\/cite_index$/);
+              if (match) {
+                const index = parseInt(match[1], 10);
+                if (searchResults[index]) searchResults[index].cite_index = op.v;
+              }
+            }
+          }
+          continue;
+        }
+
+        if (typeof v === "string") {
+          appendByPath(v);
+        } else if (Array.isArray(v) && p === "response") {
+          for (const entry of v) {
+            if (Array.isArray(entry?.v)) {
+              const joined = entry.v.map((item: any) => item?.content || "").join("");
+              if (joined) appendByPath(joined);
+            }
           }
         }
       } catch {
@@ -292,7 +470,48 @@ async function collectSSEContent(deepseekStream: ReadableStream): Promise<string
     }
   }
 
-  return parts.join("");
+  const citations = appendSearchCitations(searchResults, streamModel);
+  if (citations) content += `\n\n${citations}`;
+
+  return { content, reasoningContent };
+}
+
+// ── Prompt builder (DeepSeek native format, matches Chat2API) ────────────
+
+function messagesToPrompt(messages: Array<{ role: string; content: string }>): string {
+  const extractText = (content: unknown): string => {
+    if (Array.isArray(content)) {
+      return (content as any[])
+        .filter((item: any) => item.type === "text")
+        .map((item: any) => item.text)
+        .join("\n");
+    }
+    return String(content || "");
+  };
+
+  if (messages.length === 0) return "";
+
+  // Collect system prompt(s) and find the last user message
+  const systemParts: string[] = [];
+  let lastUserContent = "";
+  for (const m of messages) {
+    if (m.role === "system") {
+      const text = extractText(m.content).trim();
+      if (text) systemParts.push(text);
+    } else if (m.role === "user") {
+      lastUserContent = extractText(m.content).trim();
+    }
+  }
+
+  const parts: string[] = [];
+  if (systemParts.length > 0) {
+    parts.push(systemParts.join("\n\n"));
+  }
+  if (lastUserContent) {
+    parts.push(lastUserContent);
+  }
+
+  return parts.join("\n\n").replace(/!\[.*?\]\(.*?\)/g, "");
 }
 
 // ── DeepSeek API calls (Bearer token auth, like Chat2API) ───────────────
@@ -324,6 +543,11 @@ async function acquireAccessToken(
   }
 
   const json = await resp.json();
+  if (json?.code && json.code !== 0) {
+    const errMsg = json.msg || json?.data?.biz_msg || `error code ${json.code}`;
+    tokenCache.delete(userToken);
+    throw new Error(`DeepSeek rejected token: ${errMsg}`);
+  }
   const bizData = json?.data?.biz_data || json?.biz_data;
   if (!bizData?.token) {
     const errMsg = json?.msg || json?.data?.biz_msg || "Unknown error";
@@ -341,17 +565,22 @@ async function acquireAccessToken(
   return accessToken;
 }
 
-async function createSession(
-  accessToken: string,
-  connectionId: string | undefined,
-  signal?: AbortSignal | null
-): Promise<string> {
-  const cacheKey = connectionId || accessToken;
-  const cached = sessionCache.get(cacheKey);
-  if (cached && Date.now() - cached.createdAt < SESSION_CACHE_TTL_MS) {
-    return cached.sessionId;
+function parseDeepSeekErrorPayload(payload: unknown): { code?: number; message: string } | null {
+  if (!payload || typeof payload !== "object") return null;
+  const record = payload as Record<string, unknown>;
+  const codeRaw = record.code;
+  const code = typeof codeRaw === "number" ? codeRaw : undefined;
+  const msg = record.msg;
+  const data = record.data as Record<string, unknown> | undefined;
+  const bizMsg = data?.biz_msg;
+  const messageRaw = typeof msg === "string" ? msg : typeof bizMsg === "string" ? bizMsg : "";
+  if (code !== undefined && code !== 0) {
+    return { code, message: messageRaw || `DeepSeek error ${code}` };
   }
+  return null;
+}
 
+async function createSession(accessToken: string, signal?: AbortSignal | null): Promise<string> {
   const resp = await fetch(`${DEEPSEEK_API_BASE}/v0/chat_session/create`, {
     method: "POST",
     headers: {
@@ -369,10 +598,45 @@ async function createSession(
   const bizData = json?.data?.biz_data || json?.biz_data;
   const id = bizData?.chat_session?.id;
   if (!id) throw new Error(`No session id: code=${json?.code}`);
-
-  evictOldest(sessionCache);
-  sessionCache.set(cacheKey, { sessionId: id, createdAt: Date.now() });
   return id;
+}
+
+async function deleteSessionOnDeepSeek(accessToken: string, sessionId: string): Promise<void> {
+  try {
+    await fetch(`${DEEPSEEK_API_BASE}/v0/chat_session/delete`, {
+      method: "POST",
+      headers: {
+        ...FAKE_HEADERS,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ chat_session_id: sessionId }),
+    });
+  } catch {
+    // best-effort cleanup
+  }
+}
+
+function wrapStreamWithCleanup(
+  responseStream: ReadableStream,
+  cleanup: () => Promise<void>
+): ReadableStream {
+  const reader = responseStream.getReader();
+  return new ReadableStream({
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) {
+        controller.close();
+        cleanup().catch(() => {});
+        return;
+      }
+      controller.enqueue(value);
+    },
+    cancel() {
+      reader.cancel();
+      cleanup().catch(() => {});
+    },
+  });
 }
 
 async function getPowChallenge(
@@ -425,7 +689,6 @@ export class DeepSeekWebExecutor extends BaseExecutor {
     }>;
     const rawCreds = credentials as unknown as Record<string, unknown>;
 
-    // 1. Extract userToken from credentials.apiKey
     const userToken = extractUserToken(rawCreds);
     if (!userToken) {
       return {
@@ -440,18 +703,22 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       };
     }
 
+    const { modelType, thinkingEnabled, searchEnabled } = resolveModelOptions(
+      model as string,
+      bodyObj
+    );
+
     try {
-      // 2. Exchange userToken for short-lived access token (cached 1h)
       let t0 = Date.now();
       const accessToken = await acquireAccessToken(userToken, signal, log);
       log?.info?.("DEEPSEEK-WEB", `Token acquired in ${Date.now() - t0}ms`);
 
-      // 3. Create chat session (cached 5min)
+      // Always create a fresh session per request (matches Chat2API behavior).
+      // Avoids all stale-session issues when user deletes chats from DeepSeek UI.
       t0 = Date.now();
-      const sessionId = await createSession(accessToken, rawCreds.connectionId as string, signal);
+      const sessionId = await createSession(accessToken, signal);
       log?.info?.("DEEPSEEK-WEB", `Session created in ${Date.now() - t0}ms`);
 
-      // 4. Get PoW challenge and solve
       t0 = Date.now();
       const powChallenge = await getPowChallenge(accessToken, signal);
       log?.info?.(
@@ -462,28 +729,14 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const powAnswer = await solvePow(powChallenge);
       log?.info?.("DEEPSEEK-WEB", `PoW solved in ${Date.now() - t0}ms`);
 
-      // 5. Build prompt from messages
-      const prompt = messages
-        .map((m) => {
-          if (m.role === "system") return `[System]: ${m.content}`;
-          if (m.role === "assistant") return `[Assistant]: ${m.content}`;
-          return m.content;
-        })
-        .join("\n");
-
-      // 6. Resolve model type, thinking, and search from model name + body flags
-      const { modelType, thinkingEnabled, searchEnabled } = resolveModelOptions(
-        model as string,
-        bodyObj
-      );
+      const prompt = messagesToPrompt(messages);
       const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
       log?.info?.(
         "DEEPSEEK-WEB",
         `model_type=${modelType}, thinking=${thinkingEnabled}, search=${searchEnabled}, files=${refFileIds.length}, stream=${stream !== false}`
       );
 
-      // 7. Send completion request
-      const headers: Record<string, string> = {
+      const reqHeaders: Record<string, string> = {
         ...FAKE_HEADERS,
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -507,11 +760,10 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       log?.info?.("DEEPSEEK-WEB", `POST ${COMPLETION_URL}`);
       const resp = await fetch(COMPLETION_URL, {
         method: "POST",
-        headers,
+        headers: reqHeaders,
         body: JSON.stringify(requestPayload),
         signal: signal ?? undefined,
       });
-
       log?.info?.(
         "DEEPSEEK-WEB",
         `Completion response in ${Date.now() - t0}ms, status=${resp.status}`
@@ -537,10 +789,11 @@ export class DeepSeekWebExecutor extends BaseExecutor {
           /* ignore */
         }
 
+        deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
         return {
           response: errorResponse(status, errMsg),
           url: COMPLETION_URL,
-          headers,
+          headers: reqHeaders,
           transformedBody: requestPayload,
         };
       }
@@ -550,25 +803,30 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       if (ct.includes("application/json")) {
         try {
           const json = await resp.json();
-          if (json?.code && json.code !== 0) {
-            const errMsg = `DeepSeek error ${json.code}: ${json.msg}`;
+          const parsed = parseDeepSeekErrorPayload(json);
+          if (parsed) {
+            const errMsg = `DeepSeek error ${parsed.code}: ${parsed.message}`;
             log?.warn?.("DEEPSEEK-WEB", errMsg);
-            const status = json.code === 40003 ? 401 : json.code === 40002 ? 429 : 502;
-            if (json.code === 40003) tokenCache.delete(userToken);
+            const status = parsed.code === 40003 ? 401 : parsed.code === 40002 ? 429 : 502;
+            if (parsed.code === 40003) {
+              tokenCache.delete(userToken);
+            }
+            deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
             return {
-              response: errorResponse(status, errMsg, json.code),
+              response: errorResponse(status, errMsg, parsed.code),
               url: COMPLETION_URL,
-              headers,
+              headers: reqHeaders,
               transformedBody: requestPayload,
             };
           }
+          deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
           return {
             response: new Response(JSON.stringify(json), {
               status: 200,
               headers: { "Content-Type": "application/json" },
             }),
             url: COMPLETION_URL,
-            headers,
+            headers: reqHeaders,
             transformedBody: requestPayload,
           };
         } catch {
@@ -576,22 +834,28 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         }
       }
 
-      // 8. Transform SSE stream to OpenAI format
+      const cleanupFn = () => deleteSessionOnDeepSeek(accessToken, sessionId);
+
+      const clientModel = typeof model === "string" && model.trim() ? model.trim() : "deepseek-web";
+
       if (stream !== false) {
-        const openaiStream = transformSSE(resp.body!, model || modelType);
+        const openaiStream = transformSSE(resp.body!, clientModel);
+        const wrappedStream = wrapStreamWithCleanup(openaiStream, cleanupFn);
         return {
-          response: new Response(openaiStream, {
+          response: new Response(wrappedStream, {
             status: 200,
             headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
           }),
           url: COMPLETION_URL,
-          headers,
+          headers: reqHeaders,
           transformedBody: requestPayload,
         };
       }
 
-      // Non-streaming: collect all content, return OpenAI JSON
-      const content = await collectSSEContent(resp.body!);
+      const { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+      await cleanupFn();
+      const message: Record<string, string> = { role: "assistant", content };
+      if (reasoningContent) message.reasoning_content = reasoningContent;
       const openaiResponse = {
         id: `chatcmpl-${Date.now()}`,
         object: "chat.completion",
@@ -600,7 +864,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
         choices: [
           {
             index: 0,
-            message: { role: "assistant", content },
+            message,
             finish_reason: "stop",
           },
         ],
@@ -612,7 +876,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
           headers: { "Content-Type": "application/json" },
         }),
         url: COMPLETION_URL,
-        headers,
+        headers: reqHeaders,
         transformedBody: requestPayload,
       };
     } catch (err) {

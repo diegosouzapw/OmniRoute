@@ -1,0 +1,13 @@
+{
+  "title": "Operations",
+  "pages": [
+    "RELEASE_CHECKLIST",
+    "VM_DEPLOYMENT_GUIDE",
+    "FLY_IO_DEPLOYMENT_GUIDE",
+    "TUNNELS_GUIDE",
+    "PROXY_GUIDE",
+    "SQLITE_RUNTIME",
+    "COVERAGE_PLAN",
+    "E2E_DASHBOARD_SHAKEDOWN_v3.8.0"
+  ]
+}

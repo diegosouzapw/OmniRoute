@@ -500,3 +500,73 @@ test("Chat -> Responses prefers max_completion_tokens over max_tokens when both 
   assert.equal((result as any).max_tokens, undefined);
   assert.equal((result as any).max_completion_tokens, undefined);
 });
+
+test("Responses -> Chat drops `reasoning` and does not synthesize reasoning_effort without Copilot marker", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "high" },
+    },
+    true,
+    null
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.equal(result.reasoning_effort, undefined);
+});
+
+test("Responses -> Chat promotes reasoning.effort to reasoning_effort when _copilotClient is set", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "high" },
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning, undefined);
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("Responses -> Chat normalizes Copilot reasoning.effort=max to xhigh", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "max" },
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, "xhigh");
+});
+
+test("Responses -> Chat keeps an explicit reasoning_effort over reasoning.effort when _copilotClient is set", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }],
+      reasoning: { effort: "low" },
+      reasoning_effort: "high",
+    },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, "high");
+});
+
+test("Responses -> Chat ignores Copilot marker when reasoning field is absent", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "claude-opus-4-7",
+    { input: [{ role: "user", content: [{ type: "input_text", text: "hi" }] }] },
+    true,
+    { _copilotClient: true }
+  ) as Record<string, unknown>;
+
+  assert.equal(result.reasoning_effort, undefined);
+});

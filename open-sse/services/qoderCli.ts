@@ -348,7 +348,7 @@ MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA8iMH5c02LilrsERw9t6Pv5Nc
 XcW+ML9FoCI6AOvOzwIDAQAB
 -----END PUBLIC KEY-----`;
 
-function buildCosyHeadersForValidation(bodyStr: string, token: string) {
+export function buildCosyHeadersForValidation(bodyStr: string, token: string) {
   const aesKeyBytes = crypto.randomBytes(16);
   const aesKeyStr = aesKeyBytes.toString("hex").slice(0, 16);
   const aesKeyBuf = Buffer.from(aesKeyStr, "utf8");

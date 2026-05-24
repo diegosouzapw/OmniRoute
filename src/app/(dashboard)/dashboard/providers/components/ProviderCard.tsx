@@ -1,6 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -12,6 +13,9 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
+import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
+
+import { CategoryDot } from "./CategoryDot";
 
 interface ProviderStats {
   total?: number;
@@ -36,6 +40,9 @@ interface ProviderCardProps {
     deprecationReason?: string;
     hasFree?: boolean;
     freeNote?: string;
+    subscriptionRisk?: boolean;
+    /** Declared service kinds — "llm" enables the inline Test button */
+    serviceKinds?: string[];
   };
   stats: ProviderStats;
   authType?: string;
@@ -44,6 +51,7 @@ interface ProviderCardProps {
 
 const DOT_COLORS: Record<string, string> = {
   free: "bg-green-500",
+  "no-auth": "bg-stone-500",
   oauth: "bg-blue-500",
   apikey: "bg-amber-500",
   compatible: "bg-orange-500",
@@ -104,6 +112,27 @@ export default function ProviderCard({
 }: ProviderCardProps) {
   const t = useTranslations("providers");
   const tc = useTranslations("common");
+  const tp = useTranslations("miniPlayground");
+  const [testExpanded, setTestExpanded] = useState<boolean>(false);
+
+  // Show the Test button for LLM providers (when serviceKinds includes "llm"
+  // OR when the provider has no explicit serviceKinds but is a regular LLM provider
+  // i.e. not a search/audio/cloud-agent type).
+  const serviceKinds = provider.serviceKinds ?? [];
+  const isLlmProvider =
+    serviceKinds.includes("llm") ||
+    (serviceKinds.length === 0 &&
+      authType !== "search" &&
+      authType !== "audio" &&
+      authType !== "cloud-agent" &&
+      authType !== "upstream-proxy" &&
+      authType !== "no-auth");
+
+  const handleTestClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTestExpanded((v) => !v);
+  };
   const connected = Number(stats.connected || 0);
   const error = Number(stats.error || 0);
   const allDisabled = Boolean(stats.allDisabled);
@@ -124,6 +153,7 @@ export default function ProviderCard({
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
+    "no-auth": t("noAuthLabel"),
     oauth: t("oauthLabel"),
     apikey: t("apiKeyLabel"),
     compatible: t("compatibleLabel"),
@@ -132,6 +162,7 @@ export default function ProviderCard({
     audio: t("audioProvidersHeading"),
     local: t("localProviders"),
     "upstream-proxy": t("upstreamProxyProviders"),
+    "cloud-agent": t("cloudAgentProviders"),
   };
 
   const staticIconPath = (() => {
@@ -149,130 +180,169 @@ export default function ProviderCard({
   };
 
   return (
-    <Link href={`/dashboard/providers/${providerId}`} className="group">
-      <Card
-        padding="xs"
-        className={`h-full hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
-          allDisabled ? "opacity-50" : ""
-        } ${provider.deprecated ? "opacity-60" : ""}`}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0 pr-2">
-            <div
-              className="size-7 rounded-lg flex items-center justify-center shrink-0"
-              style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
-            >
-              {staticIconPath ? (
-                <Image
-                  src={staticIconPath}
-                  alt={provider.name}
-                  width={26}
-                  height={26}
-                  className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
-                  sizes="26px"
-                />
-              ) : (
-                <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
+    <div className="flex flex-col">
+      <Link href={`/dashboard/providers/${providerId}`} className="group">
+        <Card
+          padding="xs"
+          className={`hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
+            testExpanded ? "rounded-b-none border-b-0" : ""
+          } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0 pr-2">
+              <div
+                className="size-7 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
+              >
+                {staticIconPath ? (
+                  <Image
+                    src={staticIconPath}
+                    alt={provider.name}
+                    width={26}
+                    height={26}
+                    className="object-contain rounded-lg max-w-[26px] max-h-[26px]"
+                    sizes="26px"
+                  />
+                ) : (
+                  <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
+                )}
+              </div>
+              <div className="min-w-0">
+                {provider.serviceKinds && provider.serviceKinds.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-0.5">
+                    {provider.serviceKinds.map((k) => (
+                      <span
+                        key={k}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                      >
+                        {KIND_LABEL[k] ?? k}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
+                  <span
+                    className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                  >
+                    {provider.name}
+                  </span>
+                  {provider.subscriptionRisk === true && (
+                    <span
+                      className="material-symbols-outlined shrink-0 text-[15px] leading-none text-amber-500"
+                      title={t("riskNotice.tooltip")}
+                      aria-label={t("riskNotice.tooltip")}
+                    >
+                      info
+                    </span>
+                  )}
+                  {provider.deprecated && (
+                    <Badge
+                      variant="default"
+                      size="sm"
+                      title={provider.deprecationReason || t("deprecatedProvider")}
+                    >
+                      <span className="flex items-center gap-0.5">
+                        <span className="material-symbols-outlined text-[10px]">block</span>
+                        {t("deprecated")}
+                      </span>
+                    </Badge>
+                  )}
+                  <CategoryDot
+                    color={DOT_COLORS[authType] || DOT_COLORS.apikey}
+                    hasFree={provider.hasFree === true}
+                    label={dotLabels[authType] || t("apiKeyLabel")}
+                    freeLabel={t("hasFreeTooltip")}
+                  />
+                </h3>
+                <div className="flex items-center gap-2 text-xs flex-wrap">
+                  {allDisabled ? (
+                    <Badge variant="default" size="sm">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">pause_circle</span>
+                        {t("disabled")}
+                      </span>
+                    </Badge>
+                  ) : (
+                    <>
+                      {getStatusDisplay(
+                        connected,
+                        error,
+                        Number(stats.warning || 0),
+                        stats.errorCode,
+                        t,
+                        codexFastChip
+                      )}
+                      {stats.expiryStatus === "expired" && (
+                        <Badge variant="error" size="sm" dot>
+                          {t("expiredBadge")}
+                        </Badge>
+                      )}
+                      {stats.expiryStatus === "expiring_soon" && (
+                        <Badge variant="warning" size="sm" dot>
+                          {t("expiringSoonBadge")}
+                        </Badge>
+                      )}
+                      {isCompatible && (
+                        <Badge variant="default" size="sm">
+                          {provider.apiType === "responses" ? t("responses") : t("chat")}
+                        </Badge>
+                      )}
+                      {isCcCompatible && (
+                        <Badge variant="default" size="sm">
+                          CC
+                        </Badge>
+                      )}
+                      {isAnthropicCompatible && (
+                        <Badge variant="default" size="sm">
+                          {t("messages")}
+                        </Badge>
+                      )}
+                      {stats.errorTime && (
+                        <span className="text-text-muted">* {stats.errorTime}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {Number(stats.total || 0) > 0 && (
+                <div onClick={handleToggle}>
+                  <Toggle
+                    size="xs"
+                    checked={!allDisabled}
+                    onChange={() => {}}
+                    title={allDisabled ? t("enableProvider") : t("disableProvider")}
+                  />
+                </div>
+              )}
+              {isLlmProvider && (
+                <button
+                  type="button"
+                  onClick={handleTestClick}
+                  title={testExpanded ? tp("collapseTest") : tp("expandTest")}
+                  className="inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-[11px] text-text-muted hover:text-text-primary hover:border-primary/30 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[11px] leading-none">
+                    {testExpanded ? "expand_less" : "play_arrow"}
+                  </span>
+                  {tp("testLabel")}
+                </button>
+              )}
+              {!isLlmProvider && (
+                <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                  chevron_right
+                </span>
               )}
             </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
-                <span
-                  className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
-                >
-                  {provider.name}
-                </span>
-                {provider.deprecated && (
-                  <Badge
-                    variant="default"
-                    size="sm"
-                    title={provider.deprecationReason || t("deprecatedProvider")}
-                  >
-                    <span className="flex items-center gap-0.5">
-                      <span className="material-symbols-outlined text-[10px]">block</span>
-                      {t("deprecated")}
-                    </span>
-                  </Badge>
-                )}
-                <span
-                  className={`size-2 rounded-full shrink-0 ${DOT_COLORS[authType] || DOT_COLORS.apikey}`}
-                  title={dotLabels[authType] || t("apiKeyLabel")}
-                />
-                {provider.hasFree === true && authType !== "free" && (
-                  <span
-                    className="size-2 rounded-full shrink-0 bg-green-500"
-                    title={provider.freeNote || t("freeTierAvailable")}
-                  />
-                )}
-              </h3>
-              <div className="flex items-center gap-2 text-xs flex-wrap">
-                {allDisabled ? (
-                  <Badge variant="default" size="sm">
-                    <span className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">pause_circle</span>
-                      {t("disabled")}
-                    </span>
-                  </Badge>
-                ) : (
-                  <>
-                    {getStatusDisplay(
-                      connected,
-                      error,
-                      Number(stats.warning || 0),
-                      stats.errorCode,
-                      t,
-                      codexFastChip
-                    )}
-                    {stats.expiryStatus === "expired" && (
-                      <Badge variant="error" size="sm" dot>
-                        {t("expiredBadge")}
-                      </Badge>
-                    )}
-                    {stats.expiryStatus === "expiring_soon" && (
-                      <Badge variant="warning" size="sm" dot>
-                        {t("expiringSoonBadge")}
-                      </Badge>
-                    )}
-                    {isCompatible && (
-                      <Badge variant="default" size="sm">
-                        {provider.apiType === "responses" ? t("responses") : t("chat")}
-                      </Badge>
-                    )}
-                    {isCcCompatible && (
-                      <Badge variant="default" size="sm">
-                        CC
-                      </Badge>
-                    )}
-                    {isAnthropicCompatible && (
-                      <Badge variant="default" size="sm">
-                        {t("messages")}
-                      </Badge>
-                    )}
-                    {stats.errorTime && (
-                      <span className="text-text-muted">* {stats.errorTime}</span>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {Number(stats.total || 0) > 0 && (
-              <div onClick={handleToggle}>
-                <Toggle
-                  size="xs"
-                  checked={!allDisabled}
-                  onChange={() => {}}
-                  title={allDisabled ? t("enableProvider") : t("disableProvider")}
-                />
-              </div>
-            )}
-            <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-              chevron_right
-            </span>
-          </div>
+        </Card>
+      </Link>
+      {testExpanded && isLlmProvider && (
+        <div className="rounded-b-lg border border-t-0 border-border bg-bg-card p-3">
+          <LlmChatCard providerId={providerId} />
         </div>
-      </Card>
-    </Link>
+      )}
+    </div>
   );
 }

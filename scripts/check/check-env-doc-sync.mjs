@@ -39,6 +39,8 @@ const IGNORE_FROM_CODE = new Set([
   "PATH",
   "HOME",
   "USER",
+  "LOGNAME",
+  "XDG_CURRENT_DESKTOP",
   "PWD",
   "SHELL",
   "TERM",
@@ -57,6 +59,9 @@ const IGNORE_FROM_CODE = new Set([
   "PREFIX",
   // X11 display server — set by the OS/session manager, not OmniRoute config.
   "DISPLAY",
+  // POSIX session vars surfaced by cloudflaredTunnel.ts (env passthrough).
+  "LOGNAME",
+  "XDG_CURRENT_DESKTOP",
   // Next.js / Node test runners — these are framework-managed.
   "NEXT_DIST_DIR",
   "NEXT_PHASE",
