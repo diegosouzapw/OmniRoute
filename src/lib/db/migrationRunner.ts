@@ -167,6 +167,11 @@ const PHYSICAL_SCHEMA_SENTINELS = [
   { version: "024", tableName: "sync_tokens", description: "sync_tokens table" },
   { version: "022", tableName: "memory_fts", description: "memory_fts virtual table" },
   { version: "019", tableName: "context_handoffs", description: "context_handoffs table" },
+  {
+    version: "064",
+    tableName: "session_model_history",
+    description: "session_model_history table",
+  },
   { version: "017", tableName: "version_manager", description: "version_manager table" },
   { version: "016", tableName: "skill_executions", description: "skill_executions table" },
   { version: "015", tableName: "memories", description: "memories table" },
@@ -351,6 +356,8 @@ function isSchemaAlreadyApplied(
       return !hasColumn(db, "files", "status");
     case "054":
       return hasColumn(db, "usage_history", "service_tier");
+    case "062":
+      return hasColumn(db, "usage_history", "combo_strategy");
     default:
       return false;
   }

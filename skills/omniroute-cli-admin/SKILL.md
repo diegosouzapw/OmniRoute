@@ -88,7 +88,7 @@ omniroute autostart disable            # Remove startup registration
 omniroute autostart status             # Show current autostart state
 ```
 
-On Linux: creates a systemd user unit. On macOS: LaunchAgent plist. On Windows: registry startup entry.
+On Linux: creates a **systemd user service** (`~/.config/systemd/user/omniroute.service`) and enables **linger** so the service can start after reboot without a graphical login; on desktop sessions it also adds an XDG autostart entry with `--tray`. On macOS: LaunchAgent plist. On Windows: registry startup entry.
 
 ## Tunnels (public URL)
 

@@ -51,12 +51,14 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
         type: "http",
         host: "flow.local",
         port: 8080,
+        source: "dashboard-custom",
       }),
     })
   );
   assert.equal(createRes.status, 201);
   const createdProxy = (await createRes.json()) as any;
   assert.ok(createdProxy.id);
+  assert.equal(createdProxy.source, "dashboard-custom");
 
   const assignRes = await proxyAssignmentsRoute.PUT(
     new Request("http://localhost/api/settings/proxies/assignments", {

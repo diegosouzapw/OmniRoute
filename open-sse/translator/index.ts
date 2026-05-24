@@ -132,6 +132,10 @@ export function translateRequest(
     preserveDeveloperRole?: boolean;
     preserveCacheControl?: boolean;
     signatureNamespace?: string | null;
+    preCompressionBody?: Record<string, unknown> | null;
+    /** UA-detected GitHub Copilot client. Forwarded to translators via the
+     *  transient `_copilotClient` credential flag (see openai-responses → openai). */
+    copilotClient?: boolean;
   }
 ) {
   let result = body;
@@ -175,7 +179,14 @@ export function translateRequest(
       if (sourceFormat !== FORMATS.OPENAI) {
         const toOpenAI = getRequestTranslator(sourceFormat, FORMATS.OPENAI);
         if (toOpenAI) {
-          result = toOpenAI(model, result, stream, credentials);
+          // Forward Copilot UA marker to source→openai translators only.
+          const step1Credentials = options?.copilotClient
+            ? {
+                ...(credentials && typeof credentials === "object" ? credentials : {}),
+                _copilotClient: true,
+              }
+            : credentials;
+          result = toOpenAI(model, result, stream, step1Credentials);
           // Log OpenAI intermediate format
           reqLogger?.logOpenAIRequest?.(result);
         }
@@ -185,12 +196,18 @@ export function translateRequest(
       if (targetFormat !== FORMATS.OPENAI) {
         const fromOpenAI = getRequestTranslator(FORMATS.OPENAI, targetFormat);
         if (fromOpenAI) {
-          const translationCredentials = options?.signatureNamespace
-            ? {
-                ...(credentials && typeof credentials === "object" ? credentials : {}),
-                _signatureNamespace: options.signatureNamespace,
-              }
-            : credentials;
+          const hasNs = options?.signatureNamespace != null;
+          const hasPreCompression = options?.preCompressionBody != null;
+          const hasCopilot = options?.copilotClient === true;
+          const translationCredentials =
+            hasNs || hasPreCompression || hasCopilot
+              ? {
+                  ...(credentials && typeof credentials === "object" ? credentials : {}),
+                  ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
+                  ...(hasPreCompression ? { _preCompressionBody: options.preCompressionBody } : {}),
+                  ...(hasCopilot ? { _copilotClient: true } : {}),
+                }
+              : credentials;
           result = fromOpenAI(model, result, stream, translationCredentials);
         }
       }
