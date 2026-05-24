@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 
-import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
+import {
+  LlmChatCard,
+  type LlmChatControls,
+} from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import { useApiKey } from "@/app/(dashboard)/dashboard/providers/hooks/useApiKey";
+import { useProviderModels } from "@/app/(dashboard)/dashboard/providers/hooks/useProviderModels";
 
 interface SlideOverProvider {
   id?: string;
@@ -26,41 +31,16 @@ interface ProviderTestSlideOverProps {
   initialTab?: TabKey;
 }
 
-type TabKey = "test" | "models" | "keys" | "logs";
+type TabKey = "test" | "logs";
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: "test", label: "Test", icon: "play_arrow" },
-  { key: "models", label: "Models", icon: "view_list" },
-  { key: "keys", label: "Keys", icon: "key" },
   { key: "logs", label: "Logs", icon: "receipt_long" },
 ];
 
-export default function ProviderTestSlideOver({
-  isOpen,
-  onClose,
-  providerId,
-  provider,
-  staticIconPath,
-  initialTab = "test",
-}: ProviderTestSlideOverProps) {
-  if (!isOpen) return null;
-  return (
-    <ProviderTestSlideOverPanel
-      onClose={onClose}
-      providerId={providerId}
-      provider={provider}
-      staticIconPath={staticIconPath}
-      initialTab={initialTab}
-    />
-  );
-}
-
-interface PanelProps {
-  onClose: () => void;
-  providerId: string;
-  provider: SlideOverProvider;
-  staticIconPath?: string | null;
-  initialTab: TabKey;
+export default function ProviderTestSlideOver(props: ProviderTestSlideOverProps) {
+  if (!props.isOpen) return null;
+  return <ProviderTestSlideOverPanel {...props} />;
 }
 
 function ProviderTestSlideOverPanel({
@@ -68,9 +48,17 @@ function ProviderTestSlideOverPanel({
   providerId,
   provider,
   staticIconPath,
-  initialTab,
-}: PanelProps) {
+  initialTab = "test",
+}: ProviderTestSlideOverProps) {
   const [tab, setTab] = useState<TabKey>(initialTab);
+  const [model, setModel] = useState<string>("");
+  const [selectedKey, setSelectedKey] = useState<string>("");
+  const [controls, setControls] = useState<LlmChatControls | null>(null);
+  const onControlsChange = useCallback((c: LlmChatControls) => setControls(c), []);
+
+  const { keys } = useApiKey();
+  const { models } = useProviderModels(providerId);
+  const firstModel = models[0]?.id ?? "";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -89,6 +77,7 @@ function ProviderTestSlideOverPanel({
   }, []);
 
   const color = provider.color || "#64748b";
+  const modelOptions = models.length > 0 ? models : [];
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
@@ -109,15 +98,33 @@ function ProviderTestSlideOverPanel({
           color={color}
           onClose={onClose}
         />
+        {tab === "test" && (
+          <TestToolbar
+            model={model || firstModel}
+            onModelChange={setModel}
+            modelOptions={modelOptions}
+            selectedKey={selectedKey}
+            onSelectedKeyChange={setSelectedKey}
+            keys={keys}
+            controls={controls}
+          />
+        )}
         <SlideOverTabs tab={tab} onChange={setTab} />
         <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
           {tab === "test" && (
             <div className="flex-1 min-h-0 flex flex-col pl-4 pr-2 py-3">
-              <LlmChatCard providerId={providerId} embedded />
+              <LlmChatCard
+                providerId={providerId}
+                embedded
+                hideToolbar
+                model={model}
+                onModelChange={setModel}
+                selectedKey={selectedKey}
+                onSelectedKeyChange={setSelectedKey}
+                onControlsChange={onControlsChange}
+              />
             </div>
           )}
-          {tab === "models" && <ModelsTab providerId={providerId} />}
-          {tab === "keys" && <KeysTab provider={provider} providerId={providerId} />}
           {tab === "logs" && <LogsTab providerId={providerId} />}
         </div>
       </div>
@@ -188,6 +195,73 @@ function SlideOverHeader({
   );
 }
 
+function TestToolbar({
+  model,
+  onModelChange,
+  modelOptions,
+  selectedKey,
+  onSelectedKeyChange,
+  keys,
+  controls,
+}: {
+  model: string;
+  onModelChange: (m: string) => void;
+  modelOptions: { id: string }[];
+  selectedKey: string;
+  onSelectedKeyChange: (k: string) => void;
+  keys: { id: string; key: string; name?: string }[];
+  controls: LlmChatControls | null;
+}) {
+  const hasMessages = controls?.hasMessages ?? false;
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b border-black/5 dark:border-white/5 bg-bg-subtle/30 shrink-0">
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <label className="text-[11px] text-text-muted shrink-0">Model:</label>
+        <select
+          value={model}
+          onChange={(e) => onModelChange(e.target.value)}
+          className="min-w-0 flex-1 rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
+        >
+          {modelOptions.length === 0 && <option value="">—</option>}
+          {modelOptions.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.id}
+            </option>
+          ))}
+        </select>
+      </div>
+      {keys.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          <label className="text-[11px] text-text-muted shrink-0">Key:</label>
+          <select
+            value={selectedKey}
+            onChange={(e) => onSelectedKeyChange(e.target.value)}
+            className="rounded-md border border-border bg-bg-subtle text-xs px-2 py-1 text-text-main focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">(default)</option>
+            {keys.map((k) => (
+              <option key={k.id} value={k.key}>
+                {k.name ?? k.id}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {hasMessages && (
+        <button
+          type="button"
+          onClick={() => controls?.clear()}
+          className="text-[11px] text-text-muted hover:text-text-main transition-colors flex items-center gap-1"
+          title="Clear conversation"
+        >
+          <span className="material-symbols-outlined text-[14px]">delete_sweep</span>
+          Clear
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SlideOverTabs({ tab, onChange }: { tab: TabKey; onChange: (next: TabKey) => void }) {
   return (
     <div
@@ -234,133 +308,24 @@ function TabPlaceholder({ icon, title, body }: { icon: string; title: string; bo
   );
 }
 
-interface ModelEntry {
-  id: string;
-  displayId?: string;
-  owned_by?: string;
-}
-
-type ModelsState =
-  | { status: "loading" }
-  | { status: "ready"; models: ModelEntry[] }
-  | { status: "error"; message: string };
-
-function ModelsTab({ providerId }: { providerId: string }) {
-  const [state, setState] = useState<ModelsState>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setState({ status: "loading" });
-    });
-    fetch(`/api/v1/providers/${encodeURIComponent(providerId)}/models`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = (await r.json()) as { data?: ModelEntry[] };
-        if (!cancelled) setState({ status: "ready", models: data.data ?? [] });
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) {
-          setState({ status: "error", message: e instanceof Error ? e.message : "Failed to load" });
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [providerId]);
-
-  const loading = state.status === "loading";
-  const error = state.status === "error" ? state.message : null;
-  const models = state.status === "ready" ? state.models : [];
-
-  if (loading) {
-    return (
-      <TabPlaceholder
-        icon="hourglass_top"
-        title="Loading models"
-        body="Fetching available models from provider…"
-      />
-    );
-  }
-  if (error) {
-    return <TabPlaceholder icon="error" title="Could not load models" body={error} />;
-  }
-  if (models.length === 0) {
-    return (
-      <TabPlaceholder
-        icon="view_list"
-        title="No models"
-        body="This provider didn't return any models."
-      />
-    );
-  }
-  return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
-      <ul className="flex flex-col divide-y divide-border/60">
-        {models.map((m) => (
-          <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-mono text-text-main truncate" title={m.id}>
-                {m.displayId || m.id}
-              </p>
-              {m.owned_by && <p className="text-[11px] text-text-muted">{m.owned_by}</p>}
-            </div>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard?.writeText(m.id)}
-              title="Copy model id"
-              className="p-1.5 rounded-md text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
-            >
-              <span className="material-symbols-outlined text-[16px]">content_copy</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function KeysTab({ provider, providerId }: { provider: SlideOverProvider; providerId: string }) {
-  return (
-    <TabPlaceholder
-      icon="key"
-      title="Manage keys"
-      body={
-        <div className="flex flex-col gap-2">
-          <p>
-            Open the full provider page to add or rotate keys for{" "}
-            <span className="font-mono">{provider.name}</span>.
-          </p>
-          <a
-            href={`/dashboard/providers/${providerId}`}
-            className="inline-flex items-center gap-1.5 text-accent hover:underline self-center"
-          >
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-            Go to provider page
-          </a>
-        </div>
-      }
-    />
-  );
-}
-
 function LogsTab({ providerId }: { providerId: string }) {
   return (
     <TabPlaceholder
       icon="receipt_long"
-      title="Recent requests"
+      title="Logs"
       body={
-        <div className="flex flex-col gap-2">
-          <p>Per-provider log filtering is coming soon. For now, open the global logs view.</p>
+        <>
+          <p>View request and response logs for this provider on the dedicated logs page.</p>
           <a
             href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
-            className="inline-flex items-center gap-1.5 text-accent hover:underline self-center"
+            className="mt-2 inline-flex items-center gap-1 text-accent hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
             Open logs
+            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
           </a>
-        </div>
+        </>
       }
     />
   );
