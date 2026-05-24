@@ -1305,8 +1305,17 @@ export async function handleChatCore({
     }
     return getCodexRequestDefaults(credentials?.providerSpecificData).serviceTier ?? "standard";
   };
-  const resolveReportedServiceTier = (payload?: unknown): EffectiveServiceTier | null => {
-    if (provider !== "codex" || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+  const resolveReportedServiceTier = (
+    payload?: unknown,
+    maxDepth = 3
+  ): EffectiveServiceTier | null => {
+    if (
+      maxDepth <= 0 ||
+      provider !== "codex" ||
+      !payload ||
+      typeof payload !== "object" ||
+      Array.isArray(payload)
+    ) {
       return null;
     }
     const record = payload as Record<string, unknown>;
@@ -1315,7 +1324,7 @@ export async function handleChatCore({
       const normalizedServiceTier = normalizeCodexServiceTier(rawServiceTier);
       if (normalizedServiceTier) return normalizedServiceTier;
     }
-    return resolveReportedServiceTier(record.response);
+    return resolveReportedServiceTier(record.response, maxDepth - 1);
   };
   const persistFailureUsage = (statusCode: number, errorCode?: string | null) => {
     saveRequestUsage({

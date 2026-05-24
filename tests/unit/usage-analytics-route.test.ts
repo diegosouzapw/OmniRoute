@@ -187,10 +187,34 @@ test("GET /api/usage/analytics applies Codex Fast tier multipliers and exposes t
   const flexTier = body.byServiceTier.find(
     (tier: { serviceTier: string }) => tier.serviceTier === "flex"
   );
+  assert.equal(flexTier.label, "flex");
   assertClose(flexTier.savings, 0.01);
   assert.equal(flexTier.usageSavingsTokens, 750);
   assertClose(body.byProvider[0].cost, 0.08);
   assertClose(body.byModel[0].cost, 0.08);
+});
+
+test("GET /api/usage/analytics does not report flex savings for non-Codex providers", async () => {
+  const db = core.getDbInstance();
+  db.prepare(
+    `INSERT INTO usage_history (provider, model, connection_id, tokens_input, tokens_output, success, latency_ms, service_tier, timestamp)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run("openai", "gpt-4o", "openai-flex", 1000, 500, 1, 250, "flex", new Date().toISOString());
+
+  const response = await analyticsRoute.GET(makeRequest("http://localhost/api/usage/analytics"));
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assertClose(body.summary.totalCost, 0.0075);
+  assert.equal(body.summary.flexRequests, 1);
+  assertClose(body.summary.flexCost, 0.0075);
+  assertClose(body.summary.flexSavings, 0);
+  assert.equal(body.summary.flexUsageSavingsTokens, 0);
+  const flexTier = body.byServiceTier.find(
+    (tier: { serviceTier: string }) => tier.serviceTier === "flex"
+  );
+  assertClose(flexTier.savings, 0);
+  assert.equal(flexTier.usageSavingsTokens, 0);
 });
 
 test("GET /api/usage/analytics applies Codex GPT-5.4 Fast multiplier", async () => {

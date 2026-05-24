@@ -40,6 +40,11 @@ type ComputeCostFromPricing = (
   tokens: Record<string, number | undefined> | null | undefined,
   options?: Record<string, unknown>
 ) => number;
+type GetCodexFastCostMultiplier = (
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
+) => number;
 
 function toNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -65,11 +70,8 @@ function normalizeServiceTier(value: unknown): "standard" | "priority" | "flex" 
   return "standard";
 }
 
-function getServiceTierLabel(serviceTier: string): string {
-  const normalized = normalizeServiceTier(serviceTier);
-  if (normalized === "priority") return "Fast";
-  if (normalized === "flex") return "Flex";
-  return "Standard";
+function getServiceTierLabelId(serviceTier: string): string {
+  return normalizeServiceTier(serviceTier);
 }
 
 function appendWhereCondition(whereClause: string, condition: string): string {
@@ -266,6 +268,24 @@ function computeUsageRowStandardCost(
   );
 }
 
+function computeUsageSavingsTokens(
+  row: Record<string, unknown>,
+  serviceTier: string,
+  getCodexFastCostMultiplier: GetCodexFastCostMultiplier
+): number {
+  const provider = toStringValue(row.provider);
+  const model = toStringValue(row.model);
+  const totalTokens = toNumber(row.totalTokens);
+  if (!provider || !model || totalTokens <= 0) return 0;
+
+  const standardMultiplier = getCodexFastCostMultiplier(provider, model, "standard");
+  if (standardMultiplier <= 0) return 0;
+
+  const actualMultiplier = getCodexFastCostMultiplier(provider, model, serviceTier);
+  const savingsRatio = Math.max(0, (standardMultiplier - actualMultiplier) / standardMultiplier);
+  return totalTokens * savingsRatio;
+}
+
 function formatUtcDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -344,7 +364,7 @@ export async function GET(request: Request) {
       }
       pricingByProvider[providerKey.toLowerCase()] = lowerProvider;
     }
-    const { computeCostFromPricing, normalizeModelName } =
+    const { computeCostFromPricing, getCodexFastCostMultiplier, normalizeModelName } =
       await import("@/lib/usage/costCalculator");
     const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
@@ -970,7 +990,7 @@ export async function GET(request: Request) {
       const serviceTier = normalizeServiceTier(row.serviceTier);
       const existing = serviceTierMap.get(serviceTier) || {
         serviceTier,
-        label: getServiceTierLabel(serviceTier),
+        label: getServiceTierLabelId(serviceTier),
         requests: 0,
         promptTokens: 0,
         completionTokens: 0,
@@ -1000,7 +1020,11 @@ export async function GET(request: Request) {
           computeCostFromPricing
         );
         existing.savings += Math.max(0, standardCost - actualCost);
-        existing.usageSavingsTokens += Math.max(0, Number(row.totalTokens || 0) * 0.5);
+        existing.usageSavingsTokens += computeUsageSavingsTokens(
+          row,
+          serviceTier,
+          getCodexFastCostMultiplier
+        );
       }
       serviceTierMap.set(serviceTier, existing);
     }

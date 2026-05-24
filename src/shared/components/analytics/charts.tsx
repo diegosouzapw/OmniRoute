@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Card from "../Card";
 import { getModelColor } from "@/shared/constants/colors";
 import {
@@ -32,6 +32,48 @@ function createDateFormatter(locale: string, options: Intl.DateTimeFormatOptions
   } catch {
     return new Intl.DateTimeFormat(undefined, options);
   }
+}
+
+type ServiceTierId = "standard" | "priority" | "flex";
+type TranslationFn = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
+const SERVICE_TIER_LABEL_KEYS: Record<ServiceTierId, string> = {
+  priority: "serviceTierFast",
+  flex: "serviceTierFlex",
+  standard: "serviceTierStandard",
+};
+
+const SERVICE_TIER_FALLBACK_LABELS: Record<ServiceTierId, string> = {
+  priority: "Fast",
+  flex: "Flex",
+  standard: "Standard",
+};
+
+function normalizeServiceTierId(value: unknown): ServiceTierId {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
+}
+
+function translateCostText(t: TranslationFn, key: string, fallback: string): string {
+  return typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+}
+
+function getServiceTierDisplayLabel(
+  t: TranslationFn,
+  serviceTier: unknown,
+  fallback?: unknown
+): string {
+  const normalized = normalizeServiceTierId(serviceTier);
+  const fallbackText = typeof fallback === "string" ? fallback.trim() : "";
+  const fallbackLabel =
+    fallbackText && normalizeServiceTierId(fallbackText) !== normalized
+      ? fallbackText
+      : SERVICE_TIER_FALLBACK_LABELS[normalized];
+  return translateCostText(t, SERVICE_TIER_LABEL_KEYS[normalized], fallbackLabel);
 }
 
 // ── Custom Tooltip for dark theme ──────────────────────────────────────────
@@ -1082,6 +1124,7 @@ export function ModelTable({ byModel, summary }) {
 }
 
 export function ServiceTierBreakdown({ byServiceTier, summary }) {
+  const t = useTranslations("costs") as TranslationFn;
   const data = useMemo(() => byServiceTier || [], [byServiceTier]);
   const totalRequests = Number(summary?.totalRequests || 0);
   const totalCost = Number(summary?.totalCost || 0);
@@ -1094,14 +1137,17 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
     <Card className="overflow-hidden">
       <div className="p-4 border-b border-border flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
-          Service Tier
+          {translateCostText(t, "serviceTierBreakdownTitle", "Service Tier")}
         </h3>
-        <span className="text-[11px] text-text-muted">Fast / Flex / Standard split</span>
+        <span className="text-[11px] text-text-muted">
+          {translateCostText(t, "serviceTierBreakdownSubtitle", "Fast / Flex / Standard split")}
+        </span>
       </div>
       <div className="divide-y divide-border">
         {data.map((tier) => {
           const isFast = tier.serviceTier === "priority";
           const isFlex = tier.serviceTier === "flex";
+          const tierLabel = getServiceTierDisplayLabel(t, tier.serviceTier, tier.label);
           const requestPct =
             totalRequests > 0
               ? ((Number(tier.requests || 0) / totalRequests) * 100).toFixed(1)
@@ -1120,11 +1166,15 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
                     {isFast ? "bolt" : isFlex ? "savings" : "speed"}
                   </span>
                   <div>
-                    <div className="text-sm font-semibold text-text-main">{tier.label}</div>
+                    <div className="text-sm font-semibold text-text-main">{tierLabel}</div>
                     <div className="text-xs text-text-muted">
                       {fmtFull(tier.requests)} requests · {fmt(tier.totalTokens)} tokens
                       {isFlex && Number(tier.usageSavingsTokens || 0) > 0
-                        ? ` · ${fmt(tier.usageSavingsTokens)} usage saved`
+                        ? ` · ${fmt(tier.usageSavingsTokens)} ${translateCostText(
+                            t,
+                            "serviceTierUsageSaved",
+                            "usage saved"
+                          )}`
                         : ""}
                     </div>
                   </div>
@@ -1139,8 +1189,16 @@ export function ServiceTierBreakdown({ byServiceTier, summary }) {
                   </div>
                   <div className="text-xs text-text-muted">
                     {isFlex && Number(tier.savings || 0) > 0
-                      ? `${fmtCost(tier.savings)} saved`
-                      : `${costPct}% of cost`}
+                      ? `${fmtCost(tier.savings)} ${translateCostText(
+                          t,
+                          "serviceTierCostSaved",
+                          "saved"
+                        )}`
+                      : `${costPct}% ${translateCostText(
+                          t,
+                          "serviceTierCostShareSuffix",
+                          "of cost"
+                        )}`}
                   </div>
                 </div>
               </div>

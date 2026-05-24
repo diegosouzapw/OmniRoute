@@ -138,6 +138,48 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+type CostTranslationFn = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+type ServiceTierId = "standard" | "priority" | "flex";
+
+const SERVICE_TIER_LABEL_KEYS: Record<ServiceTierId, string> = {
+  priority: "serviceTierFast",
+  flex: "serviceTierFlex",
+  standard: "serviceTierStandard",
+};
+
+const SERVICE_TIER_FALLBACK_LABELS: Record<ServiceTierId, string> = {
+  priority: "Fast",
+  flex: "Flex",
+  standard: "Standard",
+};
+
+function normalizeServiceTierId(value: unknown): ServiceTierId {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
+}
+
+function translateCostText(t: CostTranslationFn, key: string, fallback: string): string {
+  return typeof t.has === "function" && t.has(key) ? t(key) : fallback;
+}
+
+function getServiceTierDisplayLabel(
+  t: CostTranslationFn,
+  serviceTier: unknown,
+  fallback?: unknown
+): string {
+  const normalized = normalizeServiceTierId(serviceTier);
+  const fallbackText = typeof fallback === "string" ? fallback.trim() : "";
+  const fallbackLabel =
+    fallbackText && normalizeServiceTierId(fallbackText) !== normalized
+      ? fallbackText
+      : SERVICE_TIER_FALLBACK_LABELS[normalized];
+  return translateCostText(t, SERVICE_TIER_LABEL_KEYS[normalized], fallbackLabel);
+}
+
 function createCurrencyFormatter(locale: string) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -359,6 +401,16 @@ export default function CostOverviewTab() {
   const accountsByCost = [...(analytics?.byAccount || [])]
     .filter((account) => (hasCostData ? account.cost > 0 : account.requests > 0))
     .sort((left, right) => (hasCostData ? right.cost - left.cost : right.requests - left.requests));
+  const localizedAnalytics = useMemo<UsageAnalyticsPayload | null>(() => {
+    if (!analytics?.byServiceTier) return analytics;
+    return {
+      ...analytics,
+      byServiceTier: analytics.byServiceTier.map((row) => ({
+        ...row,
+        label: getServiceTierDisplayLabel(t as CostTranslationFn, row.serviceTier, row.label),
+      })),
+    };
+  }, [analytics, t]);
   const avgCostPerRequest =
     summary.totalRequests > 0 ? summary.totalCost / summary.totalRequests : 0;
   const dailyTrend = analytics?.dailyTrend || [];
@@ -387,13 +439,13 @@ export default function CostOverviewTab() {
   const explorerRows = useMemo(
     () =>
       buildCostExplorerRows({
-        analytics,
+        analytics: localizedAnalytics,
         groupBy: explorerGroupBy,
         searchQuery: explorerSearch,
         sortKey: explorerSortKey,
         sortDirection: explorerSortDirection,
       }),
-    [analytics, explorerGroupBy, explorerSearch, explorerSortDirection, explorerSortKey]
+    [localizedAnalytics, explorerGroupBy, explorerSearch, explorerSortDirection, explorerSortKey]
   );
   const explorerVisibleRows = explorerRows.slice(0, 50);
 
