@@ -191,7 +191,8 @@
     "xxhash-wasm": "^1.1.0",
     "yazl": "^3.3.1",
     "zod": "^4.4.3",
-    "zustand": "^5.0.13"
+    "zustand": "^5.0.13",
+    "ws": "^8.18.0"
   },
   "optionalDependencies": {
     "better-sqlite3": "^12.10.0",
@@ -210,6 +211,7 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.0",
     "@vitejs/plugin-react": "^6.0.2",
     "c8": "^11.0.0",
     "concurrently": "^9.2.1",

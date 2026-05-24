@@ -65,6 +65,7 @@ import {
   getChatLogMaxObjectKeys,
 } from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
+import { emit } from "@/lib/events/eventBus";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
@@ -1366,6 +1367,17 @@ export async function handleChatCore({
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
   // a hung request was sitting on in `[STAGE_TRACE]` log lines.
   const traceId = Math.random().toString(36).slice(2, 8);
+
+  // Emit request.started event for real-time dashboard
+  setImmediate(() => {
+    emit("request.started", {
+      id: traceId,
+      model: model || "unknown",
+      provider: provider || "unknown",
+      timestamp: startTime,
+      comboName: comboName || undefined,
+    });
+  });
   const trace = (label: string, extra?: Record<string, unknown>) => {
     const elapsed = Date.now() - startTime;
     const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
