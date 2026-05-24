@@ -1764,7 +1764,7 @@ test("handleComboChat context cache protection pins the model and tags tool-call
   );
 });
 
-test("handleComboChat context cache protection sanitizes streamed text tags from client output", async () => {
+test("handleComboChat context cache protection preserves omniModel tag in streamed output for round-trip pinning", async () => {
   const result = await handleComboChat({
     body: { stream: true, messages: [{ role: "user", content: "stream it" }] },
     combo: {
@@ -1843,7 +1843,7 @@ test("handleComboChat context cache protection flushes cleanly when a stream end
   assert.equal(result.headers.get("X-OmniRoute-Model"), "openai/gpt-4o-mini");
   assert.match(text, /data: \[DONE\]/);
   assert.match(text, /"content":""/);
-  assert.doesNotMatch(text, /<omniModel>/);
+  assert.match(text, /<omniModel>openai\/gpt-4o-mini<\/omniModel>/);
 });
 
 test("handleComboChat round-robin resolves nested combos and returns inactive when every target is skipped", async () => {
