@@ -293,7 +293,7 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
       <div
         ref={scrollRef}
         className={cn(
-          "flex flex-col gap-2 rounded-md border border-border bg-bg-subtle p-3 overflow-y-auto",
+          "rounded-md border border-border bg-bg-subtle overflow-y-auto",
           embedded
             ? "flex-1 min-h-0"
             : messages.length === 0
@@ -301,66 +301,101 @@ export function LlmChatCard({ providerId, initialModel, embedded = false }: Prop
               : "min-h-[80px] max-h-64"
         )}
       >
-        {messages.length === 0 && (
-          <p className="text-xs text-text-muted text-center">
-            Send a message to start the conversation.
-          </p>
-        )}
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={cn(
-              "flex flex-col gap-0.5",
-              msg.role === "user" ? "items-end" : "items-start"
-            )}
-          >
-            <span className="text-[10px] uppercase tracking-wide text-text-muted font-medium">
-              {msg.role}
-            </span>
-            <div
-              className={cn(
-                "max-w-[90%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap break-words",
-                msg.role === "user"
-                  ? "bg-primary/10 text-text-main border border-primary/20"
-                  : "bg-bg-card text-text-main border border-border"
-              )}
-            >
-              {msg.content}
-              {msg.role === "assistant" && streaming && i === messages.length - 1 && (
-                <span className="inline-block w-1 h-3 bg-text-main ml-0.5 animate-pulse" />
-              )}
+        {messages.length === 0 ? (
+          <div className="flex h-full min-h-[180px] flex-col items-center justify-center gap-3 p-6 text-center">
+            <div className="size-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-accent text-[22px]">forum</span>
             </div>
+            <p className="text-sm text-text-muted">Send a message to start the conversation</p>
+            <p className="text-[11px] text-text-muted/70">
+              Shift+Enter for newline · Enter to send
+            </p>
           </div>
-        ))}
+        ) : (
+          <div className="mx-auto flex max-w-3xl flex-col divide-y divide-border/60">
+            {messages.map((msg, i) => {
+              const isUser = msg.role === "user";
+              const isError =
+                !isUser && typeof msg.content === "string" && msg.content.startsWith("[Error");
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex gap-3 px-4 py-4",
+                    isUser ? "bg-transparent" : "bg-bg-card/40"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "size-7 rounded-md flex items-center justify-center shrink-0 text-[14px] font-semibold",
+                      isUser
+                        ? "bg-primary/15 text-primary"
+                        : isError
+                          ? "bg-red-500/15 text-red-400"
+                          : "bg-accent/15 text-accent"
+                    )}
+                    aria-hidden="true"
+                  >
+                    {isUser ? (
+                      <span className="material-symbols-outlined text-[16px]">person</span>
+                    ) : isError ? (
+                      <span className="material-symbols-outlined text-[16px]">error</span>
+                    ) : (
+                      <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 min-w-0 flex-1">
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">
+                      {isUser ? "You" : isError ? "Error" : "Assistant"}
+                    </span>
+                    <div
+                      className={cn(
+                        "text-sm whitespace-pre-wrap break-words leading-relaxed",
+                        isError ? "text-red-400" : "text-text-main"
+                      )}
+                    >
+                      {msg.content}
+                      {!isUser && streaming && i === messages.length - 1 && (
+                        <span className="inline-block w-1.5 h-3.5 bg-text-main ml-0.5 align-text-bottom animate-pulse" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Input row */}
-      <div className="flex gap-2">
+      <div className="relative flex items-end gap-2 rounded-lg border border-border bg-bg-subtle px-3 py-2 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary/50 transition-colors">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          rows={2}
-          placeholder={`${t("send")}… (Shift+Enter for new line)`}
+          rows={1}
+          placeholder={`${t("send")}…`}
           disabled={streaming}
-          className="flex-1 rounded-md border border-border bg-bg-subtle text-sm px-3 py-2 text-text-main placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary resize-none disabled:opacity-50"
+          className="flex-1 bg-transparent text-sm py-1.5 text-text-main placeholder:text-text-muted focus:outline-none resize-none disabled:opacity-50 max-h-32"
         />
         {streaming ? (
           <button
             type="button"
             onClick={handleStop}
-            className="self-end rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+            title="Stop"
+            className="size-8 flex items-center justify-center rounded-md border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors shrink-0"
           >
-            Stop
+            <span className="material-symbols-outlined text-[18px]">stop</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={() => void handleSend()}
             disabled={!input.trim()}
-            className="self-end rounded-md bg-primary px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-40 transition-opacity"
+            title={t("send")}
+            className="size-8 flex items-center justify-center rounded-md bg-primary text-white hover:opacity-90 disabled:opacity-40 transition-opacity shrink-0"
           >
-            {t("send")}
+            <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
           </button>
         )}
       </div>
