@@ -61,6 +61,7 @@ interface ProviderCardProps {
 
 const DOT_COLORS: Record<string, string> = {
   free: "bg-green-500",
+  "no-auth": "bg-stone-500",
   oauth: "bg-blue-500",
   apikey: "bg-amber-500",
   compatible: "bg-orange-500",
@@ -141,6 +142,7 @@ export default function ProviderCard({
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
+    "no-auth": t("noAuthLabel"),
     oauth: t("oauthLabel"),
     apikey: t("apiKeyLabel"),
     compatible: t("compatibleLabel"),
@@ -149,6 +151,7 @@ export default function ProviderCard({
     audio: t("audioProvidersHeading"),
     local: t("localProviders"),
     "upstream-proxy": t("upstreamProxyProviders"),
+    "cloud-agent": t("cloudAgentProviders"),
   };
 
   const staticIconPath = (() => {

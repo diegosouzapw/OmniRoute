@@ -23,7 +23,7 @@ import {
 } from "@/shared/components";
 import {
   LOCAL_PROVIDERS,
-  FREE_PROVIDERS,
+  NOAUTH_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -1147,7 +1147,7 @@ export default function ProviderDetailPage() {
   const subscriptionRisk = providerInfo?.subscriptionRisk === true;
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
-  const isFreeNoAuth = FREE_PROVIDERS[providerId]?.noAuth === true;
+  const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.

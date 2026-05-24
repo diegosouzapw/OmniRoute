@@ -42,7 +42,11 @@ import {
   PROVIDER_ERROR_TYPES,
 } from "@omniroute/open-sse/services/errorClassifier.ts";
 import { getCodexModelScope } from "@omniroute/open-sse/executors/codex.ts";
-import { getProviderAlias, resolveProviderId, FREE_PROVIDERS } from "@/shared/constants/providers";
+import {
+  getProviderAlias,
+  resolveProviderId,
+  NOAUTH_PROVIDERS,
+} from "@/shared/constants/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
 import * as log from "../utils/logger";
 import { fisherYatesShuffle, getNextFromDeckSync } from "@/shared/utils/shuffleDeck";
@@ -792,10 +796,12 @@ export async function getProviderCredentials(
   try {
     await currentMutex;
 
-    // noAuth free providers (e.g. opencode) need no DB connection — return synthetic credentials
+    // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
     const resolvedId = resolveProviderId(provider);
-    if ((FREE_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth) {
+    if (
+      (NOAUTH_PROVIDERS as Record<string, { noAuth?: boolean } | undefined>)[resolvedId]?.noAuth
+    ) {
       return {
         apiKey: null,
         accessToken: null,

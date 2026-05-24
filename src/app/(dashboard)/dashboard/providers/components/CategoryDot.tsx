@@ -18,7 +18,7 @@ export function CategoryDot({
   return (
     <span className={cn("inline-flex items-center gap-0.5 shrink-0", className)}>
       <span className={cn("size-2 rounded-full shrink-0", color)} title={label} />
-      {hasFree && <span className="size-2 rounded-full shrink-0 bg-amber-500" title={freeLabel} />}
+      {hasFree && <span className="size-2 rounded-full shrink-0 bg-green-500" title={freeLabel} />}
     </span>
   );
 }

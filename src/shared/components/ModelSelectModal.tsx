@@ -12,16 +12,16 @@ import {
 } from "@/shared/utils/modelCatalogSearch";
 import {
   OAUTH_PROVIDERS,
-  FREE_PROVIDERS,
+  NOAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 
-// Provider order: OAuth first, then Free, then API Key (matches dashboard/providers)
+// Provider order: OAuth first, then no-auth, then API Key (matches dashboard/providers)
 const PROVIDER_ORDER = [
   ...Object.keys(OAUTH_PROVIDERS),
-  ...Object.keys(FREE_PROVIDERS),
+  ...Object.keys(NOAUTH_PROVIDERS),
   ...Object.keys(APIKEY_PROVIDERS),
 ];
 
@@ -108,7 +108,7 @@ export default function ModelSelectModal({
   }, [isOpen]);
 
   const allProviders = useMemo(
-    () => ({ ...OAUTH_PROVIDERS, ...FREE_PROVIDERS, ...APIKEY_PROVIDERS }),
+    () => ({ ...OAUTH_PROVIDERS, ...NOAUTH_PROVIDERS, ...APIKEY_PROVIDERS }),
     []
   );
 
