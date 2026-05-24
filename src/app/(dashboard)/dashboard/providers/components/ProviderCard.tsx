@@ -6,14 +6,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-import { Badge, Card, Modal, Toggle } from "@/shared/components";
+import { Badge, Card, Toggle } from "@/shared/components";
+import ProviderTestSlideOver from "@/shared/components/ProviderTestSlideOver";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
-import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
 
 import { CategoryDot } from "./CategoryDot";
 
@@ -358,33 +358,13 @@ export default function ProviderCard({
         </Card>
       </Link>
       {isLlmProvider && (
-        <Modal
+        <ProviderTestSlideOver
           isOpen={testExpanded}
           onClose={() => setTestExpanded(false)}
-          size="full"
-          compactHeader
-          bodyClassName="pl-4 pr-2 py-3 max-h-[calc(85vh-60px)] overflow-hidden flex flex-col"
-          title={
-            <span className="flex items-center gap-2 min-w-0">
-              <span
-                className="size-6 rounded-md flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
-              >
-                {staticIconPath ? (
-                  <Image src={staticIconPath} alt={provider.name} width={18} height={18} />
-                ) : (
-                  <ProviderIcon providerId={provider.id || providerId} size={18} type="color" />
-                )}
-              </span>
-              <span className="font-semibold truncate">{provider.name}</span>
-              <span className="text-xs font-normal text-text-muted shrink-0">
-                · {tp("testLabel")}
-              </span>
-            </span>
-          }
-        >
-          <LlmChatCard providerId={providerId} embedded />
-        </Modal>
+          providerId={providerId}
+          provider={provider}
+          staticIconPath={staticIconPath}
+        />
       )}
     </div>
   );
