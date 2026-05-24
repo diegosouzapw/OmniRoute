@@ -1334,6 +1334,7 @@ export const createProxyRegistrySchema = z
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
+    source: z.enum(["manual", "oneproxy", "dashboard-custom"]).optional(),
   })
   .strict();
 
