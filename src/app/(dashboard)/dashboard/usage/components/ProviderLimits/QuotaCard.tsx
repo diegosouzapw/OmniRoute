@@ -81,11 +81,18 @@ export default function QuotaCard({
       className="flex flex-col overflow-hidden cursor-pointer transition-colors hover:bg-black/[0.01] dark:hover:bg-white/[0.01]"
       style={{ borderLeft: `3px solid ${STATUS_BORDER[cardStatus]}` }}
     >
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
         aria-expanded={expanded}
-        className="text-left w-full"
+        className="text-left w-full cursor-pointer"
       >
         <QuotaCardHeader
           connection={connection}
@@ -119,7 +126,7 @@ export default function QuotaCard({
             {expanded ? "expand_less" : "expand_more"}
           </span>
         </div>
-      </button>
+      </div>
 
       {expanded && (
         <QuotaCardExpanded

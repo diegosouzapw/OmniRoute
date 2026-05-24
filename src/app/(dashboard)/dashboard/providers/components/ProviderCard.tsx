@@ -63,6 +63,19 @@ const DOT_COLORS: Record<string, string> = {
   "cloud-agent": "bg-violet-500",
 };
 
+const KIND_LABEL: Record<string, string> = {
+  llm: "LLM",
+  embedding: "Embed",
+  image: "Image",
+  imageToText: "Vision",
+  tts: "TTS",
+  stt: "STT",
+  webSearch: "Search",
+  webFetch: "Fetch",
+  video: "Video",
+  music: "Music",
+};
+
 function getStatusDisplay(
   connected: number,
   error: number,
