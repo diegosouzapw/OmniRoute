@@ -5,10 +5,17 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   SIDEBAR_SECTIONS,
-  getSectionItems,
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   normalizeHiddenSidebarItems,
+  type SidebarItemDefinition,
+  type SidebarSectionChild,
 } from "@/shared/constants/sidebarVisibility";
+
+function isSidebarGroup(
+  child: SidebarSectionChild
+): child is Extract<SidebarSectionChild, { type: "group" }> {
+  return "type" in child && child.type === "group";
+}
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -29,12 +36,20 @@ interface PaletteItem {
   external: boolean;
   sectionId: string;
   sectionLabel: string;
+  subgroupId?: string;
+  subgroupLabel?: string;
+}
+
+interface PaletteSubgroup {
+  subgroupId: string | null;
+  subgroupLabel: string | null;
+  items: { item: PaletteItem; flatIndex: number }[];
 }
 
 interface PaletteGroup {
   sectionId: string;
   sectionLabel: string;
-  items: { item: PaletteItem; flatIndex: number }[];
+  subgroups: PaletteSubgroup[];
 }
 
 function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
@@ -81,18 +96,39 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
     () =>
       SIDEBAR_SECTIONS.flatMap((section) => {
         const sectionLabel = safeTranslate(section.titleKey, section.titleFallback);
-        return getSectionItems(section)
-          .filter((item) => !hiddenItems.has(item.id))
-          .map((item) => ({
-            id: item.id,
-            href: item.href,
-            icon: item.icon,
-            label: safeTranslate(item.i18nKey, item.id),
-            subtitle: item.subtitleKey ? safeTranslate(item.subtitleKey, "") : undefined,
-            external: item.external ?? false,
-            sectionId: section.id,
-            sectionLabel,
-          }));
+        return section.children.flatMap<PaletteItem>((child) => {
+          if (isSidebarGroup(child)) {
+            const subgroupLabel = safeTranslate(child.titleKey, child.titleFallback);
+            return child.items
+              .filter((item) => !hiddenItems.has(item.id))
+              .map<PaletteItem>((item) => ({
+                id: item.id,
+                href: item.href,
+                icon: item.icon,
+                label: safeTranslate(item.i18nKey, item.id),
+                subtitle: item.subtitleKey ? safeTranslate(item.subtitleKey, "") : undefined,
+                external: item.external ?? false,
+                sectionId: section.id,
+                sectionLabel,
+                subgroupId: child.id,
+                subgroupLabel,
+              }));
+          }
+          const item = child as SidebarItemDefinition;
+          if (hiddenItems.has(item.id)) return [];
+          return [
+            {
+              id: item.id,
+              href: item.href,
+              icon: item.icon,
+              label: safeTranslate(item.i18nKey, item.id),
+              subtitle: item.subtitleKey ? safeTranslate(item.subtitleKey, "") : undefined,
+              external: item.external ?? false,
+              sectionId: section.id,
+              sectionLabel,
+            },
+          ];
+        });
       }),
     [hiddenItems, safeTranslate]
   );
@@ -104,23 +140,34 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
       (item) =>
         item.label.toLowerCase().includes(q) ||
         item.subtitle?.toLowerCase().includes(q) ||
-        item.sectionLabel.toLowerCase().includes(q)
+        item.sectionLabel.toLowerCase().includes(q) ||
+        item.subgroupLabel?.toLowerCase().includes(q)
     );
   }, [allItems, query]);
 
   const grouped = useMemo<PaletteGroup[]>(() => {
     const groups: PaletteGroup[] = [];
     filtered.forEach((item, flatIndex) => {
-      const last = groups[groups.length - 1];
-      if (last && last.sectionId === item.sectionId) {
-        last.items.push({ item, flatIndex });
-      } else {
-        groups.push({
+      let section = groups[groups.length - 1];
+      if (!section || section.sectionId !== item.sectionId) {
+        section = {
           sectionId: item.sectionId,
           sectionLabel: item.sectionLabel,
-          items: [{ item, flatIndex }],
-        });
+          subgroups: [],
+        };
+        groups.push(section);
       }
+      const itemSubgroupId = item.subgroupId ?? null;
+      let subgroup = section.subgroups[section.subgroups.length - 1];
+      if (!subgroup || subgroup.subgroupId !== itemSubgroupId) {
+        subgroup = {
+          subgroupId: itemSubgroupId,
+          subgroupLabel: item.subgroupLabel ?? null,
+          items: [],
+        };
+        section.subgroups.push(subgroup);
+      }
+      subgroup.items.push({ item, flatIndex });
     });
     return groups;
   }, [filtered]);
@@ -230,47 +277,68 @@ function CommandPaletteDialog({ onClose }: { onClose: () => void }) {
                   {group.sectionLabel}
                 </div>
                 <ul role="group" aria-label={group.sectionLabel}>
-                  {group.items.map(({ item, flatIndex }) => (
+                  {group.subgroups.map((subgroup) => (
                     <li
-                      key={item.id}
-                      role="option"
-                      aria-selected={flatIndex === selectedIndex}
-                      data-flat-index={flatIndex}
+                      key={`${group.sectionId}::${subgroup.subgroupId ?? "_root"}`}
+                      role="presentation"
                     >
-                      <button
-                        className={`w-full flex items-center gap-3 px-6 py-2.5 text-left transition-colors ${
-                          flatIndex === selectedIndex
-                            ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
-                            : "text-text hover:bg-black/5 dark:hover:bg-white/5"
-                        }`}
-                        onClick={() => handleNavigate(item.href, item.external)}
-                        onMouseEnter={() => setSelectedIndex(flatIndex)}
-                      >
-                        <span
-                          className={`material-symbols-outlined text-[18px] shrink-0 ${
-                            flatIndex === selectedIndex ? "text-accent" : "text-text-muted"
-                          }`}
-                        >
-                          {item.icon}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.label}</p>
-                          {item.subtitle && (
-                            <p
-                              className={`text-xs truncate ${
-                                flatIndex === selectedIndex ? "text-accent/70" : "text-text-muted"
-                              }`}
-                            >
-                              {item.subtitle}
-                            </p>
-                          )}
+                      {subgroup.subgroupLabel && (
+                        <div className="px-6 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-text-muted/70">
+                          {subgroup.subgroupLabel}
                         </div>
-                        {item.external && (
-                          <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
-                            open_in_new
-                          </span>
-                        )}
-                      </button>
+                      )}
+                      <ul
+                        role={subgroup.subgroupLabel ? "group" : "presentation"}
+                        aria-label={subgroup.subgroupLabel ?? undefined}
+                      >
+                        {subgroup.items.map(({ item, flatIndex }) => (
+                          <li
+                            key={item.id}
+                            role="option"
+                            aria-selected={flatIndex === selectedIndex}
+                            data-flat-index={flatIndex}
+                          >
+                            <button
+                              className={`w-full flex items-center gap-3 ${
+                                subgroup.subgroupLabel ? "pl-10 pr-6" : "px-6"
+                              } py-2.5 text-left transition-colors ${
+                                flatIndex === selectedIndex
+                                  ? "bg-accent/10 text-accent ring-1 ring-inset ring-accent/20"
+                                  : "text-text hover:bg-black/5 dark:hover:bg-white/5"
+                              }`}
+                              onClick={() => handleNavigate(item.href, item.external)}
+                              onMouseEnter={() => setSelectedIndex(flatIndex)}
+                            >
+                              <span
+                                className={`material-symbols-outlined text-[18px] shrink-0 ${
+                                  flatIndex === selectedIndex ? "text-accent" : "text-text-muted"
+                                }`}
+                              >
+                                {item.icon}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{item.label}</p>
+                                {item.subtitle && (
+                                  <p
+                                    className={`text-xs truncate ${
+                                      flatIndex === selectedIndex
+                                        ? "text-accent/70"
+                                        : "text-text-muted"
+                                    }`}
+                                  >
+                                    {item.subtitle}
+                                  </p>
+                                )}
+                              </div>
+                              {item.external && (
+                                <span className="material-symbols-outlined text-[14px] text-text-muted shrink-0">
+                                  open_in_new
+                                </span>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     </li>
                   ))}
                 </ul>
