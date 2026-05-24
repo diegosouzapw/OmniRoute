@@ -27,9 +27,7 @@ export default function QuotaPage() {
   return (
     <div className="flex flex-col gap-6">
       <Suspense fallback={<CardSkeleton />}>
-        <ProviderLimits
-          autoRefreshInterval={autoRefreshEnabled ? autoRefreshInterval : 0}
-        />
+        <ProviderLimits autoRefreshInterval={autoRefreshEnabled ? autoRefreshInterval : 0} />
       </Suspense>
     </div>
   );

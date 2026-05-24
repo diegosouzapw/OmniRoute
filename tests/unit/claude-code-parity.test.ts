@@ -190,7 +190,7 @@ describe("remapToolNamesInRequest", () => {
       _claudeCodeRequiresLowercaseToolNames?: boolean;
     };
 
-    // remapToolNamesInRequest remaps in-place; no _toolNameMap stored on body (removed API)
+    // remapToolNamesInRequest remaps in-place and stores _toolNameMap as non-enumerable.
     assert.equal(body.tools[0].name, "Bash");
     assert.equal(body.tools[1].name, "Glob");
     assert.equal(body.tool_choice.name, "Glob");
@@ -205,8 +205,7 @@ describe("remapToolNamesInRequest", () => {
   });
 
   it("remaps known tools and does not throw with extra unknown fields on body", () => {
-    // _toolNameMap merging was removed from the API; verify that extra properties
-    // on the body do not interfere with remapping and no error is thrown.
+    // Verify unrelated extra properties do not interfere with remapping and no error is thrown.
     const body: Record<string, unknown> = {
       tools: [{ name: "bash", description: "Run bash commands" }],
       messages: [],
@@ -219,7 +218,7 @@ describe("remapToolNamesInRequest", () => {
     assert.equal((body.tools as Array<Record<string, unknown>>)[0].name, "Bash");
     // Extra fields are left intact (not stripped, not used for map lookup)
     assert.equal(body._someExtraField, "irrelevant");
-    // No _toolNameMap is stored on body
+    // _toolNameMap is non-enumerable and will not leak through Object.keys/JSON.stringify.
     assert.equal(Object.keys(body).includes("_toolNameMap"), false);
   });
 
@@ -267,6 +266,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
   it("removes thinking when tool_choice forces a specific tool", () => {
     const body = {
       thinking: { type: "enabled", budget_tokens: 1000 },
+      context_management: { edits: [{ type: "clear_thinking_20251015", keep: "all" }] },
       tool_choice: { type: "tool", name: "Bash" },
       tools: [{ name: "Bash" }],
     };
@@ -277,6 +277,7 @@ describe("disableThinkingIfToolChoiceForced", () => {
       !thinkingType || thinkingType === "disabled" || thinkingType === "none",
       "thinking must be disabled when tool_choice forces a specific tool"
     );
+    assert.equal(body.context_management, undefined);
   });
 
   it("does not modify thinking when tool_choice is auto", () => {

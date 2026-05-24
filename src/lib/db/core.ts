@@ -567,6 +567,11 @@ function ensureUsageHistoryColumns(db: SqliteDatabase) {
       console.log("[DB] Added usage_history.service_tier column");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_uh_service_tier ON usage_history(service_tier)");
+    if (!columnNames.has("combo_strategy")) {
+      db.exec("ALTER TABLE usage_history ADD COLUMN combo_strategy TEXT DEFAULT 'direct'");
+      console.log("[DB] Added usage_history.combo_strategy column");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_uh_combo_strategy ON usage_history(combo_strategy)");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn("[DB] Failed to verify usage_history schema:", message);

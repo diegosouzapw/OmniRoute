@@ -421,3 +421,15 @@ export type {
 } from "./db/gamification";
 
 export * from "./db/featureFlags";
+
+export {
+  upsertHandoff,
+  getHandoff,
+  deleteHandoff,
+  cleanupExpiredHandoffs,
+  hasActiveHandoff,
+  recordSessionModelUsage,
+  getLastSessionModel,
+} from "./db/contextHandoffs";
+
+export type { HandoffPayload } from "./db/contextHandoffs";

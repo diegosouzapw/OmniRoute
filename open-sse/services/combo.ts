@@ -16,7 +16,20 @@ import {
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
-import { maybeGenerateHandoff, resolveContextRelayConfig } from "./contextHandoff.ts";
+import {
+  maybeGenerateHandoff,
+  resolveContextRelayConfig,
+  maybeGenerateUniversalHandoff,
+  injectUniversalHandoffBody,
+  resolveUniversalHandoffConfig,
+  SKIP_UNIVERSAL_HANDOFF_FLAG,
+  type MessageLike,
+} from "./contextHandoff.ts";
+import {
+  recordSessionModelUsage,
+  getLastSessionModel,
+  getHandoff,
+} from "../../src/lib/db/contextHandoffs.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -24,6 +37,8 @@ import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { fisherYatesShuffle, getNextFromDeck } from "../../src/shared/utils/shuffleDeck";
 import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
+import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
+import { emit } from "../../src/lib/events/eventBus";
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
@@ -1488,6 +1503,13 @@ export async function handleComboChat({
   const relayConfig =
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
+  const universalHandoffConfig = resolveUniversalHandoffConfig(
+    (combo.universal_handoff || combo.universalHandoff) as
+      | Record<string, unknown>
+      | null
+      | undefined,
+    relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
+  );
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
   // Apply system_message override, tool_filter_regex, and extract pinned model
   // from context caching tag. These are all opt-in per combo config.
@@ -1611,47 +1633,7 @@ export async function handleComboChat({
           },
         });
 
-        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
-        // visible content so they don't leak to the user. The tag is still
-        // present in the full response for round-trip context pinning, but
-        // we clean it from each SSE chunk's content field before delivery.
-        //
-        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
-        // The transform stream's decoder accumulates UTF-8 state; reusing it here
-        // would corrupt multi-byte characters split across chunk boundaries.
-        const sanitizeDecoder = new TextDecoder();
-        const sanitize = new TransformStream({
-          transform(chunk, controller) {
-            const text = sanitizeDecoder.decode(chunk, { stream: true });
-            if (text) {
-              if (text.includes("<omniModel>")) {
-                const cleaned = text.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(text));
-              }
-            }
-          },
-          flush(controller) {
-            const tail = sanitizeDecoder.decode();
-            if (tail) {
-              if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(tail));
-              }
-            }
-          },
-        });
-
-        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        const transformedStream = res.body.pipeThrough(transform);
         // Add model info as response header for clients that support it
         const headers = new Headers(res.headers);
         headers.set("X-OmniRoute-Model", modelStr);
@@ -2094,6 +2076,17 @@ export async function handleComboChat({
         }
       }
 
+      // Credential gate: skip targets with known-bad credentials (fail-fast)
+      const connectionId = target.connectionId as string | undefined;
+      if (connectionId) {
+        const gateResult = checkCredentialGate(connectionId, provider, modelStr);
+        if (gateResult.allowed === false) {
+          logCredentialSkip(log, modelStr, gateResult.reason || "Credential gate blocked");
+          if (i > 0) fallbackCount++;
+          continue;
+        }
+      }
+
       // Retry loop for transient errors
       for (let retry = 0; retry <= maxRetries; retry++) {
         // Fix #1681: Bail out immediately if the client has disconnected
@@ -2135,7 +2128,33 @@ export async function handleComboChat({
           "COMBO",
           `Trying model ${i + 1}/${orderedTargets.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
+        emit("combo.target.attempt", {
+          comboName: combo.name,
+          targetIndex: i,
+          provider,
+          model: modelStr,
+          timestamp: Date.now(),
+          strategy,
+        });
 
+        // Universal handoff: inject existing handoff if model changed
+        if (
+          universalHandoffConfig.enabled &&
+          relayOptions?.sessionId &&
+          !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+        ) {
+          const lastModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+          if (lastModel && lastModel !== modelStr) {
+            const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
+            body = injectUniversalHandoffBody(
+              body,
+              lastModel,
+              modelStr,
+              `Model routing: ${lastModel} → ${modelStr}`,
+              existingHandoff
+            );
+          }
+        }
         const result = await handleSingleModelWrapped(body, modelStr, {
           ...target,
           failoverBeforeRetry: config.failoverBeforeRetry,
@@ -2163,8 +2182,23 @@ export async function handleComboChat({
             if (!lastStatus) lastStatus = 502;
             if (i > 0) fallbackCount++;
             break; // move to next model
+            emit("combo.target.failed", {
+              comboName: combo.name,
+              targetIndex: i,
+              provider,
+              model: modelStr,
+              error: `Quality: ${quality.reason}`,
+              latencyMs: Date.now() - startTime,
+            });
           }
           const latencyMs = Date.now() - startTime;
+          emit("combo.target.succeeded", {
+            comboName: combo.name,
+            targetIndex: i,
+            provider,
+            model: modelStr,
+            latencyMs,
+          });
           log.info(
             "COMBO",
             `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
@@ -2178,6 +2212,40 @@ export async function handleComboChat({
           });
           recordedAttempts++;
 
+          // Universal handoff: record model usage for session
+          if (
+            universalHandoffConfig.enabled &&
+            relayOptions?.sessionId &&
+            !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
+          ) {
+            recordSessionModelUsage(
+              relayOptions.sessionId,
+              combo.name,
+              modelStr,
+              provider,
+              target.connectionId
+            );
+
+            const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
+            if (prevModel && prevModel !== modelStr) {
+              const handoffSourceMessages =
+                Array.isArray(body?.messages) && body.messages.length > 0
+                  ? body.messages
+                  : Array.isArray(body?.input)
+                    ? body.input
+                    : [];
+
+              maybeGenerateUniversalHandoff({
+                sessionId: relayOptions.sessionId,
+                comboName: combo.name,
+                messages: handoffSourceMessages as MessageLike[],
+                prevModel,
+                currModel: modelStr,
+                universalConfig: universalHandoffConfig,
+                handleSingleModel: handleSingleModelWrapped,
+              });
+            }
+          }
           // Context-relay intentionally splits responsibilities:
           // combo.ts decides whether a successful turn should generate a handoff,
           // while chat.ts injects the handoff after the real connectionId is resolved.
