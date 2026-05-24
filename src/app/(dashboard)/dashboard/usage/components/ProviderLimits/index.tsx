@@ -217,9 +217,6 @@ export default function ProviderLimits() {
     return localStorage.getItem(LS_ENV_FILTER) || "all";
   });
 
-  // Per-group bulk-refresh state; one spinner per provider key.
-  const [refreshingGroups, setRefreshingGroups] = useState<Set<string>>(new Set());
-
   const lastFetchTimeRef = useRef<Record<string, number>>({});
   const staleProbeRef = useRef<Record<string, number>>({});
   const [cutoffModalConn, setCutoffModalConn] = useState<any | null>(null);
@@ -416,31 +413,6 @@ export default function ProviderLimits() {
     }
   }, [applyCachedQuotaState, fetchConnections]);
 
-  // Bulk refresh all accounts inside one provider group. The per-account
-  // loading indicator is updated by each fetchQuota call; the group spinner
-  // is just a wrapper that flips while the Promise.all is in flight.
-  const refreshProviderGroup = useCallback(
-    async (providerKey: string, accountIds: string[]) => {
-      setRefreshingGroups((prev) => {
-        if (prev.has(providerKey)) return prev;
-        const next = new Set(prev);
-        next.add(providerKey);
-        return next;
-      });
-      try {
-        await Promise.all(accountIds.map((id) => fetchQuota(id, providerKey, { force: true })));
-      } finally {
-        setRefreshingGroups((prev) => {
-          if (!prev.has(providerKey)) return prev;
-          const next = new Set(prev);
-          next.delete(providerKey);
-          return next;
-        });
-      }
-    },
-    [fetchQuota]
-  );
-
   useEffect(() => {
     const init = async () => {
       setInitialLoading(true);
@@ -618,17 +590,6 @@ export default function ProviderLimits() {
     envFilter,
     quotaData,
   ]);
-
-  // Group visible connections by provider, then resort group keys by
-  // PROVIDER_ORDER so the section sequence on the page is stable.
-  const providerGroups = useMemo(() => {
-    const groups = groupConnectionsByProvider(visibleConnections);
-    return new Map(
-      [...groups.entries()].sort(
-        ([a], [b]) => (PROVIDER_ORDER[a] || 99) - (PROVIDER_ORDER[b] || 99)
-      )
-    );
-  }, [visibleConnections]);
 
   const toggleRow = useCallback((connectionId: string) => {
     setExpandedRows((prev) => {
