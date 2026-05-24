@@ -2,6 +2,22 @@
 
 export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated";
 
+/**
+ * Service kind — declarative tag for what a provider can do beyond basic LLM chat.
+ * Affects UI filtering only; does not influence request routing.
+ */
+export type ServiceKind =
+  | "llm"
+  | "embedding"
+  | "image"
+  | "imageToText"
+  | "tts"
+  | "stt"
+  | "webSearch"
+  | "webFetch"
+  | "video"
+  | "music";
+
 export interface ProviderRiskNoticeFields {
   subscriptionRisk?: boolean;
   riskNoticeVariant?: RiskNoticeVariant;
@@ -2116,6 +2132,52 @@ export const APIKEY_PROVIDERS = {
     passthroughModels: true,
     authHint: "Get API key at monsterapi.ai",
   },
+  // ── Web Fetch Providers ─────────────────────────────────────────────────────
+  firecrawl: {
+    id: "firecrawl",
+    alias: "fc",
+    name: "Firecrawl",
+    icon: "language",
+    color: "#FB923C",
+    textIcon: "FC",
+    website: "https://firecrawl.dev",
+    hasFree: true,
+    notice: {
+      text: "Free tier: 500 fetches/month, no credit card needed.",
+      apiKeyUrl: "https://firecrawl.dev/app/api-keys",
+    },
+    serviceKinds: ["webFetch"],
+  },
+  "jina-reader": {
+    id: "jina-reader",
+    alias: "jr",
+    name: "Jina Reader",
+    icon: "menu_book",
+    color: "#0EA5E9",
+    textIcon: "JR",
+    website: "https://jina.ai/reader",
+    hasFree: true,
+    notice: {
+      text: "Free tier: 1M fetches/month.",
+      apiKeyUrl: "https://jina.ai/api-dashboard",
+    },
+    serviceKinds: ["webFetch"],
+  },
+  byteplus: {
+    id: "byteplus",
+    alias: "bpm",
+    name: "BytePlus ModelArk",
+    icon: "cloud",
+    color: "#2563EB",
+    textIcon: "BP",
+    website: "https://console.byteplus.com/ark",
+    hasFree: true,
+    notice: {
+      text: "Free credits for new accounts. Seed 2.0, Kimi K2 Thinking, GLM 4.7, GPT-OSS-120B available.",
+      apiKeyUrl: "https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey",
+    },
+    serviceKinds: ["llm"],
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -2353,6 +2415,7 @@ export const SEARCH_PROVIDERS = {
     website: "https://serper.dev",
     hasFree: true,
     authHint: "API key from serper.dev dashboard",
+    serviceKinds: ["webSearch"],
   },
   "brave-search": {
     id: "brave-search",
@@ -2375,6 +2438,7 @@ export const SEARCH_PROVIDERS = {
     website: "https://exa.ai",
     hasFree: true,
     authHint: "API key from dashboard.exa.ai",
+    serviceKinds: ["webSearch"],
   },
   "tavily-search": {
     id: "tavily-search",
@@ -2386,6 +2450,7 @@ export const SEARCH_PROVIDERS = {
     website: "https://tavily.com",
     hasFree: true,
     authHint: "API key from app.tavily.com (format: tvly-...)",
+    serviceKinds: ["webSearch", "webFetch"],
   },
   "google-pse-search": {
     id: "google-pse-search",

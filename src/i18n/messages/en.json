@@ -1507,7 +1507,24 @@
     "result": "Result",
     "imageDescription": "Generate images from text prompts using OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI and more.",
     "videoDescription": "Create videos with AnimateDiff, Stable Video Diffusion via ComfyUI or SD WebUI.",
-    "musicDescription": "Compose music using Stable Audio Open or MusicGen via ComfyUI."
+    "musicDescription": "Compose music using Stable Audio Open or MusicGen via ComfyUI.",
+    "kinds": {
+      "embedding": "Embedding",
+      "image": "Image",
+      "imageToText": "Image to Text",
+      "tts": "Text to Speech",
+      "stt": "Speech to Text",
+      "webSearch": "Web Search",
+      "webFetch": "Web Fetch",
+      "video": "Video",
+      "music": "Music"
+    },
+    "noProviders": "No providers configured for this kind yet.",
+    "addConnection": "Add Connection",
+    "backToProviders": "Back to Providers",
+    "connections": "{count} Connections",
+    "noConnections": "No connections yet — add one from the provider page.",
+    "loading": "Loading..."
   },
   "search": {
     "searchQuery": "Search Query",
@@ -3914,7 +3931,10 @@
     "providerDetailValidClaudeCredentialsFile": "Valid Claude credentials file",
     "providerDetailPathAutoDetectedAllOs": "Path is auto-detected per OS (Linux/Mac/Windows).",
     "providerDetailMyClaudeAccountPlaceholder": "My Claude account",
-    "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac)."
+    "providerDetailPathAutoDetected": "Path is auto-detected per OS (Linux/Mac).",
+    "webFetch": "Web Fetch",
+    "webFetchTooltip": "Providers that extract content from web URLs (HTML → Markdown, scrape, screenshot)",
+    "webFetchProvidersHeading": "Web Fetch Providers"
   },
   "settings": {
     "title": "Settings",

@@ -10,6 +10,19 @@
 
 import { z } from "zod";
 
+const SERVICE_KIND_VALUES = [
+  "llm",
+  "embedding",
+  "image",
+  "imageToText",
+  "tts",
+  "stt",
+  "webSearch",
+  "webFetch",
+  "video",
+  "music",
+] as const;
+
 export const ProviderSchema = z.object({
   id: z.string().min(1),
   alias: z.string().min(1).optional(),
@@ -27,6 +40,7 @@ export const ProviderSchema = z.object({
   freeNote: z.string().optional(),
   authHint: z.string().optional(),
   apiHint: z.string().optional(),
+  serviceKinds: z.array(z.enum(SERVICE_KIND_VALUES)).optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);
