@@ -594,7 +594,7 @@ const STATUS_ORDER: Record<"critical" | "alert" | "ok", number> = {
 };
 
 export function topQuotas(quotas: any[], n = 3): any[] {
-  return [...quotas]
+  return [...quotas.filter(Boolean)]
     .sort((a, b) => {
       const sa = STATUS_ORDER[quotaStatus(a)];
       const sb = STATUS_ORDER[quotaStatus(b)];
@@ -627,7 +627,7 @@ export function formatCountdown(resetAt: string | null | undefined): string | nu
     const m = Math.floor((diff % 3_600_000) / 60_000);
     if (h >= 24) {
       const d = Math.floor(h / 24);
-      return `${d}d ${h % 24}h`;
+      return `${d}d ${h % 24}h ${m}m`;
     }
     return `${h}h ${m}m`;
   } catch {

@@ -112,8 +112,21 @@ test("formatCountdown returns h+m for sub-day intervals", () => {
   assert.ok(out && out.includes("2h"));
 });
 
-test("formatCountdown returns d+h for multi-day intervals", () => {
-  const future = new Date(Date.now() + 2 * 86_400_000 + 5 * 3_600_000).toISOString();
+test("formatCountdown returns d+h+m for multi-day intervals", () => {
+  const future = new Date(Date.now() + 2 * 86_400_000 + 5 * 3_600_000 + 30 * 60_000).toISOString();
   const out = formatCountdown(future);
-  assert.ok(out && out.includes("2d"));
+  assert.match(out!, /^2d \d+h \d+m$/);
+});
+
+test("topQuotas filters out null/undefined entries", () => {
+  const q = [
+    null,
+    mkQuota({ name: "a", used: 10, total: 100 }),
+    undefined,
+    mkQuota({ name: "b", used: 95, total: 100 }),
+  ];
+  const top = topQuotas(q as any[], 3);
+  assert.equal(top.length, 2);
+  assert.equal(top[0].name, "b");
+  assert.equal(top[1].name, "a");
 });
