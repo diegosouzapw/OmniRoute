@@ -468,8 +468,7 @@ export function LlmChatCard({
           onKeyDown={handleKeyDown}
           rows={1}
           placeholder={`${t("send")}…`}
-          disabled={streaming}
-          className="flex-1 bg-transparent text-sm py-1.5 text-text-main placeholder:text-text-muted focus:outline-none resize-none disabled:opacity-50 max-h-32"
+          className="flex-1 bg-transparent text-sm py-1.5 text-text-main placeholder:text-text-muted focus:outline-none resize-none max-h-32"
         />
         {streaming ? (
           <button
