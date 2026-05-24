@@ -29,6 +29,19 @@ interface ProviderStats {
   codexFastActive?: boolean;
 }
 
+const KIND_LABEL: Record<string, string> = {
+  llm: "Chat",
+  embedding: "Embed",
+  image: "Image",
+  imageToText: "I→T",
+  tts: "TTS",
+  stt: "STT",
+  webSearch: "Search",
+  webFetch: "Fetch",
+  video: "Video",
+  music: "Music",
+};
+
 interface ProviderCardProps {
   providerId: string;
   provider: {
