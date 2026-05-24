@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 
 type TierCount = { configured: number; active: number };
 type Coverage = { tier1: TierCount; tier2: TierCount; tier3: TierCount };
 
-const FREE_IDS = new Set(Object.keys(FREE_PROVIDERS));
+const NOAUTH_IDS = new Set(Object.keys(NOAUTH_PROVIDERS));
 const OAUTH_IDS = new Set(Object.keys(OAUTH_PROVIDERS));
 
 function classifyConnection(providerId: string): "tier1" | "tier2" | "tier3" {
-  if (FREE_IDS.has(providerId)) return "tier3";
+  if (NOAUTH_IDS.has(providerId)) return "tier3";
   if (OAUTH_IDS.has(providerId)) return "tier1";
   return "tier2";
 }

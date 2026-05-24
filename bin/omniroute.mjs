@@ -16,6 +16,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { homedir, platform } from "node:os";
 import updateNotifier from "update-notifier";
 
+// Register tsx so dynamic imports of .ts source files (referenced as .js per
+// TypeScript conventions) resolve correctly. The build never emits .js for
+// src/lib/cli-helper/, so tsx handles the .ts → .js resolution at runtime.
+await import("tsx/esm");
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
