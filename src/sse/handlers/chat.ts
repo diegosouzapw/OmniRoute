@@ -472,6 +472,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           stepId?: string | null;
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
+          timeoutSignal?: AbortSignal;
         }
       ) =>
         handleSingleModelChat(
@@ -495,6 +496,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
               getComboCredentialCacheKey(m, target)
             ),
             cachedSettings: settings,
+            timeoutSignal: target?.timeoutSignal,
           },
           combo.strategy,
           true
@@ -624,6 +626,7 @@ async function handleSingleModelChat(
     skipUpstreamRetry?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
+    timeoutSignal?: AbortSignal;
   } = {},
   comboStrategy: string | null = null,
   isCombo: boolean = false
@@ -655,6 +658,7 @@ async function handleSingleModelChat(
           executionKey?: string | null;
           stepId?: string | null;
           failoverBeforeRetry?: boolean;
+          timeoutSignal?: AbortSignal;
         }
       ) =>
         handleSingleModelChat(
@@ -673,6 +677,7 @@ async function handleSingleModelChat(
             comboStepId: null,
             comboExecutionKey: null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            timeoutSignal: target?.timeoutSignal,
           },
           redirectCombo.strategy ?? "priority",
           false
@@ -930,6 +935,7 @@ async function handleSingleModelChat(
         providerProfile,
         cachedSettings: runtimeOptions.cachedSettings,
         skipUpstreamRetry: runtimeOptions.skipUpstreamRetry ?? false,
+        timeoutSignal: runtimeOptions.timeoutSignal,
       });
       if (telemetry) telemetry.endPhase();
 

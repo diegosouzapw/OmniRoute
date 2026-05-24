@@ -2134,10 +2134,20 @@ export async function handleComboChat({
             );
           }
         }
+        // Per-target timeout: prevent pending request leak when a model hangs
+        const PER_TARGET_TIMEOUT_MS = 60_000;
+        const timeoutController = new AbortController();
+        const timer = setTimeout(() => {
+          timeoutController.abort();
+          const modelShort = modelStr?.split("/").pop() || modelStr;
+          log.warn("COMBO", `[${modelShort}] Per-target timeout reached (${PER_TARGET_TIMEOUT_MS}ms)`);
+        }, PER_TARGET_TIMEOUT_MS);
         const result = await handleSingleModelWrapped(body, modelStr, {
           ...target,
           failoverBeforeRetry: config.failoverBeforeRetry,
+          timeoutSignal: timeoutController.signal,
         });
+        clearTimeout(timer);
 
         // Success — validate response quality before returning
         if (result.ok) {

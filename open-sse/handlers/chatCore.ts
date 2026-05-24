@@ -1347,6 +1347,7 @@ export async function handleChatCore({
   disableEmergencyFallback = false,
   cachedSettings = null,
   skipUpstreamRetry = false,
+  timeoutSignal,
 }) {
   let { provider, model, extendedContext } = modelInfo;
   // apiFormat is an optional custom-model marker injected by getModelInfo for
@@ -3242,6 +3243,17 @@ export async function handleChatCore({
     connectionId,
     clientResponseFormat,
   });
+
+  // Per-target timeout: clean up pending request when timeout fires
+  if (timeoutSignal) {
+    timeoutSignal.addEventListener(
+      "abort",
+      () => {
+        streamController.handleDisconnect("timeout");
+      },
+      { once: true }
+    );
+  }
 
   const dedupRequestBody = { ...translatedBody, model: `${provider}/${model}`, stream };
   const dedupEnabled = shouldDeduplicate(dedupRequestBody);
