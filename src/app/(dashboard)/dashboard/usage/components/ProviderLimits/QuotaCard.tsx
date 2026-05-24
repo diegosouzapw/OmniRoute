@@ -2,15 +2,8 @@
 
 import { useMemo } from "react";
 import Card from "@/shared/components/Card";
-import {
-  getNextResetSummary,
-  normalizePlanTier,
-  resolvePlanValue,
-  worstStatus,
-  type CardStatus,
-} from "./utils";
+import { normalizePlanTier, resolvePlanValue, worstStatus, type CardStatus } from "./utils";
 import QuotaCardHeader from "./parts/QuotaCardHeader";
-import QuotaCardBody from "./parts/QuotaCardBody";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
 
 const STATUS_BORDER: Record<CardStatus, string> = {
@@ -35,8 +28,6 @@ interface QuotaCardProps {
   refreshedAt?: string;
   emailsVisible: boolean;
   providerLabel: string;
-  expanded: boolean;
-  onToggle: () => void;
   onRefresh: () => void;
   onOpenCutoff: () => void;
 }
@@ -49,14 +40,11 @@ export default function QuotaCard({
   refreshedAt,
   emailsVisible,
   providerLabel,
-  expanded,
-  onToggle,
   onRefresh,
   onOpenCutoff,
 }: QuotaCardProps) {
   const quotas = quota?.quotas ?? [];
   const cardStatus = useMemo<CardStatus>(() => worstStatus(quotas), [quotas]);
-  const nextResetHint = useMemo(() => getNextResetSummary(quotas), [quotas]);
   const tierMeta = useMemo(
     () =>
       normalizePlanTier(
@@ -78,68 +66,32 @@ export default function QuotaCard({
   return (
     <Card
       padding="none"
-      className="flex flex-col overflow-hidden cursor-pointer transition-colors hover:bg-black/[0.01] dark:hover:bg-white/[0.01]"
+      className="flex flex-col overflow-hidden"
       style={{ borderLeft: `3px solid ${STATUS_BORDER[cardStatus]}` }}
     >
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-        aria-expanded={expanded}
-        className="text-left w-full cursor-pointer"
-      >
-        <QuotaCardHeader
-          connection={connection}
-          providerLabel={providerLabel}
-          cardStatus={cardStatus}
-          tierMeta={tierMeta}
-          resolvedPlan={resolvedPlan}
-          emailsVisible={emailsVisible}
-          hasStaleData={hasStaleData}
-          refreshing={loading}
-          onRefresh={onRefresh}
-          onOpenCutoff={onOpenCutoff}
-          hasCutoffOverrides={hasOverrides}
-        />
-        <QuotaCardBody
-          quotas={quotas}
-          loading={loading}
-          error={error}
-          message={quota?.message ?? null}
-        />
-        <div className="flex items-center justify-between px-3 pb-1.5 gap-2">
-          {nextResetHint ? (
-            <span className="text-[10px] text-text-muted tabular-nums flex items-center gap-1">
-              <span className="material-symbols-outlined text-[12px]">schedule</span>
-              reset in {nextResetHint}
-            </span>
-          ) : (
-            <span />
-          )}
-          <span className="material-symbols-outlined text-[14px] text-text-muted">
-            {expanded ? "expand_less" : "expand_more"}
-          </span>
-        </div>
-      </div>
-
-      {expanded && (
-        <QuotaCardExpanded
-          quotas={quotas}
-          loading={loading}
-          error={error}
-          refreshedAt={displayRefreshedAt}
-          hasStaleData={hasStaleData}
-          onRefresh={onRefresh}
-          onOpenCutoff={onOpenCutoff}
-          canEditCutoff={canEditCutoff}
-        />
-      )}
+      <QuotaCardHeader
+        connection={connection}
+        providerLabel={providerLabel}
+        cardStatus={cardStatus}
+        tierMeta={tierMeta}
+        resolvedPlan={resolvedPlan}
+        emailsVisible={emailsVisible}
+        hasStaleData={hasStaleData}
+        refreshing={loading}
+        onRefresh={onRefresh}
+        onOpenCutoff={onOpenCutoff}
+        hasCutoffOverrides={hasOverrides}
+      />
+      <QuotaCardExpanded
+        quotas={quotas}
+        loading={loading}
+        error={error}
+        refreshedAt={displayRefreshedAt}
+        hasStaleData={hasStaleData}
+        onRefresh={onRefresh}
+        onOpenCutoff={onOpenCutoff}
+        canEditCutoff={canEditCutoff}
+      />
     </Card>
   );
 }

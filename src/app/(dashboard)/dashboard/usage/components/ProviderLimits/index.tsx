@@ -20,7 +20,6 @@ import QuotaCutoffModal from "./QuotaCutoffModal";
 import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
-const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
@@ -189,16 +188,6 @@ export default function ProviderLimits() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
-
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
 
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
@@ -591,19 +580,6 @@ export default function ProviderLimits() {
     quotaData,
   ]);
 
-  const toggleRow = useCallback((connectionId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
-      try {
-        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
-      } catch {
-        /* localStorage may be unavailable; persistence is best-effort */
-      }
-      return next;
-    });
-  }, []);
-
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
     try {
@@ -837,10 +813,8 @@ export default function ProviderLimits() {
           loading={loading}
           errors={errors}
           lastRefreshedAt={lastRefreshedAt}
-          expandedRows={expandedRows}
           emailsVisible={emailsVisible}
           providerLabels={PROVIDER_LABEL}
-          onToggle={toggleRow}
           onRefresh={refreshProvider}
           onOpenCutoff={(conn) => {
             const windows = (quotaData[conn.id]?.quotas || []).filter(
