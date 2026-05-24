@@ -18,22 +18,6 @@ export type ServiceKind =
 
 export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated";
 
-/**
- * Service kind — declarative tag for what a provider can do beyond basic LLM chat.
- * Affects UI filtering only; does not influence request routing.
- */
-export type ServiceKind =
-  | "llm"
-  | "embedding"
-  | "image"
-  | "imageToText"
-  | "tts"
-  | "stt"
-  | "webSearch"
-  | "webFetch"
-  | "video"
-  | "music";
-
 export interface ProviderRiskNoticeFields {
   subscriptionRisk?: boolean;
   riskNoticeVariant?: RiskNoticeVariant;
