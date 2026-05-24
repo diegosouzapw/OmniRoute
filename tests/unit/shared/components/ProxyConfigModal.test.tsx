@@ -264,7 +264,10 @@ describe("ProxyConfigModal custom registry saves", () => {
       if (url.startsWith("/api/settings/proxies/assignments?") && url.includes("scope=provider")) {
         return {
           body: {
-            items: [{ proxyId: "custom-proxy-1", scope: "provider", scopeId: "claude" }],
+            items: [
+              { proxyId: "other-proxy", scope: "provider", scopeId: "other-provider" },
+              { proxyId: "custom-proxy-1", scope: "provider", scopeId: "claude" },
+            ],
             total: 1,
           },
         };
@@ -293,6 +296,9 @@ describe("ProxyConfigModal custom registry saves", () => {
     const { container } = await renderProxyConfigModal();
 
     await setInputValue(getInput(container, "hostPlaceholder"), "updated.local");
+    await clickButton(container, "authOptional");
+    await setInputValue(getInput(container, "usernamePlaceholder"), "***");
+    await setInputValue(getInput(container, "passwordPlaceholder"), "***");
     await clickButton(container, "save");
     await waitForCall(
       (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
@@ -310,6 +316,8 @@ describe("ProxyConfigModal custom registry saves", () => {
       host: "updated.local",
       source: "dashboard-custom",
     });
+    expect(updateCall?.body).not.toHaveProperty("username");
+    expect(updateCall?.body).not.toHaveProperty("password");
   });
 
   it("creates a new dashboard-custom proxy when current assignment is a reusable manual proxy", async () => {

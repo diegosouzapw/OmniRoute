@@ -185,7 +185,8 @@ export default function ProxyConfigModal({
         if (assignmentRes.ok) {
           const assignmentPayload = await assignmentRes.json();
           const items = Array.isArray(assignmentPayload?.items) ? assignmentPayload.items : [];
-          const target = items[0];
+          const target =
+            items.find((item) => isSameScopeAssignment(item, scope, scopeId)) || items[0];
           if (target?.proxyId) {
             setSelectedProxyId(target.proxyId);
             setHasOwnProxy(true);
@@ -329,10 +330,13 @@ export default function ProxyConfigModal({
           source: DASHBOARD_CUSTOM_PROXY_SOURCE,
           notes: DASHBOARD_CUSTOM_PROXY_NOTES,
         };
+        const createPayload: Record<string, unknown> = { ...proxy };
 
-        if (normalizedUsername || normalizedPassword) {
-          (proxy as Record<string, unknown>).username = normalizedUsername;
-          (proxy as Record<string, unknown>).password = normalizedPassword;
+        if (username !== "***" && normalizedUsername) {
+          createPayload.username = normalizedUsername;
+        }
+        if (password !== "***" && normalizedPassword) {
+          createPayload.password = normalizedPassword;
         }
 
         const existingAssignment = await fetchAssignmentForScope(scope, scopeId);
@@ -355,10 +359,10 @@ export default function ProxyConfigModal({
             id: safeExistingProxyId,
             ...proxy,
           };
-          if (normalizedUsername || isRedactedSecret(username)) {
+          if (username !== "***") {
             updatePayload.username = normalizedUsername;
           }
-          if (normalizedPassword || isRedactedSecret(password)) {
+          if (password !== "***") {
             updatePayload.password = normalizedPassword;
           }
           res = await fetch("/api/settings/proxies", {
@@ -370,7 +374,7 @@ export default function ProxyConfigModal({
           res = await fetch("/api/settings/proxies", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(proxy),
+            body: JSON.stringify(createPayload),
           });
         }
 
