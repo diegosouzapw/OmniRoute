@@ -317,6 +317,23 @@ interface LogEntry {
   status?: number;
   duration?: number;
   tokens?: { in?: number; out?: number };
+  account?: string;
+  apiKey?: string;
+  apiKeyName?: string;
+  apiKeyId?: string;
+}
+
+function formatRequester(log: LogEntry): { label: string; title: string } {
+  const name = log.apiKeyName || log.account;
+  const keyHint = log.apiKey || log.apiKeyId;
+  const masked =
+    typeof keyHint === "string" && keyHint.length > 8
+      ? `${keyHint.slice(0, 4)}…${keyHint.slice(-4)}`
+      : keyHint || "";
+  if (name && masked) return { label: name, title: `${name} (${masked})` };
+  if (name) return { label: name, title: name };
+  if (masked) return { label: masked, title: keyHint || masked };
+  return { label: "—", title: "unknown requester" };
 }
 
 type LogsState =
@@ -426,6 +443,7 @@ function LogsTab({ providerId }: { providerId: string }) {
             : typeof log.status === "number"
               ? "text-red-500"
               : "text-text-muted";
+          const requester = formatRequester(log);
           return (
             <li key={key}>
               <button
@@ -439,12 +457,20 @@ function LogsTab({ providerId }: { providerId: string }) {
                 <span className="text-[11px] text-text-muted shrink-0 w-20 font-mono">
                   {formatRelativeTs(log.timestamp)}
                 </span>
-                <span
-                  className="flex-1 min-w-0 text-xs truncate text-text-main"
-                  title={log.model || log.requestedModel}
-                >
-                  {log.model || log.requestedModel || "—"}
-                </span>
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <span
+                    className="text-xs truncate text-text-main"
+                    title={log.model || log.requestedModel}
+                  >
+                    {log.model || log.requestedModel || "—"}
+                  </span>
+                  <span
+                    className="text-[10px] text-text-muted truncate font-mono"
+                    title={requester.title}
+                  >
+                    {requester.label}
+                  </span>
+                </div>
                 <span className="text-[11px] text-text-muted shrink-0 font-mono w-14 text-right">
                   {formatDurationMs(log.duration)}
                 </span>
@@ -454,7 +480,7 @@ function LogsTab({ providerId }: { providerId: string }) {
                   chevron_right
                 </span>
               </button>
-              {isExpanded && <LogDetail logId={key} />}
+              {isExpanded && <LogDetail log={log} />}
             </li>
           );
         })}
@@ -474,76 +500,37 @@ function LogsTab({ providerId }: { providerId: string }) {
   );
 }
 
-type LogDetailState =
-  | { status: "loading" }
-  | { status: "ready"; data: Record<string, unknown> }
-  | { status: "error"; message: string };
-
-function LogDetail({ logId }: { logId: string }) {
-  const [detail, setDetail] = useState<LogDetailState>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    const ctrl = new AbortController();
-    fetch(`/api/usage/call-logs/${encodeURIComponent(logId)}`, { signal: ctrl.signal })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (!cancelled) setDetail({ status: "ready", data });
-      })
-      .catch((err: { name?: string; message?: string }) => {
-        if (cancelled || err?.name === "AbortError") return;
-        setDetail({ status: "error", message: err?.message || "Failed to load detail" });
-      });
-    return () => {
-      cancelled = true;
-      ctrl.abort();
-    };
-  }, [logId]);
-
-  if (detail.status === "loading") {
-    return (
-      <div className="px-4 py-3 text-[11px] text-text-muted bg-bg-subtle/40">Loading detail…</div>
-    );
-  }
-  if (detail.status === "error") {
-    return (
-      <div className="px-4 py-3 text-[11px] text-red-500 bg-bg-subtle/40">{detail.message}</div>
-    );
-  }
-  const d = detail.data;
-  const request = d.request ?? d.requestBody;
-  const response = d.response ?? d.responseBody;
+function LogDetail({ log }: { log: LogEntry }) {
+  const requester = formatRequester(log);
+  const tokensIn = log.tokens?.in;
+  const tokensOut = log.tokens?.out;
+  const rows: { label: string; value: string; mono?: boolean }[] = [
+    { label: "Timestamp", value: new Date(log.timestamp).toLocaleString(), mono: true },
+    { label: "Status", value: String(log.status ?? "—") },
+    { label: "Duration", value: formatDurationMs(log.duration) },
+    { label: "Model", value: log.model || "—", mono: true },
+    { label: "Requested model", value: log.requestedModel || "—", mono: true },
+    { label: "Provider", value: log.provider || "—", mono: true },
+    { label: "Requester", value: requester.title, mono: true },
+    {
+      label: "Tokens",
+      value:
+        tokensIn != null || tokensOut != null ? `in ${tokensIn ?? 0} · out ${tokensOut ?? 0}` : "—",
+    },
+  ];
   return (
-    <div className="px-4 py-3 bg-bg-subtle/40 border-t border-black/5 dark:border-white/5 space-y-2 text-[11px]">
-      {request != null && (
-        <details>
-          <summary className="cursor-pointer text-text-muted font-medium uppercase tracking-wider text-[10px]">
-            Request
-          </summary>
-          <pre className="mt-1 max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
-            {typeof request === "string" ? request : JSON.stringify(request, null, 2)}
-          </pre>
-        </details>
-      )}
-      {response != null && (
-        <details>
-          <summary className="cursor-pointer text-text-muted font-medium uppercase tracking-wider text-[10px]">
-            Response
-          </summary>
-          <pre className="mt-1 max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
-            {typeof response === "string" ? response : JSON.stringify(response, null, 2)}
-          </pre>
-        </details>
-      )}
-      {request == null && response == null && (
-        <pre className="max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
-          {JSON.stringify(d, null, 2)}
-        </pre>
-      )}
-    </div>
+    <dl className="px-4 py-3 bg-bg-subtle/40 border-t border-black/5 dark:border-white/5 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+      {rows.map((row) => (
+        <div key={row.label} className="contents">
+          <dt className="text-text-muted uppercase tracking-wider text-[10px] font-medium">
+            {row.label}
+          </dt>
+          <dd className={`text-text-main min-w-0 break-words ${row.mono ? "font-mono" : ""}`}>
+            {row.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
