@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, Button, Input, Toggle } from "@/shared/components";
+import { Card, Button, Input, Toggle, Modal } from "@/shared/components";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
 import IPFilterSection from "./IPFilterSection";
 import SessionInfoCard from "./SessionInfoCard";
@@ -14,7 +14,15 @@ export default function SecurityTab() {
   const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [passStatus, setPassStatus] = useState({ type: "", message: "" });
   const [passLoading, setPassLoading] = useState(false);
+
+  const [requireLoginModalOpen, setRequireLoginModalOpen] = useState(false);
+  const [pendingRequireLoginVal, setPendingRequireLoginVal] = useState<boolean | null>(null);
+  const [requireLoginPassword, setRequireLoginPassword] = useState("");
+  const [requireLoginError, setRequireLoginError] = useState("");
+  const [requireLoginLoading, setRequireLoginLoading] = useState(false);
+
   const t = useTranslations("settings");
+  const tc = useTranslations("common");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -26,7 +34,15 @@ export default function SecurityTab() {
       .catch(() => setLoading(false));
   }, []);
 
-  const updateRequireLogin = async (requireLogin) => {
+  const updateRequireLogin = async (requireLogin: boolean) => {
+    if (settings.hasPassword) {
+      setPendingRequireLoginVal(requireLogin);
+      setRequireLoginPassword("");
+      setRequireLoginError("");
+      setRequireLoginModalOpen(true);
+      return;
+    }
+
     try {
       const res = await fetch("/api/settings", {
         method: "PATCH",
@@ -34,10 +50,42 @@ export default function SecurityTab() {
         body: JSON.stringify({ requireLogin }),
       });
       if (res.ok) {
-        setSettings((prev) => ({ ...prev, requireLogin }));
+        setSettings((prev: any) => ({ ...prev, requireLogin }));
       }
     } catch (err) {
       console.error("Failed to update require login:", err);
+    }
+  };
+
+  const confirmRequireLoginUpdate = async () => {
+    if (pendingRequireLoginVal === null) return;
+    setRequireLoginLoading(true);
+    setRequireLoginError("");
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requireLogin: pendingRequireLoginVal,
+          currentPassword: requireLoginPassword,
+        }),
+      });
+
+      if (res.ok) {
+        setSettings((prev: any) => ({ ...prev, requireLogin: pendingRequireLoginVal }));
+        setRequireLoginModalOpen(false);
+      } else {
+        const data = await res.json();
+        setRequireLoginError(
+          data?.error?.message || t("errorOccurred", { fallback: "An error occurred" })
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update require login:", err);
+      setRequireLoginError(t("errorOccurred", { fallback: "An error occurred" }));
+    } finally {
+      setRequireLoginLoading(false);
     }
   };
 
@@ -87,6 +135,7 @@ export default function SecurityTab() {
       if (res.ok) {
         setPassStatus({ type: "success", message: t("passwordUpdated") });
         setPasswords({ current: "", new: "", confirm: "" });
+        setSettings((prev: any) => ({ ...prev, hasPassword: true }));
       } else {
         setPassStatus({ type: "error", message: data.error || t("failedUpdatePassword") });
       }
@@ -122,6 +171,49 @@ export default function SecurityTab() {
               disabled={loading}
             />
           </div>
+
+          <Modal
+            isOpen={requireLoginModalOpen}
+            onClose={() => !requireLoginLoading && setRequireLoginModalOpen(false)}
+            title={t("currentPassword")}
+          >
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-text-muted">
+                {t("enterCurrentPassword", { fallback: "Enter your current password to continue" })}
+              </p>
+              <Input
+                label={t("currentPassword")}
+                type="password"
+                placeholder={t("currentPassword")}
+                value={requireLoginPassword}
+                onChange={(e) => setRequireLoginPassword(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && requireLoginPassword && confirmRequireLoginUpdate()
+                }
+                autoFocus
+                disabled={requireLoginLoading}
+              />
+              {requireLoginError && <p className="text-sm text-red-500">{requireLoginError}</p>}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setRequireLoginModalOpen(false)}
+                  disabled={requireLoginLoading}
+                >
+                  {tc("cancel")}
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={confirmRequireLoginUpdate}
+                  loading={requireLoginLoading}
+                  disabled={!requireLoginPassword}
+                >
+                  {t("confirm", { fallback: "Confirm" })}
+                </Button>
+              </div>
+            </div>
+          </Modal>
+
           {settings.requireLogin === true && (
             <form
               onSubmit={handlePasswordChange}

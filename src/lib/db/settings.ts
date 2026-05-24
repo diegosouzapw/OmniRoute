@@ -781,21 +781,19 @@ export async function getCacheMetrics() {
       cacheCreationTokens: number | null;
     }>;
 
-    // Aggregate by strategy
-    // Since combo_strategy isn't tracked in usage_history yet, we use 'direct' for all requests
-    // TODO: Add combo_strategy column to usage_history for proper strategy tracking
+    // Aggregate by combo strategy (direct requests stored as 'direct')
     const byStrategyRows = db
       .prepare(
         `
       SELECT
-        'direct' as strategy,
+        COALESCE(combo_strategy, 'direct') as strategy,
         COUNT(*) as requests,
         SUM(tokens_input) as inputTokens,
         SUM(tokens_cache_read) as cachedTokens,
         SUM(tokens_cache_creation) as cacheCreationTokens
       FROM usage_history
       WHERE (tokens_cache_read > 0 OR tokens_cache_creation > 0)
-      GROUP BY 'direct'
+      GROUP BY combo_strategy
     `
       )
       .all() as Array<{

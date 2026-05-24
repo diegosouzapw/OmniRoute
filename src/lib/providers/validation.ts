@@ -3234,6 +3234,53 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+async function validateAdaptaWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = typeof apiKey === "string" ? apiKey.trim() : "";
+    if (!raw)
+      return { valid: false, error: "Paste your __client cookie from .clerk.agent.adapta.one" };
+    const eqIdx = raw.indexOf("=");
+    const clientJwt = eqIdx > 0 && !raw.startsWith("eyJ") ? raw.slice(eqIdx + 1).trim() : raw;
+
+    const response = await validationRead("https://clerk.agent.adapta.one/v1/client", {
+      headers: applyCustomUserAgent(
+        {
+          Cookie: `__client=${clientJwt}`,
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          Origin: "https://agent.adapta.one",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired __client cookie — re-paste from .clerk.agent.adapta.one",
+      };
+    }
+
+    if (!response.ok) {
+      return { valid: false, error: `Adapta Clerk returned HTTP ${response.status}` };
+    }
+
+    const body = await response.json().catch(() => null);
+    const sessions: Array<{ id: string; status: string }> = body?.response?.sessions ?? [];
+    const hasActive = sessions.some((s) => s.status === "active");
+    if (!hasActive) {
+      return {
+        valid: false,
+        error: "No active Adapta session — your __client cookie may be expired",
+      };
+    }
+
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 /** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
 async function validateJulesProvider({ apiKey }: { apiKey: string }) {
   try {
@@ -3362,6 +3409,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
+    "adapta-web": validateAdaptaWebProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
     "voyage-ai": ({ apiKey, providerSpecificData }: any) => {
