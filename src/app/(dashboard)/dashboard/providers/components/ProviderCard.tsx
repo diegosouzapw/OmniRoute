@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-import { Badge, Card, Toggle } from "@/shared/components";
+import { Badge, Card, Modal, Toggle } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   isAnthropicCompatibleProvider,
@@ -193,13 +193,11 @@ export default function ProviderCard({
   };
 
   return (
-    <div className={`flex flex-col h-full ${testExpanded ? "col-span-full" : ""}`}>
+    <div className="flex flex-col h-full">
       <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
         <Card
           padding="xs"
-          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
-            testExpanded ? "rounded-b-none border-b-0" : ""
-          } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
           <div className="flex flex-col gap-2 h-full">
             {/* Row 1 — Identity: icon + full name + risk/category indicators */}
@@ -248,50 +246,44 @@ export default function ProviderCard({
               </div>
             </div>
 
-            {/* Row 2 — Capabilities: service-kind chips + compatibility/deprecated badges */}
-            {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
-              provider.deprecated ||
-              isCompatible ||
-              isCcCompatible ||
-              isAnthropicCompatible) && (
-              <div className="flex flex-wrap items-center gap-1">
-                {provider.serviceKinds?.map((k) => (
-                  <span
-                    key={k}
-                    className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
-                  >
-                    {KIND_LABEL[k] ?? k}
+            {/* Row 2 — Capabilities: service-kind chips + compatibility/deprecated badges. Always rendered with min-h to equalize card heights across the grid. */}
+            <div className="flex flex-wrap items-center gap-1 min-h-[22px]">
+              {provider.serviceKinds?.map((k) => (
+                <span
+                  key={k}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                >
+                  {KIND_LABEL[k] ?? k}
+                </span>
+              ))}
+              {provider.deprecated && (
+                <Badge
+                  variant="default"
+                  size="sm"
+                  title={provider.deprecationReason || t("deprecatedProvider")}
+                >
+                  <span className="flex items-center gap-0.5">
+                    <span className="material-symbols-outlined text-[10px]">block</span>
+                    {t("deprecated")}
                   </span>
-                ))}
-                {provider.deprecated && (
-                  <Badge
-                    variant="default"
-                    size="sm"
-                    title={provider.deprecationReason || t("deprecatedProvider")}
-                  >
-                    <span className="flex items-center gap-0.5">
-                      <span className="material-symbols-outlined text-[10px]">block</span>
-                      {t("deprecated")}
-                    </span>
-                  </Badge>
-                )}
-                {isCompatible && (
-                  <Badge variant="default" size="sm">
-                    {provider.apiType === "responses" ? t("responses") : t("chat")}
-                  </Badge>
-                )}
-                {isCcCompatible && (
-                  <Badge variant="default" size="sm">
-                    CC
-                  </Badge>
-                )}
-                {isAnthropicCompatible && (
-                  <Badge variant="default" size="sm">
-                    {t("messages")}
-                  </Badge>
-                )}
-              </div>
-            )}
+                </Badge>
+              )}
+              {isCompatible && (
+                <Badge variant="default" size="sm">
+                  {provider.apiType === "responses" ? t("responses") : t("chat")}
+                </Badge>
+              )}
+              {isCcCompatible && (
+                <Badge variant="default" size="sm">
+                  CC
+                </Badge>
+              )}
+              {isAnthropicCompatible && (
+                <Badge variant="default" size="sm">
+                  {t("messages")}
+                </Badge>
+              )}
+            </div>
 
             {/* Row 3 — Footer: connection status + controls (toggle, test) */}
             <div className="flex items-center justify-between gap-2 mt-auto pt-1.5 border-t border-border/40">
@@ -344,11 +336,11 @@ export default function ProviderCard({
                   <button
                     type="button"
                     onClick={handleTestClick}
-                    title={testExpanded ? tp("collapseTest") : tp("expandTest")}
+                    title={tp("expandTest")}
                     className="inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-[11px] text-text-muted hover:text-text-primary hover:border-primary/30 transition-colors"
                   >
                     <span className="material-symbols-outlined text-[11px] leading-none">
-                      {testExpanded ? "expand_less" : "play_arrow"}
+                      play_arrow
                     </span>
                     {tp("testLabel")}
                   </button>
@@ -363,10 +355,15 @@ export default function ProviderCard({
           </div>
         </Card>
       </Link>
-      {testExpanded && isLlmProvider && (
-        <div className="rounded-b-lg border border-t-0 border-border bg-bg-card p-3">
+      {isLlmProvider && (
+        <Modal
+          isOpen={testExpanded}
+          onClose={() => setTestExpanded(false)}
+          title={`${tp("testLabel")} — ${provider.name}`}
+          size="lg"
+        >
           <LlmChatCard providerId={providerId} />
-        </div>
+        </Modal>
       )}
     </div>
   );
