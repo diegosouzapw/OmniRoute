@@ -22,6 +22,10 @@
 - **feat(webfetch):** category support with dedicated media providers page and executors for Firecrawl, Jina Reader, and Tavily. ([#2645](https://github.com/diegosouzapw/OmniRoute/pull/2645) — thanks @diegosouzapw)
 - **feat(adapta):** integrate Adapta Org (`adapta-web`) provider with automatic Clerk authentication refresh and custom onboarding tutorial modal. ([#2643](https://github.com/diegosouzapw/OmniRoute/pull/2643) — thanks @df4p)
 - **feat(i18n):** complete translations for Simplified Chinese — translates 1220 missing keys bringing UI coverage to 98.8% with 0 placeholders. ([#2655](https://github.com/diegosouzapw/OmniRoute/pull/2655) — thanks @L-aros)
+- **feat(dashboard):** add Cmd+K / Ctrl+K command palette for sidebar navigation and a slideover panel for LLM provider testing UI. ([#2656](https://github.com/diegosouzapw/OmniRoute/pull/2656) — thanks @mrmm)
+- **feat(i18n):** finish Simplified Chinese (zh-CN) UI coverage with 377 translated entries. ([#2659](https://github.com/diegosouzapw/OmniRoute/pull/2659) — thanks @L-aros)
+- **feat(dashboard):** chat-first test slide-over layout — consolidates header controls (Model/Key selects, Clear button) into a unified toolbar, maximizes vertical conversation space, integrates live tailing of provider logs in Logs tab, and locks composer focus for keyboard-only convenience. ([#2660](https://github.com/diegosouzapw/OmniRoute/pull/2660) — thanks @mrmm)
+- **feat(cli):** desktop updates, autostart, and headless CLI modes — integrates native auto-updater checks, login autostart (Linux .desktop, macOS/Windows login items), and a background headless server CLI daemon mode (`--headless` or `OMNIROUTE_HEADLESS=true`) into the Electron app wrapper. ([#2662](https://github.com/diegosouzapw/OmniRoute/pull/2662) — thanks @benzntech)
 
 ### 🔧 Bug Fixes
 
@@ -42,11 +46,15 @@
 - **fix(rtk):** prevent false positives in RTK compression by skipping content-based filter matching for non-shell tool results (e.g. read_file, grep_search). ([#2642](https://github.com/diegosouzapw/OmniRoute/pull/2642) — thanks @HALDRO)
 - **fix(translator):** enable Claude extended thinking for Copilot Responses-API requests — handles reasoning budget and translations for Copilot. ([#2647](https://github.com/diegosouzapw/OmniRoute/pull/2647) — thanks @ivan-mezentsev)
 - **fix(tests):** remove duplicate assertion in schema coercion & fix(cli): ignore system vars in env check. (thanks @diegosouzapw)
+- **fix(combo):** resolve pending request leaks on unresponsive combo targets — implements a default 60-second per-target timeout during combo routing loops to abort hanging upstream requests and release capacity limits. ([#2663](https://github.com/diegosouzapw/OmniRoute/pull/2663) — thanks @Chewji9875)
+- **fix(proxy):** save custom dashboard proxies directly in SQLite registry — writes new provider/account/global/combo custom proxies directly to the modern `proxy_registry` database and assigns them via `proxy_assignments` instead of creating duplicate configurations. ([#2661](https://github.com/diegosouzapw/OmniRoute/pull/2661) — thanks @terence71-glitch)
+- **fix(settings):** expand effortLevel enum to support xhigh and max reasoning efforts — adds `xhigh` and `max` levels to the updateThinkingBudgetSchema to resolve validation failures that silently discarded top-effort request payloads. ([#2666](https://github.com/diegosouzapw/OmniRoute/pull/2666) — thanks @mrmm)
 
 ### 📝 Maintenance
 
 - **chore(config):** ignore additional agent workflow command files (`.agents/commands/`). (thanks @diegosouzapw)
 - **chore(config):** ignore `memory-bank` and Cursor agent rules from tracking. (thanks @ovehbe)
+- **chore(ci):** publish @omniroute/opencode-plugin to npm — adds a parallel build, test, and publish job to the npm release workflow for automated package deployment. ([#2666](https://github.com/diegosouzapw/OmniRoute/pull/2666) — thanks @mrmm)
 
 ---
 

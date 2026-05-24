@@ -1134,7 +1134,7 @@ export const updateThinkingBudgetSchema = z
   .object({
     mode: z.enum(["passthrough", "auto", "custom", "adaptive"]).optional(),
     customBudget: z.coerce.number().int().min(0).max(131072).optional(),
-    effortLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+    effortLevel: z.enum(["none", "low", "medium", "high", "xhigh", "max"]).optional(),
     baseBudget: z.coerce.number().int().min(0).max(131072).optional(),
     complexityMultiplier: z.coerce.number().min(0).optional(),
   })
@@ -1334,6 +1334,7 @@ export const createProxyRegistrySchema = z
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
+    source: z.enum(["manual", "oneproxy", "dashboard-custom"]).optional(),
   })
   .strict();
 

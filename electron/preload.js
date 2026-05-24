@@ -22,6 +22,9 @@ const VALID_CHANNELS = {
     "download-update",
     "install-update",
     "get-app-version",
+    "get-autostart-status",
+    "enable-autostart",
+    "disable-autostart",
   ],
   send: ["window-minimize", "window-maximize", "window-close"],
   receive: ["server-status", "port-changed", "update-status"],
@@ -63,6 +66,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   checkForUpdates: () => safeInvoke("check-for-updates"),
   downloadUpdate: () => safeInvoke("download-update"),
   installUpdate: () => safeInvoke("install-update"),
+
+  // ── Autostart ────────────────────────────────────────────
+  getAutostartStatus: () => safeInvoke("get-autostart-status"),
+  enableAutostart: () => safeInvoke("enable-autostart"),
+  disableAutostart: () => safeInvoke("disable-autostart"),
 
   // ── Send (fire-and-forget) ───────────────────────────────
   minimizeWindow: () => safeSend("window-minimize"),

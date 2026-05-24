@@ -74,6 +74,8 @@ const IGNORE_FROM_CODE = new Set([
   "OMNIROUTE_DISABLE_CLI_TOKEN",
   // update-notifier opt-out for the CLI binary.
   "OMNIROUTE_NO_UPDATE_NOTIFIER",
+  // Headless CLI execution flag for Electron.
+  "OMNIROUTE_HEADLESS",
   // Platform / OS detection vars read by CLI environment helper (bin/cli/utils/environment.mjs).
   // These are external signals set by the host OS or cloud provider — not OmniRoute config.
   "CODESPACES",
