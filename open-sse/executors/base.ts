@@ -186,6 +186,11 @@ export function mergeAbortSignals(primary: AbortSignal, secondary: AbortSignal):
   return controller.signal;
 }
 
+function hasActiveClaudeThinking(body: Record<string, unknown>): boolean {
+  const thinking = body.thinking as Record<string, unknown> | undefined;
+  return thinking?.type === "enabled" || thinking?.type === "adaptive";
+}
+
 /**
  * Sanitize reasoning_effort for providers that don't accept all values.
  *
@@ -732,7 +737,7 @@ export class BaseExecutor {
           // Real CLI always pairs context_management with thinking. Mirror
           // that invariant so long sessions don't accumulate thinking blocks
           // toward the context cap.
-          if (tb.thinking && !tb.context_management) {
+          if (hasActiveClaudeThinking(tb) && !tb.context_management) {
             tb.context_management = {
               edits: [{ type: "clear_thinking_20251015", keep: "all" }],
             };

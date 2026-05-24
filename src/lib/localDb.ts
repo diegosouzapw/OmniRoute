@@ -479,4 +479,11 @@ export {
   getRelayUsage,
   getRelayLogs,
 } from "./db/relayProxies";
-export type { RelayToken, RelayTokenRow, RelayLogRow, CreateRelayTokenInput, RelayTokenWithSecret } from "./db/relayProxies";
+
+export type {
+  RelayToken,
+  RelayTokenRow,
+  RelayLogRow,
+  CreateRelayTokenInput,
+  RelayTokenWithSecret,
+} from "./db/relayProxies";

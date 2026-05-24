@@ -17,8 +17,8 @@ export interface ProviderEntry<TProvider = Record<string, unknown>> {
   providerId: string;
   provider: TProvider;
   stats: ProviderStatsSnapshot;
-  displayAuthType: "oauth" | "apikey" | "compatible";
-  toggleAuthType: "oauth" | "free" | "apikey";
+  displayAuthType: "oauth" | "apikey" | "compatible" | "no-auth";
+  toggleAuthType: "oauth" | "free" | "apikey" | "no-auth";
 }
 
 export function shouldApplyConfiguredOnlyFilter(

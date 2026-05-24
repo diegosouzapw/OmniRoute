@@ -1,0 +1,16 @@
+{
+  "title": "Guides",
+  "pages": [
+    "SETUP_GUIDE",
+    "USER_GUIDE",
+    "DOCKER_GUIDE",
+    "ELECTRON_GUIDE",
+    "FEATURES",
+    "I18N",
+    "KIRO_SETUP",
+    "PWA_GUIDE",
+    "TERMUX_GUIDE",
+    "TROUBLESHOOTING",
+    "UNINSTALL"
+  ]
+}

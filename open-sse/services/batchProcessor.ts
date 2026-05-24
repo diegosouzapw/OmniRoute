@@ -19,6 +19,12 @@ let isProcessing: boolean = false;
 let pollInterval: NodeJS.Timeout | null = null;
 const activeProcesses = new Set<Promise<void>>();
 const DEFAULT_BATCH_WINDOW_SECONDS: number = 24 * 60 * 60;
+const BATCH_RETRY_DURATION_MS: number =
+  parseInt(process.env.BATCH_RETRY_DURATION_MS ?? "", 10) || 24 * 60 * 60 * 1_000;
+const BATCH_BACKOFF_BASE_MS: number =
+  parseInt(process.env.BATCH_BACKOFF_BASE_MS ?? "", 10) || 5_000;
+const BATCH_BACKOFF_MAX_MS: number =
+  parseInt(process.env.BATCH_BACKOFF_MAX_MS ?? "", 10) || 3_600_000;
 
 interface BatchRequestItem {
   body: Record<string, unknown>;
@@ -366,8 +372,7 @@ async function resolveApiKey(batch: BatchRecord): Promise<any> {
 async function processSingleItemWithRetry(item: BatchRequestItem, apiKey: string) {
   // Time-based retry limit: individual batch items can retry for up to 24 hours.
   // This accommodates large batches against heavily rate-limited providers.
-  // TODO: expose as configurable parameter
-  const MAX_RETRY_DURATION_MS = 24 * 60 * 60 * 1_000; // 24h
+  const MAX_RETRY_DURATION_MS = BATCH_RETRY_DURATION_MS;
   const maxRetries = 200; // safety ceiling — time limit should kick in first
   const retryStartedAt = Date.now();
 
@@ -430,9 +435,8 @@ export function buildRequestBody(item: BatchRequestItem) {
 }
 
 function getBackoffDelayMs(attempt: number) {
-  // TODO: expose in config
-  const baseMs = 5_000;
-  const maxMs = 3_600_000;
+  const baseMs = BATCH_BACKOFF_BASE_MS;
+  const maxMs = BATCH_BACKOFF_MAX_MS;
 
   // exponential: 2^attempt * base
   const exp = Math.min(maxMs, baseMs * 2 ** attempt);

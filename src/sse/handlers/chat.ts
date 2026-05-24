@@ -31,6 +31,7 @@ import {
 import type { AutoVariant } from "@omniroute/open-sse/services/autoCombo/autoPrefix.ts";
 import * as log from "../utils/logger";
 import { checkAndRefreshToken } from "../services/tokenRefresh";
+import { createHookContext, runHooks, initPreRequestRegistry } from "@/lib/middleware/registry";
 import { deleteHandoff, getHandoff } from "@/lib/db/contextHandoffs";
 import {
   deleteSessionAccountAffinity,
@@ -294,6 +295,34 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
       }
       registerKeySession(apiKeyInfo.id, sessionId);
     }
+  }
+
+  // T09 — Pre-request Middleware Hooks
+  // Execute user-defined hooks BEFORE task-aware routing and combo selection
+  initPreRequestRegistry();
+  const hookContext = createHookContext({
+    body: body as Record<string, unknown>,
+    headers: Object.fromEntries(request?.headers?.entries() || []) as Record<
+      string,
+      string | string[] | undefined
+    >,
+    model: modelStr,
+    combo: undefined,
+    apiKeyInfo: apiKeyInfo as Record<string, unknown> | undefined,
+    log,
+  });
+
+  const { context: hookCtx, response: hookResponse } = await runHooks(hookContext);
+
+  // Apply hook mutations
+  body = hookCtx.body as any;
+  if (hookCtx.model && hookCtx.model !== modelStr) {
+    modelStr = hookCtx.model;
+  }
+
+  // Short-circuit if a hook returned a direct response
+  if (hookResponse) {
+    return errorResponse(hookResponse.status, hookResponse.body as any);
   }
 
   // T05 — Task-Aware Smart Routing

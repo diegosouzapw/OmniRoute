@@ -13,6 +13,7 @@ const {
   DEFAULT_OBFUSCATE_WORDS,
   OPENWEBUI_PARAGRAPH_ANCHORS,
   OPENWEBUI_IDENTITY_PREFIXES,
+  PI_PARAGRAPH_ANCHORS,
   PROVIDER_CLAUDE,
   PROVIDER_CC_BRIDGE,
 } = await import("../../open-sse/services/systemTransforms.ts");
@@ -57,6 +58,10 @@ test("defaults: OpenWebUI anchors include canonical URLs", () => {
   assert.ok(OPENWEBUI_PARAGRAPH_ANCHORS.includes("github.com/open-webui/open-webui"));
   assert.ok(OPENWEBUI_PARAGRAPH_ANCHORS.includes("openwebui.com"));
   assert.ok(OPENWEBUI_IDENTITY_PREFIXES.includes("You are Open WebUI"));
+});
+
+test("defaults: Pi anchors include package documentation paths", () => {
+  assert.ok(PI_PARAGRAPH_ANCHORS.includes("@earendil-works/pi-coding-agent"));
 });
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -216,6 +221,29 @@ test("applySystemTransformPipeline: claude provider runs its default pipeline", 
   assert.ok(out.includes(`o${ZWJ}pencode`));
   // No billing header injected (native does that)
   assert.ok(!result.appliedOpKinds.includes("inject_billing_header"));
+});
+
+test("applySystemTransformPipeline: claude provider drops Pi documentation paragraph", () => {
+  const body = {
+    system: [
+      {
+        type: "text",
+        text: [
+          "You are an expert coding assistant operating inside pi, a coding agent harness.",
+          "Guidelines:\n- Be concise.",
+          "Pi documentation (read only when the user asks about pi itself):\n- Main documentation: /Users/test/.nvm/versions/node/v24.11.1/lib/node_modules/@earendil-works/pi-coding-agent/README.md",
+        ].join("\n\n"),
+      },
+    ],
+    messages: [{ role: "user", content: "hi" }],
+  };
+  const result = applySystemTransformPipeline(PROVIDER_CLAUDE, body);
+  const out = (body.system as Array<{ text: string }>)[0].text;
+  assert.ok(result.appliedOpKinds.includes("drop_paragraph_if_contains"));
+  assert.ok(out.includes("expert coding assistant operating inside pi"));
+  assert.ok(out.includes("Guidelines:"));
+  assert.ok(!out.includes("@earendil-works/pi-coding-agent"));
+  assert.ok(!out.includes("Pi documentation"));
 });
 
 test("applySystemTransformPipeline: anthropic-compatible-cc-* falls back to PROVIDER_CC_BRIDGE config", () => {
@@ -415,6 +443,9 @@ const UI_DEFAULTS_SNAPSHOT = {
             "github.com/open-webui/open-webui",
             "openwebui.com",
             "docs.openwebui.com",
+            "@earendil-works/pi-coding-agent",
+            "/.pi/",
+            "Pi documentation (read only when the user asks about pi itself",
           ],
         },
         {

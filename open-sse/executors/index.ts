@@ -28,6 +28,7 @@ import { WindsurfExecutor } from "./windsurf.ts";
 import { DevinCliExecutor } from "./devin-cli.ts";
 import { DeepSeekWebExecutor } from "./deepseek-web.ts";
 import { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+import { AdaptaWebExecutor } from "./adapta-web.ts";
 import { ClaudeWebWithAutoRefresh } from "./claude-web-with-auto-refresh.ts";
 import { CopilotWebExecutor } from "./copilot-web.ts";
 import { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
@@ -85,6 +86,8 @@ const executors = {
   devin: new DevinCliExecutor(), // Alias
   "deepseek-web": new DeepSeekWebWithAutoRefreshExecutor(),
   "ds-web": new DeepSeekWebWithAutoRefreshExecutor(), // Alias
+  "adapta-web": new AdaptaWebExecutor(),
+  "adp-web": new AdaptaWebExecutor(), // Alias
   "copilot-web": new CopilotWebExecutor(),
   copilot: new CopilotWebExecutor(), // Alias
   "veoaifree-web": new VeoAIFreeWebExecutor(),
@@ -139,4 +142,5 @@ export { CopilotWebExecutor } from "./copilot-web.ts";
 export { VeoAIFreeWebExecutor } from "./veoaifree-web.ts";
 export { DeepSeekWebExecutor } from "./deepseek-web.ts";
 export { DeepSeekWebWithAutoRefreshExecutor } from "./deepseek-web-with-auto-refresh.ts";
+export { AdaptaWebExecutor } from "./adapta-web.ts";
 export { T3ChatWebExecutor } from "./t3-chat-web.ts";
