@@ -421,3 +421,62 @@ export type {
 } from "./db/gamification";
 
 export * from "./db/featureFlags";
+
+export {
+  upsertHandoff,
+  getHandoff,
+  deleteHandoff,
+  cleanupExpiredHandoffs,
+  hasActiveHandoff,
+  recordSessionModelUsage,
+  getLastSessionModel,
+} from "./db/contextHandoffs";
+
+export type { HandoffPayload } from "./db/contextHandoffs";
+
+export {
+  getAllMiddlewareHooks,
+  getEnabledMiddlewareHooks,
+  getComboMiddlewareHooks,
+  getMiddlewareHook,
+  createMiddlewareHook,
+  updateMiddlewareHook,
+  deleteMiddlewareHook,
+  recordHookExecution,
+  insertHookLog,
+  getHookLogs,
+  cleanupHookLogs,
+} from "./db/middleware";
+
+export {
+  getAllKeyGroups,
+  getKeyGroup,
+  getKeyGroupWithPermissions,
+  createKeyGroup,
+  updateKeyGroup,
+  deleteKeyGroup,
+  getGroupPermissions,
+  addGroupPermission,
+  removeGroupPermission,
+  clearGroupPermissions,
+  getGroupMembers,
+  getKeyGroupsForApiKey,
+  addKeyToGroup,
+  removeKeyFromGroup,
+  checkKeyModelAccess,
+} from "./db/apiKeyGroups";
+
+export {
+  createRelayToken,
+  getRelayTokens,
+  getRelayToken,
+  getRelayTokenByHash,
+  updateRelayToken,
+  deleteRelayToken,
+  toggleRelayToken,
+  checkRateLimit,
+  recordRelayUsage,
+  getRelayUsage,
+  getRelayLogs,
+} from "./db/relayProxies";
+export type { RelayToken, RelayTokenRow, RelayLogRow, CreateRelayTokenInput, RelayTokenWithSecret } from "./db/relayProxies";
