@@ -201,8 +201,8 @@ export default function ProviderCard({
             testExpanded ? "rounded-b-none border-b-0" : ""
           } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 pr-2">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex items-center gap-3 min-w-0 xl:pr-2">
               <div
                 className="size-7 rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
@@ -318,7 +318,7 @@ export default function ProviderCard({
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 self-end xl:self-auto">
               {Number(stats.total || 0) > 0 && (
                 <div onClick={handleToggle}>
                   <Toggle

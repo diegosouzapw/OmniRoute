@@ -992,7 +992,7 @@ export default function ProvidersPage() {
               <span>{t("noCompatibleYet")}</span>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
               {compatibleProviderEntries.map(
                 ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                   <ProviderCard
@@ -1060,7 +1060,7 @@ export default function ProvidersPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {oauthProviderEntries
               .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
               .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
@@ -1115,7 +1115,7 @@ export default function ProvidersPage() {
               {t("noIdeProviders") || "No IDE providers match the current filters."}
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
               {ideProviderEntries.map(
                 ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                   <ProviderCard
@@ -1161,7 +1161,7 @@ export default function ProvidersPage() {
               {testingMode === "web-cookie" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {webCookieProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1204,7 +1204,7 @@ export default function ProvidersPage() {
               {testingMode === "free" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {freeSectionEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1252,7 +1252,7 @@ export default function ProvidersPage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                 {t("llmProviders")}
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                 {llmProviderEntries.map(
                   ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                     <ProviderCard
@@ -1298,7 +1298,7 @@ export default function ProvidersPage() {
               {testingMode === "no-auth" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {noAuthEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1341,7 +1341,7 @@ export default function ProvidersPage() {
               {testingMode === "upstream-proxy" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1366,7 +1366,7 @@ export default function ProvidersPage() {
               <ProviderCountBadge {...countConfigured(webFetchEntriesAll)} />
             </h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {webFetchEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1391,7 +1391,7 @@ export default function ProvidersPage() {
             <h2 className="text-base font-semibold">{t("aggregatorsGateways")}</h2>
             <ProviderCountBadge {...countConfigured(aggregatorProviderEntriesAll)} />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {aggregatorProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1416,7 +1416,7 @@ export default function ProvidersPage() {
             <h2 className="text-base font-semibold">{t("enterpriseCloud")}</h2>
             <ProviderCountBadge {...countConfigured(enterpriseProviderEntriesAll)} />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {enterpriseProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1461,7 +1461,7 @@ export default function ProvidersPage() {
               {testingMode === "cloud-agent" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {cloudAgentProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1501,7 +1501,7 @@ export default function ProvidersPage() {
               {testingMode === "local" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {localProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1544,7 +1544,7 @@ export default function ProvidersPage() {
               {testingMode === "search" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1567,7 +1567,7 @@ export default function ProvidersPage() {
             <h2 className="text-base font-semibold">{t("embeddingRerankProviders")}</h2>
             <ProviderCountBadge {...countConfigured(embeddingRerankProviderEntriesAll)} />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {embeddingRerankProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1592,7 +1592,7 @@ export default function ProvidersPage() {
             <h2 className="text-base font-semibold">{t("imageProviders")}</h2>
             <ProviderCountBadge {...countConfigured(imageProviderEntriesAll)} />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {imageProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
@@ -1637,7 +1637,7 @@ export default function ProvidersPage() {
               {testingMode === "audio" ? t("testing") : t("testAll")}
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
               <ProviderCard
                 key={providerId}
@@ -1660,7 +1660,7 @@ export default function ProvidersPage() {
             <h2 className="text-base font-semibold">{t("videoProviders")}</h2>
             <ProviderCountBadge {...countConfigured(videoProviderEntriesAll)} />
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
             {videoProviderEntries.map(
               ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                 <ProviderCard
