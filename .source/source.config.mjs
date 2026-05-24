@@ -11,9 +11,12 @@ var docs = defineDocs({
       "./routing/**/*.md",
       "./security/**/*.md",
       "./compression/**/*.md",
-      "./ops/**/*.md",
-    ],
-  },
+      "./ops/**/*.md"
+    ]
+  }
 });
 var source_config_default = defineConfig();
-export { source_config_default as default, docs };
+export {
+  source_config_default as default,
+  docs
+};
