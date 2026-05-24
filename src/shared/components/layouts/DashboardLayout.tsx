@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
 import NotificationToast from "../NotificationToast";
 import MaintenanceBanner from "../MaintenanceBanner";
 import CommandPalette from "../CommandPalette";
+import NavigationProgress from "../NavigationProgress";
 import { useIsElectron } from "@/shared/hooks/useElectron";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
@@ -56,6 +57,9 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-bg">
+      <Suspense fallback={null}>
+        <NavigationProgress />
+      </Suspense>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
