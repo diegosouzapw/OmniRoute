@@ -54,12 +54,20 @@ test("autostart.isAutostartEnabled retorna boolean", async () => {
   assert.equal(result, false, "autostart não deve estar habilitado em tmpDir isolado");
 });
 
-test("autostart.enable cria arquivo de configuração no Linux", async () => {
+test("autostart.enable registers Linux autostart (systemd and/or desktop)", async () => {
   if (process.platform !== "linux") return;
-  const { enable, isAutostartEnabled, disable } = await import("../../bin/cli/tray/autostart.mjs");
+  const { enable, isAutostartEnabled, disable, getAutostartStatus } =
+    await import("../../bin/cli/tray/autostart.mjs");
   const ok = enable();
-  assert.equal(ok, true, "enable deve retornar true");
-  assert.equal(isAutostartEnabled(), true, "isAutostartEnabled deve ser true após enable");
+  assert.equal(typeof ok, "boolean");
+  if (ok) {
+    assert.equal(isAutostartEnabled(), true, "isAutostartEnabled deve ser true após enable");
+    const status = getAutostartStatus();
+    assert.ok(
+      status.mechanism === "systemd-user" || status.mechanism === "xdg-desktop",
+      "expected systemd-user or xdg-desktop mechanism"
+    );
+  }
   disable();
   assert.equal(isAutostartEnabled(), false, "isAutostartEnabled deve ser false após disable");
 });

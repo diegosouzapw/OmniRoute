@@ -426,9 +426,9 @@ export class AntigravityExecutor extends BaseExecutor {
     _stream: boolean,
     credentials: AntigravityCredentials
   ): Promise<AntigravityRequestEnvelope | Response> {
-    // TODO: Consider removing project override like gemini-cli.ts — stored projectId
-    // can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
-    // Antigravity accounts may have more stable project IDs, but the risk exists.
+    // Project ID resolution: prefer OAuth-stored projectId over incoming body.project
+    // to avoid stale/wrong client-side values causing 404/403 from Cloud Code endpoints.
+    // Opt-in escape hatch: set OMNIROUTER_ALLOW_BODY_PROJECT_OVERRIDE=1.
     const normalizeProjectId = (value: unknown): string | null => {
       if (typeof value !== "string") return null;
       const trimmedValue = value.trim();

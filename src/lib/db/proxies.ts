@@ -16,6 +16,7 @@ interface ProxyRegistryRecord {
   region: string | null;
   notes: string | null;
   status: string;
+  source: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -39,6 +40,7 @@ interface ProxyPayload {
   region?: string | null;
   notes?: string | null;
   status?: string;
+  source?: string;
 }
 
 interface LegacyProxyConfig {
@@ -75,6 +77,7 @@ function mapProxyRow(row: unknown): ProxyRegistryRecord {
     region: typeof r.region === "string" ? r.region : null,
     notes: typeof r.notes === "string" ? r.notes : null,
     status: typeof r.status === "string" ? r.status : "active",
+    source: typeof r.source === "string" ? r.source : "manual",
     createdAt: typeof r.created_at === "string" ? r.created_at : "",
     updatedAt: typeof r.updated_at === "string" ? r.updated_at : "",
   };
@@ -169,7 +172,7 @@ export async function listProxies(options?: { includeSecrets?: boolean }) {
   const db = getDbInstance();
   const rows = db
     .prepare(
-      "SELECT id, name, type, host, port, username, password, region, notes, status, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC"
+      "SELECT id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at FROM proxy_registry ORDER BY datetime(updated_at) DESC, name ASC"
     )
     .all();
 
@@ -182,7 +185,7 @@ export async function getProxyById(id: string, options?: { includeSecrets?: bool
   const db = getDbInstance();
   const row = db
     .prepare(
-      "SELECT id, name, type, host, port, username, password, region, notes, status, created_at, updated_at FROM proxy_registry WHERE id = ?"
+      "SELECT id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at FROM proxy_registry WHERE id = ?"
     )
     .get(id);
   if (!row) return null;
@@ -197,8 +200,8 @@ export async function createProxy(payload: ProxyPayload) {
 
   db.prepare(
     `INSERT INTO proxy_registry
-      (id, name, type, host, port, username, password, region, notes, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     payload.name,
@@ -210,6 +213,7 @@ export async function createProxy(payload: ProxyPayload) {
     payload.region || null,
     payload.notes || null,
     payload.status || "active",
+    payload.source || "manual",
     now,
     now
   );
@@ -272,7 +276,7 @@ export async function updateProxy(id: string, payload: Partial<ProxyPayload>) {
 
   db.prepare(
     `UPDATE proxy_registry
-       SET name = ?, type = ?, host = ?, port = ?, username = ?, password = ?, region = ?, notes = ?, status = ?, updated_at = ?
+       SET name = ?, type = ?, host = ?, port = ?, username = ?, password = ?, region = ?, notes = ?, status = ?, source = ?, updated_at = ?
      WHERE id = ?`
   ).run(
     merged.name,
@@ -284,6 +288,7 @@ export async function updateProxy(id: string, payload: Partial<ProxyPayload>) {
     merged.region || null,
     merged.notes || null,
     merged.status || "active",
+    merged.source || "manual",
     merged.updatedAt,
     id
   );

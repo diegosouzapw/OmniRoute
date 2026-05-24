@@ -42,6 +42,9 @@ type ProviderProfile = {
   providerFailureThreshold: number;
   providerFailureWindowMs: number;
   providerCooldownMs: number;
+  degradationThreshold?: number;
+  maxBackoffMultiplier?: number;
+  backoffEscalationCount?: number;
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
@@ -268,6 +271,9 @@ function buildProviderProfile(
     // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
     providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
     providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
+    degradationThreshold: PROVIDER_PROFILES[category].degradationThreshold,
+    maxBackoffMultiplier: PROVIDER_PROFILES[category].maxBackoffMultiplier,
+    backoffEscalationCount: PROVIDER_PROFILES[category].backoffEscalationCount,
     providerCooldownMs: PROVIDER_PROFILES[category].providerCooldownMs,
   } satisfies ProviderProfile;
 }
@@ -657,6 +663,9 @@ function configureProviderBreaker(
           classifyError: classify429FromError,
         }
       : {}),
+    degradationThreshold: resolvedProfile.degradationThreshold,
+    maxBackoffMultiplier: resolvedProfile.maxBackoffMultiplier,
+    backoffEscalationCount: resolvedProfile.backoffEscalationCount,
   });
 }
 

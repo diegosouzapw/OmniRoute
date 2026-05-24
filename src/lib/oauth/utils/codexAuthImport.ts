@@ -92,7 +92,7 @@ export function parseAndValidateCodexAuth(raw: unknown): ParsedCodexAuth {
   // includes it). Accept both formats as long as the required tokens are present.
   if (doc.auth_mode !== undefined && doc.auth_mode !== null && doc.auth_mode !== "chatgpt") {
     throw new CodexAuthFileError(
-      'Not a Codex auth.json — unexpected auth_mode value',
+      "Not a Codex auth.json — unexpected auth_mode value",
       400,
       "invalid_auth_file"
     );
