@@ -308,25 +308,258 @@ function TabPlaceholder({ icon, title, body }: { icon: string; title: string; bo
   );
 }
 
+interface LogEntry {
+  id: string | number;
+  timestamp: string;
+  model?: string;
+  requestedModel?: string;
+  provider?: string;
+  status?: number;
+  duration?: number;
+  tokens?: { in?: number; out?: number };
+}
+
+type LogsState =
+  | { status: "loading" }
+  | { status: "ready"; logs: LogEntry[] }
+  | { status: "error"; message: string };
+
 function LogsTab({ providerId }: { providerId: string }) {
-  return (
-    <TabPlaceholder
-      icon="receipt_long"
-      title="Logs"
-      body={
-        <>
-          <p>View request and response logs for this provider on the dedicated logs page.</p>
-          <a
-            href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
-            className="mt-2 inline-flex items-center gap-1 text-accent hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Open logs
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-          </a>
-        </>
+  const [state, setState] = useState<LogsState>({ status: "loading" });
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+
+    async function load() {
+      try {
+        const url = `/api/usage/call-logs?provider=${encodeURIComponent(providerId)}&limit=50`;
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        const logs: LogEntry[] = Array.isArray(data) ? data : (data?.logs ?? []);
+        setState({ status: "ready", logs });
+      } catch (err) {
+        if (cancelled || (err as { name?: string })?.name === "AbortError") return;
+        setState({ status: "error", message: (err as Error).message || "Failed to load logs" });
       }
-    />
+    }
+
+    void load();
+    const interval = setInterval(load, 4000);
+
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+      clearInterval(interval);
+    };
+  }, [providerId, refreshTick]);
+
+  const handleRefresh = useCallback(() => setRefreshTick((n) => n + 1), []);
+
+  if (state.status === "loading") {
+    return (
+      <div className="flex-1 min-h-0 flex items-center justify-center text-xs text-text-muted gap-2">
+        <span className="material-symbols-outlined text-[18px] animate-spin">
+          progress_activity
+        </span>
+        Loading logs…
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <TabPlaceholder icon="error" title="Failed to load logs" body={<p>{state.message}</p>} />
+    );
+  }
+
+  if (state.logs.length === 0) {
+    return (
+      <TabPlaceholder
+        icon="receipt_long"
+        title="No logs yet"
+        body={
+          <>
+            <p>Send a test message from the Test tab — logs for this provider will appear here.</p>
+            <a
+              href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
+              className="mt-2 inline-flex items-center gap-1 text-accent hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open full logs page
+              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+            </a>
+          </>
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-black/5 dark:border-white/5 shrink-0">
+        <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium">
+          {state.logs.length} recent · auto-refresh
+        </span>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="text-[10px] text-text-muted hover:text-text-main inline-flex items-center gap-1"
+          title="Refresh now"
+        >
+          <span className="material-symbols-outlined text-[14px]">refresh</span>
+          Refresh
+        </button>
+      </div>
+      <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-border/40">
+        {state.logs.map((log) => {
+          const key = String(log.id);
+          const isExpanded = expanded === key;
+          const statusOk = typeof log.status === "number" && log.status >= 200 && log.status < 400;
+          const statusColor = statusOk
+            ? "text-emerald-600 dark:text-emerald-400"
+            : typeof log.status === "number"
+              ? "text-red-500"
+              : "text-text-muted";
+          return (
+            <li key={key}>
+              <button
+                type="button"
+                onClick={() => setExpanded(isExpanded ? null : key)}
+                className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+              >
+                <span className={`text-[11px] font-mono shrink-0 w-10 ${statusColor}`}>
+                  {log.status ?? "—"}
+                </span>
+                <span className="text-[11px] text-text-muted shrink-0 w-20 font-mono">
+                  {formatRelativeTs(log.timestamp)}
+                </span>
+                <span
+                  className="flex-1 min-w-0 text-xs truncate text-text-main"
+                  title={log.model || log.requestedModel}
+                >
+                  {log.model || log.requestedModel || "—"}
+                </span>
+                <span className="text-[11px] text-text-muted shrink-0 font-mono w-14 text-right">
+                  {formatDurationMs(log.duration)}
+                </span>
+                <span
+                  className={`material-symbols-outlined text-text-muted text-[16px] shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                >
+                  chevron_right
+                </span>
+              </button>
+              {isExpanded && <LogDetail logId={key} />}
+            </li>
+          );
+        })}
+      </ul>
+      <div className="px-4 py-2 border-t border-black/5 dark:border-white/5 text-[10px] text-text-muted text-center shrink-0">
+        <a
+          href={`/dashboard/logs?connection=${encodeURIComponent(providerId)}`}
+          className="inline-flex items-center gap-1 hover:text-text-main hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Open full logs page
+          <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+        </a>
+      </div>
+    </div>
   );
+}
+
+type LogDetailState =
+  | { status: "loading" }
+  | { status: "ready"; data: Record<string, unknown> }
+  | { status: "error"; message: string };
+
+function LogDetail({ logId }: { logId: string }) {
+  const [detail, setDetail] = useState<LogDetailState>({ status: "loading" });
+
+  useEffect(() => {
+    let cancelled = false;
+    const ctrl = new AbortController();
+    fetch(`/api/usage/call-logs/${encodeURIComponent(logId)}`, { signal: ctrl.signal })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!cancelled) setDetail({ status: "ready", data });
+      })
+      .catch((err: { name?: string; message?: string }) => {
+        if (cancelled || err?.name === "AbortError") return;
+        setDetail({ status: "error", message: err?.message || "Failed to load detail" });
+      });
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
+  }, [logId]);
+
+  if (detail.status === "loading") {
+    return (
+      <div className="px-4 py-3 text-[11px] text-text-muted bg-bg-subtle/40">Loading detail…</div>
+    );
+  }
+  if (detail.status === "error") {
+    return (
+      <div className="px-4 py-3 text-[11px] text-red-500 bg-bg-subtle/40">{detail.message}</div>
+    );
+  }
+  const d = detail.data;
+  const request = d.request ?? d.requestBody;
+  const response = d.response ?? d.responseBody;
+  return (
+    <div className="px-4 py-3 bg-bg-subtle/40 border-t border-black/5 dark:border-white/5 space-y-2 text-[11px]">
+      {request != null && (
+        <details>
+          <summary className="cursor-pointer text-text-muted font-medium uppercase tracking-wider text-[10px]">
+            Request
+          </summary>
+          <pre className="mt-1 max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
+            {typeof request === "string" ? request : JSON.stringify(request, null, 2)}
+          </pre>
+        </details>
+      )}
+      {response != null && (
+        <details>
+          <summary className="cursor-pointer text-text-muted font-medium uppercase tracking-wider text-[10px]">
+            Response
+          </summary>
+          <pre className="mt-1 max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
+            {typeof response === "string" ? response : JSON.stringify(response, null, 2)}
+          </pre>
+        </details>
+      )}
+      {request == null && response == null && (
+        <pre className="max-h-48 overflow-auto bg-bg p-2 rounded text-[10px] font-mono whitespace-pre-wrap break-words">
+          {JSON.stringify(d, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function formatRelativeTs(ts: string | undefined): string {
+  if (!ts) return "—";
+  const date = new Date(ts);
+  if (isNaN(date.getTime())) return "—";
+  const diff = (Date.now() - date.getTime()) / 1000;
+  if (diff < 60) return `${Math.max(0, Math.floor(diff))}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return date.toLocaleDateString();
+}
+
+function formatDurationMs(ms: number | undefined): string {
+  if (ms == null) return "—";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
 }
