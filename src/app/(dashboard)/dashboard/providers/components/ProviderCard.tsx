@@ -7,13 +7,13 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { Badge, Card, Toggle } from "@/shared/components";
+import ProviderTestSlideOver from "@/shared/components/ProviderTestSlideOver";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   isAnthropicCompatibleProvider,
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
-import { LlmChatCard } from "@/app/(dashboard)/dashboard/media-providers/components/LlmChatCard";
 
 import { CategoryDot } from "./CategoryDot";
 
@@ -28,6 +28,19 @@ interface ProviderStats {
   expiryStatus?: "expired" | "expiring_soon" | string | null;
   codexFastActive?: boolean;
 }
+
+const KIND_LABEL: Record<string, string> = {
+  llm: "Chat",
+  embedding: "Embed",
+  image: "Image",
+  imageToText: "I→T",
+  tts: "TTS",
+  stt: "STT",
+  webSearch: "Search",
+  webFetch: "Fetch",
+  video: "Video",
+  music: "Music",
+};
 
 interface ProviderCardProps {
   providerId: string;
@@ -61,19 +74,6 @@ const DOT_COLORS: Record<string, string> = {
   local: "bg-emerald-500",
   "upstream-proxy": "bg-indigo-500",
   "cloud-agent": "bg-violet-500",
-};
-
-const KIND_LABEL: Record<string, string> = {
-  llm: "LLM",
-  embedding: "Embed",
-  image: "Image",
-  imageToText: "Vision",
-  tts: "TTS",
-  stt: "STT",
-  webSearch: "Search",
-  webFetch: "Fetch",
-  video: "Video",
-  music: "Music",
 };
 
 function getStatusDisplay(
@@ -193,18 +193,17 @@ export default function ProviderCard({
   };
 
   return (
-    <div className="flex flex-col">
-      <Link href={`/dashboard/providers/${providerId}`} className="group">
+    <div className="flex flex-col h-full">
+      <Link href={`/dashboard/providers/${providerId}`} className="group flex-1 flex flex-col">
         <Card
           padding="xs"
-          className={`hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${
-            testExpanded ? "rounded-b-none border-b-0" : ""
-          } ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
+          className={`h-full flex flex-col hover:bg-black/[0.01] dark:hover:bg-white/[0.01] transition-colors cursor-pointer ${allDisabled ? "opacity-50" : ""} ${provider.deprecated ? "opacity-60" : ""}`}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 pr-2">
+          <div className="flex flex-col gap-2 h-full">
+            {/* Row 1 — Identity: icon + full name + risk/category indicators */}
+            <div className="flex items-start gap-3 min-w-0">
               <div
-                className="size-7 rounded-lg flex items-center justify-center shrink-0"
+                className="size-9 rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${provider.color || "#64748b"}15` }}
               >
                 {staticIconPath ? (
@@ -220,141 +219,152 @@ export default function ProviderCard({
                   <ProviderIcon providerId={provider.id || providerId} size={24} type="color" />
                 )}
               </div>
-              <div className="min-w-0">
-                {provider.serviceKinds && provider.serviceKinds.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-0.5">
-                    {provider.serviceKinds.map((k) => (
-                      <span
-                        key={k}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
-                      >
-                        {KIND_LABEL[k] ?? k}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
+              <h3 className="text-sm font-semibold leading-snug flex-1 min-w-0">
+                <span
+                  className={`block break-words ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                  title={provider.name}
+                >
+                  {provider.name}
+                </span>
+              </h3>
+              <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                {provider.deprecated && (
                   <span
-                    className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}
+                    className="material-symbols-outlined text-[16px] leading-none text-text-muted"
+                    title={provider.deprecationReason || t("deprecatedProvider")}
+                    aria-label={t("deprecated")}
                   >
-                    {provider.name}
+                    block
                   </span>
-                  {provider.subscriptionRisk === true && (
-                    <span
-                      className="material-symbols-outlined shrink-0 text-[15px] leading-none text-amber-500"
-                      title={t("riskNotice.tooltip")}
-                      aria-label={t("riskNotice.tooltip")}
-                    >
-                      info
-                    </span>
-                  )}
-                  {provider.deprecated && (
-                    <Badge
-                      variant="default"
-                      size="sm"
-                      title={provider.deprecationReason || t("deprecatedProvider")}
-                    >
-                      <span className="flex items-center gap-0.5">
-                        <span className="material-symbols-outlined text-[10px]">block</span>
-                        {t("deprecated")}
-                      </span>
-                    </Badge>
-                  )}
-                  <CategoryDot
-                    color={DOT_COLORS[authType] || DOT_COLORS.apikey}
-                    hasFree={provider.hasFree === true}
-                    label={dotLabels[authType] || t("apiKeyLabel")}
-                    freeLabel={t("hasFreeTooltip")}
-                  />
-                </h3>
-                <div className="flex items-center gap-2 text-xs flex-wrap">
-                  {allDisabled ? (
-                    <Badge variant="default" size="sm">
-                      <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">pause_circle</span>
-                        {t("disabled")}
-                      </span>
-                    </Badge>
-                  ) : (
-                    <>
-                      {getStatusDisplay(
-                        connected,
-                        error,
-                        Number(stats.warning || 0),
-                        stats.errorCode,
-                        t,
-                        codexFastChip
-                      )}
-                      {stats.expiryStatus === "expired" && (
-                        <Badge variant="error" size="sm" dot>
-                          {t("expiredBadge")}
-                        </Badge>
-                      )}
-                      {stats.expiryStatus === "expiring_soon" && (
-                        <Badge variant="warning" size="sm" dot>
-                          {t("expiringSoonBadge")}
-                        </Badge>
-                      )}
-                      {isCompatible && (
-                        <Badge variant="default" size="sm">
-                          {provider.apiType === "responses" ? t("responses") : t("chat")}
-                        </Badge>
-                      )}
-                      {isCcCompatible && (
-                        <Badge variant="default" size="sm">
-                          CC
-                        </Badge>
-                      )}
-                      {isAnthropicCompatible && (
-                        <Badge variant="default" size="sm">
-                          {t("messages")}
-                        </Badge>
-                      )}
-                      {stats.errorTime && (
-                        <span className="text-text-muted">* {stats.errorTime}</span>
-                      )}
-                    </>
-                  )}
-                </div>
+                )}
+                {provider.subscriptionRisk === true && (
+                  <span
+                    className="material-symbols-outlined text-[16px] leading-none text-amber-500"
+                    title={t("riskNotice.tooltip")}
+                    aria-label={t("riskNotice.tooltip")}
+                  >
+                    info
+                  </span>
+                )}
+                <CategoryDot
+                  color={DOT_COLORS[authType] || DOT_COLORS.apikey}
+                  hasFree={provider.hasFree === true}
+                  label={dotLabels[authType] || t("apiKeyLabel")}
+                  freeLabel={t("hasFreeTooltip")}
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {Number(stats.total || 0) > 0 && (
-                <div onClick={handleToggle}>
-                  <Toggle
-                    size="xs"
-                    checked={!allDisabled}
-                    onChange={() => {}}
-                    title={allDisabled ? t("enableProvider") : t("disableProvider")}
-                  />
-                </div>
-              )}
-              {isLlmProvider && (
-                <button
-                  type="button"
-                  onClick={handleTestClick}
-                  title={testExpanded ? tp("collapseTest") : tp("expandTest")}
-                  className="inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-[11px] text-text-muted hover:text-text-primary hover:border-primary/30 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[11px] leading-none">
-                    {testExpanded ? "expand_less" : "play_arrow"}
+
+            {/* Row 2 — Capabilities: service-kind chips + compatibility badges (deprecated shown as block icon in Row 1 header). Rendered only when content exists. */}
+            {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
+              isCompatible ||
+              isCcCompatible ||
+              isAnthropicCompatible) && (
+              <div className="flex flex-wrap items-center gap-1">
+                {provider.serviceKinds?.map((k) => (
+                  <span
+                    key={k}
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                  >
+                    {KIND_LABEL[k] ?? k}
                   </span>
-                  {tp("testLabel")}
-                </button>
-              )}
-              {!isLlmProvider && (
-                <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                  chevron_right
-                </span>
-              )}
+                ))}
+                {isCompatible && (
+                  <Badge variant="default" size="sm">
+                    {provider.apiType === "responses" ? t("responses") : t("chat")}
+                  </Badge>
+                )}
+                {isCcCompatible && (
+                  <Badge variant="default" size="sm">
+                    CC
+                  </Badge>
+                )}
+                {isAnthropicCompatible && (
+                  <Badge variant="default" size="sm">
+                    {t("messages")}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Row 3 — Footer: connection status + controls (toggle, test) */}
+            <div className="flex items-center justify-between gap-2 mt-auto pt-1.5 border-t border-border/40">
+              <div className="flex items-center gap-1.5 text-xs flex-nowrap min-w-0 overflow-hidden">
+                {allDisabled ? (
+                  <Badge variant="default" size="sm">
+                    <span className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[12px]">pause_circle</span>
+                      {t("disabled")}
+                    </span>
+                  </Badge>
+                ) : (
+                  <>
+                    {getStatusDisplay(
+                      connected,
+                      error,
+                      Number(stats.warning || 0),
+                      stats.errorCode,
+                      t,
+                      codexFastChip
+                    )}
+                    {stats.expiryStatus === "expired" && (
+                      <Badge variant="error" size="sm" dot>
+                        {t("expiredBadge")}
+                      </Badge>
+                    )}
+                    {stats.expiryStatus === "expiring_soon" && (
+                      <Badge variant="warning" size="sm" dot>
+                        {t("expiringSoonBadge")}
+                      </Badge>
+                    )}
+                    {stats.errorTime && (
+                      <span className="text-text-muted truncate min-w-0">* {stats.errorTime}</span>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {Number(stats.total || 0) > 0 && (
+                  <div onClick={handleToggle}>
+                    <Toggle
+                      size="xs"
+                      checked={!allDisabled}
+                      onChange={() => {}}
+                      title={allDisabled ? t("enableProvider") : t("disableProvider")}
+                    />
+                  </div>
+                )}
+                {isLlmProvider && (
+                  <button
+                    type="button"
+                    onClick={handleTestClick}
+                    title={tp("expandTest")}
+                    className="inline-flex items-center gap-0.5 rounded-md border border-border bg-bg-subtle px-2 py-0.5 text-[11px] text-text-muted hover:text-text-primary hover:border-primary/30 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[11px] leading-none">
+                      play_arrow
+                    </span>
+                    {tp("testLabel")}
+                  </button>
+                )}
+                {!isLlmProvider && (
+                  <span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                    chevron_right
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </Card>
       </Link>
-      {testExpanded && isLlmProvider && (
-        <div className="rounded-b-lg border border-t-0 border-border bg-bg-card p-3">
-          <LlmChatCard providerId={providerId} />
-        </div>
+      {isLlmProvider && (
+        <ProviderTestSlideOver
+          isOpen={testExpanded}
+          onClose={() => setTestExpanded(false)}
+          providerId={providerId}
+          provider={provider}
+          staticIconPath={staticIconPath}
+        />
       )}
     </div>
   );
