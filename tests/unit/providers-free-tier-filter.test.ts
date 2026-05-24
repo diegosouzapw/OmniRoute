@@ -8,7 +8,7 @@ import {
 } from "@/lib/providers/catalog";
 
 const CATALOG_CATEGORIES = [
-  "free",
+  "no-auth",
   "oauth",
   "web-cookie",
   "local",
@@ -19,7 +19,7 @@ const CATALOG_CATEGORIES = [
   "cloud-agent",
 ] as const satisfies readonly StaticProviderCatalogCategory[];
 
-type CategoryFilter = "all" | StaticProviderCatalogCategory;
+type CategoryFilter = "all" | "free" | StaticProviderCatalogCategory;
 
 interface ProviderFilterEntry {
   providerId: string;
@@ -83,6 +83,7 @@ function countByCategory(entries: ProviderFilterEntry[]) {
     search: filterByCategory(entries, "search").length,
     audio: filterByCategory(entries, "audio").length,
     local: filterByCategory(entries, "local").length,
+    noauth: filterByCategory(entries, "no-auth").length,
     upstreamProxy: filterByCategory(entries, "upstream-proxy").length,
     cloudAgent: filterByCategory(entries, "cloud-agent").length,
   };
@@ -108,6 +109,14 @@ test('filterByCategory("apikey") keeps OpenRouter in API Key and Free', () => {
   assert.ok(freeIds.includes("openrouter"));
 });
 
+test("OAuth providers with hasFree=true appear in OAuth and Free Tier filters", () => {
+  const entries = buildCatalogEntries();
+  const oauthIds = filterByCategory(entries, "oauth").map((entry) => entry.providerId);
+  const freeIds = filterByCategory(entries, "free").map((entry) => entry.providerId);
+
+  assert.ok(oauthIds.includes("qoder"));
+  assert.ok(freeIds.includes("qoder"));
+});
 test("summaryStats.free counts the aggregate overlap without subtracting native categories", () => {
   const entries = buildCatalogEntries();
   const summaryStats = countByCategory(entries);
@@ -118,13 +127,14 @@ test("summaryStats.free counts the aggregate overlap without subtracting native 
     summaryStats.search +
     summaryStats.audio +
     summaryStats.local +
+    summaryStats.noauth +
     summaryStats.upstreamProxy +
     summaryStats.cloudAgent;
 
   assert.ok(summaryStats.free >= 60);
   assert.ok(nativeCategoryTotal + summaryStats.free > summaryStats.all);
 
-  for (const category of CATALOG_CATEGORIES.filter((item) => item !== "free")) {
+  for (const category of CATALOG_CATEGORIES) {
     const overlapCount = filterByCategory(entries, category).filter(providerHasFree).length;
     if (overlapCount > 0) {
       assert.ok(summaryStats.free >= overlapCount);

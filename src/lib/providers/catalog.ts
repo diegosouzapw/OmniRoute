@@ -2,8 +2,8 @@ import {
   APIKEY_PROVIDERS,
   AUDIO_ONLY_PROVIDERS,
   CLOUD_AGENT_PROVIDERS,
-  FREE_PROVIDERS,
   LOCAL_PROVIDERS,
+  NOAUTH_PROVIDERS,
   OAUTH_PROVIDERS,
   SEARCH_PROVIDERS,
   UPSTREAM_PROXY_PROVIDERS,
@@ -13,10 +13,10 @@ import {
   type RiskNoticeVariant,
 } from "@/shared/constants/providers";
 
-export type ProviderDisplayAuthType = "oauth" | "apikey" | "compatible";
-export type ProviderToggleAuthType = "oauth" | "free" | "apikey";
+export type ProviderDisplayAuthType = "oauth" | "apikey" | "compatible" | "no-auth";
+export type ProviderToggleAuthType = "oauth" | "free" | "apikey" | "no-auth";
 export type StaticProviderCatalogCategory =
-  | "free"
+  | "no-auth"
   | "oauth"
   | "web-cookie"
   | "local"
@@ -90,11 +90,11 @@ export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
   StaticProviderCatalogCategory,
   StaticProviderCatalogGroup
 > = {
-  free: {
-    category: "free",
-    providers: FREE_PROVIDERS as ProviderRecord,
-    displayAuthType: "oauth",
-    toggleAuthType: "free",
+  "no-auth": {
+    category: "no-auth",
+    providers: NOAUTH_PROVIDERS as ProviderRecord,
+    displayAuthType: "no-auth",
+    toggleAuthType: "no-auth",
   },
   oauth: {
     category: "oauth",
@@ -147,7 +147,7 @@ export const STATIC_PROVIDER_CATALOG_GROUPS: Record<
 };
 
 export const STATIC_PROVIDER_CATALOG_RESOLUTION_ORDER: StaticProviderCatalogCategory[] = [
-  "free",
+  "no-auth",
   "oauth",
   "web-cookie",
   "local",

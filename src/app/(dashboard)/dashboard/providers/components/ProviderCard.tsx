@@ -27,6 +27,19 @@ interface ProviderStats {
   codexFastActive?: boolean;
 }
 
+const KIND_LABEL: Record<string, string> = {
+  llm: "Chat",
+  embedding: "Embed",
+  image: "Image",
+  imageToText: "I→T",
+  tts: "TTS",
+  stt: "STT",
+  webSearch: "Search",
+  webFetch: "Fetch",
+  video: "Video",
+  music: "Music",
+};
+
 interface ProviderCardProps {
   providerId: string;
   provider: {
@@ -39,6 +52,7 @@ interface ProviderCardProps {
     hasFree?: boolean;
     freeNote?: string;
     subscriptionRisk?: boolean;
+    serviceKinds?: string[];
   };
   stats: ProviderStats;
   authType?: string;
@@ -47,6 +61,7 @@ interface ProviderCardProps {
 
 const DOT_COLORS: Record<string, string> = {
   free: "bg-green-500",
+  "no-auth": "bg-stone-500",
   oauth: "bg-blue-500",
   apikey: "bg-amber-500",
   compatible: "bg-orange-500",
@@ -127,6 +142,7 @@ export default function ProviderCard({
 
   const dotLabels: Record<string, string> = {
     free: tc("free"),
+    "no-auth": t("noAuthLabel"),
     oauth: t("oauthLabel"),
     apikey: t("apiKeyLabel"),
     compatible: t("compatibleLabel"),
@@ -135,6 +151,7 @@ export default function ProviderCard({
     audio: t("audioProvidersHeading"),
     local: t("localProviders"),
     "upstream-proxy": t("upstreamProxyProviders"),
+    "cloud-agent": t("cloudAgentProviders"),
   };
 
   const staticIconPath = (() => {
@@ -179,6 +196,18 @@ export default function ProviderCard({
               )}
             </div>
             <div className="min-w-0">
+              {provider.serviceKinds && provider.serviceKinds.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-0.5">
+                  {provider.serviceKinds.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                    >
+                      {KIND_LABEL[k] ?? k}
+                    </span>
+                  ))}
+                </div>
+              )}
               <h3 className="text-sm font-semibold flex items-center gap-1 min-w-0">
                 <span
                   className={`truncate min-w-0 flex-1 ${provider.deprecated ? "line-through opacity-60" : ""}`}

@@ -2,13 +2,26 @@
  * Provider Schema Validation — Phase 7.2
  *
  * Zod schemas for provider constant validation.
- * Validates FREE_PROVIDERS, OAUTH_PROVIDERS, and APIKEY_PROVIDERS
+ * Validates provider category maps
  * at module load time to catch configuration drift early.
  *
  * @module shared/validation/providerSchema
  */
 
 import { z } from "zod";
+
+const SERVICE_KIND_VALUES = [
+  "llm",
+  "embedding",
+  "image",
+  "imageToText",
+  "tts",
+  "stt",
+  "webSearch",
+  "webFetch",
+  "video",
+  "music",
+] as const;
 
 export const ProviderSchema = z.object({
   id: z.string().min(1),
@@ -27,6 +40,7 @@ export const ProviderSchema = z.object({
   freeNote: z.string().optional(),
   authHint: z.string().optional(),
   apiHint: z.string().optional(),
+  serviceKinds: z.array(z.enum(SERVICE_KIND_VALUES)).optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);

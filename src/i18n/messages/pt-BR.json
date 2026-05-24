@@ -1505,7 +1505,24 @@
     "result": "Resultado",
     "imageDescription": "Gere imagens a partir de prompts de texto usando OpenAI, xAI, Together, Hyperbolic, SD WebUI, ComfyUI e mais.",
     "videoDescription": "Crie vídeos com AnimateDiff, Stable Video Diffusion via ComfyUI ou SD WebUI.",
-    "musicDescription": "Componha músicas usando Stable Audio Open ou MusicGen via ComfyUI."
+    "musicDescription": "Componha músicas usando Stable Audio Open ou MusicGen via ComfyUI.",
+    "kinds": {
+      "embedding": "Embedding",
+      "image": "Imagem",
+      "imageToText": "Imagem para Texto",
+      "tts": "Texto para Fala",
+      "stt": "Fala para Texto",
+      "webSearch": "Busca Web",
+      "webFetch": "Web Fetch",
+      "video": "Vídeo",
+      "music": "Música"
+    },
+    "noProviders": "Nenhum provedor configurado para este tipo.",
+    "addConnection": "Adicionar Conexão",
+    "backToProviders": "Voltar para Provedores",
+    "connections": "{count} Conexões",
+    "noConnections": "Nenhuma conexão ainda — adicione uma na página do provedor.",
+    "loading": "Carregando..."
   },
   "search": {
     "searchQuery": "Consulta de Pesquisa",
@@ -3275,9 +3292,12 @@
     "noConnections": "Sem conexões",
     "expiredBadge": "Expirado",
     "expiringSoonBadge": "Expirando em Breve",
-    "freeTier": "Plano gratuito",
+    "freeTier": "Tier Gratuito",
     "freeTierAvailable": "Nível gratuito disponível",
     "hasFreeTooltip": "Tier gratuito disponível",
+    "noAuthLabel": "Sem Auth",
+    "noAuthProviders": "Provedores Sem Auth",
+    "upstreamProxyLabel": "Upstream Proxy",
     "freeAggregated": "Todos os providers com tier gratuito (também aparecem na categoria nativa)",
     "deprecated": "Depreciado",
     "deprecatedProvider": "Este provedor foi depreciado",
@@ -3911,7 +3931,10 @@
     "providerDetailValidClaudeCredentialsFile": "Arquivo de credenciais do Claude válido",
     "providerDetailPathAutoDetectedAllOs": "O caminho é detectado automaticamente por SO (Linux/Mac/Windows).",
     "providerDetailMyClaudeAccountPlaceholder": "Minha conta do Claude",
-    "providerDetailPathAutoDetected": "O caminho é detectado automaticamente por SO (Linux/Mac)."
+    "providerDetailPathAutoDetected": "O caminho é detectado automaticamente por SO (Linux/Mac).",
+    "webFetch": "Web Fetch",
+    "webFetchTooltip": "Provedores que extraem conteúdo de URLs (HTML → Markdown, scraping, screenshot)",
+    "webFetchProvidersHeading": "Provedores Web Fetch"
   },
   "settings": {
     "title": "Configurações",
