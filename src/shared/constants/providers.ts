@@ -2438,7 +2438,7 @@ export const SEARCH_PROVIDERS = {
     website: "https://exa.ai",
     hasFree: true,
     authHint: "API key from dashboard.exa.ai",
-    serviceKinds: ["webSearch"],
+    serviceKinds: ["webSearch", "webFetch"],
   },
   "tavily-search": {
     id: "tavily-search",
