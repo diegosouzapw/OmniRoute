@@ -228,6 +228,15 @@ export default function ProviderCard({
                 </span>
               </h3>
               <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                {provider.deprecated && (
+                  <span
+                    className="material-symbols-outlined text-[16px] leading-none text-text-muted"
+                    title={provider.deprecationReason || t("deprecatedProvider")}
+                    aria-label={t("deprecated")}
+                  >
+                    block
+                  </span>
+                )}
                 {provider.subscriptionRisk === true && (
                   <span
                     className="material-symbols-outlined text-[16px] leading-none text-amber-500"
@@ -246,48 +255,41 @@ export default function ProviderCard({
               </div>
             </div>
 
-            {/* Row 2 — Capabilities: service-kind chips + compatibility/deprecated badges. Always rendered with min-h to equalize card heights across the grid. */}
-            <div className="flex flex-wrap items-center gap-1 min-h-[22px]">
-              {provider.serviceKinds?.map((k) => (
-                <span
-                  key={k}
-                  className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
-                >
-                  {KIND_LABEL[k] ?? k}
-                </span>
-              ))}
-              {provider.deprecated && (
-                <Badge
-                  variant="default"
-                  size="sm"
-                  title={provider.deprecationReason || t("deprecatedProvider")}
-                >
-                  <span className="flex items-center gap-0.5">
-                    <span className="material-symbols-outlined text-[10px]">block</span>
-                    {t("deprecated")}
+            {/* Row 2 — Capabilities: service-kind chips + compatibility badges (deprecated shown as block icon in Row 1 header). Rendered only when content exists. */}
+            {((provider.serviceKinds && provider.serviceKinds.length > 0) ||
+              isCompatible ||
+              isCcCompatible ||
+              isAnthropicCompatible) && (
+              <div className="flex flex-wrap items-center gap-1">
+                {provider.serviceKinds?.map((k) => (
+                  <span
+                    key={k}
+                    className="text-[10px] px-1.5 py-0.5 rounded bg-bg-subtle border border-border text-text-muted leading-none"
+                  >
+                    {KIND_LABEL[k] ?? k}
                   </span>
-                </Badge>
-              )}
-              {isCompatible && (
-                <Badge variant="default" size="sm">
-                  {provider.apiType === "responses" ? t("responses") : t("chat")}
-                </Badge>
-              )}
-              {isCcCompatible && (
-                <Badge variant="default" size="sm">
-                  CC
-                </Badge>
-              )}
-              {isAnthropicCompatible && (
-                <Badge variant="default" size="sm">
-                  {t("messages")}
-                </Badge>
-              )}
-            </div>
+                ))}
+                {isCompatible && (
+                  <Badge variant="default" size="sm">
+                    {provider.apiType === "responses" ? t("responses") : t("chat")}
+                  </Badge>
+                )}
+                {isCcCompatible && (
+                  <Badge variant="default" size="sm">
+                    CC
+                  </Badge>
+                )}
+                {isAnthropicCompatible && (
+                  <Badge variant="default" size="sm">
+                    {t("messages")}
+                  </Badge>
+                )}
+              </div>
+            )}
 
             {/* Row 3 — Footer: connection status + controls (toggle, test) */}
             <div className="flex items-center justify-between gap-2 mt-auto pt-1.5 border-t border-border/40">
-              <div className="flex items-center gap-1.5 text-xs flex-wrap min-w-0">
+              <div className="flex items-center gap-1.5 text-xs flex-nowrap min-w-0 overflow-hidden">
                 {allDisabled ? (
                   <Badge variant="default" size="sm">
                     <span className="flex items-center gap-1">
@@ -316,7 +318,7 @@ export default function ProviderCard({
                       </Badge>
                     )}
                     {stats.errorTime && (
-                      <span className="text-text-muted">* {stats.errorTime}</span>
+                      <span className="text-text-muted truncate min-w-0">* {stats.errorTime}</span>
                     )}
                   </>
                 )}
