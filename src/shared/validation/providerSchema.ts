@@ -27,6 +27,22 @@ export const ProviderSchema = z.object({
   freeNote: z.string().optional(),
   authHint: z.string().optional(),
   apiHint: z.string().optional(),
+  serviceKinds: z
+    .array(
+      z.enum([
+        "llm",
+        "embedding",
+        "image",
+        "imageToText",
+        "tts",
+        "stt",
+        "webSearch",
+        "webFetch",
+        "video",
+        "music",
+      ])
+    )
+    .optional(),
 });
 
 export const ProvidersMapSchema = z.record(z.string(), ProviderSchema);
