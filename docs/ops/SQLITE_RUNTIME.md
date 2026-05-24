@@ -1,3 +1,7 @@
+---
+title: "SQLite Runtime Resolution"
+---
+
 # SQLite Runtime Resolution
 
 OmniRoute resolves its SQLite driver at startup through a 5-step fallback chain:

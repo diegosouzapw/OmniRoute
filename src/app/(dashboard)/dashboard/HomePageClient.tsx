@@ -8,9 +8,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { AI_PROVIDERS, FREE_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS, NOAUTH_PROVIDERS, OAUTH_PROVIDERS } from "@/shared/constants/providers";
 import { useNotificationStore } from "@/store/notificationStore";
 import { copyToClipboard } from "@/shared/utils/clipboard";
+import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
 const ProviderLimits = dynamic(() => import("./usage/components/ProviderLimits"), { ssr: false });
@@ -80,6 +81,8 @@ function mergeUpdateStep(steps: UpdateStep[], nextStep: UpdateStep) {
 
 export default function HomePageClient({ machineId }: HomePageClientProps) {
   const router = useRouter();
+  const isElectron = useIsElectron();
+  const { openExternal } = useOpenExternal();
   const t = useTranslations("home");
   const tc = useTranslations("common");
   const ts = useTranslations("sidebar");
@@ -93,6 +96,75 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
+
+  // Platform detection and download links for Electron
+  const platform = typeof window !== "undefined" ? window.electronAPI?.platform : undefined;
+  const electronDownload = useMemo(() => {
+    const latest = versionInfo?.latest || "";
+    const cleanLatest = latest.replace(/^v/, "");
+    if (platform === "darwin") {
+      return {
+        label: "Download DMG (macOS)",
+        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.dmg`,
+        desc: `A new version of the OmniRoute desktop app is available. Please download and install the macOS DMG installer to update (current: v${versionInfo?.current || ""}).`,
+      };
+    }
+    if (platform === "win32") {
+      return {
+        label: "Download EXE (Windows)",
+        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute.Setup.${cleanLatest}.exe`,
+        desc: `A new version of the OmniRoute desktop app is available. Please download and install the Windows EXE installer to update (current: v${versionInfo?.current || ""}).`,
+      };
+    }
+    if (platform === "linux") {
+      return {
+        label: "Download AppImage (Linux)",
+        url: `https://github.com/diegosouzapw/OmniRoute/releases/download/v${cleanLatest}/OmniRoute-${cleanLatest}.AppImage`,
+        desc: `A new version of the OmniRoute desktop app is available. Please download the Linux AppImage package to update (current: v${versionInfo?.current || ""}).`,
+      };
+    }
+    return {
+      label: "Download Update",
+      url: `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${cleanLatest}`,
+      desc: `A new version of the OmniRoute desktop app is available. Please download the respective app format for your system to update (current: v${versionInfo?.current || ""}).`,
+    };
+  }, [platform, versionInfo?.latest, versionInfo?.current]);
+
+  // Electron internal auto-updater state and listeners
+  const [electronUpdateStatus, setElectronUpdateStatus] = useState<{
+    status:
+      | "idle"
+      | "checking"
+      | "available"
+      | "not-available"
+      | "downloading"
+      | "downloaded"
+      | "error";
+    version?: string;
+    percent?: number;
+    message?: string;
+  }>({ status: "idle" });
+
+  useEffect(() => {
+    if (!isElectron || typeof window === "undefined" || !window.electronAPI) return;
+
+    // Trigger initial check silently on mount
+    window.electronAPI.checkForUpdates().catch((err: any) => {
+      console.error("[Electron] Check for updates failed:", err);
+    });
+
+    const dispose = window.electronAPI.onUpdateStatus((data: any) => {
+      setElectronUpdateStatus({
+        status: data.status,
+        version: data.version,
+        percent: data.percent,
+        message: data.message,
+      });
+    });
+
+    return dispose;
+  }, [isElectron]);
+
   const [updateSteps, setUpdateSteps] = useState<UpdateStep[]>([]);
   const [updatePhase, setUpdatePhase] = useState<"idle" | "running" | "done" | "failed">("idle");
 
@@ -273,8 +345,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       const providerKeys = new Set([providerId, providerInfo.alias].filter(Boolean));
       const providerModels = models.filter((m) => providerKeys.has(m.provider));
 
-      const authType = FREE_PROVIDERS[providerId]
-        ? "free"
+      const authType = NOAUTH_PROVIDERS[providerId]
+        ? "no-auth"
         : OAUTH_PROVIDERS[providerId]
           ? "oauth"
           : "apikey";
@@ -689,31 +761,140 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {/* Update Notification Banner */}
       {versionInfo?.updateAvailable && !showUpdateOverlay && (
         <div className="flex flex-col gap-3">
-          <div className="flex min-h-[64px] items-center justify-between rounded-lg border border-primary/20 bg-primary/10 px-5 py-4 text-primary">
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="material-symbols-outlined shrink-0 text-[24px]">
-                system_update_alt
-              </span>
-              <div>
-                <p className="font-semibold text-sm">Update Available: v{versionInfo.latest}</p>
-                <p className="text-xs opacity-80 mt-0.5">
-                  {versionInfo.autoUpdateSupported
-                    ? t("updateAvailableDesc") ||
+          <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-primary/10 px-5 py-4 text-primary">
+            <div className="flex min-h-[48px] items-center justify-between">
+              <div className="flex min-w-0 items-center gap-4">
+                <span className="material-symbols-outlined shrink-0 text-[24px]">
+                  {isElectron && electronUpdateStatus.status === "downloading"
+                    ? "downloading"
+                    : "system_update_alt"}
+                </span>
+                <div>
+                  <p className="font-semibold text-sm">
+                    Update Available: v{versionInfo.latest} {isElectron && "(Desktop App)"}
+                  </p>
+                  <p className="text-xs opacity-80 mt-0.5">
+                    {isElectron ? (
+                      <>
+                        {electronUpdateStatus.status === "checking" && "Checking for updates..."}
+                        {electronUpdateStatus.status === "available" &&
+                          `Version v${versionInfo.latest} is available for download.`}
+                        {electronUpdateStatus.status === "downloading" &&
+                          `Downloading update... ${electronUpdateStatus.percent || 0}% complete.`}
+                        {electronUpdateStatus.status === "downloaded" &&
+                          "Update downloaded successfully! Click Restart & Install to apply."}
+                        {electronUpdateStatus.status === "error" &&
+                          `Auto-update failed: ${electronUpdateStatus.message || "Unknown error"}.`}
+                        {(electronUpdateStatus.status === "idle" ||
+                          electronUpdateStatus.status === "not-available") &&
+                          `Version v${versionInfo.latest} is available for the desktop app.`}
+                      </>
+                    ) : versionInfo.autoUpdateSupported ? (
+                      t("updateAvailableDesc") ||
                       `You are currently using v${versionInfo.current}. Update to access the latest features and bug fixes.`
-                    : versionInfo.autoUpdateError ||
-                      "Manual update required for this installation type."}
-                </p>
+                    ) : (
+                      versionInfo.autoUpdateError ||
+                      "Manual update required for this installation type."
+                    )}
+                  </p>
+                </div>
               </div>
+
+              {isElectron ? (
+                <div className="flex gap-2 shrink-0 ml-4">
+                  {electronUpdateStatus.status === "available" && (
+                    <Button
+                      size="sm"
+                      onClick={() => window.electronAPI?.downloadUpdate()}
+                      className="font-semibold"
+                    >
+                      Download Update
+                    </Button>
+                  )}
+                  {electronUpdateStatus.status === "downloading" && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/20">
+                      <span className="material-symbols-outlined text-primary text-[16px] animate-spin">
+                        progress_activity
+                      </span>
+                      <span className="text-xs font-semibold">
+                        {electronUpdateStatus.percent || 0}%
+                      </span>
+                    </div>
+                  )}
+                  {electronUpdateStatus.status === "downloaded" && (
+                    <Button
+                      size="sm"
+                      onClick={() => window.electronAPI?.installUpdate()}
+                      className="font-semibold animate-pulse"
+                    >
+                      Restart & Install
+                    </Button>
+                  )}
+                  {(electronUpdateStatus.status === "error" ||
+                    electronUpdateStatus.status === "idle" ||
+                    electronUpdateStatus.status === "not-available") && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setElectronUpdateStatus({ status: "checking" });
+                        window.electronAPI?.checkForUpdates().catch((err: any) => {
+                          setElectronUpdateStatus({ status: "error", message: err.message });
+                        });
+                      }}
+                      className="font-semibold"
+                    >
+                      Check for Update
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={versionInfo.autoUpdateSupported ? handleUpdate : undefined}
+                  disabled={updating || !versionInfo.autoUpdateSupported}
+                  className="ml-4 shrink-0 font-semibold"
+                  title={versionInfo.autoUpdateError || ""}
+                >
+                  {versionInfo.autoUpdateSupported
+                    ? t("updateNow") || "Update Now"
+                    : "Manual Update"}
+                </Button>
+              )}
             </div>
-            <Button
-              size="sm"
-              onClick={versionInfo.autoUpdateSupported ? handleUpdate : undefined}
-              disabled={updating || !versionInfo.autoUpdateSupported}
-              className="ml-4 shrink-0 font-semibold"
-              title={versionInfo.autoUpdateError || ""}
-            >
-              {versionInfo.autoUpdateSupported ? t("updateNow") || "Update Now" : "Manual Update"}
-            </Button>
+
+            {/* Direct download fallback links shown if in Electron and auto-updater has failed, is idle, or has completed check */}
+            {isElectron &&
+              (electronUpdateStatus.status === "error" ||
+                electronUpdateStatus.status === "idle" ||
+                electronUpdateStatus.status === "available" ||
+                electronUpdateStatus.status === "not-available") && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-primary/20 mt-2 pt-3 gap-2">
+                  <p className="text-xs opacity-75">
+                    Or download the respective installer format directly:
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        openExternal(
+                          `https://github.com/diegosouzapw/OmniRoute/releases/tag/v${versionInfo.latest}`
+                        )
+                      }
+                      className="font-semibold text-xs py-1"
+                    >
+                      Release Notes
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => openExternal(electronDownload.url)}
+                      className="font-semibold text-xs py-1"
+                    >
+                      {electronDownload.label}
+                    </Button>
+                  </div>
+                </div>
+              )}
           </div>
 
           {/* News Notification Banner */}
@@ -774,75 +955,77 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
               </Link>
             </div>
 
-          <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
-                <span className="material-symbols-outlined text-[18px]">key</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step1Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step1Desc", {
-                    endpoint: (chunks) => (
-                      <Link href="/dashboard/endpoint" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">dns</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step2Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step2Desc", {
-                    providers: (chunks) => (
-                      <Link href="/dashboard/providers" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">link</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step3Title")}</span>
-                <p className="text-text-muted mt-0.5">{t("step3Desc", { url: currentEndpoint })}</p>
-              </div>
-            </li>
-            <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
-                <span className="material-symbols-outlined text-[18px]">analytics</span>
-              </div>
-              <div>
-                <span className="font-semibold">{t("step4Title")}</span>
-                <p className="text-text-muted mt-0.5">
-                  {t.rich("step4Desc", {
-                    logs: (chunks) => (
-                      <Link href="/dashboard/logs" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                    analytics: (chunks) => (
-                      <Link href="/dashboard/analytics" className="text-primary hover:underline">
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </p>
-              </div>
-            </li>
-          </ol>
-        </div>
-      </Card>
+            <ol className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 text-primary shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step1Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step1Desc", {
+                      endpoint: (chunks) => (
+                        <Link href="/dashboard/endpoint" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-green-500/10 text-green-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">dns</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step2Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step2Desc", {
+                      providers: (chunks) => (
+                        <Link href="/dashboard/providers" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">link</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step3Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t("step3Desc", { url: currentEndpoint })}
+                  </p>
+                </div>
+              </li>
+              <li className="rounded-lg border border-border bg-bg-subtle p-4 flex gap-3">
+                <div className="flex items-center justify-center size-8 rounded-lg bg-amber-500/10 text-amber-500 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">analytics</span>
+                </div>
+                <div>
+                  <span className="font-semibold">{t("step4Title")}</span>
+                  <p className="text-text-muted mt-0.5">
+                    {t.rich("step4Desc", {
+                      logs: (chunks) => (
+                        <Link href="/dashboard/logs" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                      analytics: (chunks) => (
+                        <Link href="/dashboard/analytics" className="text-primary hover:underline">
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </Card>
       )}
 
       {/* Provider Topology (controlled by Appearance setting, default on) */}
@@ -903,6 +1086,7 @@ function ProviderOverviewCard({
     item.errors > 0 ? "text-red-500" : item.connected > 0 ? "text-green-500" : "text-text-muted";
 
   const authTypeConfig = {
+    "no-auth": { color: "bg-stone-500", label: "No Auth" },
     free: { color: "bg-green-500", label: tc("free") },
     oauth: { color: "bg-blue-500", label: t("oauthLabel") },
     apikey: { color: "bg-amber-500", label: t("apiKeyLabel") },
