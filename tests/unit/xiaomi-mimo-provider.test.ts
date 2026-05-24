@@ -98,7 +98,6 @@ test("xiaomi-mimo update schema accepts custom regional baseUrl", () => {
   }
 });
 
-
 test("MiMo-V2.5, V2.5-Pro, and V2-Omni report vision capability", () => {
   // Omnimodal models should have supportsVision
   assert.equal(getModelSpec("mimo-v2.5-pro")?.supportsVision, true);

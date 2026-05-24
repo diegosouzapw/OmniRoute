@@ -23,7 +23,7 @@ import {
 } from "@/shared/components";
 import {
   LOCAL_PROVIDERS,
-  FREE_PROVIDERS,
+  NOAUTH_PROVIDERS,
   getProviderAlias,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
@@ -68,6 +68,8 @@ import {
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
+import RiskNoticeModal from "../components/RiskNoticeModal";
+import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
 
 type CompatByProtocolMap = Partial<
@@ -1038,6 +1040,7 @@ export default function ProviderDetailPage() {
   const [showOAuthModal, _setShowOAuthModal] = useState(false);
   const [reauthConnection, setReauthConnection] = useState<ConnectionRowConnection | null>(null);
   const [showAddApiKeyModal, setShowAddApiKeyModal] = useState(false);
+  const [showRiskNoticeModal, setShowRiskNoticeModal] = useState(false);
   const [commandCodeAuthState, setCommandCodeAuthState] = useState<CommandCodeAuthFlowState>({
     phase: "idle",
     state: "",
@@ -1048,6 +1051,7 @@ export default function ProviderDetailPage() {
   });
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditNodeModal, setShowEditNodeModal] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [selectedConnection, setSelectedConnection] = useState(null);
   const [retestingId, setRetestingId] = useState(null);
   const [batchTesting, setBatchTesting] = useState(false);
@@ -1115,6 +1119,9 @@ export default function ProviderDetailPage() {
   const [batchDeleting, setBatchDeleting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
   const commandCodeAuthTimerRef = useRef<number | null>(null);
+  const pendingRiskActionRef = useRef<(() => void) | null>(null);
+  const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
+    useRiskAcknowledged(providerId);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -1138,9 +1145,10 @@ export default function ProviderDetailPage() {
   });
   const providerSupportsOAuth =
     providerInfo?.toggleAuthType === "oauth" || providerInfo?.toggleAuthType === "free";
+  const subscriptionRisk = providerInfo?.subscriptionRisk === true;
   const providerSupportsPat = supportsApiKeyOnFreeProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
-  const isFreeNoAuth = FREE_PROVIDERS[providerId]?.noAuth === true;
+  const isFreeNoAuth = NOAUTH_PROVIDERS[providerId]?.noAuth === true;
   const registryModels = getModelsByProviderId(providerId);
   // Prefer synced API-discovered models when available, then merge built-ins
   // and user-managed custom models without duplicating IDs.
@@ -1582,6 +1590,31 @@ export default function ProviderDetailPage() {
     }
     setShowAddApiKeyModal(true);
   }, [isOAuth]);
+
+  const gateConnectionFlow = useCallback(
+    (callback: () => void) => {
+      if (subscriptionRisk && !riskAcknowledged && !isRiskAcknowledged(providerId)) {
+        pendingRiskActionRef.current = callback;
+        setShowRiskNoticeModal(true);
+        return;
+      }
+      callback();
+    },
+    [providerId, riskAcknowledged, subscriptionRisk]
+  );
+
+  const handleConfirmRiskNotice = useCallback(() => {
+    acknowledgeRisk();
+    setShowRiskNoticeModal(false);
+    const pendingAction = pendingRiskActionRef.current;
+    pendingRiskActionRef.current = null;
+    pendingAction?.();
+  }, [acknowledgeRisk]);
+
+  const handleCancelRiskNotice = useCallback(() => {
+    pendingRiskActionRef.current = null;
+    setShowRiskNoticeModal(false);
+  }, []);
 
   const clearCommandCodeAuthTimer = useCallback(() => {
     if (commandCodeAuthTimerRef.current !== null) {
@@ -3362,6 +3395,15 @@ export default function ProviderDetailPage() {
                 {t("connectionCountLabel", { count: connections.length })}
               </p>
               <EmailPrivacyToggle size="md" />
+              {providerId === "adapta-web" && (
+                <button
+                  onClick={() => setShowTutorialModal(true)}
+                  className="text-sm font-medium underline underline-offset-2 opacity-70 hover:opacity-100 transition-opacity"
+                  style={{ color: providerInfo.color }}
+                >
+                  Tutorial
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -3469,7 +3511,11 @@ export default function ProviderDetailPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+              <Button
+                size="sm"
+                icon="add"
+                onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+              >
                 {t("add")}
               </Button>
               <Button
@@ -3605,7 +3651,7 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
@@ -3613,21 +3659,25 @@ export default function ProviderDetailPage() {
                         size="sm"
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button size="sm" icon="add" onClick={openPrimaryAddFlow}>
+                      <Button
+                        size="sm"
+                        icon="add"
+                        onClick={() => gateConnectionFlow(openPrimaryAddFlow)}
+                      >
                         {providerSupportsPat ? "Add PAT" : t("add")}
                       </Button>
                       {providerId === "qoder" && (
                         <Button
                           size="sm"
                           variant="secondary"
-                          onClick={() => setShowOAuthModal(true)}
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
                         >
                           Experimental OAuth
                         </Button>
@@ -3637,7 +3687,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3649,7 +3699,7 @@ export default function ProviderDetailPage() {
                           size="sm"
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3661,7 +3711,11 @@ export default function ProviderDetailPage() {
                 </>
               ) : (
                 connections.length === 0 && (
-                  <Button size="sm" icon="add" onClick={() => setShowAddApiKeyModal(true)}>
+                  <Button
+                    size="sm"
+                    icon="add"
+                    onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
+                  >
                     {t("add")}
                   </Button>
                 )
@@ -3689,25 +3743,28 @@ export default function ProviderDetailPage() {
                           commandCodeAuthState.phase === "polling" ||
                           commandCodeAuthState.phase === "applying"
                         }
-                        onClick={handleOpenCommandCodeConnect}
+                        onClick={() => gateConnectionFlow(handleOpenCommandCodeConnect)}
                       >
                         Connect
                       </Button>
                       <Button
                         variant="secondary"
                         icon="add"
-                        onClick={() => setShowAddApiKeyModal(true)}
+                        onClick={() => gateConnectionFlow(() => setShowAddApiKeyModal(true))}
                       >
                         Manual API key
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button icon="add" onClick={openPrimaryAddFlow}>
+                      <Button icon="add" onClick={() => gateConnectionFlow(openPrimaryAddFlow)}>
                         {providerSupportsPat ? "Add PAT" : t("addConnection")}
                       </Button>
                       {providerId === "qoder" && (
-                        <Button variant="secondary" onClick={() => setShowOAuthModal(true)}>
+                        <Button
+                          variant="secondary"
+                          onClick={() => gateConnectionFlow(() => setShowOAuthModal(true))}
+                        >
                           Experimental OAuth
                         </Button>
                       )}
@@ -3715,7 +3772,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportCodexModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importCodexAuth")
                             ? t("importCodexAuth")
@@ -3726,7 +3783,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportClaudeModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportClaudeModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importClaudeAuth")
                             ? t("importClaudeAuth")
@@ -3737,7 +3794,7 @@ export default function ProviderDetailPage() {
                         <Button
                           variant="secondary"
                           icon="upload_file"
-                          onClick={() => setImportGeminiModalOpen(true)}
+                          onClick={() => gateConnectionFlow(() => setImportGeminiModalOpen(true))}
                         >
                           {typeof t.has === "function" && t.has("importGeminiAuth")
                             ? t("importGeminiAuth")
@@ -3834,7 +3891,7 @@ export default function ProviderDetailPage() {
                           onDelete={() => handleDelete(conn.id)}
                           onReauth={
                             conn.authType === "oauth"
-                              ? () => setShowOAuthModal(true, conn)
+                              ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                               : undefined
                           }
                           onRefreshToken={
@@ -4021,7 +4078,7 @@ export default function ProviderDetailPage() {
                                 onDelete={() => handleDelete(conn.id)}
                                 onReauth={
                                   conn.authType === "oauth"
-                                    ? () => setShowOAuthModal(true, conn)
+                                    ? () => gateConnectionFlow(() => setShowOAuthModal(true, conn))
                                     : undefined
                                 }
                                 onRefreshToken={
@@ -4177,6 +4234,15 @@ export default function ProviderDetailPage() {
       )}
 
       {/* Modals */}
+      {showRiskNoticeModal && subscriptionRisk && (
+        <RiskNoticeModal
+          variant={providerInfo.riskNoticeVariant ?? "oauth"}
+          providerId={providerId}
+          providerName={providerInfo.name}
+          onConfirm={handleConfirmRiskNotice}
+          onCancel={handleCancelRiskNotice}
+        />
+      )}
       {!isUpstreamProxyProvider &&
         (providerId === "kiro" || providerId === "amazon-q" ? (
           <KiroOAuthWrapper
@@ -4521,6 +4587,123 @@ export default function ProviderDetailPage() {
           )}
         </div>
       </Modal>
+
+      {/* Adapta Web — Tutorial Modal */}
+      {providerId === "adapta-web" && (
+        <Modal
+          isOpen={showTutorialModal}
+          onClose={() => setShowTutorialModal(false)}
+          title="Como conectar o Adapta Web"
+          size="md"
+        >
+          <div className="flex flex-col gap-5 text-sm">
+            <p className="text-text-muted">
+              O Adapta usa autenticação via Clerk. O token{" "}
+              <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> é um JWT
+              de longa duração que permite renovar sessões automaticamente.
+            </p>
+
+            <ol className="flex flex-col gap-4 list-none">
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  1
+                </span>
+                <div>
+                  <p className="font-medium">Acesse o chat do Adapta</p>
+                  <p className="text-text-muted mt-0.5">
+                    Abra{" "}
+                    <a
+                      href="https://agent.adapta.one/agentic-chat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-primary"
+                    >
+                      agent.adapta.one/agentic-chat
+                    </a>{" "}
+                    e faça login com sua conta Gold ou Business.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  2
+                </span>
+                <div>
+                  <p className="font-medium">Abra o DevTools</p>
+                  <p className="text-text-muted mt-0.5">
+                    Pressione{" "}
+                    <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">F12</kbd>{" "}
+                    ou{" "}
+                    <kbd className="bg-surface-2 px-1.5 py-0.5 rounded text-xs font-mono">
+                      Cmd+Option+I
+                    </kbd>{" "}
+                    para abrir as Ferramentas do Desenvolvedor.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  3
+                </span>
+                <div>
+                  <p className="font-medium">Vá em Application → Cookies</p>
+                  <p className="text-text-muted mt-0.5">
+                    Na aba <strong>Application</strong> (Chrome/Edge) ou <strong>Storage</strong>{" "}
+                    (Firefox), expanda <strong>Cookies</strong> e clique em{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">
+                      .clerk.agent.adapta.one
+                    </code>
+                    .
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  4
+                </span>
+                <div>
+                  <p className="font-medium">
+                    Copie o valor do cookie{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code>
+                  </p>
+                  <p className="text-text-muted mt-0.5">
+                    Localize o cookie chamado{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> na
+                    lista. Clique nele e copie o conteúdo da coluna <strong>Value</strong> — começa
+                    com <code className="bg-surface-2 px-1 rounded font-mono text-xs">eyJ…</code>.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex gap-3">
+                <span className="flex-none w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
+                  5
+                </span>
+                <div>
+                  <p className="font-medium">Cole aqui e salve</p>
+                  <p className="text-text-muted mt-0.5">
+                    Clique em <strong>Add Connection</strong>, cole o valor do{" "}
+                    <code className="bg-surface-2 px-1 rounded font-mono text-xs">__client</code> no
+                    campo de API Key e salve. O OmniRoute renovará a sessão automaticamente.
+                  </p>
+                </div>
+              </li>
+            </ol>
+
+            <div
+              className="rounded-lg p-3 text-xs text-text-muted"
+              style={{ backgroundColor: "rgba(110,58,211,0.08)", borderLeft: "3px solid #6E3AD3" }}
+            >
+              <strong>Dica:</strong> O cookie <code className="font-mono">__client</code> tem
+              validade longa (meses). Só será necessário renová-lo se você sair da conta ou o Adapta
+              invalidar a sessão.
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -7618,9 +7801,7 @@ function previewCodexJson(json: unknown): { valid: boolean; email: string | null
     // Only reject when auth_mode is explicitly set to something other than "chatgpt".
     if (
       !doc ||
-      (doc.auth_mode !== undefined &&
-        doc.auth_mode !== null &&
-        doc.auth_mode !== "chatgpt")
+      (doc.auth_mode !== undefined && doc.auth_mode !== null && doc.auth_mode !== "chatgpt")
     )
       return { valid: false, email: null };
     const tokens =

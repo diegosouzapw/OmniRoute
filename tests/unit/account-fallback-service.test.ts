@@ -95,7 +95,15 @@ test("checkFallbackError treats non-429 exhausted credits as long quota cooldown
 });
 
 test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilience cooldown path", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "openai", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
@@ -104,7 +112,15 @@ test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilien
 });
 
 test("checkFallbackError preserves OAuth 429 exhausted-credit semantics", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "codex", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "codex",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
@@ -630,7 +646,15 @@ test("checkFallbackError locks model until tomorrow for non-429 daily quota exha
 });
 
 test("checkFallbackError routes API-key 429 'try again tomorrow' through resilience cooldown", () => {
-  const result = checkFallbackError(429, "Please try again tomorrow", 0, null, "openai", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "Please try again tomorrow",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
   assert.equal(result.shouldFallback, true);
   assert.equal(result.dailyQuotaExhausted, undefined);
   assert.equal(result.cooldownMs, 125);

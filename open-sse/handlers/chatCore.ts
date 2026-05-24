@@ -1403,6 +1403,7 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id || undefined,
       apiKeyName: apiKeyInfo?.name || undefined,
       serviceTier: effectiveServiceTier,
+      comboStrategy: isCombo ? comboStrategy || undefined : undefined,
     }).catch(() => {});
   };
 
@@ -2107,6 +2108,7 @@ export async function handleChatCore({
   const allMessages = compressionBody?.messages || body?.contents || body?.request?.contents || [];
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
+  let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let promptCompressionEnabled = false;
@@ -2558,6 +2560,10 @@ export async function handleChatCore({
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
 
+    // Capture pre-compression body so translators can access original message
+    // content even after compression alters it (e.g. stable Kiro conversationId).
+    preCompressionBody = body;
+
     if (promptCompressionEnabled && estimatedTokens > threshold) {
       log?.info?.(
         "CONTEXT",
@@ -2709,7 +2715,7 @@ export async function handleChatCore({
     let messages = payload.messages as ClaudeMessage[];
 
     // Extract system/developer role messages into top-level system parameter.
-    extractSystemMessagesToBody(payload);
+    extractSystemRoleMessages(payload);
     messages = payload.messages as ClaudeMessage[];
 
     // Anthropic rejects empty text blocks in native Messages payloads.
@@ -2814,7 +2820,12 @@ export async function handleChatCore({
           credentials,
           provider,
           reqLogger,
-          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+          {
+            normalizeToolCallId,
+            preserveDeveloperRole,
+            preserveCacheControl,
+            copilotClient: copilotCompatibleReasoning,
+          }
         );
       }
 
@@ -2833,11 +2844,14 @@ export async function handleChatCore({
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
 
-      // Fix #2468: extract role:"system" from messages → top-level system
-      // in the compatible bridge path. The preserveClaudeMessages flag
-      // skips the OpenAI round-trip but may leave system-role messages in
-      // the array, which Anthropic's Messages API now rejects (400).
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Semantic passthrough: only lift system/developer role messages
+        // without converting file/document blocks, tool history, etc.
+        extractSystemRoleMessages(translatedBody);
+      } else {
+        // Non-CC path: full normalization including content type conversion.
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
     } else if (isClaudePassthrough) {
       // Pure passthrough: forward the body as-is without OpenAI round-trip.
       // The Claude→OpenAI→Claude double translation was lossy and corrupted
@@ -2862,7 +2876,13 @@ export async function handleChatCore({
       // round-trip, but even pure Claude bodies may carry system content as
       // role:"system" messages rather than the top-level system field, which
       // Anthropic's Messages API now rejects with a 400.
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Only lift system/developer messages — preserves Claude Code's
+        // native payload structure (documents, tool chains, thinking, etc.)
+        extractSystemRoleMessages(translatedBody);
+      } else {
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
@@ -2964,6 +2984,8 @@ export async function handleChatCore({
           preserveDeveloperRole,
           preserveCacheControl,
           signatureNamespace: connectionId,
+          copilotClient: copilotCompatibleReasoning,
+          ...(preCompressionBody ? { preCompressionBody } : {}),
         }
       );
     }
@@ -3763,14 +3785,21 @@ export async function handleChatCore({
     parsedStatusCode === HTTP_STATUS.BAD_REQUEST &&
     parsedMessage?.toLowerCase().includes("session has expired");
 
-  const streamOptionsOnlyFailed = false; // TODO: properly track stream options failure? (placeholder from existing logic)
+  // Track whether stream_options was present and stripped — if so, 401/403 after
+  // that may be from the modification rather than a genuine auth failure, so we
+  // skip the credential refresh attempt in that case.
+  const hadStreamOptions =
+    targetFormat === FORMATS.OPENAI_RESPONSES && "stream_options" in translatedBody;
+  if (hadStreamOptions) {
+    delete translatedBody.stream_options;
+  }
 
   // Handle 401/403 (and Qwen explicit expiration) - try token refresh using executor
   if (
     (providerResponse.status === HTTP_STATUS.UNAUTHORIZED ||
       providerResponse.status === HTTP_STATUS.FORBIDDEN ||
       isQwenExpiredError) &&
-    !streamOptionsOnlyFailed // Keep constraint if stream options failed originally
+    !hadStreamOptions // Skip refresh if failure may be from stream_options removal, not auth
   ) {
     const newCredentials = (await refreshWithRetry(
       () => executor.refreshCredentials(credentials, log),
@@ -4479,6 +4508,7 @@ export async function handleChatCore({
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
+        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
@@ -4856,6 +4886,7 @@ export async function handleChatCore({
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
+        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });

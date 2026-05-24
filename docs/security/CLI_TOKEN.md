@@ -1,3 +1,7 @@
+---
+title: "CLI Machine-ID Token"
+---
+
 # CLI Machine-ID Token
 
 ## Overview
