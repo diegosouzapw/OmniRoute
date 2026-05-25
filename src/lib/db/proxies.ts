@@ -252,15 +252,9 @@ function updateProxyRow(
   const merged = {
     ...existing,
     ...payload,
-    // Preserve stored credentials unless caller explicitly sends non-empty replacements.
-    username:
-      incomingUsername === undefined || incomingUsername.length === 0
-        ? existing.username
-        : incomingUsername,
-    password:
-      incomingPassword === undefined || incomingPassword.length === 0
-        ? existing.password
-        : incomingPassword,
+    // Omitted credentials mean preserve; explicitly provided blanks clear stored auth.
+    username: incomingUsername === undefined ? existing.username : incomingUsername,
+    password: incomingPassword === undefined ? existing.password : incomingPassword,
     updatedAt: now,
   };
 

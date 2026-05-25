@@ -97,6 +97,35 @@ test("createProxyAndAssign assigns and clears matching legacy proxy atomically",
   assert.equal(await settingsDb.getProxyForLevel("provider", "openai"), null);
 });
 
+test("updateProxyAndAssign clears stored credentials when blanks are explicitly provided", async () => {
+  await resetStorage();
+
+  const created = await proxiesDb.createProxy({
+    name: "Atomic Credential Proxy",
+    type: "http",
+    host: "atomic-credentials.local",
+    port: 8080,
+    username: "user-a",
+    password: "pass-a",
+    source: "dashboard-custom",
+  });
+
+  const result = await proxiesDb.updateProxyAndAssign(
+    created.id,
+    {
+      username: "",
+      password: "",
+    },
+    { scope: "provider", scopeId: "openai" }
+  );
+  const withSecrets = await proxiesDb.getProxyById(created.id, { includeSecrets: true });
+
+  assert.equal(result?.assignment?.scope, "provider");
+  assert.equal(result?.assignment?.scopeId, "openai");
+  assert.equal(withSecrets?.username, "");
+  assert.equal(withSecrets?.password, "");
+});
+
 test("specific registry account assignment takes precedence over legacy key proxy config", async () => {
   await resetStorage();
 
