@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import GlobalConfigTab from "./proxy/GlobalConfigTab";
@@ -21,17 +21,13 @@ export default function ProxyTab() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<TabId>("global-config");
 
-  useEffect(() => {
+  const activeTab = useMemo<TabId>(() => {
     const tabParam = searchParams.get("tab") as TabId | null;
-    if (tabParam && TABS.some((tab) => tab.id === tabParam)) {
-      setActiveTab(tabParam);
-    }
+    return tabParam && TABS.some((tab) => tab.id === tabParam) ? tabParam : "global-config";
   }, [searchParams]);
 
   const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });

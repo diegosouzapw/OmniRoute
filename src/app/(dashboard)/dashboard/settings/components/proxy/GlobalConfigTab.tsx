@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, Button, ProxyConfigModal } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -8,27 +8,23 @@ type GlobalProxyConfig = { type: string; host: string; port: number } | null;
 export default function GlobalConfigTab() {
   const [proxyModalOpen, setProxyModalOpen] = useState(false);
   const [globalProxy, setGlobalProxy] = useState<GlobalProxyConfig>(null);
-  const mountedRef = useRef(true);
   const t = useTranslations("settings");
   const tc = useTranslations("common");
 
-  const loadGlobalProxy = async () => {
+  const loadGlobalProxy = useCallback(async () => {
     try {
       const res = await fetch("/api/settings/proxy?level=global");
-      if (res.ok && mountedRef.current) {
+      if (res.ok) {
         const data = await res.json();
         setGlobalProxy(data.proxy || null);
       }
     } catch {}
-  };
+  }, []);
 
   useEffect(() => {
-    mountedRef.current = true;
-    loadGlobalProxy().catch(() => {});
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on mount
+    loadGlobalProxy();
+  }, [loadGlobalProxy]);
 
   return (
     <>

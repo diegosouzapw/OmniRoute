@@ -51,7 +51,8 @@ export default function FreePoolTab() {
   }, [activeSource, filterProtocol, filterCountry, minQuality]);
 
   useEffect(() => {
-    loadData().catch(() => {});
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on filter change
+    loadData();
   }, [loadData]);
 
   const handleSync = async () => {
