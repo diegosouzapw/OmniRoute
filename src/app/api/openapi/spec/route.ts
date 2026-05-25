@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 let cachedSpec: { data: any; mtime: number } | null = null;
 const OPENAPI_SPEC_CANDIDATES = [
@@ -80,7 +81,7 @@ export async function GET() {
     return NextResponse.json(catalog);
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to parse OpenAPI spec" },
+      { error: sanitizeErrorMessage(error) || "Failed to parse OpenAPI spec" },
       { status: 500 }
     );
   }

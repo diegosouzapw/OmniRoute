@@ -52,6 +52,18 @@ test("every x-always-protected path matches ALWAYS_PROTECTED_API_PATHS in routeG
   }
 });
 
+test("spec route error response uses sanitizeErrorMessage (no raw error.message)", () => {
+  const routeSrc = fs.readFileSync(path.join(ROOT, "src/app/api/openapi/spec/route.ts"), "utf-8");
+  assert.ok(
+    routeSrc.includes("sanitizeErrorMessage"),
+    "spec route must use sanitizeErrorMessage() to prevent stack trace leakage in error responses"
+  );
+  assert.ok(
+    !routeSrc.match(/\berror\.message\b/),
+    "spec route must not expose raw error.message in HTTP responses"
+  );
+});
+
 test("spec route catalog includes vendor extension fields for annotated endpoints", () => {
   const raw2: any = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
   const endpoints: any[] = [];
