@@ -50,11 +50,11 @@ interface ProxyAssignmentPayload {
 }
 
 interface ProxyMutationResult {
-  proxy: ProxyRegistryRecord | null;
+  proxy: ProxyRegistryRecord;
   assignment: ProxyAssignmentRecord | null;
 }
 
-interface ProxyTransactionResult {
+interface ProxyTransactionResult extends ProxyMutationResult {
   legacyCleared: boolean;
 }
 
@@ -352,8 +352,16 @@ export async function listProxies(options?: { includeSecrets?: boolean }) {
 }
 
 export async function getProxyById(id: string, options?: { includeSecrets?: boolean }) {
-  const includeSecrets = options?.includeSecrets === true;
   const db = getDbInstance();
+  return getProxyRowById(db, id, options);
+}
+
+function getProxyRowById(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  options?: { includeSecrets?: boolean }
+) {
+  const includeSecrets = options?.includeSecrets === true;
   const row = db
     .prepare(
       "SELECT id, name, type, host, port, username, password, region, notes, status, source, created_at, updated_at FROM proxy_registry WHERE id = ?"
@@ -362,6 +370,18 @@ export async function getProxyById(id: string, options?: { includeSecrets?: bool
   if (!row) return null;
   const proxy = mapProxyRow(row);
   return includeSecrets ? proxy : redactProxySecrets(proxy);
+}
+
+function getProxyRowByIdOrThrow(
+  db: ReturnType<typeof getDbInstance>,
+  id: string,
+  options?: { includeSecrets?: boolean }
+) {
+  const proxy = getProxyRowById(db, id, options);
+  if (!proxy) {
+    throw new Error(`Failed to read proxy after mutation: ${id}`);
+  }
+  return proxy;
 }
 
 export async function createProxy(payload: ProxyPayload) {
@@ -429,7 +449,11 @@ export async function createProxyAndAssign(
     if (assignment.clearLegacy) {
       legacyCleared = clearLegacyProxyForAssignment(db, assignment);
     }
-    return { legacyCleared };
+    return {
+      legacyCleared,
+      proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
+      assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    };
   });
   const result = tx();
 
@@ -440,8 +464,8 @@ export async function createProxyAndAssign(
     bumpProxyConfigGeneration();
   }
   return {
-    proxy: await getProxyById(id, { includeSecrets: false }),
-    assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    proxy: result.proxy,
+    assignment: result.assignment,
   };
 }
 
@@ -451,20 +475,26 @@ export async function updateProxyAndAssign(
   assignment: ProxyAssignmentPayload
 ): Promise<ProxyMutationResult | null> {
   const db = getDbInstance();
-  const existing = await getProxyById(id, { includeSecrets: true });
-  if (!existing) return null;
   const now = new Date().toISOString();
 
-  const tx = db.transaction((): ProxyTransactionResult => {
+  const tx = db.transaction((): ProxyTransactionResult | null => {
+    const existing = getProxyRowById(db, id, { includeSecrets: true });
+    if (!existing) return null;
+
     updateProxyRow(db, id, existing, payload, now);
     upsertAssignmentRow(db, assignment, id, now);
     let legacyCleared = false;
     if (assignment.clearLegacy) {
       legacyCleared = clearLegacyProxyForAssignment(db, assignment);
     }
-    return { legacyCleared };
+    return {
+      legacyCleared,
+      proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
+      assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    };
   });
   const result = tx();
+  if (!result) return null;
 
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
@@ -473,8 +503,8 @@ export async function updateProxyAndAssign(
     bumpProxyConfigGeneration();
   }
   return {
-    proxy: await getProxyById(id, { includeSecrets: false }),
-    assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
+    proxy: result.proxy,
+    assignment: result.assignment,
   };
 }
 

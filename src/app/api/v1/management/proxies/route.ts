@@ -84,10 +84,7 @@ export async function POST(request: Request) {
     if (assignment) {
       const result = await createProxyAndAssign(proxyFields, assignment);
       clearDispatcherCache();
-      return Response.json(
-        result.proxy ? { ...result.proxy, assignment: result.assignment } : result.proxy,
-        { status: 201 }
-      );
+      return Response.json({ ...result.proxy, assignment: result.assignment }, { status: 201 });
     }
 
     const created = await createProxy(proxyFields);
