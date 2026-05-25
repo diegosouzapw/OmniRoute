@@ -23,7 +23,7 @@ node scripts/i18n/check-translation-drift.mjs --warn || \
 node scripts/i18n/check-ui-keys-coverage.mjs --threshold=80 || \
   echo "⚠️  UI i18n coverage below 80% for at least one locale."
 
-# OpenAPI coverage check — fails if coverage < 95% (FASE 08 content audit)
+# OpenAPI coverage check — fails if coverage < 99% (FASE 08 content audit)
 node scripts/check/check-openapi-coverage.mjs
 
 # OpenAPI security tier consistency check — fails if x-loopback-only / x-always-protected

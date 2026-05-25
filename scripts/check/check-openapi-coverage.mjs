@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Validates that openapi.yaml documents ≥ 95% of implemented routes.
+ * Validates that openapi.yaml documents ≥ 99% of implemented routes.
  * Routes marked x-internal: true in openapi.yaml count as "covered" because
  * they are acknowledged as existing — just not part of the public API surface.
  *
- * Fails if coverage < 95%.
+ * Fails if coverage < 99%.
  */
 
 import fs from "node:fs";

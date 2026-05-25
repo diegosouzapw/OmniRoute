@@ -148,7 +148,7 @@ vendor extension if the route is classified by `routeGuard.ts`:
 
 Two scripts enforce consistency between YAML annotations and `routeGuard.ts`:
 
-- `scripts/check/check-openapi-coverage.mjs` — fails if coverage < 95%
+- `scripts/check/check-openapi-coverage.mjs` — fails if coverage < 99%
 - `scripts/check/check-openapi-security-tiers.mjs` — fails if `x-loopback-only` or
   `x-always-protected` annotations diverge from the compile-time constants
 
