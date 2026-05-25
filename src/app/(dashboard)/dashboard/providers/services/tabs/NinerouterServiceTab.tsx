@@ -33,7 +33,7 @@ export function NinerouterServiceTab() {
         name={NAME}
         description="Launch 9Router automatically when OmniRoute starts"
       />
-      <ApiKeyField name={NAME} serviceLabel="9Router" />
+      <ApiKeyField name={NAME} serviceLabel="9Router" showReveal={true} />
       <NinerouterProviderExposureCard />
       <NinerouterModelList />
       <NinerouterEmbedFrame />
