@@ -509,6 +509,19 @@ pnpm install -g omniroute && pnpm approve-builds -g && omniroute
 yay -S omniroute-bin && systemctl --user enable --now omniroute.service
 ```
 
+**🔧 Nix (Flake)**
+
+```bash
+# Using Nix flakes
+nix develop
+pnpm install
+npm run dev
+
+# Or using devbox
+devbox run npm install
+devbox run npm run dev
+```
+
 📖 [Docker Guide](docs/DOCKER_GUIDE.md) — Compose profiles, Caddy HTTPS, Cloudflare tunnels.
 
 </details>
