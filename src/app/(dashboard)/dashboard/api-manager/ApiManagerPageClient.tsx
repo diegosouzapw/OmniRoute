@@ -5,6 +5,16 @@ import { Card, Button, Input, Modal, CardSkeleton } from "@/shared/components";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import { useTranslations } from "next-intl";
 import { getProviderDisplayName } from "@/lib/display/names";
+import ApiKeyFilterBar from "./components/ApiKeyFilterBar";
+import {
+  isKeyActive,
+  isExpired,
+  isRestricted as isKeyRestricted,
+  classifyKeyStatus,
+  computeApiKeyCounts,
+} from "./apiManagerPageUtils";
+import type { KeyStatus, KeyType } from "./apiManagerPageUtils";
+import { readActiveOnlyPreference, writeActiveOnlyPreference } from "./apiManagerPageStorage";
 
 // Constants for validation
 const MAX_KEY_NAME_LENGTH = 200;
@@ -121,6 +131,11 @@ export default function ApiManagerPageClient() {
   const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
   const [allowKeyReveal, setAllowKeyReveal] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeOnly, setActiveOnly] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<KeyStatus | null>(null);
+  const [typeFilter, setTypeFilter] = useState<KeyType | null>(null);
+
   const { copied, copy } = useCopyToClipboard();
 
   useEffect(() => {
@@ -128,6 +143,14 @@ export default function ApiManagerPageClient() {
     fetchModels();
     fetchConnections();
   }, []);
+
+  useEffect(() => {
+    setActiveOnly(readActiveOnlyPreference());
+  }, []);
+
+  useEffect(() => {
+    writeActiveOnlyPreference(activeOnly);
+  }, [activeOnly]);
 
   const fetchModels = async () => {
     try {
@@ -238,6 +261,49 @@ export default function ApiManagerPageClient() {
   };
 
   const clearPageError = useCallback(() => setPageError(null), []);
+
+  const keyCounts = useMemo(() => computeApiKeyCounts(keys), [keys]);
+
+  const filteredKeys = useMemo(() => {
+    let list = keys;
+
+    // 1. activeOnly toggle (shortcut for the most common case)
+    if (activeOnly) {
+      list = list.filter(isKeyActive);
+    }
+
+    // 2. status chip filter
+    if (statusFilter === "active") list = list.filter(isKeyActive);
+    else if (statusFilter === "disabled") list = list.filter((k) => k.isActive === false);
+    else if (statusFilter === "banned") list = list.filter((k) => k.isBanned === true);
+    else if (statusFilter === "expired") list = list.filter(isExpired);
+
+    // 3. type chip filter
+    if (typeFilter === "manage") list = list.filter((k) => k.scopes?.includes("manage"));
+    else if (typeFilter === "restricted") list = list.filter(isKeyRestricted);
+    else if (typeFilter === "standard")
+      list = list.filter((k) => !k.scopes?.includes("manage") && !isKeyRestricted(k));
+
+    // 4. search query (case-insensitive substring on name and key)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (k) => k.name.toLowerCase().includes(q) || k.key.toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  }, [keys, activeOnly, statusFilter, typeFilter, searchQuery]);
+
+  const isFiltered =
+    activeOnly || statusFilter !== null || typeFilter !== null || searchQuery.trim() !== "";
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setActiveOnly(false);
+    setStatusFilter(null);
+    setTypeFilter(null);
+  };
 
   const handleCreateKey = async () => {
     // Validate raw input first, then sanitize
@@ -555,6 +621,21 @@ export default function ApiManagerPageClient() {
         </div>
       )}
 
+      {/* Filter Bar — shown when there are keys */}
+      {keys.length > 0 && (
+        <ApiKeyFilterBar
+          counts={keyCounts}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          activeOnly={activeOnly}
+          onActiveOnlyChange={setActiveOnly}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+        />
+      )}
+
       {/* Keys List Card */}
       <Card>
         <div className="flex items-center justify-between mb-4">
@@ -563,7 +644,19 @@ export default function ApiManagerPageClient() {
               <span className="material-symbols-outlined text-xl text-amber-500">vpn_key</span>
             </div>
             <div>
-              <h3 className="font-semibold">{t("registeredKeys")}</h3>
+              <h3 className="font-semibold">
+                {t("registeredKeys")}
+                {isFiltered && (
+                  <span className="ml-1.5 text-sm font-normal text-text-muted">
+                    ({t("shownOf", { shown: filteredKeys.length, total: keys.length })})
+                  </span>
+                )}
+                {!isFiltered && (
+                  <span className="ml-1.5 text-sm font-normal text-text-muted">
+                    ({keys.length})
+                  </span>
+                )}
+              </h3>
               <p className="text-xs text-text-muted">
                 {keys.length}{" "}
                 {keys.length === 1
@@ -605,6 +698,14 @@ export default function ApiManagerPageClient() {
               {t("createFirstKey")}
             </Button>
           </div>
+        ) : filteredKeys.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-border rounded-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+              <span className="material-symbols-outlined text-[32px]">search_off</span>
+            </div>
+            <p className="text-text-main font-medium mb-2">{t("emptyFilterTitle")}</p>
+            <Button onClick={handleClearFilters}>{t("emptyFilterClear")}</Button>
+          </div>
         ) : (
           <div className="flex flex-col border border-border rounded-lg overflow-hidden">
             {/* Table Header */}
@@ -618,7 +719,7 @@ export default function ApiManagerPageClient() {
             </div>
 
             {/* Table Rows */}
-            {keys.map((key) => {
+            {filteredKeys.map((key) => {
               const stats = usageStats[key.id];
               const isRestricted = Array.isArray(key.allowedModels) && key.allowedModels.length > 0;
               const hasConnectionRestrictions =

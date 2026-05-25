@@ -174,6 +174,10 @@ export const PROVIDER_PROFILES = {
     providerFailureThreshold: 10, // Scaled for 500+ connections (was 3)
     providerFailureWindowMs: 900000, // 15min window (was 10min)
     providerCooldownMs: 300000, // 5min cooldown when threshold reached
+    // Adaptive circuit breaker v2 settings
+    degradationThreshold: 5, // Enter DEGRADED at this many failures
+    maxBackoffMultiplier: 8, // Max 8x resetTimeout escalation
+    backoffEscalationCount: 2, // Escalate after 2 open cycles
   },
   apikey: {
     transientCooldown: 3000, // 3s (API providers recover faster)
@@ -185,6 +189,9 @@ export const PROVIDER_PROFILES = {
     providerFailureThreshold: 15, // Scaled for 500+ connections (was 5)
     providerFailureWindowMs: 1800000, // 30min window (was 20min)
     providerCooldownMs: 600000, // 10min cooldown when threshold reached
+    degradationThreshold: 7,
+    maxBackoffMultiplier: 4,
+    backoffEscalationCount: 3,
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
   // Not yet wired into getProviderProfile() — will be used when local provider_nodes
@@ -216,3 +223,32 @@ export const SKIP_PATTERNS = ["Please write a 5-10 word title for the following 
 
 // Default maximum number of tools allowed in a request (OpenAI default)
 export const MAX_TOOLS_LIMIT = 128;
+
+// ── Credential Health Check ────────────────────────────────────────
+
+/**
+ * Interval (ms) for the background credential health check scheduler.
+ * Default: 300000 (5 minutes). Minimum: 10000 (10 seconds).
+ */
+export const CREDENTIAL_HEALTH_CHECK_INTERVAL = (() => {
+  const raw = process.env.CREDENTIAL_HEALTH_CHECK_INTERVAL;
+  if (raw) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 10_000) return parsed;
+  }
+  return 300_000;
+})();
+
+/**
+ * TTL (ms) for cached credential health status.
+ * After this time, the cache entry expires and the next request will
+ * re-check. Default: 300000 (5 minutes).
+ */
+export const CREDENTIAL_HEALTH_CACHE_TTL = (() => {
+  const raw = process.env.CREDENTIAL_HEALTH_CACHE_TTL;
+  if (raw) {
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 10_000) return parsed;
+  }
+  return 300_000;
+})();

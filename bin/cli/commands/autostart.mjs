@@ -33,7 +33,7 @@ export function registerAutostart(program) {
     .description(t("autostart.status") || "Show autostart status")
     .action(async (opts, c) => {
       const globalOpts = c.optsWithGlobals();
-      const { isAutostartEnabled } = await import("../tray/autostart.mjs");
-      emit({ enabled: isAutostartEnabled() }, globalOpts);
+      const { getAutostartStatus } = await import("../tray/autostart.mjs");
+      emit(getAutostartStatus(), globalOpts);
     });
 }

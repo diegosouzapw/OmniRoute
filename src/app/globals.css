@@ -1,14 +1,23 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@source "../../node_modules/fumadocs-ui/css/generated/*.css";
 
 /* Tailwind v4 auto-detection cannot scan directories with parentheses
    (e.g. Next.js route groups like "(dashboard)"). Explicit @source
    directives ensure all utility classes in route groups are included. */
 @source "../app/(dashboard)";
+@source "../../node_modules/fumadocs-ui/dist/**/*.js";
 @source not "../../*.sqlite*";
 @source not "../../.claude*";
 @source not "../../.claude-memory";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Fumadocs sidebar width override */
+:root {
+  --fd-sidebar-width: 220px;
+}
 
 /* OpenClaw × ClawHub Color Palette */
 :root {
@@ -48,6 +57,24 @@
   --color-text-primary: #1a1a2e;
   --color-text-muted: #71717a;
 
+  /* Fumadocs light theme */
+  --color-fd-background: #f9f9fb;
+  --color-fd-foreground: #1a1a2e;
+  --color-fd-muted: #f0f0f5;
+  --color-fd-muted-foreground: #71717a;
+  --color-fd-popover: #ffffff;
+  --color-fd-popover-foreground: #1a1a2e;
+  --color-fd-card: #ffffff;
+  --color-fd-card-foreground: #1a1a2e;
+  --color-fd-border: rgba(0, 0, 0, 0.08);
+  --color-fd-primary: #e54d5e;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #f0f0f5;
+  --color-fd-secondary-foreground: #1a1a2e;
+  --color-fd-accent: rgba(229, 77, 94, 0.08);
+  --color-fd-accent-foreground: #1a1a2e;
+  --color-fd-ring: #e54d5e;
+
   /* Shadows */
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.015);
   --shadow-warm: 0 2px 12px -2px rgba(229, 77, 94, 0.12);
@@ -68,6 +95,24 @@
   --color-text-main: #e6e6ef;
   --color-text-primary: #e6e6ef;
   --color-text-muted: #a1a1aa;
+
+  /* Fumadocs theme mapping */
+  --color-fd-background: #0b0e14;
+  --color-fd-foreground: #e6e6ef;
+  --color-fd-muted: #111520;
+  --color-fd-muted-foreground: #a1a1aa;
+  --color-fd-popover: #161b22;
+  --color-fd-popover-foreground: #e6e6ef;
+  --color-fd-card: #161b22;
+  --color-fd-card-foreground: #e6e6ef;
+  --color-fd-border: rgba(255, 255, 255, 0.08);
+  --color-fd-primary: #e54d5e;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-secondary: #111520;
+  --color-fd-secondary-foreground: #e6e6ef;
+  --color-fd-accent: rgba(229, 77, 94, 0.12);
+  --color-fd-accent-foreground: #e6e6ef;
+  --color-fd-ring: #e54d5e;
 
   /* Dark shadows */
   --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
