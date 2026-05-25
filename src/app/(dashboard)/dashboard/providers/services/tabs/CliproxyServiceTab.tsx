@@ -5,6 +5,7 @@ import { Card, Toggle, Input } from "@/shared/components";
 import { ServiceStatusCard } from "../components/ServiceStatusCard";
 import { ServiceLifecycleButtons } from "../components/ServiceLifecycleButtons";
 import { ServiceLogsPanel } from "../components/ServiceLogsPanel";
+import { CliproxyModelMappingEditor } from "../components/CliproxyModelMappingEditor";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
 const NAME = "cliproxy";
@@ -191,6 +192,7 @@ export function CliproxyServiceTab() {
       <ServiceLifecycleButtons name={NAME} />
       <AutoStartCard />
       <FallbackRoutingCard />
+      <CliproxyModelMappingEditor />
       <ServiceLogsPanel name={NAME} />
     </div>
   );
