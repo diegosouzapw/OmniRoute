@@ -85,6 +85,8 @@ tags:
     description: Fallback chain management
   - name: Telemetry
     description: Telemetry and token health monitoring
+  - name: MCP
+    description: Model Context Protocol server (LOCAL_ONLY — loopback access only)
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -1528,9 +1530,39 @@ paths:
           description: Backup created
 
   /api/cli-tools/runtime/{toolId}:
+    post:
+      tags: [CLI Tools]
+      summary: Execute CLI tool runtime command
+      description: >-
+        Executes runtime CLI tool commands (applies settings, launches processes).
+        LOCAL_ONLY — spawn-capable route, blocked unconditionally from non-loopback.
+        CVE class: GHSA-fhh6-4qxv-rpqj.
+      x-loopback-only: true
+      parameters:
+        - name: toolId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Runtime command result
+        "403":
+          description: Forbidden — request not from loopback
     get:
       tags: [CLI Tools]
       summary: Get runtime status for a CLI tool
+      description: >-
+        Gets runtime status for a CLI tool.
+        LOCAL_ONLY — spawn-capable route, blocked unconditionally from non-loopback.
+        CVE class: GHSA-fhh6-4qxv-rpqj.
+      x-loopback-only: true
       parameters:
         - name: toolId
           in: path
@@ -1540,6 +1572,8 @@ paths:
       responses:
         "200":
           description: Runtime status
+        "403":
+          description: Forbidden — request not from loopback
 
   /api/cli-tools/guide-settings/{toolId}:
     get:
@@ -1794,6 +1828,120 @@ paths:
       responses:
         "200":
           description: OpenClaw CLI settings reset
+
+  # ─── MCP Server (LOCAL_ONLY — spawn-capable) ─────────────────────
+  # These routes start/control the MCP server subprocess. They are
+  # enforced as loopback-only by routeGuard.ts regardless of auth state.
+  # CVE class: GHSA-fhh6-4qxv-rpqj — never expose to non-loopback traffic.
+
+  /api/mcp/sse:
+    get:
+      tags: [MCP]
+      summary: MCP Server-Sent Events stream
+      description: >-
+        SSE transport for the MCP server. Streams tool call results and events.
+        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "403":
+          description: Forbidden — request not from loopback
+
+  /api/mcp/stream:
+    get:
+      tags: [MCP]
+      summary: MCP HTTP streaming transport
+      description: >-
+        HTTP streaming (chunked) transport for the MCP server.
+        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Chunked stream
+        "403":
+          description: Forbidden — request not from loopback
+    post:
+      tags: [MCP]
+      summary: MCP HTTP streaming transport (POST)
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: MCP response
+        "403":
+          description: Forbidden — request not from loopback
+
+  /api/mcp/status:
+    get:
+      tags: [MCP]
+      summary: MCP server status
+      description: Returns running/stopped state of the MCP server process. LOCAL_ONLY.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: MCP server status object
+        "403":
+          description: Forbidden — request not from loopback
+
+  /api/mcp/tools:
+    get:
+      tags: [MCP]
+      summary: List MCP tools
+      description: Returns the registered tool manifest. LOCAL_ONLY.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Tool list
+        "403":
+          description: Forbidden — request not from loopback
+
+  /api/mcp/audit:
+    get:
+      tags: [MCP]
+      summary: MCP audit log
+      description: Returns recent MCP tool invocation log entries. LOCAL_ONLY.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Audit log entries
+        "403":
+          description: Forbidden — request not from loopback
+
+  /api/mcp/audit/stats:
+    get:
+      tags: [MCP]
+      summary: MCP audit statistics
+      description: Returns aggregate MCP tool usage statistics. LOCAL_ONLY.
+      x-loopback-only: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Audit stats
+        "403":
+          description: Forbidden — request not from loopback
 
   # ─── OAuth ─────────────────────────────────────────────────────
 
