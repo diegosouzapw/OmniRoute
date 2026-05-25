@@ -237,6 +237,47 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/v1/responses/{...path}:
+    get:
+      tags: [Responses]
+      summary: Responses API catch-all (GET)
+      description: Generic Responses API passthrough for sub-paths.
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Responses API result
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Responses]
+      summary: Responses API catch-all (POST)
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Responses API result
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/v1/embeddings:
     post:
       tags: [Embeddings]
@@ -1251,6 +1292,27 @@ paths:
           description: Settings updated
         "401":
           $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [Settings]
+      summary: Update database settings (alias for PATCH)
+      description: >-
+        Alias for PATCH /api/settings/database. Updates SQLite WAL or journal mode
+        settings. Requires restart to take effect.
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /api/settings/database/refresh-stats:
     post:
@@ -1825,6 +1887,284 @@ paths:
       responses:
         "200":
           description: OpenClaw CLI settings reset
+
+  /api/cli-tools/apply:
+    post:
+      tags: [CLI Tools]
+      summary: Apply CLI tool configuration
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Configuration applied
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/config:
+    get:
+      tags: [CLI Tools]
+      summary: Get CLI tools global configuration
+      x-internal: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: CLI tools configuration
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [CLI Tools]
+      summary: Update CLI tools global configuration
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Configuration updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/detect:
+    get:
+      tags: [CLI Tools]
+      summary: Detect locally installed CLI tools
+      description: Scans the local system and returns a map of detected CLI tools and their versions.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Map of detected tools with version info
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/hermes-agent-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Hermes agent CLI settings
+      x-internal: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Hermes agent CLI configuration
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [CLI Tools]
+      summary: Apply Hermes agent CLI settings
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Hermes agent CLI settings applied
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/keys:
+    get:
+      tags: [CLI Tools]
+      summary: Get CLI tool API keys
+      x-internal: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: CLI tool API key configuration
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [CLI Tools]
+      summary: Set CLI tool API keys
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: CLI tool API keys updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/openclaw/auto-order:
+    get:
+      tags: [CLI Tools]
+      summary: Get OpenClaw auto-order configuration
+      x-internal: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OpenClaw auto-order configuration
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [CLI Tools]
+      summary: Update OpenClaw auto-order configuration
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: OpenClaw auto-order configuration updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/qwen-settings:
+    get:
+      tags: [CLI Tools]
+      summary: Get Qwen CLI settings
+      x-internal: true
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Qwen CLI configuration
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [CLI Tools]
+      summary: Apply Qwen CLI settings
+      x-internal: true
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Qwen CLI settings applied
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/cli-tools/status:
+    get:
+      tags: [CLI Tools]
+      summary: CLI tools service status
+      description: Returns health and status of the CLI tools subsystem.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: CLI tools status
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/upstream-proxy/{providerId}:
+    get:
+      tags: [Internal]
+      summary: Upstream proxy passthrough (GET)
+      description: Proxies GET requests to the upstream provider. Internal use only.
+      x-internal: true
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Proxied response from upstream provider
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Internal]
+      summary: Upstream proxy passthrough (POST)
+      x-internal: true
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Proxied response from upstream provider
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [Internal]
+      summary: Upstream proxy passthrough (PUT)
+      x-internal: true
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Proxied response from upstream provider
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [Internal]
+      summary: Upstream proxy passthrough (DELETE)
+      x-internal: true
+      parameters:
+        - name: providerId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Proxied response from upstream provider
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # ─── MCP Server (LOCAL_ONLY — spawn-capable) ─────────────────────
   # These routes start/control the MCP server subprocess. They are
@@ -2923,7 +3263,7 @@ paths:
         "200":
           description: Model list in Gemini format
 
-  /api/v1beta/models/{path}:
+  /api/v1beta/models/{...path}:
     post:
       tags: [Models]
       summary: Gemini generateContent

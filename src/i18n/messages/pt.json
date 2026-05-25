@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Todos os níveis",
+    "tierAuth": "Auth",
+    "tierLoopback": "Apenas local",
+    "tierAlwaysProtected": "Sempre protegido",
+    "tierPublic": "Público",
+    "showInternal": "Mostrar interno",
+    "hideInternal": "Ocultar interno",
+    "badgeLoopbackTooltip": "Apenas local: bloqueado de IPs não de loopback",
+    "badgeAlwaysProtectedTooltip": "Sempre protegido: requer autenticação mesmo quando requireLogin=false",
+    "badgeInternalTooltip": "Rota interna — não faz parte da API pública"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

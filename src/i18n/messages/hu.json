@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Minden szint",
+    "tierAuth": "Auth",
+    "tierLoopback": "Helyi csak",
+    "tierAlwaysProtected": "Mindig védett",
+    "tierPublic": "Nyilvános",
+    "showInternal": "Belső megjelenítése",
+    "hideInternal": "Rejtés belső",
+    "badgeLoopbackTooltip": "Helyi csak: blokkolva a nem hurok visszajelző IP-címekről",
+    "badgeAlwaysProtectedTooltip": "Mindig védett: hitelesítést igényel, még akkor is, ha requireLogin=false",
+    "badgeInternalTooltip": "Belső útvonal — nem része a nyilvános API-nak"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

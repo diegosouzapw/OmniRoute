@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Tất cả các cấp độ",
+    "tierAuth": "Auth",
+    "tierLoopback": "Chỉ cục bộ",
+    "tierAlwaysProtected": "Luôn được bảo vệ",
+    "tierPublic": "Công Khai",
+    "showInternal": "Hiển thị nội bộ",
+    "hideInternal": "Ẩn nội bộ",
+    "badgeLoopbackTooltip": "Chỉ cục bộ: bị chặn từ các IP không phải loopback",
+    "badgeAlwaysProtectedTooltip": "Luôn được bảo vệ: yêu cầu xác thực ngay cả khi requireLogin=false",
+    "badgeInternalTooltip": "Đường nội bộ — không phải là một phần của API công khai"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

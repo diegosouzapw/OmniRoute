@@ -32,7 +32,7 @@ function normalizePath(p: string): string {
   return p.replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}").replace(/\[([^\]]+)\]/g, "{$1}");
 }
 
-test("openapi.yaml covers ≥ 95% of implemented routes (excluding x-internal routes counted as covered)", () => {
+test("openapi.yaml covers ≥ 99% of implemented routes (excluding x-internal routes counted as covered)", () => {
   const implementedPaths = collectRoutePaths(API_ROOT).map(normalizePath).sort();
   const raw: any = yaml.load(fs.readFileSync(OPENAPI_PATH, "utf-8"));
   const documentedPaths = new Set(Object.keys(raw.paths || {}));
@@ -51,14 +51,14 @@ test("openapi.yaml covers ≥ 95% of implemented routes (excluding x-internal ro
   const total = implementedPaths.length;
   const coverage = (covered / total) * 100;
 
-  if (coverage < 95) {
+  if (coverage < 99) {
     console.error(`Coverage: ${coverage.toFixed(1)}% (${covered}/${total})`);
     console.error("Missing paths:");
     missing.forEach((p) => console.error(`  - ${p}`));
   }
 
   assert.ok(
-    coverage >= 95,
-    `OpenAPI coverage ${coverage.toFixed(1)}% < 95%. Missing: ${missing.slice(0, 10).join(", ")}${missing.length > 10 ? ` ... +${missing.length - 10} more` : ""}`
+    coverage >= 99,
+    `OpenAPI coverage ${coverage.toFixed(1)}% < 99%. Missing: ${missing.slice(0, 10).join(", ")}${missing.length > 10 ? ` ... +${missing.length - 10} more` : ""}`
   );
 });

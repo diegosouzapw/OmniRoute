@@ -14,7 +14,7 @@ import yaml from "js-yaml";
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src", "app", "api");
 const OPENAPI_PATH = path.join(ROOT, "docs", "reference", "openapi.yaml");
-const THRESHOLD = 95;
+const THRESHOLD = 99;
 
 function collectRoutePaths(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
