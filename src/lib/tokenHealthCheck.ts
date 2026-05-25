@@ -22,6 +22,7 @@ import {
   getAccessToken,
   supportsTokenRefresh,
   isUnrecoverableRefreshError,
+  refreshCopilotToken,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 
@@ -323,21 +324,62 @@ export async function checkConnection(conn) {
   const hideLogs = await shouldHideLogs();
   const proxyResolution = await resolveProxyForConnection(conn.id);
   const proxyConfig = extractResolvedProxyConfig(proxyResolution);
+
+  const healthCheckLog = {
+    info: (tag: string, msg: string) => {
+      if (!hideLogs) console.log(LOG_PREFIX, `[${tag}]`, msg);
+    },
+    warn: (tag: string, msg: string) => {
+      if (!hideLogs) console.warn(LOG_PREFIX, `[${tag}]`, msg);
+    },
+    error: (tag: string, msg: string, extra?: Record<string, unknown>) => {
+      if (!hideLogs) console.error(LOG_PREFIX, `[${tag}]`, msg, extra || "");
+    },
+  };
+
+  // Pass onPersist so the DB write is atomic with the network call inside the mutex.
+  // This prevents a concurrent sweep or request from reading stale credentials
+  // and re-using an already-consumed rotating refresh token (Codex/OpenAI).
+  let persistedResult: any = null;
   const result = await getAccessToken(
     conn.provider,
     credentials,
-    {
-      info: (tag, msg) => {
-        if (!hideLogs) console.log(`${LOG_PREFIX} [${tag}] ${msg}`);
-      },
-      warn: (tag, msg) => {
-        if (!hideLogs) console.warn(`${LOG_PREFIX} [${tag}] ${msg}`);
-      },
-      error: (tag, msg, extra) => {
-        if (!hideLogs) console.error(`${LOG_PREFIX} [${tag}] ${msg}`, extra || "");
-      },
-    },
-    proxyConfig
+    healthCheckLog,
+    proxyConfig,
+    async (refreshResult) => {
+      const now = new Date().toISOString();
+      const updateData: any = {
+        accessToken: refreshResult.accessToken,
+        lastHealthCheckAt: now,
+        testStatus: "active",
+        lastError: null,
+        lastErrorAt: null,
+        lastErrorType: null,
+        lastErrorSource: null,
+        errorCode: null,
+        expiredRetryCount: null,
+        expiredRetryAt: null,
+      };
+      if (refreshResult.refreshToken) {
+        updateData.refreshToken = refreshResult.refreshToken;
+      }
+      if (refreshResult.expiresAt) {
+        updateData.expiresAt = refreshResult.expiresAt;
+        updateData.tokenExpiresAt = refreshResult.expiresAt;
+      } else if (refreshResult.expiresIn) {
+        const expiresAt = new Date(Date.now() + refreshResult.expiresIn * 1000).toISOString();
+        updateData.expiresAt = expiresAt;
+        updateData.tokenExpiresAt = expiresAt;
+      }
+      if (refreshResult.providerSpecificData) {
+        updateData.providerSpecificData = {
+          ...(conn.providerSpecificData || {}),
+          ...refreshResult.providerSpecificData,
+        };
+      }
+      await updateProviderConnection(conn.id, updateData);
+      persistedResult = refreshResult;
+    }
   );
 
   const now = new Date().toISOString();
@@ -402,41 +444,112 @@ export async function checkConnection(conn) {
   }
 
   if (result && result.accessToken) {
-    const updateData: any = {
-      accessToken: result.accessToken,
-      lastHealthCheckAt: now,
-      testStatus: "active",
-      lastError: null,
-      lastErrorAt: null,
-      lastErrorType: null,
-      lastErrorSource: null,
-      errorCode: null,
-      expiredRetryCount: null,
-      expiredRetryAt: null,
-    };
-
-    if (result.refreshToken) {
-      updateData.refreshToken = result.refreshToken;
-    }
-
-    if (result.expiresIn) {
-      const expiresAt = new Date(Date.now() + result.expiresIn * 1000).toISOString();
-      updateData.expiresAt = expiresAt;
-      updateData.tokenExpiresAt = expiresAt;
-    } else if (result.expiresAt) {
-      updateData.expiresAt = result.expiresAt;
-      updateData.tokenExpiresAt = result.expiresAt;
-    }
-
-    if (result.providerSpecificData) {
-      updateData.providerSpecificData = {
-        ...(conn.providerSpecificData || {}),
-        ...result.providerSpecificData,
+    // onPersist already wrote the core token fields atomically inside the mutex.
+    // Only write the lastHealthCheckAt timestamp (and any fields onPersist may have
+    // missed) here, to avoid a redundant full update that would race against another
+    // concurrent refresh that already wrote fresh credentials.
+    if (persistedResult) {
+      await updateProviderConnection(conn.id, { lastHealthCheckAt: now });
+    } else {
+      // No onPersist (e.g. no connectionId — token-hash dedup path). Write all fields.
+      const updateData: any = {
+        accessToken: result.accessToken,
+        lastHealthCheckAt: now,
+        testStatus: "active",
+        lastError: null,
+        lastErrorAt: null,
+        lastErrorType: null,
+        lastErrorSource: null,
+        errorCode: null,
+        expiredRetryCount: null,
+        expiredRetryAt: null,
       };
-    }
 
-    await updateProviderConnection(conn.id, updateData);
+      if (result.refreshToken) {
+        updateData.refreshToken = result.refreshToken;
+      }
+
+      if (result.expiresAt) {
+        updateData.expiresAt = result.expiresAt;
+        updateData.tokenExpiresAt = result.expiresAt;
+      } else if (result.expiresIn) {
+        const expiresAt = new Date(Date.now() + result.expiresIn * 1000).toISOString();
+        updateData.expiresAt = expiresAt;
+        updateData.tokenExpiresAt = expiresAt;
+      }
+
+      if (result.providerSpecificData) {
+        updateData.providerSpecificData = {
+          ...(conn.providerSpecificData || {}),
+          ...result.providerSpecificData,
+        };
+      }
+
+      await updateProviderConnection(conn.id, updateData);
+    }
     log(`${LOG_PREFIX} ✓ ${conn.provider}/${getConnectionLogLabel(conn)} refreshed`);
+
+    // ── GitHub Copilot sub-token refresh ──────────────────────────────────────
+    // GitHub Copilot issues a short-lived (~30 min) API token separate from the
+    // GitHub OAuth token. The health check must also refresh this sub-token before
+    // it expires mid-session. The Copilot token expiry is stored in
+    // providerSpecificData.copilotTokenExpiresAt (Unix seconds).
+    if (conn.provider === "github") {
+      // Re-read the latest connection after the OAuth refresh (onPersist may have updated it).
+      const latestConn = (await getProviderConnectionById(conn.id).catch(() => null)) || conn;
+      const accessTokenForCopilot = result.accessToken || latestConn.accessToken;
+
+      if (accessTokenForCopilot) {
+        const copilotExpiresAtRaw =
+          latestConn.providerSpecificData?.copilotTokenExpiresAt ??
+          conn.providerSpecificData?.copilotTokenExpiresAt;
+        const copilotExpiresAtMs =
+          typeof copilotExpiresAtRaw === "number" && copilotExpiresAtRaw < 1e12
+            ? copilotExpiresAtRaw * 1000 // Unix seconds → ms
+            : typeof copilotExpiresAtRaw === "string"
+              ? new Date(copilotExpiresAtRaw).getTime()
+              : typeof copilotExpiresAtRaw === "number"
+                ? copilotExpiresAtRaw
+                : 0;
+
+        const copilotAboutToExpire =
+          !copilotExpiresAtMs || copilotExpiresAtMs - Date.now() < 5 * 60 * 1000;
+
+        if (copilotAboutToExpire) {
+          log(
+            `${LOG_PREFIX} Refreshing GitHub Copilot sub-token for ${getConnectionLogLabel(conn)}`
+          );
+          try {
+            const copilotResult = await refreshCopilotToken(
+              accessTokenForCopilot,
+              healthCheckLog,
+              proxyConfig
+            );
+            if (copilotResult?.token) {
+              await updateProviderConnection(conn.id, {
+                providerSpecificData: {
+                  ...(latestConn.providerSpecificData || {}),
+                  copilotToken: copilotResult.token,
+                  copilotTokenExpiresAt: copilotResult.expiresAt,
+                },
+              });
+              log(
+                `${LOG_PREFIX} ✓ GitHub Copilot sub-token refreshed for ${getConnectionLogLabel(conn)}`
+              );
+            } else {
+              logWarn(
+                `${LOG_PREFIX} ✗ GitHub Copilot sub-token refresh failed for ${getConnectionLogLabel(conn)}`
+              );
+            }
+          } catch (copilotErr) {
+            logError(
+              `${LOG_PREFIX} Error refreshing Copilot sub-token:`,
+              copilotErr?.message || copilotErr
+            );
+          }
+        }
+      }
+    }
   } else {
     const updateData = buildRefreshFailureUpdate(conn, now);
     await updateProviderConnection(conn.id, updateData);

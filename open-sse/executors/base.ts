@@ -8,6 +8,7 @@ import {
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import { runWithOnPersist } from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
@@ -551,14 +552,34 @@ export class BaseExecutor {
 
     if (this.needsRefresh(credentials)) {
       try {
-        const refreshed = await this.refreshCredentials(credentials, log || null);
-        if (refreshed) {
+        // Fix A: wire onCredentialsRefreshed through runWithOnPersist so it runs
+        // INSIDE the per-connection mutex inside getAccessToken. Not every
+        // executor routes through getAccessToken (e.g. github.ts), so use a flag
+        // to detect whether the persist callback actually fired and fall back to
+        // post-refresh mutation when it didn't.
+        let proactivePersistRan = false;
+        const proactiveOnPersist = arguments[0].onCredentialsRefreshed
+          ? async (refreshResult: Record<string, unknown>) => {
+              proactivePersistRan = true;
+              activeCredentials = {
+                ...credentials,
+                ...(refreshResult as Partial<ProviderCredentials>),
+              };
+              await arguments[0].onCredentialsRefreshed(
+                refreshResult as Partial<ProviderCredentials>
+              );
+            }
+          : null;
+
+        const refreshed = await runWithOnPersist(proactiveOnPersist, () =>
+          this.refreshCredentials(credentials, log || null)
+        );
+
+        if (refreshed && !proactivePersistRan) {
           activeCredentials = {
             ...credentials,
             ...refreshed,
           };
-          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
-          // without updating the central database connection.
           if (arguments[0].onCredentialsRefreshed) {
             await arguments[0].onCredentialsRefreshed(refreshed);
           }

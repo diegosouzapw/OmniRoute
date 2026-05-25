@@ -14,7 +14,11 @@ import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
-import { refreshWithRetry, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
+import {
+  refreshWithRetry,
+  isUnrecoverableRefreshError,
+  runWithOnPersist,
+} from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
@@ -3813,8 +3817,30 @@ export async function handleChatCore({
       isQwenExpiredError) &&
     !hadStreamOptions // Skip refresh if failure may be from stream_options removal, not auth
   ) {
+    // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
+    // executes INSIDE the per-connection mutex held by getAccessToken. This makes
+    // [network refresh + DB write + outer-state mutation] one atomic step and
+    // prevents concurrent requests from reading a stale refreshToken before the
+    // DB has been updated (refresh_token_reused on Codex/OpenAI).
+    //
+    // Not every executor routes refresh through getAccessToken (e.g. github.ts
+    // calls refreshCopilotToken directly). When the persistFn doesn't fire from
+    // inside getAccessToken, we still need to do the credentials mutation + user
+    // callback after refreshCredentials returns. The `persistFnRan` flag tracks
+    // which path executed so we don't double-fire (race-prone) or skip (regression).
+    let persistFnRan = false;
+    const persistFn = onCredentialsRefreshed
+      ? async (refreshResult: any) => {
+          persistFnRan = true;
+          // Mutate the shared credentials object so subsequent executor calls
+          // in this request see the new tokens. Runs INSIDE the mutex.
+          Object.assign(credentials, refreshResult);
+          await onCredentialsRefreshed(refreshResult);
+        }
+      : undefined;
+
     const newCredentials = (await refreshWithRetry(
-      () => executor.refreshCredentials(credentials, log),
+      () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log)),
       3,
       log,
       provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
@@ -3826,12 +3852,15 @@ export async function handleChatCore({
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
       log?.info?.("TOKEN", `${provider.toUpperCase()} | refreshed`);
 
-      // Update credentials
-      Object.assign(credentials, newCredentials);
-
-      // Notify caller about refreshed credentials
-      if (onCredentialsRefreshed && newCredentials) {
-        await onCredentialsRefreshed(newCredentials);
+      // Fall back to post-mutex mutation only for executors that don't route
+      // through getAccessToken (and therefore never fire onPersist). For
+      // executors that DO route through it (Codex, Claude, Gemini, etc.) the
+      // mutation already happened atomically inside the mutex.
+      if (!persistFnRan) {
+        Object.assign(credentials, newCredentials);
+        if (onCredentialsRefreshed) {
+          await onCredentialsRefreshed(newCredentials);
+        }
       }
 
       // Retry with new credentials — model + extra headers follow translatedBody.model so they
