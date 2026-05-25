@@ -7,6 +7,9 @@
  *   - proxyUpgrade rejects unknown services (404)
  *   - proxyUpgrade rejects non-running services (503)
  *   - proxyUpgrade connects to the right upstream port for known services
+ *   - G-06: rejects 51st concurrent connection with 503
+ *   - G-06: strips cookie/authorization/origin from upgrade headers
+ *   - G-06: injects Bearer apiKey into upgrade headers
  */
 
 import { describe, it, afterEach } from "node:test";
@@ -19,9 +22,19 @@ import {
   getSupervisor,
 } from "../../../src/lib/services/registry.ts";
 import type { ServiceSupervisor } from "../../../src/lib/services/ServiceSupervisor.ts";
+import {
+  activeConnections,
+  registerConnection,
+  unregisterConnection,
+  buildUpstreamHeaders,
+  MAX_CONNECTIONS_PER_SERVICE,
+} from "../../../src/lib/services/embedWsProxy.ts";
 
 afterEach(() => {
   unregisterSupervisor("9router");
+  // Clean up any connections left by G-06 tests
+  activeConnections.delete("test-service");
+  activeConnections.delete("9router");
 });
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -136,5 +149,92 @@ describe("embedWsProxy", () => {
     const sup = getSupervisor("9router");
     assert.ok(sup !== null);
     assert.equal(sup.getStatus().state, "running");
+  });
+
+  // ─── G-06 tests ──────────────────────────────────────────────────────────
+
+  it("G-06: rejects 51st concurrent connection with 503", () => {
+    const serviceName = "test-service";
+
+    // Fill up to the limit
+    const sockets: net.Socket[] = [];
+    for (let i = 0; i < MAX_CONNECTIONS_PER_SERVICE; i++) {
+      const { socket } = makeSocket();
+      const accepted = registerConnection(serviceName, socket);
+      assert.ok(accepted, `connection ${i + 1} should be accepted`);
+      sockets.push(socket);
+    }
+
+    // The 51st should be rejected
+    const { socket: socket51, received: received51 } = makeSocket();
+    const rejected = registerConnection(serviceName, socket51);
+    assert.equal(rejected, false, "51st connection must be rejected");
+
+    // The response written to the 51st socket must be a 503
+    const raw = joined(received51);
+    assert.ok(raw.startsWith("HTTP/1.1 503"), "rejected socket gets 503 status line");
+    assert.ok(raw.includes("connection limit"), "503 body mentions connection limit");
+
+    // Clean up
+    for (const s of sockets) {
+      unregisterConnection(serviceName, s);
+    }
+  });
+
+  it("G-06: strips cookie, authorization, and origin from upgrade headers", () => {
+    const rawHeaders = [
+      "Host",
+      "localhost:3000",
+      "Connection",
+      "Upgrade",
+      "Upgrade",
+      "websocket",
+      "Cookie",
+      "session=abc123",
+      "Authorization",
+      "Bearer client-token",
+      "Origin",
+      "http://localhost:3000",
+      "Sec-WebSocket-Key",
+      "dGhlIHNhbXBsZSBub25jZQ==",
+      "Sec-WebSocket-Version",
+      "13",
+    ];
+
+    const headers = buildUpstreamHeaders(rawHeaders, 20130, "nr_injectedkey");
+    const headerStr = headers.join("\r\n").toLowerCase();
+
+    assert.ok(!headerStr.includes("cookie:"), "cookie must be stripped");
+    assert.ok(
+      !headerStr.includes("bearer client-token"),
+      "original authorization must be stripped"
+    );
+    assert.ok(!headerStr.includes("origin:"), "origin must be stripped");
+
+    // Non-stripped headers must remain
+    assert.ok(headerStr.includes("upgrade: websocket"), "upgrade header must be preserved");
+    assert.ok(headerStr.includes("sec-websocket-key:"), "sec-websocket-key must be preserved");
+  });
+
+  it("G-06: injects Bearer apiKey into upgrade headers replacing any client Authorization", () => {
+    const apiKey = "nr_testapikey1234";
+    const rawHeaders = [
+      "Host",
+      "localhost",
+      "Authorization",
+      "Bearer old-client-token",
+      "Upgrade",
+      "websocket",
+    ];
+
+    const headers = buildUpstreamHeaders(rawHeaders, 20130, apiKey);
+    const authHeaders = headers.filter((h) => h.toLowerCase().startsWith("authorization:"));
+
+    // Must have exactly one Authorization header
+    assert.equal(authHeaders.length, 1, "exactly one Authorization header must be present");
+    assert.ok(
+      authHeaders[0].includes(`Bearer ${apiKey}`),
+      `Authorization must be 'Bearer ${apiKey}', got: ${authHeaders[0]}`
+    );
   });
 });
