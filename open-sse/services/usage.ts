@@ -1940,8 +1940,9 @@ async function getAntigravityUsage(
 
       const rawFraction = toNumber(quotaInfo.remainingFraction, -1);
       const resetAt = parseResetTime(quotaInfo.resetTime);
-      // Default to 100% when the API doesn't report a fraction
-      const remainingFraction = rawFraction < 0 ? 1 : rawFraction;
+      // When remainingFraction is undefined, quota is exhausted (0%)
+      // Unlimited models have remainingFraction=1 AND no resetTime
+      const remainingFraction = rawFraction < 0 ? 0 : rawFraction;
       // Models with no resetTime and full remaining are unlimited (e.g. tab-completion models)
       const isUnlimited = !resetAt && remainingFraction >= 1;
       const remainingPercentage = remainingFraction * 100;

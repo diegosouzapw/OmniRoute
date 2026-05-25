@@ -350,7 +350,7 @@ async function getAntigravityUsage(
 
       if ("remainingFraction" in quotaInfo) {
         const fraction =
-          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
+          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 0;
         const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
         modelQuotas[modelId] = {
           remaining: Math.round(fraction * 100),
