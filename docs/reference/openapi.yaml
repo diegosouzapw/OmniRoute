@@ -1847,6 +1847,9 @@ paths:
     post:
       tags: [MCP]
       summary: MCP HTTP streaming transport (POST)
+      description: >-
+        HTTP streaming (chunked) transport for the MCP server — POST variant.
+        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
       x-loopback-only: true
       security:
         - BearerAuth: []
