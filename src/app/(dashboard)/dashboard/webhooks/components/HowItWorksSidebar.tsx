@@ -1,6 +1,6 @@
 "use client";
 
-import { HmacRecipeBlock } from "./HmacRecipeBlock";
+import { HmacRecipeBlock } from "./shared/HmacRecipeBlock";
 
 interface HowItWorksSidebarProps {
   t: (key: string) => string;

@@ -960,8 +960,10 @@
     "never": "Nunca",
     "failureCount": "{count, plural, =0 {sem falhas} one {# falha} other {# falhas}}",
     "testWebhook": "Enviar Teste",
-    "testSuccess": "Webhook de teste enviado com sucesso.",
+    "testSuccess": "entrega confirmada",
     "testFailed": "Webhook de teste falhou.",
+    "testPayloadSent": "Payload enviado",
+    "testResponse": "Resposta do endpoint",
     "saveSuccess": "Webhook salvo com sucesso.",
     "saveFailed": "Falha ao salvar webhook.",
     "loadFailed": "Falha ao carregar webhooks.",
@@ -995,7 +997,14 @@
       "discord": "Discord",
       "discordDesc": "Envie embeds para um canal do Discord via Webhook URL.",
       "custom": "Personalizado",
-      "customDesc": "Faça POST de JSON para qualquer endpoint HTTP com assinatura HMAC-SHA256 opcional."
+      "customDesc": "Faça POST de JSON para qualquer endpoint HTTP com assinatura HMAC-SHA256 opcional.",
+      "email": "E-mail",
+      "emailDesc": "Envie notificações para um endereço de e-mail.",
+      "pagerduty": "PagerDuty",
+      "pagerdutyDesc": "Acione e resolva incidentes no PagerDuty automaticamente.",
+      "teams": "Microsoft Teams",
+      "teamsDesc": "Envie mensagens para um canal do Microsoft Teams.",
+      "comingSoon": "Em breve"
     },
     "slack": {
       "webhookUrl": "URL do Webhook Slack",

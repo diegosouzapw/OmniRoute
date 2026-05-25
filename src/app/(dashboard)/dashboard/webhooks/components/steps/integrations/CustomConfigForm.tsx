@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HmacRecipeBlock } from "../../shared/HmacRecipeBlock";
 
-interface SlackConfig {
-  webhookUrl: string;
+export interface CustomConfig {
+  endpointUrl: string;
+  secretKey: string;
 }
 
-interface Step2ConfigureSlackProps {
-  value: SlackConfig;
-  onChange: (v: SlackConfig) => void;
+interface CustomConfigFormProps {
+  value: CustomConfig;
+  onChange: (v: CustomConfig) => void;
   t: (key: string) => string;
+  isEditing?: boolean;
 }
 
 type UrlState = "idle" | "checking" | "ok" | "blocked" | "invalid";
 
-export function Step2ConfigureSlack({ value, onChange, t }: Step2ConfigureSlackProps) {
+export function CustomConfigForm({ value, onChange, t, isEditing }: CustomConfigFormProps) {
   const [urlState, setUrlState] = useState<UrlState>("idle");
 
   useEffect(() => {
-    const url = value.webhookUrl.trim();
+    const url = value.endpointUrl.trim();
     const controller = new AbortController();
     const delay = url ? 600 : 0;
     const timer = setTimeout(async () => {
@@ -44,7 +47,7 @@ export function Step2ConfigureSlack({ value, onChange, t }: Step2ConfigureSlackP
       clearTimeout(timer);
       controller.abort();
     };
-  }, [value.webhookUrl]);
+  }, [value.endpointUrl]);
 
   const urlHint =
     urlState === "checking"
@@ -53,7 +56,7 @@ export function Step2ConfigureSlack({ value, onChange, t }: Step2ConfigureSlackP
         ? t("validateUrl.ok")
         : urlState === "blocked"
           ? t("validateUrl.blockedPrivate")
-          : urlState === "invalid" && value.webhookUrl.trim()
+          : urlState === "invalid" && value.endpointUrl.trim()
             ? t("validateUrl.invalidUrl")
             : "";
 
@@ -61,36 +64,43 @@ export function Step2ConfigureSlack({ value, onChange, t }: Step2ConfigureSlackP
     <div className="space-y-4">
       <div>
         <label className="text-xs font-medium uppercase tracking-wider text-text-muted">
-          {t("slack.webhookUrl")}
+          {t("custom.endpointUrl")}
         </label>
         <input
-          value={value.webhookUrl}
-          onChange={(e) => onChange({ webhookUrl: e.target.value })}
-          placeholder={t("slack.webhookUrlPlaceholder")}
+          value={value.endpointUrl}
+          onChange={(e) => onChange({ ...value, endpointUrl: e.target.value })}
+          placeholder={t("custom.endpointUrlPlaceholder")}
           className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
         />
         {urlHint && (
           <p
-            className={`mt-1 text-xs ${urlState === "ok" ? "text-emerald-500" : urlState === "checking" ? "text-text-muted" : "text-red-500"}`}
+            className={`mt-1 text-xs ${
+              urlState === "ok"
+                ? "text-emerald-500"
+                : urlState === "checking"
+                  ? "text-text-muted"
+                  : "text-red-500"
+            }`}
           >
             {urlHint}
           </p>
         )}
-        <p className="mt-1 text-xs text-text-muted">{t("slack.webhookUrlHint")}</p>
       </div>
-      <details className="rounded-lg border border-border bg-sidebar p-3">
-        <summary className="cursor-pointer text-xs font-medium text-text-muted hover:text-text-main">
-          {t("slack.tutorial")}
-        </summary>
-        <ol className="mt-3 space-y-1.5 text-xs text-text-muted">
-          {[1, 2, 3, 4].map((n) => (
-            <li key={n} className="flex gap-2">
-              <span className="font-bold text-primary">{n}.</span>
-              {t(`slack.tutorialStep${n}`)}
-            </li>
-          ))}
-        </ol>
-      </details>
+      <div>
+        <label className="text-xs font-medium uppercase tracking-wider text-text-muted">
+          {t("custom.secretKey")}
+        </label>
+        <input
+          type="password"
+          value={value.secretKey}
+          onChange={(e) => onChange({ ...value, secretKey: e.target.value })}
+          placeholder={isEditing ? t("secretEditPlaceholder") : t("custom.secretKeyPlaceholder")}
+          autoComplete="new-password"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+        <p className="mt-1 text-xs text-text-muted">{t("custom.secretKeyHint")}</p>
+      </div>
+      <HmacRecipeBlock title={t("howItWorks.hmacRecipeTitle")} code={t("howItWorks.hmacRecipe")} />
     </div>
   );
 }

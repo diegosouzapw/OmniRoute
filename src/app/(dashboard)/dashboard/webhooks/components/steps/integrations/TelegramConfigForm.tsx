@@ -5,13 +5,13 @@ export interface TelegramConfig {
   chatId: string;
 }
 
-interface Step2ConfigureTelegramProps {
+interface TelegramConfigFormProps {
   value: TelegramConfig;
   onChange: (v: TelegramConfig) => void;
   t: (key: string) => string;
 }
 
-export function Step2ConfigureTelegram({ value, onChange, t }: Step2ConfigureTelegramProps) {
+export function TelegramConfigForm({ value, onChange, t }: TelegramConfigFormProps) {
   return (
     <div className="space-y-4">
       <div>

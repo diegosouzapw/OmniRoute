@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card, ConfirmModal } from "@/shared/components";
 import { AddWebhookWizard } from "./components/AddWebhookWizard";
+import { HowItWorksSidebar } from "./components/HowItWorksSidebar";
 import { WebhooksList } from "./components/WebhooksList";
 import type { WebhookItem } from "./components/WebhookCard";
 
@@ -153,74 +154,86 @@ export function WebhooksPageClient() {
         </div>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: t("total"), value: stats.total, icon: "webhook", tone: "text-primary" },
-          {
-            label: t("active"),
-            value: stats.active,
-            icon: "check_circle",
-            tone: "text-emerald-500",
-          },
-          {
-            label: t("inactive"),
-            value: stats.inactive,
-            icon: "pause_circle",
-            tone: "text-text-muted",
-          },
-          { label: t("errored"), value: stats.errored, icon: "error", tone: "text-red-500" },
-        ].map((stat) => (
-          <Card key={stat.label} className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
-                  {stat.label}
-                </p>
-                <p className="mt-1 text-2xl font-semibold text-text-main">{stat.value}</p>
+      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+        <div className="space-y-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: t("total"), value: stats.total, icon: "webhook", tone: "text-primary" },
+              {
+                label: t("active"),
+                value: stats.active,
+                icon: "check_circle",
+                tone: "text-emerald-500",
+              },
+              {
+                label: t("inactive"),
+                value: stats.inactive,
+                icon: "pause_circle",
+                tone: "text-text-muted",
+              },
+              { label: t("errored"), value: stats.errored, icon: "error", tone: "text-red-500" },
+            ].map((stat) => (
+              <Card key={stat.label} className="p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
+                      {stat.label}
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold text-text-main">{stat.value}</p>
+                  </div>
+                  <span className={`material-symbols-outlined text-[24px] ${stat.tone}`}>
+                    {stat.icon}
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="overflow-hidden">
+            <div className="border-b border-border p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-semibold text-text-main">
+                    {t("configuredWebhooks")}
+                  </h2>
+                  <p className="mt-1 text-xs text-text-muted">{t("configuredWebhooksDesc")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void load()}
+                  disabled={loading}
+                  title={t("refresh")}
+                  className="rounded-lg border border-border p-2 text-text-muted transition-colors hover:bg-surface/60 hover:text-text-main disabled:opacity-40"
+                >
+                  <span
+                    className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}
+                  >
+                    refresh
+                  </span>
+                </button>
               </div>
-              <span className={`material-symbols-outlined text-[24px] ${stat.tone}`}>
-                {stat.icon}
-              </span>
+            </div>
+            <div className="p-4">
+              <WebhooksList
+                webhooks={webhooks}
+                loading={loading}
+                testingId={testingId}
+                t={tFn}
+                onTest={(wh) => void handleTest(wh)}
+                onToggleEnabled={(wh) => void handleToggleEnabled(wh)}
+                onEdit={() => setWizardOpen(true)}
+                onDelete={setDeleteTarget}
+              />
             </div>
           </Card>
-        ))}
-      </div>
+        </div>
 
-      <Card className="overflow-hidden">
-        <div className="border-b border-border p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold text-text-main">{t("configuredWebhooks")}</h2>
-              <p className="mt-1 text-xs text-text-muted">{t("configuredWebhooksDesc")}</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void load()}
-              disabled={loading}
-              title={t("refresh")}
-              className="rounded-lg border border-border p-2 text-text-muted transition-colors hover:bg-surface/60 hover:text-text-main disabled:opacity-40"
-            >
-              <span
-                className={`material-symbols-outlined text-[18px] ${loading ? "animate-spin" : ""}`}
-              >
-                refresh
-              </span>
-            </button>
+        <aside className="hidden lg:block">
+          <div className="sticky top-4">
+            <HowItWorksSidebar t={tFn} />
           </div>
-        </div>
-        <div className="p-4">
-          <WebhooksList
-            webhooks={webhooks}
-            loading={loading}
-            testingId={testingId}
-            t={tFn}
-            onTest={(wh) => void handleTest(wh)}
-            onToggleEnabled={(wh) => void handleToggleEnabled(wh)}
-            onEdit={() => setWizardOpen(true)}
-            onDelete={setDeleteTarget}
-          />
-        </div>
-      </Card>
+        </aside>
+      </div>
 
       <AddWebhookWizard
         isOpen={wizardOpen}

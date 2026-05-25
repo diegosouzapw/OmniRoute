@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { Modal } from "@/shared/components";
-import { Step1ChooseIntegration } from "./Step1ChooseIntegration";
-import { Step2ConfigureSlack } from "./Step2ConfigureSlack";
-import { Step2ConfigureTelegram, type TelegramConfig } from "./Step2ConfigureTelegram";
-import { Step2ConfigureDiscord, type DiscordConfig } from "./Step2ConfigureDiscord";
-import { Step2ConfigureCustom, type CustomConfig } from "./Step2ConfigureCustom";
-import { Step3EventsAndTest } from "./Step3EventsAndTest";
+import { Step1ChooseIntegration } from "./steps/Step1ChooseIntegration";
+import {
+  Step2ConfigureIntegration,
+  type SlackConfig,
+  type TelegramConfig,
+  type DiscordConfig,
+  type CustomConfig,
+} from "./steps/Step2ConfigureIntegration";
+import { Step3EventsAndTest } from "./steps/Step3EventsAndTest";
 import { HowItWorksSidebar } from "./HowItWorksSidebar";
-import type { WebhookKind } from "./IntegrationCard";
+import type { WebhookKind } from "./shared/IntegrationCard";
 
 interface AddWebhookWizardProps {
   isOpen: boolean;
@@ -22,7 +25,7 @@ const STEPS = [1, 2, 3] as const;
 
 interface WizardState {
   kind: WebhookKind;
-  slack: { webhookUrl: string };
+  slack: SlackConfig;
   telegram: TelegramConfig;
   discord: DiscordConfig;
   custom: CustomConfig;
@@ -228,31 +231,17 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
               t={t}
             />
           )}
-          {step === 2 && state.kind === "slack" && (
-            <Step2ConfigureSlack
-              value={state.slack}
-              onChange={(v) => setState((s) => ({ ...s, slack: v }))}
-              t={t}
-            />
-          )}
-          {step === 2 && state.kind === "telegram" && (
-            <Step2ConfigureTelegram
-              value={state.telegram}
-              onChange={(v) => setState((s) => ({ ...s, telegram: v }))}
-              t={t}
-            />
-          )}
-          {step === 2 && state.kind === "discord" && (
-            <Step2ConfigureDiscord
-              value={state.discord}
-              onChange={(v) => setState((s) => ({ ...s, discord: v }))}
-              t={t}
-            />
-          )}
-          {step === 2 && state.kind === "custom" && (
-            <Step2ConfigureCustom
-              value={state.custom}
-              onChange={(v) => setState((s) => ({ ...s, custom: v }))}
+          {step === 2 && (
+            <Step2ConfigureIntegration
+              kind={state.kind}
+              slack={state.slack}
+              telegram={state.telegram}
+              discord={state.discord}
+              custom={state.custom}
+              onChangeSlack={(v) => setState((s) => ({ ...s, slack: v }))}
+              onChangeTelegram={(v) => setState((s) => ({ ...s, telegram: v }))}
+              onChangeDiscord={(v) => setState((s) => ({ ...s, discord: v }))}
+              onChangeCustom={(v) => setState((s) => ({ ...s, custom: v }))}
               t={t}
             />
           )}

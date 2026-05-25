@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { DeliveryStatusBadge } from "./DeliveryStatusBadge";
+import { DeliveryStatusBadge } from "./shared/DeliveryStatusBadge";
 
 interface Delivery {
   id: number;
@@ -27,7 +27,7 @@ export function WebhookDeliveriesPanel({ webhookId, t }: WebhookDeliveriesPanelP
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/webhooks/${webhookId}/deliveries?limit=20`);
+      const res = await fetch(`/api/webhooks/${webhookId}/deliveries?limit=5`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("deliveries.loadFailed"));
       setDeliveries(Array.isArray(data.deliveries) ? data.deliveries : []);

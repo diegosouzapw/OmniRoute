@@ -6,7 +6,7 @@ export interface DiscordConfig {
   webhookUrl: string;
 }
 
-interface Step2ConfigureDiscordProps {
+interface DiscordConfigFormProps {
   value: DiscordConfig;
   onChange: (v: DiscordConfig) => void;
   t: (key: string) => string;
@@ -14,7 +14,7 @@ interface Step2ConfigureDiscordProps {
 
 type UrlState = "idle" | "checking" | "ok" | "blocked" | "invalid";
 
-export function Step2ConfigureDiscord({ value, onChange, t }: Step2ConfigureDiscordProps) {
+export function DiscordConfigForm({ value, onChange, t }: DiscordConfigFormProps) {
   const [urlState, setUrlState] = useState<UrlState>("idle");
 
   useEffect(() => {

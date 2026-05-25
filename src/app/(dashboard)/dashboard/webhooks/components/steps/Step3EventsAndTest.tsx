@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { EventChecklist } from "./EventChecklist";
+import { EventChecklist } from "../shared/EventChecklist";
+import { PayloadPreview } from "../shared/PayloadPreview";
 
 interface Step3Props {
   webhookId?: string;
@@ -12,6 +13,15 @@ interface Step3Props {
   onChangeEnabled: (enabled: boolean) => void;
   onChangeDescription: (desc: string) => void;
   t: (key: string, opts?: Record<string, unknown>) => string;
+}
+
+interface TestResult {
+  delivered: boolean;
+  status: number;
+  latencyMs: number;
+  payloadSent: Record<string, unknown> | null;
+  responseBody: string;
+  error?: string | null;
 }
 
 export function Step3EventsAndTest({
@@ -25,22 +35,38 @@ export function Step3EventsAndTest({
   t,
 }: Step3Props) {
   const [testState, setTestState] = useState<"idle" | "sending" | "ok" | "fail">("idle");
-  const [testError, setTestError] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
 
   const sendTest = async () => {
     if (!webhookId) return;
     setTestState("sending");
-    setTestError(null);
+    setTestResult(null);
     try {
       const res = await fetch(`/api/webhooks/${webhookId}/test`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
+      const data: TestResult & { error?: string } = await res.json().catch(() => ({}));
       if (!res.ok || data.delivered === false) {
         throw new Error(data.error || t("testFailed"));
       }
+      setTestResult(data);
       setTestState("ok");
     } catch (err) {
       setTestState("fail");
-      setTestError(err instanceof Error ? err.message : t("testFailed"));
+      setTestResult((prev) => ({
+        delivered: false,
+        status: 0,
+        latencyMs: 0,
+        payloadSent: prev?.payloadSent ?? null,
+        responseBody: prev?.responseBody ?? "",
+        error: err instanceof Error ? err.message : t("testFailed"),
+      }));
+    }
+  };
+
+  const parseResponseBody = (raw: string): Record<string, unknown> | null => {
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return raw ? { raw } : null;
     }
   };
 
@@ -83,8 +109,8 @@ export function Step3EventsAndTest({
       </label>
 
       {webhookId && (
-        <div className="rounded-lg border border-border p-4">
-          <p className="mb-3 text-sm font-medium text-text-main">{t("testWebhook")}</p>
+        <div className="rounded-lg border border-border p-4 space-y-3">
+          <p className="text-sm font-medium text-text-main">{t("testWebhook")}</p>
           <button
             type="button"
             onClick={() => void sendTest()}
@@ -100,11 +126,31 @@ export function Step3EventsAndTest({
             </span>
             {t("testWebhook")}
           </button>
-          {testState === "ok" && (
-            <p className="mt-2 text-xs text-emerald-500">{t("testSuccess")}</p>
+
+          {testState === "ok" && testResult && (
+            <div className="space-y-3">
+              <p className="text-xs font-medium text-emerald-500">
+                ✅ {testResult.status} &middot; {testResult.latencyMs}ms &middot; {t("testSuccess")}
+              </p>
+              {testResult.payloadSent && (
+                <PayloadPreview payload={testResult.payloadSent} label={t("testPayloadSent")} />
+              )}
+              {testResult.responseBody && (
+                <PayloadPreview
+                  payload={parseResponseBody(testResult.responseBody)}
+                  label={t("testResponse")}
+                />
+              )}
+            </div>
           )}
-          {testState === "fail" && (
-            <p className="mt-2 text-xs text-red-500">{testError ?? t("testFailed")}</p>
+
+          {testState === "fail" && testResult && (
+            <div className="space-y-3">
+              <p className="text-xs text-red-500">{testResult.error ?? t("testFailed")}</p>
+              {testResult.payloadSent && (
+                <PayloadPreview payload={testResult.payloadSent} label={t("testPayloadSent")} />
+              )}
+            </div>
           )}
         </div>
       )}

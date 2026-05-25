@@ -1,6 +1,6 @@
 "use client";
 
-import { IntegrationCard, type WebhookKind } from "./IntegrationCard";
+import { IntegrationCard, type WebhookKind, type ComingSoonKind } from "../shared/IntegrationCard";
 
 interface Step1Props {
   selected: WebhookKind;
@@ -9,6 +9,7 @@ interface Step1Props {
 }
 
 const KINDS: WebhookKind[] = ["slack", "telegram", "discord", "custom"];
+const COMING_SOON: ComingSoonKind[] = ["email", "pagerduty", "teams"];
 
 export function Step1ChooseIntegration({ selected, onSelect, t }: Step1Props) {
   return (
@@ -23,6 +24,17 @@ export function Step1ChooseIntegration({ selected, onSelect, t }: Step1Props) {
             description={t(`kinds.${kind}Desc`)}
             selected={selected === kind}
             onSelect={onSelect}
+          />
+        ))}
+        {COMING_SOON.map((kind) => (
+          <IntegrationCard
+            key={kind}
+            kind={kind}
+            name={t(`kinds.${kind}`)}
+            description={t(`kinds.${kind}Desc`)}
+            selected={false}
+            disabled
+            comingSoonLabel={t("kinds.comingSoon")}
           />
         ))}
       </div>
