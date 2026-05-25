@@ -94,7 +94,8 @@ export async function POST(request: Request) {
       const controller2 = new AbortController();
       const timeout2 = setTimeout(() => controller2.abort(), 10000);
       try {
-        const res = await undiciRequest("https://api64.ipify.org?format=json", {
+        // Send request to the relay URL with relay headers; relay forwards to ipify
+        const res = await undiciRequest(`${relayUrl}/`, {
           method: "GET",
           signal: controller2.signal,
           headersTimeout: 10000,
@@ -103,9 +104,7 @@ export async function POST(request: Request) {
             "x-relay-target": "https://api64.ipify.org",
             "x-relay-path": "/?format=json",
             "x-relay-auth": relayAuth,
-            host: relayHost,
           },
-          origin: relayUrl,
         });
         const text = await res.body.text();
         let parsedIp: { ip?: string } = {};
