@@ -87,7 +87,7 @@ test("createProxyAndAssign assigns and clears matching legacy proxy atomically",
       port: 443,
       source: "dashboard-custom",
     },
-    { scope: "provider", scopeId: "openai", clearLegacy: true }
+    { scope: "provider", scopeId: "openai" }
   );
 
   assert.ok(result.proxy?.id);

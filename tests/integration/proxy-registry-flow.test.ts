@@ -59,7 +59,7 @@ test("integration: proxy create with inline assignment is atomic and clears lega
         host: "atomic-flow.local",
         port: 8080,
         source: "dashboard-custom",
-        assignment: { scope: "provider", scopeId: "openai", clearLegacy: true },
+        assignment: { scope: "provider", scopeId: "openai" },
       }),
     })
   );

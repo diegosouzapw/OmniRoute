@@ -46,7 +46,6 @@ interface ProxyPayload {
 interface ProxyAssignmentPayload {
   scope: string;
   scopeId?: string | null;
-  clearLegacy?: boolean;
 }
 
 interface ProxyMutationResult {
@@ -54,8 +53,10 @@ interface ProxyMutationResult {
   assignment: ProxyAssignmentRecord | null;
 }
 
+type LegacyProxyClearStatus = "cleared" | "absent";
+
 interface ProxyTransactionResult extends ProxyMutationResult {
-  legacyCleared: boolean;
+  legacyClearStatus: LegacyProxyClearStatus;
 }
 
 interface LegacyProxyConfig {
@@ -150,7 +151,7 @@ function toLegacyProxyLevel(scope: ProxyScope) {
 function clearLegacyProxyForAssignment(
   db: ReturnType<typeof getDbInstance>,
   assignment: ProxyAssignmentPayload
-): boolean {
+): LegacyProxyClearStatus {
   const normalizedScope = normalizeScope(assignment.scope);
   const scopeId = normalizeAssignmentScopeId(normalizedScope, assignment.scopeId);
   const level = toLegacyProxyLevel(normalizedScope);
@@ -160,30 +161,53 @@ function clearLegacyProxyForAssignment(
   );
 
   if (level === "global") {
+    const row = db
+      .prepare("SELECT value FROM key_value WHERE namespace = 'proxyConfig' AND key = 'global'")
+      .get() as { value?: string } | undefined;
+    if (!row) return "absent";
+
+    try {
+      if (typeof row.value === "string" && JSON.parse(row.value) === null) return "absent";
+    } catch {
+      // Malformed global proxy config still needs to be overwritten with null.
+    }
+
     writeProxyConfig.run("global", JSON.stringify(null));
-    return true;
+    return "cleared";
   }
 
-  if (!scopeId) return false;
+  if (!scopeId) return "absent";
 
   const mapKey = `${level}s`;
   const row = db
     .prepare("SELECT value FROM key_value WHERE namespace = 'proxyConfig' AND key = ?")
     .get(mapKey) as { value?: string } | undefined;
+  if (!row) return "absent";
+
   let map: JsonRecord = {};
-  if (typeof row?.value === "string") {
+  let shouldWrite = false;
+  if (typeof row.value === "string") {
     try {
       const parsed = JSON.parse(row.value);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         map = parsed as JsonRecord;
+      } else {
+        shouldWrite = true;
       }
     } catch {
-      map = {};
+      shouldWrite = true;
     }
   }
-  delete map[scopeId];
+
+  if (Object.prototype.hasOwnProperty.call(map, scopeId)) {
+    delete map[scopeId];
+    shouldWrite = true;
+  }
+
+  if (!shouldWrite) return "absent";
+
   writeProxyConfig.run(mapKey, JSON.stringify(map));
-  return true;
+  return "cleared";
 }
 
 function insertProxyRow(
@@ -447,12 +471,9 @@ export async function createProxyAndAssign(
   const tx = db.transaction((): ProxyTransactionResult => {
     insertProxyRow(db, id, payload, now);
     upsertAssignmentRow(db, assignment, id, now);
-    let legacyCleared = false;
-    if (assignment.clearLegacy) {
-      legacyCleared = clearLegacyProxyForAssignment(db, assignment);
-    }
+    const legacyClearStatus = clearLegacyProxyForAssignment(db, assignment);
     return {
-      legacyCleared,
+      legacyClearStatus,
       proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
       assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
     };
@@ -461,7 +482,7 @@ export async function createProxyAndAssign(
 
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
-  if (result.legacyCleared) {
+  if (result.legacyClearStatus === "cleared") {
     // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
     // imports registry helpers for proxy resolution.
     const { bumpProxyConfigGeneration } = await import("./settings");
@@ -487,12 +508,9 @@ export async function updateProxyAndAssign(
 
     updateProxyRow(db, id, existing, payload, now);
     upsertAssignmentRow(db, assignment, id, now);
-    let legacyCleared = false;
-    if (assignment.clearLegacy) {
-      legacyCleared = clearLegacyProxyForAssignment(db, assignment);
-    }
+    const legacyClearStatus = clearLegacyProxyForAssignment(db, assignment);
     return {
-      legacyCleared,
+      legacyClearStatus,
       proxy: getProxyRowByIdOrThrow(db, id, { includeSecrets: false }),
       assignment: getAssignmentRow(db, assignment.scope, assignment.scopeId),
     };
@@ -502,7 +520,7 @@ export async function updateProxyAndAssign(
 
   backupDbFile("pre-write");
   bumpProxyRegistryGeneration();
-  if (result.legacyCleared) {
+  if (result.legacyClearStatus === "cleared") {
     // Dynamic import avoids a static proxies.ts -> settings.ts cycle; settings.ts
     // imports registry helpers for proxy resolution.
     const { bumpProxyConfigGeneration } = await import("./settings");

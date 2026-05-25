@@ -332,7 +332,7 @@ export default function ProxyConfigModal({
           notes: DASHBOARD_CUSTOM_PROXY_NOTES,
         };
         const createPayload: Record<string, unknown> = { ...proxy };
-        const assignmentPayload = { scope, scopeId, clearLegacy: true };
+        const assignmentPayload = { scope, scopeId };
 
         if (username !== "***" && normalizedUsername) {
           createPayload.username = normalizedUsername;

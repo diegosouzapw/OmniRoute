@@ -1321,7 +1321,6 @@ const inlineProxyAssignmentSchema = z
   .object({
     scope: z.enum(["global", "provider", "account", "combo", "key"]),
     scopeId: z.string().trim().nullable().optional(),
-    clearLegacy: z.boolean().optional().default(false),
   })
   .strict()
   .superRefine((value, ctx) => {

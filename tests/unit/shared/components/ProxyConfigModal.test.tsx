@@ -214,7 +214,6 @@ describe("ProxyConfigModal custom registry saves", () => {
       assignment: {
         scope: "provider",
         scopeId: "claude",
-        clearLegacy: true,
       },
     });
 
@@ -307,7 +306,6 @@ describe("ProxyConfigModal custom registry saves", () => {
       assignment: {
         scope: "provider",
         scopeId: "claude",
-        clearLegacy: true,
       },
     });
     expect(updateCall?.body).not.toHaveProperty("username");
@@ -381,8 +379,7 @@ describe("ProxyConfigModal custom registry saves", () => {
           call.method === "POST" &&
           call.url === "/api/settings/proxies" &&
           call.body.assignment?.scope === "provider" &&
-          call.body.assignment?.scopeId === "claude" &&
-          call.body.assignment?.clearLegacy === true
+          call.body.assignment?.scopeId === "claude"
       )
     ).toBe(true);
     expect(
