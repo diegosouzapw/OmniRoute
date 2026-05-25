@@ -112,6 +112,9 @@ const IGNORE_FROM_CODE = new Set([
   "OMNIROUT",
   // Static config alias path (the canonical var is OMNIROUTE_PAYLOAD_RULES_PATH).
   "PAYLOAD_RULES_PATH",
+  // Node.js module resolution path — OS/Node internal, not an OmniRoute config var.
+  // Referenced in resolveSpawnArgs (ninerouter) to pass bundled native modules to subprocess.
+  "NODE_PATH",
 ]);
 
 // Vars documented in ENVIRONMENT.md but intentionally absent from .env.example.
