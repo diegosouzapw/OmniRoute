@@ -6,7 +6,38 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseMappingJson } from "../../../../../src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx";
+import {
+  parseMappingJson,
+  type MappingParseResult,
+} from "../../../../../src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx";
+
+// ── Module shape ──────────────────────────────────────────────────────────────
+
+describe("CliproxyModelMappingEditor — module shape", () => {
+  it("exports parseMappingJson as a function", async () => {
+    const mod =
+      await import("../../../../../src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx");
+    assert.equal(typeof mod.parseMappingJson, "function");
+  });
+
+  it("exports CliproxyModelMappingEditor as a function", async () => {
+    const mod =
+      await import("../../../../../src/app/(dashboard)/dashboard/providers/services/components/CliproxyModelMappingEditor.tsx");
+    assert.equal(typeof mod.CliproxyModelMappingEditor, "function");
+  });
+
+  it("MappingParseResult ok-variant has value field", () => {
+    const result: MappingParseResult = parseMappingJson("{}");
+    assert.ok(result.ok);
+    if (result.ok) assert.ok("value" in result);
+  });
+
+  it("MappingParseResult error-variant has error field", () => {
+    const result: MappingParseResult = parseMappingJson("invalid");
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.ok("error" in result);
+  });
+});
 
 // ── Valid inputs ───────────────────────────────────────────────────────────────
 
