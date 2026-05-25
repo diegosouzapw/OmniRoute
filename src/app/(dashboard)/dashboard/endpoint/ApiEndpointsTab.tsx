@@ -57,7 +57,7 @@ export default function ApiEndpointsTab() {
         {ep.loopbackOnly && (
           <span
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30"
-            title="Local-only: blocked from non-loopback IPs"
+            title={t("badgeLoopbackTooltip")}
           >
             LOCAL
           </span>
@@ -65,7 +65,7 @@ export default function ApiEndpointsTab() {
         {ep.alwaysProtected && (
           <span
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 border border-red-500/30"
-            title="Always protected: requires auth even when requireLogin=false"
+            title={t("badgeAlwaysProtectedTooltip")}
           >
             PROTECTED
           </span>
@@ -73,7 +73,7 @@ export default function ApiEndpointsTab() {
         {ep.internal && (
           <span
             className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-500/15 text-gray-400 border border-gray-500/30"
-            title="Internal route — not part of the public API"
+            title={t("badgeInternalTooltip")}
           >
             INTERNAL
           </span>
@@ -355,14 +355,14 @@ export default function ApiEndpointsTab() {
                     }`}
                 >
                   {tier === "all"
-                    ? "All tiers"
+                    ? t("tierAll")
                     : tier === "auth"
-                      ? "Auth"
+                      ? t("tierAuth")
                       : tier === "loopback"
-                        ? "Local-only"
+                        ? t("tierLoopback")
                         : tier === "always-protected"
-                          ? "Always-protected"
-                          : "Public"}
+                          ? t("tierAlwaysProtected")
+                          : t("tierPublic")}
                 </button>
               ))}
               <button
@@ -375,7 +375,7 @@ export default function ApiEndpointsTab() {
                   }`}
                 title="Show/hide internal routes (hidden by default)"
               >
-                {showInternal ? "Hide internal" : "Show internal"}
+                {showInternal ? t("hideInternal") : t("showInternal")}
               </button>
             </div>
           </div>
