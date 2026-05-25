@@ -868,6 +868,8 @@
     "auditGroup": "Audit",
     "batchGroup": "Batch",
     "homeSubtitle": "Dashboard overview",
+    "embeddedServices": "Embedded Services",
+    "embeddedServicesSubtitle": "CLIProxyAPI & 9router lifecycle",
     "providersSubtitle": "Manage AI providers",
     "quotaTrackerSubtitle": "Track usage limits",
     "providerQuotaSubtitle": "Track provider usage limits",
