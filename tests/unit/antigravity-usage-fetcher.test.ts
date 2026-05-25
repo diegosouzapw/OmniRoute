@@ -53,6 +53,40 @@ describe("getUsageForProvider (antigravity in fetcher.ts)", () => {
     }
   });
 
+  it("defaults to 0% remaining when remainingFraction key is absent (exhausted quota)", async () => {
+    const fetcherModule = await import("../../src/lib/usage/fetcher.ts");
+    const { getUsageForProvider } = fetcherModule;
+
+    const mockFetch = mock.method(global, "fetch", async () => ({
+      ok: true,
+      json: async () => ({
+        models: {
+          "gemini-2.5-pro": {
+            quotaInfo: {
+              // remainingFraction key is omitted (exhausted quota)
+              resetTime: "2026-05-26T00:00:00Z",
+            },
+          },
+        },
+      }),
+    }));
+
+    try {
+      const result = await getUsageForProvider(connectionBase);
+      assert.ok(result, "should return a result");
+
+      if ("modelQuotas" in result) {
+        const quota = result.modelQuotas["gemini-2.5-pro"];
+        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        assert.equal(quota.remaining, 0, "remaining should be 0% when key is absent");
+        assert.equal(quota.limited, true, "should be marked as limited");
+        assert.equal(quota.resetAt, "2026-05-26T00:00:00Z", "should preserve resetTime");
+      }
+    } finally {
+      mockFetch.mock.restore();
+    }
+  });
+
   it("parses remainingFraction=0 as exhausted quota", async () => {
     const fetcherModule = await import("../../src/lib/usage/fetcher.ts");
     const { getUsageForProvider } = fetcherModule;
