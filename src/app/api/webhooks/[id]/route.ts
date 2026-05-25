@@ -12,6 +12,7 @@ import { getWebhook, updateWebhookRecord, deleteWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
+import { isEncryptionEnabled } from "@/lib/db/encryption";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 
@@ -58,6 +59,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { metadata, ...rest } = validation.data as typeof validation.data & {
       metadata?: Record<string, string>;
     };
+
+    const existingWebhook = getWebhook(id);
+    if (!existingWebhook) {
+      return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
+    }
+    const effectiveKind = rest.kind ?? existingWebhook.kind;
+    if (effectiveKind === "telegram" && metadata?.botToken && !isEncryptionEnabled()) {
+      return NextResponse.json(
+        { error: "Telegram webhooks require STORAGE_ENCRYPTION_KEY to be configured" },
+        { status: 400 }
+      );
+    }
+
     const updateData: Parameters<typeof updateWebhookRecord>[1] = { ...rest };
     if (metadata !== undefined) {
       (updateData as any).metadataEncrypted = encryptMetadata(metadata);

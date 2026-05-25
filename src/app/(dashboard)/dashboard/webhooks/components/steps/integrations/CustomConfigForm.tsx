@@ -100,7 +100,14 @@ export function CustomConfigForm({ value, onChange, t, isEditing }: CustomConfig
         />
         <p className="mt-1 text-xs text-text-muted">{t("custom.secretKeyHint")}</p>
       </div>
-      <HmacRecipeBlock title={t("howItWorks.hmacRecipeTitle")} code={t("howItWorks.hmacRecipe")} />
+      <HmacRecipeBlock
+        title={t("howItWorks.hmacRecipeTitle")}
+        snippets={[
+          { label: "Node.js", code: t("howItWorks.hmacRecipe") },
+          { label: "Python", code: t("howItWorks.hmacRecipePython") },
+          { label: "Bash", code: t("howItWorks.hmacRecipeBash") },
+        ]}
+      />
     </div>
   );
 }

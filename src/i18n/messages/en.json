@@ -1073,7 +1073,9 @@
       "step4": "You receive the notification in Slack, Telegram, Discord, or your custom handler.",
       "customOnly": "For Custom webhooks, each delivery is signed with HMAC-SHA256.",
       "hmacRecipeTitle": "Verifying the Signature",
-      "hmacRecipe": "const sig = req.headers['x-webhook-signature'];\nconst body = JSON.stringify(req.body);\nconst expected = 'sha256=' + crypto.createHmac('sha256', SECRET).update(body).digest('hex');\nif (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('Bad sig');"
+      "hmacRecipe": "const sig = req.headers['x-webhook-signature'];\nconst body = JSON.stringify(req.body);\nconst expected = 'sha256=' + crypto.createHmac('sha256', SECRET).update(body).digest('hex');\nif (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('Bad sig');",
+      "hmacRecipePython": "import hmac, hashlib\nsig = request.headers.get('X-Webhook-Signature', '')\nbody = request.get_data()\nexpected = 'sha256=' + hmac.new(SECRET.encode(), body, hashlib.sha256).hexdigest()\nif not hmac.compare_digest(sig, expected):\n    raise ValueError('Bad signature')",
+      "hmacRecipeBash": "SIG=$(echo -n \"$BODY\" | openssl dgst -sha256 -hmac \"$SECRET\" | awk '{print \"sha256=\" $2}')\n[ \"$SIG\" = \"$RECEIVED_SIG\" ] || { echo 'Bad signature'; exit 1; }"
     }
   },
   "compliance": {
