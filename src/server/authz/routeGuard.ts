@@ -29,6 +29,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/mcp/",
   "/api/cli-tools/runtime/",
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
+  "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
 ];
 
 /**

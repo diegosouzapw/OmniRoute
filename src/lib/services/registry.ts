@@ -16,6 +16,11 @@ export function listSupervisors(): ServiceSupervisor[] {
   return Array.from(supervisors.values());
 }
 
+/** Remove a supervisor by tool name. Intended for use in tests. */
+export function unregisterSupervisor(tool: string): void {
+  supervisors.delete(tool);
+}
+
 function stopAll(): void {
   for (const supervisor of supervisors.values()) {
     supervisor.stop().catch(() => {});
