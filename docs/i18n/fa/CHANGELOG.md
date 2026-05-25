@@ -12,6 +12,14 @@
 
 ---
 
+## [3.8.4] — 2026-05-25
+
+### Added
+
+- Embedded services (work in progress — 9Router, CLIProxyAPI; see T-15 for full entry).
+
+---
+
 ## [3.8.3] — 2026-05-24
 
 ### ✨ New Features
