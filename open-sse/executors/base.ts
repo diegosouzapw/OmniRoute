@@ -8,7 +8,7 @@ import {
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
-import { runWithOnPersist } from "../services/tokenRefresh.ts";
+import { runWithOnPersist, getRefreshLeadMs } from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
@@ -454,7 +454,12 @@ export class BaseExecutor {
   needsRefresh(credentials?: ProviderCredentials | null) {
     if (!credentials?.expiresAt) return false;
     const expiresAtMs = new Date(credentials.expiresAt).getTime();
-    return expiresAtMs - Date.now() < 5 * 60 * 1000;
+    // Use the provider-specific lead time (REFRESH_LEAD_MS) so rotating-token
+    // providers like Codex refresh proactively far ahead of expiry. Keeping the
+    // refresh_token "warm" prevents Auth0 from marking it as stale and revoking
+    // the token family on first use after long idle.
+    const lead = getRefreshLeadMs(this.provider);
+    return expiresAtMs - Date.now() < lead;
   }
 
   parseError(response: Response, bodyText: string) {

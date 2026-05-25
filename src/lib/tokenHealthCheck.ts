@@ -304,7 +304,28 @@ export async function checkConnection(conn) {
   const tokenExpiresAt = getEffectiveTokenExpiryMs(conn);
   const hasKnownExpiry = tokenExpiresAt > 0;
   const isAboutToExpire = hasKnownExpiry && tokenExpiresAt - Date.now() < TOKEN_EXPIRY_BUFFER;
-  const shouldRefreshByInterval = !hasKnownExpiry && Date.now() - lastCheck >= intervalMs;
+
+  // ROTATING_REFRESH_PROVIDERS — providers whose refresh_tokens are SINGLE-USE
+  // (each refresh consumes the old one and returns a new one). For these, refreshing
+  // on a fixed interval — instead of strictly on imminent expiry — burns rotations
+  // unnecessarily AND can trigger Auth0's token family revocation (especially OpenAI
+  // Codex). 9router did not have this background sweep; it was introduced in OmniRoute
+  // and is the root cause of "adding account B invalidates account A" reports.
+  // The interval path is kept ONLY for non-rotating providers where token state can
+  // drift silently (e.g. cookie-based, opaque sessions without expires_at).
+  const ROTATING_REFRESH_PROVIDERS = new Set([
+    "codex",
+    "openai",
+    "kimi-coding",
+    "cline",
+    "kiro",
+    "amazon-q",
+    "gitlab-duo",
+    "claude",
+  ]);
+  const isRotatingProvider = ROTATING_REFRESH_PROVIDERS.has(conn.provider);
+  const shouldRefreshByInterval =
+    !hasKnownExpiry && !isRotatingProvider && Date.now() - lastCheck >= intervalMs;
 
   if (!isAboutToExpire && !shouldRefreshByInterval) return;
 

@@ -3,6 +3,7 @@ import * as log from "../utils/logger";
 import { updateProviderConnection, resolveProxyForProvider } from "@/lib/localDb";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
+  getRefreshLeadMs as _getRefreshLeadMs,
   refreshAccessToken as _refreshAccessToken,
   refreshClaudeOAuthToken as _refreshClaudeOAuthToken,
   refreshGoogleToken as _refreshGoogleToken,
@@ -150,15 +151,20 @@ export async function updateProviderCredentials(connectionId: string, newCredent
 export async function checkAndRefreshToken(provider: string, credentials: any) {
   let updatedCredentials = { ...credentials };
 
-  // Check regular token expiry
+  // Check regular token expiry. Use the provider-specific lead time so rotating-
+  // token providers (Codex/OpenAI) refresh FAR ahead of access_token expiry. This
+  // keeps the refresh_token "warm" — refreshed regularly enough that Auth0 doesn't
+  // mark it as stale and revoke the token family on first use after long idle.
   if (updatedCredentials.expiresAt) {
     const expiresAt = new Date(updatedCredentials.expiresAt).getTime();
     const now = Date.now();
+    const refreshLead = _getRefreshLeadMs(provider);
 
-    if (expiresAt - now < TOKEN_EXPIRY_BUFFER_MS) {
+    if (expiresAt - now < refreshLead) {
       log.info("TOKEN_REFRESH", "Token expiring soon, refreshing proactively", {
         provider,
         expiresIn: Math.round((expiresAt - now) / 1000),
+        refreshLeadMs: refreshLead,
       });
 
       const connectionId: string | undefined = updatedCredentials.connectionId;

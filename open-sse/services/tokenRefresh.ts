@@ -7,8 +7,43 @@ import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
 import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
-// Token expiry buffer (refresh if expires within 5 minutes)
+// Default token expiry buffer (refresh if expires within 5 minutes).
+// Used as fallback for providers without an explicit lead time in
+// REFRESH_LEAD_MS below.
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
+
+// Per-provider proactive-refresh lead time.
+//
+// For multi-account OAuth on providers that enforce "single active session per
+// client_id" (notably OpenAI Codex / Auth0), refreshing one account's token
+// can invalidate the refresh_token family of OTHER accounts under the same
+// client. We MINIMIZE refresh frequency for these providers: stay on the
+// original access_token until it is genuinely about to expire, so each account
+// gets the full access_token lifetime without triggering Auth0's family-
+// invalidation logic on its siblings.
+//
+// Trade-off: when refresh finally happens (last 5 min before expiry), Auth0
+// MAY invalidate other accounts' refresh_tokens. The user must re-auth those.
+// This is the upstream limitation documented in openai/codex#9648.
+//
+// Providers with non-rotating tokens (Google, Anthropic) or where multi-
+// account is naturally isolated keep longer lead times.
+export const REFRESH_LEAD_MS: Record<string, number> = {
+  codex: 5 * 60 * 1000, // 5 minutes (intentionally minimal — see comment above)
+  claude: 4 * 60 * 60 * 1000, // 4 hours (Anthropic per-account isolation works)
+  iflow: 24 * 60 * 60 * 1000, // 24 hours
+  qwen: 20 * 60 * 1000, // 20 minutes
+  "kimi-coding": 5 * 60 * 1000, // 5 minutes
+  antigravity: 5 * 60 * 1000, // 5 minutes (Google — non-rotating, safe)
+};
+
+/**
+ * Get the proactive refresh lead time (ms) for a given provider.
+ * Falls back to TOKEN_EXPIRY_BUFFER_MS (5 min) when not explicitly listed.
+ */
+export function getRefreshLeadMs(provider: string): number {
+  return REFRESH_LEAD_MS[provider] ?? TOKEN_EXPIRY_BUFFER_MS;
+}
 
 const CACHE_SECRET = "omniroute-token-cache";
 
