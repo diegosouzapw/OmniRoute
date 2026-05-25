@@ -10,6 +10,16 @@
 
 ---
 
+## [3.8.4] — 2026-05-25
+
+### ✨ New Features
+
+- **feat(providers):** enhance Google Gemini, CLI, and Antigravity resilience and features — introduces explicit TypeScript typing to translation layers, adds new Gemini 2.0 models, implements backoff and retry logic in the Gemini CLI executor, extracts Google Search grounding metadata into standard `citations`, and adds backend definitions for the `vertex-partner` provider. ([#2676](https://github.com/diegosouzapw/OmniRoute/pull/2676) — thanks @alltomatos)
+
+### 🔧 Bug Fixes
+
+---
+
 ## [3.8.3] — 2026-05-24
 
 ### ✨ New Features
