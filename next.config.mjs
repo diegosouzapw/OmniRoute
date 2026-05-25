@@ -170,6 +170,13 @@ const nextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      // G-10: allow OmniRoute's own dashboard to embed the 9Router UI via our reverse proxy.
+      // `frame-ancestors 'self'` overrides the global `frame-ancestors 'none'` only for this
+      // path. The route is already LOCAL_ONLY (routeGuard.ts) so remote origins cannot reach it.
+      {
+        source: "/dashboard/providers/services/:name/embed/:path*",
+        headers: [{ key: "Content-Security-Policy", value: "frame-ancestors 'self'" }],
+      },
     ];
   },
 

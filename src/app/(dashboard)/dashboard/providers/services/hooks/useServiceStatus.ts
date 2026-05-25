@@ -15,6 +15,7 @@ export interface ServiceStatus {
   updateAvailable: boolean;
   autoStart: boolean;
   apiKeyMasked?: string | null;
+  providerExpose?: boolean;
 }
 
 interface UseServiceStatusResult {

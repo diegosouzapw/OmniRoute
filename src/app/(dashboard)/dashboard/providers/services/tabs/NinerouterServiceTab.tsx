@@ -5,6 +5,9 @@ import { Card, Toggle, Button } from "@/shared/components";
 import { ServiceStatusCard } from "../components/ServiceStatusCard";
 import { ServiceLifecycleButtons } from "../components/ServiceLifecycleButtons";
 import { ServiceLogsPanel } from "../components/ServiceLogsPanel";
+import { NinerouterInstallWizard } from "../components/NinerouterInstallWizard";
+import { NinerouterProviderExposureCard } from "../components/NinerouterProviderExposureCard";
+import { NinerouterModelList } from "../components/NinerouterModelList";
 import { useServiceStatus } from "../hooks/useServiceStatus";
 
 const NAME = "9router";
@@ -113,12 +116,15 @@ function ApiKeyCard() {
   );
 }
 
+/**
+ * G-10: iframe now points to our reverse proxy, NOT directly to 127.0.0.1:port.
+ * CSP exception (`frame-ancestors 'self'`) is applied to this proxy path in next.config.mjs.
+ */
 function EmbeddedUiCard() {
   const { data } = useServiceStatus(NAME);
   const [expanded, setExpanded] = useState(false);
 
   const isRunning = data?.state === "running";
-  const port = data?.port ?? 20130;
 
   if (!isRunning) return null;
 
@@ -132,7 +138,15 @@ function EmbeddedUiCard() {
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-text-muted">web</span>
           9Router Web UI
-          <span className="text-xs font-normal text-text-muted">port {port}</span>
+          <a
+            href="/dashboard/providers/services/9router/embed/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-normal text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            open in new tab
+          </a>
         </div>
         <span className="material-symbols-outlined text-[16px] text-text-muted">
           {expanded ? "expand_less" : "expand_more"}
@@ -141,7 +155,7 @@ function EmbeddedUiCard() {
 
       {expanded && (
         <iframe
-          src={`http://127.0.0.1:${port}`}
+          src="/dashboard/providers/services/9router/embed/"
           title="9Router Web UI"
           className="h-[600px] w-full border-t border-border"
           sandbox="allow-scripts allow-same-origin allow-forms"
@@ -152,12 +166,25 @@ function EmbeddedUiCard() {
 }
 
 export function NinerouterServiceTab() {
+  const { data } = useServiceStatus(NAME);
+
+  // Show only the install wizard when not yet installed.
+  if (data?.state === "not_installed") {
+    return (
+      <div className="space-y-4">
+        <NinerouterInstallWizard />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <ServiceStatusCard name={NAME} />
       <ServiceLifecycleButtons name={NAME} />
       <AutoStartCard />
       <ApiKeyCard />
+      <NinerouterProviderExposureCard />
+      <NinerouterModelList />
       <EmbeddedUiCard />
       <ServiceLogsPanel name={NAME} />
     </div>
