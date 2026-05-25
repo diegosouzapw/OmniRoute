@@ -2626,6 +2626,19 @@ export const UPSTREAM_PROXY_PROVIDERS = {
     binaryName: "cli-proxy-api",
     githubRepo: "router-for-me/CLIProxyAPI",
   },
+  "9router": {
+    id: "9router",
+    alias: "nr",
+    name: "9router",
+    icon: "router",
+    color: "#0EA5E9",
+    textIcon: "9R",
+    website: "https://www.npmjs.com/package/9router",
+    defaultPort: 20130,
+    healthEndpoint: "/api/health",
+    npmPackage: "9router",
+    embedded: true,
+  },
 };
 
 export const CLOUD_AGENT_PROVIDERS = {

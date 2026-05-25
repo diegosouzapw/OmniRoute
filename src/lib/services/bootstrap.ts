@@ -3,6 +3,8 @@ import { registerSupervisor, getSupervisor } from "./registry";
 import { ServiceSupervisor } from "./ServiceSupervisor";
 import { resolveSpawnArgs } from "./installers/ninerouter";
 import { getOrCreateApiKey } from "./apiKey";
+import { scheduleServiceModelSync, stopServiceModelSync } from "./modelSync";
+import type { ServiceStatus } from "./types";
 
 const SERVICES = [
   {
@@ -34,6 +36,15 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
     });
 
     registerSupervisor(supervisor);
+
+    const baseUrl = `http://127.0.0.1:${cfg.port}`;
+    supervisor.on("stateChange", (status: ServiceStatus) => {
+      if (status.state === "running") {
+        scheduleServiceModelSync(cfg.tool, baseUrl, apiKey);
+      } else if (status.state === "stopped" || status.state === "error") {
+        stopServiceModelSync(cfg.tool);
+      }
+    });
 
     if (row.autoStart) {
       supervisor.start().catch((err: unknown) => {
