@@ -348,10 +348,13 @@ async function getAntigravityUsage(
       if (info.isInternal) continue;
       const quotaInfo = (info.quotaInfo as Record<string, unknown>) ?? {};
 
-      // Process models with quota metadata (exhausted models may have resetTime but no remainingFraction)
+      // Process models with any quota metadata (exhausted models may have only resetTime, active models have remainingFraction, credit-based models have empty quotaInfo)
       if (Object.keys(quotaInfo).length > 0) {
+        // Default to 0 when remainingFraction is undefined/null/invalid, clamp to valid range [0, 1]
         const fraction =
-          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 0;
+          typeof quotaInfo.remainingFraction === "number"
+            ? Math.max(0, Math.min(1, quotaInfo.remainingFraction))
+            : 0;
         const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
         modelQuotas[modelId] = {
           remaining: Math.round(fraction * 100),

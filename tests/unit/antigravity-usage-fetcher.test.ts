@@ -216,4 +216,70 @@ describe("getUsageForProvider (antigravity in fetcher.ts)", () => {
       mockFetch.mock.restore();
     }
   });
+
+  it("clamps remainingFraction > 1 to 100%", async () => {
+    const fetcherModule = await import("../../src/lib/usage/fetcher.ts");
+    const { getUsageForProvider } = fetcherModule;
+
+    const mockFetch = mock.method(global, "fetch", async () => ({
+      ok: true,
+      json: async () => ({
+        models: {
+          "gemini-2.5-pro": {
+            quotaInfo: {
+              remainingFraction: 1.5,
+              resetTime: "2026-05-26T00:00:00Z",
+            },
+          },
+        },
+      }),
+    }));
+
+    try {
+      const result = await getUsageForProvider(connectionBase);
+      assert.ok(result, "should return a result");
+
+      if ("modelQuotas" in result) {
+        const quota = result.modelQuotas["gemini-2.5-pro"];
+        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        assert.equal(quota.remaining, 100, "remaining should be clamped to 100%");
+        assert.equal(quota.limited, false, "should not be marked as limited");
+      }
+    } finally {
+      mockFetch.mock.restore();
+    }
+  });
+
+  it("clamps negative remainingFraction to 0%", async () => {
+    const fetcherModule = await import("../../src/lib/usage/fetcher.ts");
+    const { getUsageForProvider } = fetcherModule;
+
+    const mockFetch = mock.method(global, "fetch", async () => ({
+      ok: true,
+      json: async () => ({
+        models: {
+          "gemini-2.5-pro": {
+            quotaInfo: {
+              remainingFraction: -0.5,
+              resetTime: "2026-05-26T00:00:00Z",
+            },
+          },
+        },
+      }),
+    }));
+
+    try {
+      const result = await getUsageForProvider(connectionBase);
+      assert.ok(result, "should return a result");
+
+      if ("modelQuotas" in result) {
+        const quota = result.modelQuotas["gemini-2.5-pro"];
+        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        assert.equal(quota.remaining, 0, "remaining should be clamped to 0%");
+        assert.equal(quota.limited, true, "should be marked as limited");
+      }
+    } finally {
+      mockFetch.mock.restore();
+    }
+  });
 });

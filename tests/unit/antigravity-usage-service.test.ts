@@ -5,7 +5,7 @@
  * - undefined → 0% remaining (exhausted quota)
  * - 0 → 0% remaining (exhausted quota, explicit)
  * - 1.0 → 100% remaining (full quota)
- * - 1.0 without resetTime → unlimited (tab-completion models)
+ * - 1.0 without resetTime → unlimited (e.g. tab-completion)
  * - 0.5 → 50% remaining (partial quota)
  */
 
@@ -22,14 +22,11 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
   };
 
   it("defaults to 0% remaining when remainingFraction is undefined", async () => {
-    const usageModule = await import("../../open-sse/services/usage.ts");
-    const { getUsageForProvider } = usageModule;
-
     const mockFetch = mock.method(global, "fetch", async () => ({
       ok: true,
       json: async () => ({
         models: {
-          "gemini-2.5-pro": {
+          "gemini-3.5-flash-preview": {
             quotaInfo: {
               remainingFraction: undefined,
               resetTime: "2026-05-26T00:00:00Z",
@@ -40,13 +37,16 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }));
 
     try {
-      const result = await getUsageForProvider(connectionBase);
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
       assert.ok(result, "should return a result");
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-2.5-pro"];
-        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
         assert.equal(quota.remainingPercentage, 0, "remaining should be 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
         assert.equal(quota.used > 0, true, "used should be > 0 when quota is exhausted");
@@ -57,14 +57,11 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
   });
 
   it("parses remainingFraction=0 as exhausted quota", async () => {
-    const usageModule = await import("../../open-sse/services/usage.ts");
-    const { getUsageForProvider } = usageModule;
-
     const mockFetch = mock.method(global, "fetch", async () => ({
       ok: true,
       json: async () => ({
         models: {
-          "gemini-2.5-pro": {
+          "gemini-3.5-flash-preview": {
             quotaInfo: {
               remainingFraction: 0,
               resetTime: "2026-05-26T00:00:00Z",
@@ -75,13 +72,16 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }));
 
     try {
-      const result = await getUsageForProvider(connectionBase);
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
       assert.ok(result, "should return a result");
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-2.5-pro"];
-        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
         assert.equal(quota.remainingPercentage, 0, "remaining should be 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
       }
@@ -91,14 +91,11 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
   });
 
   it("parses remainingFraction=1.0 with resetTime as full quota", async () => {
-    const usageModule = await import("../../open-sse/services/usage.ts");
-    const { getUsageForProvider } = usageModule;
-
     const mockFetch = mock.method(global, "fetch", async () => ({
       ok: true,
       json: async () => ({
         models: {
-          "gemini-2.5-pro": {
+          "gemini-3.5-flash-preview": {
             quotaInfo: {
               remainingFraction: 1.0,
               resetTime: "2026-05-26T00:00:00Z",
@@ -109,13 +106,16 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }));
 
     try {
-      const result = await getUsageForProvider(connectionBase);
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
       assert.ok(result, "should return a result");
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-2.5-pro"];
-        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
         assert.equal(quota.remainingPercentage, 100, "remaining should be 100%");
         assert.equal(quota.unlimited, false, "should not be unlimited (has resetTime)");
       }
@@ -124,15 +124,12 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }
   });
 
-  it("parses remainingFraction=1.0 without resetTime as unlimited", async () => {
-    const usageModule = await import("../../open-sse/services/usage.ts");
-    const { getUsageForProvider } = usageModule;
-
+  it("parses remainingFraction=1.0 without resetTime as unlimited (e.g. tab-completion)", async () => {
     const mockFetch = mock.method(global, "fetch", async () => ({
       ok: true,
       json: async () => ({
         models: {
-          "tab-completion-model": {
+          "gemini-3.1-flash-lite": {
             quotaInfo: {
               remainingFraction: 1.0,
             },
@@ -142,13 +139,16 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }));
 
     try {
-      const result = await getUsageForProvider(connectionBase);
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
       assert.ok(result, "should return a result");
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["tab-completion-model"];
-        assert.ok(quota, "should have quota for tab-completion-model");
+        const quota = result.quotas["gemini-3.1-flash-lite"];
+        assert.ok(quota, "should have quota for gemini-3.1-flash-lite");
         assert.equal(quota.remainingPercentage, 100, "remaining should be 100%");
         assert.equal(quota.unlimited, true, "should be unlimited (no resetTime)");
       }
@@ -158,14 +158,11 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
   });
 
   it("parses remainingFraction=0.5 as partial quota", async () => {
-    const usageModule = await import("../../open-sse/services/usage.ts");
-    const { getUsageForProvider } = usageModule;
-
     const mockFetch = mock.method(global, "fetch", async () => ({
       ok: true,
       json: async () => ({
         models: {
-          "gemini-2.5-pro": {
+          "gemini-3.5-flash-preview": {
             quotaInfo: {
               remainingFraction: 0.5,
               resetTime: "2026-05-26T00:00:00Z",
@@ -176,14 +173,85 @@ describe("getUsageForProvider (antigravity in usage.ts)", () => {
     }));
 
     try {
-      const result = await getUsageForProvider(connectionBase);
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
       assert.ok(result, "should return a result");
       assert.ok("quotas" in result, "should have quotas");
 
       if ("quotas" in result) {
-        const quota = result.quotas["gemini-2.5-pro"];
-        assert.ok(quota, "should have quota for gemini-2.5-pro");
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
         assert.equal(quota.remainingPercentage, 50, "remaining should be 50%");
+        assert.equal(quota.unlimited, false, "should not be unlimited");
+      }
+    } finally {
+      mockFetch.mock.restore();
+    }
+  });
+
+  it("clamps remainingFraction > 1 to 100%", async () => {
+    const mockFetch = mock.method(global, "fetch", async () => ({
+      ok: true,
+      json: async () => ({
+        models: {
+          "gemini-3.5-flash-preview": {
+            quotaInfo: {
+              remainingFraction: 1.5,
+              resetTime: "2026-05-26T00:00:00Z",
+            },
+          },
+        },
+      }),
+    }));
+
+    try {
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
+      assert.ok(result, "should return a result");
+      assert.ok("quotas" in result, "should have quotas");
+
+      if ("quotas" in result) {
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
+        assert.equal(quota.remainingPercentage, 100, "remaining should be clamped to 100%");
+        assert.equal(quota.unlimited, false, "should not be unlimited (has resetTime)");
+      }
+    } finally {
+      mockFetch.mock.restore();
+    }
+  });
+
+  it("clamps negative remainingFraction to 0%", async () => {
+    const mockFetch = mock.method(global, "fetch", async () => ({
+      ok: true,
+      json: async () => ({
+        models: {
+          "gemini-3.5-flash-preview": {
+            quotaInfo: {
+              remainingFraction: -0.5,
+              resetTime: "2026-05-26T00:00:00Z",
+            },
+          },
+        },
+      }),
+    }));
+
+    try {
+      const usageModule = await import("../../open-sse/services/usage.ts");
+      const { getUsageForProvider } = usageModule;
+
+      const result = await getUsageForProvider(connectionBase, { forceRefresh: true });
+      assert.ok(result, "should return a result");
+      assert.ok("quotas" in result, "should have quotas");
+
+      if ("quotas" in result) {
+        const quota = result.quotas["gemini-3.5-flash-preview"];
+        assert.ok(quota, "should have quota for gemini-3.5-flash-preview");
+        assert.equal(quota.remainingPercentage, 0, "remaining should be clamped to 0%");
         assert.equal(quota.unlimited, false, "should not be unlimited");
       }
     } finally {
