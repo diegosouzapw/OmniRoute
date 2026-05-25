@@ -12,7 +12,9 @@ interface VercelRelayModalProps {
 export default function VercelRelayModal({ isOpen, onClose, onDeployed }: VercelRelayModalProps) {
   const t = useTranslations("settings");
   const [token, setToken] = useState("");
-  const [projectName, setProjectName] = useState("omniroute-relay");
+  const [projectName, setProjectName] = useState(
+    process.env.NEXT_PUBLIC_VERCEL_RELAY_DEFAULT_PROJECT || "omniroute-relay"
+  );
   const [deploying, setDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

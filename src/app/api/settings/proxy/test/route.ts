@@ -68,6 +68,7 @@ export async function POST(request: Request) {
     // the actual secrets for testing.
     const body = rawBody as Record<string, unknown>;
     const proxyId = typeof body.proxyId === "string" ? body.proxyId.trim() : null;
+    let dbProxyNotes: string | null = null;
     if (proxyId) {
       const dbProxy = await getProxyById(proxyId, { includeSecrets: true });
       if (dbProxy) {
@@ -79,16 +80,26 @@ export async function POST(request: Request) {
           username: dbProxy.username,
           password: dbProxy.password,
         };
+        dbProxyNotes = dbProxy.notes ?? null;
       }
     }
 
     const proxyType = String(proxy.type || "http").toLowerCase();
 
-    // Vercel Relay: test by hitting httpbin via the relay headers
+    // Vercel Relay: test by hitting ipify via the relay headers
     if (proxyType === "vercel") {
       const relayHost = proxy.host;
-      // password stores relayAuth (set when proxy was created via vercel-deploy)
-      const relayAuth = proxy.password || "";
+      // relayAuth lives in notes JSON: { relayAuth } stored by the vercel-deploy route.
+      // proxy.password is empty for relay entries; parse notes instead.
+      let relayAuth = "";
+      if (dbProxyNotes) {
+        try {
+          const parsed = JSON.parse(dbProxyNotes) as { relayAuth?: string };
+          relayAuth = parsed.relayAuth ?? "";
+        } catch {}
+      }
+      // Fallback: ad-hoc callers may pass relayAuth in the password field
+      if (!relayAuth) relayAuth = proxy.password ?? "";
       const relayUrl = `https://${relayHost}`;
       const start = Date.now();
       const controller2 = new AbortController();

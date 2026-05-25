@@ -1,7 +1,12 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/shared/components";
-import SourceToggleBar, { type SourceId } from "./SourceToggleBar";
+import SourceToggleBar, {
+  type SourceId,
+  ALL_SOURCE_IDS,
+  loadDisabledSources,
+  saveDisabledSources,
+} from "./SourceToggleBar";
 import FreeProxyRow, { type FreeProxyRowData } from "./FreeProxyRow";
 
 type FreePoolStats = {
@@ -14,7 +19,7 @@ type FreePoolStats = {
 export default function FreePoolTab() {
   const [proxies, setProxies] = useState<FreeProxyRowData[]>([]);
   const [stats, setStats] = useState<FreePoolStats | null>(null);
-  const [activeSource, setActiveSource] = useState<SourceId | null>(null);
+  const [disabledSources, setDisabledSources] = useState<Set<SourceId>>(new Set());
   const [filterProtocol, setFilterProtocol] = useState("");
   const [filterCountry, setFilterCountry] = useState("");
   const [minQuality, setMinQuality] = useState("");
@@ -24,11 +29,30 @@ export default function FreePoolTab() {
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
   const [bulkProgress, setBulkProgress] = useState<string | null>(null);
 
+  // Load persisted disabled-sources from localStorage on mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage hydration, runs once
+    setDisabledSources(loadDisabledSources());
+  }, []);
+
+  const handleToggleSource = useCallback((source: SourceId) => {
+    setDisabledSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(source)) next.delete(source);
+      else next.add(source);
+      saveDisabledSources(next);
+      return next;
+    });
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (activeSource) params.set("sources", activeSource);
+      const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
+      if (enabledSources.length < ALL_SOURCE_IDS.length) {
+        params.set("sources", enabledSources.join(","));
+      }
       if (filterProtocol) params.set("protocol", filterProtocol);
       if (filterCountry) params.set("country", filterCountry);
       if (minQuality) params.set("minQuality", minQuality);
@@ -48,7 +72,7 @@ export default function FreePoolTab() {
       }
     } catch {}
     setLoading(false);
-  }, [activeSource, filterProtocol, filterCountry, minQuality]);
+  }, [disabledSources, filterProtocol, filterCountry, minQuality]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetch on filter change
@@ -58,7 +82,9 @@ export default function FreePoolTab() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const body = activeSource ? { sources: [activeSource] } : {};
+      const enabledSources = ALL_SOURCE_IDS.filter((s) => !disabledSources.has(s));
+      const body =
+        enabledSources.length < ALL_SOURCE_IDS.length ? { sources: enabledSources } : {};
       await fetch("/api/settings/free-proxies/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,7 +143,7 @@ export default function FreePoolTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <SourceToggleBar activeSource={activeSource} onToggle={setActiveSource} />
+        <SourceToggleBar disabledSources={disabledSources} onToggle={handleToggleSource} />
         <div className="flex gap-2 ml-auto flex-wrap items-center">
           <select
             value={filterProtocol}

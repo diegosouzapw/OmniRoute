@@ -826,6 +826,7 @@ Provider quota endpoints, network tunnels (Tailscale, Ngrok, MITM debug proxy), 
 | `FREE_PROXY_IPLOCATE_BASE_URL`   | _(see iplocate.ts)_                   | `src/lib/freeProxyProviders/iplocate.ts`            | IPLocate proxy list base URL override.                                      |
 | `NEXT_PUBLIC_VERCEL_RELAY_ENABLED` | `true`                              | `src/app/(dashboard)/…/ProxyPoolTab.tsx`            | Show/hide the Deploy Vercel Relay button in the Proxy Pool tab.             |
 | `VERCEL_API_BASE`                | `https://api.vercel.com`              | `src/app/api/settings/proxy/vercel-deploy/route.ts` | Vercel API base URL override (for testing).                                 |
+| `NEXT_PUBLIC_VERCEL_RELAY_DEFAULT_PROJECT` | `omniroute-relay`           | `src/app/(dashboard)/…/VercelRelayModal.tsx`        | Default project name pre-filled in the Vercel Relay deploy modal.           |
 | `TAILSCALE_BIN`                  | _(auto-detect)_                       | `src/lib/tailscaleTunnel.ts`                        | Explicit path to the `tailscale` binary.                                    |
 | `TAILSCALED_BIN`                 | _(auto-detect)_                       | `src/lib/tailscaleTunnel.ts`                        | Explicit path to the `tailscaled` daemon binary.                            |
 | `NGROK_AUTHTOKEN`                | _(unset)_                             | `src/lib/ngrokTunnel.ts`                            | Authenticates outbound ngrok tunnels.                                       |
