@@ -10,12 +10,17 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getWebhooks, createWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { encryptMetadata } from "@/lib/webhookDispatcher";
+
+const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 
 const createWebhookSchema = z.object({
-  url: z.string().url("Invalid URL format").max(2000),
+  url: z.string().min(1).max(2000),
   events: z.array(z.string()).optional().default(["*"]),
   secret: z.string().max(500).optional(),
   description: z.string().max(1000).optional().default(""),
+  kind: z.enum(WEBHOOK_KINDS).optional().default("custom"),
+  metadata: z.record(z.string()).optional(),
 });
 
 export async function GET(request: Request) {
@@ -50,11 +55,14 @@ export async function POST(request: Request) {
     }
 
     const { data } = validation;
+    const metadataEncrypted = data.metadata ? encryptMetadata(data.metadata) : undefined;
     const webhook = createWebhook({
       url: data.url,
       events: data.events,
       secret: data.secret,
       description: data.description,
+      kind: data.kind,
+      metadataEncrypted,
     });
 
     return NextResponse.json({ webhook }, { status: 201 });
