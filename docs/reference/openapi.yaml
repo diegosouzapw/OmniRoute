@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.3
+  version: 3.8.4
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -21,6 +21,20 @@ info:
 servers:
   - url: http://localhost:20128
     description: Local development
+
+# Vendor extensions — OmniRoute security tier annotations (OpenAPI 3.x compatible)
+x-tier-definitions:
+  loopback-only:
+    description: "Route is enforced as loopback-only (127.0.0.1, ::1) regardless of auth.
+      Cannot be authenticated remotely. Spawn-capable routes are classified here.
+      Reference: docs/security/ROUTE_GUARD_TIERS.md"
+  always-protected:
+    description: "Route requires authentication unconditionally, even when REQUIRE_API_KEY=false.
+      Destructive/irreversible operations are classified here.
+      Reference: docs/security/ROUTE_GUARD_TIERS.md"
+  internal:
+    description: "Internal route not part of the public API surface.
+      Hidden from /dashboard/api-endpoints by default."
 
 tags:
   - name: Chat
@@ -1180,6 +1194,70 @@ paths:
         "200":
           description: Updated thinking budget configuration
 
+  /api/settings/database:
+    get:
+      tags: [Settings]
+      summary: Get database settings
+      description: Returns SQLite database configuration (WAL mode, journal, paths).
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Database settings
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Settings]
+      summary: Update database settings
+      description: Updates SQLite WAL or journal mode settings. Requires restart to take effect.
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/settings/database/refresh-stats:
+    post:
+      tags: [Settings]
+      summary: Refresh database statistics
+      description: Runs ANALYZE to refresh SQLite query planner statistics.
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Stats refreshed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/settings/database/vacuum:
+    post:
+      tags: [Settings]
+      summary: Vacuum database
+      description: Runs VACUUM FULL on the SQLite database to reclaim disk space. Destructive — cannot be interrupted.
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Vacuum completed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/rate-limit:
     get:
       tags: [Settings]
@@ -1994,10 +2072,19 @@ paths:
   /api/shutdown:
     post:
       tags: [System]
-      summary: Shutdown the application
+      summary: Shutdown the OmniRoute service
+      description: >-
+        Initiates a graceful shutdown. Always requires authentication regardless of
+        the `requireLogin` setting — classified as ALWAYS_PROTECTED in routeGuard.ts.
+      x-always-protected: true
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
       responses:
-        "200":
+        "202":
           description: Shutdown initiated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /api/db-backups:
     get:
