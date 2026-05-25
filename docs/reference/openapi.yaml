@@ -1530,31 +1530,6 @@ paths:
           description: Backup created
 
   /api/cli-tools/runtime/{toolId}:
-    post:
-      tags: [CLI Tools]
-      summary: Execute CLI tool runtime command
-      description: >-
-        Executes runtime CLI tool commands (applies settings, launches processes).
-        LOCAL_ONLY — spawn-capable route, blocked unconditionally from non-loopback.
-        CVE class: GHSA-fhh6-4qxv-rpqj.
-      x-loopback-only: true
-      parameters:
-        - name: toolId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Runtime command result
-        "403":
-          description: Forbidden — request not from loopback
     get:
       tags: [CLI Tools]
       summary: Get runtime status for a CLI tool
