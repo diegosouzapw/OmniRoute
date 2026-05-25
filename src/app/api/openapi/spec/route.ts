@@ -67,6 +67,9 @@ export async function GET() {
             parameters: spec.parameters || [],
             requestBody: spec.requestBody ? true : false,
             responses: Object.keys(spec.responses || {}),
+            loopbackOnly: spec["x-loopback-only"] === true,
+            alwaysProtected: spec["x-always-protected"] === true,
+            internal: spec["x-internal"] === true,
           });
         }
       }
