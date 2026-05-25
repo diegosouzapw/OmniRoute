@@ -9,6 +9,12 @@ import {
   proxyConfigToUrl,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 
+type QuickTester = (
+  host: string,
+  port: number,
+  type: string
+) => Promise<{ ok: boolean; latencyMs: number }>;
+
 async function testProxyQuick(
   host: string,
   port: number,
@@ -35,6 +41,14 @@ async function testProxyQuick(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+let _quickTester: QuickTester = testProxyQuick;
+export function _setQuickTesterForTests(fn: QuickTester): void {
+  _quickTester = fn;
+}
+export function _resetQuickTesterForTests(): void {
+  _quickTester = testProxyQuick;
 }
 
 export async function POST(request: Request) {
@@ -84,7 +98,7 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const test = await testProxyQuick(freeProxy.host, freeProxy.port, freeProxy.type);
+      const test = await _quickTester(freeProxy.host, freeProxy.port, freeProxy.type);
       if (!test.ok) {
         results.push({ id, success: false, error: "Test failed" });
         continue;

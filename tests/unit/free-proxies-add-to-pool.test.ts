@@ -38,7 +38,11 @@ function makeBulkReq(ids: string[]): Request {
   });
 }
 
-test.beforeEach(reset);
+test.beforeEach(async () => {
+  await reset();
+  addToPoolRoute._resetConnectivityTesterForTests();
+  bulkAddRoute._resetQuickTesterForTests();
+});
 
 test.after(() => {
   core.resetDbInstance();
@@ -210,4 +214,54 @@ test("bulk-add-to-pool respects 100-item limit (Zod validation)", async () => {
   const ids = Array.from({ length: 101 }, () => randomUUID());
   const res = await bulkAddRoute.POST(makeBulkReq(ids));
   assert.equal(res.status, 400);
+});
+
+// ── Happy path (injected connectivity stub) ──────────────────────────────────
+
+test("add-to-pool happy path: connectivity succeeds → proxy created → marked in pool", async () => {
+  const { id } = await freeProxiesDb.upsertFreeProxy({
+    source: "1proxy", host: "10.5.0.1", port: 8080, type: "http",
+    countryCode: null, qualityScore: null, latencyMs: null, anonymity: null, lastValidated: null,
+  });
+
+  addToPoolRoute._setConnectivityTesterForTests(async () => ({
+    success: true, latencyMs: 5, publicIp: "1.2.3.4",
+  }));
+
+  const res = await addToPoolRoute.POST(makeReq(), { params: Promise.resolve({ id }) });
+  const body = await res.json();
+
+  assert.equal(body.success, true);
+  assert.ok(typeof body.poolProxyId === "string", "response.poolProxyId should be a string");
+  assert.ok(typeof body.latencyMs === "number", "response.latencyMs should be a number");
+
+  const fp = await freeProxiesDb.getFreeProxyById(id);
+  assert.ok(fp?.inPool, "free proxy should be marked as in pool");
+  assert.equal(fp?.poolProxyId, body.poolProxyId, "poolProxyId should match created proxy id");
+});
+
+test("bulk-add-to-pool happy path: connectivity succeeds → proxies created and marked in pool", async () => {
+  const p1 = await freeProxiesDb.upsertFreeProxy({
+    source: "proxifly", host: "10.6.0.1", port: 8080, type: "http",
+    countryCode: null, qualityScore: null, latencyMs: null, anonymity: null, lastValidated: null,
+  });
+  const p2 = await freeProxiesDb.upsertFreeProxy({
+    source: "iplocate", host: "10.6.0.2", port: 8080, type: "http",
+    countryCode: null, qualityScore: null, latencyMs: null, anonymity: null, lastValidated: null,
+  });
+
+  bulkAddRoute._setQuickTesterForTests(async () => ({ ok: true, latencyMs: 3 }));
+
+  const res = await bulkAddRoute.POST(makeBulkReq([p1.id, p2.id]));
+  const body = await res.json();
+
+  assert.equal(body.succeeded, 2);
+  assert.equal(body.failed, 0);
+  assert.equal(body.results.length, 2);
+  assert.ok(body.results.every((r: { success: boolean }) => r.success));
+
+  const fp1 = await freeProxiesDb.getFreeProxyById(p1.id);
+  const fp2 = await freeProxiesDb.getFreeProxyById(p2.id);
+  assert.ok(fp1?.inPool, "p1 should be in pool");
+  assert.ok(fp2?.inPool, "p2 should be in pool");
 });

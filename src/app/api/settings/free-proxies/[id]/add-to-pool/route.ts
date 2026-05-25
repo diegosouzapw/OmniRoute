@@ -7,6 +7,12 @@ import {
   proxyConfigToUrl,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 
+type ConnectivityTester = (
+  host: string,
+  port: number,
+  type: string
+) => Promise<{ success: boolean; latencyMs: number; publicIp?: string }>;
+
 async function testProxyConnectivity(
   host: string,
   port: number,
@@ -45,6 +51,14 @@ async function testProxyConnectivity(
   }
 }
 
+let _connectivityTester: ConnectivityTester = testProxyConnectivity;
+export function _setConnectivityTesterForTests(fn: ConnectivityTester): void {
+  _connectivityTester = fn;
+}
+export function _resetConnectivityTesterForTests(): void {
+  _connectivityTester = testProxyConnectivity;
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -66,7 +80,7 @@ export async function POST(
   }
 
   try {
-    const testResult = await testProxyConnectivity(freeProxy.host, freeProxy.port, freeProxy.type);
+    const testResult = await _connectivityTester(freeProxy.host, freeProxy.port, freeProxy.type);
     if (!testResult.success) {
       return Response.json({
         success: false,
