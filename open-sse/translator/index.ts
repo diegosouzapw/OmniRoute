@@ -312,9 +312,8 @@ export function translateRequest(
         if (hasThinkingBlock) continue;
 
         const toolUseBlocks = msg.content.filter((b) => b?.type === "tool_use");
-        const firstToolUseId = toolUseBlocks[0]?.id || toolUseBlocks[0]?.tool_use_id;
+        const firstToolUseId = toolUseBlocks[0]?.id;
         const firstToolUseIdx = msg.content.findIndex((b) => b?.type === "tool_use");
-        if (firstToolUseIdx < 0) continue;
 
         // Try reasoning cache first
         if (firstToolUseId) {
