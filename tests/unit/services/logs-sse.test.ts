@@ -116,7 +116,10 @@ test("GET /logs returns 404 for unknown service", async () => {
   abort.abort();
   assert.equal(resp.status, 404);
   const body = await resp.json();
-  assert.ok(body.error?.includes("not found"));
+  assert.ok(typeof body.error === "object" && body.error !== null, "error must be an object");
+  assert.ok(body.error.message?.includes("not found"), "error.message must mention 'not found'");
+  assert.equal(body.error.type, "not_found");
+  assert.ok(typeof body.requestId === "string", "requestId must be present");
 });
 
 test("GET /logs returns 400 when filter exceeds max length", async () => {
@@ -133,7 +136,10 @@ test("GET /logs returns 400 when filter exceeds max length", async () => {
   abort.abort();
   assert.equal(resp.status, 400);
   const body = await resp.json();
-  assert.ok(body.error?.includes("filter"));
+  assert.ok(typeof body.error === "object" && body.error !== null, "error must be an object");
+  assert.ok(body.error.message?.includes("filter"), "error.message must mention 'filter'");
+  assert.equal(body.error.type, "invalid_request");
+  assert.ok(typeof body.requestId === "string", "requestId must be present");
 });
 
 test("GET /logs sends snapshot event with buffered lines", async () => {
@@ -153,6 +159,7 @@ test("GET /logs sends snapshot event with buffered lines", async () => {
   });
 
   assert.equal(resp.headers.get("Content-Type"), "text/event-stream");
+  assert.equal(resp.headers.get("X-Accel-Buffering"), "no");
 
   const events = await drainEvents(resp, { maxEvents: 1, abort });
   assert.equal(events.length, 1);

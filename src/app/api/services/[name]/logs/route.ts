@@ -13,6 +13,7 @@
 
 import type { NextRequest } from "next/server";
 import { getSupervisor } from "@/lib/services/registry";
+import { createErrorResponse } from "@/lib/api/errorResponse";
 import type { LogLine } from "@/lib/services/types";
 
 const MAX_TAIL = 1000;
@@ -31,10 +32,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const supervisor = getSupervisor(name);
   if (!supervisor) {
-    return new Response(JSON.stringify({ error: `Service '${name}' not found` }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    return createErrorResponse({ status: 404, message: `Service '${name}' not found` });
   }
 
   const url = new URL(request.url);
@@ -47,10 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   );
 
   if (filterRaw !== null && filterRaw.length > MAX_FILTER_LEN) {
-    return new Response(JSON.stringify({ error: "filter exceeds maximum length" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return createErrorResponse({ status: 400, message: "filter exceeds maximum length" });
   }
 
   // Substring match only — avoids ReDoS that user-supplied RegExp() would introduce.
@@ -110,6 +105,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
     },
   });
 }
