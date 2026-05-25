@@ -87,6 +87,28 @@ tags:
     description: Telemetry and token health monitoring
   - name: MCP
     description: Model Context Protocol server (LOCAL_ONLY — loopback access only)
+  - name: Webhooks
+    description: Webhook endpoint management and testing
+  - name: Tunnels
+    description: Tunnel (ngrok, Cloudflare, Tailscale) management
+  - name: Skills
+    description: Skill framework — install, list, execute
+  - name: Memory
+    description: Persistent conversational memory (FTS5 + Qdrant)
+  - name: Logs
+    description: Application and request log access
+  - name: Version Manager
+    description: Version check and update management
+  - name: Analytics
+    description: Internal analytics and routing statistics
+  - name: A2A
+    description: Agent-to-Agent JSON-RPC 2.0 protocol
+  - name: Evals
+    description: Evaluation suites
+  - name: Files
+    description: File uploads and management
+  - name: Batches
+    description: Batch request processing
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -2149,6 +2171,411 @@ paths:
         "200":
           description: Fallback chain deleted
 
+  # ─── Webhooks ─────────────────────────────────────────────────────
+
+  /api/webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhooks
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Webhook list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Webhooks]
+      summary: Create webhook
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                secret:
+                  type: string
+      responses:
+        "201":
+          description: Webhook created
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/webhooks/{id}:
+    get:
+      tags: [Webhooks]
+      summary: Get webhook
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook details
+        "404":
+          description: Not found
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags: [Webhooks]
+      summary: Update webhook
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Webhook updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [Webhooks]
+      summary: Delete webhook
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Webhook deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/webhooks/{id}/test:
+    post:
+      tags: [Webhooks]
+      summary: Test webhook delivery
+      description: Sends a test event payload to the webhook URL.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Test delivery result
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ─── Tunnels ──────────────────────────────────────────────────────
+
+  /api/tunnels/ngrok:
+    get:
+      tags: [Tunnels]
+      summary: Get ngrok tunnel status
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: ngrok tunnel status
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Tunnels]
+      summary: Start/configure ngrok tunnel
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Tunnel started
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [Tunnels]
+      summary: Stop ngrok tunnel
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Tunnel stopped
+
+  /api/tunnels/cloudflared:
+    get:
+      tags: [Tunnels]
+      summary: Get Cloudflare Tunnel status
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Cloudflare tunnel status
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Tunnels]
+      summary: Start/configure Cloudflare Tunnel
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Tunnel started
+    delete:
+      tags: [Tunnels]
+      summary: Stop Cloudflare Tunnel
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Tunnel stopped
+
+  /api/tunnels/tailscale:
+    get:
+      tags: [Tunnels]
+      summary: Get Tailscale status
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Tailscale status
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/tunnels/tailscale/install:
+    post:
+      tags: [Tunnels]
+      summary: Install Tailscale
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Install initiated
+
+  /api/tunnels/tailscale/login:
+    post:
+      tags: [Tunnels]
+      summary: Tailscale login / auth key
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authKey:
+                  type: string
+      responses:
+        "200":
+          description: Login result
+
+  /api/tunnels/tailscale/start-daemon:
+    post:
+      tags: [Tunnels]
+      summary: Start Tailscale daemon
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Daemon started
+
+  /api/tunnels/tailscale/enable:
+    post:
+      tags: [Tunnels]
+      summary: Enable Tailscale routing
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Routing enabled
+
+  /api/tunnels/tailscale/disable:
+    post:
+      tags: [Tunnels]
+      summary: Disable Tailscale routing
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Routing disabled
+
+  /api/tunnels/tailscale/check:
+    get:
+      tags: [Tunnels]
+      summary: Check Tailscale connectivity
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Connectivity check result
+
+  # ─── Skills ───────────────────────────────────────────────────────
+
+  /api/skills:
+    get:
+      tags: [Skills]
+      summary: List installed skills
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Skill list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/skills/{id}:
+    get:
+      tags: [Skills]
+      summary: Get skill details
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Skill details
+        "404":
+          description: Skill not found
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [Skills]
+      summary: Uninstall skill
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Skill uninstalled
+
+  /api/skills/install:
+    post:
+      tags: [Skills]
+      summary: Install skill from ZIP or URL
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                  description: URL or base64 ZIP
+      responses:
+        "201":
+          description: Skill installed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/skills/marketplace:
+    get:
+      tags: [Skills]
+      summary: Browse skill marketplace
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Available skills
+
+  /api/skills/marketplace/install:
+    post:
+      tags: [Skills]
+      summary: Install skill from marketplace
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skillId:
+                  type: string
+      responses:
+        "201":
+          description: Skill installed
+
+  /api/skills/executions:
+    get:
+      tags: [Skills]
+      summary: List skill execution history
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Execution history
+
   # ─── System ────────────────────────────────────────────────────
 
   /api/auth/login:
@@ -2225,6 +2652,59 @@ paths:
       responses:
         "200":
           description: Backup created
+
+  /api/db-backups/export:
+    post:
+      tags: [System]
+      summary: Export database to file
+      description: Creates a snapshot export of the SQLite database.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Export file path or download
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/db-backups/exportAll:
+    post:
+      tags: [System]
+      summary: Export all data to ZIP
+      description: Exports the full database including attachments to a ZIP archive.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: ZIP archive
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/db-backups/import:
+    post:
+      tags: [System]
+      summary: Import database from backup
+      description: >-
+        Restores database from a backup file. Destructive — overwrites current data.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Import successful
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /api/storage/health:
     get:
@@ -2532,6 +3012,796 @@ paths:
           description: openapi.yaml file not found on disk
         "500":
           description: Failed to parse OpenAPI spec
+
+  # ─── Memory ───────────────────────────────────────────────────────
+
+  /api/memory:
+    get:
+      tags: [Memory]
+      summary: List memory entries
+      description: Returns conversational memory entries (FTS5 + Qdrant).
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Memory entries
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Memory]
+      summary: Create memory entry
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Memory entry created
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/memory/{id}:
+    get:
+      tags: [Memory]
+      summary: Get memory entry
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Memory entry
+        "404":
+          description: Not found
+    patch:
+      tags: [Memory]
+      summary: Update memory entry
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Memory entry updated
+    delete:
+      tags: [Memory]
+      summary: Delete memory entry
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Memory entry deleted
+
+  /api/memory/health:
+    get:
+      tags: [Memory]
+      summary: Memory system health
+      description: Returns health of FTS5 index and Qdrant vector store.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Memory health status
+
+  # ─── Logs ─────────────────────────────────────────────────────────
+
+  /api/logs/console:
+    get:
+      tags: [Logs]
+      summary: Get application console logs
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Console log entries
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/logs/active:
+    get:
+      tags: [Logs]
+      summary: Get active request logs
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Active request log entries
+
+  /api/logs/detail:
+    get:
+      tags: [Logs]
+      summary: Get detailed log entries
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detailed log entry
+
+  /api/logs/export:
+    get:
+      tags: [Logs]
+      summary: Export logs as file
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Log file download
+
+  # ─── v1 Missing Routes ────────────────────────────────────────────
+
+  /api/v1/completions:
+    post:
+      tags: [Chat]
+      summary: Legacy completions (text)
+      description: OpenAI legacy text completions endpoint.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Completion response
+
+  /api/v1/batches:
+    get:
+      tags: [Batches]
+      summary: List batch jobs
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Batch job list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Batches]
+      summary: Create batch job
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Batch job created
+
+  /api/v1/batches/{id}:
+    get:
+      tags: [Batches]
+      summary: Get batch job
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Batch job details
+    delete:
+      tags: [Batches]
+      summary: Cancel batch job
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Batch cancelled
+
+  /api/v1/batches/{id}/cancel:
+    post:
+      tags: [Batches]
+      summary: Cancel batch job (explicit)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Batch cancelled
+
+  /api/v1/files:
+    get:
+      tags: [Files]
+      summary: List uploaded files
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: File list
+    post:
+      tags: [Files]
+      summary: Upload file
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+      responses:
+        "201":
+          description: File uploaded
+
+  /api/v1/files/{id}:
+    get:
+      tags: [Files]
+      summary: Get file metadata
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File metadata
+    delete:
+      tags: [Files]
+      summary: Delete file
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File deleted
+
+  /api/v1/files/{id}/content:
+    get:
+      tags: [Files]
+      summary: Get file content
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File content
+
+  /api/v1/images/edits:
+    post:
+      tags: [Images]
+      summary: Edit image
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Edited image
+
+  /api/v1/music/generations:
+    post:
+      tags: [Audio]
+      summary: Generate music
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated music
+
+  /api/v1/videos/generations:
+    post:
+      tags: [Images]
+      summary: Generate video
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Generated video
+
+  /api/v1/quotas/check:
+    get:
+      tags: [API Keys]
+      summary: Check quota usage
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Quota status
+
+  /api/v1/registered-keys:
+    get:
+      tags: [API Keys]
+      summary: List registered API keys
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Registered keys
+    post:
+      tags: [API Keys]
+      summary: Register API key
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Key registered
+
+  /api/v1/registered-keys/{id}:
+    get:
+      tags: [API Keys]
+      summary: Get registered key
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key details
+    delete:
+      tags: [API Keys]
+      summary: Delete registered key
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key deleted
+
+  /api/v1/registered-keys/{id}/revoke:
+    post:
+      tags: [API Keys]
+      summary: Revoke registered key
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key revoked
+
+  # ─── Usage Extensions ─────────────────────────────────────────────
+
+  /api/usage/quota:
+    get:
+      tags: [Usage]
+      summary: Get quota usage
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Quota usage stats
+
+  /api/usage/utilization:
+    get:
+      tags: [Usage]
+      summary: Get provider utilization metrics
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Utilization data
+
+  /api/usage/combo-health:
+    get:
+      tags: [Usage]
+      summary: Get combo health metrics
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Combo health metrics
+
+  /api/usage/provider-limits:
+    get:
+      tags: [Usage]
+      summary: Get provider rate limit status
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Provider limit status
+
+  /api/usage/budget/bulk:
+    patch:
+      tags: [Usage]
+      summary: Bulk update usage budgets
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Budgets updated
+
+  # ─── Provider Extensions ──────────────────────────────────────────
+
+  /api/providers/bulk:
+    post:
+      tags: [Providers]
+      summary: Bulk provider operations
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Bulk operation result
+
+  /api/providers/{id}/refresh:
+    post:
+      tags: [Providers]
+      summary: Refresh provider connection
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Provider refreshed
+
+  /api/providers/{id}/sync-models:
+    post:
+      tags: [Providers]
+      summary: Sync provider models
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Models synced
+
+  /api/providers/expiration:
+    get:
+      tags: [Providers]
+      summary: Get provider credential expiration status
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Expiration status
+
+  /api/providers/quota-windows:
+    get:
+      tags: [Providers]
+      summary: Get provider quota windows
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Quota window data
+
+  # ─── Settings Extensions ──────────────────────────────────────────
+
+  /api/settings/feature-flags:
+    get:
+      tags: [Settings]
+      summary: Get feature flags
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Feature flags
+    patch:
+      tags: [Settings]
+      summary: Update feature flags
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Flags updated
+
+  /api/settings/memory:
+    get:
+      tags: [Settings]
+      summary: Get memory settings
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Memory settings
+    patch:
+      tags: [Settings]
+      summary: Update memory settings
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings updated
+
+  /api/settings/model-aliases:
+    get:
+      tags: [Settings]
+      summary: Get model aliases
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Model alias map
+    post:
+      tags: [Settings]
+      summary: Create model alias
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "201":
+          description: Alias created
+    delete:
+      tags: [Settings]
+      summary: Delete model alias
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Alias deleted
+
+  /api/settings/export-json:
+    get:
+      tags: [Settings]
+      summary: Export settings as JSON
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Settings JSON export
+
+  /api/settings/import-json:
+    post:
+      tags: [Settings]
+      summary: Import settings from JSON
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings imported
+
+  /api/settings/purge-call-logs:
+    post:
+      tags: [Settings]
+      summary: Purge call logs
+      description: Deletes all call log records. Destructive.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Logs purged
+
+  /api/settings/purge-logs:
+    post:
+      tags: [Settings]
+      summary: Purge all logs
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Logs purged
+
+  /api/settings/cache-config:
+    get:
+      tags: [Settings]
+      summary: Get cache configuration
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Cache config
+    patch:
+      tags: [Settings]
+      summary: Update cache configuration
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Config updated
+
+  /api/settings/task-routing:
+    get:
+      tags: [Settings]
+      summary: Get task routing settings
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Task routing config
+    patch:
+      tags: [Settings]
+      summary: Update task routing settings
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings updated
 
 components:
   securitySchemes:
