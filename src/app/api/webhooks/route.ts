@@ -11,6 +11,7 @@ import { getWebhooks, createWebhook } from "@/lib/localDb";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
+import { isEncryptionEnabled } from "@/lib/db/encryption";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 
@@ -55,6 +56,14 @@ export async function POST(request: Request) {
     }
 
     const { data } = validation;
+
+    if (data.kind === "telegram" && !isEncryptionEnabled()) {
+      return NextResponse.json(
+        { error: "Telegram webhooks require STORAGE_ENCRYPTION_KEY to be configured" },
+        { status: 400 }
+      );
+    }
+
     const metadataEncrypted = data.metadata ? encryptMetadata(data.metadata) : undefined;
     const webhook = createWebhook({
       url: data.url,

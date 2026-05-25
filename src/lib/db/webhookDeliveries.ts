@@ -24,22 +24,12 @@ export function insertDelivery(opts: {
   payloadSnapshot?: string | null;
 }): void {
   const db = getDbInstance();
-  db.prepare(
+  const insertStmt = db.prepare(
     `INSERT INTO webhook_deliveries
        (webhook_id, event_type, status, http_status, latency_ms, error, payload_snapshot)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    opts.webhookId,
-    opts.eventType,
-    opts.status,
-    opts.httpStatus ?? null,
-    opts.latencyMs ?? null,
-    opts.error ?? null,
-    opts.payloadSnapshot ?? null
   );
-
-  // Rotate: keep only the last MAX_DELIVERIES_PER_WEBHOOK rows per webhook
-  db.prepare(
+  const rotateStmt = db.prepare(
     `DELETE FROM webhook_deliveries
      WHERE webhook_id = ?
        AND id NOT IN (
@@ -48,7 +38,19 @@ export function insertDelivery(opts: {
          ORDER BY created_at DESC, id DESC
          LIMIT ?
        )`
-  ).run(opts.webhookId, opts.webhookId, MAX_DELIVERIES_PER_WEBHOOK);
+  );
+  db.transaction(() => {
+    insertStmt.run(
+      opts.webhookId,
+      opts.eventType,
+      opts.status,
+      opts.httpStatus ?? null,
+      opts.latencyMs ?? null,
+      opts.error ?? null,
+      opts.payloadSnapshot ?? null
+    );
+    rotateStmt.run(opts.webhookId, opts.webhookId, MAX_DELIVERIES_PER_WEBHOOK);
+  })();
 }
 
 export function getDeliveries(webhookId: string, limit: number): WebhookDelivery[] {

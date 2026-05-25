@@ -4,9 +4,20 @@ import assert from "node:assert/strict";
 const { buildTelegramPayload, buildTelegramUrl } =
   await import("../../src/lib/webhooks/integrations/telegram.ts");
 
-test("buildTelegramUrl constructs correct API URL from botToken", () => {
-  const url = buildTelegramUrl("123456:ABC-DEF");
-  assert.equal(url, "https://api.telegram.org/bot123456:ABC-DEF/sendMessage");
+const VALID_TOKEN = "123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi";
+
+test("buildTelegramUrl constructs correct API URL from valid botToken", () => {
+  const url = buildTelegramUrl(VALID_TOKEN);
+  assert.equal(url, `https://api.telegram.org/bot${VALID_TOKEN}/sendMessage`);
+});
+
+test("buildTelegramUrl throws on invalid botToken format", () => {
+  assert.throws(() => buildTelegramUrl("123456:SHORT"), /Invalid Telegram bot token/);
+  assert.throws(
+    () => buildTelegramUrl("notanumber:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi"),
+    /Invalid Telegram bot token/
+  );
+  assert.throws(() => buildTelegramUrl(""), /Invalid Telegram bot token/);
 });
 
 test("buildTelegramPayload — request.failed includes model and event label", () => {

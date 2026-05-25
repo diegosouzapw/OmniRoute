@@ -13,7 +13,13 @@ function escapeMd(s: string): string {
   return s.replace(/[_*[\]`]/g, (c) => `\\${c}`);
 }
 
+// Telegram bot token format: <numeric_id>:<alphanumeric_secret> (min 35 chars after colon)
+const BOT_TOKEN_RE = /^\d+:[A-Za-z0-9_-]{35,}$/;
+
 export function buildTelegramUrl(botToken: string): string {
+  if (!BOT_TOKEN_RE.test(botToken)) {
+    throw new Error("Invalid Telegram bot token format (expected <id>:<secret>)");
+  }
   return `https://api.telegram.org/bot${botToken}/sendMessage`;
 }
 

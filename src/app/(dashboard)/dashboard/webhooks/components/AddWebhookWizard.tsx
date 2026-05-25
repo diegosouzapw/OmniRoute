@@ -68,41 +68,70 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
     onClose();
   };
 
-  const buildPayload = () => {
+  // Builds the config payload (URL + kind + metadata) — sent when entering step 3.
+  const buildConfigPayload = () => {
     const { kind } = state;
-    const base = {
-      kind,
-      events: state.events,
-      enabled: state.enabled,
-      description: state.description,
-    };
-    if (kind === "slack") return { ...base, url: state.slack.webhookUrl };
-    if (kind === "discord") return { ...base, url: state.discord.webhookUrl };
+    if (kind === "slack") return { kind, url: state.slack.webhookUrl };
+    if (kind === "discord") return { kind, url: state.discord.webhookUrl };
     if (kind === "telegram") {
-      return {
-        ...base,
-        url: state.telegram.chatId,
-        metadata: { botToken: state.telegram.botToken },
-      };
+      return { kind, url: state.telegram.chatId, metadata: { botToken: state.telegram.botToken } };
     }
-    const payload: Record<string, unknown> = { ...base, url: state.custom.endpointUrl };
+    const payload: Record<string, unknown> = { kind, url: state.custom.endpointUrl };
     if (state.custom.secretKey.trim()) payload.secret = state.custom.secretKey.trim();
     return payload;
   };
 
-  const finish = async () => {
+  // Called when Next is clicked on step 2: create (or update) the webhook so the
+  // test button is available at step 3 before the user clicks Finish.
+  const handleNextFromStep2 = async () => {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/webhooks", {
-        method: "POST",
+      if (createdId) {
+        const res = await fetch(`/api/webhooks/${createdId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildConfigPayload()),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || t("saveFailed"));
+      } else {
+        const res = await fetch("/api/webhooks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildConfigPayload()),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || t("saveFailed"));
+        setCreatedId(data.webhook?.id ?? null);
+      }
+      setStep(3);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Finish: update events/enabled/description on the already-created webhook.
+  const finish = async () => {
+    if (!createdId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/webhooks/${createdId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload()),
+        body: JSON.stringify({
+          events: state.events,
+          enabled: state.enabled,
+          description: state.description,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || t("saveFailed"));
-      setCreatedId(data.webhook?.id ?? null);
       onCreated();
+      handleClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("saveFailed"));
     } finally {
@@ -159,10 +188,13 @@ export function AddWebhookWizard({ isOpen, onClose, onCreated, t }: AddWebhookWi
             {step < 3 ? (
               <button
                 type="button"
-                onClick={() => setStep((s) => s + 1)}
-                disabled={!canGoNext}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-40"
+                onClick={() => (step === 2 ? void handleNextFromStep2() : setStep((s) => s + 1))}
+                disabled={!canGoNext || saving}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-40"
               >
+                {saving && step === 2 && (
+                  <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+                )}
                 {t("wizard.next")}
               </button>
             ) : (
