@@ -12,15 +12,24 @@
  *     from user input — eliminating SSRF risk.
  *   - The route is classified LOCAL_ONLY in routeGuard.ts; the management
  *     policy blocks all non-loopback access before this handler runs.
+ *   - Client cookies and Authorization headers are stripped before forwarding
+ *     to prevent credential leakage between OmniRoute and the embedded service.
+ *   - Upstream set-cookie, x-frame-options, content-security-policy, and
+ *     cross-origin-* headers are stripped from responses so the iframe is not
+ *     broken by the embedded service's own security policies.
+ *   - HTML responses are rewritten (parse5) so path-absolute URLs work through
+ *     the proxy prefix.
  */
 
 import { getSupervisor } from "@/lib/services/registry";
+import { getOrCreateApiKey } from "@/lib/services/apiKey";
+import { rewriteHtml } from "@/lib/services/htmlRewriter";
 import { createErrorResponse } from "@/lib/api/errorResponse";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 export const dynamic = "force-dynamic";
 
-/** Headers that must not be forwarded between proxy hops. */
+/** Standard hop-by-hop headers that must never be forwarded. */
 const HOP_BY_HOP = new Set([
   "connection",
   "keep-alive",
@@ -31,6 +40,33 @@ const HOP_BY_HOP = new Set([
   "transfer-encoding",
   "upgrade",
   "host",
+]);
+
+/**
+ * Request headers stripped before forwarding to the embedded service.
+ * Prevents OmniRoute session cookies and Authorization from leaking upstream.
+ */
+const STRIPPED_REQUEST_HEADERS = new Set(["cookie", "authorization"]);
+
+/**
+ * Response headers stripped before returning to the browser.
+ *
+ * - set-cookie: prevents the embedded service from setting cookies in the
+ *   OmniRoute origin, which would conflict with session management.
+ * - content-security-policy / content-security-policy-report-only: the
+ *   embedded service's CSP is irrelevant inside the OmniRoute iframe.
+ * - x-frame-options: would block the iframe entirely if set to DENY/SAMEORIGIN
+ *   by the embedded service (OmniRoute controls framing via its own CSP).
+ * - cross-origin-*: remove COOP/COEP/CORP that could break the framed page.
+ */
+const STRIPPED_RESPONSE_HEADERS = new Set([
+  "set-cookie",
+  "content-security-policy",
+  "content-security-policy-report-only",
+  "x-frame-options",
+  "cross-origin-embedder-policy",
+  "cross-origin-opener-policy",
+  "cross-origin-resource-policy",
 ]);
 
 const PROXY_TIMEOUT_MS = 30_000;
@@ -57,13 +93,19 @@ async function proxyToService(request: Request, params: RouteParams): Promise<Re
   const upstreamPath = path.length > 0 ? "/" + path.join("/") : "/";
   const upstreamUrl = `http://127.0.0.1:${port}${upstreamPath}${incomingUrl.search}`;
 
+  // Build forwarded headers: strip hop-by-hop AND sensitive client headers.
   const forwardHeaders = new Headers();
   for (const [k, v] of request.headers.entries()) {
-    if (!HOP_BY_HOP.has(k.toLowerCase())) {
+    const lower = k.toLowerCase();
+    if (!HOP_BY_HOP.has(lower) && !STRIPPED_REQUEST_HEADERS.has(lower)) {
       forwardHeaders.set(k, v);
     }
   }
   forwardHeaders.set("host", `127.0.0.1:${port}`);
+
+  // Inject the embedded service's own API key so upstream can authenticate.
+  const apiKey = await getOrCreateApiKey(name);
+  forwardHeaders.set("authorization", `Bearer ${apiKey}`);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
 
@@ -78,13 +120,31 @@ async function proxyToService(request: Request, params: RouteParams): Promise<Re
       signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
     });
 
+    // Build response headers: strip hop-by-hop and security-conflicting headers.
     const responseHeaders = new Headers();
     for (const [k, v] of upstream.headers.entries()) {
-      if (!HOP_BY_HOP.has(k.toLowerCase())) {
+      const lower = k.toLowerCase();
+      if (!HOP_BY_HOP.has(lower) && !STRIPPED_RESPONSE_HEADERS.has(lower)) {
         responseHeaders.set(k, v);
       }
     }
+    // Prevent Next.js from caching the proxied response.
+    responseHeaders.set("cache-control", "no-store");
 
+    const contentType = upstream.headers.get("content-type") ?? "";
+
+    // HTML responses: buffer, rewrite links, return as string.
+    if (contentType.startsWith("text/html")) {
+      const html = await upstream.text();
+      const publicPrefix = `/dashboard/providers/services/${name}/embed`;
+      const rewritten = rewriteHtml(html, publicPrefix);
+      return new Response(rewritten, {
+        status: upstream.status,
+        headers: responseHeaders,
+      });
+    }
+
+    // All other content types: stream through unchanged.
     return new Response(upstream.body, {
       status: upstream.status,
       headers: responseHeaders,
@@ -124,6 +184,20 @@ export async function PATCH(
 }
 
 export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<RouteParams> }
+): Promise<Response> {
+  return proxyToService(request, await params);
+}
+
+export async function HEAD(
+  request: Request,
+  { params }: { params: Promise<RouteParams> }
+): Promise<Response> {
+  return proxyToService(request, await params);
+}
+
+export async function OPTIONS(
   request: Request,
   { params }: { params: Promise<RouteParams> }
 ): Promise<Response> {
