@@ -83,6 +83,54 @@ export async function POST(request: Request) {
     }
 
     const proxyType = String(proxy.type || "http").toLowerCase();
+
+    // Vercel Relay: test by hitting httpbin via the relay headers
+    if (proxyType === "vercel") {
+      const relayHost = proxy.host;
+      // password stores relayAuth (set when proxy was created via vercel-deploy)
+      const relayAuth = proxy.password || "";
+      const relayUrl = `https://${relayHost}`;
+      const start = Date.now();
+      const controller2 = new AbortController();
+      const timeout2 = setTimeout(() => controller2.abort(), 10000);
+      try {
+        const res = await undiciRequest("https://api64.ipify.org?format=json", {
+          method: "GET",
+          signal: controller2.signal,
+          headersTimeout: 10000,
+          bodyTimeout: 10000,
+          headers: {
+            "x-relay-target": "https://api64.ipify.org",
+            "x-relay-path": "/?format=json",
+            "x-relay-auth": relayAuth,
+            host: relayHost,
+          },
+          origin: relayUrl,
+        });
+        const text = await res.body.text();
+        let parsedIp: { ip?: string } = {};
+        try { parsedIp = JSON.parse(text) as { ip?: string }; } catch {}
+        return Response.json({
+          success: res.statusCode === 200,
+          publicIp: parsedIp.ip || null,
+          latencyMs: Date.now() - start,
+          proxyUrl: relayUrl,
+        });
+      } catch (relayErr) {
+        return Response.json({
+          success: false,
+          error:
+            relayErr instanceof Error && relayErr.name === "AbortError"
+              ? "Connection timeout (10s)"
+              : getErrorMessage(relayErr, "Relay test failed"),
+          latencyMs: Date.now() - start,
+          proxyUrl: relayUrl,
+        });
+      } finally {
+        clearTimeout(timeout2);
+      }
+    }
+
     if (proxyType === "socks5" && !isSocks5ProxyEnabled()) {
       return createErrorResponse({
         status: 400,
