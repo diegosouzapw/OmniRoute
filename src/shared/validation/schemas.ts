@@ -1317,7 +1317,24 @@ export const testProxySchema = z.object({
   }),
 });
 
-export const createProxyRegistrySchema = z
+const inlineProxyAssignmentSchema = z
+  .object({
+    scope: z.enum(["global", "provider", "account", "combo", "key"]),
+    scopeId: z.string().trim().nullable().optional(),
+    clearLegacy: z.boolean().optional().default(false),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope !== "global" && !value.scopeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeId is required for non-global scope",
+        path: ["scopeId"],
+      });
+    }
+  });
+
+const proxyRegistryFieldsSchema = z
   .object({
     name: z.string().trim().min(1, "name is required").max(120),
     type: z
@@ -1338,14 +1355,24 @@ export const createProxyRegistrySchema = z
   })
   .strict();
 
-export const updateProxyRegistrySchema = createProxyRegistrySchema.partial().extend({
-  id: z.string().trim().min(1, "id is required"),
-});
+export const createProxyRegistrySchema = proxyRegistryFieldsSchema
+  .extend({
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
+
+export const updateProxyRegistrySchema = proxyRegistryFieldsSchema
+  .partial()
+  .extend({
+    id: z.string().trim().min(1, "id is required"),
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
 
 export const bulkImportProxiesSchema = z
   .object({
     items: z
-      .array(createProxyRegistrySchema)
+      .array(proxyRegistryFieldsSchema)
       .min(1, "At least one proxy is required")
       .max(100, "Maximum 100 proxies per import"),
   })

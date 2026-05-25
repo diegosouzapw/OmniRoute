@@ -46,6 +46,57 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
   );
 });
 
+test("createProxyAndAssign rolls back the registry row when assignment fails", async () => {
+  await resetStorage();
+
+  await assert.rejects(
+    async () =>
+      proxiesDb.createProxyAndAssign(
+        {
+          name: "Rollback Proxy",
+          type: "http",
+          host: "rollback.local",
+          port: 8080,
+        },
+        { scope: "provider", scopeId: null }
+      ),
+    /scopeId is required/i
+  );
+
+  const proxies = await proxiesDb.listProxies({ includeSecrets: true });
+  assert.equal(
+    proxies.some((proxy: any) => proxy.name === "Rollback Proxy"),
+    false
+  );
+});
+
+test("createProxyAndAssign assigns and clears matching legacy proxy atomically", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "openai", {
+    type: "http",
+    host: "legacy-openai.local",
+    port: 8080,
+  });
+
+  const result = await proxiesDb.createProxyAndAssign(
+    {
+      name: "Atomic Provider Proxy",
+      type: "https",
+      host: "atomic-openai.local",
+      port: 443,
+      source: "dashboard-custom",
+    },
+    { scope: "provider", scopeId: "openai", clearLegacy: true }
+  );
+
+  assert.ok(result.proxy?.id);
+  assert.equal(result.assignment?.proxyId, result.proxy?.id);
+  assert.equal(result.assignment?.scope, "provider");
+  assert.equal(result.assignment?.scopeId, "openai");
+  assert.equal(await settingsDb.getProxyForLevel("provider", "openai"), null);
+});
+
 test("specific registry account assignment takes precedence over legacy key proxy config", async () => {
   await resetStorage();
 
