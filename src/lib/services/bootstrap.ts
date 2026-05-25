@@ -1,4 +1,5 @@
 import { getVersionManagerTool } from "@/lib/db/versionManager";
+import { markAllUnavailable } from "@/lib/db/serviceModels";
 import { registerSupervisor, getSupervisor } from "./registry";
 import { ServiceSupervisor } from "./ServiceSupervisor";
 import { resolveSpawnArgs as nineRouterSpawnArgs } from "./installers/ninerouter";
@@ -83,6 +84,7 @@ export async function bootstrapEmbeddedServices(): Promise<void> {
         scheduleServiceModelSync(cfg.tool, baseUrl, apiKey);
       } else if (status.state === "stopped" || status.state === "error") {
         stopServiceModelSync(cfg.tool);
+        markAllUnavailable(cfg.tool);
       }
     });
 

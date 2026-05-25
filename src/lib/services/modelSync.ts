@@ -40,10 +40,19 @@ export async function syncServiceModels(
 
     const json = await res.json();
     const data: unknown = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-    const models = (data as unknown[]).filter(
-      (m): m is ServiceModel =>
-        typeof m === "object" && m !== null && typeof (m as Record<string, unknown>).id === "string"
-    );
+    const models = (data as unknown[])
+      .filter(
+        (m): m is ServiceModel =>
+          typeof m === "object" &&
+          m !== null &&
+          typeof (m as Record<string, unknown>).id === "string"
+      )
+      .map((m) => ({
+        ...m,
+        // Prefix the model id with the tool name so downstream routing and the
+        // executor strip it back off (e.g. "9router/cx/gpt-5-mini").
+        id: m.id.startsWith(`${tool}/`) ? m.id : `${tool}/${m.id}`,
+      }));
 
     saveServiceModels(tool, models);
     await updateVersionManagerTool(tool, { lastSyncAt: new Date().toISOString() });

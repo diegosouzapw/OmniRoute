@@ -52,19 +52,78 @@ describe("syncServiceModels", () => {
     ];
     globalThis.fetch = makeFetch(200, { data: models }) as typeof fetch;
 
-    const count = await syncServiceModels("9router", "http://127.0.0.1:20130", "nr_test");
+    const count = await syncServiceModels("tool-success", "http://127.0.0.1:20130", "nr_test");
 
     assert.equal(count, 2);
+    const stored = getServiceModels("tool-success");
+    // Pruning marks available=true; count includes only current sync (no prior state).
+    const available = stored.filter((m) => m.available !== false);
+    assert.equal(available.length, 2);
+    assert.equal(available[0].id, "tool-success/9r/gemma-3n-e4b");
+  });
+
+  it("saves models with 9router/ prefix in id", async () => {
+    // Upstream returns raw ids without prefix.
+    globalThis.fetch = makeFetch(200, {
+      data: [
+        { id: "cx/gpt-5-mini", object: "model" },
+        { id: "auto/sonnet", object: "model" },
+      ],
+    }) as typeof fetch;
+
+    await syncServiceModels("9router-prefix-test", "http://127.0.0.1:20130", "nr_test");
+
+    const stored = getServiceModels("9router-prefix-test");
+    const available = stored.filter((m) => m.available !== false);
+    assert.equal(available.length, 2);
+    assert.equal(
+      available[0].id,
+      "9router-prefix-test/cx/gpt-5-mini",
+      "model id must be prefixed with tool name"
+    );
+    assert.equal(
+      available[1].id,
+      "9router-prefix-test/auto/sonnet",
+      "model id must be prefixed with tool name"
+    );
+  });
+
+  it("does not double-prefix if upstream already returns prefixed ids", async () => {
+    globalThis.fetch = makeFetch(200, {
+      data: [{ id: "9router/cx/gpt-5-mini", object: "model" }],
+    }) as typeof fetch;
+
+    await syncServiceModels("9router", "http://127.0.0.1:20130", "nr_test");
+
     const stored = getServiceModels("9router");
-    assert.equal(stored.length, 2);
-    assert.equal(stored[0].id, "9r/gemma-3n-e4b");
+    const available = stored.filter((m) => m.available !== false);
+    assert.equal(available.length, 1);
+    assert.equal(
+      available[0].id,
+      "9router/cx/gpt-5-mini",
+      "already-prefixed ids must not be double-prefixed"
+    );
+  });
+
+  it("getServiceModels returns prefixed ids", async () => {
+    globalThis.fetch = makeFetch(200, {
+      data: [{ id: "cx/gpt-5-mini" }, { id: "auto/sonnet" }],
+    }) as typeof fetch;
+
+    await syncServiceModels("9router-getmodels-test", "http://127.0.0.1:20130", "nr_test");
+
+    const stored = getServiceModels("9router-getmodels-test");
+    assert.ok(
+      stored.every((m) => m.id.startsWith("9router-getmodels-test/")),
+      "all returned model ids must start with tool name prefix"
+    );
   });
 
   it("accepts top-level array response format", async () => {
     const models = [{ id: "9r/model-a" }, { id: "9r/model-b" }];
     globalThis.fetch = makeFetch(200, models) as typeof fetch;
 
-    const count = await syncServiceModels("9router", "http://127.0.0.1:20130", "nr_test");
+    const count = await syncServiceModels("tool-arr", "http://127.0.0.1:20130", "nr_test");
 
     assert.equal(count, 2);
   });

@@ -9,6 +9,14 @@
  * Auth: the 9router API key (nr_xxx) stored per-service, passed as a Bearer token.
  * The service is local-only (loopback enforced by routeGuard.ts), so no TLS or
  * identity cloaking is needed — 9router handles its own upstream auth internally.
+ *
+ * G-01: port and apiKey are re-read per request from the supervisor registry
+ * and DB respectively — never cached in the constructor — because rotate-key
+ * and update (new port) can change them between calls.
+ *
+ * G-02: when the supervisor is not running, the executor returns a 503 with
+ * header X-Omni-Fallback-Hint: connection_cooldown so accountFallback.ts
+ * applies a short 5s cooldown without tripping the provider circuit breaker.
  */
 
 import {
@@ -19,10 +27,17 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { buildErrorBody } from "../utils/error.ts";
+import { getSupervisor } from "@/lib/services/registry";
+import { getOrCreateApiKey } from "@/lib/services/apiKey";
 
 const DEFAULT_PORT = 20130;
 const DEFAULT_HOST = "127.0.0.1";
 const HEALTH_CHECK_TIMEOUT_MS = 3_000;
+
+/** Fallback hint header value that tells accountFallback.ts to use 5s cooldown, no breaker trip. */
+export const NINEROUTER_FALLBACK_HINT = "connection_cooldown";
+export const NINEROUTER_FALLBACK_HINT_HEADER = "X-Omni-Fallback-Hint";
 
 export function resolveNineRouterBaseUrl(): string {
   const host = process.env.NINEROUTER_HOST || DEFAULT_HOST;
@@ -50,6 +65,22 @@ export class NineRouterExecutor extends BaseExecutor {
     _credentials: ProviderCredentials | null = null
   ): string {
     return `${this.upstreamBaseUrl}/v1/chat/completions`;
+  }
+
+  /**
+   * Build a 503 service_not_running Response with the fallback hint header.
+   * Message goes through buildErrorBody to satisfy hard rule #12 (no raw err.message).
+   */
+  private buildServiceUnavailableResponse(message: string): Response {
+    const body = buildErrorBody(503, message);
+    body.error.code = "service_not_running";
+    return new Response(JSON.stringify(body), {
+      status: 503,
+      headers: {
+        "Content-Type": "application/json",
+        [NINEROUTER_FALLBACK_HINT_HEADER]: NINEROUTER_FALLBACK_HINT,
+      },
+    });
   }
 
   /**
@@ -101,15 +132,39 @@ export class NineRouterExecutor extends BaseExecutor {
   }
 
   async execute(input: ExecuteInput) {
+    // G-01: re-lookup supervisor state per request (port may change on restart/update)
+    const supervisor = getSupervisor("9router");
+    const status = supervisor?.getStatus();
+    if (!supervisor || status?.state !== "running") {
+      const stateLabel = status?.state ?? "unknown";
+      const msg = `9router is not running (state: ${stateLabel})`;
+      input.log?.warn?.("9ROUTER", msg);
+      return {
+        response: this.buildServiceUnavailableResponse(msg),
+        url: "",
+        headers: {},
+        transformedBody: null,
+      };
+    }
+    const dynamicPort = status.port;
+    const dynamicBaseUrl = `http://127.0.0.1:${dynamicPort}`;
+
+    // G-01: re-read apiKey per request — never cached in constructor
+    const apiKey = await getOrCreateApiKey("9router");
+    const dynamicCredentials: ProviderCredentials = { ...input.credentials, apiKey };
+
+    // G-01: strip "9router/" prefix before forwarding to upstream
+    const innerModel = input.model.replace(/^9router\//, "");
+
     const endpoint = this.selectEndpoint(input.body);
-    const url = `${this.upstreamBaseUrl}${endpoint}`;
+    const url = `${dynamicBaseUrl}${endpoint}`;
     const shape = endpoint === "/v1/messages" ? "anthropic" : "openai";
-    const headers = this.buildHeaders(input.credentials, input.stream);
+    const headers = this.buildHeaders(dynamicCredentials, input.stream);
     const transformedBody = this.transformRequest(
-      input.model,
+      innerModel,
       input.body,
       input.stream,
-      input.credentials
+      dynamicCredentials
     );
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders ?? null);
 
@@ -118,7 +173,10 @@ export class NineRouterExecutor extends BaseExecutor {
       ? mergeAbortSignals(input.signal, timeoutSignal)
       : timeoutSignal;
 
-    input.log?.info?.("9ROUTER", `→ ${url} (model: ${input.model}, shape: ${shape})`);
+    input.log?.info?.(
+      "9ROUTER",
+      `→ ${url} (model: ${innerModel}, shape: ${shape}, port: ${dynamicPort})`
+    );
 
     const response = await fetch(url, {
       method: "POST",

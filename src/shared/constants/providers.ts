@@ -16,11 +16,12 @@ export type ServiceKind =
   | "video"
   | "music";
 
-export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated";
+export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
 export interface ProviderRiskNoticeFields {
   subscriptionRisk?: boolean;
   riskNoticeVariant?: RiskNoticeVariant;
+  isEmbeddedService?: boolean;
 }
 
 export const FREE_PROVIDERS = {};
@@ -2638,6 +2639,8 @@ export const UPSTREAM_PROXY_PROVIDERS = {
     healthEndpoint: "/api/health",
     npmPackage: "9router",
     embedded: true,
+    isEmbeddedService: true,
+    riskNoticeVariant: "embedded-service" as const,
   },
 };
 
