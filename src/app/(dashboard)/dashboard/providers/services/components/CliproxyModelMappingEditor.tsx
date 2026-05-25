@@ -1,3 +1,8 @@
+/**
+ * G-08 — CLIProxyAPI Model Mapping editor.
+ * Renders inside CliproxyServiceTab, between FallbackRoutingCard and ServiceLogsPanel.
+ * Persists to upstream_proxy_config via PATCH /api/settings { cliproxyapi_model_mapping }.
+ */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
