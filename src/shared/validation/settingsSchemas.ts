@@ -8,7 +8,7 @@
 import { z } from "zod";
 import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
 import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
-import { HIDEABLE_SIDEBAR_ITEM_IDS, SIDEBAR_SECTIONS } from "@/shared/constants/sidebarVisibility";
+import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
 import { ACCOUNT_FALLBACK_STRATEGY_VALUES } from "@/shared/constants/routingStrategies";
 
 const signatureCacheModeValues = ["enabled", "bypass", "bypass-strict"] as const;
@@ -38,11 +38,6 @@ export const updateSettingsSchema = z.object({
   autoRefreshProviderQuotaInterval: z.number().int().min(10).max(3600).optional(),
   debugMode: z.boolean().optional(),
   hiddenSidebarItems: z.array(z.enum(HIDEABLE_SIDEBAR_ITEM_IDS)).optional(),
-  sidebarSectionOrder: z
-    .array(z.enum(SIDEBAR_SECTIONS.map((s) => s.id) as [string, ...string[]]))
-    .optional(),
-  sidebarItemOrder: z.record(z.string(), z.array(z.string().max(100))).optional(),
-  sidebarActivePreset: z.enum(["all", "minimal", "developer", "admin"]).nullable().optional(),
   comboConfigMode: z.enum(COMBO_CONFIG_MODES).optional(),
   codexServiceTier: z
     .object({
@@ -316,7 +311,7 @@ export const databaseSettingsSchema = z.object(
     // Aggregation settings
     aggregation: z.object({
       enabled: z.boolean(),
-      rawDataRetentionDays: z.number().int().min(1).max(90),
+      rawDataRetentionDays: z.number().int().min(1).max(3650),
       granularity: z.literal("hourly").or(z.literal("daily")).or(z.literal("weekly")),
     }),
 

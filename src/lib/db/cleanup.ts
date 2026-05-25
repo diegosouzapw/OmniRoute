@@ -6,6 +6,7 @@
 
 import { getDbInstance } from "./core";
 import { getUserDatabaseSettings } from "./databaseSettings";
+import { rollupUsageHistoryBeforeDate } from "@/lib/usage/aggregateHistory";
 
 interface CleanupResult {
   deleted: number;
@@ -85,8 +86,18 @@ export async function cleanupUsageHistory(): Promise<CleanupResult> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
   const cutoffISO = cutoffDate.toISOString();
+  const cutoffDateStr = cutoffISO.split("T")[0];
 
   const result: CleanupResult = { deleted: 0, errors: 0 };
+
+  try {
+    // Roll up rows that are about to be deleted into daily_usage_summary so that
+    // the analytics route can still surface historical data via the UNION query.
+    await rollupUsageHistoryBeforeDate(cutoffDateStr);
+  } catch (err: unknown) {
+    // Non-fatal: log but continue with deletion so cleanup still runs.
+    console.error("[Cleanup] Error rolling up usage_history before deletion:", err);
+  }
 
   try {
     const stmt = db.prepare("DELETE FROM usage_history WHERE timestamp < ?");
