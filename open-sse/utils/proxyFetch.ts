@@ -194,7 +194,10 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
   // T14: Proxy Fast-Fail
   // Perform a short TCP reachability check before issuing upstream requests.
-  if (resolvedProxyUrl) {
+  // Skip for vercel-relay type: proxyConfigToUrl returns "https://<host>" which is the
+  // relay endpoint itself, not a proxy — the actual routing is handled via relay headers.
+  const isVercelRelay = (effectiveProxyConfig as { type?: string })?.type === "vercel";
+  if (resolvedProxyUrl && !isVercelRelay) {
     const reachable = await isProxyReachable(resolvedProxyUrl);
     if (!reachable) {
       const proxyLabel = proxyUrlForLogs(resolvedProxyUrl);
