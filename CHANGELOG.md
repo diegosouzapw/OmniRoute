@@ -8,23 +8,13 @@
 
 ---
 
-## [3.8.4]
+## [3.8.4] — 2026-05-24
 
 ### ✨ New Features
 
 - **feat(providers):** enhance Google Gemini, CLI, and Antigravity resilience and features — introduces explicit TypeScript typing to translation layers, adds new Gemini 2.0 models, implements backoff and retry logic in the Gemini CLI executor, extracts Google Search grounding metadata into standard `citations`, and adds backend definitions for the `vertex-partner` provider. ([#2676](https://github.com/diegosouzapw/OmniRoute/pull/2676) — thanks @alltomatos)
 
 ### 🔧 Bug Fixes
-
-- **fix(db):** remove transactions from migrations to avoid nested-transaction errors when the runner already wraps the file in a transaction.
-- **fix(docker):** use `node:24-trixie-slim` base image (and add `python3`/`make`/`g++` to the builder stage) so native addons like `better-sqlite3` compile from source within the `engines` range. ([#2713](https://github.com/diegosouzapw/OmniRoute/pull/2713) — thanks @mrmm)
-- **fix(ci):** semver-aware release publish guards in the npm and Docker workflows.
-- **fix(i18n):** restore real English copy for web-cookie provider hints in `en.json` (Blackbox, Grok, Muse Spark, Perplexity, Qoder, Vertex, SearXNG) — replaces placeholder strings that were leaking the translation key into the UI. ([#2694](https://github.com/diegosouzapw/OmniRoute/pull/2694) — thanks @diegosouzapw)
-- **fix(oauth):** comprehensive Codex/OpenAI rotating-refresh race fix — moves credential persistence INSIDE the per-connection mutex via `runWithOnPersist`/`AsyncLocalStorage`, consolidates duplicate mutex maps in `src/sse` and `open-sse`, adds absolute `expiresAt` staleness fallback, and prevents `refresh_token_reused` family revocation. Replaces `token-refresh-race.test.ts` with a broader `token-refresh-race-comprehensive.test.ts` covering Fix A–F. ([#2718](https://github.com/diegosouzapw/OmniRoute/pull/2718) — thanks @diegosouzapw)
-- **fix(vision-bridge):** process images when a vision-capable model is routed through a combo whose targets may NOT support vision — resolves combo mapping for the requested model and only short-circuits the bridge when ALL combo targets natively support vision. ([#2706](https://github.com/diegosouzapw/OmniRoute/pull/2706) — thanks @herjarsa)
-- **fix(antigravity):** default exhausted quota to 0% remaining (was incorrectly defaulting to 100% when the API omitted `remainingFraction`). Clamps to `[0, 1]` and distinguishes unlimited (no `resetTime`) from full-with-reset. ([#2700](https://github.com/diegosouzapw/OmniRoute/pull/2700) — thanks @ahmet-cetinkaya)
-- **fix(electron):** Caps Lock indicator (`<Input>` + onboarding) with ARIA live region, Electron-aware forgot-password page showing the data directory, macOS Helper-binary spawn for the Next.js server (prevents a second dock icon and terminal flash), plus `windowsHide: true` and `shell: false` hardening on `spawn()`. ([#2714](https://github.com/diegosouzapw/OmniRoute/pull/2714) — thanks @benzntech)
-- **fix(proxy):** atomically create/update a custom proxy and its assignment inside a single SQLite transaction — eliminates the 3-call race that could leave orphan registry rows or stale legacy `proxyConfig` entries when the UI saved a dashboard custom proxy. New `createProxyAndAssign` / `updateProxyAndAssign` helpers. ([#2697](https://github.com/diegosouzapw/OmniRoute/pull/2697) — thanks @terence71-glitch)
 
 ---
 

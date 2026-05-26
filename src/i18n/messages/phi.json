@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Lahat ng antas",
+    "tierAuth": "Auth",
+    "tierLoopback": "Local-lamang",
+    "tierAlwaysProtected": "Laging-naka-protektang",
+    "tierPublic": "Pampubliko",
+    "showInternal": "Ipakita ang panloob",
+    "hideInternal": "Itago ang panloob",
+    "badgeLoopbackTooltip": "Local-only: naharang mula sa mga non-loopback na IPs",
+    "badgeAlwaysProtectedTooltip": "Palaging protektado: nangangailangan ng awtorisasyon kahit na requireLogin=false",
+    "badgeInternalTooltip": "Panloob na ruta — hindi bahagi ng pampublikong API"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

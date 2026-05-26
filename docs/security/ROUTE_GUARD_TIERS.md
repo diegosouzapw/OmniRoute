@@ -134,6 +134,37 @@ expired DB doesn't silently downgrade to "deny".
 | `tests/unit/authz/routeGuard.test.ts`        | Unit tests for tier helpers    |
 | `tests/unit/authz/management-policy.test.ts` | Unit tests for evaluate()      |
 
+## Documenting Security Tiers in OpenAPI
+
+When adding a new route to `docs/reference/openapi.yaml`, apply the corresponding
+vendor extension if the route is classified by `routeGuard.ts`:
+
+| routeGuard.ts classification  | YAML annotation            | Enforcement                                     |
+| ----------------------------- | -------------------------- | ----------------------------------------------- |
+| `LOCAL_ONLY_API_PREFIXES`     | `x-loopback-only: true`    | Blocked from non-loopback unconditionally       |
+| `ALWAYS_PROTECTED_API_PATHS`  | `x-always-protected: true` | Auth required even with `requireLogin=false`    |
+| Internal admin/debug route    | `x-internal: true`         | Hidden from /dashboard/api-endpoints by default |
+| None (public / standard auth) | (no annotation needed)     | Standard `requireLogin`-controlled access       |
+
+### Validation
+
+Two scripts enforce consistency between YAML annotations and `routeGuard.ts`:
+
+- `scripts/check/check-openapi-coverage.mjs` — fails if coverage < 99%
+- `scripts/check/check-openapi-security-tiers.mjs` — fails if `x-loopback-only` or
+  `x-always-protected` annotations diverge from the compile-time constants
+
+Both scripts run in the pre-commit hook and in CI.
+
+### False Positive Rule
+
+If `x-always-protected` or `x-loopback-only` is annotated on a route that is NOT in
+the `routeGuard.ts` constant, the coverage script fails. The fix is always to align the
+YAML to what `routeGuard.ts` actually enforces — not to add routes to `routeGuard.ts`
+without also implementing the enforcement logic.
+
+---
+
 ## See also
 
 - `docs/security/CLI_TOKEN.md` — CLI machine-ID token

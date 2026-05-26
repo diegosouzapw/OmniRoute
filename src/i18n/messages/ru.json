@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Все уровни",
+    "tierAuth": "Auth",
+    "tierLoopback": "Только локально",
+    "tierAlwaysProtected": "Всегда защищено",
+    "tierPublic": "Общий",
+    "showInternal": "Показать внутренний",
+    "hideInternal": "Скрыть внутренний",
+    "badgeLoopbackTooltip": "Только локальный: заблокировано для не-циклевых IP-адресов",
+    "badgeAlwaysProtectedTooltip": "Всегда защищено: требует аутентификации, даже когда requireLogin=false",
+    "badgeInternalTooltip": "Внутренний маршрут — не часть публичного API"
   },
   "endpoints": {
     "tabProxy": "Прокси конечных точек",

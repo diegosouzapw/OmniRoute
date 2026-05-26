@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import type { MediaKind } from "../../components/MediaProviderKindNav";
-import { MEDIA_KINDS } from "../../components/MediaProviderKindNav";
+import type { MediaKind } from "../../components/mediaKinds";
+import { MEDIA_KINDS } from "../../components/mediaKinds";
 import MediaProviderPageClient from "./MediaProviderPageClient";
 
 interface PageProps {

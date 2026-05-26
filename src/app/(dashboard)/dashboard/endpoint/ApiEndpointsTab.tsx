@@ -16,6 +16,9 @@ interface Endpoint {
   parameters: any[];
   requestBody: boolean;
   responses: string[];
+  loopbackOnly?: boolean;
+  alwaysProtected?: boolean;
+  internal?: boolean;
 }
 
 interface CatalogData {
@@ -47,12 +50,48 @@ const METHOD_COLORS: Record<string, string> = {
 export default function ApiEndpointsTab() {
   const t = useTranslations("endpoint");
   const baseUrl = useDisplayBaseUrl();
+
+  function EndpointBadges({ ep }: { ep: Endpoint }) {
+    return (
+      <div className="flex items-center gap-1 shrink-0">
+        {ep.loopbackOnly && (
+          <span
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 border border-blue-500/30"
+            title={t("badgeLoopbackTooltip")}
+          >
+            LOCAL
+          </span>
+        )}
+        {ep.alwaysProtected && (
+          <span
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/15 text-red-500 border border-red-500/30"
+            title={t("badgeAlwaysProtectedTooltip")}
+          >
+            PROTECTED
+          </span>
+        )}
+        {ep.internal && (
+          <span
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-gray-500/15 text-gray-400 border border-gray-500/30"
+            title={t("badgeInternalTooltip")}
+          >
+            INTERNAL
+          </span>
+        )}
+      </div>
+    );
+  }
+
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showInternal, setShowInternal] = useState(false);
+  const [securityTier, setSecurityTier] = useState<
+    "all" | "public" | "auth" | "loopback" | "always-protected"
+  >("all");
 
   // Try It state
   const [tryingEndpoint, setTryingEndpoint] = useState<string | null>(null);
@@ -97,15 +136,22 @@ export default function ApiEndpointsTab() {
   const filteredEndpoints = useMemo(() => {
     if (!catalog) return [];
     return catalog.endpoints.filter((ep) => {
+      if (!showInternal && ep.internal) return false;
       const matchesSearch =
         !search ||
         ep.path.toLowerCase().includes(search.toLowerCase()) ||
         ep.summary.toLowerCase().includes(search.toLowerCase()) ||
         ep.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
       const matchesTag = !selectedTag || ep.tags.includes(selectedTag);
-      return matchesSearch && matchesTag;
+      const matchesTier =
+        securityTier === "all" ||
+        (securityTier === "loopback" && ep.loopbackOnly) ||
+        (securityTier === "always-protected" && ep.alwaysProtected) ||
+        (securityTier === "auth" && ep.security && !ep.loopbackOnly && !ep.alwaysProtected) ||
+        (securityTier === "public" && !ep.security && !ep.loopbackOnly && !ep.alwaysProtected);
+      return matchesSearch && matchesTag && matchesTier;
     });
-  }, [catalog, search, selectedTag]);
+  }, [catalog, search, selectedTag, showInternal, securityTier]);
 
   // Group by tag
   const groupedEndpoints = useMemo(() => {
@@ -295,6 +341,43 @@ export default function ApiEndpointsTab() {
                 </span>
               )}
             </div>
+            {/* Security tier filter */}
+            <div className="flex items-center gap-1 ml-1 border-l border-black/10 dark:border-white/10 pl-2 flex-wrap">
+              {(["all", "auth", "loopback", "always-protected", "public"] as const).map((tier) => (
+                <button
+                  key={tier}
+                  onClick={() => setSecurityTier(tier)}
+                  className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors
+                    ${
+                      securityTier === tier
+                        ? "bg-primary/10 text-primary"
+                        : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
+                    }`}
+                >
+                  {tier === "all"
+                    ? t("tierAll")
+                    : tier === "auth"
+                      ? t("tierAuth")
+                      : tier === "loopback"
+                        ? t("tierLoopback")
+                        : tier === "always-protected"
+                          ? t("tierAlwaysProtected")
+                          : t("tierPublic")}
+                </button>
+              ))}
+              <button
+                onClick={() => setShowInternal(!showInternal)}
+                className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors ml-1
+                  ${
+                    showInternal
+                      ? "bg-amber-500/10 text-amber-500"
+                      : "bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main"
+                  }`}
+                title="Show/hide internal routes (hidden by default)"
+              >
+                {showInternal ? t("hideInternal") : t("showInternal")}
+              </button>
+            </div>
           </div>
 
           {/* Endpoint groups */}
@@ -335,6 +418,7 @@ export default function ApiEndpointsTab() {
                         <span className="text-[11px] text-text-muted hidden sm:inline truncate max-w-[200px]">
                           {ep.summary}
                         </span>
+                        <EndpointBadges ep={ep} />
                         {ep.security && (
                           <span
                             className="material-symbols-outlined text-[12px] text-amber-500"

@@ -2,8 +2,9 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
-import type { MediaKind } from "../components/MediaProviderKindNav";
-import MediaProviderKindNav, { MEDIA_KINDS } from "../components/MediaProviderKindNav";
+import type { MediaKind } from "../components/mediaKinds";
+import { MEDIA_KINDS } from "../components/mediaKinds";
+import MediaProviderKindNav from "../components/MediaProviderKindNav";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 
 interface PageProps {

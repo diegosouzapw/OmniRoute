@@ -2676,7 +2676,17 @@
     "apiEndpointsNoMatch": "没有匹配的端点",
     "localServer": "本地服务器",
     "cloudOmniroute": "云端 OmniRoute",
-    "copyUrl": "复制 URL"
+    "copyUrl": "复制 URL",
+    "tierAll": "所有层级",
+    "tierAuth": "Auth",
+    "tierLoopback": "仅限本地",
+    "tierAlwaysProtected": "始终保护",
+    "tierPublic": "公开",
+    "showInternal": "显示内部",
+    "hideInternal": "隐藏内部",
+    "badgeLoopbackTooltip": "仅限本地：已阻止非回环 IP",
+    "badgeAlwaysProtectedTooltip": "始终受保护：即使 requireLogin=false 也需要身份验证",
+    "badgeInternalTooltip": "内部路由 — 不是公共 API 的一部分"
   },
   "endpoints": {
     "tabProxy": "端点代理",
