@@ -185,13 +185,10 @@ describe("ProxyConfigModal custom registry saves", () => {
       const body = parseBody(init);
 
       if (method === "POST" && url === "/api/settings/proxies") {
-        return { status: 201, body: { id: "custom-proxy-1", ...body } };
-      }
-      if (method === "PUT" && url === "/api/settings/proxies/assignments") {
-        return { body: { success: true, assignment: { proxyId: body.proxyId } } };
-      }
-      if (method === "DELETE" && url === "/api/settings/proxy?level=provider&id=claude") {
-        return { body: { success: true } };
+        return {
+          status: 201,
+          body: { id: "custom-proxy-1", ...body, assignment: { proxyId: "custom-proxy-1" } },
+        };
       }
 
       return defaultProxyConfigResponses(url) || { status: 404, body: {} };
@@ -202,9 +199,7 @@ describe("ProxyConfigModal custom registry saves", () => {
     await setInputValue(getInput(container, "hostPlaceholder"), "custom.local");
     await setInputValue(getInput(container, "8080"), "3128");
     await clickButton(container, "save");
-    await waitForCall(
-      (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
-    );
+    await waitForCall((call) => call.method === "POST" && call.url === "/api/settings/proxies");
 
     const createCall = fetchCalls.find(
       (call) => call.method === "POST" && call.url === "/api/settings/proxies"
@@ -216,6 +211,10 @@ describe("ProxyConfigModal custom registry saves", () => {
       port: 3128,
       status: "active",
       source: "dashboard-custom",
+      assignment: {
+        scope: "provider",
+        scopeId: "claude",
+      },
     });
 
     expect(
@@ -223,20 +222,15 @@ describe("ProxyConfigModal custom registry saves", () => {
     ).toBe(false);
     expect(
       fetchCalls.some(
-        (call) =>
-          call.method === "PUT" &&
-          call.url === "/api/settings/proxies/assignments" &&
-          call.body.proxyId === "custom-proxy-1" &&
-          call.body.scope === "provider" &&
-          call.body.scopeId === "claude"
+        (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
       )
-    ).toBe(true);
+    ).toBe(false);
     expect(
       fetchCalls.some(
         (call) =>
           call.method === "DELETE" && call.url === "/api/settings/proxy?level=provider&id=claude"
       )
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("updates an existing scope-owned dashboard-custom proxy instead of creating a duplicate", async () => {
@@ -281,13 +275,9 @@ describe("ProxyConfigModal custom registry saves", () => {
         };
       }
       if (method === "PATCH" && url === "/api/settings/proxies") {
-        return { body: { id: "custom-proxy-1", ...body } };
-      }
-      if (method === "PUT" && url === "/api/settings/proxies/assignments") {
-        return { body: { success: true, assignment: { proxyId: body.proxyId } } };
-      }
-      if (method === "DELETE" && url === "/api/settings/proxy?level=provider&id=claude") {
-        return { body: { success: true } };
+        return {
+          body: { id: "custom-proxy-1", ...body, assignment: { proxyId: "custom-proxy-1" } },
+        };
       }
 
       return defaultProxyConfigResponses(url) || { status: 404, body: {} };
@@ -300,9 +290,7 @@ describe("ProxyConfigModal custom registry saves", () => {
     await setInputValue(getInput(container, "usernamePlaceholder"), "***");
     await setInputValue(getInput(container, "passwordPlaceholder"), "***");
     await clickButton(container, "save");
-    await waitForCall(
-      (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
-    );
+    await waitForCall((call) => call.method === "PATCH" && call.url === "/api/settings/proxies");
 
     expect(
       fetchCalls.some((call) => call.method === "POST" && call.url === "/api/settings/proxies")
@@ -315,9 +303,24 @@ describe("ProxyConfigModal custom registry saves", () => {
       id: "custom-proxy-1",
       host: "updated.local",
       source: "dashboard-custom",
+      assignment: {
+        scope: "provider",
+        scopeId: "claude",
+      },
     });
     expect(updateCall?.body).not.toHaveProperty("username");
     expect(updateCall?.body).not.toHaveProperty("password");
+    expect(
+      fetchCalls.some(
+        (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
+      )
+    ).toBe(false);
+    expect(
+      fetchCalls.some(
+        (call) =>
+          call.method === "DELETE" && call.url === "/api/settings/proxy?level=provider&id=claude"
+      )
+    ).toBe(false);
   });
 
   it("creates a new dashboard-custom proxy when current assignment is a reusable manual proxy", async () => {
@@ -351,13 +354,10 @@ describe("ProxyConfigModal custom registry saves", () => {
         };
       }
       if (method === "POST" && url === "/api/settings/proxies") {
-        return { status: 201, body: { id: "custom-proxy-2", ...body } };
-      }
-      if (method === "PUT" && url === "/api/settings/proxies/assignments") {
-        return { body: { success: true, assignment: { proxyId: body.proxyId } } };
-      }
-      if (method === "DELETE" && url === "/api/settings/proxy?level=provider&id=claude") {
-        return { body: { success: true } };
+        return {
+          status: 201,
+          body: { id: "custom-proxy-2", ...body, assignment: { proxyId: "custom-proxy-2" } },
+        };
       }
 
       return defaultProxyConfigResponses(url) || { status: 404, body: {} };
@@ -368,9 +368,7 @@ describe("ProxyConfigModal custom registry saves", () => {
     await clickButton(container, "custom");
     await setInputValue(getInput(container, "hostPlaceholder"), "custom.local");
     await clickButton(container, "save");
-    await waitForCall(
-      (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
-    );
+    await waitForCall((call) => call.method === "POST" && call.url === "/api/settings/proxies");
 
     expect(
       fetchCalls.some((call) => call.method === "PATCH" && call.url === "/api/settings/proxies")
@@ -378,10 +376,16 @@ describe("ProxyConfigModal custom registry saves", () => {
     expect(
       fetchCalls.some(
         (call) =>
-          call.method === "PUT" &&
-          call.url === "/api/settings/proxies/assignments" &&
-          call.body.proxyId === "custom-proxy-2"
+          call.method === "POST" &&
+          call.url === "/api/settings/proxies" &&
+          call.body.assignment?.scope === "provider" &&
+          call.body.assignment?.scopeId === "claude"
       )
     ).toBe(true);
+    expect(
+      fetchCalls.some(
+        (call) => call.method === "PUT" && call.url === "/api/settings/proxies/assignments"
+      )
+    ).toBe(false);
   });
 });

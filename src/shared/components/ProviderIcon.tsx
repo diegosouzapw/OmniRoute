@@ -38,6 +38,7 @@ function GenericProviderIcon({ size }: { size: number }) {
 
 const KNOWN_PNGS = new Set([
   "agentrouter",
+  "inner-ai",
   "aimlapi",
   "anthropic-m",
   "blackbox",
