@@ -590,25 +590,47 @@ export class BaseExecutor {
         );
 
         if (refreshed && !proactivePersistRan) {
-          // Classify unrecoverable sentinels before spreading. Without this guard
-          // an { error: "unrecoverable_refresh_error", code } object passes the
-          // truthy check and pollutes activeCredentials with garbage, causing the
-          // executor to send a non-token to upstream. Mirrors the reactive path
-          // in chatCore.ts and keeps the proactive path's behaviour consistent.
+          // ─────────────────────────────────────────────────────────────────────
+          // ⚠️ SOURCE OF TRUTH — do not flip the proactive path back to
+          //    "persist expired+inactive". Ask the operator first.
+          //
+          // History (do not repeat past regressions):
+          //   - ad3d4b696 (#2718, 2026-05-25): per-connection mutex + onPersist
+          //     wiring so multi-account Codex (rotating refresh tokens) stops
+          //     hitting refresh_token_reused under concurrent load.
+          //   - 0c94c397d (#2743, 2026-05-26): a multi-agent review added a
+          //     `await onCredentialsRefreshed({ testStatus: "expired",
+          //     isActive: false })` here. That BROKE multi-account Codex —
+          //     transient sentinels (refresh_token_reused recoverable via
+          //     rotation map; generic invalid_request blips) were treated as
+          //     terminal, so the proactive path sequentially disabled
+          //     working accounts in the DB before any upstream call confirmed
+          //     the failure. Reverted intentionally.
+          //
+          // Contract for the PROACTIVE refresh path:
+          //   - Classify the sentinel ONLY to avoid spreading it into
+          //     activeCredentials (which would send a non-token upstream).
+          //   - DO NOT persist `{ testStatus: "expired", isActive: false }`
+          //     from here. That decision belongs to the REACTIVE path in
+          //     open-sse/handlers/chatCore.ts:~3912, which runs AFTER the
+          //     upstream confirmed the auth failure. By then the rotation
+          //     map (tokenRefresh.ts:~1541) and the DB-staleness check have
+          //     already had their chance to recover the request.
+          //
+          // If a future review/agent thinks the expired-flip is "missing"
+          // here, STOP — flipping it here re-introduces the multi-account
+          // Codex regression. Discuss with the operator before touching.
+          // ─────────────────────────────────────────────────────────────────────
           if (isUnrecoverableRefreshError(refreshed)) {
             const refreshCode = (refreshed as Record<string, unknown>).code;
-            log?.error?.(
+            log?.warn?.(
               "TOKEN",
-              `${this.provider.toUpperCase()} | unrecoverable refresh — marking account expired (code=${String(refreshCode ?? "unknown")})`
+              `${this.provider.toUpperCase()} | proactive refresh returned unrecoverable sentinel (code=${String(refreshCode ?? "unknown")}); keeping stale credentials, deferring to reactive path.`
             );
-            if (onCredentialsRefreshed) {
-              await onCredentialsRefreshed({
-                testStatus: "expired",
-                isActive: false,
-              });
-            }
-            // Don't spread the sentinel — keep stale credentials so the next
-            // upstream call surfaces the real auth error to the client.
+            // Intentionally NOT spreading the sentinel and NOT persisting
+            // expired status. The next upstream call either succeeds (rotation
+            // map / DB-staleness saved us) or fails — chatCore.ts then marks
+            // the account expired with confidence.
           } else {
             activeCredentials = {
               ...credentials,

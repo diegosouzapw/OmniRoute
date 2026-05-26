@@ -1,7 +1,7 @@
 "use client";
 
 import type { MouseEvent, ReactNode } from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -29,19 +29,6 @@ interface ProviderStats {
   codexFastActive?: boolean;
 }
 
-const KIND_LABEL: Record<string, string> = {
-  llm: "Chat",
-  embedding: "Embed",
-  image: "Image",
-  imageToText: "I→T",
-  tts: "TTS",
-  stt: "STT",
-  webSearch: "Search",
-  webFetch: "Fetch",
-  video: "Video",
-  music: "Music",
-};
-
 interface ProviderCardProps {
   providerId: string;
   provider: {
@@ -61,20 +48,6 @@ interface ProviderCardProps {
   authType?: string;
   onToggle: (active: boolean) => void;
 }
-
-const DOT_COLORS: Record<string, string> = {
-  free: "bg-green-500",
-  "no-auth": "bg-stone-500",
-  oauth: "bg-blue-500",
-  apikey: "bg-amber-500",
-  compatible: "bg-orange-500",
-  "web-cookie": "bg-purple-500",
-  search: "bg-teal-500",
-  audio: "bg-rose-500",
-  local: "bg-emerald-500",
-  "upstream-proxy": "bg-indigo-500",
-  "cloud-agent": "bg-violet-500",
-};
 
 function getStatusDisplay(
   connected: number,
@@ -127,6 +100,39 @@ export default function ProviderCard({
   const tc = useTranslations("common");
   const tp = useTranslations("miniPlayground");
   const [testExpanded, setTestExpanded] = useState<boolean>(false);
+
+  const KIND_LABEL = useMemo<Record<string, string>>(
+    () => ({
+      llm: "Chat",
+      embedding: "Embed",
+      image: "Image",
+      imageToText: "I→T",
+      tts: "TTS",
+      stt: "STT",
+      webSearch: "Search",
+      webFetch: "Fetch",
+      video: "Video",
+      music: "Music",
+    }),
+    []
+  );
+
+  const DOT_COLORS = useMemo<Record<string, string>>(
+    () => ({
+      free: "bg-green-500",
+      "no-auth": "bg-stone-500",
+      oauth: "bg-blue-500",
+      apikey: "bg-amber-500",
+      compatible: "bg-orange-500",
+      "web-cookie": "bg-purple-500",
+      search: "bg-teal-500",
+      audio: "bg-rose-500",
+      local: "bg-emerald-500",
+      "upstream-proxy": "bg-indigo-500",
+      "cloud-agent": "bg-violet-500",
+    }),
+    []
+  );
 
   // Show the Test button for LLM providers (when serviceKinds includes "llm"
   // OR when the provider has no explicit serviceKinds but is a regular LLM provider

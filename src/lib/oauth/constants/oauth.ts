@@ -258,6 +258,15 @@ export const KIRO_CONFIG = {
   socialLoginUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/login",
   socialTokenUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/token",
   socialRefreshUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/refreshToken",
+  // Social device-code flow (Google/GitHub).
+  // `socialClientId` is a public CLI identifier — Kiro's device endpoint accepts
+  // any non-empty string and behaves like a User-Agent rather than a secret.
+  // The env override exists so operators on locked-down builds can pin a
+  // custom value if AWS ever starts enforcing this field (Hard Rule #11 spirit).
+  socialClientId: process.env.KIRO_OAUTH_CLIENT_ID || "kiro-cli",
+  socialDeviceAuthorizeUrl:
+    "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/authorization",
+  socialDevicePollUrl: "https://prod.us-east-1.auth.desktop.kiro.dev/oauth/device/poll",
   // Auth methods
   authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
