@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### 🔧 Bug Fixes
+
+- **validation:** add Poolside specialty validator (direct `/chat/completions` probe — Poolside has no `/v1/models` endpoint and returns 401 for unknown routes, which the generic `/models` flow misread as "invalid API key") (#2723)
+- **validation:** add NVIDIA NIM specialty validator and harden `normalizeBaseUrl` against non-string `providerSpecificData.baseUrl` — fixes the `e.startsWith is not a function` TypeError that surfaced after minification (#2463)
+- **cli:** `omniroute compression *` falls back to direct REST endpoints (`/api/settings/compression`, `/api/context/combos`, `/api/context/analytics`) when `/api/mcp/tools/call` returns 404; normalize `none → off` / `hybrid → stacked` engine aliases (#2688)
+- **cli:** import `cli-helper/tool-detector` and `cli-helper/doctor/checks` with the explicit `.ts` extension that tsx resolves directly, so the published npm package (which ships only the `.ts` source) no longer crashes with `Cannot find module '…tool-detector.js'` (#2509)
+- **authz:** make the DB feature-flag override authoritative over `process.env` for `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`, so toggling "Allow Private Provider URLs" in the Electron dashboard takes effect without restarting the spawned server (#2575)
+
 ## [3.8.5] — 2026-05-26
 
 ### 🔒 Security
