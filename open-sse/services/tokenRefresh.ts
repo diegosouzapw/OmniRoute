@@ -29,12 +29,21 @@ export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 // Providers with non-rotating tokens (Google, Anthropic) or where multi-
 // account is naturally isolated keep longer lead times.
 export const REFRESH_LEAD_MS: Record<string, number> = {
-  codex: 5 * 60 * 1000, // 5 minutes (intentionally minimal — see comment above)
-  claude: 4 * 60 * 60 * 1000, // 4 hours (Anthropic per-account isolation works)
+  // Rotating refresh tokens — minimize refresh frequency to avoid the
+  // "refresh-invalidates-siblings" cascade documented for OpenAI Auth0.
+  codex: 5 * 60 * 1000, // 5 minutes
+  openai: 5 * 60 * 1000, // same Auth0 backend as codex
+  claude: 5 * 60 * 1000, // Anthropic OAuth rotates refresh_tokens (user-reported)
+  "gitlab-duo": 5 * 60 * 1000, // GitLab token family revocation on misuse
+  kiro: 5 * 60 * 1000, // AWS SSO OIDC issues one-time-use refresh tokens
+  "kimi-coding": 5 * 60 * 1000, // Moonshot rotates per-refresh
+  qwen: 5 * 60 * 1000, // Alibaba device-code path also rotates
+  // Non-rotating providers — longer lead is safe.
   iflow: 24 * 60 * 60 * 1000, // 24 hours
-  qwen: 20 * 60 * 1000, // 20 minutes
-  "kimi-coding": 5 * 60 * 1000, // 5 minutes
-  antigravity: 5 * 60 * 1000, // 5 minutes (Google — non-rotating, safe)
+  // Google OAuth refresh_tokens are permanent (non-rotating) — longer lead
+  // is safe and reduces unnecessary upstream chatter.
+  "gemini-cli": 15 * 60 * 1000,
+  antigravity: 15 * 60 * 1000,
 };
 
 /**

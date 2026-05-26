@@ -188,6 +188,9 @@ export const ANTIGRAVITY_CONFIG = {
 
 // OpenAI OAuth Configuration (Authorization Code Flow with PKCE)
 // Re-uses CODEX_CONFIG.clientId to avoid duplication — same provider, different originator.
+// IMPORTANT: same Auth0 backend as Codex → same multi-account session-takeover
+// risk. `prompt: "login"` is mandatory to allow multiple OpenAI Native accounts
+// on the same device. See CODEX_CONFIG above for the full explanation.
 export const OPENAI_CONFIG = {
   clientId: CODEX_CONFIG.clientId,
   authorizeUrl: "https://auth.openai.com/oauth/authorize",
@@ -197,6 +200,7 @@ export const OPENAI_CONFIG = {
   extraParams: {
     id_token_add_organizations: "true",
     originator: "openai_native",
+    prompt: "login",
   },
 };
 
