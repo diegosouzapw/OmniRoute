@@ -209,7 +209,7 @@ export function getLastSessionModel(sessionId: string, comboName: string): strin
       `SELECT model_str
        FROM session_model_history
        WHERE session_id = ? AND combo_name = ?
-       ORDER BY used_at DESC
+       ORDER BY id DESC
        LIMIT 1`
     )
     .get(sessionId, comboName) as { model_str: string } | undefined;

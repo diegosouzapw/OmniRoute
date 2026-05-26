@@ -3762,6 +3762,8 @@
     "audioShortLabel": "Áudio",
     "azureOpenAiBaseUrlHint": "Obrigatório: cole o endpoint do seu recurso Azure OpenAI. O OmniRoute adicionará /openai/deployments/{model}/chat/completions?api-version=....",
     "bailianBaseUrlHint": "Opcional: URL base customizada para o provedor bailian-coding-plan.",
+    "claudeWebCookieHint": "Open claude.ai → DevTools → Application → Cookies → claude.ai, copy the 'sessionKey' value. Also need cf_clearance, __cf_bm, _cfuvid for Cloudflare.",
+    "claudeWebCookiePlaceholder": "sessionKey=sk-ant-...",
     "blackboxWebCookieHint": "Cole o cookie __Secure-authjs.session-token de app.blackbox.ai. Um cabeçalho de cookie completo também funciona.",
     "blackboxWebCookiePlaceholder": "Cole o valor de __Secure-authjs.session-token",
     "t3ChatWebCookieHint": "Abra t3.chat → DevTools → Application → Local Storage → https://t3.chat, copie 'convex-session-id'. Então abra DevTools → Network, copie o cabeçalho Cookie completo de qualquer solicitação de chat. Cole ambos os valores nos campos abaixo.",

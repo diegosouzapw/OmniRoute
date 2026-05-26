@@ -162,7 +162,9 @@ export {
   listProxies,
   getProxyById,
   createProxy,
+  createProxyAndAssign,
   updateProxy,
+  updateProxyAndAssign,
   upsertProxy,
   deleteProxyById,
   getProxyAssignments,
@@ -282,7 +284,10 @@ export {
   disableWebhooksWithHighFailures,
 } from "./db/webhooks";
 
-export type { Webhook } from "./db/webhooks";
+export type { Webhook, WebhookKind } from "./db/webhooks";
+
+export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
   saveQuotaSnapshot,
@@ -304,6 +309,8 @@ export {
   updateToolHealth,
   updateToolVersion,
   setToolStatus,
+  getServiceRow,
+  updateServiceField,
 } from "./db/versionManager";
 
 export {
@@ -487,3 +494,17 @@ export type {
   CreateRelayTokenInput,
   RelayTokenWithSecret,
 } from "./db/relayProxies";
+
+export {
+  upsertFreeProxy,
+  listFreeProxies,
+  listFreeProxiesBySource,
+  getFreeProxyById,
+  markFreeProxyInPool,
+  promoteFreeProxyToPool,
+  deleteFreeProxy,
+  clearFreeProxiesBySource,
+  getFreeProxyStats,
+} from "./db/freeProxies";
+
+export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";

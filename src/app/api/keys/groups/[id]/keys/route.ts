@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { addKeyToGroup, removeKeyFromGroup, getGroupMembers, getKeyGroup } from "@/lib/localDb";
+
+const addKeyToGroupSchema = z.object({
+  keyId: z.string().min(1, "keyId is required"),
+});
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -28,11 +33,15 @@ export async function POST(request: Request, { params }: RouteParams) {
     const group = getKeyGroup(id);
     if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
 
-    const body = await request.json();
-    if (!body.keyId) {
-      return NextResponse.json({ error: "keyId is required" }, { status: 400 });
+    const raw = await request.json();
+    const parsed = addKeyToGroupSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        { status: 400 }
+      );
     }
-    const added = addKeyToGroup(body.keyId, id);
+    const added = addKeyToGroup(parsed.data.keyId, id);
     if (!added) {
       return NextResponse.json({ error: "Failed to add key" }, { status: 500 });
     }

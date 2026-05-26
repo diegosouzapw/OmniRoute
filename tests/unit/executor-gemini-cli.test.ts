@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 
 import { GeminiCLIExecutor } from "../../open-sse/executors/gemini-cli.ts";
 import { setCliCompatProviders } from "../../open-sse/config/cliFingerprints.ts";
-import { GEMINI_CLI_VERSION } from "../../open-sse/services/geminiCliHeaders.ts";
+import {
+  GEMINI_CLI_VERSION,
+  GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION,
+} from "../../open-sse/services/geminiCliHeaders.ts";
 
 type CapturedFetchCall = {
   url: string;
@@ -54,7 +57,7 @@ test("GeminiCLIExecutor.buildUrl and buildHeaders match the native Gemini CLI fi
   assert.match(
     headers["User-Agent"],
     new RegExp(
-      `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-2\\.5-flash \\((linux|macos|windows); (x64|arm64|x86); terminal\\) google-api-nodejs-client/9\\.15\\.1$`
+      `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-2\\.5-flash \\((linux|macos|windows); (x64|arm64|x86); terminal\\) google-api-nodejs-client/${GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION.replaceAll(".", "\\.")}$`
     )
   );
   assert.equal(headers["X-Goog-Api-Client"], `gl-node/${process.versions.node}`);
@@ -395,7 +398,12 @@ test("GeminiCLIExecutor.execute applies CLI fingerprint to the final Cloud Code 
     assert.equal(finalBody.project, "project-live");
     assert.match(finalBody.user_prompt_id, /^agent-/);
     assert.match(finalBody.request.session_id, /^-\d+$/);
-    assert.match(finalCall.headers["User-Agent"], /^GeminiCLI\/0\.41\.2\/gemini-3\.1-pro-preview /);
+    assert.match(
+      finalCall.headers["User-Agent"],
+      new RegExp(
+        `^GeminiCLI/${GEMINI_CLI_VERSION.replaceAll(".", "\\.")}/gemini-3\\.1-pro-preview `
+      )
+    );
     assert.equal(finalCall.headers.Accept, "*/*");
   } finally {
     setCliCompatProviders([]);

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import MediaProviderHeader from "../../components/MediaProviderHeader";
 import MediaProviderKindNav from "../../components/MediaProviderKindNav";
-import type { MediaKind } from "../../components/MediaProviderKindNav";
+import type { MediaKind } from "../../components/mediaKinds";
 import { EmbeddingExampleCard } from "../../components/EmbeddingExampleCard";
 import { ImageExampleCard } from "../../components/ImageExampleCard";
 import { TtsExampleCard } from "../../components/TtsExampleCard";

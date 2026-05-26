@@ -1,5 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getRelayTokens, createRelayToken } from "@/lib/db/relayProxies";
+
+const createRelayTokenSchema = z.object({
+  name: z.string().min(1, "name is required"),
+  description: z.string().optional(),
+  comboId: z.string().optional(),
+  allowedModels: z.array(z.string()).optional(),
+  maxTokensPerRequest: z.number().int().nonnegative().optional(),
+  maxRequestsPerMinute: z.number().int().nonnegative().optional(),
+  maxRequestsPerDay: z.number().int().nonnegative().optional(),
+  maxCostPerDay: z.number().nonnegative().optional(),
+  expiresAt: z.union([z.string(), z.number()]).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
 
 export async function GET() {
   const tokens = getRelayTokens();
@@ -26,7 +40,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const raw = await request.json();
+    const parsed = createRelayTokenSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        { status: 400 }
+      );
+    }
+    const body = parsed.data;
     const token = createRelayToken({
       name: body.name,
       description: body.description,

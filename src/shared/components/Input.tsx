@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState, useCallback } from "react";
 import { cn } from "@/shared/utils/cn";
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -25,13 +25,47 @@ export default function Input({
   className,
   inputClassName,
   id: externalId,
+  onKeyDown: externalOnKeyDown,
+  onKeyUp: externalOnKeyUp,
   ...props
 }: InputProps) {
   const generatedId = useId();
   const inputId = externalId || generatedId;
   const errorId = error ? `${inputId}-error` : undefined;
   const hintId = hint && !error ? `${inputId}-hint` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const capsLockId = `${inputId}-capslock`;
+  const isPassword = type === "password";
+  const [capsLockOn, setCapsLockOn] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
+
+  const detectCapsLock = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (isPassword) {
+        setCapsLockOn(e.getModifierState("CapsLock"));
+      }
+    },
+    [isPassword]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      detectCapsLock(e);
+      externalOnKeyDown?.(e);
+    },
+    [detectCapsLock, externalOnKeyDown]
+  );
+
+  const handleKeyUp = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      detectCapsLock(e);
+      externalOnKeyUp?.(e);
+    },
+    [detectCapsLock, externalOnKeyUp]
+  );
+
+  const showCapsLock = isPassword && capsLockOn && inputFocused;
+  const describedBy =
+    [errorId, showCapsLock ? capsLockId : undefined, hintId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
@@ -64,6 +98,17 @@ export default function Input({
           aria-required={required || undefined}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          onFocus={(e) => {
+            setInputFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setInputFocused(false);
+            setCapsLockOn(false);
+            props.onBlur?.(e);
+          }}
           className={cn(
             "w-full py-2 px-3 text-sm text-text-main",
             "bg-white dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-md",
@@ -79,6 +124,19 @@ export default function Input({
           {...props}
         />
       </div>
+      {showCapsLock && (
+        <p
+          id={capsLockId}
+          className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 animate-in fade-in duration-200"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+            keyboard_capslock
+          </span>
+          Caps Lock is on
+        </p>
+      )}
       {error && (
         <p id={errorId} className="text-xs text-red-500 flex items-center gap-1" role="alert">
           <span className="material-symbols-outlined text-[14px]" aria-hidden="true">

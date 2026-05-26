@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   getKeyGroupWithPermissions,
   updateKeyGroup,
@@ -9,6 +10,12 @@ import {
   addKeyToGroup,
   removeKeyFromGroup,
 } from "@/lib/localDb";
+
+const updateKeyGroupSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -35,11 +42,18 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const raw = await request.json();
+    const parsed = updateKeyGroupSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        { status: 400 }
+      );
+    }
     const updates: { name?: string; description?: string; isActive?: boolean } = {};
-    if (body.name !== undefined) updates.name = body.name;
-    if (body.description !== undefined) updates.description = body.description;
-    if (body.isActive !== undefined) updates.isActive = body.isActive;
+    if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+    if (parsed.data.description !== undefined) updates.description = parsed.data.description;
+    if (parsed.data.isActive !== undefined) updates.isActive = parsed.data.isActive;
 
     const group = updateKeyGroup(id, updates);
     if (!group) {

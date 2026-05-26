@@ -5,11 +5,12 @@ import { getModelInfoCore } from "../../open-sse/services/model.ts";
 import { REGISTRY } from "../../open-sse/config/providerRegistry.ts";
 import { getStaticModelsForProvider } from "../../src/app/api/providers/[id]/models/route.ts";
 
-test("T28: gemini-cli catalog includes preview models, gemini uses API sync", () => {
-  // Gemini (AI Studio) no longer has a hardcoded registry — models come from
-  // API sync via /api/providers/:id/models with pageSize=1000.
+test("T28: gemini-cli catalog includes preview models, gemini provides a static fallback", () => {
+  // Gemini (AI Studio) carries a small hardcoded fallback for first-run UX when no
+  // API key has been added yet; the full catalog is populated by API sync via
+  // /api/providers/:id/models with pageSize=1000 once a key exists.
   const geminiIds = REGISTRY.gemini.models.map((m) => m.id);
-  assert.equal(geminiIds.length, 0, "gemini models should be empty (populated by API sync)");
+  assert.ok(geminiIds.length >= 1, "gemini static fallback should expose at least one model");
 
   // gemini-cli still has hardcoded models (Cloud Code doesn't have a models API)
   const geminiCliIds = REGISTRY["gemini-cli"].models.map((m) => m.id);

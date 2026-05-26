@@ -3747,6 +3747,8 @@
     "audioShortLabel": "音频",
     "azureOpenAiBaseUrlHint": "Azure OpenAI 资源的 Base URL。",
     "bailianBaseUrlHint": "阿里云百炼服务的 Base URL。",
+    "claudeWebCookieHint": "Open claude.ai → DevTools → Application → Cookies → claude.ai, copy the 'sessionKey' value. Also need cf_clearance, __cf_bm, _cfuvid for Cloudflare.",
+    "claudeWebCookiePlaceholder": "sessionKey=sk-ant-...",
     "blackboxWebCookieHint": "从 Blackbox Web 会话复制 Cookie。",
     "blackboxWebCookiePlaceholder": "Blackbox Web Cookie",
     "t3ChatWebCookieHint": "打开 t3.chat → DevTools → Application → Local Storage → https://t3.chat,复制 'convex-session-id'。然后在 DevTools → Network 中,从任意聊天请求复制完整的 Cookie 头,将两个值粘贴到下面的输入框。",

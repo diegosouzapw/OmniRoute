@@ -31,9 +31,12 @@ const CATEGORIES = [
   { value: "security", label: "Security (6)" },
   { value: "network", label: "Network (5)" },
   { value: "policies", label: "Policies (3)" },
-  { value: "runtime", label: "Runtime (5)" },
+  { value: "runtime", label: "Runtime (6)" },
   { value: "cli", label: "CLI (3)" },
   { value: "health", label: "Health (3)" },
+  // Synthetic "category" that filters by requiresRestart=true regardless of
+  // real category — surfaces flags that need a process restart to take effect.
+  { value: "__restart", label: "Requires Restart" },
 ];
 
 export default function FeatureFlagsGrid() {
@@ -47,6 +50,11 @@ export default function FeatureFlagsGrid() {
   const [resettingAll, setResettingAll] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  // Set of flag keys whose DB override was changed in this session without
+  // a subsequent restart. Used to surface the restart banner.
+  const [pendingRestartKeys, setPendingRestartKeys] = useState<Set<string>>(new Set());
+  const [restarting, setRestarting] = useState(false);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   const loadFlags = useCallback(async () => {
     setLoading(true);
@@ -75,7 +83,11 @@ export default function FeatureFlagsGrid() {
 
   const filteredFlags = useMemo(() => {
     return flags
-      .filter((f) => category === "all" || f.category === category)
+      .filter((f) => {
+        if (category === "all") return true;
+        if (category === "__restart") return f.requiresRestart;
+        return f.category === category;
+      })
       .filter(
         (f) =>
           debouncedSearch === "" ||
@@ -108,6 +120,9 @@ export default function FeatureFlagsGrid() {
           f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
         );
       });
+      if (result.requiresRestart) {
+        setPendingRestartKeys((prev) => new Set(prev).add(key));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update flag");
     } finally {
@@ -143,6 +158,9 @@ export default function FeatureFlagsGrid() {
           f.key === key ? { ...f, effectiveValue: result.effectiveValue, source: result.source } : f
         );
       });
+      if (result.requiresRestart) {
+        setPendingRestartKeys((prev) => new Set(prev).add(key));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update flag");
     } finally {
@@ -151,6 +169,44 @@ export default function FeatureFlagsGrid() {
         next.delete(key);
         return next;
       });
+    }
+  }, []);
+
+  const handleRestart = useCallback(async () => {
+    setRestarting(true);
+    try {
+      const res = await fetch("/api/restart", { method: "POST" });
+      if (!res.ok) {
+        setError(`Restart failed: HTTP ${res.status}`);
+        setShowRestartConfirm(false);
+        setRestarting(false);
+        return;
+      }
+      // Server is going down — wait for it to come back, then reload.
+      const stillUp = async () => {
+        try {
+          const r = await fetch("/api/health", { cache: "no-store" });
+          return r.ok;
+        } catch {
+          return false;
+        }
+      };
+      const waitDown = setInterval(async () => {
+        if (!(await stillUp())) {
+          clearInterval(waitDown);
+          const waitUp = setInterval(async () => {
+            if (await stillUp()) {
+              clearInterval(waitUp);
+              setPendingRestartKeys(new Set());
+              window.location.reload();
+            }
+          }, 1000);
+        }
+      }, 500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Restart failed");
+      setShowRestartConfirm(false);
+      setRestarting(false);
     }
   }, []);
 
@@ -220,6 +276,67 @@ export default function FeatureFlagsGrid() {
           </select>
         </div>
       </div>
+
+      {/* Pending-restart banner — shown when at least one requiresRestart flag
+          was toggled in this session. */}
+      {pendingRestartKeys.size > 0 && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-400">restart_alt</span>
+              <div>
+                <p className="text-sm font-medium text-amber-300">
+                  {pendingRestartKeys.size} change{pendingRestartKeys.size === 1 ? "" : "s"} require
+                  a server restart to take effect.
+                </p>
+                <p className="mt-0.5 text-xs text-amber-200/80">
+                  These flags only apply after the process reloads. Restart now or continue editing
+                  — pending flags stay queued until you confirm.
+                </p>
+              </div>
+            </div>
+            {!showRestartConfirm ? (
+              <button
+                onClick={() => setShowRestartConfirm(true)}
+                className="shrink-0 rounded-lg border border-amber-400/40 px-4 py-2 text-sm text-amber-300 hover:bg-amber-500/20 transition-colors"
+              >
+                Restart Server
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowRestartConfirm(false)}
+                  className="text-sm text-amber-300/80 hover:text-amber-200"
+                  disabled={restarting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRestart}
+                  disabled={restarting}
+                  className="rounded-lg bg-amber-500/30 px-4 py-2 text-sm text-amber-200 hover:bg-amber-500/40 disabled:opacity-50 transition-colors"
+                >
+                  {restarting ? "Restarting…" : "Confirm Restart"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Explanation banner for the synthetic "Requires Restart" view */}
+      {category === "__restart" && (
+        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-200">
+          <div className="flex items-start gap-2">
+            <span className="material-symbols-outlined text-blue-300">info</span>
+            <p>
+              These flags only take effect after the server restarts. Toggle them like any other
+              flag — the change is persisted immediately, but the new value is only read at process
+              startup. Use the <strong>Restart Server</strong> banner above to apply.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Loading skeleton */}
       {loading && (

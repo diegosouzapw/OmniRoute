@@ -83,7 +83,12 @@ const OPENAI_LIKE_FORMATS = new Set(["openai", "openai-responses"]);
 const GEMINI_LIKE_FORMATS = new Set(["gemini", "gemini-cli"]);
 
 function normalizeBaseUrl(baseUrl: string) {
-  return (baseUrl || "").trim().replace(/\/$/, "");
+  // Guard against a non-string baseUrl reaching .trim() / .replace() — see #2463
+  // where NVIDIA NIM validation surfaced as `e.startsWith is not a function`
+  // after the bundler renamed `baseUrl` to `e`. Any malformed providerSpecificData
+  // (e.g. saved as object from a UI bug) would otherwise crash mid-validation.
+  const value = typeof baseUrl === "string" ? baseUrl : "";
+  return value.trim().replace(/\/$/, "");
 }
 
 function normalizeAzureOpenAIBaseUrl(baseUrl: string) {
@@ -3309,6 +3314,88 @@ async function validateJulesProvider({ apiKey }: { apiKey: string }) {
   }
 }
 
+async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = typeof apiKey === "string" ? apiKey.trim() : "";
+    if (!raw) {
+      return {
+        valid: false,
+        error: "Paste your token cookie and email — format: eyJ... user@example.com",
+      };
+    }
+
+    // Parse token and optional email (format: "TOKEN EMAIL")
+    const eqIdx = raw.indexOf("=");
+    const stripped = eqIdx > 0 && !raw.startsWith("eyJ") ? raw.slice(eqIdx + 1).trim() : raw;
+    const lastSpace = stripped.lastIndexOf(" ");
+    let token = stripped;
+    let credEmail = "";
+    if (lastSpace > 0) {
+      const possibleEmail = stripped.slice(lastSpace + 1).trim();
+      if (possibleEmail.includes("@")) {
+        token = stripped.slice(0, lastSpace).trim();
+        credEmail = possibleEmail;
+      }
+    }
+
+    if (!credEmail) {
+      return {
+        valid: false,
+        error:
+          "Email is required — paste token followed by a space and your email: eyJ... user@example.com",
+      };
+    }
+
+    // Validate JWT structure (3 parts separated by dots)
+    const parts = token.split(".");
+    if (parts.length < 3) {
+      return {
+        valid: false,
+        error:
+          "Invalid token format — paste only the token cookie value from .innerai.com (starts with eyJ…)",
+      };
+    }
+
+    // Decode payload and check expiry
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    let payload: Record<string, unknown> = {};
+    try {
+      payload = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+    } catch {
+      return { valid: false, error: "Could not parse Inner.ai token — re-paste from DevTools" };
+    }
+
+    if (typeof payload.exp === "number" && payload.exp * 1000 < Date.now()) {
+      return {
+        valid: false,
+        error:
+          "Inner.ai token has expired — re-login at app.innerai.com and re-paste the token cookie",
+      };
+    }
+
+    // Verify the token carries at least one known Inner.ai identity field
+    const hasIdentity =
+      payload.device_id ??
+      payload.deviceId ??
+      payload["device-id"] ??
+      payload.did ??
+      payload.user_id ??
+      payload.userId ??
+      payload.sub;
+    if (!hasIdentity) {
+      return {
+        valid: false,
+        error:
+          "Token does not look like an Inner.ai session token — re-paste from DevTools → Cookies → .innerai.com",
+      };
+    }
+
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 export async function validateProviderApiKey({ provider, apiKey, providerSpecificData = {} }: any) {
   const requiresApiKey = !providerAllowsOptionalApiKey(provider);
   const isLocal = isLocalProvider(provider);
@@ -3409,6 +3496,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
+    "inner-ai": validateInnerAiProvider,
     "adapta-web": validateAdaptaWebProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
@@ -3497,6 +3585,76 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
           return { valid: false, error: "Invalid API key" };
         }
         // Any non-auth response (200, 400, 422) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
+    // NVIDIA NIM (#2463) — bypass the /models probe in favor of a direct
+    // chat/completions probe. NVIDIA NIM's /models endpoint returns model
+    // catalogs that vary by region and key-tier, and some keys 404 on it,
+    // which the generic flow misreads. The chat probe is also a stronger
+    // sanity check for streaming/key correctness.
+    nvidia: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const baseUrlRaw =
+          providerSpecificData?.baseUrl || "https://integrate.api.nvidia.com/v1/chat/completions";
+        const normalized = normalizeBaseUrl(baseUrlRaw);
+        const chatUrl = normalized.endsWith("/chat/completions")
+          ? normalized
+          : `${normalized}/chat/completions`;
+        const modelId =
+          providerSpecificData?.validationModelId ||
+          getRegistryEntry("nvidia")?.models?.[0]?.id ||
+          "meta/llama-3.1-8b-instruct";
+        const res = await validationWrite(
+          chatUrl,
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: JSON.stringify({
+              model: modelId,
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          isLocal
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        // Any non-auth response (200, 400, 422, 429) means auth passed
+        return { valid: true, error: null };
+      } catch (error: any) {
+        return toValidationErrorResult(error);
+      }
+    },
+    // Poolside (#2723) — API has no /v1/models endpoint and returns 401 from
+    // unknown routes, which the generic /models probe misreads as "invalid API key".
+    // Validate via direct chat/completions probe with a minimal body.
+    poolside: async ({ apiKey, providerSpecificData }: any) => {
+      try {
+        const baseUrl = normalizeBaseUrl(
+          providerSpecificData?.baseUrl || "https://api.poolside.ai/v1"
+        );
+        const chatUrl = `${baseUrl.replace(/\/chat\/completions$/, "")}/chat/completions`;
+        const res = await validationWrite(
+          chatUrl,
+          {
+            method: "POST",
+            headers: buildBearerHeaders(apiKey, providerSpecificData),
+            body: JSON.stringify({
+              model: "poolside-model",
+              messages: [{ role: "user", content: "test" }],
+              max_tokens: 1,
+            }),
+          },
+          isLocal
+        );
+        if (res.status === 401 || res.status === 403) {
+          return { valid: false, error: "Invalid API key" };
+        }
+        // Any non-auth response (200, 400, 422, 429) means auth passed
         return { valid: true, error: null };
       } catch (error: any) {
         return toValidationErrorResult(error);

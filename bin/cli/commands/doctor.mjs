@@ -416,7 +416,7 @@ export async function collectDoctorChecks(context = {}, options = {}) {
 
   // CLI tool health checks
   try {
-    const { collectCliToolChecks } = await import("../../../src/lib/cli-helper/doctor/checks.js");
+    const { collectCliToolChecks } = await import("../../../src/lib/cli-helper/doctor/checks.ts");
     const cliChecks = await collectCliToolChecks();
     checks.push(...cliChecks);
   } catch (err) {

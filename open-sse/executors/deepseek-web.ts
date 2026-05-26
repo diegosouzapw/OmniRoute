@@ -53,7 +53,7 @@ function evictOldest(cache: Map<string, unknown>): void {
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-function extractUserToken(credentials: Record<string, unknown>): string | null {
+export function extractUserToken(credentials: Record<string, unknown>): string | null {
   const raw = credentials?.apiKey || credentials?.accessToken;
   if (typeof raw !== "string" || raw.length === 0) return null;
   // Handle JSON-wrapped tokens (DeepSeek stores token as {"value":"..."})

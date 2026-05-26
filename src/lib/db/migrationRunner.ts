@@ -205,7 +205,7 @@ function ensureMigrationsTable(db: SqliteAdapter): void {
 function getMigrationFiles(): Array<{ version: string; name: string; path: string }> {
   if (!fs.existsSync(MIGRATIONS_DIR)) return [];
 
-  return fs
+  const files = fs
     .readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))
     .sort()
@@ -219,6 +219,40 @@ function getMigrationFiles(): Array<{ version: string; name: string; path: strin
       };
     })
     .filter(Boolean) as Array<{ version: string; name: string; path: string }>;
+
+  // Detect version collisions early: two files sharing the same numeric prefix
+  // would otherwise be silently skipped by the runner (only the first applied
+  // would record version=NNN in _omniroute_migrations; the rest would never run).
+  // SUPERSEDED_DUPLICATE_MIGRATIONS lists legitimate "renamed" pairs and is OK.
+  const byVersion = new Map<string, string[]>();
+  for (const f of files) {
+    if (!byVersion.has(f.version)) byVersion.set(f.version, []);
+    byVersion.get(f.version)!.push(f.name);
+  }
+  const realCollisions: Array<{ version: string; names: string[] }> = [];
+  for (const [version, names] of byVersion.entries()) {
+    if (names.length <= 1) continue;
+    const liveNames = names.filter(
+      (name) =>
+        !SUPERSEDED_DUPLICATE_MIGRATIONS.some((sup) => sup.version === version && sup.name === name)
+    );
+    if (liveNames.length > 1) {
+      realCollisions.push({ version, names: liveNames });
+    }
+  }
+  if (realCollisions.length > 0) {
+    const summary = realCollisions
+      .map((c) => `version=${c.version} → [${c.names.join(", ")}]`)
+      .join("; ");
+    throw new Error(
+      `Migration version collision detected: ${summary}. ` +
+        `Each migration file must have a unique numeric prefix. Rename one of the ` +
+        `colliding files (and add a retroactive guard in isSchemaAlreadyApplied for ` +
+        `DBs that already applied the old number). See _tasks/features-v3.8.4/9route/POST-MERGE-AUDIT.md.`
+    );
+  }
+
+  return files;
 }
 
 function filterSupersededDuplicateMigrations(
@@ -358,6 +392,20 @@ function isSchemaAlreadyApplied(
       return hasColumn(db, "usage_history", "service_tier");
     case "062":
       return hasColumn(db, "usage_history", "combo_strategy");
+    case "070":
+      // Retroactive guard for webhooks-kind-metadata migration renumbered from 068
+      // (collided with 068_free_proxies + 068_services). DBs that already applied
+      // 068_webhooks_kind_metadata should not re-run as 070.
+      return hasColumn(db, "webhooks", "kind") && hasColumn(db, "webhooks", "metadata_encrypted");
+    case "071":
+      // Retroactive guard for embedded-services migration renumbered from 068
+      // (originally collided with 068_free_proxies and 068_webhooks_kind_metadata).
+      // DBs that already applied 068_services should not re-run as 071.
+      return (
+        hasColumn(db, "version_manager", "logs_buffer_path") &&
+        hasColumn(db, "version_manager", "provider_expose") &&
+        hasColumn(db, "version_manager", "last_sync_at")
+      );
     default:
       return false;
   }

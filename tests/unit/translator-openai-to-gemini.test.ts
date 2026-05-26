@@ -969,3 +969,34 @@ test("openaiToGeminiRequest re-attaches cached thoughtSignature for FORMATS.GEMI
     "cached thoughtSignature must be re-attached to the functionCall"
   );
 });
+test("OpenAI -> Gemini request maps reasoning_effort to thinkingConfig", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash-thinking",
+    {
+      messages: [{ role: "user", content: "Solve this complex puzzle" }],
+      reasoning_effort: "high",
+    },
+    false
+  );
+
+  assert.ok((result as any).generationConfig.thinkingConfig, "expected thinkingConfig");
+  assert.equal((result as any).generationConfig.thinkingConfig.includeThoughts, true);
+  assert.equal((result as any).generationConfig.thinkingConfig.thinkingBudget, 32768);
+});
+
+test("OpenAI -> Gemini request maps google_search tool", () => {
+  const result = openaiToGeminiRequest(
+    "gemini-2.0-flash",
+    {
+      messages: [{ role: "user", content: "What happened today?" }],
+      tools: [{ type: "function", function: { name: "google_search" } }],
+    },
+    false
+  );
+
+  assert.ok(Array.isArray((result as any).tools), "expected tools array");
+  assert.ok(
+    (result as any).tools.some((t: any) => t.googleSearch),
+    "expected googleSearch tool"
+  );
+});

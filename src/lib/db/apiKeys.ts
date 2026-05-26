@@ -8,7 +8,7 @@ import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
-import { setNoLog } from "../compliance";
+import { setNoLog } from "../compliance/noLog";
 
 // ──────────────── Performance Optimizations ────────────────
 
@@ -320,7 +320,9 @@ function ensureApiKeysColumns(db: ApiKeysDbLike) {
 
 /**
  * Initialize prepared statements (lazy initialization)
+ * Re-creates statements if the underlying DB connection changed (HMR, backup restore).
  */
+let _stmtDb: ApiKeysDbLike | null = null;
 function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
   ensureApiKeysColumns(db);
 
@@ -330,8 +332,10 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
     !_stmtValidateKey ||
     !_stmtGetKeyMetadata ||
     !_stmtInsertKey ||
-    !_stmtDeleteKey
+    !_stmtDeleteKey ||
+    _stmtDb !== db
   ) {
+    _stmtDb = db;
     _stmtGetAllKeys = db.prepare<ApiKeyRow>("SELECT * FROM api_keys ORDER BY created_at");
     _stmtGetKeyById = db.prepare<ApiKeyRow>("SELECT * FROM api_keys WHERE id = ?");
     _stmtValidateKey = db.prepare<JsonRecord>(

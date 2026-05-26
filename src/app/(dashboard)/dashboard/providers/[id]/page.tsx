@@ -61,6 +61,7 @@ import {
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -3784,6 +3785,18 @@ export default function ProviderDetailPage() {
                           Experimental OAuth
                         </Button>
                       )}
+                      {providerId === "codex" && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          icon="upload_file"
+                          onClick={() => gateConnectionFlow(() => setImportCodexModalOpen(true))}
+                        >
+                          {typeof t.has === "function" && t.has("importCodexAuth")
+                            ? t("importCodexAuth")
+                            : "Import auth"}
+                        </Button>
+                      )}
                       {providerId === "claude" && (
                         <Button
                           size="sm"
@@ -7145,7 +7158,9 @@ function AddApiKeyModal({
   const isBlackboxWeb = provider === "blackbox-web";
   const isMuseSparkWeb = provider === "muse-spark-web";
   const isDeepSeekWeb = provider === "deepseek-web";
-  const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
+  const isClaudeWeb = provider === "claude-web";
+  const isWebSessionProvider =
+    isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb || isClaudeWeb;
   const apiKeyOptional = providerAllowsOptionalApiKey(provider);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
@@ -7216,11 +7231,13 @@ function AddApiKeyModal({
             ? t("blackboxWebCookiePlaceholder")
             : isMuseSparkWeb
               ? t("museSparkWebCookiePlaceholder")
-              : isQoder
-                ? t("qoderPatPlaceholder")
-                : apiKeyOptional
-                  ? t("optional")
-                  : undefined;
+              : isClaudeWeb
+                ? t("claudeWebCookiePlaceholder")
+                : isQoder
+                  ? t("qoderPatPlaceholder")
+                  : apiKeyOptional
+                    ? t("optional")
+                    : undefined;
   const apiCredentialHint = isQoder
     ? t("qoderPatHint")
     : isDeepSeekWeb
@@ -7233,13 +7250,15 @@ function AddApiKeyModal({
             ? t("blackboxWebCookieHint")
             : isMuseSparkWeb
               ? t("museSparkWebCookieHint")
-              : isLocalSelfHostedProvider
-                ? t("localProviderApiKeyOptionalHint", {
-                    provider: localProviderMetadata?.name || providerName || provider || "",
-                  })
-                : apiKeyOptional
-                  ? t("apiKeyOptionalHint")
-                  : undefined;
+              : isClaudeWeb
+                ? t("claudeWebCookieHint")
+                : isLocalSelfHostedProvider
+                  ? t("localProviderApiKeyOptionalHint", {
+                      provider: localProviderMetadata?.name || providerName || provider || "",
+                    })
+                  : apiKeyOptional
+                    ? t("apiKeyOptionalHint")
+                    : undefined;
 
   const handleValidate = async () => {
     setValidating(true);
@@ -7271,11 +7290,11 @@ function AddApiKeyModal({
 
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
+    const ok = await copyToClipboard(value);
+    if (ok) {
       setCopiedCommandCodeField(key);
       window.setTimeout(() => setCopiedCommandCodeField(null), 1500);
-    } catch {
+    } else {
       setSaveError("Copy failed. Select the text and copy it manually.");
     }
   };

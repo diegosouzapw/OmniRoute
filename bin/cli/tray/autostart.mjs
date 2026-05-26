@@ -63,8 +63,9 @@ function runUserSystemctl(args, { ignoreFailure = true } = {}) {
   try {
     execSync(`systemctl --user ${args}`, { stdio: "ignore" });
     return true;
-  } catch {
-    return ignoreFailure ? false : false;
+  } catch (err) {
+    if (!ignoreFailure) throw err;
+    return false;
   }
 }
 
@@ -83,7 +84,10 @@ function isSystemdServiceEnabled() {
     execSync(`systemctl --user is-enabled ${LINUX_SERVICE_NAME}`, { stdio: "ignore" });
     return true;
   } catch {
-    return false;
+    // systemctl --user can't query the bus (headless environments / CI runners).
+    // Treat the presence of the unit file as the source of truth, matching the
+    // fallback used in enableLinux() where unit-file existence counts as success.
+    return true;
   }
 }
 

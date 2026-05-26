@@ -43,7 +43,11 @@ function loadEnvFile() {
   }
 
   envPaths.push(join(process.cwd(), ".env"));
-  envPaths.push(join(ROOT, ".env"));
+  // Skip the repo-checkout .env when explicitly requested (used by isolation tests
+  // that need a deterministic environment without the development repo's defaults).
+  if (process.env.OMNIROUTE_CLI_SKIP_REPO_ENV !== "1") {
+    envPaths.push(join(ROOT, ".env"));
+  }
 
   for (const envPath of envPaths) {
     try {

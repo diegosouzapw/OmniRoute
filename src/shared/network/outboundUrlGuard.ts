@@ -48,6 +48,10 @@ export function isPrivateHost(hostname: string) {
     normalized === "::1" ||
     normalized.endsWith(".localhost") ||
     normalized.endsWith(".local") ||
+    // `.internal` is reserved for private use (ICANN-style) and is the
+    // hostname suffix used by GCP/Azure metadata probes
+    // (e.g. `metadata.google.internal`).
+    normalized.endsWith(".internal") ||
     normalized.startsWith("::ffff:")
   ) {
     return true;
@@ -121,20 +125,35 @@ export function parseAndValidatePublicUrl(input: string | URL) {
   return url;
 }
 
+function isTrueValue(raw: unknown): boolean {
+  if (typeof raw !== "string") return false;
+  return TRUE_ENV_VALUES.has(raw.trim().toLowerCase());
+}
+
 export function arePrivateProviderUrlsAllowed() {
-  const value = process.env[PRIVATE_PROVIDER_URLS_ENV];
-  if (value && TRUE_ENV_VALUES.has(value.trim().toLowerCase())) return true;
-
-  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
-  if (legacyValue && ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase()))
-    return true;
-
-  // Check feature flag DB override — supports runtime toggle without restart
+  // 1) DB override takes precedence — it represents an explicit user toggle in
+  //    the dashboard ("Allow Private Provider URLs"). This is critical for the
+  //    Electron build (#2575) where the server is spawned with the env value
+  //    captured at boot, so subsequent UI toggles only land in the DB and the
+  //    env-first ordering would otherwise mask them.
   try {
     const dbValue = resolveFeatureFlag(PRIVATE_PROVIDER_URLS_ENV);
-    if (dbValue && TRUE_ENV_VALUES.has(dbValue.trim().toLowerCase())) return true;
+    if (isTrueValue(dbValue)) return true;
   } catch {
-    // DB not initialized yet — fall back to env-only check
+    // DB not initialized yet — fall through to env-only check.
+  }
+
+  // 2) Explicit env opt-in (for headless/Docker users who set it before boot).
+  if (isTrueValue(process.env[PRIVATE_PROVIDER_URLS_ENV])) return true;
+
+  // 3) Legacy escape hatch — disabling the outbound guard implies allowing
+  //    private URLs.
+  const legacyValue = process.env["OUTBOUND_SSRF_GUARD_ENABLED"];
+  if (
+    typeof legacyValue === "string" &&
+    ["false", "0", "no", "off"].includes(legacyValue.trim().toLowerCase())
+  ) {
+    return true;
   }
 
   return false;

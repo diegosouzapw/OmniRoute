@@ -284,9 +284,15 @@ jobs:
       - run: npm run check:node-runtime
       - name: Run c8 over shard ${{ matrix.shard }}/4
         run: |
+          # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
+          # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
+          # only produces the final json *report* and leaves the raw v8 files in
+          # `coverage/tmp`, so uploading `coverage-shard/` was empty. Pin the temp
+          # dir so the raw coverage files live there and the artifact upload picks
+          # them up regardless of `--test-force-exit` timing.
           npx c8 \
             --reporter=json \
-            --output-dir=coverage-shard \
+            --temp-directory=coverage-shard \
             --exclude=tests/** \
             --exclude=**/*.test.* \
             node --import tsx --test --test-force-exit --test-concurrency=4 \

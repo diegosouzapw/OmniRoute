@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: OmniRoute API
-  version: 3.8.3
+  version: 3.8.4
   description: |
     OmniRoute is a local-first AI API proxy router. It provides an OpenAI-compatible
     endpoint that routes requests to multiple AI providers with load balancing,
@@ -59,6 +59,10 @@ tags:
     description: Format translation debug & testing
   - name: CLI Tools
     description: CLI tool configuration management
+  - name: Embedded Services
+    description: >-
+      Install, start, stop, and monitor locally-running embedded services (9Router, CLIProxyAPI).
+      All routes are LOCAL_ONLY — accessible from loopback only (hard rule #17).
   - name: OAuth
     description: OAuth flows for provider authentication
   - name: System
@@ -1717,6 +1721,411 @@ paths:
         "200":
           description: OpenClaw CLI settings reset
 
+  # ─── Embedded Services ─────────────────────────────────────────
+  # All routes LOCAL_ONLY (loopback only) — hard rule #17.
+  # See docs/frameworks/EMBEDDED-SERVICES.md for full reference.
+
+  /api/services/9router/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install 9Router from npm
+      description: >-
+        Installs the `9router` npm package under DATA_DIR/services/9router/.
+        Uses execFile (no shell interpolation — hard rule #13).
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+                  description: npm version tag or semver to install
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  path:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/9router/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start 9Router
+      description: >-
+        Spawns the 9Router process. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started (or already running)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: 9Router is not installed
+        "503":
+          description: Start failed
+
+  /api/services/9router/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop 9Router
+      description: >-
+        Gracefully stops 9Router (SIGTERM → 15 s → SIGKILL). Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "503":
+          description: Stop failed
+
+  /api/services/9router/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart 9Router
+      description: >-
+        Equivalent to stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/9router/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update 9Router to a newer npm version
+      description: >-
+        Stops the service (if running), installs the newer npm version, then restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  previousVersion:
+                    type: string
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
+  /api/services/9router/rotate-key:
+    post:
+      tags: [Embedded Services]
+      summary: Rotate the 9Router API key
+      description: >-
+        Generates a new API key, encrypts it at-rest, and restarts the service to
+        apply it. The plaintext key is never returned.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Key rotated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keyRotated:
+                    type: boolean
+                  restarted:
+                    type: boolean
+        "500":
+          description: Rotation failed
+
+  /api/services/9router/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get 9Router status
+      description: >-
+        Returns combined live supervisor state and DB metadata.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatusExtended"
+        "500":
+          description: Status read failed
+
+  /api/services/9router/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle 9Router auto-start
+      description: >-
+        When enabled, 9Router starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/cliproxy/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install CLIProxyAPI from npm
+      description: >-
+        Installs the CLIProxyAPI package under DATA_DIR/services/cliproxy/.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/cliproxy/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start CLIProxyAPI
+      description: >-
+        Spawns the CLIProxyAPI process. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: CLIProxyAPI is not installed
+        "503":
+          description: Start failed
+
+  /api/services/cliproxy/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop CLIProxyAPI
+      description: >-
+        Gracefully stops CLIProxyAPI. Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart CLIProxyAPI
+      description: >-
+        stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update CLIProxyAPI to a newer npm version
+      description: >-
+        Stops, installs newer version, restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/cliproxy/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get CLIProxyAPI status
+      description: >-
+        Returns live supervisor state and DB metadata (no apiKeyMasked — CLIProxyAPI
+        does not use an injected API key).
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle CLIProxyAPI auto-start
+      description: >-
+        When enabled, CLIProxyAPI starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/{name}/logs:
+    get:
+      tags: [Embedded Services]
+      summary: Stream service logs via SSE
+      description: >-
+        Returns a Server-Sent Events stream from the service's in-memory ring buffer
+        (5 MB, circular). Sends a `snapshot` event with historical lines first, then
+        live `log` events, plus a `heartbeat` every 15 s.
+        **LOCAL_ONLY** — loopback only.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [9router, cliproxy]
+        - name: tail
+          in: query
+          schema:
+            type: integer
+            default: 200
+            maximum: 1000
+          description: Number of historical lines to include in the initial snapshot
+        - name: filter
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          description: >-
+            Case-insensitive substring filter applied to log lines.
+            No regex — ReDoS-safe by design.
+      responses:
+        "200":
+          description: SSE log stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: >-
+                  Events: `snapshot` (LogLine[]), `log` (LogLine), `heartbeat` ({})
+        "400":
+          description: filter parameter exceeds maximum length
+        "404":
+          description: Service not found
+
   # ─── OAuth ─────────────────────────────────────────────────────
 
   /api/oauth/{provider}/{action}:
@@ -1995,6 +2404,7 @@ paths:
     post:
       tags: [System]
       summary: Shutdown the application
+      x-always-protected: true
       responses:
         "200":
           description: Shutdown initiated
@@ -2381,6 +2791,62 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    ServiceStatus:
+      type: object
+      description: Live supervisor state for an embedded service
+      properties:
+        tool:
+          type: string
+          example: 9router
+        state:
+          type: string
+          enum: [not_installed, stopped, starting, running, stopping, error]
+        pid:
+          type: integer
+          nullable: true
+        port:
+          type: integer
+          example: 20130
+        health:
+          type: string
+          enum: [unknown, healthy, degraded]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastError:
+          type: string
+          nullable: true
+
+    ServiceStatusExtended:
+      allOf:
+        - $ref: "#/components/schemas/ServiceStatus"
+        - type: object
+          description: >-
+            Extended status including version metadata and (for 9Router) API key preview.
+          properties:
+            installedVersion:
+              type: string
+              nullable: true
+            latestVersion:
+              type: string
+              nullable: true
+            updateAvailable:
+              type: boolean
+            apiKeyMasked:
+              type: string
+              nullable: true
+              description: >-
+                Masked API key preview (e.g. "nr_****abcd").
+                Present only for services that use an injected API key (9Router).
+            autoStart:
+              type: boolean
+            providerExpose:
+              type: boolean
+              description: >-
+                Whether models from this service are exposed as a routing provider.
+                9Router only.
+
     ApiErrorResponse:
       type: object
       properties:

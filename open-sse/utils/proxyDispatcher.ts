@@ -187,6 +187,18 @@ export function normalizeProxyUrl(
   return buildProxyUrlString(parsed, port);
 }
 
+export function buildVercelRelayHeaders(
+  targetUrl: string,
+  relayAuth: string
+): Record<string, string> {
+  const parsed = new URL(targetUrl);
+  return {
+    "x-relay-target": `${parsed.protocol}//${parsed.host}`,
+    "x-relay-path": parsed.pathname + parsed.search,
+    "x-relay-auth": relayAuth,
+  };
+}
+
 export function proxyConfigToUrl(
   proxyConfig: unknown,
   { allowSocks5 = isSocks5ProxyEnabled() } = {}
@@ -203,6 +215,13 @@ export function proxyConfigToUrl(
 
   const config = proxyConfig as ProxyConfigObject;
   const type = String(config.type || "http").toLowerCase();
+
+  // Vercel Relay entries carry the relay URL in `host` — no dispatcher needed;
+  // callers should use buildVercelRelayHeaders() and fetch directly.
+  if (type === "vercel") {
+    return config.host ? `https://${config.host}` : null;
+  }
+
   const protocol = `${type}:`;
 
   if (!SUPPORTED_PROTOCOLS.has(protocol)) {
