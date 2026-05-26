@@ -1,5 +1,10 @@
 import type { ExecuteInput } from "./base.ts";
-import { DeepSeekWebExecutor, acquireAccessToken, tokenCache } from "./deepseek-web.ts";
+import {
+  DeepSeekWebExecutor,
+  acquireAccessToken,
+  extractUserToken,
+  tokenCache,
+} from "./deepseek-web.ts";
 
 interface AutoRefreshConfig {
   sessionRefreshInterval?: number;
@@ -28,15 +33,12 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
       autoRefresh: true,
       ...config,
     };
-    if (this.refreshConfig.autoRefresh) {
-      this.startAutoRefresh();
-    }
   }
 
   override async execute(input: ExecuteInput) {
     this.retryCount = 0;
     const creds = input.credentials as unknown as Record<string, unknown>;
-    this.currentUserToken = (creds.apiKey as string) || (creds.accessToken as string) || "";
+    this.setCurrentUserToken(extractUserToken(creds));
     return this.executeWithRetry(input);
   }
 
@@ -62,12 +64,30 @@ export class DeepSeekWebWithAutoRefreshExecutor extends DeepSeekWebExecutor {
   private startAutoRefresh(): void {
     if (this.refreshTimer) clearInterval(this.refreshTimer);
     this.refreshTimer = setInterval(async () => {
+      if (!this.currentUserToken) {
+        this.sessionValid = false;
+        return;
+      }
       try {
         await this.doRefreshSession();
       } catch (error) {
         console.error("[DeepSeek-WEB-AUTO-REFRESH] Auto-refresh failed:", error);
       }
     }, this.refreshConfig.sessionRefreshInterval);
+  }
+
+  private setCurrentUserToken(userToken: string | null): void {
+    if (!userToken) {
+      return;
+    }
+    if (this.currentUserToken === userToken) {
+      return;
+    }
+    this.currentUserToken = userToken;
+    this.sessionValid = false;
+    if (this.refreshConfig.autoRefresh) {
+      this.startAutoRefresh();
+    }
   }
 
   private async doRefreshSession(): Promise<void> {
