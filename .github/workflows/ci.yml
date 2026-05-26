@@ -191,14 +191,14 @@ jobs:
         run: xvfb-run -a npm run electron:smoke:packaged
 
   test-unit:
-    name: Unit Tests (${{ matrix.shard }}/4)
+    name: Unit Tests (${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -211,7 +211,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts
+      - run: node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
 
   node-24-compat:
     name: Node 24 Compatibility (${{ matrix.shard }}/2)
@@ -262,14 +262,14 @@ jobs:
       - run: node --import tsx --test --test-force-exit --test-concurrency=4 --test-shard=${{ matrix.shard }}/2 tests/unit/*.test.ts
 
   test-coverage-shard:
-    name: Coverage Shard (${{ matrix.shard }}/4)
+    name: Coverage Shard (${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs: build
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
       API_KEY_SECRET: ci-test-api-key-secret-long
@@ -282,7 +282,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:node-runtime
-      - name: Run c8 over shard ${{ matrix.shard }}/4
+      - name: Run c8 over shard ${{ matrix.shard }}/8
         run: |
           # `--temp-directory` (writable via NODE_V8_COVERAGE) is what the merge
           # job reads with `c8 report --temp-directory ...`. Using `--output-dir`
@@ -295,8 +295,8 @@ jobs:
             --temp-directory=coverage-shard \
             --exclude=tests/** \
             --exclude=**/*.test.* \
-            node --import tsx --test --test-force-exit --test-concurrency=4 \
-              --test-shard=${{ matrix.shard }}/4 tests/unit/*.test.ts
+            node --max-old-space-size=4096 --import tsx --test --test-force-exit --test-concurrency=4 \
+              --test-shard=${{ matrix.shard }}/8 tests/unit/*.test.ts
       - name: Upload raw shard coverage
         if: always()
         uses: actions/upload-artifact@v7
