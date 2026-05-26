@@ -1074,7 +1074,10 @@
       "hmacRecipeTitle": "Verificando a Assinatura",
       "hmacRecipe": "const sig = req.headers['x-webhook-signature'];\nconst body = JSON.stringify(req.body);\nconst expected = 'sha256=' + crypto.createHmac('sha256', SECRET).update(body).digest('hex');\nif (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) throw new Error('Assinatura inválida');",
       "hmacRecipePython": "import hmac, hashlib\nsig = request.headers.get('X-Webhook-Signature', '')\nbody = request.get_data()\nexpected = 'sha256=' + hmac.new(SECRET.encode(), body, hashlib.sha256).hexdigest()\nif not hmac.compare_digest(sig, expected):\n    raise ValueError('Assinatura inválida')",
-      "hmacRecipeBash": "SIG=$(echo -n \"$BODY\" | openssl dgst -sha256 -hmac \"$SECRET\" | awk '{print \"sha256=\" $2}')\n[ \"$SIG\" = \"$RECEIVED_SIG\" ] || { echo 'Assinatura inválida'; exit 1; }"
+      "hmacRecipeBash": "SIG=$(echo -n \"$BODY\" | openssl dgst -sha256 -hmac \"$SECRET\" | awk '{print \"sha256=\" $2}')\n[ \"$SIG\" = \"$RECEIVED_SIG\" ] || { echo 'Assinatura inválida'; exit 1; }",
+      "timeoutNote": "Timeout: 10s por requisição.",
+      "retryNote": "Após 3 falhas: marcado errored · Após 10: desabilitado automaticamente.",
+      "docsLink": "Documentação completa"
     }
   },
   "compliance": {
