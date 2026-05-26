@@ -57,11 +57,11 @@ const EXPECTED_PROVIDER_KEYS = [
   "kiro",
   "amazon-q",
   "cursor",
+  "trae",
   "kilocode",
   "cline",
   "windsurf",
   "devin-cli",
-  "trae",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {

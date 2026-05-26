@@ -306,7 +306,7 @@ test("handleResponsesCore rejects invalid Responses API input that cannot be tra
       }),
     (error) =>
       error instanceof Error &&
-      error.message.includes("web_search_preview tool type is not supported")
+      error.message.includes("file_search tool type is not supported")
   );
 });
 

@@ -740,6 +740,8 @@
     "endpointsSubtitle": "Your AI connection URLs",
     "apiManager": "API Key Manager",
     "apiManagerSubtitle": "Manage API keys and access",
+    "embeddedServices": "Embedded Services",
+    "embeddedServicesSubtitle": "Manage local proxy services",
     "logs": "Logs",
     "webhooks": "Webhooks",
     "webhooksSubtitle": "Get notified of events",
