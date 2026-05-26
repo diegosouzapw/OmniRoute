@@ -306,6 +306,13 @@ export const TRAE_CONFIG = {
     macos: "/Users/<user>/Library/Application Support/Trae/User/globalStorage/state.vscdb",
     windows: "%APPDATA%\\Trae\\User\\globalStorage\\state.vscdb",
   },
+  // Chat completions path (mirrored from OpenAI-compatible providers)
+  chatEndpoint: "/v1/chat/completions",
+  // Trae website — users retrieve their token here after signing in
+  webUrl: "https://trae.ai",
+  // Token storage note for users — no automated extraction path is available
+  // because Trae does not expose a public SQLite / keychain location yet.
+  tokenNote: "Sign in to Trae IDE, then copy your API token from the account settings.",
 };
 
 // Windsurf / Devin CLI Configuration
@@ -345,29 +352,6 @@ export const WINDSURF_CONFIG = {
   ideName: "windsurf",
   ideVersion: "3.14.0",
   extensionVersion: "3.14.0",
-};
-
-// Trae IDE OAuth Configuration (Import Token)
-//
-// Trae is an AI-native IDE by ByteDance. Authentication uses a personal API
-// token that users can find inside the Trae IDE under:
-//   Settings → Account → API Token (or similar path)
-//
-// TODO(trae-auth): ByteDance has not published a public OAuth client_id/secret
-// for the Trae IDE. Once a public CLI or device-code flow is documented at
-// https://docs.trae.ai, update flowType to "device_code" and add the
-// appropriate endpoints. Until then, import_token (manual paste) is the only
-// confirmed safe default.
-export const TRAE_CONFIG = {
-  // Inference API endpoint (used by the IDE extension)
-  apiEndpoint: "https://api.trae.ai",
-  // Chat completions path (mirrored from OpenAI-compatible providers)
-  chatEndpoint: "/v1/chat/completions",
-  // Trae website — users retrieve their token here after signing in
-  webUrl: "https://trae.ai",
-  // Token storage note for users — no automated extraction path is available
-  // because Trae does not expose a public SQLite / keychain location yet.
-  tokenNote: "Sign in to Trae IDE, then copy your API token from the account settings.",
 };
 
 // OAuth timeout (5 minutes)

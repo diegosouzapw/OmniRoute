@@ -7,6 +7,7 @@
 ### 🔒 Security
 
 - **authz:** redirect `/home` and `/home/:path*` to `/login` when unauthenticated — Next.js middleware matcher omitted `/home`, so any visit reached the page directly on `REQUIRE_LOGIN` deployments (#2712)
+- **review:** resolve v3.8.4 important + minor findings from consolidated review including SSRF guards (#2749)
 
 ### 🔧 Bug Fixes
 
@@ -18,6 +19,17 @@
 - **model:** merge settings-based aliases with the legacy DB alias namespace so aliases set via the Settings UI (e.g. `gpt-5.4 → cx/gpt-5.4`) are honored instead of being overridden by provider inference (#2618, #2208)
 - **kiro:** fall back to `document.execCommand("copy")` when the Clipboard API is unavailable (HTTP/non-secure contexts), so the "Copy authorization link" button works on LAN deployments (#2689)
 - **cli:** raise `omniroute serve` ready timeout from 20s to 60s and add a TCP-listening fallback so Windows users no longer get phantom timeouts during slow Next.js cold start (#2460)
+- **mcp:** break circular await deadlock in compliance→callLogs + Kiro refresh resilience (#2747)
+- **ui:** claude-web provider shows 'API Key' label instead of 'Session Cookie' (#2744)
+- **deepseek-web:** lazy start session refresh (#2742)
+- **docker:** keep fumadocs doc assets in Docker build context (#2741)
+- **vision-bridge:** force bridge for opencode-go/zen models that overstate vision support (#2740)
+- **combos:** enable universal handoff by default to preserve cross-model conversation context (#2736)
+
+### 🏆 Hall de Contribuidores
+
+Um agradecimento especial a todos que contribuíram com código, revisões e testes para este release:
+@diegosouzapw, @disonjer, @herjarsa, @janeza2, @oyi77, @thanet-s
 
 ## [Unreleased]
 
