@@ -61,7 +61,12 @@ function rejectionResponse(
 }
 
 function isDashboardPath(pathname: string): boolean {
-  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/home" ||
+    pathname.startsWith("/home/")
+  );
 }
 
 function isManagementDashboardRoute(
