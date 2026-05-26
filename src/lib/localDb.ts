@@ -162,7 +162,9 @@ export {
   listProxies,
   getProxyById,
   createProxy,
+  createProxyAndAssign,
   updateProxy,
+  updateProxyAndAssign,
   upsertProxy,
   deleteProxyById,
   getProxyAssignments,
@@ -487,3 +489,16 @@ export type {
   CreateRelayTokenInput,
   RelayTokenWithSecret,
 } from "./db/relayProxies";
+
+export {
+  upsertFreeProxy,
+  listFreeProxies,
+  listFreeProxiesBySource,
+  getFreeProxyById,
+  markFreeProxyInPool,
+  deleteFreeProxy,
+  clearFreeProxiesBySource,
+  getFreeProxyStats,
+} from "./db/freeProxies";
+
+export type { FreeProxyRecord, FreeProxyStats } from "./db/freeProxies";

@@ -280,20 +280,6 @@ const PROXY_GROUP: SidebarItemGroup = {
       subtitleKey: "proxySubtitle",
       icon: "dns",
     },
-    {
-      id: "mitm-proxy",
-      href: "/dashboard/system/mitm-proxy",
-      i18nKey: "mitmProxy",
-      subtitleKey: "mitmProxySubtitle",
-      icon: "lan",
-    },
-    {
-      id: "1proxy",
-      href: "/dashboard/system/1proxy",
-      i18nKey: "oneProxy",
-      subtitleKey: "oneProxySubtitle",
-      icon: "public",
-    },
   ],
 };
 

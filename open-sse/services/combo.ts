@@ -92,6 +92,7 @@ function isAllAccountsRateLimitedResponse(
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
+const COMBO_MODEL_TIMEOUT_MS = 30_000; // 30s per model attempt within a combo (default FETCH_TIMEOUT_MS=600s)
 
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
@@ -1645,13 +1646,39 @@ export async function handleComboChat({
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── Per-model timeout wrapper ────────────────────────────────────────────
+  // Default FETCH_TIMEOUT_MS is 600s per model. For combos, we use a shorter
+  // per-model timeout so slow/hanging models don't block fallback.
+  const handleSingleModelWithTimeout = async (b, modelStr, target?) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((resolve) => {
+      timeoutId = setTimeout(() => {
+        log.warn("COMBO", `Model ${modelStr} exceeded ${COMBO_MODEL_TIMEOUT_MS}ms timeout — falling back`);
+        resolve(new Response(
+          JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }),
+          { status: 524, headers: { 'Content-Type': 'application/json' } }
+        ));
+      }, COMBO_MODEL_TIMEOUT_MS);
+    });
+    try {
+      return await Promise.race([
+        handleSingleModelWrapped(b, modelStr, target).catch((err) => {
+          return new Response(JSON.stringify({ error: { message: err.message } }), { status: 502, headers: { "Content-Type": "application/json" } });
+        }),
+        timeoutPromise,
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
     log.info(
       "COMBO",
       `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
     );
-    return handleSingleModelWrapped(body, pinnedModel);
+    return handleSingleModelWithTimeout(body, pinnedModel);
   }
 
   // Route to round-robin handler if strategy matches
@@ -1659,7 +1686,7 @@ export async function handleComboChat({
     return handleRoundRobinCombo({
       body,
       combo,
-      handleSingleModel: handleSingleModelWrapped,
+      handleSingleModel: handleSingleModelWithTimeout,
       isModelAvailable,
       log,
       settings,
@@ -1703,7 +1730,7 @@ export async function handleComboChat({
         const pipelineRaw = await handlePipelineCombo({
           body,
           combo,
-          handleChatCore: handleSingleModel,
+          handleChatCore: handleSingleModelWithTimeout,
           log,
           settings,
           signal,
@@ -2155,7 +2182,7 @@ export async function handleComboChat({
             );
           }
         }
-        const result = await handleSingleModelWrapped(body, modelStr, {
+        const result = await handleSingleModelWithTimeout(body, modelStr, {
           ...target,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
@@ -2218,14 +2245,6 @@ export async function handleComboChat({
             relayOptions?.sessionId &&
             !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
           ) {
-            recordSessionModelUsage(
-              relayOptions.sessionId,
-              combo.name,
-              modelStr,
-              provider,
-              target.connectionId
-            );
-
             const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
             if (prevModel && prevModel !== modelStr) {
               const handoffSourceMessages =
@@ -2242,9 +2261,17 @@ export async function handleComboChat({
                 prevModel,
                 currModel: modelStr,
                 universalConfig: universalHandoffConfig,
-                handleSingleModel: handleSingleModelWrapped,
+                handleSingleModel: handleSingleModelWithTimeout,
               });
             }
+
+            recordSessionModelUsage(
+              relayOptions.sessionId,
+              combo.name,
+              modelStr,
+              provider,
+              target.connectionId
+            );
           }
           // Context-relay intentionally splits responsibilities:
           // combo.ts decides whether a successful turn should generate a handoff,
@@ -2279,7 +2306,7 @@ export async function handleComboChat({
                   model: modelStr,
                   expiresAt: resetCandidates[0] || null,
                   config: relayConfig,
-                  handleSingleModel: handleSingleModelWrapped,
+                  handleSingleModel: handleSingleModelWithTimeout,
                 });
               }
             }

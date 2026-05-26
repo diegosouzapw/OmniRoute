@@ -375,6 +375,17 @@ export const WEB_COOKIE_PROVIDERS = {
       "Copy the value of 'convex-session-id'. Also open DevTools → Network, copy the Cookie header from any request. " +
       "Paste both values here. See provider setup docs for a step-by-step guide.",
   },
+  "inner-ai": {
+    id: "inner-ai",
+    alias: "in-ai",
+    name: "Inner.ai (Subscription)",
+    icon: "auto_awesome",
+    color: "#1A56DB",
+    textIcon: "IA",
+    website: "https://app.innerai.com",
+    authHint:
+      "Paste your token cookie and email separated by a space: open DevTools → Application → Cookies → .innerai.com, copy the token value, then append a space and your Inner.ai login email. Example: eyJhbG... user@example.com",
+  },
   "adapta-web": {
     id: "adapta-web",
     alias: "adp-web",
@@ -2191,6 +2202,45 @@ export const APIKEY_PROVIDERS = {
     },
     serviceKinds: ["llm"],
   },
+  bluesminds: {
+    id: "bluesminds",
+    alias: "bm",
+    name: "BluesMinds",
+    icon: "psychology",
+    color: "#3B82F6",
+    textIcon: "BM",
+    website: "https://www.bluesminds.com",
+    hasFree: true,
+    freeNote:
+      "Free daily pi credits — supports 200+ models including GPT-4o, GPT-4.1, Claude Sonnet 4.5, Gemini 2.0 Flash, DeepSeek V4, Qwen, Kimi K2",
+    apiHint:
+      "Get your API key at https://www.bluesminds.com — OpenAI-compatible endpoint at https://api.bluesminds.com/v1 with free daily credits. VIP models (Claude Opus 4.5, Gemini 2.5 Pro) consume pi credits.",
+  },
+  "freemodel-dev": {
+    id: "freemodel-dev",
+    alias: "fmd",
+    name: "FreeModel.dev",
+    icon: "auto_awesome",
+    color: "#8B5CF6",
+    textIcon: "FM",
+    website: "https://freemodel.dev",
+    hasFree: true,
+    freeNote:
+      "$300 free credits on signup — no credit card required. Access GPT-5.4 and GPT-5.5 (OpenAI's latest flagship models) through an OpenAI-compatible API.",
+    apiHint:
+      "Get $300 free API credits at https://freemodel.dev — no payment info required. OpenAI-compatible endpoint. GPT-5.4 and GPT-5.5 models available.",
+  },
+  freeaiapikey: {
+    id: "freeaiapikey",
+    alias: "faik",
+    name: "FreeAIAPIKey",
+    icon: "vpn_key",
+    color: "#F59E0B",
+    textIcon: "FK",
+    website: "https://freeaiapikey.com",
+    apiHint:
+      "Discounted API proxy for 40+ models including GPT-5, Claude Opus 4.6, Claude Sonnet 4.6, Qwen 3.5. Get your API key at https://freeaiapikey.com/dashboard. Base URL: https://freeaiapikey.com/v1.",
+  },
 };
 
 // Sub-categories within APIKEY_PROVIDERS (used by dashboard and catalog views).
@@ -2718,6 +2768,7 @@ const BULK_API_KEY_EXCLUDED = new Set([
   "blackbox-web",
   "muse-spark-web",
   "deepseek-web",
+  "inner-ai",
   "qoder",
   "google-pse-search",
   "command-code",

@@ -207,6 +207,25 @@ export async function createConnectionFromAuthFile(
     },
   });
 
+  // Fix C REVERTED: do NOT refresh-on-import.
+  //
+  // Reason: production tests showed that auth.json files exported from the
+  // Codex CLI are often already partially rotated (the CLI continues to use
+  // the tokens after export). Calling the OpenAI refresh endpoint with a
+  // stale refresh_token returns "invalid_grant" / "refresh_token_reused" /
+  // "refresh_token_invalidated" AND has been observed to invalidate the
+  // entire token family upstream — causing every freshly imported account
+  // to land in a permanently-broken state, with the only working connection
+  // being whichever auth.json the user re-exported most recently.
+  //
+  // The id_token's `exp` claim is now used as the initial `expiresAt`. In
+  // practice OpenAI Codex id_tokens carry a multi-day lifetime, so this
+  // does NOT trigger the import-burst proactive-refresh storm that Fix C
+  // originally tried to prevent. When the access_token actually expires,
+  // the reactive 401 path in chatCore.ts (with the per-connection mutex)
+  // handles a single, atomic rotation — that mechanism is intact via the
+  // Fix A `runWithOnPersist` plumbing.
+
   return { connection, created: true };
 }
 

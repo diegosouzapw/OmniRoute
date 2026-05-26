@@ -68,6 +68,7 @@ export async function POST(request: Request) {
     // the actual secrets for testing.
     const body = rawBody as Record<string, unknown>;
     const proxyId = typeof body.proxyId === "string" ? body.proxyId.trim() : null;
+    let dbProxyNotes: string | null = null;
     if (proxyId) {
       const dbProxy = await getProxyById(proxyId, { includeSecrets: true });
       if (dbProxy) {
@@ -79,10 +80,67 @@ export async function POST(request: Request) {
           username: dbProxy.username,
           password: dbProxy.password,
         };
+        dbProxyNotes = dbProxy.notes ?? null;
       }
     }
 
     const proxyType = String(proxy.type || "http").toLowerCase();
+
+    // Vercel Relay: test by hitting ipify via the relay headers
+    if (proxyType === "vercel") {
+      const relayHost = proxy.host;
+      // relayAuth lives in notes JSON: { relayAuth } stored by the vercel-deploy route.
+      // proxy.password is empty for relay entries; parse notes instead.
+      let relayAuth = "";
+      if (dbProxyNotes) {
+        try {
+          const parsed = JSON.parse(dbProxyNotes) as { relayAuth?: string };
+          relayAuth = parsed.relayAuth ?? "";
+        } catch {}
+      }
+      // Fallback: ad-hoc callers may pass relayAuth in the password field
+      if (!relayAuth) relayAuth = proxy.password ?? "";
+      const relayUrl = `https://${relayHost}`;
+      const start = Date.now();
+      const controller2 = new AbortController();
+      const timeout2 = setTimeout(() => controller2.abort(), 10000);
+      try {
+        // Send request to the relay URL with relay headers; relay forwards to ipify
+        const res = await undiciRequest(`${relayUrl}/`, {
+          method: "GET",
+          signal: controller2.signal,
+          headersTimeout: 10000,
+          bodyTimeout: 10000,
+          headers: {
+            "x-relay-target": "https://api64.ipify.org",
+            "x-relay-path": "/?format=json",
+            "x-relay-auth": relayAuth,
+          },
+        });
+        const text = await res.body.text();
+        let parsedIp: { ip?: string } = {};
+        try { parsedIp = JSON.parse(text) as { ip?: string }; } catch {}
+        return Response.json({
+          success: res.statusCode === 200,
+          publicIp: parsedIp.ip || null,
+          latencyMs: Date.now() - start,
+          proxyUrl: relayUrl,
+        });
+      } catch (relayErr) {
+        return Response.json({
+          success: false,
+          error:
+            relayErr instanceof Error && relayErr.name === "AbortError"
+              ? "Connection timeout (10s)"
+              : getErrorMessage(relayErr, "Relay test failed"),
+          latencyMs: Date.now() - start,
+          proxyUrl: relayUrl,
+        });
+      } finally {
+        clearTimeout(timeout2);
+      }
+    }
+
     if (proxyType === "socks5" && !isSocks5ProxyEnabled()) {
       return createErrorResponse({
         status: 400,

@@ -200,7 +200,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 
   // Log request endpoint and model
   const url = new URL(request.url);
-  const modelStr = body.model;
+  // `let` because the middleware-hook pipeline (line ~319) may reassign this
+  // when a hook rewrites the target model. Previously declared `const`, which
+  // broke turbopack/strict-mode builds (PR #2670 regression).
+  let modelStr = body.model;
 
   // Count messages (support both messages[] and input[] formats)
   const msgCount = body.messages?.length || body.input?.length || 0;
