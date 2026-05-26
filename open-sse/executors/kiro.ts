@@ -534,6 +534,25 @@ export class KiroExecutor extends BaseExecutor {
         log
       );
 
+      if (!result || result.error) return result;
+
+      // If client was re-registered (expired/invalid clientId/clientSecret after DB import,
+      // TTL expiry, or browser conflict), update providerSpecificData with new credentials (#2524).
+      if (result._newClientId) {
+        const updatedPsd = {
+          ...(credentials.providerSpecificData || {}),
+          clientId: result._newClientId,
+          clientSecret: result._newClientSecret,
+          clientSecretExpiresAt: result._newClientSecretExpiresAt,
+        };
+        return {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresIn: result.expiresIn,
+          providerSpecificData: updatedPsd,
+        };
+      }
+
       return result;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
