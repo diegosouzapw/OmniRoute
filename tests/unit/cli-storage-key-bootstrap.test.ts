@@ -15,8 +15,11 @@ const BIN = path.join(
 );
 
 function runCli(dataDir: string): { code: number | null; stderr: string } {
+  const cleanEnv = { ...process.env };
+  delete cleanEnv.STORAGE_ENCRYPTION_KEY;
   const res = spawnSync("node", [BIN, "--help"], {
-    env: { ...process.env, DATA_DIR: dataDir, NO_UPDATE_NOTIFIER: "1" },
+    cwd: dataDir,
+    env: { ...cleanEnv, DATA_DIR: dataDir, NO_UPDATE_NOTIFIER: "1" },
     timeout: 60_000,
     encoding: "utf-8",
   });

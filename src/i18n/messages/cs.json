@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Všechny úrovně",
+    "tierAuth": "Auth",
+    "tierLoopback": "Pouze místní",
+    "tierAlwaysProtected": "Vždy chráněno",
+    "tierPublic": "Veřejný",
+    "showInternal": "Zobrazit interní",
+    "hideInternal": "Skrýt interní",
+    "badgeLoopbackTooltip": "Pouze místní: blokováno z ne-loopback IP adres",
+    "badgeAlwaysProtectedTooltip": "Vždy chráněno: vyžaduje autentizaci i když requireLogin=false",
+    "badgeInternalTooltip": "Interní trasa — není součástí veřejného API"
   },
   "endpoints": {
     "tabProxy": "Koncová Proxy",

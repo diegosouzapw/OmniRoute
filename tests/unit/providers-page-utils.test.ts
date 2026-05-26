@@ -15,14 +15,17 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
     return { total: authType === "free" ? 1 : 0 };
   };
 
+  const mockOauthProviders = { claude: { name: "Claude" } };
+  const mockFreeProviders = { "gemini-cli": { name: "Gemini CLI" } };
+
   const entries = providerPageUtils.buildMergedOAuthProviderEntries(
-    providers.OAUTH_PROVIDERS,
-    providers.FREE_PROVIDERS,
+    mockOauthProviders,
+    mockFreeProviders,
     getProviderStats
   );
 
-  const oauthIds = Object.keys(providers.OAUTH_PROVIDERS);
-  const freeIds = Object.keys(providers.FREE_PROVIDERS);
+  const oauthIds = Object.keys(mockOauthProviders);
+  const freeIds = Object.keys(mockFreeProviders);
 
   assert.deepEqual(
     entries.slice(0, oauthIds.length).map((entry) => entry.providerId),
@@ -34,6 +37,7 @@ test("merged OAuth providers keep free-tier providers in the OAuth section", () 
   );
 
   const freeEntry = entries.find((entry) => entry.providerId === freeIds[0]);
+  assert.ok(freeEntry, "Should find the free entry");
   assert.equal(freeEntry.displayAuthType, "oauth");
   assert.equal(freeEntry.toggleAuthType, "free");
   assert.equal(
@@ -263,8 +267,8 @@ test("static catalog entries resolve local, search, audio, web-cookie and upstre
   const museSparkWebProvider = providerPageUtils.resolveDashboardProviderInfo("muse-spark-web");
   const upstreamProvider = providerPageUtils.resolveDashboardProviderInfo("cliproxyapi");
 
-  assert.equal(freeProvider?.category, "free");
-  assert.equal(freeProvider?.name, providers.FREE_PROVIDERS["amazon-q"].name);
+  assert.equal(freeProvider?.category, "oauth");
+  assert.equal(freeProvider?.name, providers.OAUTH_PROVIDERS["amazon-q"].name);
 
   assert.equal(localProvider?.category, "local");
   assert.equal(localProvider?.name, providers.LOCAL_PROVIDERS.sdwebui.name);

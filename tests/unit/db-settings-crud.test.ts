@@ -844,7 +844,7 @@ test("cache metrics and trend coerce null aggregate fields to zero", async () =>
       };
     }
 
-    if (text.includes("GROUP BY 'direct'")) {
+    if (text.includes("GROUP BY combo_strategy")) {
       return {
         all: () => [
           {

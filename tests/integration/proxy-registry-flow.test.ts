@@ -32,6 +32,60 @@ test.after(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
+test("integration: proxy create with inline assignment is atomic and clears legacy config", async () => {
+  await resetStorage();
+
+  const proxyLegacyRoute = await import("../../src/app/api/settings/proxy/route.ts");
+  const legacySetRes = await proxyLegacyRoute.PUT(
+    new Request("http://localhost/api/settings/proxy", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        level: "provider",
+        id: "openai",
+        proxy: { type: "http", host: "legacy-openai.local", port: 8080 },
+      }),
+    })
+  );
+  assert.equal(legacySetRes.status, 200);
+
+  const createRes = await proxySettingsRoute.POST(
+    new Request("http://localhost/api/settings/proxies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Atomic Flow Proxy",
+        type: "http",
+        host: "atomic-flow.local",
+        port: 8080,
+        source: "dashboard-custom",
+        assignment: { scope: "provider", scopeId: "openai" },
+      }),
+    })
+  );
+  assert.equal(createRes.status, 201);
+  const createdProxy = (await createRes.json()) as any;
+  assert.ok(createdProxy.id);
+  assert.equal(createdProxy.assignment.proxyId, createdProxy.id);
+  assert.equal(createdProxy.assignment.scope, "provider");
+  assert.equal(createdProxy.assignment.scopeId, "openai");
+
+  const assignmentsRes = await proxyAssignmentsRoute.GET(
+    new Request("http://localhost/api/settings/proxies/assignments?scope=provider&scopeId=openai")
+  );
+  assert.equal(assignmentsRes.status, 200);
+  const assignments = (await assignmentsRes.json()) as any;
+  assert.equal(assignments.items.length, 1);
+  assert.equal(assignments.items[0].proxyId, createdProxy.id);
+
+  const legacyGetRes = await proxyLegacyRoute.GET(
+    new Request("http://localhost/api/settings/proxy?level=provider&id=openai")
+  );
+  assert.equal(legacyGetRes.status, 200);
+  const legacyGet = (await legacyGetRes.json()) as any;
+  assert.equal(legacyGet.proxy, null);
+});
+
 test("integration: proxy registry full flow works and enforces safe delete", async () => {
   await resetStorage();
 
@@ -51,12 +105,14 @@ test("integration: proxy registry full flow works and enforces safe delete", asy
         type: "http",
         host: "flow.local",
         port: 8080,
+        source: "dashboard-custom",
       }),
     })
   );
   assert.equal(createRes.status, 201);
   const createdProxy = (await createRes.json()) as any;
   assert.ok(createdProxy.id);
+  assert.equal(createdProxy.source, "dashboard-custom");
 
   const assignRes = await proxyAssignmentsRoute.PUT(
     new Request("http://localhost/api/settings/proxies/assignments", {

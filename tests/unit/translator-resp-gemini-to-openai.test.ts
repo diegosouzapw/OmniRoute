@@ -64,7 +64,9 @@ test("Gemini non-stream: multiple candidates keep multimodal content, reasoning 
               { thought: true, text: "Plan first." },
               { text: "Answer:" },
               { inlineData: { mimeType: "image/png", data: "abc123" } },
-              { functionCall: { id: "native-read-1", name: "read_file", args: { path: "/tmp/a" } } },
+              {
+                functionCall: { id: "native-read-1", name: "read_file", args: { path: "/tmp/a" } },
+              },
             ],
           },
           finishReason: "STOP",
@@ -283,10 +285,7 @@ test("Gemini stream: reasoning, tool call, image and MAX_TOKENS finish are conve
   );
 
   assert.equal(result[1].choices[0].delta.reasoning_content, "Need a plan.");
-  assert.equal(
-    result[2].choices[0].delta.tool_calls[0].id,
-    "native-call-1"
-  );
+  assert.equal(result[2].choices[0].delta.tool_calls[0].id, "native-call-1");
   assert.equal(
     result[2].choices[0].delta.tool_calls[0].function.name,
     "mcp__filesystem__read_multiple_files_with_validation_and_metadata_bundle_v2"
@@ -348,6 +347,30 @@ test("Gemini stream: safety block without candidates emits role chunk then conte
   assert.equal(result.length, 2);
   assert.equal(result[0].choices[0].delta.role, "assistant");
   assert.equal(result[1].choices[0].finish_reason, "content_filter");
+});
+
+test("Gemini stream: grounding metadata (citations) are extracted", () => {
+  const state = createStreamingState();
+  const result = geminiToOpenAIResponse(
+    {
+      responseId: "resp-grounding",
+      modelVersion: "gemini-2.0-flash",
+      candidates: [
+        {
+          content: { parts: [{ text: "Today is sunny." }] },
+          groundingMetadata: {
+            groundingChunks: [{ web: { title: "Weather Today", uri: "https://weather.com" } }],
+          },
+        },
+      ],
+    },
+    state
+  );
+
+  assert.equal(result[1].choices[0].delta.content, "Today is sunny.");
+  assert.deepEqual(result[2].choices[0].delta.citations, [
+    { title: "Weather Today", url: "https://weather.com" },
+  ]);
 });
 
 test("Gemini stream: null chunk is ignored", () => {

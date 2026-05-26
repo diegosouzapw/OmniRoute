@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "सर्व स्तर",
+    "tierAuth": "Auth",
+    "tierLoopback": "स्थानिक-केवळ",
+    "tierAlwaysProtected": "सतत-सुरक्षित",
+    "tierPublic": "सार्वजनिक",
+    "showInternal": "आतील दर्शवा",
+    "hideInternal": "आतील लपवा",
+    "badgeLoopbackTooltip": "स्थानिक-फक्त: नॉन-लूपबॅक IPs कडून अवरोधित",
+    "badgeAlwaysProtectedTooltip": "सर्व वेळ संरक्षित: requireLogin=false असतानाही प्रमाणीकरण आवश्यक आहे",
+    "badgeInternalTooltip": "आतील मार्ग — सार्वजनिक API चा भाग नाही"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

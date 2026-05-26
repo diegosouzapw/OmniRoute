@@ -42,6 +42,9 @@ type ProviderProfile = {
   providerFailureThreshold: number;
   providerFailureWindowMs: number;
   providerCooldownMs: number;
+  degradationThreshold?: number;
+  maxBackoffMultiplier?: number;
+  backoffEscalationCount?: number;
 };
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
@@ -268,6 +271,9 @@ function buildProviderProfile(
     // Provider-level circuit breaker fields (not configurable via settings, use PROVIDER_PROFILES defaults)
     providerFailureThreshold: PROVIDER_PROFILES[category].providerFailureThreshold,
     providerFailureWindowMs: PROVIDER_PROFILES[category].providerFailureWindowMs,
+    degradationThreshold: PROVIDER_PROFILES[category].degradationThreshold,
+    maxBackoffMultiplier: PROVIDER_PROFILES[category].maxBackoffMultiplier,
+    backoffEscalationCount: PROVIDER_PROFILES[category].backoffEscalationCount,
     providerCooldownMs: PROVIDER_PROFILES[category].providerCooldownMs,
   } satisfies ProviderProfile;
 }
@@ -657,6 +663,9 @@ function configureProviderBreaker(
           classifyError: classify429FromError,
         }
       : {}),
+    degradationThreshold: resolvedProfile.degradationThreshold,
+    maxBackoffMultiplier: resolvedProfile.maxBackoffMultiplier,
+    backoffEscalationCount: resolvedProfile.backoffEscalationCount,
   });
 }
 
@@ -1073,7 +1082,32 @@ export function checkFallbackError(
   permanent?: boolean;
   creditsExhausted?: boolean;
   dailyQuotaExhausted?: boolean;
+  /** G-02: true when the error originates from an embedded service supervisor (not the upstream AI
+   * provider itself). Callers should apply connection cooldown only — do NOT record a provider
+   * circuit-breaker failure when this flag is set. */
+  skipProviderBreaker?: boolean;
 } {
+  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
+  // These are NOT upstream AI provider failures — they are local supervisor state changes.
+  // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
+  if (status === 503 && headers) {
+    const hintValue =
+      typeof (headers as Headers).get === "function"
+        ? (headers as Headers).get("x-omni-fallback-hint")
+        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
+          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
+    if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
+      return {
+        shouldFallback: true,
+        cooldownMs: 5_000,
+        baseCooldownMs: 5_000,
+        newBackoffLevel: 0,
+        reason: "service_not_running",
+        skipProviderBreaker: true,
+      };
+    }
+  }
+
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;

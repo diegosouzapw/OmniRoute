@@ -1,3 +1,7 @@
+---
+title: "E2E Dashboard Shakedown — v3.8.0"
+---
+
 # E2E Dashboard Shakedown — v3.8.0
 
 **Branch alvo:** `release/v3.8.0`

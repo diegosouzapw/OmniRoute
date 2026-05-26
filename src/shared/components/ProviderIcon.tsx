@@ -38,6 +38,7 @@ function GenericProviderIcon({ size }: { size: number }) {
 
 const KNOWN_PNGS = new Set([
   "agentrouter",
+  "inner-ai",
   "aimlapi",
   "anthropic-m",
   "blackbox",
@@ -53,6 +54,7 @@ const KNOWN_PNGS = new Set([
   "oai-r",
   "openclaw",
   "zeroclaw",
+  "adapta-web",
   "blackbox-web",
   "cliproxyapi",
   "empower",

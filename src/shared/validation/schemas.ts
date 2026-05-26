@@ -1134,7 +1134,7 @@ export const updateThinkingBudgetSchema = z
   .object({
     mode: z.enum(["passthrough", "auto", "custom", "adaptive"]).optional(),
     customBudget: z.coerce.number().int().min(0).max(131072).optional(),
-    effortLevel: z.enum(["none", "low", "medium", "high"]).optional(),
+    effortLevel: z.enum(["none", "low", "medium", "high", "xhigh", "max"]).optional(),
     baseBudget: z.coerce.number().int().min(0).max(131072).optional(),
     complexityMultiplier: z.coerce.number().min(0).optional(),
   })
@@ -1317,13 +1317,29 @@ export const testProxySchema = z.object({
   }),
 });
 
-export const createProxyRegistrySchema = z
+const inlineProxyAssignmentSchema = z
+  .object({
+    scope: z.enum(["global", "provider", "account", "combo", "key"]),
+    scopeId: z.string().trim().nullable().optional(),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.scope !== "global" && !value.scopeId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "scopeId is required for non-global scope",
+        path: ["scopeId"],
+      });
+    }
+  });
+
+const proxyRegistryFieldsSchema = z
   .object({
     name: z.string().trim().min(1, "name is required").max(120),
     type: z
       .preprocess(
         (value) => (typeof value === "string" ? value.trim().toLowerCase() : value),
-        z.enum(["http", "https", "socks5"])
+        z.enum(["http", "https", "socks5", "vercel"])
       )
       .optional()
       .default("http"),
@@ -1334,17 +1350,28 @@ export const createProxyRegistrySchema = z
     region: z.string().trim().max(64).nullable().optional(),
     notes: z.string().trim().max(1000).nullable().optional(),
     status: z.enum(["active", "inactive"]).optional().default("active"),
+    source: z.enum(["manual", "oneproxy", "dashboard-custom", "vercel-relay"]).optional(),
   })
   .strict();
 
-export const updateProxyRegistrySchema = createProxyRegistrySchema.partial().extend({
-  id: z.string().trim().min(1, "id is required"),
-});
+export const createProxyRegistrySchema = proxyRegistryFieldsSchema
+  .extend({
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
+
+export const updateProxyRegistrySchema = proxyRegistryFieldsSchema
+  .partial()
+  .extend({
+    id: z.string().trim().min(1, "id is required"),
+    assignment: inlineProxyAssignmentSchema.optional(),
+  })
+  .strict();
 
 export const bulkImportProxiesSchema = z
   .object({
     items: z
-      .array(createProxyRegistrySchema)
+      .array(proxyRegistryFieldsSchema)
       .min(1, "At least one proxy is required")
       .max(100, "Maximum 100 proxies per import"),
   })
@@ -1794,6 +1821,7 @@ export const providersBatchTestSchema = z
       "provider",
       "oauth",
       "free",
+      "no-auth",
       "apikey",
       "compatible",
       "all",
@@ -2145,4 +2173,15 @@ export const v1BatchCreateSchema = z.object({
       seconds: z.number().int().min(3600).max(2592000),
     })
     .optional(),
+});
+
+// ── Web Fetch ─────────────────────────────────────────────────────────────────
+
+export const v1WebFetchSchema = z.object({
+  url: z.string().url("url must be a valid URL (http/https)"),
+  provider: z.enum(["firecrawl", "jina-reader", "tavily-search"]).optional(),
+  format: z.enum(["markdown", "html", "links", "screenshot"]).default("markdown"),
+  depth: z.union([z.literal(0), z.literal(1), z.literal(2)]).default(0),
+  wait_for_selector: z.string().max(256).optional(),
+  include_metadata: z.boolean().default(false),
 });

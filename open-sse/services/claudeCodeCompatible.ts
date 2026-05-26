@@ -44,6 +44,7 @@ export const CLAUDE_CODE_COMPATIBLE_USER_AGENT = "claude-cli/2.1.146 (external, 
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_PACKAGE_VERSION = "0.94.0";
 export const CLAUDE_CODE_COMPATIBLE_STAINLESS_RUNTIME_VERSION = "v24.3.0";
 export const CONTEXT_1M_BETA_HEADER = "context-1m-2025-08-07";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 const CLAUDE_CODE_COMPATIBLE_DEFAULT_SYSTEM_BLOCKS = [
   {
     type: "text",
@@ -1063,11 +1064,30 @@ function resolveClaudeCodeCompatibleThinking({
     readRecord(cloneValue(normalizedBody?.thinking));
 
   if (thinking) {
-    return thinking;
+    return applyClaudeCodeCompatibleThinkingDisplay(thinking, normalizedBody);
   }
 
+  return applyClaudeCodeCompatibleThinkingDisplay(
+    {
+      type: "adaptive",
+    },
+    normalizedBody
+  );
+}
+
+function applyClaudeCodeCompatibleThinkingDisplay(
+  thinking: Record<string, unknown>,
+  normalizedBody?: Record<string, unknown> | null
+) {
+  if (
+    normalizedBody?.[COPILOT_REASONING_SUMMARY_MARKER] !== "summarized" ||
+    thinking.type === "disabled"
+  ) {
+    return thinking;
+  }
   return {
-    type: "adaptive",
+    ...thinking,
+    display: "summarized",
   };
 }
 

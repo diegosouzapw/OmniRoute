@@ -1,6 +1,5 @@
-"use client";
-import OneproxyTab from "@/app/(dashboard)/dashboard/settings/components/OneproxyTab";
+import { redirect } from "next/navigation";
 
 export default function OneProxyPage() {
-  return <OneproxyTab />;
+  redirect("/dashboard/system/proxy?tab=free-pool");
 }
