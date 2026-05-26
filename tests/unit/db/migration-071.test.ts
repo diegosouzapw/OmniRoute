@@ -1,5 +1,5 @@
 /**
- * Tests for migration 068 — extend version_manager for embedded services.
+ * Tests for migration 071 — extend version_manager for embedded services.
  *
  * Verifies:
  *  - 3 new columns are added (logs_buffer_path, provider_expose, last_sync_at)
@@ -15,7 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-068-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-migration-071-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.NODE_ENV = "test";
 process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
@@ -38,7 +38,7 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("migration 068 — adds 3 new columns to version_manager", async () => {
+test("migration 071 — adds 3 new columns to version_manager", async () => {
   const db = core.getDbInstance();
   const columns = (
     db.prepare("PRAGMA table_info(version_manager)").all() as Array<{ name: string }>
@@ -49,7 +49,7 @@ test("migration 068 — adds 3 new columns to version_manager", async () => {
   assert.ok(columns.includes("last_sync_at"), "last_sync_at column missing");
 });
 
-test("migration 068 — seeds 9router row with expected defaults", async () => {
+test("migration 071 — seeds 9router row with expected defaults", async () => {
   const row = await versionManager.getServiceRow("9router");
 
   assert.ok(row !== null, "9router row should exist after migration");
@@ -64,7 +64,7 @@ test("migration 068 — seeds 9router row with expected defaults", async () => {
   assert.equal(row.lastSyncAt, null);
 });
 
-test("migration 068 — idempotent: applying twice produces no error and no double seed", async () => {
+test("migration 071 — idempotent: applying twice produces no error and no double seed", async () => {
   const db = core.getDbInstance();
 
   // Apply the migration SQL manually a second time (simulates re-run).
@@ -83,7 +83,7 @@ test("migration 068 — idempotent: applying twice produces no error and no doub
   assert.equal(rows.length, 1, "Should be exactly 1 9router row after double-seed attempt");
 });
 
-test("migration 068 — existing CLIProxyAPI data survives the migration", async () => {
+test("migration 071 — existing CLIProxyAPI data survives the migration", async () => {
   const db = core.getDbInstance();
 
   // Simulate a pre-existing cliproxyapi row (it's seeded by T-11, not this migration).

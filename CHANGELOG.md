@@ -1,12 +1,33 @@
 # Changelog
 
-## [Unreleased]
+## [3.8.4] — 2026-05-25
 
 ### ✨ New Features
 
+- **feat(credential-health):** fail-fast credential health check with TTL cache and background scheduler — validates API key + OAuth connections before combo dispatch, skips failed targets in <1ms instead of 10-30s timeout
+- **feat(middleware):** pre-request middleware pipeline with global, combo-specific, and per-request scopes — hooks can mutate body/headers/model, short-circuit, or skip remaining hooks
+- **feat(websocket):** live dashboard WebSocket server on port 20129 with EventBus integration — real-time request started/combo target attempt/succeeded/failed and credential health events
+- **feat(circuit-breaker):** three-state circuit breaker (CLOSED→DEGRADED→OPEN) with adaptive backoff per failure kind (rate-limit/auth/timeout), escalation count, and historical state tracking
+- **feat(key-groups):** API key groups with migration 066 — key_groups, group_model_permissions, key_group_members tables and CRUD, REST endpoints, group auth integration
+- **feat(copilot):** OmniRoute Copilot with CodeGraph knowledge base and CLI harness — LLM-guided configurator at POST /api/copilot/chat
+- **feat(combo-playground):** combo routing simulation API and dashboard UI under /dashboard/combos/playground/
+- **feat(pwa):** improved PWA manifest with icons, categories, and service worker with push notification support
+- **feat(relay):** serverless relay proxies with migration 067 — relay_tokens, relay_rate_limits, relay_logs, public endpoint at /api/v1/relay/chat/completions, management API, dashboard UI
+- **feat(cost):** cost optimization engine with alerts (budget/spike/trend thresholds), 6 REST endpoints, dashboard alerts UI
+- **feat(backup):** backup and restore system with export/import API and dashboard UI
+- **feat(config-templates):** config templates with migration 070, seed data, CRUD + apply API, dashboard UI
+- **feat(custom-models):** custom model registry with migration 069, CRUD API, dashboard UI
+- **feat(webhooks-cicd):** webhook CI/CD actions with migration 071 — ActionEngine supporting deploy/restart/sync actions, REST API
+- **feat(multitenant):** multi-tenant dashboard with per-API-key usage aggregation and provider/model breakdown
+- **feat(sla):** SLA dashboard with uptime/latency/error rate queries, summary/trend APIs, uptime badges and sparklines
+- **feat(routing-analytics):** AI-powered usage pattern analysis and routing recommendations — combo_metrics queries, hourly failure heatmap, provider breakdown, cost-vs-latency scatter chart
+- **feat(teams):** fixed team execution with 13 git worktrees and project-level team configs
+- **chore(deps):** added ws + @types/ws for WebSocket support, recharts ^3.8.1 for analytics charts
+
 ### 🔧 Bug Fixes
 
----
+- Fix combo cascade skipping on credential check timeout
+- Fix team sessions going idle (worktree initialization)
 
 ## [3.8.4] — 2026-05-24
 
@@ -33,7 +54,7 @@
   - **Dashboard page** `/dashboard/providers/services` — URL-based tab navigation (`?tab=cliproxy` default / `?tab=9router`), shared components (`ServiceStatusCard`, `ServiceLifecycleButtons`, `ServiceLogsPanel`), sidebar item under Omni Proxy (hideable, `material-symbols-outlined: deployed_code`).
   - **CliproxyServiceTab** — auto-start toggle, fallback routing card (enable/disable, URL, status codes); fallback settings remain mirrored in Settings → CLIProxyAPI for backward compatibility.
   - **NinerouterServiceTab** — auto-start toggle, API key display + rotation, collapsible embedded Web UI iframe (`sandbox="allow-scripts allow-same-origin allow-forms"`, loopback-only).
-  - **DB migration 068** — extends `version_manager` table with `autoStart`, `autoUpdate`, `providerExpose`, `apiKey`, and `port` columns.
+  - **DB migration 071** (originally 068, renumbered post-merge to avoid collision with `068_free_proxies` and `068_webhooks_kind_metadata`) — extends `version_manager` table with `autoStart`, `autoUpdate`, `providerExpose`, `apiKey`, and `port` columns. `migrationRunner.ts` now throws at boot if two `.sql` files share the same numeric prefix.
   - All service routes classified as `LOCAL_ONLY` in `routeGuard.ts`; loopback enforcement is unconditional before any auth check (leaked JWT via tunnel cannot trigger process spawning).
 
 ---
