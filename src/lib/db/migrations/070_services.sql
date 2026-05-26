@@ -1,4 +1,8 @@
--- Migration 068: Extend version_manager for embedded services (9router + CLIProxyAPI)
+-- Migration 070: Extend version_manager for embedded services (9router + CLIProxyAPI)
+-- (Originally numbered 068; renumbered to 070 to resolve a prefix collision with
+--  068_free_proxies.sql. Pre-existing deployments may have version=068 recorded
+--  for free_proxies, which would have caused this migration to be skipped
+--  silently by the version-only pending filter in migrationRunner.ts.)
 --
 -- Adds 3 columns to support the embedded-services feature (v3.8.4):
 --   logs_buffer_path  — path to ring-buffer log file on disk (optional)
