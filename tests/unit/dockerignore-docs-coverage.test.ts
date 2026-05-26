@@ -33,6 +33,14 @@ const REQUIRED_DOCS = [
   "docs/reference/ENVIRONMENT.md",
 ];
 
+// Referenced from docs/architecture/*.md — webpack fails the production build if missing.
+const REQUIRED_DOC_DIAGRAMS = [
+  "docs/diagrams/exported/request-pipeline.svg",
+  "docs/diagrams/exported/resilience-3layers.svg",
+  "docs/diagrams/exported/authz-pipeline.svg",
+  "docs/diagrams/exported/db-schema-overview.svg",
+];
+
 // Compile .dockerignore patterns into a simple matcher.
 // We only need to support the directives we actually use: glob `**`, plain
 // path prefixes, and negations starting with `!`.
@@ -120,7 +128,7 @@ test("#2348 .dockerignore keeps every doc the in-product viewer needs", () => {
   const missing: string[] = [];
   const ignored: string[] = [];
 
-  for (const docPath of REQUIRED_DOCS) {
+  for (const docPath of [...REQUIRED_DOCS, ...REQUIRED_DOC_DIAGRAMS]) {
     const absPath = path.resolve(REPO_ROOT, docPath);
     if (!fs.existsSync(absPath)) {
       missing.push(docPath);

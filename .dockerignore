@@ -48,13 +48,13 @@ blob-report
 # container image.
 docs/i18n/**
 docs/screenshots/**
-docs/diagrams/exported/**
+# Keep docs/diagrams/exported/*.svg — fumadocs-mdx resolves them at `npm run build`
+# (see docs/architecture/*.md). Source .mmd files stay in the image; raster formats excluded.
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg
 docs/diagrams/**/*.jpeg
 docs/diagrams/**/*.gif
 docs/diagrams/**/*.webp
-docs/diagrams/**/*.svg
 # Note: `*.md` matches the root only (Go filepath.Match does not cross /),
 # so nested docs/**/*.md is implicitly kept without a re-include rule.
 *.md
