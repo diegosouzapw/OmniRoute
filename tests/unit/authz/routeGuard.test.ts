@@ -131,6 +131,35 @@ test("management policy allows /api/services/ from localhost with valid CLI toke
   assert.equal(outcome.allow, true);
 });
 
+// ─── T-07: /dashboard/providers/services/ route guard ────────────────────
+
+test("isLocalOnlyPath: /dashboard/providers/services/ prefix is local-only", () => {
+  assert.equal(isLocalOnlyPath("/dashboard/providers/services/"), true);
+  assert.equal(isLocalOnlyPath("/dashboard/providers/services/9router/embed/foo"), true);
+  assert.equal(isLocalOnlyPath("/dashboard/providers/services/cliproxy/embed/bar"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /dashboard/providers/services/ is NOT bypassable", () => {
+  // Reverse proxy to embedded service UIs — exposing it to non-localhost
+  // would re-introduce SSRF + auth-bypass surface that the local-only tier
+  // exists to close. Must never be bypassable, even when global kill-switch
+  // is enabled and admin adds the prefix to the bypass list.
+  assert.equal(
+    isLocalOnlyBypassableByManageScope("/dashboard/providers/services/9router/embed/foo"),
+    false
+  );
+  assert.equal(isLocalOnlyBypassableByManageScope("/dashboard/providers/services/"), false);
+});
+
+test("management policy rejects /dashboard/providers/services/* from non-localhost (status 403)", async () => {
+  const ctx = makeCtx("/dashboard/providers/services/9router/embed/index.html", {
+    host: "evil.tunnel.io",
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
 // ─── /api/copilot/ route guard — local-only, NOT spawn-capable ────────────
 
 test("isLocalOnlyPath: /api/copilot/ prefix is local-only", () => {

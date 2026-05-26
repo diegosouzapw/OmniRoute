@@ -1425,11 +1425,35 @@ export async function getAccessToken(
     return refreshPromiseCache.get(cacheKey);
   }
 
-  const refreshPromise = _getAccessTokenInternal(provider, credentials, log, proxyConfig).finally(
-    () => {
+  // Layer 2 has no per-connection mutex, so callers that pass an onPersist
+  // callback expect it to fire after a successful refresh. Without this hook
+  // the legacy `connectionId`-less path would silently swallow the callback,
+  // leaving DB rows out of sync with rotated tokens (Codex/OpenAI). We still
+  // resolve the promise to all waiters with the refreshed credentials.
+  const refreshPromise = _getAccessTokenInternal(provider, credentials, log, proxyConfig)
+    .then(async (result) => {
+      if (result?.accessToken && effectiveOnPersist) {
+        try {
+          await effectiveOnPersist(result);
+        } catch (persistErr) {
+          const { sanitizeErrorMessage } = await import("../utils/error.ts");
+          log?.error?.(
+            "TOKEN_REFRESH",
+            `Layer 2 onPersist callback failed for ${provider}: ${sanitizeErrorMessage(persistErr instanceof Error ? persistErr : new Error(String(persistErr)))}`
+          );
+          throw persistErr;
+        }
+      } else if (result?.accessToken && !effectiveOnPersist) {
+        log?.warn?.(
+          "TOKEN_REFRESH",
+          `Layer 2 refresh succeeded for ${provider} without onPersist — DB row will not be updated with rotated token. Callers should pass connectionId for Layer 1 atomicity.`
+        );
+      }
+      return result;
+    })
+    .finally(() => {
       refreshPromiseCache.delete(cacheKey);
-    }
-  );
+    });
 
   refreshPromiseCache.set(cacheKey, refreshPromise);
   return refreshPromise;

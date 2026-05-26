@@ -16,18 +16,28 @@ import { isEncryptionEnabled } from "@/lib/db/encryption";
 import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
+const WEBHOOK_EVENT_VALUES = [
+  "*",
+  "request.completed",
+  "request.failed",
+  "provider.error",
+  "provider.recovered",
+  "quota.exceeded",
+  "combo.switched",
+  "test.ping",
+] as const;
 
 const updateWebhookSchema = z
   .object({
     url: z.string().min(1).max(2000).optional(),
-    events: z.array(z.string()).optional(),
+    events: z.array(z.enum(WEBHOOK_EVENT_VALUES)).optional(),
     secret: z.string().max(500).optional(),
     description: z.string().max(1000).optional(),
     enabled: z.boolean().optional(),
     kind: z.enum(WEBHOOK_KINDS).optional(),
     metadata: z.record(z.string()).optional(),
   })
-  .passthrough();
+  .strict();
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const authError = await requireManagementAuth(_);

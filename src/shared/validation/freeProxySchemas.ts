@@ -28,7 +28,15 @@ export const freeProxyBulkAddSchema = z.object({
 });
 
 export const vercelDeploySchema = z.object({
-  token: z.string().min(1),
+  // Vercel personal access tokens are not strictly versioned but follow a
+  // base-64-ish alphanumeric format. Reject obviously-malformed inputs early
+  // so users get clearer feedback than a Vercel 401 (and so accidentally
+  // pasting an OpenAI/Anthropic key is caught at the boundary).
+  token: z
+    .string()
+    .min(20, "Vercel token looks too short")
+    .max(200)
+    .regex(/^[A-Za-z0-9_-]+$/, "Vercel token must contain only alphanumeric, underscore, or hyphen"),
   projectName: z
     .string()
     .min(3)

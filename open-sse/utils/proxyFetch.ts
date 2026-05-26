@@ -361,7 +361,9 @@ async function patchedFetch(
     // Pass host through proxyUrlForLogs so the same redaction policy applies
     // to relay routing logs (the rest of this module already follows that rule).
     const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
-    console.log(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
+    if (process.env.OMNIROUTE_PROXY_FETCH_DEBUG === "true") {
+      console.debug(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
+    }
     return await originalFetch(`https://${vc.host}`, {
       ...options,
       headers: mergedHeaders,

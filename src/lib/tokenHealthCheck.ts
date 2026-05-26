@@ -361,15 +361,24 @@ export async function checkConnection(conn) {
   // Pass onPersist so the DB write is atomic with the network call inside the mutex.
   // This prevents a concurrent sweep or request from reading stale credentials
   // and re-using an already-consumed rotating refresh token (Codex/OpenAI).
-  let persistedResult: any = null;
+  type RefreshResultShape = {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: string;
+    expiresIn?: number;
+    providerSpecificData?: Record<string, unknown>;
+  };
+  type ConnectionUpdate = Parameters<typeof updateProviderConnection>[1];
+
+  let persistedResult: RefreshResultShape | null = null;
   const result = await getAccessToken(
     conn.provider,
     credentials,
     healthCheckLog,
     proxyConfig,
-    async (refreshResult) => {
+    async (refreshResult: RefreshResultShape) => {
       const now = new Date().toISOString();
-      const updateData: any = {
+      const updateData: ConnectionUpdate = {
         accessToken: refreshResult.accessToken,
         lastHealthCheckAt: now,
         testStatus: "active",

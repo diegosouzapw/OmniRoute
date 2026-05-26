@@ -48,6 +48,10 @@ export function isPrivateHost(hostname: string) {
     normalized === "::1" ||
     normalized.endsWith(".localhost") ||
     normalized.endsWith(".local") ||
+    // `.internal` is reserved for private use (ICANN-style) and is the
+    // hostname suffix used by GCP/Azure metadata probes
+    // (e.g. `metadata.google.internal`).
+    normalized.endsWith(".internal") ||
     normalized.startsWith("::ffff:")
   ) {
     return true;

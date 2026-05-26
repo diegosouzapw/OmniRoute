@@ -4,6 +4,7 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { vercelDeploySchema } from "@/shared/validation/freeProxySchemas";
 import { createProxy } from "@/lib/localDb";
+import { encrypt } from "@/lib/db/encryption";
 
 const VERCEL_API_BASE = process.env.VERCEL_API_BASE || "https://api.vercel.com";
 const POLL_INTERVAL_MS = 3000;
@@ -26,6 +27,7 @@ function isPrivateHostname(h) {
     host === "::1" ||
     host.endsWith(".localhost") ||
     host.endsWith(".local") ||
+    host.endsWith(".internal") ||
     host.startsWith("::ffff:")
   ) return true;
   const v4 = host.match(/^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/);
@@ -146,10 +148,25 @@ export async function POST(request: Request) {
     });
 
     if (!deployRes.ok) {
-      const errText = await deployRes.text().catch(() => "");
+      // Avoid forwarding 200 bytes of raw Vercel error text — it may contain
+      // project IDs, team slugs, deployment hashes or internal Vercel error
+      // strings. Parse the canonical { error: { message } } shape and surface
+      // only the human-readable message (or a generic fallback).
+      let upstreamMessage = "Vercel API rejected the deployment";
+      try {
+        const parsed = (await deployRes.json().catch(() => null)) as
+          | { error?: { message?: string } }
+          | null;
+        const candidate = parsed?.error?.message;
+        if (typeof candidate === "string" && candidate.trim()) {
+          upstreamMessage = candidate.trim().slice(0, 200);
+        }
+      } catch {
+        /* fall through to generic message */
+      }
       return createErrorResponse({
         status: deployRes.status,
-        message: `Vercel deployment failed: ${errText.slice(0, 200)}`,
+        message: `Vercel deployment failed: ${upstreamMessage}`,
         type: "upstream_error",
       });
     }
@@ -193,13 +210,20 @@ export async function POST(request: Request) {
       });
     }
 
-    // Store as proxy pool entry — token is NOT stored; relayAuth is stored in notes (JSON)
+    // Store as proxy pool entry — token is NOT stored. relayAuth is encrypted
+    // at rest when STORAGE_ENCRYPTION_KEY is configured (encrypt() is a no-op
+    // in passthrough mode); the redactor strips both shapes from API responses.
+    const encryptedRelayAuth = encrypt(relayAuth);
+    const notesPayload =
+      encryptedRelayAuth && encryptedRelayAuth !== relayAuth
+        ? { relayAuthEnc: encryptedRelayAuth }
+        : { relayAuth };
     const poolProxy = await createProxy({
       name: `Vercel Relay (${projectName})`,
       type: "vercel",
       host: deployment.url,
       port: 443,
-      notes: JSON.stringify({ relayAuth }),
+      notes: JSON.stringify(notesPayload),
       source: "vercel-relay",
     });
 

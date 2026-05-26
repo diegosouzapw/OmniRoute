@@ -75,6 +75,41 @@ for (const [pathStr, methods] of Object.entries(paths)) {
   }
 }
 
+// Reverse pass: every YAML path that falls under a LOCAL_ONLY prefix should
+// carry `x-loopback-only: true` on every method, otherwise external API
+// consumers have no signal that the route is loopback-restricted. Closes the
+// "new spawn-capable route added without annotation" regression class.
+//
+// Currently reported as warnings (non-fatal) because the v3.8.4 release ships
+// with a known annotation gap on /api/services/* and /api/cli-tools/runtime/*
+// that will be patched in a follow-up doc-only PR. Promote to errors once the
+// backlog is cleared.
+const reverseWarnings = [];
+for (const [pathStr, methods] of Object.entries(paths)) {
+  if (!methods || typeof methods !== "object") continue;
+  const fallsUnderLocalOnly = LOCAL_ONLY_PREFIXES.some((prefix) => {
+    const norm = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+    return pathStr === norm || pathStr.startsWith(norm + "/");
+  });
+  if (!fallsUnderLocalOnly) continue;
+  for (const [method, spec] of Object.entries(methods)) {
+    if (!["get", "post", "put", "patch", "delete"].includes(method) || !spec) continue;
+    if (spec["x-loopback-only"] !== true) {
+      reverseWarnings.push(
+        `${method.toUpperCase()} ${pathStr}: falls under LOCAL_ONLY_API_PREFIXES ` +
+          `but is missing x-loopback-only: true annotation`
+      );
+    }
+  }
+}
+
+if (reverseWarnings.length > 0) {
+  console.warn(
+    `[openapi-security-tiers] WARN — ${reverseWarnings.length} LOCAL_ONLY paths missing x-loopback-only annotation (non-fatal, follow-up doc PR):`
+  );
+  reverseWarnings.forEach((w) => console.warn(`  - ${w}`));
+}
+
 if (errors.length === 0) {
   console.log("[openapi-security-tiers] PASS — all security tier annotations match routeGuard.ts");
   process.exit(0);

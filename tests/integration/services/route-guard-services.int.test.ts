@@ -145,11 +145,14 @@ describe("LOCAL_ONLY_API_PREFIXES constant integrity", () => {
     );
   });
 
-  it("has exactly 4 entries (no silent regressions adding or removing prefixes)", () => {
+  it("has exactly 5 entries (no silent regressions adding or removing prefixes)", () => {
+    // 4 baseline entries (/api/mcp/, /api/cli-tools/runtime/, /api/services/,
+    // /dashboard/providers/services/) + /api/copilot/ added in the v3.8.4
+    // semgrep MCP hardening pass (commit 21f8dc4b3).
     assert.equal(
       LOCAL_ONLY_API_PREFIXES.length,
-      4,
-      `Expected 4 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
+      5,
+      `Expected 5 LOCAL_ONLY_API_PREFIXES, got ${LOCAL_ONLY_API_PREFIXES.length}: ${JSON.stringify(LOCAL_ONLY_API_PREFIXES)}`
     );
   });
 });

@@ -35,8 +35,31 @@ interface CredentialCache {
 // tokens that share the same algorithm header (the first ~36 chars of any
 // HS256/RS256 token are identical), which previously caused cross-tenant
 // credential cache hits.
+//
+// LRU bound: a long-running server with many Inner.ai accounts would otherwise
+// grow these maps without bound. Map iteration order is insertion order, so
+// re-inserting on read approximates LRU and the eviction loop trims to cap.
+const CACHE_MAX_ENTRIES = 1000;
 const credentialCache = new Map<string, CredentialCache>();
 const modelsCache = new Map<string, { models: InnerAiModel[]; expiresAt: number }>();
+
+function lruTouch<V>(map: Map<string, V>, key: string): V | undefined {
+  const value = map.get(key);
+  if (value === undefined) return undefined;
+  map.delete(key);
+  map.set(key, value);
+  return value;
+}
+
+function lruSet<V>(map: Map<string, V>, key: string, value: V): void {
+  if (map.has(key)) map.delete(key);
+  map.set(key, value);
+  while (map.size > CACHE_MAX_ENTRIES) {
+    const oldest = map.keys().next().value;
+    if (oldest === undefined) break;
+    map.delete(oldest);
+  }
+}
 
 function tokenCacheKey(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -125,7 +148,7 @@ async function resolveCredentials(
   signal?: AbortSignal | null
 ): Promise<CredentialCache> {
   const key = tokenCacheKey(token);
-  const cached = credentialCache.get(key);
+  const cached = lruTouch(credentialCache, key);
   if (cached) return cached;
 
   // Decode device_id from JWT payload (accept multiple field names)
@@ -176,7 +199,7 @@ async function resolveCredentials(
   }
 
   const creds: CredentialCache = { email, deviceId };
-  credentialCache.set(key, creds);
+  lruSet(credentialCache, key, creds);
   return creds;
 }
 
@@ -199,7 +222,7 @@ async function resolveModels(
   signal?: AbortSignal | null
 ): Promise<InnerAiModel[]> {
   const key = tokenCacheKey(token);
-  const cached = modelsCache.get(key);
+  const cached = lruTouch(modelsCache, key);
   if (cached && Date.now() < cached.expiresAt) return cached.models;
 
   const resp = await fetch(INNER_AI_MODELS_URL, {
@@ -232,12 +255,27 @@ async function resolveModels(
     raw = (body as Record<string, unknown>).ai_models as InnerAiModel[];
   }
 
+  // Resolve user plan tier from the JWT to gate pro_only / ultra_only models.
+  // Best-effort: Inner.ai JWTs carry `plan` / `tier` / `subscription` under a
+  // few field names; default to "free" if nothing matches so callers see the
+  // helpful "model unavailable for your plan" filter rather than upstream 4xx.
+  const planRaw = String(
+    decodeJwtPayload(token)?.plan ??
+      decodeJwtPayload(token)?.tier ??
+      decodeJwtPayload(token)?.subscription ??
+      ""
+  ).toLowerCase();
+  const isUltra = planRaw.includes("ultra") || planRaw.includes("enterprise");
+  const isPro = isUltra || planRaw.includes("pro") || planRaw.includes("plus");
+
   // Keep only text/chat models that are enabled and available for this account.
   // Prefer the ai_model_categories field; fall back to llm_model heuristic.
   const nonTextPattern =
     /image|video|audio|img|vid|sound|music|voice|tts|stt|track|clip|avatar|cartoon|flux|stable.diff|recraft|ideogram|leonardo|magnific|bria|seedream|luma|kling|pika|veo|wan-|heygen|did-|vidu|pixverse|sora-|gen-[0-9]|playground|gemini-fal|gamma|lyria|clothes|whisper/i;
   const models = raw.filter((m) => {
     if (m.enable === false || m.unavailable_api) return false;
+    if (m.ultra_only && !isUltra) return false;
+    if (m.pro_only && !isPro) return false;
     const cats = Array.isArray((m as Record<string, unknown>).ai_model_categories)
       ? ((m as Record<string, unknown>).ai_model_categories as Array<Record<string, unknown>>)
       : null;
@@ -247,7 +285,7 @@ async function resolveModels(
     return !nonTextPattern.test(m.llm_model);
   });
 
-  modelsCache.set(key, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
+  lruSet(modelsCache, key, { models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
   return models;
 }
 

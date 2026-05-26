@@ -118,6 +118,21 @@ export async function deliverWebhook(
 }
 
 /**
+ * Fire-and-forget wrapper around `dispatchEvent`. Safe to call from hot paths
+ * (combo loop, executor exit) — never throws, never blocks. Use this from
+ * production callers; reserve `dispatchEvent` for places that genuinely want
+ * to await delivery (CLI/admin tooling, tests).
+ */
+export function notifyWebhookEvent(event: WebhookEvent, data: Record<string, any>): void {
+  // Intentionally not awaited. Promise.allSettled inside dispatchEvent already
+  // absorbs per-delivery errors; this outer catch handles the import/loader
+  // path so a misconfigured webhook table cannot break a request.
+  dispatchEvent(event, data).catch(() => {
+    /* webhook delivery is best-effort */
+  });
+}
+
+/**
  * Dispatch an event to all matching enabled webhooks.
  * Routes by kind: slack/discord use raw payload helpers; telegram decrypts botToken from metadata;
  * custom uses HMAC-signed deliverWebhook.
@@ -148,10 +163,10 @@ export async function dispatchEvent(event: WebhookEvent, data: Record<string, an
       try {
         if (kind === "slack") {
           const slackPayload = buildSlackPayload(event, data);
-          result = await deliverRaw(wh.url, slackPayload as Record<string, unknown>);
+          result = await deliverRaw(wh.url, slackPayload as unknown as Record<string, unknown>);
         } else if (kind === "discord") {
           const discordPayload = buildDiscordPayload(event, data);
-          result = await deliverRaw(wh.url, discordPayload as Record<string, unknown>);
+          result = await deliverRaw(wh.url, discordPayload as unknown as Record<string, unknown>);
         } else if (kind === "telegram") {
           const meta = decryptMetadata(wh.metadata_encrypted ?? null);
           const botToken = meta?.botToken;
@@ -161,7 +176,7 @@ export async function dispatchEvent(event: WebhookEvent, data: Record<string, an
             const apiUrl = buildTelegramUrl(botToken);
             // For Telegram, wh.url stores the chat_id
             const tgPayload = buildTelegramPayload(event, data, wh.url);
-            result = await deliverRaw(apiUrl, tgPayload as Record<string, unknown>);
+            result = await deliverRaw(apiUrl, tgPayload as unknown as Record<string, unknown>);
           }
         } else {
           result = await deliverWebhook(wh.url, payload, wh.secret);

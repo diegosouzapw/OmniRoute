@@ -501,6 +501,7 @@ export {
   listFreeProxiesBySource,
   getFreeProxyById,
   markFreeProxyInPool,
+  promoteFreeProxyToPool,
   deleteFreeProxy,
   clearFreeProxiesBySource,
   getFreeProxyStats,

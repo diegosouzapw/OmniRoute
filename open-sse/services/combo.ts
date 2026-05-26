@@ -39,6 +39,7 @@ import { parseModel } from "./model.ts";
 import { applyComboAgentMiddleware, injectModelTag } from "./comboAgentMiddleware.ts";
 import { checkCredentialGate, logCredentialSkip } from "./credentialGate.ts";
 import { emit } from "../../src/lib/events/eventBus";
+import { notifyWebhookEvent } from "../../src/lib/webhookDispatcher";
 import { classifyWithConfig, DEFAULT_INTENT_CONFIG } from "./intentClassifier.ts";
 import { selectProvider as selectAutoProvider } from "./autoCombo/engine.ts";
 import { selectWithStrategy } from "./autoCombo/routerStrategy.ts";
@@ -2266,6 +2267,14 @@ export async function handleComboChat({
             target: toRecordedTarget(target),
           });
           recordedAttempts++;
+          // Webhook fan-out: best-effort, never blocks the response stream.
+          notifyWebhookEvent("request.completed", {
+            combo: combo.name,
+            provider,
+            model: modelStr,
+            latencyMs,
+            fallbackCount,
+          });
 
           // Universal handoff: record model usage for session
           if (
@@ -2538,6 +2547,12 @@ export async function handleComboChat({
 
     // All set retries exhausted — return the final error
     if (!lastStatus) {
+      notifyWebhookEvent("request.failed", {
+        combo: combo.name,
+        reason: "ALL_ACCOUNTS_INACTIVE",
+        latencyMs,
+        fallbackCount,
+      });
       return new Response(
         JSON.stringify({
           error: {

@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { getDbInstance } from "./core";
 import { backupDbFile } from "./backup";
+import { decrypt } from "./encryption";
 
 type JsonRecord = Record<string, unknown>;
 type ProxyScope = "global" | "provider" | "account" | "combo";
@@ -118,7 +119,17 @@ function mapAssignmentRow(row: unknown): ProxyAssignmentRecord {
 function extractRelayAuth(notes: unknown): string | undefined {
   if (typeof notes !== "string") return undefined;
   try {
-    const parsed = JSON.parse(notes) as { relayAuth?: string };
+    const parsed = JSON.parse(notes) as {
+      relayAuth?: string;
+      relayAuthEnc?: string;
+    };
+    // Prefer the encrypted form when both are present (legacy plaintext rows
+    // are still readable until migrated). decrypt() is a no-op when encryption
+    // is disabled, matching the existing convention for webhook secrets.
+    if (parsed.relayAuthEnc) {
+      const dec = decrypt(parsed.relayAuthEnc);
+      if (dec) return dec;
+    }
     return parsed.relayAuth || undefined;
   } catch {
     return undefined;
@@ -369,8 +380,20 @@ export function redactProxySecrets(proxy: ProxyRegistryRecord): ProxyRegistryRec
   if (proxy.type === "vercel" && proxy.notes) {
     try {
       const parsed = JSON.parse(proxy.notes);
-      if (parsed && typeof parsed === "object" && "relayAuth" in parsed) {
-        redactedNotes = JSON.stringify({ ...parsed, relayAuth: "***" });
+      if (parsed && typeof parsed === "object") {
+        const next: Record<string, unknown> = { ...parsed };
+        let touched = false;
+        if ("relayAuth" in next) {
+          next.relayAuth = "***";
+          touched = true;
+        }
+        if ("relayAuthEnc" in next) {
+          next.relayAuthEnc = "***";
+          touched = true;
+        }
+        if (touched) {
+          redactedNotes = JSON.stringify(next);
+        }
       }
     } catch {
       // Non-JSON notes pass through unchanged

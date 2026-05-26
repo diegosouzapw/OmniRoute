@@ -3,7 +3,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { freeProxyBulkAddSchema } from "@/shared/validation/freeProxySchemas";
-import { getFreeProxyById, markFreeProxyInPool, createProxy } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const poolProxy = await createProxy({
+      const newPoolProxyId = await promoteFreeProxyToPool(id, {
         name: `[${freeProxy.source}] ${freeProxy.host}:${freeProxy.port}`,
         type: freeProxy.type,
         host: freeProxy.host,
@@ -112,13 +112,12 @@ export async function POST(request: Request) {
         source: freeProxy.source,
       });
 
-      if (!poolProxy) {
+      if (!newPoolProxyId) {
         results.push({ id, success: false, error: "Failed to create registry entry" });
         continue;
       }
 
-      await markFreeProxyInPool(id, poolProxy.id);
-      results.push({ id, success: true, poolProxyId: poolProxy.id });
+      results.push({ id, success: true, poolProxyId: newPoolProxyId });
     }
 
     const succeeded = results.filter((r) => r.success).length;

@@ -156,7 +156,18 @@ export class ServiceSupervisor extends EventEmitter {
       if (this.state === "error") throw new Error(this.lastError ?? "Service failed to start");
       await new Promise((r) => setTimeout(r, 1_000));
     }
-    // Timeout: continue anyway — service may still be starting up
+    // Timeout reached without a healthy probe. Surface this so callers /
+    // dashboards do not see "running" + "unknown" health silently. We do not
+    // throw — the service may still be initializing — but we DO record a
+    // degraded marker so /status returns it and operators can act.
+    this.lastError = sanitizeErrorMessage(
+      `Health probe did not succeed within ${timeoutMs}ms — service may still be initializing`
+    );
+    this.emit("healthDegraded", {
+      tool: this.config.tool,
+      timeoutMs,
+      lastHealth: this.checker.getHealth(),
+    });
   }
 
   private async killChild(): Promise<void> {

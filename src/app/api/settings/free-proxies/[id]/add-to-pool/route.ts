@@ -1,7 +1,7 @@
 import { request as undiciRequest } from "undici";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { getFreeProxyById, markFreeProxyInPool, createProxy } from "@/lib/localDb";
+import { getFreeProxyById, promoteFreeProxyToPool } from "@/lib/localDb";
 import {
   createProxyDispatcher,
   proxyConfigToUrl,
@@ -89,7 +89,7 @@ export async function POST(
       });
     }
 
-    const poolProxy = await createProxy({
+    const newPoolProxyId = await promoteFreeProxyToPool(id, {
       name: `[${freeProxy.source}] ${freeProxy.host}:${freeProxy.port}`,
       type: freeProxy.type,
       host: freeProxy.host,
@@ -97,7 +97,7 @@ export async function POST(
       source: freeProxy.source,
     });
 
-    if (!poolProxy) {
+    if (!newPoolProxyId) {
       return createErrorResponse({
         status: 500,
         message: "Failed to create proxy in registry",
@@ -105,11 +105,9 @@ export async function POST(
       });
     }
 
-    await markFreeProxyInPool(id, poolProxy.id);
-
     return Response.json({
       success: true,
-      poolProxyId: poolProxy.id,
+      poolProxyId: newPoolProxyId,
       latencyMs: testResult.latencyMs,
     });
   } catch (error) {
