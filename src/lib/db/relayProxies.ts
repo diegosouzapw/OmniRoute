@@ -110,60 +110,107 @@ export function createRelayToken(input: CreateRelayTokenInput): RelayTokenWithSe
 
   const prefix = "rl_" + rawToken.slice(6, 14);
 
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO relay_tokens (id, name, token_hash, token_prefix, description, combo_id, allowed_models,
       max_tokens_per_request, max_requests_per_minute, max_requests_per_day, max_cost_per_day,
       enabled, created_at, updated_at, expires_at, metadata)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)
-  `).run(
-    id, input.name, tokenHash, prefix, input.description || "", input.comboId || null,
+  `
+  ).run(
+    id,
+    input.name,
+    tokenHash,
+    prefix,
+    input.description || "",
+    input.comboId || null,
     JSON.stringify(input.allowedModels || ["*"]),
     input.maxTokensPerRequest || 128000,
     input.maxRequestsPerMinute || 60,
     input.maxRequestsPerDay || 10000,
     input.maxCostPerDay || 0,
-    now, now, input.expiresAt || null,
-    JSON.stringify(input.metadata || {}),
+    now,
+    now,
+    input.expiresAt || null,
+    JSON.stringify(input.metadata || {})
   );
 
   const token = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(id) as RelayTokenRow;
-  return { ...rowToCamel<RelayToken>(token), rawToken };
+  return { ...(rowToCamel(token) as unknown as RelayToken), rawToken };
 }
 
 export function getRelayTokens(): RelayToken[] {
   const db = getDbInstance();
-  const rows = db.prepare("SELECT * FROM relay_tokens ORDER BY created_at DESC").all() as RelayTokenRow[];
-  return rows.map((r) => ({ ...rowToCamel<RelayToken>(r), enabled: r.enabled === 1 }));
+  const rows = db
+    .prepare("SELECT * FROM relay_tokens ORDER BY created_at DESC")
+    .all() as RelayTokenRow[];
+  return rows.map((r) => ({
+    ...(rowToCamel(r) as unknown as RelayToken),
+    enabled: r.enabled === 1,
+  }));
 }
 
 export function getRelayToken(id: string): RelayToken | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(id) as RelayTokenRow | undefined;
+  const row = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(id) as
+    | RelayTokenRow
+    | undefined;
   if (!row) return null;
-  return { ...rowToCamel<RelayToken>(row), enabled: row.enabled === 1 };
+  return { ...(rowToCamel(row) as unknown as RelayToken), enabled: row.enabled === 1 };
 }
 
-export function getRelayTokenByHash(tokenHash: string): (RelayToken & { rawToken?: string }) | null {
+export function getRelayTokenByHash(
+  tokenHash: string
+): (RelayToken & { rawToken?: string }) | null {
   const db = getDbInstance();
-  const row = db.prepare("SELECT * FROM relay_tokens WHERE token_hash = ? AND enabled = 1").get(tokenHash) as RelayTokenRow | undefined;
+  const row = db
+    .prepare("SELECT * FROM relay_tokens WHERE token_hash = ? AND enabled = 1")
+    .get(tokenHash) as RelayTokenRow | undefined;
   if (!row) return null;
-  return { ...rowToCamel<RelayToken>(row), enabled: row.enabled === 1 };
+  return { ...(rowToCamel(row) as unknown as RelayToken), enabled: row.enabled === 1 };
 }
 
-export function updateRelayToken(id: string, updates: Partial<CreateRelayTokenInput>): RelayToken | null {
+export function updateRelayToken(
+  id: string,
+  updates: Partial<CreateRelayTokenInput>
+): RelayToken | null {
   const db = getDbInstance();
   const now = Math.floor(Date.now() / 1000);
   const sets: string[] = ["updated_at = ?"];
   const params: unknown[] = [now];
 
-  if (updates.name !== undefined) { sets.push("name = ?"); params.push(updates.name); }
-  if (updates.description !== undefined) { sets.push("description = ?"); params.push(updates.description); }
-  if (updates.comboId !== undefined) { sets.push("combo_id = ?"); params.push(updates.comboId); }
-  if (updates.allowedModels !== undefined) { sets.push("allowed_models = ?"); params.push(JSON.stringify(updates.allowedModels)); }
-  if (updates.maxTokensPerRequest !== undefined) { sets.push("max_tokens_per_request = ?"); params.push(updates.maxTokensPerRequest); }
-  if (updates.maxRequestsPerMinute !== undefined) { sets.push("max_requests_per_minute = ?"); params.push(updates.maxRequestsPerMinute); }
-  if (updates.maxRequestsPerDay !== undefined) { sets.push("max_requests_per_day = ?"); params.push(updates.maxRequestsPerDay); }
-  if (updates.maxCostPerDay !== undefined) { sets.push("max_cost_per_day = ?"); params.push(updates.maxCostPerDay); }
+  if (updates.name !== undefined) {
+    sets.push("name = ?");
+    params.push(updates.name);
+  }
+  if (updates.description !== undefined) {
+    sets.push("description = ?");
+    params.push(updates.description);
+  }
+  if (updates.comboId !== undefined) {
+    sets.push("combo_id = ?");
+    params.push(updates.comboId);
+  }
+  if (updates.allowedModels !== undefined) {
+    sets.push("allowed_models = ?");
+    params.push(JSON.stringify(updates.allowedModels));
+  }
+  if (updates.maxTokensPerRequest !== undefined) {
+    sets.push("max_tokens_per_request = ?");
+    params.push(updates.maxTokensPerRequest);
+  }
+  if (updates.maxRequestsPerMinute !== undefined) {
+    sets.push("max_requests_per_minute = ?");
+    params.push(updates.maxRequestsPerMinute);
+  }
+  if (updates.maxRequestsPerDay !== undefined) {
+    sets.push("max_requests_per_day = ?");
+    params.push(updates.maxRequestsPerDay);
+  }
+  if (updates.maxCostPerDay !== undefined) {
+    sets.push("max_cost_per_day = ?");
+    params.push(updates.maxCostPerDay);
+  }
 
   params.push(id);
   db.prepare(`UPDATE relay_tokens SET ${sets.join(", ")} WHERE id = ?`).run(...params);
@@ -178,15 +225,25 @@ export function deleteRelayToken(id: string): void {
 export function toggleRelayToken(id: string, enabled: boolean): RelayToken | null {
   const db = getDbInstance();
   const now = Math.floor(Date.now() / 1000);
-  db.prepare("UPDATE relay_tokens SET enabled = ?, updated_at = ? WHERE id = ?").run(enabled ? 1 : 0, now, id);
+  db.prepare("UPDATE relay_tokens SET enabled = ?, updated_at = ? WHERE id = ?").run(
+    enabled ? 1 : 0,
+    now,
+    id
+  );
   return getRelayToken(id);
 }
 
 // ── Usage / Rate Limit ───────────────────────────────────────────────────────
 
-export function checkRateLimit(tokenId: string): { allowed: boolean; remaining: number; resetIn: number } {
+export function checkRateLimit(tokenId: string): {
+  allowed: boolean;
+  remaining: number;
+  resetIn: number;
+} {
   const db = getDbInstance();
-  const token = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(tokenId) as RelayTokenRow | undefined;
+  const token = db.prepare("SELECT * FROM relay_tokens WHERE id = ?").get(tokenId) as
+    | RelayTokenRow
+    | undefined;
   if (!token) return { allowed: false, remaining: 0, resetIn: 0 };
 
   const now = Math.floor(Date.now() / 1000);
@@ -194,9 +251,11 @@ export function checkRateLimit(tokenId: string): { allowed: boolean; remaining: 
   const dayWindow = Math.floor(now / 86400) * 86400;
 
   // Check minute rate
-  const minuteRow = db.prepare(
-    "SELECT request_count, cost FROM relay_rate_limits WHERE token_id = ? AND window_start = ?",
-  ).get(tokenId, minuteWindow) as { request_count: number; cost: number } | undefined;
+  const minuteRow = db
+    .prepare(
+      "SELECT request_count, cost FROM relay_rate_limits WHERE token_id = ? AND window_start = ?"
+    )
+    .get(tokenId, minuteWindow) as { request_count: number; cost: number } | undefined;
 
   const minuteCount = minuteRow?.request_count || 0;
   if (minuteCount >= token.max_requests_per_minute) {
@@ -204,9 +263,11 @@ export function checkRateLimit(tokenId: string): { allowed: boolean; remaining: 
   }
 
   // Check daily rate
-  const dayRow = db.prepare(
-    "SELECT SUM(request_count) as total FROM relay_rate_limits WHERE token_id = ? AND window_start >= ?",
-  ).get(tokenId, dayWindow) as { total: number } | undefined;
+  const dayRow = db
+    .prepare(
+      "SELECT SUM(request_count) as total FROM relay_rate_limits WHERE token_id = ? AND window_start >= ?"
+    )
+    .get(tokenId, dayWindow) as { total: number } | undefined;
 
   const dayCount = dayRow?.total || 0;
   if (dayCount >= token.max_requests_per_day) {
@@ -215,7 +276,7 @@ export function checkRateLimit(tokenId: string): { allowed: boolean; remaining: 
 
   const remaining = Math.min(
     token.max_requests_per_minute - minuteCount,
-    token.max_requests_per_day - dayCount,
+    token.max_requests_per_day - dayCount
   );
 
   return { allowed: true, remaining, resetIn: 60 - (now % 60) };
@@ -234,30 +295,34 @@ export function recordRelayUsage(
     latencyMs?: number;
     clientIp?: string;
     userAgent?: string;
-  },
+  }
 ): void {
   const db = getDbInstance();
   const now = Math.floor(Date.now() / 1000);
   const minuteWindow = Math.floor(now / 60) * 60;
 
   // Update rate limit window
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO relay_rate_limits (token_id, window_start, request_count, cost)
     VALUES (?, ?, 1, ?)
     ON CONFLICT(token_id, window_start) DO UPDATE SET
       request_count = request_count + 1,
       cost = cost + ?
-  `).run(tokenId, minuteWindow, params.cost || 0, params.cost || 0);
+  `
+  ).run(tokenId, minuteWindow, params.cost || 0, params.cost || 0);
 
   // Update last_used_at
   db.prepare("UPDATE relay_tokens SET last_used_at = ? WHERE id = ?").run(now, tokenId);
 
   // Insert log
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO relay_logs (token_id, request_id, model, prompt_tokens, completion_tokens, cost,
       status, status_code, latency_ms, client_ip, user_agent, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
+  `
+  ).run(
     tokenId,
     params.requestId || null,
     params.model || null,
@@ -269,26 +334,31 @@ export function recordRelayUsage(
     params.latencyMs || 0,
     params.clientIp || null,
     params.userAgent || null,
-    now,
+    now
   );
 }
 
-export function getRelayUsage(tokenId: string, since: number): { requestCount: number; totalCost: number } {
+export function getRelayUsage(
+  tokenId: string,
+  since: number
+): { requestCount: number; totalCost: number } {
   const db = getDbInstance();
-  const row = db.prepare(
-    "SELECT COUNT(*) as request_count, COALESCE(SUM(cost), 0) as total_cost FROM relay_logs WHERE token_id = ? AND created_at >= ?",
-  ).get(tokenId, since) as { request_count: number; total_cost: number };
+  const row = db
+    .prepare(
+      "SELECT COUNT(*) as request_count, COALESCE(SUM(cost), 0) as total_cost FROM relay_logs WHERE token_id = ? AND created_at >= ?"
+    )
+    .get(tokenId, since) as { request_count: number; total_cost: number };
   return { requestCount: row.request_count, totalCost: row.total_cost };
 }
 
 export function getRelayLogs(tokenId?: string, limit = 50): RelayLogRow[] {
   const db = getDbInstance();
   if (tokenId) {
-    return db.prepare(
-      "SELECT * FROM relay_logs WHERE token_id = ? ORDER BY created_at DESC LIMIT ?",
-    ).all(tokenId, limit) as RelayLogRow[];
+    return db
+      .prepare("SELECT * FROM relay_logs WHERE token_id = ? ORDER BY created_at DESC LIMIT ?")
+      .all(tokenId, limit) as RelayLogRow[];
   }
-  return db.prepare(
-    "SELECT * FROM relay_logs ORDER BY created_at DESC LIMIT ?",
-  ).all(limit) as RelayLogRow[];
+  return db
+    .prepare("SELECT * FROM relay_logs ORDER BY created_at DESC LIMIT ?")
+    .all(limit) as RelayLogRow[];
 }

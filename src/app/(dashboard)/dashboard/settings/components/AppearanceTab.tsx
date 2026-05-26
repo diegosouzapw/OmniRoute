@@ -7,6 +7,7 @@ import { useTheme } from "@/shared/hooks/useTheme";
 import useThemeStore, { COLOR_THEMES } from "@/store/themeStore";
 import { cn } from "@/shared/utils/cn";
 import { useTranslations } from "next-intl";
+import { useIsElectron } from "@/shared/hooks/useElectron";
 import {
   COMBO_CONFIG_MODE_SETTING_KEY,
   normalizeComboConfigMode,
@@ -17,6 +18,15 @@ export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
   const { colorTheme, customColor, setColorTheme, setCustomColorTheme } = useThemeStore();
   const t = useTranslations("settings");
+
+  const isElectron = useIsElectron();
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+
+  useEffect(() => {
+    if (isElectron && window.electronAPI) {
+      window.electronAPI.getAutostartStatus().then(setAutostartEnabled).catch(console.error);
+    }
+  }, [isElectron]);
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -591,6 +601,30 @@ export default function AppearanceTab() {
                 </div>
               )}
             </div>
+
+            {isElectron && (
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <div>
+                  <p className="font-medium">Start on Login</p>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Automatically launch OmniRoute on system startup and run silently in the
+                    background tray.
+                  </p>
+                </div>
+                <Toggle
+                  checked={autostartEnabled}
+                  onChange={async (checked) => {
+                    if (checked) {
+                      const success = await window.electronAPI?.enableAutostart();
+                      if (success) setAutostartEnabled(true);
+                    } else {
+                      const success = await window.electronAPI?.disableAutostart();
+                      if (success) setAutostartEnabled(false);
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

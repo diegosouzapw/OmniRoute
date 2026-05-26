@@ -89,6 +89,14 @@ export const claude = {
       code_challenge: codeChallenge,
       code_challenge_method: config.codeChallengeMethod,
       state: state,
+      // prompt=login forces Anthropic IdP to RE-AUTHENTICATE the user on each
+      // OAuth flow instead of silently reusing the browser session. Prevents
+      // the "session takeover" that invalidates the previous account's
+      // refresh_token family on the same client_id. Same pattern that unlocked
+      // multi-account Codex — applied defensively here because Anthropic's
+      // OAuth uses the same client_id across all accounts AND the user reports
+      // Claude tokens expiring in multi-account scenarios.
+      prompt: "login",
     });
     return `${config.authorizeUrl}?${params.toString()}`;
   },

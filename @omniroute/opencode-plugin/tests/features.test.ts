@@ -929,9 +929,24 @@ test("canonicalDedupSet: multi-provider — drops all canonical twins where alia
 
 test("buildAliasIndex: indexes one entry per alias (first-wins on duplicates)", () => {
   const map = makeEnrichmentMap([
-    { key: "cohere/command-a", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
-    { key: "cohere/embed-v4", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
-    { key: "cc/claude-opus-4-7", providerAlias: "cc", providerCanonical: "claude", providerDisplayName: "Claude" },
+    {
+      key: "cohere/command-a",
+      providerAlias: "cohere",
+      providerCanonical: "cohere",
+      providerDisplayName: "Cohere",
+    },
+    {
+      key: "cohere/embed-v4",
+      providerAlias: "cohere",
+      providerCanonical: "cohere",
+      providerDisplayName: "Cohere",
+    },
+    {
+      key: "cc/claude-opus-4-7",
+      providerAlias: "cc",
+      providerCanonical: "claude",
+      providerDisplayName: "Claude",
+    },
   ]);
   const idx = buildAliasIndex(map);
   assert.equal(idx.size, 2);
@@ -942,16 +957,19 @@ test("buildAliasIndex: indexes one entry per alias (first-wins on duplicates)", 
 test("buildAliasIndex: upgrades to first entry with non-empty providerDisplayName", () => {
   const map = makeEnrichmentMap([
     { key: "cohere/a", providerAlias: "cohere", providerCanonical: "cohere" }, // no displayName
-    { key: "cohere/b", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+    {
+      key: "cohere/b",
+      providerAlias: "cohere",
+      providerCanonical: "cohere",
+      providerDisplayName: "Cohere",
+    },
   ]);
   const idx = buildAliasIndex(map);
   assert.equal(idx.get("cohere")?.providerDisplayName, "Cohere");
 });
 
 test("buildAliasIndex: skips entries with no providerAlias", () => {
-  const map = makeEnrichmentMap([
-    { key: "orphan", providerCanonical: "something" },
-  ]);
+  const map = makeEnrichmentMap([{ key: "orphan", providerCanonical: "something" }]);
   assert.equal(buildAliasIndex(map).size, 0);
 });
 
@@ -970,7 +988,13 @@ test("resolveProviderTagEntry: no direct, alias matches → synthesised entry fr
   // cohere class: direct lookup misses (model not in curated 10) but
   // alias=cohere maps to the cohere slot in /api/pricing/models.
   const map = makeEnrichmentMap([
-    { key: "cohere/command-a", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere", name: "Command A" },
+    {
+      key: "cohere/command-a",
+      providerAlias: "cohere",
+      providerCanonical: "cohere",
+      providerDisplayName: "Cohere",
+      name: "Command A",
+    },
   ]);
   const idx = buildAliasIndex(map);
   const out = resolveProviderTagEntry("cohere/rerank-multilingual-v3.0", undefined, idx);
@@ -986,7 +1010,12 @@ test("resolveProviderTagEntry: canonical prefix → alias fallback (pollinations
   // /api/pricing/models keys it under alias `pol`. canonicalToAlias map
   // bridges the gap.
   const map = makeEnrichmentMap([
-    { key: "pol/openai-large", providerAlias: "pol", providerCanonical: "pollinations", providerDisplayName: "Pollinations" },
+    {
+      key: "pol/openai-large",
+      providerAlias: "pol",
+      providerCanonical: "pollinations",
+      providerDisplayName: "Pollinations",
+    },
   ]);
   const idx = buildAliasIndex(map);
   const c2a = buildCanonicalToAliasMap(map);
@@ -1004,7 +1033,12 @@ test("resolveProviderTagEntry: no prefix and no direct → returns direct (undef
 
 test("resolveProviderTagEntry: prefix unknown to alias index → returns direct (undefined)", () => {
   const map = makeEnrichmentMap([
-    { key: "cc/x", providerAlias: "cc", providerCanonical: "claude", providerDisplayName: "Claude" },
+    {
+      key: "cc/x",
+      providerAlias: "cc",
+      providerCanonical: "claude",
+      providerDisplayName: "Claude",
+    },
   ]);
   const idx = buildAliasIndex(map);
   const out = resolveProviderTagEntry("unknownprovider/some-model", undefined, idx);
@@ -1017,7 +1051,12 @@ test("resolveProviderTagEntry: direct present but empty alias+display → still 
   // via alias index.
   const direct = { name: "Some Model" };
   const map = makeEnrichmentMap([
-    { key: "cohere/x", providerAlias: "cohere", providerCanonical: "cohere", providerDisplayName: "Cohere" },
+    {
+      key: "cohere/x",
+      providerAlias: "cohere",
+      providerCanonical: "cohere",
+      providerDisplayName: "Cohere",
+    },
   ]);
   const idx = buildAliasIndex(map);
   const out = resolveProviderTagEntry("cohere/rerank-v4.0", direct, idx);

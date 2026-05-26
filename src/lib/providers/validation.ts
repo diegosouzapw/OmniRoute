@@ -3234,6 +3234,53 @@ async function validateMuseSparkWebProvider({ apiKey, providerSpecificData = {} 
   }
 }
 
+async function validateAdaptaWebProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = typeof apiKey === "string" ? apiKey.trim() : "";
+    if (!raw)
+      return { valid: false, error: "Paste your __client cookie from .clerk.agent.adapta.one" };
+    const eqIdx = raw.indexOf("=");
+    const clientJwt = eqIdx > 0 && !raw.startsWith("eyJ") ? raw.slice(eqIdx + 1).trim() : raw;
+
+    const response = await validationRead("https://clerk.agent.adapta.one/v1/client", {
+      headers: applyCustomUserAgent(
+        {
+          Cookie: `__client=${clientJwt}`,
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          Origin: "https://agent.adapta.one",
+        },
+        providerSpecificData
+      ),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired __client cookie — re-paste from .clerk.agent.adapta.one",
+      };
+    }
+
+    if (!response.ok) {
+      return { valid: false, error: `Adapta Clerk returned HTTP ${response.status}` };
+    }
+
+    const body = await response.json().catch(() => null);
+    const sessions: Array<{ id: string; status: string }> = body?.response?.sessions ?? [];
+    const hasActive = sessions.some((s) => s.status === "active");
+    if (!hasActive) {
+      return {
+        valid: false,
+        error: "No active Adapta session — your __client cookie may be expired",
+      };
+    }
+
+    return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
 /** Jules API — GET /v1alpha/sources with X-Goog-Api-Key (see developers.google.com/jules/api). */
 async function validateJulesProvider({ apiKey }: { apiKey: string }) {
   try {
@@ -3258,6 +3305,88 @@ async function validateJulesProvider({ apiKey }: { apiKey: string }) {
       error: errorText.trim() || `Jules API returned ${response.status}`,
     };
   } catch (error: unknown) {
+    return toValidationErrorResult(error);
+  }
+}
+
+async function validateInnerAiProvider({ apiKey, providerSpecificData = {} }: any) {
+  try {
+    const raw = typeof apiKey === "string" ? apiKey.trim() : "";
+    if (!raw) {
+      return {
+        valid: false,
+        error: "Paste your token cookie and email — format: eyJ... user@example.com",
+      };
+    }
+
+    // Parse token and optional email (format: "TOKEN EMAIL")
+    const eqIdx = raw.indexOf("=");
+    const stripped = eqIdx > 0 && !raw.startsWith("eyJ") ? raw.slice(eqIdx + 1).trim() : raw;
+    const lastSpace = stripped.lastIndexOf(" ");
+    let token = stripped;
+    let credEmail = "";
+    if (lastSpace > 0) {
+      const possibleEmail = stripped.slice(lastSpace + 1).trim();
+      if (possibleEmail.includes("@")) {
+        token = stripped.slice(0, lastSpace).trim();
+        credEmail = possibleEmail;
+      }
+    }
+
+    if (!credEmail) {
+      return {
+        valid: false,
+        error:
+          "Email is required — paste token followed by a space and your email: eyJ... user@example.com",
+      };
+    }
+
+    // Validate JWT structure (3 parts separated by dots)
+    const parts = token.split(".");
+    if (parts.length < 3) {
+      return {
+        valid: false,
+        error:
+          "Invalid token format — paste only the token cookie value from .innerai.com (starts with eyJ…)",
+      };
+    }
+
+    // Decode payload and check expiry
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    let payload: Record<string, unknown> = {};
+    try {
+      payload = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+    } catch {
+      return { valid: false, error: "Could not parse Inner.ai token — re-paste from DevTools" };
+    }
+
+    if (typeof payload.exp === "number" && payload.exp * 1000 < Date.now()) {
+      return {
+        valid: false,
+        error:
+          "Inner.ai token has expired — re-login at app.innerai.com and re-paste the token cookie",
+      };
+    }
+
+    // Verify the token carries at least one known Inner.ai identity field
+    const hasIdentity =
+      payload.device_id ??
+      payload.deviceId ??
+      payload["device-id"] ??
+      payload.did ??
+      payload.user_id ??
+      payload.userId ??
+      payload.sub;
+    if (!hasIdentity) {
+      return {
+        valid: false,
+        error:
+          "Token does not look like an Inner.ai session token — re-paste from DevTools → Cookies → .innerai.com",
+      };
+    }
+
+    return { valid: true, error: null };
+  } catch (error: any) {
     return toValidationErrorResult(error);
   }
 }
@@ -3362,6 +3491,8 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
     "perplexity-web": validatePerplexityWebProvider,
     "blackbox-web": validateBlackboxWebProvider,
     "muse-spark-web": validateMuseSparkWebProvider,
+    "inner-ai": validateInnerAiProvider,
+    "adapta-web": validateAdaptaWebProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
     "voyage-ai": ({ apiKey, providerSpecificData }: any) => {

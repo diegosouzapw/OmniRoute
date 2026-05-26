@@ -23,6 +23,7 @@ export async function GET() {
     const { getActiveSessions, getAllActiveSessionCountsByKey } =
       await import("@omniroute/open-sse/services/sessionManager.ts");
 
+    const { getCredentialHealthSummary } = await import("@/lib/credentialHealth/cache");
     const settings = await getSettings();
     const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();
@@ -33,6 +34,7 @@ export async function GET() {
     const quotaMonitorMonitors = getQuotaMonitorSnapshots();
     const activeSessions = getActiveSessions();
     const activeSessionsByKey = getAllActiveSessionCountsByKey();
+    const credentialHealth = getCredentialHealthSummary();
     const { getAllHealthStatuses } = await import("@/lib/localHealthCheck");
     const payload = buildHealthPayload({
       appVersion: APP_CONFIG.version,
@@ -49,6 +51,7 @@ export async function GET() {
       quotaMonitorMonitors,
       activeSessions,
       activeSessionsByKey,
+      credentialHealth,
     });
 
     return NextResponse.json(payload);

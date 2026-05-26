@@ -11,6 +11,7 @@ import { register } from "../registry.ts";
 
 type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
@@ -27,6 +28,11 @@ function toString(value: unknown, fallback = ""): string {
 function normalizeResponsesReasoningEffort(value: unknown): string {
   const effort = toString(value).toLowerCase();
   return effort === "max" ? "xhigh" : effort;
+}
+
+function shouldRequestClaudeSummarizedThinking(value: unknown): boolean {
+  const summary = toString(value).toLowerCase();
+  return !!summary && summary !== "off" && summary !== "none" && summary !== "disabled";
 }
 
 function unsupportedFeature(message: string): Error & { statusCode: number; errorType: string } {
@@ -307,6 +313,25 @@ export function openaiResponsesToOpenAIRequest(
     result[RESPONSES_STORE_MARKER] = root.store;
   }
   delete result.store;
+
+  // Copilot-only: promote Responses `reasoning.{effort,summary}` to Chat fields
+  // so the downstream openai-to-claude translator can enable extended thinking.
+  // Gated by the UA marker from translateRequest; other clients see `reasoning` dropped.
+  if (
+    credentialRecord._copilotClient === true &&
+    root.reasoning &&
+    typeof root.reasoning === "object" &&
+    !Array.isArray(root.reasoning)
+  ) {
+    const reasoningRec = toRecord(root.reasoning);
+    const effort = toString(reasoningRec.effort);
+    if (effort && result.reasoning_effort === undefined) {
+      result.reasoning_effort = normalizeResponsesReasoningEffort(effort);
+    }
+    if (shouldRequestClaudeSummarizedThinking(reasoningRec.summary)) {
+      result[COPILOT_REASONING_SUMMARY_MARKER] = "summarized";
+    }
+  }
   delete result.reasoning;
 
   return result;
