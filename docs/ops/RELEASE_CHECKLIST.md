@@ -192,6 +192,14 @@ If `electron/` changed:
 
 Before shipping any release that includes embedded services changes, verify:
 
+### Fresh-DB boot (catches migration collisions — added after v3.8.4 hotfix)
+
+- [ ] `DATA_DIR=$(mktemp -d) npm start &` — wait 10 s for boot
+- [ ] `curl -s http://127.0.0.1:20128/api/services/9router/status | jq '.tool'` returns `"9router"` (NOT 404, NOT 500). Confirms migration `071_services.sql` applied + row seeded.
+- [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(version_manager);" | grep -E "provider_expose|logs_buffer_path|last_sync_at"` returns 3 rows.
+- [ ] `sqlite3 $DATA_DIR/storage.sqlite "PRAGMA table_info(webhooks);" | grep -E "kind|metadata_encrypted"` returns 2 rows (validates `070_webhooks_kind_metadata.sql` applied).
+- [ ] `node --import tsx/esm --test tests/unit/db/no-migration-collisions.test.ts` passes — guards against future collisions.
+
 ### 9Router
 
 - [ ] `POST /api/services/9router/install` returns 200 with `installedVersion` in under 2 min
