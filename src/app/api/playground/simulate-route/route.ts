@@ -7,9 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { getAllCombos } from "@/lib/db/combos";
-import {
-  getProviderConnections,
-} from "@/lib/db/providers";
+import { getProviderConnections } from "@/lib/db/providers";
 
 interface SimulateRequest {
   /** Combo ID to simulate */
@@ -52,18 +50,29 @@ interface SimulateResponse {
 function estimateCost(model: string, promptTokens: number): number {
   // Rough cost estimates per model family
   const modelLower = model.toLowerCase();
-  const rate = modelLower.includes("sonnet") ? 3 :
-    modelLower.includes("haiku") ? 0.25 :
-    modelLower.includes("opus") ? 15 :
-    modelLower.includes("gpt-4") ? 10 :
-    modelLower.includes("gpt-3.5") ? 0.5 :
-    modelLower.includes("gemini") ? 0.15 :
-    modelLower.includes("claude") ? 3 :
-    modelLower.includes("deepseek") ? 0.5 :
-    modelLower.includes("mistral") ? 0.6 :
-    modelLower.includes("llama") ? 0.3 :
-    modelLower.includes("qwen") ? 0.4 :
-    1;
+  const rate = modelLower.includes("sonnet")
+    ? 3
+    : modelLower.includes("haiku")
+      ? 0.25
+      : modelLower.includes("opus")
+        ? 15
+        : modelLower.includes("gpt-4")
+          ? 10
+          : modelLower.includes("gpt-3.5")
+            ? 0.5
+            : modelLower.includes("gemini")
+              ? 0.15
+              : modelLower.includes("claude")
+                ? 3
+                : modelLower.includes("deepseek")
+                  ? 0.5
+                  : modelLower.includes("mistral")
+                    ? 0.6
+                    : modelLower.includes("llama")
+                      ? 0.3
+                      : modelLower.includes("qwen")
+                        ? 0.4
+                        : 1;
   return (rate * promptTokens) / 1_000_000;
 }
 
@@ -97,7 +106,11 @@ export async function POST(request: Request) {
     const body: SimulateRequest = await request.json();
     const warnings: string[] = [];
     const errors: string[] = [];
-    let comboInfo: { name: string; strategy: string; targets: Array<{ provider: string; model: string; weight?: number }> } | null = null;
+    let comboInfo: {
+      name: string;
+      strategy: string;
+      targets: Array<{ provider: string; model: string; weight?: number }>;
+    } | null = null;
 
     // Resolve combo
     if (body.comboId) {
@@ -127,7 +140,7 @@ export async function POST(request: Request) {
     for (let i = 0; i < comboInfo.targets.length; i++) {
       const t = comboInfo.targets[i];
       const conn = connections.find(
-        (c: any) => c.id === t.provider || c.name === t.provider || c.displayName === t.provider,
+        (c: any) => c.id === t.provider || c.name === t.provider || c.displayName === t.provider
       );
       const cost = estimateCost(t.model, promptTokens);
       const latency = estimateLatency(t.model);
@@ -176,9 +189,6 @@ export async function POST(request: Request) {
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { error: `Simulation error: ${message}` },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: `Simulation error: ${message}` }, { status: 500 });
   }
 }

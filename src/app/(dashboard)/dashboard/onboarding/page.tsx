@@ -31,6 +31,7 @@ export default function OnboardingWizard() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [skipSecurity, setSkipSecurity] = useState(false);
+  const [capsLockOn, setCapsLockOn] = useState(false);
 
   // Provider step state
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -325,6 +326,8 @@ export default function OnboardingWizard() {
                       placeholder={t("enterPassword")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onKeyDown={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
+                      onKeyUp={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <input
@@ -332,8 +335,18 @@ export default function OnboardingWizard() {
                       placeholder={t("confirmPasswordPlaceholder")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      onKeyDown={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
+                      onKeyUp={(e) => setCapsLockOn(e.getModifierState("CapsLock"))}
                       className="w-full px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-lg text-text-main text-sm placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
+                    {capsLockOn && (
+                      <p className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 animate-in fade-in duration-200">
+                        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+                          keyboard_capslock
+                        </span>
+                        Caps Lock is on
+                      </p>
+                    )}
                     {password && confirmPassword && password !== confirmPassword && (
                       <p className="text-xs text-red-400">{t("passwordsMismatch")}</p>
                     )}

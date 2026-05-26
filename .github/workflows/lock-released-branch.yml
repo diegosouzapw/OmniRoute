@@ -1,14 +1,29 @@
 name: Lock released branch
 
-# When a GitHub Release is published (e.g. tag v3.8.2), make the matching
-# release/<tag> branch read-only so no further commits can land on a shipped
-# version. Uses branch protection's lock_branch + enforce_admins so the freeze
-# applies even to repository admins. To reopen a branch later:
-#   gh api -X DELETE repos/<owner>/<repo>/branches/release/<tag>/protection
+# Two responsibilities (defense in depth — Hard Rule #18 enforcement):
+#
+# 1. `on: release: published` — when a GitHub Release publishes tag v3.X.Y,
+#    apply branch protection (lock_branch + enforce_admins) to release/v3.X.Y
+#    so no further commits can land on a shipped version. To reopen later:
+#      gh api -X DELETE repos/<owner>/<repo>/branches/release/<tag>/protection
+#
+# 2. `on: push: branches: ['release/v*']` — verify that no push lands on a
+#    release/* branch whose matching tag already exists. This is the preventive
+#    guard: if the lock didn't apply (workflow bug, missing PAT, race), this
+#    job FAILS the push run so the operator gets paged immediately.
+#
+# `permissions:` cannot grant the `Administration` scope to GITHUB_TOKEN — that
+# scope only exists on PATs. Set BRANCH_LOCK_TOKEN as a repo secret pointing to
+# a PAT/fine-grained token with `Administration: read & write`. Without it, the
+# lock step will fail loudly (which is what we want — silent failure caused the
+# v3.8.3 incident on 2026-05-26 where 6 commits landed post-release).
 
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - "release/v*"
   workflow_dispatch:
     inputs:
       tag:
@@ -17,23 +32,30 @@ on:
         type: string
 
 permissions:
-  # Editing branch protection requires the administration scope.
-  administration: write
   contents: read
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1 — Lock the release branch when a Release is published.
+  # ─────────────────────────────────────────────────────────────────────────
   lock-branch:
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Lock release/<tag> branch
         env:
-          GH_TOKEN: ${{ secrets.BRANCH_LOCK_TOKEN || secrets.GITHUB_TOKEN }}
-          # release event -> github.event.release.tag_name; manual -> inputs.tag
+          # Administration scope is required to PUT branch protection. Default
+          # GITHUB_TOKEN cannot do this — operator must provision BRANCH_LOCK_TOKEN.
+          GH_TOKEN: ${{ secrets.BRANCH_LOCK_TOKEN }}
           TAG: ${{ github.event.release.tag_name || inputs.tag }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::BRANCH_LOCK_TOKEN secret is not set. Create a PAT with Administration:write and add it as repo secret."
+            exit 1
+          fi
           if [ -z "${TAG}" ]; then
             echo "::error::No tag provided; cannot determine release branch."
             exit 1
@@ -42,7 +64,6 @@ jobs:
           BRANCH="release/${TAG}"
           echo "Target branch: ${BRANCH} (repo: ${REPO})"
 
-          # Skip gracefully if the release branch does not exist.
           if ! gh api "repos/${REPO}/branches/${BRANCH}" >/dev/null 2>&1; then
             echo "::warning::Branch ${BRANCH} not found — nothing to lock."
             exit 0
@@ -68,3 +89,37 @@ jobs:
             exit 1
           fi
           echo "✅ ${BRANCH} is now locked (read-only)."
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2 — Preventive guard: fail if a push lands on release/vX.Y.Z whose
+  # tag already exists. This catches the case where the lock didn't apply
+  # (PAT missing, race window, workflow bug) and pages the operator.
+  # ─────────────────────────────────────────────────────────────────────────
+  guard-no-push-after-release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject push if matching release tag exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Extract version from ref: release/v3.8.3 -> v3.8.3
+          if [[ ! "${REF}" =~ ^release/(v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "Ref ${REF} does not match release/vX.Y.Z — nothing to guard."
+            exit 0
+          fi
+          TAG="${BASH_REMATCH[1]}"
+          echo "Checking if tag ${TAG} already exists on ${REPO}..."
+
+          if gh api "repos/${REPO}/git/refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::Hard Rule #18 violation — push to ${REF} but tag ${TAG} is already released."
+            echo "::error::Hotfixes for a released version must go on a NEW branch: release/v$(echo "${TAG#v}" | awk -F. '{$3=$3+1; print $1"."$2"."$3}' OFS=.)"
+            echo "::error::To undo this push: revert the offending commits, or contact an admin to lock the branch if it wasn't already."
+            exit 1
+          fi
+
+          echo "✅ No release tag for ${TAG} yet — push is OK."

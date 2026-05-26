@@ -123,10 +123,17 @@ Keep an empty `## [Unreleased]` section above it, separated by a horizontal rule
 
 - ...
 
+### 🏆 Hall de Contribuidores
+
+Um agradecimento especial a todos que contribuíram com código, revisões e testes para este release:
+@user1, @user2
+
 ---
 
 ## [3.6.9] — 2026-04-19
 ```
+
+> **🔴 HALL DE CONTRIBUIDORES RULE**: You MUST parse all the PR author mentions (e.g., `(thanks @username)`) from the new version's changelog items, deduplicate them, and append them as a "Hall de Contribuidores" section at the end of the new release block, exactly as shown above.
 
 ### 5. Update openapi.yaml version ⚠️ MANDATORY
 

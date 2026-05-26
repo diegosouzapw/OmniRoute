@@ -14,6 +14,8 @@ interface ModalProps {
   closeOnOverlay?: boolean;
   showCloseButton?: boolean;
   className?: string;
+  bodyClassName?: string;
+  compactHeader?: boolean;
   maxWidth?: string;
 }
 
@@ -27,6 +29,8 @@ export default function Modal({
   closeOnOverlay = true,
   showCloseButton = true,
   className,
+  bodyClassName,
+  compactHeader = false,
 }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef(null);
@@ -126,15 +130,47 @@ export default function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
-            <div className="flex items-center">
-              <div className="flex items-center gap-2 mr-4" aria-hidden="true">
-                <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-                <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
+          <div
+            className={cn(
+              "flex items-center justify-between border-b border-black/5 dark:border-white/5",
+              compactHeader ? "px-4 py-2.5" : "p-6"
+            )}
+          >
+            <div className="flex items-center min-w-0">
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 mr-3 shrink-0",
+                  compactHeader ? "" : "gap-2 mr-4"
+                )}
+                aria-hidden="true"
+              >
+                <div
+                  className={cn(
+                    "rounded-full bg-[#FF5F56]",
+                    compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "rounded-full bg-[#FFBD2E]",
+                    compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "rounded-full bg-[#27C93F]",
+                    compactHeader ? "w-2.5 h-2.5" : "w-3 h-3"
+                  )}
+                />
               </div>
               {title && (
-                <h2 id={titleId} className="text-lg font-semibold text-text-main">
+                <h2
+                  id={titleId}
+                  className={cn(
+                    "font-semibold text-text-main truncate min-w-0",
+                    compactHeader ? "text-sm" : "text-lg"
+                  )}
+                >
                   {title}
                 </h2>
               )}
@@ -143,7 +179,7 @@ export default function Modal({
               <button
                 onClick={onClose}
                 aria-label="Close"
-                className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
               >
                 <span className="material-symbols-outlined text-[20px]" aria-hidden="true">
                   close
@@ -154,7 +190,9 @@ export default function Modal({
         )}
 
         {/* Body */}
-        <div className="p-6 max-h-[calc(80vh-140px)] overflow-y-auto">{children}</div>
+        <div className={bodyClassName ?? "p-6 max-h-[calc(80vh-140px)] overflow-y-auto"}>
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (

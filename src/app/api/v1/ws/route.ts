@@ -13,6 +13,14 @@ const WS_PROTOCOL = {
     payload: { model: "openai/gpt-4.1-mini", messages: [] },
   },
   cancel: { type: "cancel", id: "req-1" },
+  live: {
+    port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+    path: "/live",
+    protocol: "json",
+    channels: ["requests", "combo", "credentials"],
+    auth: "api-key",
+    heartbeatMs: 15000,
+  },
 };
 
 export async function OPTIONS() {
@@ -59,6 +67,14 @@ export async function GET(request: Request) {
         authenticated: auth.authenticated,
         authType: auth.authType,
         protocol: WS_PROTOCOL,
+        live: {
+          port: parseInt(process.env.LIVE_WS_PORT || "20129", 10),
+          path: "/live",
+          protocol: "json",
+          channels: ["requests", "combo", "credentials"],
+          auth: "api-key",
+          description: "Real-time dashboard events via WebSocket",
+        },
       },
       {
         headers: WS_HANDSHAKE_HEADERS,

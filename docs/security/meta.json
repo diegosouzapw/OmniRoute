@@ -1,0 +1,13 @@
+{
+  "title": "Security",
+  "pages": [
+    "GUARDRAILS",
+    "PUBLIC_CREDS",
+    "ERROR_SANITIZATION",
+    "ROUTE_GUARD_TIERS",
+    "STEALTH_GUIDE",
+    "COMPLIANCE",
+    "CLI_TOKEN",
+    "CLI_TOKEN_AUTH"
+  ]
+}

@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "সমস্ত স্তর",
+    "tierAuth": "Auth",
+    "tierLoopback": "স্থানীয়-শুধুমাত্র",
+    "tierAlwaysProtected": "সর্বদা-রক্ষিত",
+    "tierPublic": "সার্বজনীন",
+    "showInternal": "অভ্যন্তরীণ দেখান",
+    "hideInternal": "অভ্যন্তরীণ লুকান",
+    "badgeLoopbackTooltip": "স্থানীয়-শুধুমাত্র: লুপব্যাক আইপির বাইরে থেকে ব্লক করা হয়েছে",
+    "badgeAlwaysProtectedTooltip": "সর্বদা সুরক্ষিত: requireLogin=false থাকলেও প্রমাণীকরণের প্রয়োজন।",
+    "badgeInternalTooltip": "অভ্যন্তরীণ রুট — পাবলিক API এর অংশ নয়"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

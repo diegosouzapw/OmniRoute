@@ -5,6 +5,7 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
   "api-manager",
   "endpoints",
   "providers",
+  "embedded-services",
   "combos",
   "quota",
   // OmniProxy > Compression Context
@@ -169,6 +170,13 @@ const OMNI_PROXY_ITEMS: readonly SidebarItemDefinition[] = [
     icon: "dns",
   },
   {
+    id: "embedded-services",
+    href: "/dashboard/providers/services",
+    i18nKey: "embeddedServices",
+    subtitleKey: "embeddedServicesSubtitle",
+    icon: "deployed_code",
+  },
+  {
     id: "combos",
     href: "/dashboard/combos",
     i18nKey: "combos",
@@ -279,20 +287,6 @@ const PROXY_GROUP: SidebarItemGroup = {
       i18nKey: "proxy",
       subtitleKey: "proxySubtitle",
       icon: "dns",
-    },
-    {
-      id: "mitm-proxy",
-      href: "/dashboard/system/mitm-proxy",
-      i18nKey: "mitmProxy",
-      subtitleKey: "mitmProxySubtitle",
-      icon: "lan",
-    },
-    {
-      id: "1proxy",
-      href: "/dashboard/system/1proxy",
-      i18nKey: "oneProxy",
-      subtitleKey: "oneProxySubtitle",
-      icon: "public",
     },
   ],
 };

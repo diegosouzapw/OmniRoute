@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
+import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
 import { setNoLog } from "../compliance";
 
 // ──────────────── Performance Optimizations ────────────────
@@ -1235,6 +1236,13 @@ export async function isModelAllowedForKey(
     }
   }
 
+  // If key belongs to groups, also check group-level permissions
+  if (metadata.id) {
+    const groupAccess = checkKeyModelAccess(metadata.id, modelId || "");
+    if (!groupAccess.allowed) {
+      allowed = false;
+    }
+  }
   // Cache the result
   evictIfNeeded(_modelPermissionCache);
   _modelPermissionCache.set(cacheKey, { allowed, timestamp: now });

@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "எல்லா நிலைகள்",
+    "tierAuth": "Auth",
+    "tierLoopback": "உள்ளூர் மட்டுமே",
+    "tierAlwaysProtected": "எப்போதும் பாதுகாக்கப்பட்ட",
+    "tierPublic": "பொது",
+    "showInternal": "உள்ளகத்தை காட்டு",
+    "hideInternal": "உள்ளகத்தை மறைக்கவும்",
+    "badgeLoopbackTooltip": "உள்ளூர் மட்டுமே: லூப்பேக் IP களிலிருந்து தடிக்கப்பட்டது",
+    "badgeAlwaysProtectedTooltip": "எப்போதும் பாதுகாக்கப்படுகிறது: requireLogin=false என்றாலும் அங்கீகாரம் தேவை",
+    "badgeInternalTooltip": "உள்ளக வழி — பொதுப் API இன் ஒரு பகுதியாக இல்லை"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

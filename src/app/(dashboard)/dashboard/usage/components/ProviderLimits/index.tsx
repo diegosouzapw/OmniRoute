@@ -17,12 +17,9 @@ import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import QuotaCutoffModal from "./QuotaCutoffModal";
-import ProviderGroup, { buildGridTemplate } from "./ProviderGroup";
-import AccountRow from "./AccountRow";
-import { getProviderColumns, groupConnectionsByProvider } from "./providerColumns";
+import QuotaCardGrid from "./QuotaCardGrid";
 import { translateUsageOrFallback, type UsageTranslationValues } from "./i18nFallback";
 
-const LS_EXPANDED_ROWS = "omniroute:limits:expandedRows";
 const LS_PURCHASE_FILTER = "omniroute:limits:purchaseFilter";
 const LS_STATUS_FILTER = "omniroute:limits:statusFilter";
 const LS_ENV_FILTER = "omniroute:limits:envFilter";
@@ -192,16 +189,6 @@ export default function ProviderLimits() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState("all");
 
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    try {
-      const saved = localStorage.getItem(LS_EXPANDED_ROWS);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
   const [purchaseTypeFilter, setPurchaseTypeFilter] = useState<PurchaseTypeKey>(() => {
     if (typeof window === "undefined") return "all";
     const saved = localStorage.getItem(LS_PURCHASE_FILTER) as PurchaseTypeKey | null;
@@ -218,9 +205,6 @@ export default function ProviderLimits() {
     if (typeof window === "undefined") return "all";
     return localStorage.getItem(LS_ENV_FILTER) || "all";
   });
-
-  // Per-group bulk-refresh state; one spinner per provider key.
-  const [refreshingGroups, setRefreshingGroups] = useState<Set<string>>(new Set());
 
   const lastFetchTimeRef = useRef<Record<string, number>>({});
   const staleProbeRef = useRef<Record<string, number>>({});
@@ -418,31 +402,6 @@ export default function ProviderLimits() {
     }
   }, [applyCachedQuotaState, fetchConnections]);
 
-  // Bulk refresh all accounts inside one provider group. The per-account
-  // loading indicator is updated by each fetchQuota call; the group spinner
-  // is just a wrapper that flips while the Promise.all is in flight.
-  const refreshProviderGroup = useCallback(
-    async (providerKey: string, accountIds: string[]) => {
-      setRefreshingGroups((prev) => {
-        if (prev.has(providerKey)) return prev;
-        const next = new Set(prev);
-        next.add(providerKey);
-        return next;
-      });
-      try {
-        await Promise.all(accountIds.map((id) => fetchQuota(id, providerKey, { force: true })));
-      } finally {
-        setRefreshingGroups((prev) => {
-          if (!prev.has(providerKey)) return prev;
-          const next = new Set(prev);
-          next.delete(providerKey);
-          return next;
-        });
-      }
-    },
-    [fetchQuota]
-  );
-
   useEffect(() => {
     const init = async () => {
       setInitialLoading(true);
@@ -620,30 +579,6 @@ export default function ProviderLimits() {
     envFilter,
     quotaData,
   ]);
-
-  // Group visible connections by provider, then resort group keys by
-  // PROVIDER_ORDER so the section sequence on the page is stable.
-  const providerGroups = useMemo(() => {
-    const groups = groupConnectionsByProvider(visibleConnections);
-    return new Map(
-      [...groups.entries()].sort(
-        ([a], [b]) => (PROVIDER_ORDER[a] || 99) - (PROVIDER_ORDER[b] || 99)
-      )
-    );
-  }, [visibleConnections]);
-
-  const toggleRow = useCallback((connectionId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      next.has(connectionId) ? next.delete(connectionId) : next.add(connectionId);
-      try {
-        localStorage.setItem(LS_EXPANDED_ROWS, JSON.stringify([...next]));
-      } catch {
-        /* localStorage may be unavailable; persistence is best-effort */
-      }
-      return next;
-    });
-  }, []);
 
   const handleSetPurchaseFilter = useCallback((value: PurchaseTypeKey) => {
     setPurchaseTypeFilter(value);
@@ -872,75 +807,23 @@ export default function ProviderLimits() {
           </div>
         )}
 
-        {[...providerGroups.entries()].map(([providerKey, conns]) => {
-          // The group schema reflects the union of quotas across accounts so
-          // an account that only has a session still lines up under the
-          // session column even when its siblings also have weekly. We then
-          // resolve per-row schemas using the same column *keys* so missing
-          // windows render as em-dash cells.
-          const allQuotas = conns.flatMap((c) => quotaData[c.id]?.quotas || []);
-          const groupSchema = getProviderColumns(providerKey, allQuotas);
-          const grid = buildGridTemplate(groupSchema.columns.length);
-          const accountIds = conns.map((c) => c.id);
-          const worstGroupStatus = aggregateWorst(
-            conns.map((c) => statusByConnection[c.id] || "empty")
-          );
-
-          return (
-            <ProviderGroup
-              key={providerKey}
-              providerKey={providerKey}
-              providerLabel={PROVIDER_LABEL[providerKey] || providerKey}
-              accountCount={conns.length}
-              worstStatus={worstGroupStatus}
-              columns={groupSchema.columns}
-              overflowMax={groupSchema.overflowCount}
-              isRefreshing={refreshingGroups.has(providerKey)}
-              onRefreshGroup={() => refreshProviderGroup(providerKey, accountIds)}
-            >
-              {conns.map((conn, idx) => {
-                const rowQuotas = quotaData[conn.id]?.quotas || [];
-                const rowSchema = getProviderColumns(providerKey, rowQuotas);
-                // Align each row's column array with the group header by key.
-                // Missing windows on a row → null-quota cell; this keeps the
-                // grid columns aligned even when accounts diverge.
-                const rowColumns = groupSchema.columns.map((groupCol) => {
-                  const match = rowSchema.columns.find((c) => c.key === groupCol.key);
-                  return match || { ...groupCol, quota: null };
-                });
-                return (
-                  <AccountRow
-                    key={conn.id}
-                    connection={conn}
-                    quota={quotaData[conn.id]}
-                    loading={!!loading[conn.id]}
-                    error={errors[conn.id] || null}
-                    refreshedAt={lastRefreshedAt[conn.id]}
-                    tierMeta={tierByConnection[conn.id] || normalizePlanTier(null)}
-                    resolvedPlan={resolvedPlanByConnection[conn.id]}
-                    status={statusByConnection[conn.id] || "empty"}
-                    statusTone={STATUS_TONE[statusByConnection[conn.id] || "empty"]}
-                    columns={rowColumns}
-                    overflowCount={rowSchema.overflowCount}
-                    isExpanded={expandedRows.has(conn.id)}
-                    emailsVisible={emailsVisible}
-                    gridTemplateColumns={grid}
-                    onToggle={() => toggleRow(conn.id)}
-                    onRefresh={() => refreshProvider(conn.id, conn.provider)}
-                    onOpenCutoff={() => {
-                      const windows = (quotaData[conn.id]?.quotas || []).filter(
-                        (q: any) => q && typeof q.name === "string" && !q.isCredits
-                      );
-                      setCutoffModalWindows(windows);
-                      setCutoffModalConn(conn);
-                    }}
-                    isLast={idx === conns.length - 1}
-                  />
-                );
-              })}
-            </ProviderGroup>
-          );
-        })}
+        <QuotaCardGrid
+          connections={visibleConnections}
+          quotaData={quotaData}
+          loading={loading}
+          errors={errors}
+          lastRefreshedAt={lastRefreshedAt}
+          emailsVisible={emailsVisible}
+          providerLabels={PROVIDER_LABEL}
+          onRefresh={refreshProvider}
+          onOpenCutoff={(conn) => {
+            const windows = (quotaData[conn.id]?.quotas || []).filter(
+              (q: any) => q && typeof q.name === "string" && !q.isCredits
+            );
+            setCutoffModalWindows(windows);
+            setCutoffModalConn(conn);
+          }}
+        />
       </div>
 
       {cutoffModalConn && (

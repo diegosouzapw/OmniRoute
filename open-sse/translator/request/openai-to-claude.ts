@@ -11,6 +11,24 @@ import { capMaxOutputTokens } from "../../../src/lib/modelCapabilities.ts";
 // Can be disabled per-request via body._disableToolPrefix = true
 export const CLAUDE_OAUTH_TOOL_PREFIX = "proxy_";
 const CLAUDE_TOOL_CHOICE_REQUIRED = "an" + "y";
+const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
+
+function wantsCopilotSummarizedThinking(body: Record<string, unknown> | null | undefined): boolean {
+  return body?.[COPILOT_REASONING_SUMMARY_MARKER] === "summarized";
+}
+
+function applyCopilotSummarizedThinkingDisplay(
+  thinking: Record<string, unknown> | undefined,
+  body: Record<string, unknown> | null | undefined
+): Record<string, unknown> | undefined {
+  if (!thinking || !wantsCopilotSummarizedThinking(body) || thinking.type === "disabled") {
+    return thinking;
+  }
+  return {
+    ...thinking,
+    display: "summarized",
+  };
+}
 
 // Anthropic constraints for the thinking + max_tokens contract:
 //   - thinking.budget_tokens must be >= 1024 when thinking is enabled
@@ -473,8 +491,10 @@ export function openaiToClaudeRequest(model, body, stream) {
   if (fitted.thinking === undefined) {
     delete result.thinking;
   } else {
-    result.thinking = fitted.thinking;
+    result.thinking = applyCopilotSummarizedThinkingDisplay(fitted.thinking, body);
   }
+
+  delete result[COPILOT_REASONING_SUMMARY_MARKER];
 
   // Attach toolNameMap to result for response translation
   if (toolNameMap.size > 0) {

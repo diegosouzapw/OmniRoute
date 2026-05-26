@@ -41,14 +41,21 @@ interface Combo {
 // ── Status helpers ───────────────────────────────────────────────────────────
 
 function StatusTag({ status }: { status: TargetSimulation["status"] }) {
-  const map: Record<TargetSimulation["status"], { label: string; variant: "success" | "error" | "warning" | "info" }> = {
+  const map: Record<
+    TargetSimulation["status"],
+    { label: string; variant: "success" | "error" | "warning" | "info" }
+  > = {
     available: { label: "Available", variant: "success" },
     no_quota: { label: "No Quota", variant: "error" },
     degraded: { label: "Degraded", variant: "warning" },
     error: { label: "Error", variant: "error" },
     unknown: { label: "Unknown", variant: "info" },
   };
-  return <Badge variant={map[status].variant} size="sm">{map[status].label}</Badge>;
+  return (
+    <Badge variant={map[status].variant} size="sm">
+      {map[status].label}
+    </Badge>
+  );
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -65,7 +72,7 @@ export default function ComboPlaygroundClient() {
     fetch("/api/combos")
       .then((r) => r.json())
       .then((data) => {
-        const list: Combo[] = Array.isArray(data) ? data : data?.combos ?? data?.data ?? [];
+        const list: Combo[] = Array.isArray(data) ? data : (data?.combos ?? data?.data ?? []);
         setCombos(list);
         if (list.length > 0) setSelectedComboId(list[0].id);
       })
@@ -194,8 +201,18 @@ export default function ComboPlaygroundClient() {
                     {i > 0 && (
                       <div className="flex justify-center py-1">
                         <div className="flex flex-col items-center text-text-muted">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
                           </svg>
                           {result.strategy === "priority" && (
                             <span className="text-[10px]">fallback</span>
@@ -213,10 +230,10 @@ export default function ComboPlaygroundClient() {
                         t.status === "available"
                           ? "border-green-500/30 bg-green-500/5"
                           : t.status === "error"
-                          ? "border-red-500/30 bg-red-500/5"
-                          : t.status === "unknown"
-                          ? "border-yellow-500/30 bg-yellow-500/5"
-                          : "border-border bg-surface/50"
+                            ? "border-red-500/30 bg-red-500/5"
+                            : t.status === "unknown"
+                              ? "border-yellow-500/30 bg-yellow-500/5"
+                              : "border-border bg-surface/50"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -234,9 +251,7 @@ export default function ComboPlaygroundClient() {
                           <span className="text-xs text-text-muted">
                             ${t.estimatedCost.toFixed(6)}
                           </span>
-                          <span className="text-xs text-text-muted">
-                            {t.estimatedLatencyMs}ms
-                          </span>
+                          <span className="text-xs text-text-muted">{t.estimatedLatencyMs}ms</span>
                           {t.contextWindow && (
                             <span className="text-xs text-text-muted">
                               {(t.contextWindow / 1000).toFixed(0)}K ctx
@@ -301,7 +316,7 @@ export default function ComboPlaygroundClient() {
         <Card>
           <div className="p-8 text-center">
             <p className="text-text-muted">
-              No combos configured yet.{' '}
+              No combos configured yet.{" "}
               <a href="/dashboard/combos" className="text-primary hover:underline">
                 Create one first
               </a>

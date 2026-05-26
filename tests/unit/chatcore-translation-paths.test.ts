@@ -667,12 +667,14 @@ test("chatCore normalizes native Claude Code messages for native Claude OAuth pa
     true
   );
 
-  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
-  // Remaining: ["Run pwd" text, "[README.md]\nDo not flatten me" text]
-  assert.equal(call.body.messages[0].content.length, 2);
-  assert.equal(call.body.messages[0].content[0].text, "Run pwd");
-  assert.equal(call.body.messages[0].content[1].type, "text");
-  assert.equal(call.body.messages[0].content[1].text, "[README.md]\nDo not flatten me");
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Run pwd");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
 
   // assistant msg[1] (was clientMessages[2]): tool_use unchanged
   assert.equal(call.body.messages[1].content[0].type, "tool_use");
@@ -789,12 +791,14 @@ test("chatCore normalizes native Claude Code messages before CC-compatible relay
     true
   );
 
-  // user msg[0] (was clientMessages[1]): empty text stripped, document→text, future_block dropped
-  // Remaining: ["Inspect project" text, "[design.md]\nKeep as document block" text]
-  assert.equal(call.body.messages[0].content.length, 2);
-  assert.equal(call.body.messages[0].content[0].text, "Inspect project");
-  assert.equal(call.body.messages[0].content[1].type, "text");
-  assert.equal(call.body.messages[0].content[1].text, "[design.md]\nKeep as document block");
+  // user msg[0] (was clientMessages[1]): empty text, document and future_block are preserved
+  // since it is a semantic passthrough request
+  assert.equal(call.body.messages[0].content.length, 4);
+  assert.equal(call.body.messages[0].content[0].type, "text");
+  assert.equal(call.body.messages[0].content[0].text, "");
+  assert.equal(call.body.messages[0].content[1].text, "Inspect project");
+  assert.equal(call.body.messages[0].content[2].type, "document");
+  assert.equal(call.body.messages[0].content[3].type, "future_block");
 
   // assistant msg[1] (was clientMessages[2]): tool_use unchanged
   assert.equal(call.body.messages[1].content[0].type, "tool_use");

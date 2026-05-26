@@ -3,6 +3,7 @@ import * as log from "../utils/logger";
 import { updateProviderConnection, resolveProxyForProvider } from "@/lib/localDb";
 import {
   TOKEN_EXPIRY_BUFFER_MS as BUFFER_MS,
+  getRefreshLeadMs as _getRefreshLeadMs,
   refreshAccessToken as _refreshAccessToken,
   refreshClaudeOAuthToken as _refreshClaudeOAuthToken,
   refreshGoogleToken as _refreshGoogleToken,
@@ -17,31 +18,13 @@ import {
   getAllAccessTokens as _getAllAccessTokens,
 } from "@omniroute/open-sse/services/tokenRefresh.ts";
 
-// Per-connection mutex: prevents concurrent OAuth refresh for rotating tokens.
-// Key = connectionId, Value = { promise: in-flight refresh, waiters: count of callers sharing it }
-const connectionRefreshMutex = new Map<string, { promise: Promise<any>; waiters: number }>();
-
-export async function withConnectionRefreshMutex<T>(
-  connectionId: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  const existing = connectionRefreshMutex.get(connectionId);
-  if (existing) {
-    existing.waiters++;
-    log.info("TOKEN_REFRESH", "Concurrent refresh detected — sharing in-flight refresh", {
-      connectionId,
-      waiters: existing.waiters,
-    });
-    return existing.promise as Promise<T>;
-  }
-
-  const entry: { promise: Promise<T>; waiters: number } = { promise: null as any, waiters: 0 };
-  entry.promise = fn().finally(() => {
-    connectionRefreshMutex.delete(connectionId);
-  });
-  connectionRefreshMutex.set(connectionId, entry);
-  return entry.promise;
-}
+// DEPRECATED: withConnectionRefreshMutex was removed. The per-connection mutex
+// is now consolidated in open-sse/services/tokenRefresh.ts and protected by
+// passing an `onPersist` callback to `getAccessToken`, which runs the DB write
+// INSIDE the mutex closure (atomic [network + persist]). The old src/sse-side
+// mutex Map was redundant and created the illusion of two locks when there was
+// actually only one. Removing it eliminates the dual-Map confusion. See
+// docs/architecture/SSE_BOUNDARY.md and tests/unit/token-refresh-race-comprehensive.test.ts.
 
 export const TOKEN_EXPIRY_BUFFER_MS = BUFFER_MS;
 
@@ -94,9 +77,13 @@ export const refreshCopilotToken = async (githubAccessToken: string) => {
   return _refreshCopilotToken(githubAccessToken, log, proxy);
 };
 
-export const getAccessToken = async (provider: string, credentials: any) => {
+export const getAccessToken = async (
+  provider: string,
+  credentials: any,
+  onPersist?: (result: any) => Promise<void>
+) => {
   const proxy = await resolveProxyForProvider(provider);
-  return _getAccessToken(provider, credentials, log, proxy);
+  return _getAccessToken(provider, credentials, log, proxy, onPersist);
 };
 
 export const refreshTokenByProvider = async (provider: string, credentials: any) => {
@@ -164,33 +151,52 @@ export async function updateProviderCredentials(connectionId: string, newCredent
 export async function checkAndRefreshToken(provider: string, credentials: any) {
   let updatedCredentials = { ...credentials };
 
-  // Check regular token expiry
+  // Check regular token expiry. Use the provider-specific lead time so rotating-
+  // token providers (Codex/OpenAI) refresh FAR ahead of access_token expiry. This
+  // keeps the refresh_token "warm" — refreshed regularly enough that Auth0 doesn't
+  // mark it as stale and revoke the token family on first use after long idle.
   if (updatedCredentials.expiresAt) {
     const expiresAt = new Date(updatedCredentials.expiresAt).getTime();
     const now = Date.now();
+    const refreshLead = _getRefreshLeadMs(provider);
 
-    if (expiresAt - now < TOKEN_EXPIRY_BUFFER_MS) {
+    if (expiresAt - now < refreshLead) {
       log.info("TOKEN_REFRESH", "Token expiring soon, refreshing proactively", {
         provider,
         expiresIn: Math.round((expiresAt - now) / 1000),
+        refreshLeadMs: refreshLead,
       });
 
       const connectionId: string | undefined = updatedCredentials.connectionId;
-      const newCredentials = connectionId
-        ? await withConnectionRefreshMutex(connectionId, () =>
-            getAccessToken(provider, updatedCredentials)
-          )
-        : await getAccessToken(provider, updatedCredentials);
+
+      // Pass onPersist so the DB write happens INSIDE the open-sse per-connection
+      // mutex, making [network call + DB write] one atomic step. This eliminates the
+      // race where a concurrent request reads stale DB credentials before the write
+      // and re-uses a rotated refresh token (refresh_token_reused on Codex/OpenAI).
+      // The separate withConnectionRefreshMutex wrapper is no longer needed here.
+      const persistCallback = connectionId
+        ? async (result: any) => {
+            await updateProviderCredentials(connectionId, result);
+          }
+        : undefined;
+
+      const newCredentials = await getAccessToken(provider, updatedCredentials, persistCallback);
+
       if (newCredentials && newCredentials.accessToken) {
-        await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
+        // For the no-connectionId path (no mutex, no onPersist), persist here as before.
+        if (!connectionId) {
+          await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
+        }
 
         updatedCredentials = {
           ...updatedCredentials,
           accessToken: newCredentials.accessToken,
           refreshToken: newCredentials.refreshToken || updatedCredentials.refreshToken,
-          expiresAt: newCredentials.expiresIn
-            ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
-            : updatedCredentials.expiresAt,
+          expiresAt: newCredentials.expiresAt
+            ? newCredentials.expiresAt
+            : newCredentials.expiresIn
+              ? new Date(Date.now() + newCredentials.expiresIn * 1000).toISOString()
+              : updatedCredentials.expiresAt,
         };
       }
     }

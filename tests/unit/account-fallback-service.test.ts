@@ -95,7 +95,15 @@ test("checkFallbackError treats non-429 exhausted credits as long quota cooldown
 });
 
 test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilience cooldown path", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "openai", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.RATE_LIMIT_EXCEEDED);
@@ -104,7 +112,15 @@ test("checkFallbackError keeps API-key 429 exhausted-credit text on the resilien
 });
 
 test("checkFallbackError preserves OAuth 429 exhausted-credit semantics", () => {
-  const result = checkFallbackError(429, "credit_balance_too_low", 0, null, "codex", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "credit_balance_too_low",
+    0,
+    null,
+    "codex",
+    null,
+    makeProfile()
+  );
 
   assert.equal(result.shouldFallback, true);
   assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
@@ -630,7 +646,15 @@ test("checkFallbackError locks model until tomorrow for non-429 daily quota exha
 });
 
 test("checkFallbackError routes API-key 429 'try again tomorrow' through resilience cooldown", () => {
-  const result = checkFallbackError(429, "Please try again tomorrow", 0, null, "openai", null, makeProfile());
+  const result = checkFallbackError(
+    429,
+    "Please try again tomorrow",
+    0,
+    null,
+    "openai",
+    null,
+    makeProfile()
+  );
   assert.equal(result.shouldFallback, true);
   assert.equal(result.dailyQuotaExhausted, undefined);
   assert.equal(result.cooldownMs, 125);
@@ -926,4 +950,82 @@ test("checkFallbackError ignores structured error with unrelated code on 400", (
   // "invalid_api_key" is not in MODEL_ACCESS_DENIED_CODES,
   // no MODEL_ACCESS_DENIED_PATTERNS match either → shouldFallback: false
   assert.equal(result.shouldFallback, false);
+});
+
+// ─── G-02: X-Omni-Fallback-Hint: connection_cooldown ─────────────────────────
+// When 9router executor signals a supervisor-not-running 503, checkFallbackError
+// must return 5s cooldown with skipProviderBreaker:true — not trip the circuit breaker.
+
+test("G-02: X-Omni-Fallback-Hint connection_cooldown on 503 returns 5s cooldown + skipProviderBreaker", () => {
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  const result = checkFallbackError(
+    503,
+    "9router is not running (state: stopped)",
+    0,
+    null,
+    "9router",
+    headers
+  );
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 5_000);
+  assert.equal(result.skipProviderBreaker, true);
+  assert.equal(result.newBackoffLevel, 0);
+  assert.equal(result.reason, "service_not_running");
+});
+
+test("G-02: X-Omni-Fallback-Hint connection_cooldown header lookup is case-insensitive (lowercase header key)", () => {
+  // Headers object normalises keys to lowercase — test the plain-object path
+  const headers: Record<string, string> = { "x-omni-fallback-hint": "connection_cooldown" };
+  const result = checkFallbackError(
+    503,
+    "9router is not running (state: stopped)",
+    0,
+    null,
+    "9router",
+    headers
+  );
+  assert.equal(result.skipProviderBreaker, true);
+  assert.equal(result.cooldownMs, 5_000);
+});
+
+test("G-02: hint header is ignored for non-503 status codes", () => {
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  // 502 should NOT trigger the hint path even if the header is present
+  const result = checkFallbackError(502, "bad gateway", 0, null, "9router", headers);
+  assert.equal(result.skipProviderBreaker, undefined); // normal path, no skip flag
+});
+
+test("G-02: 503 without hint header follows normal circuit-breaker path", () => {
+  // A plain 503 from a real upstream must still feed the circuit breaker
+  const result = checkFallbackError(503, "service unavailable", 0, null, "openai", null);
+  assert.equal(result.skipProviderBreaker, undefined);
+  assert.ok(result.cooldownMs > 0);
+});
+
+test("G-02: five consecutive 503 service_not_running do NOT trip provider circuit breaker (flag)", () => {
+  // Verify that every call returns skipProviderBreaker:true so callers can skip recordProviderFailure
+  const headers = new Headers({ "X-Omni-Fallback-Hint": "connection_cooldown" });
+  for (let i = 0; i < 5; i++) {
+    const result = checkFallbackError(
+      503,
+      "9router is not running (state: stopped)",
+      0,
+      null,
+      "9router",
+      headers
+    );
+    assert.equal(
+      result.skipProviderBreaker,
+      true,
+      `call ${i + 1} should have skipProviderBreaker:true`
+    );
+  }
+  // Verify the circuit breaker for 9router is NOT open after those 5 calls
+  const { isProviderInCooldown, clearProviderFailure } = accountFallback;
+  assert.equal(
+    isProviderInCooldown("9router"),
+    false,
+    "9router circuit breaker must remain closed"
+  );
+  clearProviderFailure("9router"); // cleanup
 });
