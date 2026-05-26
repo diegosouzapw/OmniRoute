@@ -93,6 +93,7 @@ export default function SystemPromptTab() {
               <textarea
                 value={config.prefixPrompt}
                 onChange={(e) => handleFieldChange("prefixPrompt", e.target.value)}
+                placeholder={t("beforePromptPlaceholder")}
                 rows={9}
                 className="w-full px-4 py-3 rounded-lg border border-border/50 bg-surface/30 text-sm
                            placeholder:text-text-muted/50 resize-y min-h-[220px]
@@ -117,6 +118,7 @@ export default function SystemPromptTab() {
               <textarea
                 value={config.suffixPrompt}
                 onChange={(e) => handleFieldChange("suffixPrompt", e.target.value)}
+                placeholder={t("afterPromptPlaceholder")}
                 rows={9}
                 className="w-full px-4 py-3 rounded-lg border border-border/50 bg-surface/30 text-sm
                            placeholder:text-text-muted/50 resize-y min-h-[220px]

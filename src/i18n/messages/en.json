@@ -4352,7 +4352,6 @@
     "vercelRelayWarning": "The relay URL is publicly accessible. The x-relay-auth secret header protects it — keep your Vercel project URL private.",
     "vercelRelayFreeTierNote": "Vercel free tier limits apply (bandwidth/executions). Relay is best-effort.",
     "globalSystemPrompt": "Global System Prompt",
-    "systemPromptDesc": "",
     "saved": "Saved",
     "beforePromptLabel": "Before Prompt",
     "beforePromptDesc": "Injected before agent/provider system instructions",

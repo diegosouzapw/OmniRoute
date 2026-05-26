@@ -20,20 +20,23 @@ interface SystemPromptConfig {
   prompt: string;
 }
 
+// Typed accessor for globalThis storage — avoids `as any` casts (#2470)
+const _store = globalThis as unknown as Record<string, SystemPromptConfig | undefined>;
+
 function getConfig(): SystemPromptConfig {
-  if (!(globalThis as any)[GLOBAL_KEY]) {
-    (globalThis as any)[GLOBAL_KEY] = {
+  if (!_store[GLOBAL_KEY]) {
+    _store[GLOBAL_KEY] = {
       enabled: false,
       prefixPrompt: "",
       suffixPrompt: "",
       prompt: "",
     };
   }
-  return (globalThis as any)[GLOBAL_KEY];
+  return _store[GLOBAL_KEY]!;
 }
 
-function setConfig(cfg: SystemPromptConfig) {
-  (globalThis as any)[GLOBAL_KEY] = cfg;
+function setConfig(cfg: SystemPromptConfig): void {
+  _store[GLOBAL_KEY] = cfg;
 }
 
 /**
