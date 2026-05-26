@@ -92,3 +92,43 @@ test("spec route catalog includes vendor extension fields for annotated endpoint
     "POST /api/shutdown must have alwaysProtected: true"
   );
 });
+
+test("every LOCAL_ONLY prefix path in YAML has x-loopback-only annotation", () => {
+  for (const prefix of LOCAL_ONLY_API_PREFIXES as ReadonlyArray<string>) {
+    const norm = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+    const matching = Object.entries(paths).filter(([p]) => p === norm || p.startsWith(norm + "/"));
+    for (const [yamlPath, ops] of matching) {
+      const methods = Object.entries(ops as Record<string, unknown>).filter(
+        ([m, v]) =>
+          ["get", "post", "put", "patch", "delete"].includes(m) &&
+          typeof v === "object" &&
+          v !== null
+      );
+      for (const [method, op] of methods) {
+        assert.strictEqual(
+          (op as Record<string, unknown>)["x-loopback-only"],
+          true,
+          `${yamlPath} ${method.toUpperCase()} is covered by LOCAL_ONLY prefix "${prefix}" but missing x-loopback-only`
+        );
+      }
+    }
+  }
+});
+
+test("every ALWAYS_PROTECTED path in routeGuard has x-always-protected in YAML", () => {
+  for (const guardPath of ALWAYS_PROTECTED_API_PATHS as ReadonlyArray<string>) {
+    const entry = paths[guardPath];
+    assert.ok(entry, `routeGuard ALWAYS_PROTECTED "${guardPath}" not found in YAML`);
+    const methods = Object.entries(entry as Record<string, unknown>).filter(
+      ([m, v]) =>
+        ["get", "post", "put", "patch", "delete"].includes(m) && typeof v === "object" && v !== null
+    );
+    for (const [method, op] of methods) {
+      assert.strictEqual(
+        (op as Record<string, unknown>)["x-always-protected"],
+        true,
+        `${guardPath} ${method.toUpperCase()} is ALWAYS_PROTECTED in routeGuard but missing x-always-protected in YAML`
+      );
+    }
+  }
+});
