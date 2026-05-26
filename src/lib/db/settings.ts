@@ -33,7 +33,7 @@ const PROXY_RESOLUTION_CACHE_MAX_ENTRIES = 100;
 let proxyConfigGeneration = 0;
 const proxyResolutionCache = new Map<string, ProxyResolutionCacheEntry>();
 
-function bumpProxyConfigGeneration() {
+export function bumpProxyConfigGeneration() {
   proxyConfigGeneration++;
   proxyResolutionCache.clear();
 }

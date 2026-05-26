@@ -8,14 +8,22 @@ on:
       - "v*"
     paths-ignore:
       - ".github/workflows/**"
+  # Use 'released' instead of 'published' so editing/re-publishing old releases
+  # does NOT re-trigger this workflow. 'released' fires only on the initial
+  # release publication (and pre-release → release transition).
   release:
-    types: [published]
+    types: [released]
   workflow_dispatch:
     inputs:
       version:
-        description: "Version tag to build (e.g. 2.6.0)"
+        description: "Version tag to build (e.g. 3.8.4)"
         required: true
         type: string
+      promote_latest:
+        description: "Also tag :latest (only if this is the highest semver)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -32,50 +40,134 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
+          # Need full tag history for semver comparison when deciding :latest.
+          fetch-depth: 0
+
+      - name: Resolve version, latest-promotion, and skip flag
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          INPUT_VERSION: ${{ inputs.version }}
+          PROMOTE_INPUT: ${{ inputs.promote_latest }}
+        run: |
+          set -euo pipefail
+
+          # 1) Resolve version string from the trigger (all inputs come via env).
+          case "$EVENT_NAME" in
+            workflow_dispatch)
+              VERSION="${INPUT_VERSION#v}"
+              ;;
+            push)
+              if [ "$REF_TYPE" = "tag" ]; then
+                VERSION="${REF_NAME#v}"
+              else
+                # Push to main → build & tag as `main` only. Never touch :latest.
+                VERSION="main"
+              fi
+              ;;
+            release)
+              VERSION="${REF_NAME#v}"
+              ;;
+            *)
+              VERSION="${REF_NAME#v}"
+              ;;
+          esac
+          # Sanity-check: only allow [A-Za-z0-9._-] in VERSION (defense in depth).
+          if ! printf '%s' "$VERSION" | grep -qE '^[A-Za-z0-9._-]+$'; then
+            echo "Refusing to use unsafe VERSION value: $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # 2) Decide whether to promote :latest.
+          PROMOTE="false"
+          if [ "$VERSION" = "main" ]; then
+            PROMOTE="false"
+          elif printf '%s' "$VERSION" | grep -qE -- '-(rc|alpha|beta|pre|next)'; then
+            echo "Pre-release identifier detected — skipping :latest."
+            PROMOTE="false"
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            PROMOTE="${PROMOTE_INPUT:-false}"
+          else
+            git fetch --tags --quiet || true
+            HIGHEST=$(git tag -l 'v[0-9]*' | sed 's/^v//' | grep -vE -- '-(rc|alpha|beta|pre|next)' | sort -V | tail -1 || echo "")
+            if [ -n "$HIGHEST" ] && [ "$VERSION" = "$HIGHEST" ]; then
+              PROMOTE="true"
+            else
+              echo "Version $VERSION is not the highest semver tag (highest=${HIGHEST:-<none>}). Not promoting :latest."
+            fi
+          fi
+          echo "promote_latest=$PROMOTE" >> "$GITHUB_OUTPUT"
+
+          # 3) Skip if this exact version is already published in Docker Hub.
+          #    `main` is always rebuilt (mutable floating tag).
+          SKIP="false"
+          if [ "$VERSION" != "main" ]; then
+            if docker manifest inspect "diegosouzapw/omniroute:${VERSION}" >/dev/null 2>&1; then
+              echo "Image diegosouzapw/omniroute:${VERSION} already exists on Docker Hub — skipping rebuild."
+              SKIP="true"
+            fi
+          fi
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
+          echo "Publishing diegosouzapw/omniroute:$VERSION (promote_latest=$PROMOTE, skip=$SKIP)"
 
       - name: Set up QEMU (for multi-arch builds)
+        if: steps.version.outputs.skip != 'true'
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
+        if: steps.version.outputs.skip != 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Login to Docker Hub
+        if: steps.version.outputs.skip != 'true'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
+        if: steps.version.outputs.skip != 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from release tag or input
-        id: version
+      - name: Compute image tags
+        id: tags
+        if: steps.version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PROMOTE_LATEST: ${{ steps.version.outputs.promote_latest }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.version }}"
-          else
-            VERSION="${GITHUB_REF_NAME}"
-            VERSION="${VERSION#v}"
+          set -euo pipefail
+          TAGS="${IMAGE_NAME}:${VERSION}"
+          TAGS="${TAGS}"$'\n'"ghcr.io/diegosouzapw/omniroute:${VERSION}"
+          if [ "$PROMOTE_LATEST" = "true" ]; then
+            TAGS="${TAGS}"$'\n'"${IMAGE_NAME}:latest"
+            TAGS="${TAGS}"$'\n'"ghcr.io/diegosouzapw/omniroute:latest"
           fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Publishing Docker image: $IMAGE_NAME:$VERSION"
+          {
+            echo "tags<<EOF"
+            echo "$TAGS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Tags to push:"
+          echo "$TAGS"
 
       - name: Build and push multi-arch image
+        if: steps.version.outputs.skip != 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
           target: runner-base
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-            ${{ env.IMAGE_NAME }}:latest
-            ghcr.io/diegosouzapw/omniroute:${{ steps.version.outputs.version }}
-            ghcr.io/diegosouzapw/omniroute:latest
+          tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           no-cache: false
@@ -83,10 +175,16 @@ jobs:
           DOCKER_BUILDKIT_INLINE_CACHE: 1
 
       - name: Inspect image
+        if: steps.version.outputs.skip != 'true' && steps.version.outputs.version != 'main'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          docker buildx imagetools inspect "${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}"
+          docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
 
       - name: Update Docker Hub description
+        # Only refresh README/description when we actually promote :latest
+        # (avoids overwriting from main pushes or back-fill builds).
+        if: steps.version.outputs.skip != 'true' && steps.version.outputs.promote_latest == 'true'
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}

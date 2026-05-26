@@ -294,7 +294,12 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
       });
     },
     async () => {
-      const result = await refreshKimiCodingToken("kimi-refresh", log);
+      // Pass providerSpecificData with a stable deviceId (second positional arg after signature change)
+      const result = await refreshKimiCodingToken(
+        "kimi-refresh",
+        { deviceId: "test-stable-device" },
+        log
+      );
       assert.deepEqual(result, {
         accessToken: "kimi-access",
         refreshToken: "kimi-refresh-next",
@@ -306,9 +311,18 @@ test("refreshKimiCodingToken adds provider-specific headers and fields", async (
   );
 
   assert.equal(calls[0].url, PROVIDERS["kimi-coding"].refreshUrl);
-  assert.equal(calls[0].options.headers["X-Msh-Platform"], "omniroute");
-  assert.equal(calls[0].options.headers["X-Msh-Version"], "2.1.2");
-  assert.match(calls[0].options.headers["X-Msh-Device-Id"], /^kimi-refresh-/);
+  // Platform is now "kimi_cli" (matching the real Kimi CLI fingerprint)
+  assert.equal(calls[0].options.headers["X-Msh-Platform"], "kimi_cli");
+  // Version comes from KIMI_CLI_VERSION env or default "1.36.0"
+  assert.ok(calls[0].options.headers["X-Msh-Version"], "X-Msh-Version must be set");
+  // Device-Id must NOT be an ephemeral "kimi-refresh-<timestamp>" value
+  assert.ok(
+    calls[0].options.headers["X-Msh-Device-Id"] &&
+      !calls[0].options.headers["X-Msh-Device-Id"].startsWith("kimi-refresh-"),
+    "X-Msh-Device-Id must be stable (not ephemeral kimi-refresh-<timestamp>)"
+  );
+  // When providerSpecificData.deviceId is provided, it should be used directly
+  assert.equal(calls[0].options.headers["X-Msh-Device-Id"], "test-stable-device");
   assert.match(bodyToString(calls[0].options.body), /grant_type=refresh_token/);
 });
 
@@ -403,7 +417,8 @@ test("refreshQwenToken surfaces invalid_request as unrecoverable", async () => {
     async () => textResponse(JSON.stringify({ error: "invalid_request" }), 400),
     async () => {
       const result = await refreshQwenToken("qwen-refresh", log);
-      assert.deepEqual(result, { error: "invalid_request" });
+      // Normalized to unrecoverable_refresh_error sentinel (Fix 4)
+      assert.deepEqual(result, { error: "unrecoverable_refresh_error", code: "invalid_request" });
     }
   );
 });
@@ -1189,6 +1204,12 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
   const log = createLog();
   let upstreamCallCount = 0;
 
+  // The rotation map (added for the codex-multi-auth pattern) is process-wide
+  // and intentionally redirects a stale-token caller to the cached rotated
+  // tokens. Clear it BEFORE and BETWEEN calls so this test exercises the
+  // lower-level mutex semantics it was designed for.
+  tokenRefresh._clearTokenRotationMap();
+
   await withPatchedProperties(
     PROVIDERS,
     { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
@@ -1206,6 +1227,7 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
           const credentials = { connectionId: "conn-refire", refreshToken: "rt" };
 
           const first = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+          tokenRefresh._clearTokenRotationMap();
           const second = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
 
           assert.equal(upstreamCallCount, 2, "each sequential call fires upstream once");
@@ -1274,7 +1296,9 @@ test("refreshClaudeOAuthToken returns error object for invalid_grant (expired re
     async () => {
       const result = await refreshClaudeOAuthToken("expired-token", log);
       assert.ok(result && typeof result === "object", "should return error object, not null");
-      assert.equal((result as any).error, "invalid_grant");
+      // Normalized to unrecoverable_refresh_error sentinel (Fix 6)
+      assert.equal((result as any).error, "unrecoverable_refresh_error");
+      assert.equal((result as any).code, "invalid_grant");
       assert.ok(isUnrecoverableRefreshError(result), "should be detected as unrecoverable");
     }
   );

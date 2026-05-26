@@ -1,8 +1,8 @@
-FROM node:26.2.0-trixie-slim AS builder
+FROM node:24-trixie-slim AS builder
 WORKDIR /app
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
+  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
@@ -19,7 +19,7 @@ RUN if [ -f package-lock.json ]; then \
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack
 
-FROM node:26.2.0-trixie-slim AS runner-base
+FROM node:24-trixie-slim AS runner-base
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="omniroute" \
@@ -82,3 +82,4 @@ RUN apt-get update \
 
 # Install CLI tools globally. Separate layer from apt for better cache reuse.
 RUN npm install -g --no-audit --no-fund @openai/codex @anthropic-ai/claude-code droid openclaw@latest
+

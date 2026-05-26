@@ -68,6 +68,32 @@ const getServerUrl = () => `http://localhost:${serverPort}`;
 function resolveNodeExecutable(env = process.env) {
   // #1081: Ensure Next.js standalone runs using Electron's Node runtime
   // instead of a randomly found system Node to prevent ABI architecture mismatches.
+  //
+  // On macOS packaged builds, process.execPath is the main Electron binary
+  // (e.g. OmniRoute.app/Contents/MacOS/OmniRoute). Spawning it with
+  // ELECTRON_RUN_AS_NODE causes macOS to show a second dock icon and/or
+  // flash a shell window. Use the Helper binary instead — macOS treats
+  // Helper processes as background tasks with no visible UI artifacts.
+  if (process.platform === "darwin" && !isDev) {
+    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
+    if (fs.existsSync(helperPath)) {
+      return helperPath;
+    }
+    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
+    // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
+    const frameworkHelper = path.join(
+      path.dirname(process.execPath),
+      "..",
+      "Frameworks",
+      `${app.getName()} Helper.app`,
+      "Contents",
+      "MacOS",
+      `${app.getName()} Helper`
+    );
+    if (fs.existsSync(frameworkHelper)) {
+      return frameworkHelper;
+    }
+  }
   return process.execPath;
 }
 
@@ -594,6 +620,8 @@ function startNextServer() {
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
+  // windowsHide prevents a visible console window from spawning alongside the GUI app.
+  // shell: false avoids launching via a shell wrapper which can flash a terminal on macOS.
   nextServer = spawn(nodeExecutable, [serverScript], {
     cwd: NEXT_SERVER_PATH,
     env: {
@@ -605,6 +633,8 @@ function startNextServer() {
       NODE_PATH: resolveServerNodePath(serverEnv),
     },
     stdio: "pipe",
+    windowsHide: true,
+    shell: false,
   });
 
   // Capture server output for logging

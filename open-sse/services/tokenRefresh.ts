@@ -1,12 +1,58 @@
 // @ts-nocheck
+import { AsyncLocalStorage } from "node:async_hooks";
 import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
 import { getGitHubCopilotRefreshHeaders } from "../config/providerHeaderProfiles.ts";
 import { pbkdf2Sync } from "node:crypto";
 import { runWithProxyContext } from "../utils/proxyFetch.ts";
 import { WINDSURF_CONFIG } from "@/lib/oauth/constants/oauth";
+import { buildGitLabOAuthEndpoints, resolveGitLabOAuthBaseUrl } from "@/lib/oauth/gitlab";
 
-// Token expiry buffer (refresh if expires within 5 minutes)
+// Default token expiry buffer (refresh if expires within 5 minutes).
+// Used as fallback for providers without an explicit lead time in
+// REFRESH_LEAD_MS below.
 export const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
+
+// Per-provider proactive-refresh lead time.
+//
+// For multi-account OAuth on providers that enforce "single active session per
+// client_id" (notably OpenAI Codex / Auth0), refreshing one account's token
+// can invalidate the refresh_token family of OTHER accounts under the same
+// client. We MINIMIZE refresh frequency for these providers: stay on the
+// original access_token until it is genuinely about to expire, so each account
+// gets the full access_token lifetime without triggering Auth0's family-
+// invalidation logic on its siblings.
+//
+// Trade-off: when refresh finally happens (last 5 min before expiry), Auth0
+// MAY invalidate other accounts' refresh_tokens. The user must re-auth those.
+// This is the upstream limitation documented in openai/codex#9648.
+//
+// Providers with non-rotating tokens (Google, Anthropic) or where multi-
+// account is naturally isolated keep longer lead times.
+export const REFRESH_LEAD_MS: Record<string, number> = {
+  // Rotating refresh tokens — minimize refresh frequency to avoid the
+  // "refresh-invalidates-siblings" cascade documented for OpenAI Auth0.
+  codex: 5 * 60 * 1000, // 5 minutes
+  openai: 5 * 60 * 1000, // same Auth0 backend as codex
+  claude: 5 * 60 * 1000, // Anthropic OAuth rotates refresh_tokens (user-reported)
+  "gitlab-duo": 5 * 60 * 1000, // GitLab token family revocation on misuse
+  kiro: 5 * 60 * 1000, // AWS SSO OIDC issues one-time-use refresh tokens
+  "kimi-coding": 5 * 60 * 1000, // Moonshot rotates per-refresh
+  qwen: 5 * 60 * 1000, // Alibaba device-code path also rotates
+  // Non-rotating providers — longer lead is safe.
+  iflow: 24 * 60 * 60 * 1000, // 24 hours
+  // Google OAuth refresh_tokens are permanent (non-rotating) — longer lead
+  // is safe and reduces unnecessary upstream chatter.
+  "gemini-cli": 15 * 60 * 1000,
+  antigravity: 15 * 60 * 1000,
+};
+
+/**
+ * Get the proactive refresh lead time (ms) for a given provider.
+ * Falls back to TOKEN_EXPIRY_BUFFER_MS (5 min) when not explicitly listed.
+ */
+export function getRefreshLeadMs(provider: string): number {
+  return REFRESH_LEAD_MS[provider] ?? TOKEN_EXPIRY_BUFFER_MS;
+}
 
 const CACHE_SECRET = "omniroute-token-cache";
 
@@ -18,6 +64,98 @@ const refreshPromiseCache = new Map();
 // Key: connectionId → Value: { promise, waiters }
 // Primary dedup when credentials.connectionId is present; refreshPromiseCache is fallback.
 const connectionRefreshMutex = new Map();
+
+// ─── Token Rotation Map (codex-multi-auth pattern) ─────────────────────────
+//
+// When a rotating-token provider (Codex, Kimi, GitLab Duo, etc.) refreshes,
+// the old refresh_token is consumed and a new one is issued. Any subsequent
+// caller arriving with the OLD token would, without protection, hit upstream
+// and trigger "refresh_token_reused" — which Auth0 treats as a security event
+// and invalidates the entire token family.
+//
+// This in-memory map caches RECENT rotations so a stale caller can be redirected
+// to the new tokens WITHOUT touching upstream. The DB staleness check inside
+// the per-connection mutex covers the same scenario when connectionId is known,
+// but not all callers pass connectionId (e.g., legacy code paths, retries that
+// snapshot credentials before the rotation lands in DB).
+//
+// Ported from ndycode/codex-multi-auth (lib/refresh-queue.ts:218-248), the only
+// publicly known tool that reliably sustains multiple Codex OAuth accounts.
+//
+// Key format: `provider:sha256(oldRefreshToken)`
+// Value: { result: tokens, expiresAt: ms_since_epoch }
+type RotationEntry = {
+  result: { accessToken: string; refreshToken: string; expiresIn?: number; expiresAt?: string };
+  expiresAt: number;
+};
+const tokenRotationMap = new Map<string, RotationEntry>();
+const ROTATION_MAP_TTL_MS = 60 * 1000; // 60 seconds — long enough to catch in-flight stale callers
+
+function cleanupRotationMap(now: number = Date.now()): void {
+  if (tokenRotationMap.size === 0) return;
+  for (const [key, entry] of tokenRotationMap.entries()) {
+    if (entry.expiresAt <= now) tokenRotationMap.delete(key);
+  }
+}
+
+function lookupRotation(provider: string, refreshToken: string): RotationEntry | undefined {
+  cleanupRotationMap();
+  const key = getRefreshCacheKey(provider, refreshToken);
+  const entry = tokenRotationMap.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= Date.now()) {
+    tokenRotationMap.delete(key);
+    return undefined;
+  }
+  return entry;
+}
+
+function recordRotation(
+  provider: string,
+  oldRefreshToken: string,
+  result: { accessToken: string; refreshToken: string; expiresIn?: number; expiresAt?: string }
+): void {
+  if (!oldRefreshToken || !result.refreshToken || oldRefreshToken === result.refreshToken) {
+    return;
+  }
+  const key = getRefreshCacheKey(provider, oldRefreshToken);
+  tokenRotationMap.set(key, {
+    result,
+    expiresAt: Date.now() + ROTATION_MAP_TTL_MS,
+  });
+}
+
+// Exported for tests + diagnostics; not part of the public API surface.
+export function _getTokenRotationMapStats(): { size: number; entries: number } {
+  cleanupRotationMap();
+  return { size: tokenRotationMap.size, entries: tokenRotationMap.size };
+}
+
+export function _clearTokenRotationMap(): void {
+  tokenRotationMap.clear();
+}
+
+// AsyncLocalStorage for plumbing `onPersist` through executor.refreshCredentials
+// without modifying every executor's signature. The chatCore.ts / base.ts call
+// sites wrap executor.refreshCredentials in `runWithOnPersist(persistFn, () => ...)`
+// and `getAccessToken` reads the active store as a fallback when no explicit
+// onPersist parameter is provided. This keeps Fix A's atomic [refresh + persist]
+// guarantee while avoiding per-executor signature changes.
+type RefreshPersistResult = Record<string, unknown>;
+type RefreshPersistFn = (result: RefreshPersistResult) => Promise<void>;
+const onPersistStore = new AsyncLocalStorage<RefreshPersistFn>();
+
+export function runWithOnPersist<T>(
+  onPersist: RefreshPersistFn | undefined | null,
+  fn: () => Promise<T>
+): Promise<T> {
+  if (!onPersist) return fn();
+  return onPersistStore.run(onPersist, fn);
+}
+
+export function getActiveOnPersist(): RefreshPersistFn | undefined {
+  return onPersistStore.getStore();
+}
 
 type RefreshLogger = {
   info?: (tag: string, message: string, data?: Record<string, unknown>) => void;
@@ -177,6 +315,36 @@ export async function refreshWindsurfToken(
         status: response.status,
         error: errorText.slice(0, 200),
       });
+
+      // Firebase STS returns structured errors. Detect unrecoverable token states.
+      try {
+        const fbError = JSON.parse(errorText);
+        const fbCode =
+          typeof fbError?.error?.message === "string"
+            ? fbError.error.message
+            : typeof fbError?.error === "string"
+              ? fbError.error
+              : null;
+        if (
+          typeof fbCode === "string" &&
+          (fbCode.includes("USER_DISABLED") ||
+            fbCode.includes("TOKEN_EXPIRED") ||
+            fbCode.includes("INVALID_REFRESH_TOKEN") ||
+            fbCode.includes("USER_NOT_FOUND"))
+        ) {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            "Windsurf Firebase token is permanently invalid. Re-authentication required.",
+            {
+              fbCode,
+            }
+          );
+          return { error: "unrecoverable_refresh_error", code: fbCode };
+        }
+      } catch {
+        // not JSON — fall through
+      }
+
       return null;
     }
 
@@ -261,20 +429,39 @@ export async function refreshClineToken(refreshToken, log, proxyConfig: unknown 
 /**
  * Specialized refresh for Kimi Coding OAuth tokens.
  * Uses custom X-Msh-* headers required by Kimi OAuth API.
+ *
+ * Uses a stable device_id from providerSpecificData (stored at login) to avoid
+ * anti-bot detection from ephemeral IDs. If absent, derives a deterministic ID
+ * from the refresh token hash so it is at least stable across refreshes for the
+ * same token.
  */
-export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unknown = null) {
+export async function refreshKimiCodingToken(
+  refreshToken: string,
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  log: RefreshLogger,
+  proxyConfig: unknown = null
+) {
   const endpoint = PROVIDERS["kimi-coding"]?.refreshUrl || PROVIDERS["kimi-coding"]?.tokenUrl;
   if (!endpoint) {
     log?.warn?.("TOKEN_REFRESH", "No refresh URL configured for Kimi Coding");
     return null;
   }
 
-  // Generate device info for headers (same as OAuth flow)
-  const deviceId = "kimi-refresh-" + Date.now();
-  const platform = "omniroute";
-  const version = "2.1.2";
-  const deviceModel =
-    typeof process !== "undefined" ? `${process.platform} ${process.arch}` : "unknown";
+  // Prefer stable device_id persisted at login time; fall back to a
+  // deterministic hash of the refresh token so it is at least consistent
+  // across refreshes for the same session.
+  const stableDeviceId =
+    (providerSpecificData?.deviceId as string) ||
+    pbkdf2Sync(refreshToken, "kimi-device-id", 1000, 16, "sha256").toString("hex");
+
+  const platform = "kimi_cli";
+  const version = process.env.KIMI_CLI_VERSION || "1.36.0";
+
+  // Build device model string matching the format from providers/kimi-coding.ts.
+  // open-sse is a portable workspace — use process.platform/arch (always available in Node).
+  const osTypeStr = typeof process !== "undefined" ? process.platform : "unknown";
+  const archStr = typeof process !== "undefined" ? process.arch : "unknown";
+  const deviceModel = [osTypeStr, archStr].filter(Boolean).join(" ");
 
   try {
     const params = new URLSearchParams({
@@ -292,7 +479,12 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unk
           "X-Msh-Platform": platform,
           "X-Msh-Version": version,
           "X-Msh-Device-Model": deviceModel,
-          "X-Msh-Device-Id": deviceId,
+          "X-Msh-Device-Id": stableDeviceId,
+          // These headers match getKimiOAuthHeaders() in providers/kimi-coding.ts.
+          // They're derived at runtime from os module calls; use safe fallbacks here
+          // since open-sse is a portable workspace without direct fs/os access.
+          "X-Msh-Device-Name": (providerSpecificData?.deviceName as string) || osTypeStr,
+          "X-Msh-Os-Version": (providerSpecificData?.osVersion as string) || osTypeStr,
         },
         body: params,
       })
@@ -300,9 +492,28 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unk
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Detect unrecoverable errors
+      try {
+        const parsed = JSON.parse(errorText);
+        const errorCode = parsed?.error;
+        if (errorCode === "invalid_grant" || errorCode === "invalid_request") {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            "Kimi Coding refresh token invalid. Re-authentication required.",
+            {
+              errorCode,
+            }
+          );
+          return { error: "unrecoverable_refresh_error", code: errorCode };
+        }
+      } catch {
+        // not JSON — fall through
+      }
+
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Kimi Coding token", {
         status: response.status,
-        error: errorText,
+        error: errorText.slice(0, 200),
       });
       return null;
     }
@@ -322,7 +533,106 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unk
       scope: tokens.scope,
     };
   } catch (error) {
-    log?.error?.("TOKEN_REFRESH", `Network error refreshing Kimi Coding token: ${error.message}`);
+    log?.error?.(
+      "TOKEN_REFRESH",
+      `Network error refreshing Kimi Coding token: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return null;
+  }
+}
+
+/**
+ * Specialized refresh for GitLab Duo OAuth tokens.
+ * Token URL is instance-specific; resolves from providerSpecificData.baseUrl.
+ * Uses PKCE authorization_code flow initially but refresh_token grant does NOT
+ * require code_verifier — only client_id + refresh_token.
+ * On invalid_grant (revoked/expired refresh token) returns the unrecoverable sentinel.
+ */
+export async function refreshGitLabDuoToken(
+  refreshToken: string,
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  log: RefreshLogger,
+  proxyConfig: unknown = null
+) {
+  if (!refreshToken) {
+    log?.warn?.("TOKEN_REFRESH", "No refresh token for GitLab Duo");
+    return null;
+  }
+
+  const baseUrl = resolveGitLabOAuthBaseUrl(providerSpecificData);
+  const endpoints = buildGitLabOAuthEndpoints(baseUrl);
+  const tokenUrl = endpoints.tokenUrl;
+
+  // client_id from providerSpecificData (stored at login) or fall back to PROVIDERS config
+  const clientId =
+    (providerSpecificData?.clientId as string) ||
+    PROVIDERS["gitlab-duo"]?.clientId ||
+    process.env.GITLAB_DUO_OAUTH_CLIENT_ID ||
+    process.env.GITLAB_OAUTH_CLIENT_ID ||
+    "";
+
+  try {
+    const response = await runWithProxyContext(proxyConfig, () =>
+      fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: buildFormParams({
+          grant_type: "refresh_token",
+          refresh_token: refreshToken,
+          client_id: clientId,
+        }),
+      })
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      // Detect unrecoverable token — GitLab returns standard OAuth2 error codes.
+      try {
+        const errorBody = JSON.parse(errorText);
+        const errorCode = errorBody.error;
+        if (errorCode === "invalid_grant" || errorCode === "invalid_request") {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            "GitLab Duo refresh token invalid. Re-authentication required.",
+            {
+              errorCode,
+            }
+          );
+          return { error: "unrecoverable_refresh_error", code: errorCode };
+        }
+      } catch {
+        // not JSON — fall through
+      }
+
+      log?.error?.("TOKEN_REFRESH", "Failed to refresh GitLab Duo token", {
+        status: response.status,
+        error: errorText.slice(0, 200),
+      });
+      return null;
+    }
+
+    const tokens = await response.json();
+
+    log?.info?.("TOKEN_REFRESH", "Successfully refreshed GitLab Duo token", {
+      hasNewAccessToken: !!tokens.access_token,
+      hasNewRefreshToken: !!tokens.refresh_token,
+      expiresIn: tokens.expires_in,
+    });
+
+    return {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token || refreshToken,
+      expiresIn: tokens.expires_in,
+    };
+  } catch (error) {
+    log?.error?.(
+      "TOKEN_REFRESH",
+      `Network error refreshing GitLab Duo token: ${error instanceof Error ? error.message : String(error)}`
+    );
     return null;
   }
 }
@@ -364,7 +674,7 @@ export async function refreshClaudeOAuthToken(refreshToken, log, proxyConfig: un
         error: errorBody,
       });
       if (errorBody.error === "invalid_grant" || errorBody.error === "invalid_request") {
-        return { error: errorBody.error, code: `http_${response.status}` };
+        return { error: "unrecoverable_refresh_error", code: errorBody.error };
       }
       return null;
     }
@@ -418,8 +728,22 @@ export async function refreshGoogleToken(
     const errorText = await response.text();
     log?.error?.("TOKEN_REFRESH", "Failed to refresh Google token", {
       status: response.status,
-      error: errorText,
+      error: errorText.slice(0, 200),
     });
+
+    // Detect unrecoverable token (invalid_grant = revoked / expired refresh token)
+    try {
+      const errorBody = JSON.parse(errorText);
+      if (errorBody.error === "invalid_grant") {
+        log?.error?.("TOKEN_REFRESH", "Google refresh token invalid. Re-authentication required.", {
+          provider: "google",
+        });
+        return { error: "unrecoverable_refresh_error", code: "invalid_grant" };
+      }
+    } catch {
+      // not JSON — fall through
+    }
+
     return null;
   }
 
@@ -486,15 +810,16 @@ export async function refreshQwenToken(refreshToken, log, proxyConfig: unknown =
         // not JSON, ignore
       }
 
-      if (errorCode === "invalid_request") {
+      if (errorCode === "invalid_request" || errorCode === "invalid_grant") {
         log?.error?.(
           "TOKEN_REFRESH",
           "Qwen refresh token is invalid or expired. Re-authentication required.",
           {
             status: response.status,
+            errorCode,
           }
         );
-        return { error: "invalid_request" };
+        return { error: "unrecoverable_refresh_error", code: errorCode };
       }
 
       log?.warn?.("TOKEN_REFRESH", `Error with Qwen endpoint`, {
@@ -527,11 +852,17 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
+        // Body intentionally omits `scope`. RFC 6749 §6 makes scope optional on a
+        // refresh_token grant (the server reuses the originally-granted scope when
+        // absent). Including `scope` causes Auth0 (which OpenAI Codex OAuth is
+        // built on) to treat the request as a re-scope, which can invalidate
+        // sibling refresh_token families on the same client_id. Matches the
+        // pattern used by ndycode/codex-multi-auth, the only known tool that
+        // sustains multiple Codex accounts without cross-invalidation.
         body: buildFormParams({
           grant_type: "refresh_token",
           refresh_token: refreshToken,
           client_id: PROVIDERS.codex.clientId,
-          scope: "openid profile email offline_access",
         }),
       })
     );
@@ -636,9 +967,32 @@ export async function refreshKiroToken(
 
       if (!response.ok) {
         const errorText = await response.text();
+
+        // AWS SSO OIDC uses {"__type": "InvalidGrantException"} error format (not standard OAuth2).
+        try {
+          const awsError = JSON.parse(errorText);
+          const awsErrorType = awsError.__type || awsError.error;
+          if (
+            awsErrorType === "InvalidGrantException" ||
+            awsErrorType === "ExpiredTokenException" ||
+            awsErrorType === "invalid_grant"
+          ) {
+            log?.error?.(
+              "TOKEN_REFRESH",
+              "Kiro AWS refresh token expired/invalid. Re-authentication required.",
+              {
+                awsErrorType,
+              }
+            );
+            return { error: "unrecoverable_refresh_error", code: awsErrorType };
+          }
+        } catch {
+          // not JSON — fall through
+        }
+
         log?.error?.("TOKEN_REFRESH", "Failed to refresh Kiro AWS token", {
           status: response.status,
-          error: errorText,
+          error: errorText.slice(0, 200),
         });
         return null;
       }
@@ -678,9 +1032,32 @@ export async function refreshKiroToken(
 
     if (!response.ok) {
       const errorText = await response.text();
+
+      // Also check for AWS-style errors on the social auth path (Kiro may relay them)
+      try {
+        const awsError = JSON.parse(errorText);
+        const awsErrorType = awsError.__type || awsError.error;
+        if (
+          awsErrorType === "InvalidGrantException" ||
+          awsErrorType === "ExpiredTokenException" ||
+          awsErrorType === "invalid_grant"
+        ) {
+          log?.error?.(
+            "TOKEN_REFRESH",
+            "Kiro social refresh token expired/invalid. Re-authentication required.",
+            {
+              awsErrorType,
+            }
+          );
+          return { error: "unrecoverable_refresh_error", code: awsErrorType };
+        }
+      } catch {
+        // not JSON — fall through
+      }
+
       log?.error?.("TOKEN_REFRESH", "Failed to refresh Kiro social token", {
         status: response.status,
-        error: errorText,
+        error: errorText.slice(0, 200),
       });
       return null;
     }
@@ -885,7 +1262,20 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
       return await refreshClineToken(credentials.refreshToken, log, proxyConfig);
 
     case "kimi-coding":
-      return await refreshKimiCodingToken(credentials.refreshToken, log, proxyConfig);
+      return await refreshKimiCodingToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        log,
+        proxyConfig
+      );
+
+    case "gitlab-duo":
+      return await refreshGitLabDuoToken(
+        credentials.refreshToken,
+        credentials.providerSpecificData,
+        log,
+        proxyConfig
+      );
 
     case "windsurf":
     case "devin-cli":
@@ -921,6 +1311,7 @@ export function supportsTokenRefresh(provider) {
     "kimi-coding",
     "windsurf",
     "devin-cli",
+    "gitlab-duo",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];
@@ -957,12 +1348,29 @@ export function isUnrecoverableRefreshError(result) {
  * Additionally, when connectionId is present, the stale-token check reads the DB to detect
  * whether another process already refreshed the token. If the DB token is still valid it is
  * returned immediately without a new upstream call.
+ *
+ * @param onPersist - Optional callback invoked INSIDE the per-connection mutex closure after a
+ *   successful refresh, before the mutex releases. Use this to atomically persist the new tokens
+ *   to the DB within the same lock window. If `onPersist` throws, the error is logged and
+ *   re-thrown so the caller is aware of the persistence failure.
  */
-export async function getAccessToken(provider, credentials, log, proxyConfig: unknown = null) {
+export async function getAccessToken(
+  provider,
+  credentials,
+  log,
+  proxyConfig: unknown = null,
+  onPersist?: RefreshPersistFn
+) {
   if (!credentials || !credentials.refreshToken || typeof credentials.refreshToken !== "string") {
     log?.warn?.("TOKEN_REFRESH", `No valid refresh token available for provider: ${provider}`);
     return null;
   }
+
+  // If the caller did not pass onPersist explicitly, fall back to the active
+  // AsyncLocalStorage store. This lets `runWithOnPersist(persistFn, () =>
+  // executor.refreshCredentials(creds, log))` plumb the persist callback through
+  // executors (e.g. CodexExecutor) without modifying their signature.
+  const effectiveOnPersist = onPersist ?? getActiveOnPersist();
 
   const connectionId = credentials.connectionId;
 
@@ -980,12 +1388,29 @@ export async function getAccessToken(provider, credentials, log, proxyConfig: un
     }
 
     const entry = { promise: null, waiters: 0 };
-    entry.promise = _getAccessTokenWithStalenessCheck(
-      provider,
-      credentials,
-      log,
-      proxyConfig
-    ).finally(() => {
+    entry.promise = (async () => {
+      const result = await _getAccessTokenWithStalenessCheck(
+        provider,
+        credentials,
+        log,
+        proxyConfig
+      );
+      // Invoke onPersist INSIDE the mutex so [network call + DB write] are one atomic step.
+      // This prevents a concurrent waiter from reading stale credentials before the DB is updated.
+      if (result?.accessToken && effectiveOnPersist) {
+        try {
+          await effectiveOnPersist(result);
+        } catch (persistErr) {
+          const { sanitizeErrorMessage } = await import("../utils/error.ts");
+          log?.error?.(
+            "TOKEN_REFRESH",
+            `onPersist callback failed for ${provider}/${connectionId}: ${sanitizeErrorMessage(persistErr instanceof Error ? persistErr : new Error(String(persistErr)))}`
+          );
+          throw persistErr;
+        }
+      }
+      return result;
+    })().finally(() => {
       connectionRefreshMutex.delete(connectionId);
     });
     connectionRefreshMutex.set(connectionId, entry);
@@ -1015,6 +1440,22 @@ export async function getAccessToken(provider, credentials, log, proxyConfig: un
  * Only called from the per-connection mutex path (Layer 1 above).
  */
 async function _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig) {
+  // ROTATION MAP CHECK (codex-multi-auth pattern): if this refresh_token was
+  // rotated very recently (within ROTATION_MAP_TTL_MS), reuse the cached new
+  // tokens INSTEAD of hitting upstream. Auth0 treats re-use of a rotated token
+  // as a security event and revokes the entire token family — fatal for
+  // multi-account Codex setups. The in-memory rotation map catches this even
+  // when the caller bypasses the DB staleness path (no connectionId, stale
+  // in-memory credentials in retries, etc.).
+  const rotated = lookupRotation(provider, credentials.refreshToken);
+  if (rotated) {
+    log?.info?.(
+      "TOKEN_REFRESH",
+      `Rotation map hit for ${provider}. Returning cached rotated tokens (avoids family-revoke).`
+    );
+    return rotated.result;
+  }
+
   // RACE CONDITION PREVENTION:
   // If the credentials object in memory is stale (e.g. it waited in a semaphore while another
   // request refreshed the token), using its OLD refreshToken will cause the provider (e.g. OpenAI)
@@ -1024,33 +1465,41 @@ async function _getAccessTokenWithStalenessCheck(provider, credentials, log, pro
     try {
       const { getProviderConnectionById } = await import("../../src/lib/db/providers");
       const dbConnection = await getProviderConnectionById(credentials.connectionId);
-      if (
-        dbConnection &&
-        dbConnection.refreshToken &&
-        dbConnection.refreshToken !== credentials.refreshToken
-      ) {
-        log?.info?.(
-          "TOKEN_REFRESH",
-          `Stale token detected in memory for ${provider}. Using refreshed token from DB.`
-        );
-
-        // If the DB token is not expired, we can just return it!
+      if (dbConnection && dbConnection.refreshToken) {
         const now = Date.now();
         const dbExpiresAt = dbConnection.expiresAt ? new Date(dbConnection.expiresAt).getTime() : 0;
 
-        if (dbExpiresAt > now + 60000) {
-          // 60 seconds buffer
-          log?.info?.("TOKEN_REFRESH", `DB token is still valid. Skipping OAuth refresh.`);
-          return {
-            accessToken: dbConnection.accessToken,
-            refreshToken: dbConnection.refreshToken,
-            expiresIn: dbConnection.expiresIn,
-          };
-        } else {
-          // DB token is also expired, but it's the NEWEST one. We must use it to refresh.
-          credentials.refreshToken = dbConnection.refreshToken;
-          credentials.accessToken = dbConnection.accessToken;
+        if (dbConnection.refreshToken !== credentials.refreshToken) {
+          log?.info?.(
+            "TOKEN_REFRESH",
+            `Stale token detected in memory for ${provider}. Using refreshed token from DB.`
+          );
+
+          // If the DB token is not expired, we can just return it!
+          if (dbExpiresAt > now + 60000) {
+            // 60 seconds buffer
+            log?.info?.("TOKEN_REFRESH", `DB token is still valid. Skipping OAuth refresh.`);
+            return {
+              accessToken: dbConnection.accessToken,
+              refreshToken: dbConnection.refreshToken,
+              // Return absolute expiresAt so downstream callers do NOT recompute lifetime
+              // from a relative expiresIn value (which would incorrectly extend the TTL).
+              // expiresIn intentionally omitted here.
+              expiresAt: dbConnection.expiresAt,
+            };
+          } else {
+            // DB token is also expired, but it's the NEWEST one. We must use it to refresh.
+            credentials.refreshToken = dbConnection.refreshToken;
+            credentials.accessToken = dbConnection.accessToken;
+          }
         }
+        // NOTE: Fix F (skip when DB == memory and DB > now+60s) was intentionally
+        // removed. The caller (checkAndRefreshToken) already decided to refresh
+        // because the token is within TOKEN_EXPIRY_BUFFER_MS of expiry. Re-checking
+        // with a tighter 60-second window here would skip legitimate refreshes and
+        // let near-expired tokens hit the upstream. Layer-1 mutex (per-connection)
+        // and Layer-2 dedup (token-hash) already prevent concurrent refreshes for
+        // the import-burst scenario.
       }
     } catch (e) {
       log?.warn?.(
@@ -1060,7 +1509,32 @@ async function _getAccessTokenWithStalenessCheck(provider, credentials, log, pro
     }
   }
 
-  return _getAccessTokenInternal(provider, credentials, log, proxyConfig);
+  const oldRefreshToken = credentials.refreshToken;
+  const result = await _getAccessTokenInternal(provider, credentials, log, proxyConfig);
+
+  // Record the rotation so subsequent stale callers can be redirected to the
+  // new tokens without re-hitting upstream (which would trigger Auth0 family
+  // revocation). Only records when the refresh actually rotated the token.
+  if (
+    result &&
+    typeof result === "object" &&
+    !("error" in result) &&
+    (result as { accessToken?: string }).accessToken &&
+    (result as { refreshToken?: string }).refreshToken
+  ) {
+    recordRotation(
+      provider,
+      oldRefreshToken,
+      result as {
+        accessToken: string;
+        refreshToken: string;
+        expiresIn?: number;
+        expiresAt?: string;
+      }
+    );
+  }
+
+  return result;
 }
 
 /**
