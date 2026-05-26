@@ -729,20 +729,20 @@ export async function handleChat(
     const perRequestBudgetCap = parseRequestBudgetCap(requestBudgetHeader);
     const relayOptions =
       combo.strategy === "context-relay" ||
-      bypassProviderQuotaPolicy ||
-      perRequestMode.override ||
-      perRequestBudgetCap !== undefined
+        bypassProviderQuotaPolicy ||
+        perRequestMode.override ||
+        perRequestBudgetCap !== undefined
         ? {
-            ...(combo.strategy === "context-relay"
-              ? {
-                  sessionId,
-                  config: relayConfig,
-                }
-              : {}),
-            ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
-            ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
-            ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
-          }
+          ...(combo.strategy === "context-relay"
+            ? {
+              sessionId,
+              config: relayConfig,
+            }
+            : {}),
+          ...(bypassProviderQuotaPolicy ? { bypassProviderQuotaPolicy: true } : {}),
+          ...(perRequestMode.override ? { mode: requestModeHeader } : {}),
+          ...(perRequestBudgetCap !== undefined ? { budgetCap: perRequestBudgetCap } : {}),
+        }
         : undefined;
     telemetry.endPhase();
 
@@ -882,8 +882,8 @@ export async function handleChat(
           comboStepId: null,
           comboExecutionKey: null,
           correlationId: reqId,
-        }).catch(() => {});
-      } catch {}
+        }).catch(() => { });
+      } catch { }
     }
     return withCorrelationId(withSessionHeader(response, sessionId), reqId);
   }
@@ -1105,8 +1105,8 @@ async function handleSingleModelChat(
         comboStepId: isCombo ? (runtimeOptions?.comboStepId ?? null) : null,
         comboExecutionKey: isCombo ? (runtimeOptions?.comboExecutionKey ?? null) : null,
         correlationId: runtimeOptions?.correlationId ?? null,
-      }).catch(() => {});
-    } catch {}
+      }).catch(() => { });
+    } catch { }
     return gate;
   }
 
@@ -1125,12 +1125,12 @@ async function handleSingleModelChat(
       log.info("CIRCUIT", `${name}: ${from} → ${to}`),
     ...(useHints429
       ? {
-          cooldownByKind: {
-            rate_limit: 60_000,
-            quota_exhausted: 3_600_000,
-          } satisfies Partial<Record<FailureKind, number>>,
-          classifyError: classify429FromError,
-        }
+        cooldownByKind: {
+          rate_limit: 60_000,
+          quota_exhausted: 3_600_000,
+        } satisfies Partial<Record<FailureKind, number>>,
+        classifyError: classify429FromError,
+      }
       : {}),
   });
 
@@ -1142,12 +1142,12 @@ async function handleSingleModelChat(
     isCombo || forceLiveComboTest || runtimeOptions.emergencyFallbackTried === true;
   const retrySettings = disableCooldownAwareRetry
     ? {
-        ...baseRetrySettings,
-        enabled: false,
-        maxRetries: 0,
-        maxRetryWaitSec: 0,
-        maxRetryWaitMs: 0,
-      }
+      ...baseRetrySettings,
+      enabled: false,
+      maxRetries: 0,
+      maxRetryWaitSec: 0,
+      maxRetryWaitMs: 0,
+    }
     : baseRetrySettings;
   const requestSignal = request?.signal ?? null;
 
@@ -1181,30 +1181,30 @@ async function handleSingleModelChat(
         preselectedCredentials && excludedConnectionIds.size === 0
           ? preselectedCredentials
           : await getProviderCredentialsWithQuotaPreflight(
-              provider,
-              null,
-              effectiveAllowedConnections,
-              model,
-              {
-                sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
-                excludeConnectionIds: Array.from(excludedConnectionIds),
-                ...(runtimeOptions.allowRateLimitedConnection
-                  ? { allowRateLimitedConnections: true }
-                  : {}),
-                ...(forceLiveComboTest
-                  ? {
-                      allowSuppressedConnections: true,
-                      bypassQuotaPolicy: true,
-                    }
-                  : {}),
-                ...(!forceLiveComboTest && bypassProviderQuotaPolicy
-                  ? { bypassQuotaPolicy: true }
-                  : {}),
-                ...(runtimeOptions.forcedConnectionId
-                  ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
-                  : {}),
-              }
-            );
+            provider,
+            null,
+            effectiveAllowedConnections,
+            model,
+            {
+              sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
+              excludeConnectionIds: Array.from(excludedConnectionIds),
+              ...(runtimeOptions.allowRateLimitedConnection
+                ? { allowRateLimitedConnections: true }
+                : {}),
+              ...(forceLiveComboTest
+                ? {
+                  allowSuppressedConnections: true,
+                  bypassQuotaPolicy: true,
+                }
+                : {}),
+              ...(!forceLiveComboTest && bypassProviderQuotaPolicy
+                ? { bypassQuotaPolicy: true }
+                : {}),
+              ...(runtimeOptions.forcedConnectionId
+                ? { forcedConnectionId: runtimeOptions.forcedConnectionId }
+                : {}),
+            }
+          );
       preselectedCredentials = null;
 
       if (!credentials || "allRateLimited" in credentials || !credentials.connectionId) {
@@ -1307,10 +1307,10 @@ async function handleSingleModelChat(
       if (provider === "codex" && refreshedCredentials?.accessToken && credentials.connectionId) {
         const workspaceId =
           typeof refreshedCredentials?.providerSpecificData?.workspaceId === "string" &&
-          refreshedCredentials.providerSpecificData.workspaceId.trim().length > 0
+            refreshedCredentials.providerSpecificData.workspaceId.trim().length > 0
             ? refreshedCredentials.providerSpecificData.workspaceId
             : typeof credentials?.providerSpecificData?.workspaceId === "string" &&
-                credentials.providerSpecificData.workspaceId.trim().length > 0
+              credentials.providerSpecificData.workspaceId.trim().length > 0
               ? credentials.providerSpecificData.workspaceId
               : undefined;
         registerCodexConnection(credentials.connectionId, {
@@ -1573,8 +1573,8 @@ async function handleSingleModelChat(
             const maxTokens = Math.min(
               Number(
                 fallbackBody.max_tokens ??
-                  fallbackBody.max_completion_tokens ??
-                  fallbackDecision.maxOutputTokens
+                fallbackBody.max_completion_tokens ??
+                fallbackDecision.maxOutputTokens
               ) || fallbackDecision.maxOutputTokens,
               fallbackDecision.maxOutputTokens
             );
@@ -1678,7 +1678,7 @@ async function handleSingleModelChat(
       // Check extra keys directly from credentials for reliability across restarts
       const hasExtraKeys =
         ((credentials.providerSpecificData?.extraApiKeys as string[] | undefined) ?? []).length >
-          0 || connectionHasExtraKeys(credentials.connectionId);
+        0 || connectionHasExtraKeys(credentials.connectionId);
       const is401 = result.status === 401;
       // Our own timeout fired on a slow upstream; don't cool down a healthy account.
       const skipConnectionDisable =
@@ -1691,21 +1691,21 @@ async function handleSingleModelChat(
       const { shouldFallback, cooldownMs } = skipConnectionDisable
         ? { shouldFallback: false, cooldownMs: 0 }
         : await markAccountUnavailable(
-            credentials.connectionId,
-            result.status,
-            result.error,
-            provider,
-            model,
-            providerProfile,
-            {
-              persistUnavailableState: !(
-                isCombo &&
-                result.status === 429 &&
-                (failureKind === "rate_limit" || failureKind === "transient")
-              ),
-              isCombo,
-            }
-          );
+          credentials.connectionId,
+          result.status,
+          result.error,
+          provider,
+          model,
+          providerProfile,
+          {
+            persistUnavailableState: !(
+              isCombo &&
+              result.status === 429 &&
+              (failureKind === "rate_limit" || failureKind === "transient")
+            ),
+            isCombo,
+          }
+        );
 
       if (shouldFallback) {
         if (Number.isFinite(cooldownMs) && cooldownMs > 0) {
