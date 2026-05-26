@@ -8,6 +8,7 @@ import { backupDbFile } from "@/lib/db/backup";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 import { getSettings } from "@/lib/db/settings";
 import { setSystemPromptConfig } from "@omniroute/open-sse/services/systemPrompt.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
@@ -117,7 +118,10 @@ export async function POST(request: Request) {
       testDb = null;
     } catch (e) {
       if (testDb) testDb.close();
-      return NextResponse.json({ error: `Invalid database file: ${e.message}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Invalid database file: ${sanitizeErrorMessage(e)}` },
+        { status: 400 }
+      );
     }
 
     // Create pre-import backup
@@ -177,7 +181,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[API] Error importing database:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   } finally {
     // Cleanup temp file
     if (tmpPath && fs.existsSync(tmpPath)) {

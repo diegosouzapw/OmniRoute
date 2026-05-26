@@ -10,14 +10,12 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { getProxyById } from "@/lib/localDb";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return fallbackMessage;
+  return sanitizeErrorMessage(error) || fallbackMessage;
 }
 
 function getSupportedProxyTypes() {
@@ -119,7 +117,9 @@ export async function POST(request: Request) {
         });
         const text = await res.body.text();
         let parsedIp: { ip?: string } = {};
-        try { parsedIp = JSON.parse(text) as { ip?: string }; } catch {}
+        try {
+          parsedIp = JSON.parse(text) as { ip?: string };
+        } catch {}
         return Response.json({
           success: res.statusCode === 200,
           publicIp: parsedIp.ip || null,

@@ -8,6 +8,7 @@ import {
 } from "@/lib/localDb";
 import { registerHook, unregisterHook, updateHook } from "@/lib/middleware/registry";
 import type { HookConfig } from "@/lib/middleware/types";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const updateHookSchema = z.object({
   description: z.string().optional(),
@@ -23,6 +24,8 @@ type RouteParams = { params: Promise<{ name: string }> };
  * GET /api/middleware/hooks/[name] — Get a single hook details
  */
 export async function GET(request: Request, { params }: RouteParams) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const { name } = await params;
     const url = new URL(request.url);
@@ -52,6 +55,8 @@ export async function GET(request: Request, { params }: RouteParams) {
  * Body: { description?, priority?, scope?, enabled?, code? }
  */
 export async function PUT(request: Request, { params }: RouteParams) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const { name } = await params;
     const raw = await request.json();
@@ -101,6 +106,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
  * DELETE /api/middleware/hooks/[name] — Delete a hook
  */
 export async function DELETE(request: Request, { params }: RouteParams) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const { name } = await params;
 

@@ -19,6 +19,7 @@ import {
   safeOutboundFetch,
 } from "@/shared/network/safeOutboundFetch";
 import { getProviderOutboundGuard } from "@/shared/network/outboundUrlGuard";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
 import { getAntigravityHeaders } from "@omniroute/open-sse/services/antigravityHeaders.ts";
 import { ensureAntigravityProjectAssigned } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
@@ -1810,7 +1811,10 @@ export async function GET(
 
         if (!quotaRes.ok) {
           const errText = await quotaRes.text();
-          console.log(`[models] Gemini CLI quota fetch failed (${quotaRes.status}):`, errText);
+          console.log("[models] Gemini CLI quota fetch failed", {
+            status: quotaRes.status,
+            errText,
+          });
           const fallback = buildDiscoveryFallbackResponse();
           if (fallback) return fallback;
           return NextResponse.json(
@@ -1945,7 +1949,7 @@ export async function GET(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`Error fetching models from ${provider}:`, errorText);
+        console.log("Error fetching models from provider", { provider, errorText });
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
@@ -2096,7 +2100,7 @@ export async function GET(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(`Error fetching models from ${provider}:`, errorText);
+        console.log("Error fetching models from provider", { provider, errorText });
         const fallback = buildDiscoveryFallbackResponse();
         if (fallback) return fallback;
         return NextResponse.json(
@@ -2131,7 +2135,7 @@ export async function GET(
     return buildApiDiscoveryResponse(allModels);
   } catch (error) {
     if (error instanceof SafeOutboundFetchError && error.code === "URL_GUARD_BLOCKED") {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: sanitizeErrorMessage(error.message) }, { status: 400 });
     }
 
     const status = getSafeOutboundFetchErrorStatus(error);

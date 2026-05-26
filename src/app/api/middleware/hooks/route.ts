@@ -8,6 +8,7 @@ import {
 } from "@/lib/localDb";
 import { registerHook, getAllHooks } from "@/lib/middleware/registry";
 import type { HookConfig, CreateHookRequest } from "@/lib/middleware/types";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 const createHookSchema = z.object({
   name: z
@@ -25,6 +26,8 @@ const createHookSchema = z.object({
  * GET /api/middleware/hooks — List all registered hooks
  */
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const url = new URL(request.url);
     const hookName = url.searchParams.get("name");
@@ -66,6 +69,8 @@ export async function GET(request: Request) {
  * Body: { name, description?, priority?, scope?, code }
  */
 export async function POST(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const raw = await request.json();
     const parsed = createHookSchema.safeParse(raw);
