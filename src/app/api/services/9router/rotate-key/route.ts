@@ -1,4 +1,4 @@
-import { getSupervisor } from "@/lib/services/registry";
+import { getSupervisor, unregisterSupervisor } from "@/lib/services/registry";
 import { getOrInitSupervisor } from "../_lib";
 import { generateServiceApiKey } from "@/lib/services/apiKey";
 import { updateServiceField } from "@/lib/db/versionManager";
@@ -17,7 +17,10 @@ export async function POST(): Promise<Response> {
     let restarted = false;
     if (wasRunning && sup) {
       await sup.stop();
-      // Re-initialize supervisor so it picks up the new key from getOrCreateApiKey
+      // Unregister the existing supervisor so its stale spawnArgs closure (which
+      // captured the OLD apiKey at construction time) is discarded. getOrInitSupervisor
+      // will then build a fresh supervisor whose closure reads the new key.
+      unregisterSupervisor("9router");
       const freshSup = await getOrInitSupervisor();
       await freshSup.start();
       restarted = true;

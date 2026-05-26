@@ -154,6 +154,27 @@ function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): st
 const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
 /**
+ * Wrap a Request-like object so callers reading `.signal` see a merged signal
+ * combining the original request signal with an extra per-call signal (e.g. a
+ * combo per-model timeout). Returns the original request unchanged when no
+ * extra signal is provided, so the hot path stays a no-op.
+ */
+function wrapRequestWithExtraSignal(request: any, extraSignal: AbortSignal | null) {
+  if (!extraSignal || !request) return request;
+  const baseSignal: AbortSignal | null | undefined = request?.signal ?? null;
+  const mergedSignal: AbortSignal = baseSignal
+    ? AbortSignal.any([baseSignal, extraSignal])
+    : extraSignal;
+  return new Proxy(request, {
+    get(target, prop, receiver) {
+      if (prop === "signal") return mergedSignal;
+      const value = Reflect.get(target, prop, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+}
+
+/**
  * Handle chat completion request
  * Supports: OpenAI, Claude, Gemini, OpenAI Responses API formats
  * Format detection and translation handled by translator
@@ -504,13 +525,14 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
           stepId?: string | null;
           allowedConnectionIds?: string[] | null;
           failoverBeforeRetry?: boolean;
+          modelAbortSignal?: AbortSignal | null;
         }
       ) =>
         handleSingleModelChat(
           b,
           m,
           clientRawRequest,
-          request,
+          wrapRequestWithExtraSignal(request, target?.modelAbortSignal ?? null),
           combo.name,
           apiKeyInfo,
           telemetry,
@@ -687,13 +709,14 @@ async function handleSingleModelChat(
           executionKey?: string | null;
           stepId?: string | null;
           failoverBeforeRetry?: boolean;
+          modelAbortSignal?: AbortSignal | null;
         }
       ) =>
         handleSingleModelChat(
           b,
           m,
           clientRawRequest,
-          request,
+          wrapRequestWithExtraSignal(request, target?.modelAbortSignal ?? null),
           redirectCombo.name ?? modelStr,
           apiKeyInfo,
           telemetry,

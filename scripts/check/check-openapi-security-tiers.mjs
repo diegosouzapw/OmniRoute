@@ -16,7 +16,10 @@ const ROUTE_GUARD_PATH = path.join(ROOT, "src", "server", "authz", "routeGuard.t
 
 function parseStringArray(match) {
   if (!match) return [];
+  // Strip line comments before splitting — array entries in routeGuard.ts often
+  // carry inline `// T-XX:` annotations that would otherwise pollute the parsed tokens.
   return match[1]
+    .replace(/\/\/[^\n]*/g, "")
     .split(",")
     .map((s) => s.trim().replace(/^["']|["']$/g, ""))
     .filter(Boolean);

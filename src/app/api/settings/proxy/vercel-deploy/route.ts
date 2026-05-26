@@ -10,13 +10,56 @@ const POLL_INTERVAL_MS = 3000;
 const POLL_MAX_ATTEMPTS = 40; // ~2 min
 
 function buildRelayFunction(relayAuth: string): string {
-  // relayAuth is a random hex string generated server-side — no user input
+  // relayAuth is a random hex string generated server-side — no user input.
+  // The runtime SSRF guard is inlined into the edge function (cannot import
+  // Node-side helpers from the Edge runtime); it blocks RFC1918, loopback,
+  // link-local, IPv6 ULA, and embedded credentials on the x-relay-target host.
   return `export const config = { runtime: "edge" };
+
+function isPrivateHostname(h) {
+  if (!h) return true;
+  const host = h.trim().toLowerCase().replace(/^\\[|\\]$/g, "");
+  if (
+    host === "localhost" ||
+    host === "0.0.0.0" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host.endsWith(".localhost") ||
+    host.endsWith(".local") ||
+    host.startsWith("::ffff:")
+  ) return true;
+  const v4 = host.match(/^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/);
+  if (v4) {
+    const a = +v4[1], b = +v4[2];
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    return false;
+  }
+  if (host.includes(":")) {
+    return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
+  }
+  return false;
+}
+
 export default async function handler(req) {
   const auth = req.headers.get("x-relay-auth");
   if (auth !== "${relayAuth}") return new Response("Unauthorized", { status: 401 });
   const target = req.headers.get("x-relay-target");
   if (!target) return new Response("missing x-relay-target", { status: 400 });
+  let targetUrl;
+  try { targetUrl = new URL(target); } catch { return new Response("invalid x-relay-target", { status: 400 }); }
+  if (targetUrl.protocol !== "http:" && targetUrl.protocol !== "https:") {
+    return new Response("forbidden x-relay-target protocol", { status: 403 });
+  }
+  if (targetUrl.username || targetUrl.password) {
+    return new Response("forbidden x-relay-target (embedded credentials)", { status: 403 });
+  }
+  if (isPrivateHostname(targetUrl.hostname)) {
+    return new Response("forbidden x-relay-target (private/loopback host)", { status: 403 });
+  }
   const relayPath = req.headers.get("x-relay-path") || "/";
   const headers = new Headers(req.headers);
   ["x-relay-target", "x-relay-path", "x-relay-auth", "host"].forEach(h => headers.delete(h));
@@ -30,10 +73,7 @@ export default async function handler(req) {
 }`;
 }
 
-async function pollDeployment(
-  deploymentApiUrl: string,
-  token: string
-): Promise<"READY" | "ERROR"> {
+async function pollDeployment(deploymentApiUrl: string, token: string): Promise<"READY" | "ERROR"> {
   for (let i = 0; i < POLL_MAX_ATTEMPTS; i++) {
     await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     try {

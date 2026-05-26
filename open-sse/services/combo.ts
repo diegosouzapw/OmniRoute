@@ -1649,14 +1649,27 @@ export async function handleComboChat({
   // ── Per-model timeout wrapper ────────────────────────────────────────────
   // Default FETCH_TIMEOUT_MS is 600s per model. For combos, we use a shorter
   // per-model timeout so slow/hanging models don't block fallback.
+  //
+  // The timeoutController is forwarded to the inner caller via target.modelAbortSignal.
+  // When the timeout fires we (a) resolve the race with a synthetic 524 and
+  // (b) abort the inner request so its upstream fetch is cancelled and downstream
+  // cooldown/breaker/usage mutations stop — preventing "ghost" state mutations
+  // that diverge from the routing decision the operator sees.
   const handleSingleModelWithTimeout = async (b, modelStr, target?) => {
+    const timeoutController = new AbortController();
     let timeoutId;
+    let timedOut = false;
     const timeoutPromise = new Promise((resolve) => {
       timeoutId = setTimeout(() => {
+        timedOut = true;
         log.warn(
           "COMBO",
           `Model ${modelStr} exceeded ${COMBO_MODEL_TIMEOUT_MS}ms timeout — falling back`
         );
+        // Abort the inner request so its upstream fetch is cancelled and
+        // downstream cooldown/breaker/usage mutations don't continue mutating
+        // state behind the routing decision's back.
+        timeoutController.abort(new Error("combo-per-model-timeout"));
         resolve(
           new Response(JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }), {
             status: 524,
@@ -1665,9 +1678,19 @@ export async function handleComboChat({
         );
       }, COMBO_MODEL_TIMEOUT_MS);
     });
+    const targetWithSignal = {
+      ...(target ?? {}),
+      modelAbortSignal: timeoutController.signal,
+    };
     try {
       return await Promise.race([
-        handleSingleModelWrapped(b, modelStr, target).catch((err) => {
+        handleSingleModelWrapped(b, modelStr, targetWithSignal).catch((err) => {
+          if (timedOut) {
+            // Inner call rejected because we aborted it. The synthetic 524 from
+            // timeoutPromise already wins the race; return an empty response so
+            // the loser branch resolves cleanly without leaking err.message.
+            return new Response(null, { status: 599 });
+          }
           return errorResponse(502, err?.message ?? "Upstream model error");
         }),
         timeoutPromise,
@@ -2441,13 +2464,17 @@ export async function handleComboChat({
         // Trigger shared provider circuit breaker for 5xx errors and connection failures.
         // If the next target in the combo is on the same provider, don't mark the provider
         // as failed — different models on the same provider may still succeed.
+        // G-02: when fallbackResult.skipProviderBreaker is set (embedded service supervisor
+        // outage signalled via X-Omni-Fallback-Hint: connection_cooldown) apply connection
+        // cooldown only — do NOT trip the whole-provider breaker.
         const nextTarget = orderedTargets[i + 1];
         const sameProviderNext =
           typeof nextTarget?.provider === "string" && nextTarget.provider === provider;
         if (
           !isStreamReadinessFailure &&
           isProviderFailureCode(result.status) &&
-          !sameProviderNext
+          !sameProviderNext &&
+          !fallbackResult.skipProviderBreaker
         ) {
           recordProviderFailure(provider, log, target.connectionId, profile);
         }

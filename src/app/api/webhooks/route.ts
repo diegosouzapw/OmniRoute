@@ -12,17 +12,31 @@ import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { encryptMetadata } from "@/lib/webhookDispatcher";
 import { isEncryptionEnabled } from "@/lib/db/encryption";
+import { parseAndValidatePublicUrl } from "@/shared/network/outboundUrlGuard";
 
 const WEBHOOK_KINDS = ["slack", "telegram", "discord", "custom"] as const;
 
-const createWebhookSchema = z.object({
-  url: z.string().min(1).max(2000),
-  events: z.array(z.string()).optional().default(["*"]),
-  secret: z.string().max(500).optional(),
-  description: z.string().max(1000).optional().default(""),
-  kind: z.enum(WEBHOOK_KINDS).optional().default("custom"),
-  metadata: z.record(z.string()).optional(),
-});
+const createWebhookSchema = z
+  .object({
+    url: z.string().min(1).max(2000),
+    events: z.array(z.string()).optional().default(["*"]),
+    secret: z.string().max(500).optional(),
+    description: z.string().max(1000).optional().default(""),
+    kind: z.enum(WEBHOOK_KINDS).optional().default("custom"),
+    metadata: z.record(z.string()).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.kind === "telegram") return;
+    try {
+      parseAndValidatePublicUrl(data.url);
+    } catch (err: any) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: err?.message || "Blocked private or invalid webhook URL",
+      });
+    }
+  });
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);

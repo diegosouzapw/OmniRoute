@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { BaseExecutor, type ExecuteInput } from "./base.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 
@@ -30,12 +31,15 @@ interface CredentialCache {
 
 // ── In-memory caches ──────────────────────────────────────────────────────────
 
-// Keyed by first 32 chars of the token JWT
+// Keyed by sha256(token). Using a prefix slice of the JWT collides across
+// tokens that share the same algorithm header (the first ~36 chars of any
+// HS256/RS256 token are identical), which previously caused cross-tenant
+// credential cache hits.
 const credentialCache = new Map<string, CredentialCache>();
 const modelsCache = new Map<string, { models: InnerAiModel[]; expiresAt: number }>();
 
 function tokenCacheKey(token: string): string {
-  return token.slice(0, 32);
+  return createHash("sha256").update(token).digest("hex");
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -178,6 +182,16 @@ async function resolveCredentials(
 
 // ── Model resolution (dynamic fetch + cache) ──────────────────────────────────
 
+class InnerAiModelsError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly responsePreview: string
+  ) {
+    super(`Inner.ai /ai-models returned HTTP ${status}`);
+    this.name = "InnerAiModelsError";
+  }
+}
+
 async function resolveModels(
   token: string,
   deviceId: string,
@@ -193,7 +207,20 @@ async function resolveModels(
     signal: signal ?? undefined,
   });
 
-  if (!resp.ok) return [];
+  if (!resp.ok) {
+    // Don't silently fall through to an empty list — the synthetic model entry
+    // built downstream sends ai_model.id: undefined to chat, which Inner.ai
+    // responds to with a confusing "invalid model id" error keyed on a
+    // different message than the real root cause (auth or upstream outage).
+    const bodyPreview = await resp.text().catch(() => "");
+    const err = new InnerAiModelsError(resp.status, bodyPreview.slice(0, 200));
+    if (resp.status === 401 || resp.status === 403) {
+      // Auth failed on the models endpoint — drop the credential cache so the
+      // next request re-resolves the email/deviceId from /profile.
+      credentialCache.delete(tokenCacheKey(token));
+    }
+    throw err;
+  }
 
   const body = await resp.json().catch(() => null);
   let raw: InnerAiModel[] = [];
@@ -396,7 +423,23 @@ function transformInnerAiSSE(upstream: ReadableStream, model: string): ReadableS
   });
 }
 
-/** Collect Inner.ai SSE stream into a single content string (non-streaming path). */
+class InnerAiStreamError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code: string,
+    message: string
+  ) {
+    super(message);
+    this.name = "InnerAiStreamError";
+  }
+}
+
+/** Collect Inner.ai SSE stream into a single content string (non-streaming path).
+ *  Mirrors the event taxonomy in transformInnerAiSSE so credits/rate-limit
+ *  events become a thrown error instead of being silently discarded (which
+ *  produced HTTP 200 + empty body and tricked clients into retrying against
+ *  an exhausted account).
+ */
 async function collectContent(upstream: ReadableStream): Promise<string> {
   const decoder = new TextDecoder();
   const reader = upstream.getReader();
@@ -423,8 +466,24 @@ async function collectContent(upstream: ReadableStream): Promise<string> {
         continue;
       }
 
-      if (data.type === "text" && typeof data.item === "string") {
+      const type = data.type;
+      if (type === "text" && typeof data.item === "string") {
         content += data.item;
+        continue;
+      }
+      if (
+        type === "missing_credits" ||
+        type === "reached_limit" ||
+        type === "rate_limit_reached" ||
+        type === "rate_limit_longer_reached"
+      ) {
+        const errorMsg =
+          type === "missing_credits"
+            ? "Inner.ai: not enough credits"
+            : type === "reached_limit"
+              ? "Inner.ai: usage limit reached"
+              : "Inner.ai: rate limit reached — try again later";
+        throw new InnerAiStreamError(429, String(type), errorMsg);
       }
     }
   }
@@ -464,8 +523,25 @@ export class InnerAiExecutor extends BaseExecutor {
     let models: InnerAiModel[] = [];
     try {
       models = await resolveModels(token, deviceId, email, signal);
-    } catch {
-      // Non-fatal: proceed with empty list; synthetic model entry will be used
+    } catch (err) {
+      // Auth failures on /ai-models are surfaced explicitly so operators don't
+      // chase a "Inner.ai invalid model" downstream symptom when the real cause
+      // is the user's token expiring on the models endpoint.
+      if (err instanceof InnerAiModelsError && (err.status === 401 || err.status === 403)) {
+        return makeErrorResult(
+          err.status,
+          "Inner.ai /ai-models authentication failed — re-paste your token cookie",
+          body
+        );
+      }
+      // Non-auth failures (5xx, network): proceed with empty list and let the
+      // synthetic-model fallback try. Log so the operator sees the upstream blip.
+      // No `log` accessor in this executor scope — propagate via a runtime warning.
+      console.warn(
+        `[InnerAI] /ai-models fetch failed (status=${
+          err instanceof InnerAiModelsError ? err.status : "n/a"
+        }) — falling back to synthetic model entry`
+      );
     }
 
     const modelEntry: InnerAiModel = findModel(models, requestedModel) ?? {
@@ -556,7 +632,18 @@ export class InnerAiExecutor extends BaseExecutor {
     }
 
     // Non-streaming: collect content and return as JSON
-    const content = await collectContent(upstream.body);
+    let content: string;
+    try {
+      content = await collectContent(upstream.body);
+    } catch (err) {
+      // Inner.ai SSE error events (missing_credits, rate_limit_reached, …)
+      // surface here as thrown errors. Translate into a proper HTTP error so
+      // the client sees the failure instead of an empty 200 body.
+      if (err instanceof InnerAiStreamError) {
+        return makeErrorResult(err.status, err.message, body);
+      }
+      throw err;
+    }
     const completionId = `chatcmpl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     return {
       response: new Response(

@@ -232,7 +232,8 @@
     "typescript-eslint": "^8.59.4",
     "vitest": "^4.1.7",
     "wait-on": "^9.0.10",
-    "wtfnode": "^0.10.1"
+    "wtfnode": "^0.10.1",
+    "@types/bun": "latest"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs}": [
@@ -259,5 +260,6 @@
     "ip-address": "10.2.0",
     "qs": "^6.15.2",
     "uuid": "^14.0.0"
-  }
+  },
+  "private": true
 }

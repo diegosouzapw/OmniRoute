@@ -118,6 +118,12 @@ type UsageQuota = {
   remainingPercentage?: number;
   resetAt: string | null;
   unlimited: boolean;
+  /**
+   * True when the upstream provider reported the remaining fraction. False
+   * means the API didn't include the field and the 0 value here is a sentinel,
+   * NOT a confirmed-exhausted state. Antigravity-specific.
+   */
+  fractionReported?: boolean;
   displayName?: string;
   details?: Array<{
     name: string;
@@ -1940,11 +1946,19 @@ async function getAntigravityUsage(
 
       const rawFraction = toNumber(quotaInfo.remainingFraction, -1);
       const resetAt = parseResetTime(quotaInfo.resetTime);
-      // When remainingFraction is undefined/NaN (exhausted quota), default to 0%. Clamp to valid range [0, 1]
-      // Unlimited models have remainingFraction=1 AND no resetTime
-      const remainingFraction = rawFraction < 0 ? 0 : Math.max(0, Math.min(1, rawFraction));
-      // Models with no resetTime and full remaining are unlimited (e.g. tab-completion models)
-      const isUnlimited = !resetAt && remainingFraction >= 1;
+      // Distinguish "upstream did not report remainingFraction" from "remaining is 0%".
+      // A schema drift in Antigravity's quota API (very plausible — internal Google product)
+      // would otherwise silently mark every model as exhausted across the dashboard.
+      const fractionReported = rawFraction >= 0;
+      if (!fractionReported) {
+        console.warn(
+          `[Antigravity] model ${modelKey} returned no remainingFraction — quota unknown`
+        );
+      }
+      const remainingFraction = fractionReported ? Math.max(0, Math.min(1, rawFraction)) : 0;
+      // Models with no resetTime AND a reported full fraction are unlimited
+      // (e.g. tab-completion models). Unreported fraction is NEVER unlimited.
+      const isUnlimited = fractionReported && !resetAt && remainingFraction >= 1;
       const remainingPercentage = remainingFraction * 100;
       const QUOTA_NORMALIZED_BASE = 1000;
       const total = QUOTA_NORMALIZED_BASE;
@@ -1957,6 +1971,7 @@ async function getAntigravityUsage(
         resetAt,
         remainingPercentage: isUnlimited ? 100 : remainingPercentage,
         unlimited: isUnlimited,
+        fractionReported,
       };
     }
 

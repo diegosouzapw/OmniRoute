@@ -1,7 +1,7 @@
 import type { FreeProxyItem, FreeProxySyncResult, FreeProxyProvider } from "./types";
+import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
 
-const BASE_URL =
-  "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols";
+const BASE_URL = "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/protocols";
 const PROTOCOLS = ["http", "https", "socks4", "socks5"] as const;
 
 // In-module cache to respect GitHub raw rate limits
@@ -50,9 +50,7 @@ export class IplocateProvider implements FreeProxyProvider {
         const res = await fetch(url, {
           signal: AbortSignal.timeout(15000),
           headers:
-            lastFetchAt > 0
-              ? { "If-Modified-Since": new Date(lastFetchAt).toUTCString() }
-              : {},
+            lastFetchAt > 0 ? { "If-Modified-Since": new Date(lastFetchAt).toUTCString() } : {},
         });
 
         if (res.status === 304) continue;
@@ -66,6 +64,10 @@ export class IplocateProvider implements FreeProxyProvider {
 
         for (const p of data) {
           if (!p.ip || !p.port) continue;
+          if (isPrivateHost(p.ip)) {
+            errors.push(`${proto}: skipped private/loopback host ${p.ip}`);
+            continue;
+          }
           const item: FreeProxyItem = {
             source: "iplocate",
             host: p.ip,

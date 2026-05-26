@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { verifyExtractionPipeline } from "@/lib/memory/verify";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const result = await verifyExtractionPipeline("health-check");
     return NextResponse.json(result);
   } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ working: false, latencyMs: 0, error }, { status: 500 });
+    return NextResponse.json(
+      { working: false, latencyMs: 0, error: sanitizeErrorMessage(err) },
+      { status: 500 }
+    );
   }
 }

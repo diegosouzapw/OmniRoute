@@ -6,9 +6,10 @@ import {
   getReasoningCacheServiceEntries,
   getReasoningCacheServiceStats,
 } from "@omniroute/open-sse/services/reasoningCache.ts";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  return sanitizeErrorMessage(error);
 }
 
 /**

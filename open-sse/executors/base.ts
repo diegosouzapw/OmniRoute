@@ -8,7 +8,11 @@ import {
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
-import { runWithOnPersist, getRefreshLeadMs } from "../services/tokenRefresh.ts";
+import {
+  runWithOnPersist,
+  getRefreshLeadMs,
+  isUnrecoverableRefreshError,
+} from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
@@ -108,8 +112,13 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
-  /** Callback to persist tokens that are proactively refreshed during execution. */
-  onCredentialsRefreshed?: (newCredentials: ProviderCredentials) => Promise<void> | void;
+  /** Callback to persist tokens that are proactively refreshed during execution.
+   * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
+   * `{ testStatus: "expired", isActive: false }`); the caller merges into the
+   * stored connection row. */
+  onCredentialsRefreshed?: (
+    newCredentials: Partial<ProviderCredentials> & Record<string, unknown>
+  ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
 };
@@ -536,18 +545,20 @@ export class BaseExecutor {
     }
   }
 
-  async execute({
-    model,
-    body,
-    stream,
-    credentials,
-    signal,
-    log,
-    extendedContext,
-    upstreamExtraHeaders,
-    clientHeaders,
-    skipUpstreamRetry = false,
-  }: ExecuteInput) {
+  async execute(input: ExecuteInput) {
+    const {
+      model,
+      body,
+      stream,
+      credentials,
+      signal,
+      log,
+      extendedContext,
+      upstreamExtraHeaders,
+      clientHeaders,
+      skipUpstreamRetry = false,
+      onCredentialsRefreshed,
+    } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
     let lastStatus = 0;
@@ -563,16 +574,14 @@ export class BaseExecutor {
         // to detect whether the persist callback actually fired and fall back to
         // post-refresh mutation when it didn't.
         let proactivePersistRan = false;
-        const proactiveOnPersist = arguments[0].onCredentialsRefreshed
+        const proactiveOnPersist = onCredentialsRefreshed
           ? async (refreshResult: Record<string, unknown>) => {
               proactivePersistRan = true;
               activeCredentials = {
                 ...credentials,
                 ...(refreshResult as Partial<ProviderCredentials>),
               };
-              await arguments[0].onCredentialsRefreshed(
-                refreshResult as Partial<ProviderCredentials>
-              );
+              await onCredentialsRefreshed(refreshResult as Partial<ProviderCredentials>);
             }
           : null;
 
@@ -581,16 +590,42 @@ export class BaseExecutor {
         );
 
         if (refreshed && !proactivePersistRan) {
-          activeCredentials = {
-            ...credentials,
-            ...refreshed,
-          };
-          if (arguments[0].onCredentialsRefreshed) {
-            await arguments[0].onCredentialsRefreshed(refreshed);
+          // Classify unrecoverable sentinels before spreading. Without this guard
+          // an { error: "unrecoverable_refresh_error", code } object passes the
+          // truthy check and pollutes activeCredentials with garbage, causing the
+          // executor to send a non-token to upstream. Mirrors the reactive path
+          // in chatCore.ts and keeps the proactive path's behaviour consistent.
+          if (isUnrecoverableRefreshError(refreshed)) {
+            const refreshCode = (refreshed as Record<string, unknown>).code;
+            log?.error?.(
+              "TOKEN",
+              `${this.provider.toUpperCase()} | unrecoverable refresh — marking account expired (code=${String(refreshCode ?? "unknown")})`
+            );
+            if (onCredentialsRefreshed) {
+              await onCredentialsRefreshed({
+                testStatus: "expired",
+                isActive: false,
+              });
+            }
+            // Don't spread the sentinel — keep stale credentials so the next
+            // upstream call surfaces the real auth error to the client.
+          } else {
+            activeCredentials = {
+              ...credentials,
+              ...refreshed,
+            };
+            if (onCredentialsRefreshed) {
+              await onCredentialsRefreshed(refreshed);
+            }
           }
         }
       } catch (error) {
-        log?.warn?.(
+        // tokenRefresh.ts:1352 documents that onPersist throws are re-thrown so
+        // the caller is aware of the persistence failure. Honor that contract:
+        // log at error level (not warn), with sanitized message — and let the
+        // request continue with stale credentials so the user-visible error
+        // surfaces upstream rather than being silently absorbed here.
+        log?.error?.(
           "TOKEN",
           `Credential refresh failed for ${this.provider}: ${error instanceof Error ? error.message : String(error)}`
         );

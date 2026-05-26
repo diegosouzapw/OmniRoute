@@ -1,10 +1,23 @@
 import { TRAE_CONFIG } from "../constants/oauth";
 
-// #2658: Trae IDE (ByteDance) — imported-token flow.
-// Token format mirrors Cursor (the user signs into Trae and pastes the API
-// token). If ByteDance publishes a public OAuth/device-code flow, change
-// flowType to "device_code" or "authorization_code_pkce" and route any
-// public client_id/secret through resolvePublicCred() per Hard Rule #11.
+/**
+ * Trae IDE OAuth Provider (Import Token)
+ *
+ * Trae is an AI-native IDE by ByteDance. Authentication relies on a personal
+ * API token that the user copies from the Trae account settings page and pastes
+ * into the OmniRoute connection form.
+ *
+ * Why import_token and not device_code / authorization_code:
+ *   ByteDance has not published a public OAuth client_id/secret for the Trae
+ *   IDE, nor documented a device-code or browser-redirect flow for third-party
+ *   integrations. The authHint in providers.ts (see IDE_PROVIDER_IDS) confirms
+ *   that "paste your API token" is the supported onboarding path.
+ *
+ * TODO(trae-auth): if ByteDance publishes a public OAuth application for Trae,
+ *   upgrade flowType to "device_code" or "authorization_code_pkce" and embed
+ *   the client credentials via resolvePublicCred() (Hard Rule #11).
+ *   Reference: https://docs.trae.ai (check for OAuth / CLI integration docs)
+ */
 export const trae = {
   config: TRAE_CONFIG,
   flowType: "import_token",

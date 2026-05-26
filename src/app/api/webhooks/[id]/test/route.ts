@@ -13,6 +13,10 @@ import { buildDiscordPayload } from "@/lib/webhooks/integrations/discord";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { insertDelivery } from "@/lib/db/webhookDeliveries";
 import { recordWebhookDelivery } from "@/lib/localDb";
+import {
+  parseAndValidatePublicUrl,
+  OutboundUrlGuardError,
+} from "@/shared/network/outboundUrlGuard";
 import crypto from "crypto";
 
 const MAX_RESPONSE_BODY = 2048;
@@ -30,6 +34,7 @@ async function testFetch(
 }> {
   const start = Date.now();
   try {
+    parseAndValidatePublicUrl(url);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10_000);
     const res = await fetch(url, {

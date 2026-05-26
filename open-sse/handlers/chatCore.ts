@@ -34,6 +34,7 @@ import {
   createErrorResult,
   parseUpstreamError,
   formatProviderError,
+  sanitizeErrorMessage,
 } from "../utils/error.ts";
 import {
   COOLDOWN_MS,
@@ -3896,8 +3897,15 @@ export async function handleChatCore({
           providerResponse = retryResult.response;
           upstreamErrorParsed = false; // Let it be parsed downstream
         }
-      } catch {
-        log?.warn?.("TOKEN", `${provider.toUpperCase()} | retry after refresh failed`);
+      } catch (retryErr) {
+        // Refresh succeeded but the retry leg failed (network blip, AbortError,
+        // executor throw). Don't swallow — the operator-visible signal "the user
+        // saw 401 even though auth was actually fixed" is much more confusing
+        // than the original 401 alone. Surface at error level with sanitization.
+        log?.error?.(
+          "TOKEN",
+          `${provider.toUpperCase()} | retry after refresh failed: ${sanitizeErrorMessage(retryErr)}`
+        );
       }
     } else {
       log?.warn?.("TOKEN", `${provider.toUpperCase()} | refresh failed`);

@@ -101,7 +101,11 @@ function noProxyMatch(targetUrl) {
             ok = seg === "" || (hostname.endsWith(seg) && hostname.length - seg.length >= pos);
           } else {
             const idx = seg ? hostname.indexOf(seg, pos) : pos;
-            if (idx === -1) { ok = false; } else { pos = idx + seg.length; }
+            if (idx === -1) {
+              ok = false;
+            } else {
+              pos = idx + seg.length;
+            }
           }
         }
       }
@@ -345,13 +349,19 @@ async function patchedFetch(
   ) {
     const vc = contextProxy as { host?: string; relayAuth?: string };
     if (!vc.relayAuth) {
-      throw new Error("[ProxyFetch] Vercel relay missing relayAuth — cannot route request");
+      // Generic message without internal labels — this throw can bubble up to
+      // catch blocks that put error.message in response bodies (combo per-model
+      // timeout, executor catch-all). Don't leak "[ProxyFetch]" diagnostics.
+      throw new Error("Vercel relay configuration error: missing relayAuth");
     }
     const targetUrl = getTargetUrl(input);
     const relayHeaders = buildVercelRelayHeaders(targetUrl, vc.relayAuth);
     const mergedHeaders = new Headers(options?.headers);
     for (const [k, v] of Object.entries(relayHeaders)) mergedHeaders.set(k, v);
-    console.log(`[ProxyFetch] Routing via Vercel relay: ${vc.host}`);
+    // Pass host through proxyUrlForLogs so the same redaction policy applies
+    // to relay routing logs (the rest of this module already follows that rule).
+    const hostForLogs = proxyUrlForLogs(vc.host ? `https://${vc.host}` : "");
+    console.log(`[ProxyFetch] Routing via Vercel relay: ${hostForLogs}`);
     return await originalFetch(`https://${vc.host}`, {
       ...options,
       headers: mergedHeaders,

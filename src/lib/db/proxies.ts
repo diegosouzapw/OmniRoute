@@ -127,8 +127,7 @@ function extractRelayAuth(notes: unknown): string | undefined {
 
 function toRegistryProxyResolution(row: unknown, level: ProxyScope, levelId: string | null) {
   const record = toRecord(row);
-  const relayAuth =
-    record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
+  const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
   return {
     proxy: {
       type: record.type,
@@ -366,10 +365,22 @@ function coerceProxyPayload(value: unknown, fallbackName: string): ProxyPayload 
 }
 
 export function redactProxySecrets(proxy: ProxyRegistryRecord): ProxyRegistryRecord {
+  let redactedNotes = proxy.notes;
+  if (proxy.type === "vercel" && proxy.notes) {
+    try {
+      const parsed = JSON.parse(proxy.notes);
+      if (parsed && typeof parsed === "object" && "relayAuth" in parsed) {
+        redactedNotes = JSON.stringify({ ...parsed, relayAuth: "***" });
+      }
+    } catch {
+      // Non-JSON notes pass through unchanged
+    }
+  }
   return {
     ...proxy,
     username: proxy.username ? "***" : "",
     password: proxy.password ? "***" : "",
+    notes: redactedNotes,
   };
 }
 
@@ -671,8 +682,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
       .get(connectionId);
     if (accountAssignment) {
       const record = toRecord(accountAssignment);
-      const relayAuth =
-        record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
+      const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
       return {
         proxy: {
           type: record.type,
@@ -700,8 +710,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
         .get(connection.provider);
       if (providerAssignment) {
         const record = toRecord(providerAssignment);
-        const relayAuth =
-          record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
+        const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
         return {
           proxy: {
             type: record.type,
@@ -725,8 +734,7 @@ export async function resolveProxyForConnectionFromRegistry(connectionId: string
       .get();
     if (globalAssignment) {
       const record = toRecord(globalAssignment);
-      const relayAuth =
-        record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
+      const relayAuth = record.type === "vercel" ? extractRelayAuth(record.notes) : undefined;
       return {
         proxy: {
           type: record.type,

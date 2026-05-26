@@ -1,6 +1,6 @@
-import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
+import { BaseExecutor, mergeUpstreamExtraHeaders, mergeAbortSignals } from "./base.ts";
 import { randomUUID } from "crypto";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { PROVIDERS, OAUTH_ENDPOINTS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { getGeminiCliHeaders } from "../services/geminiCliHeaders.ts";
 import { scrubProxyAndFingerprintHeaders } from "../services/antigravityHeaderScrub.ts";
 import { obfuscateSensitiveWords } from "../services/antigravityObfuscation.ts";
@@ -408,11 +408,13 @@ export class GeminiCLIExecutor extends BaseExecutor {
           `[Gemini CLI] Execute - URL: ${url}, Model: ${model}, Retry: ${retryAttemptsByUrl[urlIndex]}`
         );
 
+        const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+        const mergedSignal = signal ? mergeAbortSignals(signal, timeoutSignal) : timeoutSignal;
         const response = await fetch(url, {
           method: "POST",
           headers,
           body: JSON.stringify(transformedBody),
-          signal,
+          signal: mergedSignal,
         });
 
         if (!response.ok) {
@@ -479,7 +481,25 @@ export class GeminiCLIExecutor extends BaseExecutor {
         }),
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        log?.error?.("TOKEN", "Gemini CLI refresh failed", {
+          status: response.status,
+          error: errorText.slice(0, 200),
+        });
+        // Match refreshGoogleToken's pattern: invalid_grant means the refresh
+        // token was revoked / replaced — surface as unrecoverable so the caller
+        // marks the account expired instead of retrying forever with a dead token.
+        try {
+          const errorBody = JSON.parse(errorText);
+          if (errorBody?.error === "invalid_grant") {
+            return { error: "unrecoverable_refresh_error", code: "invalid_grant" } as never;
+          }
+        } catch {
+          // not JSON — fall through
+        }
+        return null;
+      }
 
       const tokens = await response.json();
       log?.info?.("TOKEN", "Gemini CLI refreshed");

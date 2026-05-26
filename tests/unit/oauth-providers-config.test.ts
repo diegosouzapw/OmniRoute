@@ -36,6 +36,7 @@ const {
   PROVIDERS: OAUTH_PROVIDER_IDS,
   QODER_CONFIG,
   QWEN_CONFIG,
+  TRAE_CONFIG,
   WINDSURF_CONFIG,
 } = oauthModule;
 const { REGISTRY } = registryModule;
@@ -60,6 +61,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "cline",
   "windsurf",
   "devin-cli",
+  "trae",
 ];
 
 const EXPECTED_CONFIG_BY_PROVIDER = {
@@ -79,6 +81,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   cline: CLINE_CONFIG,
   windsurf: WINDSURF_CONFIG,
   "devin-cli": WINDSURF_CONFIG,
+  trae: TRAE_CONFIG,
 };
 
 const REQUIRED_FIELDS_BY_PROVIDER = {
@@ -125,6 +128,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
   windsurf: ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
   "devin-cli": ["authorizeUrl", "apiServerUrl", "exchangePath", "inferenceUrl"],
+  trae: ["apiEndpoint", "chatEndpoint", "webUrl"],
 };
 
 function getByPath(object, path) {
@@ -325,6 +329,8 @@ test("device and import-token providers expose the flow-specific fields expected
   assert.equal(PROVIDERS.cursor.flowType, "import_token");
   assert.equal(CURSOR_CONFIG.dbKeys.accessToken, "cursorAuth/accessToken");
   assert.equal(CURSOR_CONFIG.dbKeys.machineId, "storage.serviceMachineId");
+  assert.equal(PROVIDERS.trae.flowType, "import_token");
+  assert.equal(typeof TRAE_CONFIG.apiEndpoint, "string");
   assert.ok(Array.isArray(KIRO_CONFIG.authMethods));
   assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });

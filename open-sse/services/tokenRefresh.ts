@@ -478,7 +478,7 @@ export async function refreshKimiCodingToken(
           Accept: "application/json",
           "X-Msh-Platform": platform,
           "X-Msh-Version": version,
-          "X-Msh-Device-Model": deviceModel,
+          "X-Msh-Device-Model": (providerSpecificData?.deviceModel as string) || deviceModel,
           "X-Msh-Device-Id": stableDeviceId,
           // These headers match getKimiOAuthHeaders() in providers/kimi-coding.ts.
           // They're derived at runtime from os module calls; use safe fallbacks here

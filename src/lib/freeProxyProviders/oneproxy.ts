@@ -1,4 +1,5 @@
 import type { FreeProxyItem, FreeProxySyncResult, FreeProxyProvider } from "./types";
+import { isPrivateHost } from "@/shared/network/outboundUrlGuard";
 
 const DEFAULT_API_URL = "https://1proxy-api.aitradepulse.com/api/v1/proxies/advanced";
 const DEFAULT_MAX = 500;
@@ -81,6 +82,10 @@ export class OneproxyProvider implements FreeProxyProvider {
         if (!Array.isArray(json.proxies) || json.proxies.length === 0) break;
 
         for (const p of json.proxies) {
+          if (!p.ip || isPrivateHost(p.ip)) {
+            errors.push(`1proxy: skipped private/loopback host ${p.ip}`);
+            continue;
+          }
           const item: FreeProxyItem = {
             source: "1proxy",
             host: p.ip,
