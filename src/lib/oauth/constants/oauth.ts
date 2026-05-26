@@ -290,6 +290,24 @@ export const CURSOR_CONFIG = {
   },
 };
 
+// Trae IDE Configuration (#2658)
+//
+// Trae is an AI-native IDE by ByteDance. Authentication is currently imported
+// token only — users sign in inside Trae and paste the resulting API token
+// here. ByteDance has not published a public OAuth client_id/secret or a CLI
+// with extractable credentials, so no automated discovery is possible yet.
+// If ByteDance ever publishes a public device-code or PKCE flow, swap
+// flowType in src/lib/oauth/providers/trae.ts and wire endpoints below.
+export const TRAE_CONFIG = {
+  apiEndpoint: "https://api.trae.ai",
+  clientType: "ide",
+  tokenStoragePaths: {
+    linux: "~/.config/Trae/User/globalStorage/state.vscdb",
+    macos: "/Users/<user>/Library/Application Support/Trae/User/globalStorage/state.vscdb",
+    windows: "%APPDATA%\\Trae\\User\\globalStorage\\state.vscdb",
+  },
+};
+
 // Windsurf / Devin CLI Configuration
 //
 // Authentication uses PKCE Authorization Code Flow — same pattern as Codex CLI.
