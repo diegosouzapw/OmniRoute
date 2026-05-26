@@ -284,7 +284,10 @@ export {
   disableWebhooksWithHighFailures,
 } from "./db/webhooks";
 
-export type { Webhook } from "./db/webhooks";
+export type { Webhook, WebhookKind } from "./db/webhooks";
+
+export { insertDelivery, getDeliveries } from "./db/webhookDeliveries";
+export type { WebhookDelivery } from "./db/webhookDeliveries";
 
 export {
   saveQuotaSnapshot,
