@@ -44,7 +44,7 @@ async function startServer() {
 
   // Compliance: One-time cleanup of expired logs
   try {
-    const cleanup = cleanupExpiredLogs();
+    const cleanup = await cleanupExpiredLogs();
     if (
       cleanup.deletedUsage ||
       cleanup.deletedCallLogs ||

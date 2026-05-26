@@ -202,7 +202,7 @@ export async function registerNodejs(): Promise<void> {
     initAuditLog();
     console.log("[COMPLIANCE] Audit log table initialized");
 
-    const cleanup = cleanupExpiredLogs();
+    const cleanup = await cleanupExpiredLogs();
     if (
       cleanup.deletedUsage ||
       cleanup.deletedCallLogs ||
