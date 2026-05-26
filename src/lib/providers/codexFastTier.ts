@@ -110,7 +110,7 @@ function modelMatchesSupportedList(
   supportedModels: readonly string[]
 ): boolean {
   if (typeof model !== "string" || model.length === 0) return false;
-  const normalizedModel = model.trim().toLowerCase();
+  const normalizedModel = model.trim().toLowerCase().split("/").pop() || "";
   if (!normalizedModel) return false;
   for (const supported of supportedModels) {
     const candidate = supported.trim().toLowerCase();

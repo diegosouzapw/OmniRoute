@@ -105,6 +105,29 @@ test("Codex global service tier injects selected mode and can override connectio
   );
 });
 
+test("Codex global service tier matches provider-prefixed combo model ids", () => {
+  assert.deepEqual(
+    applyCodexGlobalFastServiceTier(
+      "codex",
+      { providerSpecificData: {} },
+      { codexServiceTier: { enabled: true, tier: "priority" } },
+      { model: "codex/gpt-5.5" }
+    ),
+    { providerSpecificData: { requestDefaults: { serviceTier: "priority" } } }
+  );
+
+  const unsupported = { providerSpecificData: {} };
+  assert.equal(
+    applyCodexGlobalFastServiceTier(
+      "codex",
+      unsupported,
+      { codexServiceTier: { enabled: true, tier: "priority" } },
+      { model: "codex/gpt-5.3-codex" }
+    ),
+    unsupported
+  );
+});
+
 test("Codex global flex writes body service_tier when available", () => {
   const body: Record<string, unknown> = {};
   const credentials = { providerSpecificData: {} };
