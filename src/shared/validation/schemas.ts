@@ -1116,12 +1116,19 @@ export const updateRequireLoginSchema = z
 
 export const updateSystemPromptSchema = z
   .object({
-    prompt: z.string().max(50000).optional(),
+    prompt: z.string().max(50000).optional(), // legacy compat
+    prefixPrompt: z.string().max(50000).optional(),
+    suffixPrompt: z.string().max(50000).optional(),
     enabled: z.boolean().optional(),
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (value.prompt === undefined && value.enabled === undefined) {
+    if (
+      value.prompt === undefined &&
+      value.prefixPrompt === undefined &&
+      value.suffixPrompt === undefined &&
+      value.enabled === undefined
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "No valid fields to update",
