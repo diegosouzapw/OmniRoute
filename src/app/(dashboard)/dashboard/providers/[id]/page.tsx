@@ -61,6 +61,7 @@ import {
   normalizeModelCatalogSource,
 } from "@/shared/utils/modelCatalogSearch";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
+import { copyToClipboard } from "@/shared/utils/clipboard";
 import {
   MODEL_COMPAT_PROTOCOL_KEYS,
   type ModelCompatProtocolKey,
@@ -7343,11 +7344,11 @@ function AddApiKeyModal({
 
   const copyCommandCodeValue = async (value: string | undefined, key: string) => {
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
+    const ok = await copyToClipboard(value);
+    if (ok) {
       setCopiedCommandCodeField(key);
       window.setTimeout(() => setCopiedCommandCodeField(null), 1500);
-    } catch {
+    } else {
       setSaveError("Copy failed. Select the text and copy it manually.");
     }
   };

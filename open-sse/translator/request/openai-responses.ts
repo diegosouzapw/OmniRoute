@@ -13,6 +13,9 @@ type JsonRecord = Record<string, unknown>;
 const RESPONSES_STORE_MARKER = "_omnirouteResponsesStore";
 const COPILOT_REASONING_SUMMARY_MARKER = "_omnirouteCopilotReasoningSummary";
 
+// Forward-compatible regex: matches web_search, web_search_20250305, and any future versioned names.
+const WEB_SEARCH_TOOL_TYPES = /^web_search/;
+
 function toRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -67,13 +70,15 @@ export function openaiResponsesToOpenAIRequest(
       const tool = toRecord(toolValue);
       const toolType = toString(tool.type);
       // Allow: function tools, tools already in Chat format (have .function property), CLI subagent tools,
-      // and namespace tools (MCP tool groups used by Codex/OpenAI Responses API).
+      // namespace tools (MCP tool groups used by Codex/OpenAI Responses API), and web_search server tools
+      // (Anthropic versioned: web_search_20250305, web_search_20250101, etc. — or plain web_search).
       if (
         toolType &&
         toolType !== "function" &&
         toolType !== "custom" &&
         toolType !== "command" &&
         toolType !== "namespace" &&
+        !WEB_SEARCH_TOOL_TYPES.test(toolType) &&
         !tool.function
       ) {
         throw unsupportedFeature(
@@ -255,6 +260,13 @@ export function openaiResponsesToOpenAIRequest(
     result.tools = root.tools.map((toolValue) => {
       const tool = toRecord(toolValue);
       if (tool.function) return toolValue;
+      const toolType = toString(tool.type);
+      // Pass web_search server tools through with their original type (versioned or plain).
+      // These have no Chat Completions equivalent; preserve as-is so upstreams that understand
+      // Anthropic-style web_search_YYYYMMDD naming receive the exact name they expect.
+      if (WEB_SEARCH_TOOL_TYPES.test(toolType)) {
+        return toolValue;
+      }
       return {
         type: "function",
         function: {

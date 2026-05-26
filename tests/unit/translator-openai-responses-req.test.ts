@@ -110,20 +110,39 @@ test("Responses -> Chat filters orphan tool outputs and supports role-based mess
   });
 });
 
-test("Responses -> Chat rejects unsupported built-in tools", () => {
+test("Responses -> Chat rejects unsupported built-in tools (non-web_search)", () => {
+  // file_search and code_interpreter are Responses-API-only tools with no Chat Completions
+  // equivalent and are not in the web_search family — they must still throw 400.
   assert.throws(
     () =>
       openaiResponsesToOpenAIRequest(
         "gpt-4o",
         {
           input: [],
-          tools: [{ type: "web_search_preview", name: "search" }],
+          tools: [{ type: "file_search", name: "search" }],
         },
         false,
         null
       ),
     (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
   );
+});
+
+test("Responses -> Chat passes through web_search_preview tool (web_search family)", () => {
+  // web_search_preview is OpenAI's Responses API server tool; it matches ^web_search and
+  // is preserved as-is rather than rejected with 400.
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [],
+      tools: [{ type: "web_search_preview", name: "search" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  assert.ok(Array.isArray(result.tools), "tools array must be present");
+  assert.equal((result.tools as any[])[0].type, "web_search_preview");
 });
 
 test("Responses -> Chat strips background flag and degrades to synchronous execution", () => {
@@ -569,4 +588,94 @@ test("Responses -> Chat ignores Copilot marker when reasoning field is absent", 
   ) as Record<string, unknown>;
 
   assert.equal(result.reasoning_effort, undefined);
+});
+
+// --- Issue #2695: web_search tool types (Anthropic versioned names) ---
+
+test("Responses -> Chat: web_search_20250305 tool does not throw (issue #2695)", () => {
+  // Claude Code sends the Anthropic versioned tool name; must NOT reject with 400.
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "web_search_20250305" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: web_search_20250305 tool is preserved in output tools array", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+      tools: [{ type: "web_search_20250305" }],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools.length, 1, "one tool must be present");
+  // Original versioned name is preserved so Anthropic-compatible upstreams receive what they expect.
+  assert.equal(tools[0].type, "web_search_20250305");
+});
+
+test("Responses -> Chat: plain web_search tool does not throw", () => {
+  assert.doesNotThrow(() =>
+    openaiResponsesToOpenAIRequest(
+      "gpt-4o",
+      {
+        input: [{ role: "user", content: [{ type: "input_text", text: "search" }] }],
+        tools: [{ type: "web_search" }],
+      },
+      false,
+      null
+    )
+  );
+});
+
+test("Responses -> Chat: function tool still translates correctly (no regression)", () => {
+  const result = openaiResponsesToOpenAIRequest(
+    "gpt-4o",
+    {
+      input: [{ role: "user", content: [{ type: "input_text", text: "hello" }] }],
+      tools: [
+        {
+          type: "function",
+          name: "my_func",
+          description: "does stuff",
+          parameters: { type: "object" },
+        },
+      ],
+    },
+    false,
+    null
+  ) as Record<string, unknown>;
+
+  const tools = result.tools as any[];
+  assert.ok(Array.isArray(tools), "tools array must be present");
+  assert.equal(tools[0].type, "function");
+  assert.ok(tools[0].function, "function tool must have .function property");
+  assert.equal(tools[0].function.name, "my_func");
+});
+
+test("Responses -> Chat: unknown tool type still throws unsupported_feature (no regression)", () => {
+  assert.throws(
+    () =>
+      openaiResponsesToOpenAIRequest(
+        "gpt-4o",
+        {
+          input: [],
+          tools: [{ type: "unknown_tool_xyz" }],
+        },
+        false,
+        null
+      ),
+    (error: any) => error.statusCode === 400 && error.errorType === "unsupported_feature"
+  );
 });
