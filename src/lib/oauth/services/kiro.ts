@@ -231,8 +231,12 @@ export class KiroService {
               _newClientSecret: newReg.clientSecret,
               _newClientSecretExpiresAt: newReg.clientSecretExpiresAt,
             };
+          } else {
+            const retryError = await retryRes.text();
+            throw new Error(`Token refresh retry failed after re-registration: ${retryError}`);
           }
         } catch (reRegErr) {
+          if (reRegErr.message?.includes("Token refresh retry failed")) throw reRegErr;
           console.warn("[kiro refresh] Re-registration fallback failed:", reRegErr);
         }
 

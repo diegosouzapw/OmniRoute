@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, Toggle } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -9,6 +9,7 @@ export default function SystemPromptTab() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [debounceTimer, setDebounceTimer] = useState(null);
+  const configRef = useRef(config);
   const t = useTranslations("settings");
 
   useEffect(() => {
@@ -16,9 +17,9 @@ export default function SystemPromptTab() {
       .then((res) => res.json())
       .then((data) => {
         setConfig({
-          enabled: data.enabled ?? false,
-          prefixPrompt: data.prefixPrompt ?? "",
-          suffixPrompt: data.suffixPrompt ?? "",
+          enabled: data?.enabled ?? false,
+          prefixPrompt: data?.prefixPrompt ?? "",
+          suffixPrompt: data?.suffixPrompt ?? "",
         });
         setLoading(false);
       })
@@ -26,8 +27,9 @@ export default function SystemPromptTab() {
   }, []);
 
   const save = async (updates) => {
-    const newConfig = { ...config, ...updates };
+    const newConfig = { ...configRef.current, ...updates };
     setConfig(newConfig);
+    configRef.current = newConfig;
     setStatus("");
     try {
       const res = await fetch("/api/settings/system-prompt", {
@@ -45,7 +47,9 @@ export default function SystemPromptTab() {
   };
 
   const handleFieldChange = (field, text) => {
-    setConfig((prev) => ({ ...prev, [field]: text }));
+    const updated = { ...configRef.current, [field]: text };
+    setConfig(updated);
+    configRef.current = updated;
     if (debounceTimer) clearTimeout(debounceTimer);
     setDebounceTimer(
       setTimeout(() => {

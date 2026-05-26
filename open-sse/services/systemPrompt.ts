@@ -94,10 +94,17 @@ export function injectSystemPrompt(body) {
     result.messages = [...result.messages];
     if (sysIdx >= 0) {
       const msg = { ...result.messages[sysIdx] };
-      let content = msg.content || "";
-      if (prefix) content = prefix + "\n\n" + content;
-      if (suffix) content = content + "\n\n" + suffix;
-      msg.content = content;
+      if (Array.isArray(msg.content)) {
+        const content = [...msg.content];
+        if (prefix) content.unshift({ type: "text", text: prefix });
+        if (suffix) content.push({ type: "text", text: suffix });
+        msg.content = content;
+      } else {
+        let content = msg.content || "";
+        if (prefix) content = prefix + "\n\n" + content;
+        if (suffix) content = content + "\n\n" + suffix;
+        msg.content = content;
+      }
       result.messages[sysIdx] = msg;
     } else {
       // No existing system message — combine both into one
