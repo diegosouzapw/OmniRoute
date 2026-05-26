@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Tüm katmanlar",
+    "tierAuth": "Auth",
+    "tierLoopback": "Yerel sadece",
+    "tierAlwaysProtected": "Her Zaman Korunan",
+    "tierPublic": "Herkese Açık",
+    "showInternal": "Dahiliyi Göster",
+    "hideInternal": "Dahiliyi Gizle",
+    "badgeLoopbackTooltip": "Yerel yalnızca: döngü geri olmayan IP'lerden engellendi",
+    "badgeAlwaysProtectedTooltip": "Her zaman korumalı: requireLogin=false olduğunda bile kimlik doğrulama gerektirir",
+    "badgeInternalTooltip": "Dahili rota — kamu API'sinin bir parçası değil"
   },
   "endpoints": {
     "tabProxy": "Uç Nokta Proxy",

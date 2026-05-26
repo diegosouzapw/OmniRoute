@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "모든 티어",
+    "tierAuth": "Auth",
+    "tierLoopback": "로컬 전용",
+    "tierAlwaysProtected": "항상 보호됨",
+    "tierPublic": "공개",
+    "showInternal": "내부 표시",
+    "hideInternal": "내부 숨기기",
+    "badgeLoopbackTooltip": "로컬 전용: 루프백 IP가 아닌 IP에서 차단됨",
+    "badgeAlwaysProtectedTooltip": "항상 보호됨: requireLogin=false일 때도 인증이 필요합니다.",
+    "badgeInternalTooltip": "내부 경로 — 공개 API의 일부가 아님"
   },
   "endpoints": {
     "tabProxy": "엔드포인트 프록시",

@@ -14,7 +14,11 @@ import { resolveStreamReadinessTimeout } from "../utils/streamReadinessPolicy.ts
 import { createStreamController, pipeWithDisconnect } from "../utils/streamHandler.ts";
 import { createSseHeartbeatTransform, shapeForClientFormat } from "../utils/sseHeartbeat.ts";
 import { addBufferToUsage, filterUsageForFormat, estimateUsage } from "../utils/usageTracking.ts";
-import { refreshWithRetry, isUnrecoverableRefreshError } from "../services/tokenRefresh.ts";
+import {
+  refreshWithRetry,
+  isUnrecoverableRefreshError,
+  runWithOnPersist,
+} from "../services/tokenRefresh.ts";
 import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { DEFAULT_THINKING_CLAUDE_SIGNATURE } from "../config/defaultThinkingSignature.ts";
@@ -65,6 +69,7 @@ import {
   getChatLogMaxObjectKeys,
 } from "@/lib/logEnv";
 import { logAuditEvent } from "@/lib/compliance";
+import { emit } from "@/lib/events/eventBus";
 import { extractProviderWarnings } from "@/lib/compliance/providerAudit";
 import { adaptBodyForCompression } from "../services/compression/bodyAdapter.ts";
 import { handleBypassRequest } from "../utils/bypassHandler.ts";
@@ -1366,6 +1371,17 @@ export async function handleChatCore({
   // Per-request trace id + checkpoint helper. Lets us see exactly which await
   // a hung request was sitting on in `[STAGE_TRACE]` log lines.
   const traceId = Math.random().toString(36).slice(2, 8);
+
+  // Emit request.started event for real-time dashboard
+  setImmediate(() => {
+    emit("request.started", {
+      id: traceId,
+      model: model || "unknown",
+      provider: provider || "unknown",
+      timestamp: startTime,
+      comboName: comboName || undefined,
+    });
+  });
   const trace = (label: string, extra?: Record<string, unknown>) => {
     const elapsed = Date.now() - startTime;
     const suffix = extra ? ` ${JSON.stringify(extra)}` : "";
@@ -1403,6 +1419,7 @@ export async function handleChatCore({
       apiKeyId: apiKeyInfo?.id || undefined,
       apiKeyName: apiKeyInfo?.name || undefined,
       serviceTier: effectiveServiceTier,
+      comboStrategy: isCombo ? comboStrategy || undefined : undefined,
     }).catch(() => {});
   };
 
@@ -2107,6 +2124,7 @@ export async function handleChatCore({
   const allMessages = compressionBody?.messages || body?.contents || body?.request?.contents || [];
   let cavemanOutputModeApplied = false;
   let cavemanOutputModeIntensity: string | null = null;
+  let preCompressionBody: typeof body | null = null;
   if (body && Array.isArray(allMessages) && allMessages.length > 0) {
     let estimatedTokens = estimateTokens(JSON.stringify(allMessages));
     let promptCompressionEnabled = false;
@@ -2558,6 +2576,10 @@ export async function handleChatCore({
       `Checking compression: ${estimatedTokens} tokens vs ${threshold} threshold (${contextLimit} limit, ${reservedTokens} reserved)`
     );
 
+    // Capture pre-compression body so translators can access original message
+    // content even after compression alters it (e.g. stable Kiro conversationId).
+    preCompressionBody = body;
+
     if (promptCompressionEnabled && estimatedTokens > threshold) {
       log?.info?.(
         "CONTEXT",
@@ -2709,7 +2731,7 @@ export async function handleChatCore({
     let messages = payload.messages as ClaudeMessage[];
 
     // Extract system/developer role messages into top-level system parameter.
-    extractSystemMessagesToBody(payload);
+    extractSystemRoleMessages(payload);
     messages = payload.messages as ClaudeMessage[];
 
     // Anthropic rejects empty text blocks in native Messages payloads.
@@ -2814,7 +2836,12 @@ export async function handleChatCore({
           credentials,
           provider,
           reqLogger,
-          { normalizeToolCallId, preserveDeveloperRole, preserveCacheControl }
+          {
+            normalizeToolCallId,
+            preserveDeveloperRole,
+            preserveCacheControl,
+            copilotClient: copilotCompatibleReasoning,
+          }
         );
       }
 
@@ -2833,11 +2860,14 @@ export async function handleChatCore({
       });
       log?.debug?.("FORMAT", "claude-code-compatible bridge enabled");
 
-      // Fix #2468: extract role:"system" from messages → top-level system
-      // in the compatible bridge path. The preserveClaudeMessages flag
-      // skips the OpenAI round-trip but may leave system-role messages in
-      // the array, which Anthropic's Messages API now rejects (400).
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Semantic passthrough: only lift system/developer role messages
+        // without converting file/document blocks, tool history, etc.
+        extractSystemRoleMessages(translatedBody);
+      } else {
+        // Non-CC path: full normalization including content type conversion.
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
     } else if (isClaudePassthrough) {
       // Pure passthrough: forward the body as-is without OpenAI round-trip.
       // The Claude→OpenAI→Claude double translation was lossy and corrupted
@@ -2862,7 +2892,13 @@ export async function handleChatCore({
       // round-trip, but even pure Claude bodies may carry system content as
       // role:"system" messages rather than the top-level system field, which
       // Anthropic's Messages API now rejects with a 400.
-      normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      if (isClaudeCodeSemanticPassthrough) {
+        // Only lift system/developer messages — preserves Claude Code's
+        // native payload structure (documents, tool chains, thinking, etc.)
+        extractSystemRoleMessages(translatedBody);
+      } else {
+        normalizeClaudeUpstreamMessages(translatedBody, { preserveToolResultBlocks: true });
+      }
 
       log?.debug?.("FORMAT", `claude passthrough (preserveCache=${preserveCacheControl})`);
 
@@ -2964,6 +3000,8 @@ export async function handleChatCore({
           preserveDeveloperRole,
           preserveCacheControl,
           signatureNamespace: connectionId,
+          copilotClient: copilotCompatibleReasoning,
+          ...(preCompressionBody ? { preCompressionBody } : {}),
         }
       );
     }
@@ -3763,17 +3801,46 @@ export async function handleChatCore({
     parsedStatusCode === HTTP_STATUS.BAD_REQUEST &&
     parsedMessage?.toLowerCase().includes("session has expired");
 
-  const streamOptionsOnlyFailed = false; // TODO: properly track stream options failure? (placeholder from existing logic)
+  // Track whether stream_options was present and stripped — if so, 401/403 after
+  // that may be from the modification rather than a genuine auth failure, so we
+  // skip the credential refresh attempt in that case.
+  const hadStreamOptions =
+    targetFormat === FORMATS.OPENAI_RESPONSES && "stream_options" in translatedBody;
+  if (hadStreamOptions) {
+    delete translatedBody.stream_options;
+  }
 
   // Handle 401/403 (and Qwen explicit expiration) - try token refresh using executor
   if (
     (providerResponse.status === HTTP_STATUS.UNAUTHORIZED ||
       providerResponse.status === HTTP_STATUS.FORBIDDEN ||
       isQwenExpiredError) &&
-    !streamOptionsOnlyFailed // Keep constraint if stream options failed originally
+    !hadStreamOptions // Skip refresh if failure may be from stream_options removal, not auth
   ) {
+    // Fix A: wrap refreshCredentials in runWithOnPersist so the persist callback
+    // executes INSIDE the per-connection mutex held by getAccessToken. This makes
+    // [network refresh + DB write + outer-state mutation] one atomic step and
+    // prevents concurrent requests from reading a stale refreshToken before the
+    // DB has been updated (refresh_token_reused on Codex/OpenAI).
+    //
+    // Not every executor routes refresh through getAccessToken (e.g. github.ts
+    // calls refreshCopilotToken directly). When the persistFn doesn't fire from
+    // inside getAccessToken, we still need to do the credentials mutation + user
+    // callback after refreshCredentials returns. The `persistFnRan` flag tracks
+    // which path executed so we don't double-fire (race-prone) or skip (regression).
+    let persistFnRan = false;
+    const persistFn = onCredentialsRefreshed
+      ? async (refreshResult: any) => {
+          persistFnRan = true;
+          // Mutate the shared credentials object so subsequent executor calls
+          // in this request see the new tokens. Runs INSIDE the mutex.
+          Object.assign(credentials, refreshResult);
+          await onCredentialsRefreshed(refreshResult);
+        }
+      : undefined;
+
     const newCredentials = (await refreshWithRetry(
-      () => executor.refreshCredentials(credentials, log),
+      () => runWithOnPersist(persistFn, () => executor.refreshCredentials(credentials, log)),
       3,
       log,
       provider // Explicitly pass the provider to avoid universally tripping the "unknown" circuit breaker
@@ -3785,12 +3852,15 @@ export async function handleChatCore({
     if (newCredentials?.accessToken || newCredentials?.copilotToken) {
       log?.info?.("TOKEN", `${provider.toUpperCase()} | refreshed`);
 
-      // Update credentials
-      Object.assign(credentials, newCredentials);
-
-      // Notify caller about refreshed credentials
-      if (onCredentialsRefreshed && newCredentials) {
-        await onCredentialsRefreshed(newCredentials);
+      // Fall back to post-mutex mutation only for executors that don't route
+      // through getAccessToken (and therefore never fire onPersist). For
+      // executors that DO route through it (Codex, Claude, Gemini, etc.) the
+      // mutation already happened atomically inside the mutex.
+      if (!persistFnRan) {
+        Object.assign(credentials, newCredentials);
+        if (onCredentialsRefreshed) {
+          await onCredentialsRefreshed(newCredentials);
+        }
       }
 
       // Retry with new credentials — model + extra headers follow translatedBody.model so they
@@ -4479,6 +4549,7 @@ export async function handleChatCore({
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
+        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });
@@ -4856,6 +4927,7 @@ export async function handleChatCore({
         apiKeyId: apiKeyInfo?.id || undefined,
         apiKeyName: apiKeyInfo?.name || undefined,
         serviceTier: effectiveServiceTier,
+        comboStrategy: isCombo ? comboStrategy || undefined : undefined,
       }).catch((err) => {
         console.error("Failed to save usage stats:", err.message);
       });

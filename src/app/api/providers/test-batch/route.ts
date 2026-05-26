@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getProviderConnections } from "@/models";
 import {
-  FREE_PROVIDERS,
+  AI_PROVIDERS,
+  NOAUTH_PROVIDERS,
   OAUTH_PROVIDERS,
   APIKEY_PROVIDERS,
   LOCAL_PROVIDERS,
@@ -21,7 +22,7 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 // Determine auth type group for a provider id
 function getAuthGroup(providerId) {
-  if (FREE_PROVIDERS[providerId]) return "free";
+  if (NOAUTH_PROVIDERS[providerId]) return "no-auth";
   if (OAUTH_PROVIDERS[providerId]) return "oauth";
   if (WEB_COOKIE_PROVIDERS[providerId]) return "web-cookie";
   if (SEARCH_PROVIDERS[providerId]) return "search";
@@ -37,6 +38,10 @@ function getAuthGroup(providerId) {
   )
     return "compatible";
   return "unknown";
+}
+
+function providerHasFreeTier(providerId) {
+  return AI_PROVIDERS[providerId]?.hasFree === true;
 }
 
 function isCompatibleProvider(providerId) {
@@ -84,10 +89,12 @@ export async function POST(request) {
     } else if (mode === "oauth") {
       connectionsToTest = allConnections.filter((c) => {
         const authGroup = getAuthGroup(c.provider);
-        return authGroup === "oauth" || authGroup === "free";
+        return authGroup === "oauth";
       });
     } else if (mode === "free") {
-      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "free");
+      connectionsToTest = allConnections.filter((c) => providerHasFreeTier(c.provider));
+    } else if (mode === "no-auth") {
+      connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "no-auth");
     } else if (mode === "apikey") {
       connectionsToTest = allConnections.filter((c) => getAuthGroup(c.provider) === "apikey");
     } else if (mode === "web-cookie") {
@@ -114,7 +121,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error:
-            "Invalid mode. Use: provider, oauth, free, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide",
+            "Invalid mode. Use: provider, oauth, free, no-auth, apikey, compatible, all, web-cookie, search, audio, local, upstream-proxy, cloud-agent, ide",
         },
         { status: 400 }
       );

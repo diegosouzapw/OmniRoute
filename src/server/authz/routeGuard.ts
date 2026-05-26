@@ -28,6 +28,8 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/mcp/",
   "/api/cli-tools/runtime/",
+  "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
+  "/dashboard/providers/services/", // T-07: reverse proxy to embedded service UIs
 ];
 
 /**
@@ -45,7 +47,10 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
  *      malformed DB row somehow claims a spawn-capable path is bypassable,
  *      the policy still refuses to honour it.
  */
-export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = ["/api/cli-tools/runtime/"];
+export const SPAWN_CAPABLE_PREFIXES: ReadonlyArray<string> = [
+  "/api/cli-tools/runtime/",
+  "/api/services/", // T-10: can run npm install + spawn node processes
+];
 
 /**
  * Compile-time default of the manage-scope bypass list. Kept as an exported

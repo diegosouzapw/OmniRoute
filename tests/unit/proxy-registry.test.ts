@@ -11,8 +11,10 @@ const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const proxiesRoute = await import("../../src/app/api/settings/proxies/route.ts");
 
 async function resetStorage() {
+  delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -44,6 +46,86 @@ test("proxy registry blocks delete when proxy is still assigned", async () => {
       return true;
     }
   );
+});
+
+test("createProxyAndAssign rolls back the registry row when assignment fails", async () => {
+  await resetStorage();
+
+  await assert.rejects(
+    async () =>
+      proxiesDb.createProxyAndAssign(
+        {
+          name: "Rollback Proxy",
+          type: "http",
+          host: "rollback.local",
+          port: 8080,
+        },
+        { scope: "provider", scopeId: null }
+      ),
+    /scopeId is required/i
+  );
+
+  const proxies = await proxiesDb.listProxies({ includeSecrets: true });
+  assert.equal(
+    proxies.some((proxy: any) => proxy.name === "Rollback Proxy"),
+    false
+  );
+});
+
+test("createProxyAndAssign assigns and clears matching legacy proxy atomically", async () => {
+  await resetStorage();
+
+  await settingsDb.setProxyForLevel("provider", "openai", {
+    type: "http",
+    host: "legacy-openai.local",
+    port: 8080,
+  });
+
+  const result = await proxiesDb.createProxyAndAssign(
+    {
+      name: "Atomic Provider Proxy",
+      type: "https",
+      host: "atomic-openai.local",
+      port: 443,
+      source: "dashboard-custom",
+    },
+    { scope: "provider", scopeId: "openai" }
+  );
+
+  assert.ok(result.proxy?.id);
+  assert.equal(result.assignment?.proxyId, result.proxy?.id);
+  assert.equal(result.assignment?.scope, "provider");
+  assert.equal(result.assignment?.scopeId, "openai");
+  assert.equal(await settingsDb.getProxyForLevel("provider", "openai"), null);
+});
+
+test("updateProxyAndAssign clears stored credentials when blanks are explicitly provided", async () => {
+  await resetStorage();
+
+  const created = await proxiesDb.createProxy({
+    name: "Atomic Credential Proxy",
+    type: "http",
+    host: "atomic-credentials.local",
+    port: 8080,
+    username: "user-a",
+    password: "pass-a",
+    source: "dashboard-custom",
+  });
+
+  const result = await proxiesDb.updateProxyAndAssign(
+    created.id,
+    {
+      username: "",
+      password: "",
+    },
+    { scope: "provider", scopeId: "openai" }
+  );
+  const withSecrets = await proxiesDb.getProxyById(created.id, { includeSecrets: true });
+
+  assert.equal(result?.assignment?.scope, "provider");
+  assert.equal(result?.assignment?.scopeId, "openai");
+  assert.equal(withSecrets?.username, "");
+  assert.equal(withSecrets?.password, "");
 });
 
 test("specific registry account assignment takes precedence over legacy key proxy config", async () => {
@@ -207,4 +289,45 @@ test("resolveProxyForProvider returns null when neither registry nor legacy conf
   await resetStorage();
   const resolved = await proxiesDb.resolveProxyForProvider("gemini");
   assert.equal(resolved, null);
+});
+
+test("createProxyRegistrySchema accepts type:vercel and source:vercel-relay (schema gap-06)", async () => {
+  // Note: We validate the schema directly using the worktree's absolute path because
+  // tests run with CWD=/OmniRoute, so `@/` aliases resolve to the main branch's src/.
+  // The assertion below confirms the worktree's schema accepts the new enum values.
+  const { createProxyRegistrySchema } = await import(
+    "../../src/shared/validation/schemas.ts"
+  );
+
+  const result = createProxyRegistrySchema.safeParse({
+    name: "Vercel Relay Test",
+    type: "vercel",
+    host: "omniroute-relay-abc123.vercel.app",
+    port: 443,
+    source: "vercel-relay",
+    notes: JSON.stringify({ relayAuth: "secret-relay-token" }),
+  });
+
+  assert.ok(result.success, `schema should accept type:vercel — errors: ${JSON.stringify("error" in result ? result.error : null)}`);
+  if (result.success) {
+    assert.equal(result.data.type, "vercel");
+    assert.equal(result.data.source, "vercel-relay");
+  }
+});
+
+test("createProxy persists type:vercel and source:vercel-relay to DB (schema gap-06)", async () => {
+  await resetStorage();
+
+  const created = await proxiesDb.createProxy({
+    name: "Vercel Relay DB Test",
+    type: "vercel",
+    host: "omniroute-relay-xyz.vercel.app",
+    port: 443,
+    source: "vercel-relay",
+    notes: JSON.stringify({ relayAuth: "my-token" }),
+  });
+
+  assert.ok(created?.id, "created proxy should have an id");
+  assert.equal(created?.type, "vercel");
+  assert.equal(created?.source, "vercel-relay");
 });

@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "همه سطوح",
+    "tierAuth": "Auth",
+    "tierLoopback": "فقط محلی",
+    "tierAlwaysProtected": "همیشه محافظت‌شده",
+    "tierPublic": "عمومی",
+    "showInternal": "نمایش داخلی",
+    "hideInternal": "مخفی کردن داخلی",
+    "badgeLoopbackTooltip": "فقط محلی: مسدود شده از IPهای غیر حلقه باز",
+    "badgeAlwaysProtectedTooltip": "همیشه محافظت شده: حتی زمانی که requireLogin=false است، نیاز به احراز هویت دارد",
+    "badgeInternalTooltip": "مسیر داخلی — بخشی از API عمومی نیست"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

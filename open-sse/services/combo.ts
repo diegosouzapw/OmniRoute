@@ -16,8 +16,20 @@ import {
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { recordComboIntent, recordComboRequest, getComboMetrics } from "./comboMetrics.ts";
 import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
-import { maybeGenerateHandoff, resolveContextRelayConfig, maybeGenerateUniversalHandoff, injectUniversalHandoffBody, resolveUniversalHandoffConfig, SKIP_UNIVERSAL_HANDOFF_FLAG } from "./contextHandoff.ts";
-import { recordSessionModelUsage, getLastSessionModel, getHandoff } from "../../src/lib/db/contextHandoffs.ts";
+import {
+  maybeGenerateHandoff,
+  resolveContextRelayConfig,
+  maybeGenerateUniversalHandoff,
+  injectUniversalHandoffBody,
+  resolveUniversalHandoffConfig,
+  SKIP_UNIVERSAL_HANDOFF_FLAG,
+  type MessageLike,
+} from "./contextHandoff.ts";
+import {
+  recordSessionModelUsage,
+  getLastSessionModel,
+  getHandoff,
+} from "../../src/lib/db/contextHandoffs.ts";
 import { fetchCodexQuota } from "./codexQuotaFetcher.ts";
 import { getQuotaFetcher } from "./quotaPreflight.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
@@ -80,6 +92,7 @@ function isAllAccountsRateLimitedResponse(
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
+const COMBO_MODEL_TIMEOUT_MS = 30_000; // 30s per model attempt within a combo (default FETCH_TIMEOUT_MS=600s)
 
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
@@ -1492,7 +1505,10 @@ export async function handleComboChat({
     strategy === "context-relay" ? resolveContextRelayConfig(relayOptions?.config || null) : null;
 
   const universalHandoffConfig = resolveUniversalHandoffConfig(
-    (combo.universal_handoff || combo.universalHandoff) as Record<string, unknown> | null | undefined,
+    (combo.universal_handoff || combo.universalHandoff) as
+      | Record<string, unknown>
+      | null
+      | undefined,
     relayOptions?.universalHandoffConfig as Record<string, unknown> | null | undefined
   );
   // ── Combo Agent Middleware (#399 + #401) ────────────────────────────────
@@ -1618,47 +1634,7 @@ export async function handleComboChat({
           },
         });
 
-        // FIX #585: Sanitize outbound stream — strip <omniModel> tags from
-        // visible content so they don't leak to the user. The tag is still
-        // present in the full response for round-trip context pinning, but
-        // we clean it from each SSE chunk's content field before delivery.
-        //
-        // IMPORTANT: Use a SEPARATE TextDecoder from the transform stream above.
-        // The transform stream's decoder accumulates UTF-8 state; reusing it here
-        // would corrupt multi-byte characters split across chunk boundaries.
-        const sanitizeDecoder = new TextDecoder();
-        const sanitize = new TransformStream({
-          transform(chunk, controller) {
-            const text = sanitizeDecoder.decode(chunk, { stream: true });
-            if (text) {
-              if (text.includes("<omniModel>")) {
-                const cleaned = text.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(text));
-              }
-            }
-          },
-          flush(controller) {
-            const tail = sanitizeDecoder.decode();
-            if (tail) {
-              if (tail.includes("<omniModel>")) {
-                const cleaned = tail.replaceAll(
-                  /(?:\\n|\n|\r)*<omniModel>[^<]+<\/omniModel>(?:\\n|\n|\r)*/g,
-                  ""
-                );
-                if (cleaned) controller.enqueue(encoder.encode(cleaned));
-              } else {
-                controller.enqueue(encoder.encode(tail));
-              }
-            }
-          },
-        });
-
-        const transformedStream = res.body.pipeThrough(transform).pipeThrough(sanitize);
+        const transformedStream = res.body.pipeThrough(transform);
         // Add model info as response header for clients that support it
         const headers = new Headers(res.headers);
         headers.set("X-OmniRoute-Model", modelStr);
@@ -1670,13 +1646,39 @@ export async function handleComboChat({
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── Per-model timeout wrapper ────────────────────────────────────────────
+  // Default FETCH_TIMEOUT_MS is 600s per model. For combos, we use a shorter
+  // per-model timeout so slow/hanging models don't block fallback.
+  const handleSingleModelWithTimeout = async (b, modelStr, target?) => {
+    let timeoutId;
+    const timeoutPromise = new Promise((resolve) => {
+      timeoutId = setTimeout(() => {
+        log.warn("COMBO", `Model ${modelStr} exceeded ${COMBO_MODEL_TIMEOUT_MS}ms timeout — falling back`);
+        resolve(new Response(
+          JSON.stringify({ error: { message: `Model ${modelStr} timed out` } }),
+          { status: 524, headers: { 'Content-Type': 'application/json' } }
+        ));
+      }, COMBO_MODEL_TIMEOUT_MS);
+    });
+    try {
+      return await Promise.race([
+        handleSingleModelWrapped(b, modelStr, target).catch((err) => {
+          return new Response(JSON.stringify({ error: { message: err.message } }), { status: 502, headers: { "Content-Type": "application/json" } });
+        }),
+        timeoutPromise,
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
   // Route to pinned model if context caching specifies one (Fix #679)
   if (pinnedModel) {
     log.info(
       "COMBO",
       `Bypassing strategy — routing directly to pinned context model: ${pinnedModel}`
     );
-    return handleSingleModelWrapped(body, pinnedModel);
+    return handleSingleModelWithTimeout(body, pinnedModel);
   }
 
   // Route to round-robin handler if strategy matches
@@ -1684,7 +1686,7 @@ export async function handleComboChat({
     return handleRoundRobinCombo({
       body,
       combo,
-      handleSingleModel: handleSingleModelWrapped,
+      handleSingleModel: handleSingleModelWithTimeout,
       isModelAvailable,
       log,
       settings,
@@ -1728,7 +1730,7 @@ export async function handleComboChat({
         const pipelineRaw = await handlePipelineCombo({
           body,
           combo,
-          handleChatCore: handleSingleModel,
+          handleChatCore: handleSingleModelWithTimeout,
           log,
           settings,
           signal,
@@ -2171,7 +2173,7 @@ export async function handleComboChat({
           const lastModel = getLastSessionModel(relayOptions.sessionId, combo.name);
           if (lastModel && lastModel !== modelStr) {
             const existingHandoff = getHandoff(relayOptions.sessionId, combo.name);
-            const requestBody = injectUniversalHandoffBody(
+            body = injectUniversalHandoffBody(
               body,
               lastModel,
               modelStr,
@@ -2180,7 +2182,7 @@ export async function handleComboChat({
             );
           }
         }
-        const result = await handleSingleModelWrapped(requestBody ?? body, modelStr, {
+        const result = await handleSingleModelWithTimeout(body, modelStr, {
           ...target,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
@@ -2244,13 +2246,6 @@ export async function handleComboChat({
             !(body as Record<string, unknown>)?.[SKIP_UNIVERSAL_HANDOFF_FLAG]
           ) {
             const prevModel = getLastSessionModel(relayOptions.sessionId, combo.name);
-            recordSessionModelUsage(
-              relayOptions.sessionId,
-              combo.name,
-              modelStr,
-              provider,
-              target.connectionId
-            );
             if (prevModel && prevModel !== modelStr) {
               const handoffSourceMessages =
                 Array.isArray(body?.messages) && body.messages.length > 0
@@ -2262,13 +2257,21 @@ export async function handleComboChat({
               maybeGenerateUniversalHandoff({
                 sessionId: relayOptions.sessionId,
                 comboName: combo.name,
-                messages: handoffSourceMessages as any[],
+                messages: handoffSourceMessages as MessageLike[],
                 prevModel,
                 currModel: modelStr,
                 universalConfig: universalHandoffConfig,
-                handleSingleModel: handleSingleModelWrapped,
+                handleSingleModel: handleSingleModelWithTimeout,
               });
             }
+
+            recordSessionModelUsage(
+              relayOptions.sessionId,
+              combo.name,
+              modelStr,
+              provider,
+              target.connectionId
+            );
           }
           // Context-relay intentionally splits responsibilities:
           // combo.ts decides whether a successful turn should generate a handoff,
@@ -2303,7 +2306,7 @@ export async function handleComboChat({
                   model: modelStr,
                   expiresAt: resetCandidates[0] || null,
                   config: relayConfig,
-                  handleSingleModel: handleSingleModelWrapped,
+                  handleSingleModel: handleSingleModelWithTimeout,
                 });
               }
             }

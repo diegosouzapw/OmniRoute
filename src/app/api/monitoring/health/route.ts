@@ -23,8 +23,7 @@ export async function GET() {
     const { getActiveSessions, getAllActiveSessionCountsByKey } =
       await import("@omniroute/open-sse/services/sessionManager.ts");
 
-    const { getCredentialHealthSummary } =
-      await import("@/lib/credentialHealth/cache");
+    const { getCredentialHealthSummary } = await import("@/lib/credentialHealth/cache");
     const settings = await getSettings();
     const connections = await getProviderConnections();
     const circuitBreakers = getAllCircuitBreakerStatuses();

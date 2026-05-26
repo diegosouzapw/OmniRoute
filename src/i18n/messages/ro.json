@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Toate nivelurile",
+    "tierAuth": "Auth",
+    "tierLoopback": "Numai local",
+    "tierAlwaysProtected": "Întotdeauna protejat",
+    "tierPublic": "Public",
+    "showInternal": "Arată intern",
+    "hideInternal": "Ascunde intern",
+    "badgeLoopbackTooltip": "Local-only: blocat de la IP-uri non-loopback",
+    "badgeAlwaysProtectedTooltip": "Întotdeauna protejat: necesită autentificare chiar și atunci când requireLogin=false",
+    "badgeInternalTooltip": "Rută internă — nu face parte din API-ul public"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

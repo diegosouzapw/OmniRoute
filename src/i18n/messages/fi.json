@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "Kaikki tasot",
+    "tierAuth": "Auth",
+    "tierLoopback": "Vain paikallinen",
+    "tierAlwaysProtected": "Aina suojattu",
+    "tierPublic": "Julkinen",
+    "showInternal": "Näytä sisäinen",
+    "hideInternal": "Piilota sisäinen",
+    "badgeLoopbackTooltip": "Paikallinen vain: estetty ei-silmukkakytkentä IP-osoitteilta",
+    "badgeAlwaysProtectedTooltip": "Aina suojattu: vaatii todennuksen, vaikka requireLogin=false",
+    "badgeInternalTooltip": "Sisäinen reitti — ei osa julkista API:a"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

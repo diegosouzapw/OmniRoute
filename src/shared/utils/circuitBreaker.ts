@@ -127,7 +127,8 @@ export class CircuitBreaker {
     this.classifyError = options.classifyError ?? null;
     this.lastFailureKind = null;
     this.kindThresholds = options.kindThresholds ?? {};
-    this.degradationThreshold = options.degradationThreshold ?? Math.ceil((this.failureThreshold * 60) / 100);
+    this.degradationThreshold =
+      options.degradationThreshold ?? Math.ceil((this.failureThreshold * 60) / 100);
     this.maxBackoffMultiplier = options.maxBackoffMultiplier ?? 16;
     this.backoffEscalationCount = options.backoffEscalationCount ?? 3;
 
@@ -201,13 +202,10 @@ export class CircuitBreaker {
     if (this.openCycleCount <= this.backoffEscalationCount) {
       return this.resetTimeout;
     }
-    const escalationFactor = Math.pow(
-      2,
-      this.openCycleCount - this.backoffEscalationCount,
-    );
+    const escalationFactor = Math.pow(2, this.openCycleCount - this.backoffEscalationCount);
     return Math.min(
       this.resetTimeout * escalationFactor,
-      this.resetTimeout * this.maxBackoffMultiplier,
+      this.resetTimeout * this.maxBackoffMultiplier
     );
   }
 
@@ -371,7 +369,10 @@ export class CircuitBreaker {
       if (this.failureCount >= this.failureThreshold) {
         this._openCircuit(failureKind);
       } else if (this.failureCount >= this.degradationThreshold) {
-        this._transition(STATE.DEGRADED, `elevated-failures (${this.failureCount}/${this.failureThreshold})`);
+        this._transition(
+          STATE.DEGRADED,
+          `elevated-failures (${this.failureCount}/${this.failureThreshold})`
+        );
       }
     }
     this._persistToDb();

@@ -17,6 +17,23 @@ const PROXY_TYPES = SOCKS5_UI_ENABLED
 
 type ProxyConfigLevel = "global" | "provider" | "combo" | "key";
 
+type ProxyRegistryItem = {
+  id: string;
+  name?: string;
+  type?: string;
+  host?: string;
+  port?: number | string;
+  username?: string | null;
+  password?: string | null;
+  source?: string | null;
+};
+
+type ProxyAssignmentItem = {
+  proxyId?: string | null;
+  scope?: string | null;
+  scopeId?: string | null;
+};
+
 type ProxyConfigModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -25,6 +42,86 @@ type ProxyConfigModalProps = {
   levelLabel?: string;
   onSaved?: () => void;
 };
+
+const DASHBOARD_CUSTOM_PROXY_SOURCE = "dashboard-custom";
+const DASHBOARD_CUSTOM_PROXY_NOTES = "Created from the dashboard Custom proxy tab.";
+
+function getAssignmentScope(level: ProxyConfigLevel) {
+  return level === "key" ? "account" : level;
+}
+
+function getAssignmentScopeId(level: ProxyConfigLevel, levelId?: string) {
+  return level === "global" ? null : levelId || null;
+}
+
+function normalizeScopeId(scopeId?: string | null) {
+  return !scopeId || scopeId === "__global__" ? null : scopeId;
+}
+
+function isSameScopeAssignment(
+  assignment: ProxyAssignmentItem,
+  scope: string,
+  scopeId: string | null
+) {
+  return (
+    assignment.scope === scope && normalizeScopeId(assignment.scopeId) === normalizeScopeId(scopeId)
+  );
+}
+
+function getCustomProxyName(level: ProxyConfigLevel, levelId?: string, levelLabel?: string) {
+  const label = levelLabel || levelId || "";
+  const suffix = label ? ` (${label})` : "";
+  if (level === "global") return "Custom Global Proxy";
+  if (level === "key") return `Custom Account Proxy${suffix}`;
+  if (level === "combo") return `Custom Combo Proxy${suffix}`;
+  return `Custom Provider Proxy${suffix}`;
+}
+
+async function readJson(response: Response) {
+  return response.json().catch(() => ({}));
+}
+
+async function fetchAssignmentForScope(scope: string, scopeId: string | null) {
+  const params = new URLSearchParams({ scope });
+  if (scopeId) params.set("scopeId", scopeId);
+
+  const res = await fetch(`/api/settings/proxies/assignments?${params}`);
+  if (!res.ok) return null;
+
+  const payload = await readJson(res);
+  const items: ProxyAssignmentItem[] = Array.isArray(payload?.items) ? payload.items : [];
+  return items.find((item) => isSameScopeAssignment(item, scope, scopeId)) || items[0] || null;
+}
+
+async function fetchRegistryProxy(proxyId: string, cachedProxies: ProxyRegistryItem[]) {
+  const cached = cachedProxies.find((proxy) => proxy.id === proxyId);
+  if (cached) return cached;
+
+  const res = await fetch(`/api/settings/proxies?id=${encodeURIComponent(proxyId)}`);
+  if (!res.ok) return null;
+  return (await readJson(res)) as ProxyRegistryItem;
+}
+
+async function fetchProxyUsage(proxyId: string) {
+  const res = await fetch(`/api/settings/proxies?id=${encodeURIComponent(proxyId)}&whereUsed=1`);
+  if (!res.ok) return [];
+
+  const payload = await readJson(res);
+  const assignments: ProxyAssignmentItem[] = Array.isArray(payload?.assignments)
+    ? payload.assignments
+    : [];
+  const seen = new Set<string>();
+  return assignments.filter((assignment) => {
+    const key = `${assignment.scope || ""}:${normalizeScopeId(assignment.scopeId) || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function isRedactedSecret(value?: string | null) {
+  return value === "***";
+}
 
 export default function ProxyConfigModal({
   isOpen,
@@ -36,7 +133,7 @@ export default function ProxyConfigModal({
 }: ProxyConfigModalProps) {
   const t = useTranslations("proxyConfigModal");
   const [mode, setMode] = useState("saved");
-  const [savedProxies, setSavedProxies] = useState([]);
+  const [savedProxies, setSavedProxies] = useState<ProxyRegistryItem[]>([]);
   const [selectedProxyId, setSelectedProxyId] = useState("");
   const [proxyType, setProxyType] = useState(PROXY_TYPES[0]?.value || "http");
   const [host, setHost] = useState("");
@@ -68,29 +165,53 @@ export default function ProxyConfigModal({
     const loadProxy = async () => {
       try {
         let hasSavedAssignment = false;
+        let registryItems: ProxyRegistryItem[] = [];
         const registryRes = await fetch("/api/settings/proxies");
         if (registryRes.ok) {
           const registryPayload = await registryRes.json();
-          setSavedProxies(Array.isArray(registryPayload?.items) ? registryPayload.items : []);
+          registryItems = Array.isArray(registryPayload?.items) ? registryPayload.items : [];
+          setSavedProxies(registryItems);
         } else {
           setSavedProxies([]);
         }
 
-        const scope = level === "key" ? "account" : level;
+        const scope = getAssignmentScope(level);
         const assignmentParams = new URLSearchParams({ scope });
-        if (level !== "global" && levelId) {
-          assignmentParams.set("scopeId", levelId);
+        const scopeId = getAssignmentScopeId(level, levelId);
+        if (scopeId) {
+          assignmentParams.set("scopeId", scopeId);
         }
         const assignmentRes = await fetch(`/api/settings/proxies/assignments?${assignmentParams}`);
         if (assignmentRes.ok) {
           const assignmentPayload = await assignmentRes.json();
           const items = Array.isArray(assignmentPayload?.items) ? assignmentPayload.items : [];
-          const target = items[0];
+          const target =
+            items.find((item) => isSameScopeAssignment(item, scope, scopeId)) || items[0];
           if (target?.proxyId) {
-            setMode("saved");
             setSelectedProxyId(target.proxyId);
             setHasOwnProxy(true);
             hasSavedAssignment = true;
+            const assignedProxy = registryItems.find((item) => item.id === target.proxyId);
+            if (assignedProxy?.source === DASHBOARD_CUSTOM_PROXY_SOURCE) {
+              const normalizedType = String(assignedProxy.type || "http").toLowerCase();
+              const hasTypeOption = PROXY_TYPES.some((entry) => entry.value === normalizedType);
+              setMode("custom");
+              setProxyType(hasTypeOption ? normalizedType : PROXY_TYPES[0]?.value || "http");
+              setHost(assignedProxy.host || "");
+              setPort(String(assignedProxy.port || ""));
+              setUsername(
+                isRedactedSecret(assignedProxy.username) ? "" : assignedProxy.username || ""
+              );
+              setPassword(
+                isRedactedSecret(assignedProxy.password) ? "" : assignedProxy.password || ""
+              );
+              setShowAuth(!!(assignedProxy.username || assignedProxy.password));
+              if (normalizedType === "socks5" && !SOCKS5_UI_ENABLED) {
+                setFormError(t("errorSocks5Hidden"));
+              }
+            } else {
+              setMode("saved");
+            }
           } else {
             setMode("custom");
             setSelectedProxyId("");
@@ -119,8 +240,8 @@ export default function ProxyConfigModal({
             }
             if (!hasSavedAssignment) setMode("custom");
           } else {
-            resetFields();
             if (!hasSavedAssignment) {
+              resetFields();
               setHasOwnProxy(false);
             }
           }
@@ -176,15 +297,17 @@ export default function ProxyConfigModal({
     setFormError(null);
     setSaving(true);
     try {
-      const scope = level === "key" ? "account" : level;
+      const scope = getAssignmentScope(level);
+      const scopeId = getAssignmentScopeId(level, levelId);
       let res;
+      let payload = null;
       if (mode === "saved") {
         res = await fetch("/api/settings/proxies/assignments", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             scope,
-            scopeId: level === "global" ? null : levelId,
+            scopeId,
             proxyId: selectedProxyId,
           }),
         });
@@ -195,42 +318,92 @@ export default function ProxyConfigModal({
           await fetch(`/api/settings/proxy?${clearParams.toString()}`, { method: "DELETE" });
         }
       } else {
-        const clearAssignmentRes = await fetch("/api/settings/proxies/assignments", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            scope,
-            scopeId: level === "global" ? null : levelId,
-            proxyId: null,
-          }),
-        });
-        const clearAssignmentPayload = await clearAssignmentRes.json().catch(() => ({}));
-        if (!clearAssignmentRes.ok) {
-          setFormError(clearAssignmentPayload?.error?.message || t("errorClearSavedProxy"));
+        const trimmedHost = String(host || "").trim();
+        const normalizedPort = Number(String(port || "").trim() || getDefaultPort(proxyType));
+        const normalizedUsername = String(username || "").trim();
+        const normalizedPassword = String(password || "").trim();
+        const proxy = {
+          name: getCustomProxyName(level, levelId, levelLabel),
+          type: proxyType,
+          host: trimmedHost,
+          port: normalizedPort,
+          status: "active",
+          source: DASHBOARD_CUSTOM_PROXY_SOURCE,
+          notes: DASHBOARD_CUSTOM_PROXY_NOTES,
+        };
+        const createPayload: Record<string, unknown> = { ...proxy };
+        const assignmentPayload = { scope, scopeId };
+
+        if (username !== "***" && normalizedUsername) {
+          createPayload.username = normalizedUsername;
+        }
+        if (password !== "***" && normalizedPassword) {
+          createPayload.password = normalizedPassword;
+        }
+
+        const existingAssignment = await fetchAssignmentForScope(scope, scopeId);
+        let safeExistingProxyId: string | null = null;
+        if (existingAssignment?.proxyId) {
+          const existingProxy = await fetchRegistryProxy(existingAssignment.proxyId, savedProxies);
+          if (existingProxy?.source === DASHBOARD_CUSTOM_PROXY_SOURCE) {
+            const usage = await fetchProxyUsage(existingAssignment.proxyId);
+            if (
+              usage.length === 1 &&
+              usage.some((assignment) => isSameScopeAssignment(assignment, scope, scopeId))
+            ) {
+              safeExistingProxyId = existingAssignment.proxyId;
+            }
+          }
+        }
+
+        if (safeExistingProxyId) {
+          const updatePayload: Record<string, unknown> = {
+            id: safeExistingProxyId,
+            ...proxy,
+            assignment: assignmentPayload,
+          };
+          if (username !== "***") {
+            updatePayload.username = normalizedUsername;
+          }
+          if (password !== "***") {
+            updatePayload.password = normalizedPassword;
+          }
+          res = await fetch("/api/settings/proxies", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updatePayload),
+          });
+        } else {
+          res = await fetch("/api/settings/proxies", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...createPayload, assignment: assignmentPayload }),
+          });
+        }
+
+        payload = await readJson(res);
+        const registryPayload = payload;
+        if (!res.ok) {
+          setFormError(registryPayload?.error?.message || t("errorSaveProxy"));
           return;
         }
 
-        const proxy = {
-          type: proxyType,
-          host: String(host || "").trim(),
-          port: String(port || "").trim() || getDefaultPort(proxyType),
-          username: String(username || "").trim(),
-          password: String(password || "").trim(),
-        };
-        res = await fetch("/api/settings/proxy", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ level, id: levelId, proxy }),
-        });
+        const registryProxyId = registryPayload?.id || safeExistingProxyId;
+        if (!registryProxyId) {
+          setFormError(t("errorSaveProxy"));
+          return;
+        }
       }
-      const payload = await res.json().catch(() => ({}));
+      if (!payload) {
+        payload = await readJson(res);
+      }
       if (!res.ok) {
         setFormError(payload?.error?.message || t("errorSaveProxy"));
         return;
       }
       setHasOwnProxy(true);
       if (mode === "custom") {
-        setSelectedProxyId("");
+        setSelectedProxyId(payload?.assignment?.proxyId || payload?.id || selectedProxyId || "");
       }
       onSaved?.();
       onClose();
@@ -246,13 +419,14 @@ export default function ProxyConfigModal({
     setFormError(null);
     setSaving(true);
     try {
-      const scope = level === "key" ? "account" : level;
+      const scope = getAssignmentScope(level);
+      const scopeId = getAssignmentScopeId(level, levelId);
       await fetch("/api/settings/proxies/assignments", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scope,
-          scopeId: level === "global" ? null : levelId,
+          scopeId,
           proxyId: null,
         }),
       });
@@ -298,7 +472,7 @@ export default function ProxyConfigModal({
           setTesting(false);
           return;
         }
-        const found = (savedProxies as any[]).find((p: any) => p.id === selectedProxyId);
+        const found = savedProxies.find((p) => p.id === selectedProxyId);
         if (!found) {
           setFormError(t("errorProxyNotFound"));
           setTesting(false);

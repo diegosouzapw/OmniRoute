@@ -227,7 +227,8 @@ export function buildHealthPayload({
     activeConnections: connections.length,
     circuitBreakers: {
       ...breakerCounts,
-      total: breakerCounts.open + breakerCounts.halfOpen + breakerCounts.degraded + breakerCounts.closed,
+      total:
+        breakerCounts.open + breakerCounts.halfOpen + breakerCounts.degraded + breakerCounts.closed,
     },
     providerBreakers,
     providerHealth,
@@ -246,7 +247,7 @@ export function buildHealthPayload({
       monitors: limitMonitors(quotaMonitorMonitors),
     },
     sessions: buildSessionsSummary({ activeSessions, activeSessionsByKey }),
-    credentialHealth,  // may be undefined if credentialHealth module not loaded
+    credentialHealth, // may be undefined if credentialHealth module not loaded
     dedup: {
       inflightRequests,
     },

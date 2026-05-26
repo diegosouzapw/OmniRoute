@@ -63,9 +63,7 @@ function getCacheState() {
  * Get cached credential health for a connection.
  * Returns undefined if not cached or expired.
  */
-export function getCredentialHealth(
-  connectionId: string,
-): CredentialHealthStatus | undefined {
+export function getCredentialHealth(connectionId: string): CredentialHealthStatus | undefined {
   const state = getCacheState();
   const entry = state.cache.get(connectionId);
 
@@ -86,9 +84,7 @@ export function getCredentialHealth(
  *   - false → known-bad, skip
  *   - undefined → unknown / not cached (proceed but mark as unchecked)
  */
-export function isCredentialHealthy(
-  connectionId: string,
-): boolean | undefined {
+export function isCredentialHealthy(connectionId: string): boolean | undefined {
   const status = getCredentialHealth(connectionId);
   if (!status) return undefined;
 
@@ -119,7 +115,7 @@ export function setCredentialHealth(
   lastError?: string,
   lastErrorType?: string,
   lastErrorSource?: string,
-  responseTimeMs?: number,
+  responseTimeMs?: number
 ): void {
   const state = getCacheState();
 
@@ -198,9 +194,7 @@ export function getCredentialHealthSummary(): {
     healthy: entries.filter((e) => e.status === "active").length,
     failed: entries.filter((e) => e.status === "error").length,
     unknown: entries.filter((e) => e.status === "unknown").length,
-    stale: entries.filter(
-      (e) => now - e.lastTested.getTime() > STALE_THRESHOLD_MS,
-    ).length,
+    stale: entries.filter((e) => now - e.lastTested.getTime() > STALE_THRESHOLD_MS).length,
   };
 }
 

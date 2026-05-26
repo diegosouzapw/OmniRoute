@@ -1286,21 +1286,35 @@ export class CodexExecutor extends BaseExecutor {
       return body;
     }
 
-    // Remove unsupported parameters for Codex API
-    delete body.temperature;
-    delete body.top_p;
-    delete body.frequency_penalty;
-    delete body.presence_penalty;
-    delete body.logprobs;
-    delete body.top_logprobs;
-    delete body.n;
-    delete body.seed;
-    // max_tokens and max_output_tokens already deleted above (before passthrough return)
-    delete body.user; // Cursor sends this but Codex doesn't support it
+    // Issue #2608: Use an allowlist of known Responses API fields instead of a
+    // denylist of Chat Completions fields. The denylist approach missed fields
+    // like `stop`, `response_format`, `logit_bias`, `function_call`, `functions`,
+    // `max_completion_tokens`, and `parallel_tool_calls` — causing gpt-5.5 to
+    // reject with "routing_unsupported" (400). An allowlist is future-proof:
+    // any unknown field from Chat Completions (or other formats) is stripped.
+    const RESPONSES_API_ALLOWLIST = new Set([
+      "model",
+      "input",
+      "instructions",
+      "tools",
+      "tool_choice",
+      "stream",
+      "store",
+      "reasoning",
+      "service_tier",
+      "include",
+      "previous_response_id",
+      "prompt_cache_key",
+      "client_metadata",
+      // Internal markers used by OmniRoute pipeline
+      "_omnirouteResponsesStore",
+    ]);
 
-    delete body.metadata; // Cursor sends this but Codex doesn't support it
-    delete body.stream_options; // Cursor sends this but Codex doesn't support it
-    delete body.safety_identifier; // Droid CLI sends this but Codex doesn't support it
+    for (const key of Object.keys(body)) {
+      if (!RESPONSES_API_ALLOWLIST.has(key)) {
+        delete body[key];
+      }
+    }
 
     return body;
   }

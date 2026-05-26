@@ -259,6 +259,12 @@ export const updateSettingsSchema = z.object({
   autoRoutingDefaultVariant: z
     .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
     .optional(),
+  // CLIProxyAPI connection settings
+  cliproxyapi_fallback_enabled: z.boolean().optional(),
+  cliproxyapi_url: z.string().max(500).optional(),
+  cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // CLIProxyAPI model mapping (Record<string, string>)
+  cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
 });
 
 export const databaseSettingsSchema = z.object(

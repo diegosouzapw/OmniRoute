@@ -191,7 +191,7 @@ export const PROVIDER_PROFILES = {
     providerCooldownMs: 600000, // 10min cooldown when threshold reached
     degradationThreshold: 7,
     maxBackoffMultiplier: 4,
-    backoffEscalationCount: 3
+    backoffEscalationCount: 3,
   },
   // Local providers (localhost inference backends like Ollama, LM Studio, oMLX).
   // Not yet wired into getProviderProfile() — will be used when local provider_nodes

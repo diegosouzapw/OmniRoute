@@ -63,10 +63,7 @@ function getSchedulerState() {
 // ── Helpers ───────────────────────────────────────────────────────────────
 
 function isBuildProcess(): boolean {
-  return (
-    typeof process !== "undefined" &&
-    process.env.NEXT_PHASE === "phase-production-build"
-  );
+  return typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build";
 }
 
 function isAutomatedTestProcess(): boolean {
@@ -113,7 +110,7 @@ function getMaxFailuresAcrossConnections(): number {
 async function testConnection(
   connectionId: string,
   provider: string,
-  isOAuth: boolean,
+  isOAuth: boolean
 ): Promise<void> {
   const startTime = Date.now();
 
@@ -139,23 +136,21 @@ async function testConnection(
         undefined,
         undefined,
         undefined,
-        latencyMs,
-        emit("credential.health.changed", {
-          connectionId,
-          provider,
-          oldStatus: oldStatus || "unknown",
-          newStatus: "active",
-          timestamp: Date.now(),
-        });
+        latencyMs
       );
+      emit("credential.health.changed", {
+        connectionId,
+        provider,
+        oldStatus: oldStatus || "unknown",
+        newStatus: "active",
+        timestamp: Date.now(),
+      });
     } else {
       // Failure — increment failure count, update cache with error
       const currentFailures = (state.failureCounts.get(connectionId) ?? 0) + 1;
       state.failureCounts.set(connectionId, currentFailures);
 
-      const diagnosis = result.diagnosis as
-        | { type?: string; source?: string }
-        | undefined;
+      const diagnosis = result.diagnosis as { type?: string; source?: string } | undefined;
 
       setCredentialHealth(
         connectionId,
@@ -164,15 +159,15 @@ async function testConnection(
         result.error || "Unknown error",
         diagnosis?.type || "unknown",
         diagnosis?.source || "unknown",
-        latencyMs,
+        latencyMs
       );
-        emit("credential.health.changed", {
-          connectionId,
-          provider,
-          oldStatus: oldStatus || "unknown",
-          newStatus: "error",
-          timestamp: Date.now(),
-        });
+      emit("credential.health.changed", {
+        connectionId,
+        provider,
+        oldStatus: oldStatus || "unknown",
+        newStatus: "error",
+        timestamp: Date.now(),
+      });
 
       // Log state transition on consecutive failures
       if (currentFailures <= 2) {
@@ -180,7 +175,7 @@ async function testConnection(
         console.log(
           LOG_PREFIX,
           `❌ ${provider}/${connectionId} — ${result.error || "Connection failed"}` +
-            ` [${latencyMs}ms] (failure #${currentFailures}, next check in ${backoff / 1000}s)`,
+            ` [${latencyMs}ms] (failure #${currentFailures}, next check in ${backoff / 1000}s)`
         );
       }
     }
@@ -197,7 +192,7 @@ async function testConnection(
     if (currentFailures <= 2) {
       console.log(
         LOG_PREFIX,
-        `⚠️ ${provider}/${connectionId} — ${message} [${latencyMs}ms] (failure #${currentFailures})`,
+        `⚠️ ${provider}/${connectionId} — ${message} [${latencyMs}ms] (failure #${currentFailures})`
       );
     }
   }
@@ -222,10 +217,7 @@ export async function sweep(): Promise<void> {
     try {
       const raw = await getProviderConnections({});
       connections = (Array.isArray(raw) ? raw : []).filter(
-        (conn: any) =>
-          conn &&
-          conn.id &&
-          (conn.authType === "apikey" || conn.authType === "oauth"),
+        (conn: any) => conn && conn.id && (conn.authType === "apikey" || conn.authType === "oauth")
       ) as Array<{
         id: string;
         provider: string;
@@ -244,9 +236,7 @@ export async function sweep(): Promise<void> {
 
     const dueConnections = connections.filter((conn) => {
       const isOAuth = conn.authType === "oauth";
-      const connInterval = isOAuth
-        ? interval * OAUTH_INTERVAL_MULTIPLIER
-        : interval;
+      const connInterval = isOAuth ? interval * OAUTH_INTERVAL_MULTIPLIER : interval;
       const backoff = getNextBackoff(conn.id);
       const effectiveInterval = Math.max(connInterval, backoff);
       // If we don't have a failure count, it hasn't been tested this session
@@ -258,7 +248,7 @@ export async function sweep(): Promise<void> {
 
     console.log(
       LOG_PREFIX,
-      `Testing ${dueConnections.length}/${connections.length} connections...`,
+      `Testing ${dueConnections.length}/${connections.length} connections...`
     );
 
     // Process with concurrency limit
@@ -269,9 +259,7 @@ export async function sweep(): Promise<void> {
 
     for (const batch of batches) {
       await Promise.allSettled(
-        batch.map((conn) =>
-          testConnection(conn.id, conn.provider, conn.authType === "oauth"),
-        ),
+        batch.map((conn) => testConnection(conn.id, conn.provider, conn.authType === "oauth"))
       );
     }
   } finally {
@@ -306,13 +294,11 @@ export function initCredentialHealthCheck(): void {
 
   console.log(
     LOG_PREFIX,
-    `Starting credential health check (initial delay ${INITIAL_DELAY_MS / 1000}s, interval ${getSweepInterval() / 1000}s)`,
+    `Starting credential health check (initial delay ${INITIAL_DELAY_MS / 1000}s, interval ${getSweepInterval() / 1000}s)`
   );
 
   state.sweepTimer = setTimeout(() => {
-    sweep().catch((err) =>
-      console.error(LOG_PREFIX, "Initial sweep failed:", err),
-    );
+    sweep().catch((err) => console.error(LOG_PREFIX, "Initial sweep failed:", err));
   }, INITIAL_DELAY_MS);
 }
 

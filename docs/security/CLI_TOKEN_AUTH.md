@@ -1,3 +1,7 @@
+---
+title: "CLI Machine-ID Token Authentication"
+---
+
 # CLI Machine-ID Token Authentication
 
 OmniRoute's CLI uses a **machine-derived token** to authenticate to the local server without requiring an explicit API key. This enables zero-config local use while preserving security for remote access.
