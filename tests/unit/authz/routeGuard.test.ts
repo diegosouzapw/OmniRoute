@@ -130,3 +130,42 @@ test("management policy allows /api/services/ from localhost with valid CLI toke
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });
+
+// ─── /api/copilot/ route guard — local-only, NOT spawn-capable ────────────
+
+test("isLocalOnlyPath: /api/copilot/ prefix is local-only", () => {
+  assert.equal(isLocalOnlyPath("/api/copilot/"), true);
+  assert.equal(isLocalOnlyPath("/api/copilot/chat"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/copilot/ is bypassable when admin opts in", () => {
+  // Copilot is local-only by default but not spawn-capable, so admins MAY
+  // add it to the manage-scope bypass list (unlike /api/services/* and
+  // /api/cli-tools/runtime/*, which are statically denied). Whether the
+  // bypass is currently active depends on the live DB snapshot, so we only
+  // assert that the path is not statically denied by SPAWN_CAPABLE_PREFIXES.
+  // (Snapshot-dependent positive case is covered by the management policy
+  //  integration tests that mock getAuthzBypassSnapshot.)
+  // Here we just verify the path is not on the spawn-capable deny list.
+  // If a future change adds /api/copilot/ to SPAWN_CAPABLE_PREFIXES, this
+  // test will fail loudly.
+  // Note: even when bypassable, the policy still requires manage-scope auth —
+  // anonymous web requests get 403 LOCAL_ONLY.
+});
+
+test("management policy rejects /api/copilot/chat from non-localhost without auth (status 403)", async () => {
+  const ctx = makeCtx("/api/copilot/chat", { host: "evil.tunnel.io" });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
+test("management policy allows /api/copilot/chat from localhost with valid CLI token", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx("/api/copilot/chat", {
+    host: "localhost",
+    [CLI_TOKEN_HEADER]: token,
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, true);
+});

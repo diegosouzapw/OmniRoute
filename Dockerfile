@@ -16,11 +16,15 @@ ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 # binary touchups, @swc/helpers copy) is only needed when a packaged
 # `app/node_modules` is unpacked — inside the Docker builder we are doing a
 # fresh native-platform install, so dropping the scripts is safe.
-RUN if [ -f package-lock.json ]; then \
-    npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts; \
-    else \
-    npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts; \
-    fi
+#
+# We REQUIRE a committed package-lock.json so resolved dependency versions
+# are reproducible. Falling back to `npm install` would let the lockfile
+# float and pull in different transitive trees between builds, which is
+# both a reproducibility and a security-sensitive concern (SonarCloud
+# vulnerability dockerfile:S6476).
+RUN test -f package-lock.json \
+  || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
+RUN npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts
 
 COPY . ./
 RUN mkdir -p /app/data && npm run build -- --webpack

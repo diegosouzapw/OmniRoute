@@ -30,10 +30,46 @@ import { CHANNEL_EVENTS, getChannelForEvent } from "@/lib/events/types";
 // ── Config ────────────────────────────────────────────────────────────────
 
 const DEFAULT_PORT = 20129;
+// Loopback by default. Opt-in to LAN exposure via LIVE_WS_HOST=0.0.0.0 — the
+// caller is then responsible for fronting it with a TLS terminator + origin
+// allow-list. Mirrors the route guard "local-only by default" posture.
+const DEFAULT_HOST = "127.0.0.1";
 const HEARTBEAT_INTERVAL_MS = 15_000;
 const HEARTBEAT_TIMEOUT_MS = 35_000;
 const MAX_CLIENTS = 500;
 const MAX_EVENTS_PER_SECOND = 100;
+
+/**
+ * Origins allowed to open a WebSocket. Defaults to the loopback dashboard
+ * origins; admins can extend via LIVE_WS_ALLOWED_ORIGINS (comma-separated).
+ *
+ * WS does not honour CORS — a malicious page on origin X can otherwise open
+ * a WebSocket to our server and ride the user's API key (if it lives in a
+ * cookie or is reachable through the page). Browsers DO send the Origin
+ * header on the WS upgrade, so checking it server-side is the standard
+ * mitigation. Non-browser clients (CLI, MCP) omit Origin, which we accept.
+ */
+function buildAllowedOrigins(): Set<string> {
+  const base = [`http://127.0.0.1:20128`, `http://localhost:20128`, `http://[::1]:20128`];
+  const extra = (process.env.LIVE_WS_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return new Set([...base, ...extra]);
+}
+
+const ALLOWED_ORIGINS = buildAllowedOrigins();
+
+function isOriginAllowed(origin: string | undefined): boolean {
+  // Non-browser client (curl, native ws, MCP) — Origin header is omitted by
+  // spec. Allow only when the upstream listener is bound to loopback; if the
+  // operator opted into LAN exposure we require an explicit Origin.
+  if (!origin) {
+    const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+    return host === "127.0.0.1" || host === "::1" || host === "localhost";
+  }
+  return ALLOWED_ORIGINS.has(origin);
+}
 
 // ── Client State ──────────────────────────────────────────────────────────
 
@@ -56,10 +92,12 @@ const BACKLOG_MAX = 500;
 // ── Auth ──────────────────────────────────────────────────────────────────
 
 async function authorizeConnection(request: import("http").IncomingMessage): Promise<WsAuthResult> {
-  const url = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
-  const token = url.searchParams.get("token") || extractBearerToken(request);
-
   const sessionId = randomUUID().slice(0, 8);
+
+  // Token MUST come from the Authorization header (or X-Live-WS-Token).
+  // Query-string tokens leak into access logs, browser history, and Referer
+  // headers — a single screenshot of the URL bar exposes the API key.
+  const token = extractBearerToken(request) || extractAltTokenHeader(request);
 
   if (!token) {
     return { authorized: false, sessionId, error: "Missing token" };
@@ -78,6 +116,12 @@ async function authorizeConnection(request: import("http").IncomingMessage): Pro
   } catch {
     return { authorized: false, sessionId, error: "Auth system unavailable" };
   }
+}
+
+function extractAltTokenHeader(request: import("http").IncomingMessage): string | null {
+  const raw = request.headers["x-live-ws-token"];
+  if (Array.isArray(raw)) return raw[0] || null;
+  return typeof raw === "string" ? raw : null;
 }
 
 function extractBearerToken(request: import("http").IncomingMessage): string | null {
@@ -217,9 +261,14 @@ function startHeartbeat(server: WebSocketServer): void {
 
 /**
  * Start the live dashboard WebSocket server.
+ *
+ * Bound to 127.0.0.1 by default. Set LIVE_WS_HOST=0.0.0.0 to expose on the
+ * LAN — the caller is then responsible for fronting it with TLS + an Origin
+ * allow-list via LIVE_WS_ALLOWED_ORIGINS.
  */
 export async function startLiveDashboardServer(
-  port = DEFAULT_PORT
+  port = DEFAULT_PORT,
+  host = DEFAULT_HOST
 ): Promise<import("http").Server> {
   const server = createServer();
   const wss = new WebSocketServer({ server });
@@ -228,6 +277,18 @@ export async function startLiveDashboardServer(
   const unsubscribe = subscribeToEventBus();
 
   wss.on("connection", async (ws, request) => {
+    // Origin check — browsers always send Origin on the WS upgrade; reject
+    // unknown origins to stop drive-by cross-origin WebSocket from a victim
+    // page. Non-browser clients (CLI / MCP) omit Origin and are accepted
+    // only when bound to loopback (see isOriginAllowed).
+    const origin = request.headers["origin"];
+    const originStr = Array.isArray(origin) ? origin[0] : origin;
+    if (!isOriginAllowed(originStr)) {
+      sendTo(ws, { type: "error", code: "FORBIDDEN_ORIGIN", message: "Origin not allowed" });
+      ws.close(4003, "Forbidden origin");
+      return;
+    }
+
     // Enforce max clients
     if (clients.size >= MAX_CLIENTS) {
       sendTo(ws, { type: "error", code: "SERVER_FULL", message: "Max clients reached" });
@@ -256,8 +317,14 @@ export async function startLiveDashboardServer(
 
     clients.set(clientId, client);
 
+    // Constant format string + %s args — keeps clientId / remoteAddress out
+    // of the format slot so a malicious value cannot forge log lines via
+    // injected format specifiers (CWE-134).
     console.log(
-      `[LiveWS] Client connected: ${clientId} (${client.remoteAddress}) [${clients.size} total]`
+      "[LiveWS] Client connected: %s (%s) [%d total]",
+      clientId,
+      client.remoteAddress,
+      clients.size
     );
 
     // Handle messages
@@ -268,12 +335,12 @@ export async function startLiveDashboardServer(
     // Handle close
     ws.on("close", () => {
       clients.delete(clientId);
-      console.log(`[LiveWS] Client disconnected: ${clientId} [${clients.size} remaining]`);
+      console.log("[LiveWS] Client disconnected: %s [%d remaining]", clientId, clients.size);
     });
 
     // Handle errors
     ws.on("error", (err) => {
-      console.error(`[LiveWS] Client error ${clientId}:`, err.message);
+      console.error("[LiveWS] Client error %s: %s", clientId, err.message);
       clients.delete(clientId);
     });
   });
@@ -288,8 +355,8 @@ export async function startLiveDashboardServer(
   });
 
   return new Promise((resolve) => {
-    server.listen(port, () => {
-      console.log(`[LiveWS] Dashboard WebSocket server listening on port ${port}`);
+    server.listen(port, host, () => {
+      console.log("[LiveWS] Dashboard WebSocket server listening on %s:%d", host, port);
       resolve(server);
     });
   });
@@ -311,7 +378,8 @@ function isBuildOrTest(): boolean {
 // Auto-start unless disabled
 if (!isBuildOrTest()) {
   const port = parseInt(process.env.LIVE_WS_PORT || String(DEFAULT_PORT), 10);
-  startLiveDashboardServer(port).catch((err) => {
-    console.error("[LiveWS] Failed to start:", err);
+  const host = process.env.LIVE_WS_HOST || DEFAULT_HOST;
+  startLiveDashboardServer(port, host).catch((err) => {
+    console.error("[LiveWS] Failed to start: %s", err instanceof Error ? err.message : String(err));
   });
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { processCopilotChat } from "@/lib/copilot/engine";
 import type { CopilotRequest } from "@/lib/copilot/engine";
+import { buildErrorBody } from "@omniroute/open-sse/utils/error";
 
 const copilotRequestSchema = z.object({
   messages: z
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     const parsed = copilotRequestSchema.safeParse(raw);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        buildErrorBody(400, parsed.error.issues[0]?.message ?? "Invalid request"),
         { status: 400 }
       );
     }
@@ -39,7 +40,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
+    // buildErrorBody() routes through sanitizeErrorMessage(), which strips
+    // stack traces and absolute file paths. Hard rule #12.
     const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: `Copilot error: ${message}` }, { status: 500 });
+    return NextResponse.json(buildErrorBody(500, message), { status: 500 });
   }
 }
