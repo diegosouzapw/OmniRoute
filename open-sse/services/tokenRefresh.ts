@@ -56,6 +56,76 @@ const refreshPromiseCache = new Map();
 // Primary dedup when credentials.connectionId is present; refreshPromiseCache is fallback.
 const connectionRefreshMutex = new Map();
 
+// ─── Token Rotation Map (codex-multi-auth pattern) ─────────────────────────
+//
+// When a rotating-token provider (Codex, Kimi, GitLab Duo, etc.) refreshes,
+// the old refresh_token is consumed and a new one is issued. Any subsequent
+// caller arriving with the OLD token would, without protection, hit upstream
+// and trigger "refresh_token_reused" — which Auth0 treats as a security event
+// and invalidates the entire token family.
+//
+// This in-memory map caches RECENT rotations so a stale caller can be redirected
+// to the new tokens WITHOUT touching upstream. The DB staleness check inside
+// the per-connection mutex covers the same scenario when connectionId is known,
+// but not all callers pass connectionId (e.g., legacy code paths, retries that
+// snapshot credentials before the rotation lands in DB).
+//
+// Ported from ndycode/codex-multi-auth (lib/refresh-queue.ts:218-248), the only
+// publicly known tool that reliably sustains multiple Codex OAuth accounts.
+//
+// Key format: `provider:sha256(oldRefreshToken)`
+// Value: { result: tokens, expiresAt: ms_since_epoch }
+type RotationEntry = {
+  result: { accessToken: string; refreshToken: string; expiresIn?: number; expiresAt?: string };
+  expiresAt: number;
+};
+const tokenRotationMap = new Map<string, RotationEntry>();
+const ROTATION_MAP_TTL_MS = 60 * 1000; // 60 seconds — long enough to catch in-flight stale callers
+
+function cleanupRotationMap(now: number = Date.now()): void {
+  if (tokenRotationMap.size === 0) return;
+  for (const [key, entry] of tokenRotationMap.entries()) {
+    if (entry.expiresAt <= now) tokenRotationMap.delete(key);
+  }
+}
+
+function lookupRotation(provider: string, refreshToken: string): RotationEntry | undefined {
+  cleanupRotationMap();
+  const key = getRefreshCacheKey(provider, refreshToken);
+  const entry = tokenRotationMap.get(key);
+  if (!entry) return undefined;
+  if (entry.expiresAt <= Date.now()) {
+    tokenRotationMap.delete(key);
+    return undefined;
+  }
+  return entry;
+}
+
+function recordRotation(
+  provider: string,
+  oldRefreshToken: string,
+  result: { accessToken: string; refreshToken: string; expiresIn?: number; expiresAt?: string }
+): void {
+  if (!oldRefreshToken || !result.refreshToken || oldRefreshToken === result.refreshToken) {
+    return;
+  }
+  const key = getRefreshCacheKey(provider, oldRefreshToken);
+  tokenRotationMap.set(key, {
+    result,
+    expiresAt: Date.now() + ROTATION_MAP_TTL_MS,
+  });
+}
+
+// Exported for tests + diagnostics; not part of the public API surface.
+export function _getTokenRotationMapStats(): { size: number; entries: number } {
+  cleanupRotationMap();
+  return { size: tokenRotationMap.size, entries: tokenRotationMap.size };
+}
+
+export function _clearTokenRotationMap(): void {
+  tokenRotationMap.clear();
+}
+
 // AsyncLocalStorage for plumbing `onPersist` through executor.refreshCredentials
 // without modifying every executor's signature. The chatCore.ts / base.ts call
 // sites wrap executor.refreshCredentials in `runWithOnPersist(persistFn, () => ...)`
@@ -773,11 +843,17 @@ export async function refreshCodexToken(refreshToken, log, proxyConfig: unknown 
           "Content-Type": "application/x-www-form-urlencoded",
           Accept: "application/json",
         },
+        // Body intentionally omits `scope`. RFC 6749 §6 makes scope optional on a
+        // refresh_token grant (the server reuses the originally-granted scope when
+        // absent). Including `scope` causes Auth0 (which OpenAI Codex OAuth is
+        // built on) to treat the request as a re-scope, which can invalidate
+        // sibling refresh_token families on the same client_id. Matches the
+        // pattern used by ndycode/codex-multi-auth, the only known tool that
+        // sustains multiple Codex accounts without cross-invalidation.
         body: buildFormParams({
           grant_type: "refresh_token",
           refresh_token: refreshToken,
           client_id: PROVIDERS.codex.clientId,
-          scope: "openid profile email offline_access",
         }),
       })
     );
@@ -1355,6 +1431,22 @@ export async function getAccessToken(
  * Only called from the per-connection mutex path (Layer 1 above).
  */
 async function _getAccessTokenWithStalenessCheck(provider, credentials, log, proxyConfig) {
+  // ROTATION MAP CHECK (codex-multi-auth pattern): if this refresh_token was
+  // rotated very recently (within ROTATION_MAP_TTL_MS), reuse the cached new
+  // tokens INSTEAD of hitting upstream. Auth0 treats re-use of a rotated token
+  // as a security event and revokes the entire token family — fatal for
+  // multi-account Codex setups. The in-memory rotation map catches this even
+  // when the caller bypasses the DB staleness path (no connectionId, stale
+  // in-memory credentials in retries, etc.).
+  const rotated = lookupRotation(provider, credentials.refreshToken);
+  if (rotated) {
+    log?.info?.(
+      "TOKEN_REFRESH",
+      `Rotation map hit for ${provider}. Returning cached rotated tokens (avoids family-revoke).`
+    );
+    return rotated.result;
+  }
+
   // RACE CONDITION PREVENTION:
   // If the credentials object in memory is stale (e.g. it waited in a semaphore while another
   // request refreshed the token), using its OLD refreshToken will cause the provider (e.g. OpenAI)
@@ -1408,7 +1500,32 @@ async function _getAccessTokenWithStalenessCheck(provider, credentials, log, pro
     }
   }
 
-  return _getAccessTokenInternal(provider, credentials, log, proxyConfig);
+  const oldRefreshToken = credentials.refreshToken;
+  const result = await _getAccessTokenInternal(provider, credentials, log, proxyConfig);
+
+  // Record the rotation so subsequent stale callers can be redirected to the
+  // new tokens without re-hitting upstream (which would trigger Auth0 family
+  // revocation). Only records when the refresh actually rotated the token.
+  if (
+    result &&
+    typeof result === "object" &&
+    !("error" in result) &&
+    (result as { accessToken?: string }).accessToken &&
+    (result as { refreshToken?: string }).refreshToken
+  ) {
+    recordRotation(
+      provider,
+      oldRefreshToken,
+      result as {
+        accessToken: string;
+        refreshToken: string;
+        expiresIn?: number;
+        expiresAt?: string;
+      }
+    );
+  }
+
+  return result;
 }
 
 /**

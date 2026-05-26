@@ -1204,6 +1204,12 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
   const log = createLog();
   let upstreamCallCount = 0;
 
+  // The rotation map (added for the codex-multi-auth pattern) is process-wide
+  // and intentionally redirects a stale-token caller to the cached rotated
+  // tokens. Clear it BEFORE and BETWEEN calls so this test exercises the
+  // lower-level mutex semantics it was designed for.
+  tokenRefresh._clearTokenRotationMap();
+
   await withPatchedProperties(
     PROVIDERS,
     { "custom-oauth-conn-mutex": { tokenUrl: "https://auth.example.com/token" } },
@@ -1221,6 +1227,7 @@ test("getAccessToken per-connection mutex: mutex cleared after success, next cal
           const credentials = { connectionId: "conn-refire", refreshToken: "rt" };
 
           const first = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
+          tokenRefresh._clearTokenRotationMap();
           const second = await getAccessToken("custom-oauth-conn-mutex", { ...credentials }, log);
 
           assert.equal(upstreamCallCount, 2, "each sequential call fires upstream once");
