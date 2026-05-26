@@ -44,10 +44,11 @@ function setConfig(cfg: SystemPromptConfig): void {
  */
 export function setSystemPromptConfig(config: Partial<SystemPromptConfig>) {
   const current = getConfig();
+  const base = { ...current };
   if ("prefixPrompt" in config || "suffixPrompt" in config) {
-    current.prompt = "";
+    base.prompt = "";
   }
-  const merged = { ...current, ...config };
+  const merged = { ...base, ...config };
   if (merged.prompt && !merged.suffixPrompt && !("suffixPrompt" in config)) {
     merged.suffixPrompt = merged.prompt;
   }

@@ -181,4 +181,3 @@ scripts/i18n/_pending-keys.json
 
 # Fumadocs generated source
 .source/
-next.config.mjs
