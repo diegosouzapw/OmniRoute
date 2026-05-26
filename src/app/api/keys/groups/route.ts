@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  getAllKeyGroups,
-  createKeyGroup,
-  getKeyGroup,
-} from "@/lib/localDb";
+import { getAllKeyGroups, createKeyGroup, getKeyGroup } from "@/lib/localDb";
 
 /**
  * GET /api/keys/groups — List all key groups

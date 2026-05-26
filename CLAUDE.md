@@ -303,6 +303,17 @@ connection continue serving other models.
 4. Add OAuth/credentials handling if needed (`src/lib/oauth/providers/`)
 5. Tests + document in `docs/frameworks/CLOUD_AGENT.md`
 
+### Adding a New Embedded Service
+
+1. Create installer in `src/lib/services/installers/{name}.ts` modeled on `ninerouter.ts` (use `runNpm` from `installers/utils.ts` — no shell interpolation, hard rule #13).
+2. Register the service in `src/lib/services/bootstrap.ts` (add to `SERVICES[]` array and extend `buildSpawnArgsFactory()`).
+3. Add a DB seed row for the new service in `src/lib/db/migrations/` (`version_manager` table, `status='not_installed'`, `auto_start=0`).
+4. Create 7 API endpoints under `src/app/api/services/{name}/` (`_lib.ts`, `install`, `start`, `stop`, `restart`, `update`, `status`, `auto-start`). All delegate errors through `createErrorResponse()`. The shared `logs` endpoint is already wired via `[name]/logs/route.ts`.
+5. Verify `/api/services/` is in `LOCAL_ONLY_API_PREFIXES` in `src/server/authz/routeGuard.ts`; add a test asserting `isLocalOnlyPath()` returns `true` for the new prefix if you add one (hard rule #17).
+6. Add a UI tab in `src/app/(dashboard)/dashboard/providers/services/tabs/` reusing `ServiceStatusCard`, `ServiceLifecycleButtons`, `ServiceLogsPanel`.
+7. Document in `docs/frameworks/EMBEDDED-SERVICES.md` (update §1 service table + §4 API reference) and `docs/reference/openapi.yaml`.
+8. Write tests: unit (`tests/unit/services/`), integration (`tests/integration/services/`, gated by `RUN_SERVICES_INT=1`), and update `docs/ops/RELEASE_CHECKLIST.md` smoke section.
+
 ### Adding a New Guardrail / Eval / Skill / Webhook event
 
 - Guardrail: `src/lib/guardrails/` → docs: `docs/security/GUARDRAILS.md`
@@ -341,6 +352,7 @@ For any non-trivial change, read the matching deep-dive first:
 | API reference + OpenAPI                      | `docs/reference/API_REFERENCE.md` + `docs/reference/openapi.yaml` |
 | Provider catalog (auto-generated)            | `docs/reference/PROVIDER_REFERENCE.md`                            |
 | Release flow                                 | `docs/ops/RELEASE_CHECKLIST.md`                                   |
+| Embedded services                            | `docs/frameworks/EMBEDDED-SERVICES.md`                            |
 
 ---
 
@@ -415,3 +427,4 @@ git push -u origin feat/your-feature
 14. Never dismiss a CodeQL / Secret-Scanning alert without (a) first checking the pattern docs above to see if the helper applies, and (b) recording the technical justification in the dismissal comment. Precedent: `js/stack-trace-exposure` raised on callsites that already route through `sanitizeErrorMessage()` is a known CodeQL limitation (custom sanitizers not recognized) — dismiss as `false positive` referencing `docs/security/ERROR_SANITIZATION.md`.
 15. Never expose routes that spawn child processes (`/api/mcp/`, `/api/cli-tools/runtime/`) without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. Loopback enforcement happens unconditionally before any auth check — leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.
 16. Never include `Co-Authored-By` trailers in commit messages. Commits must appear solely under the repository owner's Git identity (`diegosouzapw`). The `Co-Authored-By: Claude …` line causes GitHub to attribute commits to the `claude` Anthropic account, hiding the real author in the PR history.
+17. Never expose routes under `/api/services/` or `/dashboard/providers/services/*/embed/` without `isLocalOnlyPath()` classification in `src/server/authz/routeGuard.ts`. These routes can spawn child processes (`npm install`, `node`). Loopback enforcement happens unconditionally before any auth check — a leaked JWT via tunnel cannot trigger process spawning. See `docs/security/ROUTE_GUARD_TIERS.md`.

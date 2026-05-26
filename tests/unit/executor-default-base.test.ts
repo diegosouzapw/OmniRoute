@@ -627,6 +627,28 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
       },
       extendedContext: false,
     });
+
+    await claude.execute({
+      model: "claude-sonnet-4-6",
+      body: {
+        model: "claude-sonnet-4-6",
+        messages: [{ role: "user", content: "hi" }],
+        max_tokens: 1,
+        thinking: { type: "disabled" },
+      },
+      stream: false,
+      credentials: {
+        apiKey: "cc-key",
+        providerSpecificData: {
+          ccSessionId: "session-1",
+        },
+      },
+      clientHeaders: {
+        "x-app": "cli",
+        "user-agent": "claude-cli/2.1.116 (external, cli)",
+      },
+      extendedContext: false,
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }
@@ -640,6 +662,9 @@ test("DefaultExecutor.execute only injects adaptive thinking defaults for Claude
   assert.equal((requestBodies[1] as any).thinking, undefined);
   assert.equal((requestBodies[1] as any).context_management, undefined);
   assert.equal((requestBodies[1] as any).output_config, undefined);
+
+  assert.deepEqual((requestBodies[2] as any).thinking, { type: "disabled" });
+  assert.equal((requestBodies[2] as any).context_management, undefined);
 });
 
 test("DefaultExecutor.transformRequest injects OpenAI stream usage and preserves model ids with slashes", () => {

@@ -1,92 +1,68 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
-import { Card, Button, ProxyConfigModal } from "@/shared/components";
+import { useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import ProxyRegistryManager from "./ProxyRegistryManager";
+import GlobalConfigTab from "./proxy/GlobalConfigTab";
+import ProxyPoolTab from "./proxy/ProxyPoolTab";
+import FreePoolTab from "./proxy/FreePoolTab";
+import DocumentationTab from "./proxy/DocumentationTab";
+
+type TabId = "global-config" | "proxy-pool" | "free-pool" | "documentation";
+
+const TABS: Array<{ id: TabId; labelKey: string }> = [
+  { id: "global-config", labelKey: "proxyGlobalConfigTab" },
+  { id: "proxy-pool", labelKey: "proxyPoolTab" },
+  { id: "free-pool", labelKey: "freePoolTab" },
+  { id: "documentation", labelKey: "proxyDocumentationTab" },
+];
 
 export default function ProxyTab() {
-  const [proxyModalOpen, setProxyModalOpen] = useState(false);
-  const [globalProxy, setGlobalProxy] = useState(null);
-  const mountedRef = useRef(true);
   const t = useTranslations("settings");
-  const tc = useTranslations("common");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const loadGlobalProxy = async () => {
-    try {
-      const res = await fetch("/api/settings/proxy?level=global");
-      if (res.ok) {
-        const data = await res.json();
-        setGlobalProxy(data.proxy || null);
-      }
-    } catch {}
+  const activeTab = useMemo<TabId>(() => {
+    const tabParam = searchParams.get("tab") as TabId | null;
+    return tabParam && TABS.some((tab) => tab.id === tabParam) ? tabParam : "global-config";
+  }, [searchParams]);
+
+  const handleTabChange = (tab: TabId) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  useEffect(() => {
-    mountedRef.current = true;
-    async function init() {
-      try {
-        const res = await fetch("/api/settings/proxy?level=global", { cache: "no-store" });
-        if (!mountedRef.current) return;
-        if (res.ok) {
-          const data = await res.json();
-          if (mountedRef.current) setGlobalProxy(data.proxy || null);
-        }
-      } catch {}
-    }
-    init();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
   return (
-    <>
-      <div className="flex flex-col gap-6">
-        <Card className="p-0 overflow-hidden">
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-xl text-primary" aria-hidden="true">
-                vpn_lock
-              </span>
-              <h2 className="text-lg font-bold">{t("globalProxy")}</h2>
-            </div>
-            <p className="text-sm text-text-muted mb-4">{t("globalProxyDesc")}</p>
-            <div className="flex items-center gap-3">
-              {globalProxy ? (
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded text-xs font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    {globalProxy.type}://{globalProxy.host}:{globalProxy.port}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-sm text-text-muted">{t("noGlobalProxy")}</span>
-              )}
-              <Button
-                size="sm"
-                variant={globalProxy ? "secondary" : "primary"}
-                icon="settings"
-                onClick={() => {
-                  loadGlobalProxy();
-                  setProxyModalOpen(true);
-                }}
-              >
-                {globalProxy ? tc("edit") : t("configure")}
-              </Button>
-            </div>
-          </div>
-        </Card>
-
-        <ProxyRegistryManager />
+    <div className="flex flex-col gap-4">
+      <div
+        className="flex gap-1 border-b border-border overflow-x-auto"
+        role="tablist"
+        aria-label="Proxy sections"
+      >
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            onClick={() => handleTabChange(tab.id)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === tab.id
+                ? "border-primary text-primary"
+                : "border-transparent text-text-muted hover:text-text"
+            }`}
+          >
+            {t(tab.labelKey)}
+          </button>
+        ))}
       </div>
 
-      <ProxyConfigModal
-        isOpen={proxyModalOpen}
-        onClose={() => setProxyModalOpen(false)}
-        level="global"
-        levelLabel={t("globalLabel")}
-        onSaved={loadGlobalProxy}
-      />
-    </>
+      <div role="tabpanel">
+        {activeTab === "global-config" && <GlobalConfigTab />}
+        {activeTab === "proxy-pool" && <ProxyPoolTab />}
+        {activeTab === "free-pool" && <FreePoolTab />}
+        {activeTab === "documentation" && <DocumentationTab />}
+      </div>
+    </div>
   );
 }

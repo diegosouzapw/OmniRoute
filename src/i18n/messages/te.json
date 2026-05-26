@@ -2644,7 +2644,17 @@
     "apiEndpointsNoMatch": "__MISSING__:No endpoints match your filter",
     "localServer": "__MISSING__:Local Server",
     "cloudOmniroute": "__MISSING__:Cloud OmniRoute",
-    "copyUrl": "__MISSING__:Copy URL"
+    "copyUrl": "__MISSING__:Copy URL",
+    "tierAll": "అన్ని స్థాయిలు",
+    "tierAuth": "Auth",
+    "tierLoopback": "స్థానిక-మాత్రం",
+    "tierAlwaysProtected": "ఎప్పుడూ-రక్షితమైన",
+    "tierPublic": "ప్రజా",
+    "showInternal": "అంతర్గతాన్ని చూపించు",
+    "hideInternal": "అంతర్గతాన్ని దాచండి",
+    "badgeLoopbackTooltip": "స్థానిక-మాత్రం: లూప్‌బ్యాక్ IP ల నుండి అడ్డుకోబడింది",
+    "badgeAlwaysProtectedTooltip": "ఎప్పుడూ రక్షితమైనది: requireLogin=false ఉన్నప్పుడు కూడా auth అవసరం",
+    "badgeInternalTooltip": "అంతర్గత మార్గం — ప్రజా API యొక్క భాగం కాదు"
   },
   "endpoints": {
     "tabProxy": "Endpoint Proxy",

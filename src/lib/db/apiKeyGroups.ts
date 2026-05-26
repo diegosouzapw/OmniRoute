@@ -71,13 +71,16 @@ export function createKeyGroup(name: string, description = ""): KeyGroup {
   const now = new Date().toISOString();
 
   db.prepare(
-    "INSERT INTO key_groups (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO key_groups (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)"
   ).run(id, name, description, now, now);
 
   return getKeyGroup(id)!;
 }
 
-export function updateKeyGroup(id: string, updates: { name?: string; description?: string; isActive?: boolean }): KeyGroup | undefined {
+export function updateKeyGroup(
+  id: string,
+  updates: { name?: string; description?: string; isActive?: boolean }
+): KeyGroup | undefined {
   const existing = getKeyGroup(id);
   if (!existing) return undefined;
 
@@ -85,9 +88,18 @@ export function updateKeyGroup(id: string, updates: { name?: string; description
   const sets: string[] = [];
   const params: Record<string, unknown> = { id };
 
-  if (updates.name !== undefined) { sets.push("name = @name"); params.name = updates.name; }
-  if (updates.description !== undefined) { sets.push("description = @description"); params.description = updates.description; }
-  if (updates.isActive !== undefined) { sets.push("is_active = @isActive"); params.isActive = updates.isActive ? 1 : 0; }
+  if (updates.name !== undefined) {
+    sets.push("name = @name");
+    params.name = updates.name;
+  }
+  if (updates.description !== undefined) {
+    sets.push("description = @description");
+    params.description = updates.description;
+  }
+  if (updates.isActive !== undefined) {
+    sets.push("is_active = @isActive");
+    params.isActive = updates.isActive ? 1 : 0;
+  }
 
   if (sets.length === 0) return existing;
   sets.push("updated_at = datetime('now')");
@@ -107,9 +119,11 @@ export function deleteKeyGroup(id: string): boolean {
 
 export function getGroupPermissions(groupId: string): GroupModelPermission[] {
   const db = getDbInstance() as any;
-  const rows = db.prepare(
-    "SELECT * FROM group_model_permissions WHERE group_id = ? ORDER BY access_type ASC, model_pattern ASC",
-  ).all(groupId) as any[];
+  const rows = db
+    .prepare(
+      "SELECT * FROM group_model_permissions WHERE group_id = ? ORDER BY access_type ASC, model_pattern ASC"
+    )
+    .all(groupId) as any[];
   return rows.map(rowToPermission);
 }
 
@@ -117,14 +131,14 @@ export function addGroupPermission(
   groupId: string,
   modelPattern: string,
   accessType: "allow" | "deny",
-  provider?: string,
+  provider?: string
 ): GroupModelPermission {
   const db = getDbInstance() as any;
   const id = randomUUID();
   const now = new Date().toISOString();
 
   db.prepare(
-    "INSERT INTO group_model_permissions (id, group_id, model_pattern, provider, access_type, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO group_model_permissions (id, group_id, model_pattern, provider, access_type, created_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(id, groupId, modelPattern, provider || null, accessType, now);
 
   return getGroupPermissions(groupId).find((p) => p.id === id)!;
@@ -145,27 +159,34 @@ export function clearGroupPermissions(groupId: string): void {
 
 export function getGroupMembers(groupId: string): KeyGroupMember[] {
   const db = getDbInstance() as any;
-  const rows = db.prepare(
-    "SELECT * FROM key_group_members WHERE group_id = ? ORDER BY created_at ASC",
-  ).all(groupId) as any[];
+  const rows = db
+    .prepare("SELECT * FROM key_group_members WHERE group_id = ? ORDER BY created_at ASC")
+    .all(groupId) as any[];
   return rows.map(rowToMember);
 }
 
 export function getKeyGroupsForApiKey(keyId: string): KeyGroup[] {
   const db = getDbInstance() as any;
-  const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
     SELECT g.* FROM key_groups g
     INNER JOIN key_group_members m ON g.id = m.group_id
     WHERE m.key_id = ? AND g.is_active = 1
     ORDER BY g.name ASC
-  `).all(keyId) as any[];
+  `
+    )
+    .all(keyId) as any[];
   return rows.map(rowToGroup);
 }
 
 export function addKeyToGroup(keyId: string, groupId: string): boolean {
   const db = getDbInstance() as any;
   try {
-    db.prepare("INSERT OR IGNORE INTO key_group_members (key_id, group_id) VALUES (?, ?)").run(keyId, groupId);
+    db.prepare("INSERT OR IGNORE INTO key_group_members (key_id, group_id) VALUES (?, ?)").run(
+      keyId,
+      groupId
+    );
     return true;
   } catch {
     return false;
@@ -174,13 +195,17 @@ export function addKeyToGroup(keyId: string, groupId: string): boolean {
 
 export function removeKeyFromGroup(keyId: string, groupId: string): boolean {
   const db = getDbInstance() as any;
-  const result = db.prepare("DELETE FROM key_group_members WHERE key_id = ? AND group_id = ?").run(keyId, groupId);
+  const result = db
+    .prepare("DELETE FROM key_group_members WHERE key_id = ? AND group_id = ?")
+    .run(keyId, groupId);
   return result.changes > 0;
 }
 
 function getGroupMemberCount(groupId: string): number {
   const db = getDbInstance() as any;
-  const row = db.prepare("SELECT COUNT(*) as count FROM key_group_members WHERE group_id = ?").get(groupId) as any;
+  const row = db
+    .prepare("SELECT COUNT(*) as count FROM key_group_members WHERE group_id = ?")
+    .get(groupId) as any;
   return row?.count || 0;
 }
 
@@ -196,7 +221,11 @@ export interface ModelAccessCheck {
  * Check if an API key has access to a specific model.
  * Deny rules override allow rules. If no rules match, access is allowed by default.
  */
-export function checkKeyModelAccess(keyId: string, model: string, provider?: string): ModelAccessCheck {
+export function checkKeyModelAccess(
+  keyId: string,
+  model: string,
+  provider?: string
+): ModelAccessCheck {
   const groups = getKeyGroupsForApiKey(keyId);
   if (groups.length === 0) {
     // No groups = no restrictions
@@ -207,17 +236,24 @@ export function checkKeyModelAccess(keyId: string, model: string, provider?: str
   const groupIds = groups.map((g) => g.id);
   const placeholders = groupIds.map(() => "?").join(",");
 
-  const rules = db.prepare(`
+  const rules = db
+    .prepare(
+      `
     SELECT * FROM group_model_permissions
     WHERE group_id IN (${placeholders})
     ORDER BY access_type ASC
-  `).all(...groupIds) as any[];
+  `
+    )
+    .all(...groupIds) as any[];
 
   const permissions = rules.map(rowToPermission);
 
   // Check deny rules first (they take precedence)
   const denyRules = permissions.filter(
-    (p) => p.accessType === "deny" && matchesModelPattern(p.modelPattern, model) && (!p.provider || p.provider === provider),
+    (p) =>
+      p.accessType === "deny" &&
+      matchesModelPattern(p.modelPattern, model) &&
+      (!p.provider || p.provider === provider)
   );
 
   if (denyRules.length > 0) {
@@ -226,7 +262,10 @@ export function checkKeyModelAccess(keyId: string, model: string, provider?: str
 
   // Check allow rules
   const allowRules = permissions.filter(
-    (p) => p.accessType === "allow" && matchesModelPattern(p.modelPattern, model) && (!p.provider || p.provider === provider),
+    (p) =>
+      p.accessType === "allow" &&
+      matchesModelPattern(p.modelPattern, model) &&
+      (!p.provider || p.provider === provider)
   );
 
   if (allowRules.length > 0) {

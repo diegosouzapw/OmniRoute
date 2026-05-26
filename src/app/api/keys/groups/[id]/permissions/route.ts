@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { addGroupPermission, removeGroupPermission, getGroupPermissions, getKeyGroup } from "@/lib/localDb";
+import {
+  addGroupPermission,
+  removeGroupPermission,
+  getGroupPermissions,
+  getKeyGroup,
+} from "@/lib/localDb";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -31,7 +36,10 @@ export async function POST(request: Request, { params }: RouteParams) {
 
     const body = await request.json();
     if (!body.modelPattern || !body.accessType) {
-      return NextResponse.json({ error: "modelPattern and accessType are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "modelPattern and accessType are required" },
+        { status: 400 }
+      );
     }
     if (body.accessType !== "allow" && body.accessType !== "deny") {
       return NextResponse.json({ error: "accessType must be 'allow' or 'deny'" }, { status: 400 });

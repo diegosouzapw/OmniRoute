@@ -35,7 +35,7 @@ export interface KeyGroupAuthResult {
 export function authorizeKeyModelAccess(
   apiKeyId: string | undefined,
   model: string,
-  provider?: string,
+  provider?: string
 ): KeyGroupAuthResult {
   if (!apiKeyId) {
     // No API key = no restriction (public endpoint)
