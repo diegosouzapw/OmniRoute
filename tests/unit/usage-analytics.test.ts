@@ -456,6 +456,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       token: "super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "registered",
   });
 
   usageHistory.updatePendingRequest("gpt-test", "openai", "conn-preview", {
@@ -464,6 +465,7 @@ test("pending request metadata stores sanitized payload previews and clears afte
       authorization: "Bearer super-secret-token",
       messages: [{ role: "user", content: "hello" }],
     },
+    stage: "sending_to_provider",
   });
 
   const pending = usageHistory.getPendingRequests();
@@ -475,6 +477,8 @@ test("pending request metadata stores sanitized payload previews and clears afte
   assert.equal(clientRequestPreview.token, "[REDACTED]");
   assert.equal(providerRequestPreview.authorization, "[REDACTED]");
   assert.equal(detail.providerUrl, "https://api.example.com/v1/chat/completions");
+  assert.equal(detail.stage, "sending_to_provider");
+  assert.equal(typeof detail.stageUpdatedAt, "number");
 
   usageHistory.trackPendingRequest("gpt-test", "openai", "conn-preview", false);
   assert.equal(pending.details["conn-preview"], undefined);

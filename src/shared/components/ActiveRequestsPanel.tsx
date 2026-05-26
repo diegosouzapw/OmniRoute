@@ -16,6 +16,18 @@ type ActiveRequestRow = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  stage?: string | null;
+  stageUpdatedAt?: number | null;
+};
+
+const STAGE_LABELS: Record<string, string> = {
+  registered: "activeStageRegistered",
+  payload_prepared: "activeStagePayloadPrepared",
+  waiting_account_slot: "activeStageWaitingAccountSlot",
+  waiting_rate_limit: "activeStageWaitingRateLimit",
+  rate_limit_slot_acquired: "activeStageRateLimitSlotAcquired",
+  sending_to_provider: "activeStageSendingToProvider",
+  provider_response_started: "activeStageProviderResponseStarted",
 };
 
 function formatDuration(ms: number): string {
@@ -83,6 +95,12 @@ export default function ActiveRequestsPanel() {
   }
 
   const selectedAccountLabel = selectedRow ? maskAccount(selectedRow.account, emailsVisible) : "";
+  const formatStage = (stage?: string | null): string => {
+    if (!stage) return t("activeStageUnknown");
+    const key = STAGE_LABELS[stage];
+    if (key) return t(key);
+    return stage.replace(/_/g, " ");
+  };
 
   return (
     <div className="rounded-xl border border-border bg-surface">
@@ -117,6 +135,7 @@ export default function ActiveRequestsPanel() {
               <th className="px-4 py-3 font-medium">{t("provider")}</th>
               <th className="px-4 py-3 font-medium">{t("account")}</th>
               <th className="px-4 py-3 font-medium">{t("elapsed")}</th>
+              <th className="px-4 py-3 font-medium">{t("activeStage")}</th>
               <th className="px-4 py-3 font-medium">{t("count")}</th>
               <th className="px-4 py-3 font-medium">{t("payloads")}</th>
             </tr>
@@ -135,6 +154,7 @@ export default function ActiveRequestsPanel() {
                     {accountLabel}
                   </td>
                   <td className="px-4 py-3 text-text-main">{formatDuration(row.runningTimeMs)}</td>
+                  <td className="px-4 py-3 text-text-muted">{formatStage(row.stage)}</td>
                   <td className="px-4 py-3 text-text-main">{row.count}</td>
                   <td className="px-4 py-3">
                     <button
@@ -166,6 +186,9 @@ export default function ActiveRequestsPanel() {
                     elapsed: formatDuration(selectedRow.runningTimeMs),
                   })}
                 </p>
+                <p className="mt-1 text-xs text-text-muted">
+                  {t("activeStage")}: {formatStage(selectedRow.stage)}
+                </p>
               </div>
               <button
                 type="button"
@@ -194,7 +217,7 @@ export default function ActiveRequestsPanel() {
                 <div className="mb-3">
                   <h5 className="text-sm font-semibold text-text-main">{t("upstreamPayload")}</h5>
                   <p className="mt-1 break-all text-xs text-text-muted">
-                    {selectedRow.providerUrl || t("upstreamNotSentYet")}
+                    {selectedRow.providerUrl || formatStage(selectedRow.stage)}
                   </p>
                 </div>
                 <pre className="overflow-x-auto rounded-lg border border-border/70 bg-bg p-3 text-xs text-text-muted">

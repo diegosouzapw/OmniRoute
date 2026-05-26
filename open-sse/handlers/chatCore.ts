@@ -3490,12 +3490,18 @@ export async function handleChatCore({
 
       updatePendingRequest(model, provider, connectionId, {
         providerRequest: bodyToSend,
+        stage: "payload_prepared",
       });
 
       trace("pre_semaphore", {
         semaphoreKey: accountSemaphoreKey,
         max: accountSemaphoreMaxConcurrency,
       });
+      if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
+        updatePendingRequest(model, provider, connectionId, {
+          stage: "waiting_account_slot",
+        });
+      }
       const acquireAccountSemaphoreRelease =
         accountSemaphoreKey && accountSemaphoreMaxConcurrency != null
           ? await acquireAccountSemaphore(accountSemaphoreKey, {
@@ -3504,6 +3510,9 @@ export async function handleChatCore({
             })
           : () => {};
       trace("post_semaphore");
+      updatePendingRequest(model, provider, connectionId, {
+        stage: "waiting_rate_limit",
+      });
 
       try {
         trace("pre_rate_limit");
@@ -3513,6 +3522,9 @@ export async function handleChatCore({
           modelToCall,
           async () => {
             trace("inside_rate_limit");
+            updatePendingRequest(model, provider, connectionId, {
+              stage: "rate_limit_slot_acquired",
+            });
             let attempts = 0;
             const isModelScopeForRequest = isModelScope();
             const maxAttempts = isModelScopeForRequest
@@ -3534,6 +3546,9 @@ export async function handleChatCore({
 
             while (attempts < maxAttempts) {
               trace("pre_executor", { attempt: attempts });
+              updatePendingRequest(model, provider, connectionId, {
+                stage: "sending_to_provider",
+              });
               const execCreds = getExecutionCredentials();
               const res = await executeWithUpstreamStartTimeout({
                 executor,
@@ -3557,6 +3572,9 @@ export async function handleChatCore({
                   }),
               });
               trace("post_executor", { status: res?.response?.status });
+              updatePendingRequest(model, provider, connectionId, {
+                stage: "provider_response_started",
+              });
 
               if (res.response.status === 401 && execCreds?.connectionId) {
                 recordKeyHealthStatus(401, execCreds);
@@ -3771,6 +3789,7 @@ export async function handleChatCore({
   trackPendingRequest(model, provider, connectionId, true, {
     clientEndpoint: clientRawRequest?.endpoint || "/v1/chat/completions",
     clientRequest: clientRawRequest?.body ?? body,
+    stage: "registered",
   });
 
   // T5: track which models we've tried for intra-family fallback
@@ -3816,6 +3835,7 @@ export async function handleChatCore({
     updatePendingRequest(model, provider, connectionId, {
       providerRequest: finalBody,
       providerUrl,
+      stage: "provider_response_started",
     });
 
     // Update rate limiter from response headers (learn limits dynamically)
@@ -4008,6 +4028,7 @@ export async function handleChatCore({
           updatePendingRequest(model, provider, connectionId, {
             providerRequest: finalBody,
             providerUrl,
+            stage: "provider_response_started",
           });
           upstreamErrorParsed = false; // Reset since new response is OK
         } else {
@@ -4237,6 +4258,11 @@ export async function handleChatCore({
             providerHeaders = fallbackResult.headers;
             finalBody = fallbackResult.transformedBody;
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+            updatePendingRequest(model, provider, connectionId, {
+              providerRequest: finalBody,
+              providerUrl,
+              stage: "provider_response_started",
+            });
             // Continue processing with the fallback response — skip error return
             log?.info?.("MODEL_FALLBACK", `Serving ${nextModel} as fallback for ${model}`);
             // Jump to streaming/non-streaming handling below
@@ -4319,6 +4345,11 @@ export async function handleChatCore({
             providerHeaders = fallbackResult.headers;
             finalBody = fallbackResult.transformedBody;
             reqLogger.logTargetRequest(providerUrl, providerHeaders, finalBody);
+            updatePendingRequest(model, provider, connectionId, {
+              providerRequest: finalBody,
+              providerUrl,
+              stage: "provider_response_started",
+            });
             log?.info?.(
               "CONTEXT_OVERFLOW_FALLBACK",
               `Serving ${nextModel} as fallback for ${model}`
