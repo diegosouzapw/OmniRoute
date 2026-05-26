@@ -37,7 +37,10 @@ function collectRoutePaths(dir) {
 }
 
 function normalizePath(p) {
-  return p.replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}").replace(/\[([^\]]+)\]/g, "{$1}");
+  return p
+    .replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}")
+    .replace(/\[([^\]]+)\]/g, "{$1}")
+    .replace(/\{\.\.\.([^}]+)\}/g, "{$1}");
 }
 
 if (!fs.existsSync(API_ROOT)) {

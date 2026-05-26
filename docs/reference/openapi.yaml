@@ -237,7 +237,7 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
-  /api/v1/responses/{...path}:
+  /api/v1/responses/{path}:
     get:
       tags: [Responses]
       summary: Responses API catch-all (GET)
@@ -1136,6 +1136,195 @@ paths:
       responses:
         "200":
           description: Test result
+
+  /api/settings/proxy/vercel-deploy:
+    post:
+      tags: [Settings]
+      summary: Deploy a Vercel relay proxy
+      description: Deploys an edge-function relay to Vercel and registers it as a proxy pool entry.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, projectName]
+              properties:
+                token:
+                  type: string
+                  description: Vercel API token
+                projectName:
+                  type: string
+                  description: Name for the Vercel project
+      responses:
+        "200":
+          description: Deployment succeeded and proxy registered
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "504":
+          description: Deployment timed out
+
+  /api/settings/free-proxies:
+    get:
+      tags: [Settings]
+      summary: List free proxies
+      description: Returns free proxies from the local pool with optional filtering.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: sources
+          in: query
+          schema:
+            type: string
+        - name: protocol
+          in: query
+          schema:
+            type: string
+        - name: country
+          in: query
+          schema:
+            type: string
+        - name: minQuality
+          in: query
+          schema:
+            type: number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: onlyNotInPool
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Free proxy list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [Settings]
+      summary: Delete free proxy or clear by source
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: string
+          description: Proxy ID to delete
+        - name: source
+          in: query
+          schema:
+            type: string
+          description: Source identifier — clears all proxies from that source
+      responses:
+        "200":
+          description: Deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Proxy not found
+
+  /api/settings/free-proxies/stats:
+    get:
+      tags: [Settings]
+      summary: Free proxy pool statistics
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      responses:
+        "200":
+          description: Pool stats and provider list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/settings/free-proxies/sync:
+    post:
+      tags: [Settings]
+      summary: Sync free proxies from upstream providers
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sources:
+                  type: array
+                  items:
+                    type: string
+                  description: Provider source IDs to sync; omit to sync all enabled providers
+      responses:
+        "200":
+          description: Sync results per provider
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/settings/free-proxies/bulk-add-to-pool:
+    post:
+      tags: [Settings]
+      summary: Bulk add free proxies to the proxy pool
+      description: Tests each proxy and, if reachable, registers it in the pool.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ids]
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Per-proxy result with succeeded/failed counts
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/settings/free-proxies/{id}/add-to-pool:
+    post:
+      tags: [Settings]
+      summary: Add a single free proxy to the proxy pool
+      description: Tests connectivity and registers the proxy in the pool if reachable.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Add result (success, alreadyInPool, or test failure)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Free proxy not found
 
   /api/settings/require-login:
     post:
@@ -2634,6 +2823,62 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/webhooks/{id}/deliveries:
+    get:
+      tags: [Webhooks]
+      summary: List webhook delivery history
+      description: Returns recent delivery attempts for a webhook, newest first.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Delivery list
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Webhook not found
+
+  /api/webhooks/validate-url:
+    post:
+      tags: [Webhooks]
+      summary: Validate a webhook target URL
+      description: Checks if the URL passes the SSRF guard before saving a webhook.
+      security:
+        - BearerAuth: []
+        - ManagementSessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Validation result (`valid` boolean, optional `reason`)
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   # ─── Tunnels ──────────────────────────────────────────────────────
 
   /api/tunnels/ngrok:
@@ -3263,7 +3508,7 @@ paths:
         "200":
           description: Model list in Gemini format
 
-  /api/v1beta/models/{...path}:
+  /api/v1beta/models/{path}:
     post:
       tags: [Models]
       summary: Gemini generateContent

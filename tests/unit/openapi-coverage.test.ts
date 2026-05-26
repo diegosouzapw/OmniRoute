@@ -29,7 +29,10 @@ function collectRoutePaths(dir: string): string[] {
 }
 
 function normalizePath(p: string): string {
-  return p.replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}").replace(/\[([^\]]+)\]/g, "{$1}");
+  return p
+    .replace(/\/\[\.\.\.([^\]]+)\]/g, "/{$1}")
+    .replace(/\[([^\]]+)\]/g, "{$1}")
+    .replace(/\{\.\.\.([^}]+)\}/g, "{$1}");
 }
 
 test("openapi.yaml covers ≥ 99% of implemented routes (excluding x-internal routes counted as covered)", () => {
