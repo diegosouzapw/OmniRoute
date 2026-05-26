@@ -8,7 +8,7 @@ import { getDbInstance, rowToCamel } from "./core";
 import { backupDbFile } from "./backup";
 import { registerDbStateResetter } from "./stateReset";
 import { getKeyGroupsForApiKey, checkKeyModelAccess } from "./apiKeyGroups";
-import { setNoLog } from "../compliance";
+import { setNoLog } from "../compliance/noLog";
 
 // ──────────────── Performance Optimizations ────────────────
 

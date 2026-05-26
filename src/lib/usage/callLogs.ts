@@ -18,7 +18,7 @@ import {
   getPromptCacheCreationTokensOrNull,
   getReasoningTokensOrNull,
 } from "./tokenAccounting";
-import { isNoLog } from "../compliance";
+import { isNoLog } from "../compliance/noLog";
 import { sanitizePII } from "../piiSanitizer";
 import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
