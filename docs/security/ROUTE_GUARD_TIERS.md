@@ -24,10 +24,11 @@ non-loopback traffic would allow an attacker who obtained a valid JWT (e.g.,
 via a Cloudflared/Ngrok tunnel) to trigger process spawning — a known CVE
 class (GHSA-fhh6-4qxv-rpqj).
 
-| Prefix                    | Reason                                             | Bypassable by `manage`? |
-| ------------------------- | -------------------------------------------------- | ----------------------- |
-| `/api/mcp/`               | MCP server — spawns stdio bridges and SSE handlers | Yes                     |
-| `/api/cli-tools/runtime/` | CLI tool runtime — executes arbitrary plugin code  | No (strict-loopback)    |
+| Prefix                    | Reason                                                    | Bypassable by `manage`? |
+| ------------------------- | --------------------------------------------------------- | ----------------------- |
+| `/api/mcp/`               | MCP server — spawns stdio bridges and SSE handlers        | Yes                     |
+| `/api/cli-tools/runtime/` | CLI tool runtime — executes arbitrary plugin code         | No (strict-loopback)    |
+| `/api/services/`          | Embedded services (9router, CLIProxy) — npm install+spawn | No (strict-loopback)    |
 
 **Response on violation:** `403 LOCAL_ONLY`
 
@@ -41,9 +42,10 @@ default for any new LOCAL_ONLY path remains strict-loopback. Unauthenticated
 requests and requests with non-manage keys are still rejected with
 `403 LOCAL_ONLY`.
 
-Today the only bypassable prefix is `/api/mcp/`. `/api/cli-tools/runtime/`
-is intentionally excluded because it can spawn arbitrary subprocesses, which
-is the exact CVE class the LOCAL_ONLY tier exists to prevent.
+Today the only bypassable prefix is `/api/mcp/`. `/api/cli-tools/runtime/` and
+`/api/services/` are intentionally excluded because they can spawn arbitrary
+subprocesses (`npm install`, `node`), which is the exact CVE class the
+LOCAL_ONLY tier exists to prevent.
 
 | Request                                     | Path                       | Result              |
 | ------------------------------------------- | -------------------------- | ------------------- |

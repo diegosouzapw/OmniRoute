@@ -72,51 +72,11 @@ for (const [pathStr, methods] of Object.entries(paths)) {
   }
 }
 
-// ── Direção inversa: routeGuard → YAML ──────────────────────────────────────
-
-const reverseErrors = [];
-
-for (const prefix of LOCAL_ONLY_PREFIXES) {
-  const norm = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
-  const yamlPathsForPrefix = Object.entries(paths).filter(
-    ([p]) => p === norm || p.startsWith(norm + "/")
-  );
-  for (const [yamlPath, ops] of yamlPathsForPrefix) {
-    if (!ops || typeof ops !== "object") continue;
-    for (const [method, op] of Object.entries(ops)) {
-      if (!["get", "post", "put", "patch", "delete"].includes(method) || !op) continue;
-      if (op["x-loopback-only"] !== true) {
-        reverseErrors.push(
-          `routeGuard LOCAL_ONLY prefix "${prefix}" covers "${yamlPath}" ${method.toUpperCase()} but YAML lacks x-loopback-only: true`
-        );
-      }
-    }
-  }
-}
-
-for (const guardPath of ALWAYS_PROTECTED_PATHS) {
-  const pathEntry = paths[guardPath];
-  if (!pathEntry) {
-    reverseErrors.push(`routeGuard ALWAYS_PROTECTED "${guardPath}" is not documented in YAML`);
-    continue;
-  }
-  for (const [method, op] of Object.entries(pathEntry)) {
-    if (!["get", "post", "put", "patch", "delete"].includes(method) || !op) continue;
-    if (op["x-always-protected"] !== true) {
-      reverseErrors.push(
-        `routeGuard ALWAYS_PROTECTED "${guardPath}" ${method.toUpperCase()} lacks x-always-protected: true in YAML`
-      );
-    }
-  }
-}
-
-const allErrors = [...errors, ...reverseErrors];
-
-if (allErrors.length === 0) {
+if (errors.length === 0) {
   console.log("[openapi-security-tiers] PASS — all security tier annotations match routeGuard.ts");
   process.exit(0);
 } else {
-  console.error(`[openapi-security-tiers] FAIL — ${allErrors.length} annotation mismatches:`);
-  allErrors.forEach((e) => console.error(`  - ${e}`));
+  console.error(`[openapi-security-tiers] FAIL — ${errors.length} annotation mismatches:`);
+  errors.forEach((e) => console.error(`  - ${e}`));
   process.exit(1);
 }

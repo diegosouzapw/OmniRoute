@@ -99,3 +99,34 @@ test("management policy allows /api/mcp/ from localhost with valid CLI token", a
   const outcome = await managementPolicy.evaluate(ctx);
   assert.equal(outcome.allow, true);
 });
+
+// ─── T-10: /api/services/ route guard ─────────────────────────────────────
+
+test("isLocalOnlyPath: /api/services/ prefix is local-only", () => {
+  assert.equal(isLocalOnlyPath("/api/services/"), true);
+  assert.equal(isLocalOnlyPath("/api/services/9router/start"), true);
+  assert.equal(isLocalOnlyPath("/api/services/9router/status"), true);
+  assert.equal(isLocalOnlyPath("/api/services/9router/install"), true);
+});
+
+test("isLocalOnlyBypassableByManageScope: /api/services/* is NOT bypassable (spawn-capable)", () => {
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/9router/start"), false);
+  assert.equal(isLocalOnlyBypassableByManageScope("/api/services/"), false);
+});
+
+test("management policy rejects /api/services/ from non-localhost (status 403)", async () => {
+  const ctx = makeCtx("/api/services/9router/start", { host: "evil.tunnel.io" });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, false);
+  if (!outcome.allow) assert.equal(outcome.status, 403);
+});
+
+test("management policy allows /api/services/ from localhost with valid CLI token", async () => {
+  const token = getMachineTokenSync();
+  const ctx = makeCtx("/api/services/9router/status", {
+    host: "localhost",
+    [CLI_TOKEN_HEADER]: token,
+  });
+  const outcome = await managementPolicy.evaluate(ctx);
+  assert.equal(outcome.allow, true);
+});

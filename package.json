@@ -174,6 +174,7 @@
     "node-machine-id": "^1.1.12",
     "open": "^11.0.0",
     "ora": "^9.4.0",
+    "parse5": "^7.3.0",
     "pino": "^10.3.1",
     "pino-abstract-transport": "^3.0.0",
     "pino-pretty": "^13.1.3",

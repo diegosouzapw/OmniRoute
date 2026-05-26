@@ -22,20 +22,6 @@ servers:
   - url: http://localhost:20128
     description: Local development
 
-# Vendor extensions — OmniRoute security tier annotations (OpenAPI 3.x compatible)
-x-tier-definitions:
-  loopback-only:
-    description: "Route is enforced as loopback-only (127.0.0.1, ::1) regardless of auth.
-      Cannot be authenticated remotely. Spawn-capable routes are classified here.
-      Reference: docs/security/ROUTE_GUARD_TIERS.md"
-  always-protected:
-    description: "Route requires authentication unconditionally, even when REQUIRE_API_KEY=false.
-      Destructive/irreversible operations are classified here.
-      Reference: docs/security/ROUTE_GUARD_TIERS.md"
-  internal:
-    description: "Internal route not part of the public API surface.
-      Hidden from /dashboard/api-endpoints by default."
-
 tags:
   - name: Chat
     description: OpenAI-compatible chat completions
@@ -73,6 +59,10 @@ tags:
     description: Format translation debug & testing
   - name: CLI Tools
     description: CLI tool configuration management
+  - name: Embedded Services
+    description: >-
+      Install, start, stop, and monitor locally-running embedded services (9Router, CLIProxyAPI).
+      All routes are LOCAL_ONLY — accessible from loopback only (hard rule #17).
   - name: OAuth
     description: OAuth flows for provider authentication
   - name: System
@@ -85,30 +75,6 @@ tags:
     description: Fallback chain management
   - name: Telemetry
     description: Telemetry and token health monitoring
-  - name: MCP
-    description: Model Context Protocol server (LOCAL_ONLY — loopback access only)
-  - name: Webhooks
-    description: Webhook endpoint management and testing
-  - name: Tunnels
-    description: Tunnel (ngrok, Cloudflare, Tailscale) management
-  - name: Skills
-    description: Skill framework — install, list, execute
-  - name: Memory
-    description: Persistent conversational memory (FTS5 + Qdrant)
-  - name: Logs
-    description: Application and request log access
-  - name: Version Manager
-    description: Version check and update management
-  - name: Analytics
-    description: Internal analytics and routing statistics
-  - name: A2A
-    description: Agent-to-Agent JSON-RPC 2.0 protocol
-  - name: Evals
-    description: Evaluation suites
-  - name: Files
-    description: File uploads and management
-  - name: Batches
-    description: Batch request processing
 
 paths:
   # ─── Proxy Endpoints ──────────────────────────────────────────
@@ -234,47 +200,6 @@ paths:
       responses:
         "200":
           description: Response object or SSE stream
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/v1/responses/{path}:
-    get:
-      tags: [Responses]
-      summary: Responses API catch-all (GET)
-      description: Generic Responses API passthrough for sub-paths.
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Responses API result
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Responses]
-      summary: Responses API catch-all (POST)
-      parameters:
-        - name: path
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Responses API result
         "401":
           $ref: "#/components/responses/Unauthorized"
 
@@ -1137,195 +1062,6 @@ paths:
         "200":
           description: Test result
 
-  /api/settings/proxy/vercel-deploy:
-    post:
-      tags: [Settings]
-      summary: Deploy a Vercel relay proxy
-      description: Deploys an edge-function relay to Vercel and registers it as a proxy pool entry.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [token, projectName]
-              properties:
-                token:
-                  type: string
-                  description: Vercel API token
-                projectName:
-                  type: string
-                  description: Name for the Vercel project
-      responses:
-        "200":
-          description: Deployment succeeded and proxy registered
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "504":
-          description: Deployment timed out
-
-  /api/settings/free-proxies:
-    get:
-      tags: [Settings]
-      summary: List free proxies
-      description: Returns free proxies from the local pool with optional filtering.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: sources
-          in: query
-          schema:
-            type: string
-        - name: protocol
-          in: query
-          schema:
-            type: string
-        - name: country
-          in: query
-          schema:
-            type: string
-        - name: minQuality
-          in: query
-          schema:
-            type: number
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: offset
-          in: query
-          schema:
-            type: integer
-        - name: onlyNotInPool
-          in: query
-          schema:
-            type: boolean
-      responses:
-        "200":
-          description: Free proxy list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    delete:
-      tags: [Settings]
-      summary: Delete free proxy or clear by source
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: query
-          schema:
-            type: string
-          description: Proxy ID to delete
-        - name: source
-          in: query
-          schema:
-            type: string
-          description: Source identifier — clears all proxies from that source
-      responses:
-        "200":
-          description: Deleted
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          description: Proxy not found
-
-  /api/settings/free-proxies/stats:
-    get:
-      tags: [Settings]
-      summary: Free proxy pool statistics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Pool stats and provider list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/settings/free-proxies/sync:
-    post:
-      tags: [Settings]
-      summary: Sync free proxies from upstream providers
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                sources:
-                  type: array
-                  items:
-                    type: string
-                  description: Provider source IDs to sync; omit to sync all enabled providers
-      responses:
-        "200":
-          description: Sync results per provider
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/settings/free-proxies/bulk-add-to-pool:
-    post:
-      tags: [Settings]
-      summary: Bulk add free proxies to the proxy pool
-      description: Tests each proxy and, if reachable, registers it in the pool.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [ids]
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        "200":
-          description: Per-proxy result with succeeded/failed counts
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/settings/free-proxies/{id}/add-to-pool:
-    post:
-      tags: [Settings]
-      summary: Add a single free proxy to the proxy pool
-      description: Tests connectivity and registers the proxy in the pool if reachable.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Add result (success, alreadyInPool, or test failure)
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          description: Free proxy not found
-
   /api/settings/require-login:
     post:
       tags: [Settings]
@@ -1447,91 +1183,6 @@ paths:
       responses:
         "200":
           description: Updated thinking budget configuration
-
-  /api/settings/database:
-    get:
-      tags: [Settings]
-      summary: Get database settings
-      description: Returns SQLite database configuration (WAL mode, journal, paths).
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Database settings
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Settings]
-      summary: Update database settings
-      description: Updates SQLite WAL or journal mode settings. Requires restart to take effect.
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    put:
-      tags: [Settings]
-      summary: Update database settings (alias for PATCH)
-      description: >-
-        Alias for PATCH /api/settings/database. Updates SQLite WAL or journal mode
-        settings. Requires restart to take effect.
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/settings/database/refresh-stats:
-    post:
-      tags: [Settings]
-      summary: Refresh database statistics
-      description: Runs ANALYZE to refresh SQLite query planner statistics.
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Stats refreshed
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/settings/database/vacuum:
-    post:
-      tags: [Settings]
-      summary: Vacuum database
-      description: Runs VACUUM FULL on the SQLite database to reclaim disk space. Destructive — cannot be interrupted.
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Vacuum completed
-        "401":
-          $ref: "#/components/responses/Unauthorized"
 
   /api/rate-limit:
     get:
@@ -1806,11 +1457,6 @@ paths:
     get:
       tags: [CLI Tools]
       summary: Get runtime status for a CLI tool
-      description: >-
-        Gets runtime status for a CLI tool.
-        LOCAL_ONLY — spawn-capable route, blocked unconditionally from non-loopback.
-        CVE class: GHSA-fhh6-4qxv-rpqj.
-      x-loopback-only: true
       parameters:
         - name: toolId
           in: path
@@ -1820,8 +1466,6 @@ paths:
       responses:
         "200":
           description: Runtime status
-        "403":
-          description: Forbidden — request not from loopback
 
   /api/cli-tools/guide-settings/{toolId}:
     get:
@@ -2077,400 +1721,410 @@ paths:
         "200":
           description: OpenClaw CLI settings reset
 
-  /api/cli-tools/apply:
+  # ─── Embedded Services ─────────────────────────────────────────
+  # All routes LOCAL_ONLY (loopback only) — hard rule #17.
+  # See docs/frameworks/EMBEDDED-SERVICES.md for full reference.
+
+  /api/services/9router/install:
     post:
-      tags: [CLI Tools]
-      summary: Apply CLI tool configuration
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Configuration applied
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/config:
-    get:
-      tags: [CLI Tools]
-      summary: Get CLI tools global configuration
-      x-internal: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: CLI tools configuration
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [CLI Tools]
-      summary: Update CLI tools global configuration
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Configuration updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/detect:
-    get:
-      tags: [CLI Tools]
-      summary: Detect locally installed CLI tools
-      description: Scans the local system and returns a map of detected CLI tools and their versions.
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Map of detected tools with version info
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/hermes-agent-settings:
-    get:
-      tags: [CLI Tools]
-      summary: Get Hermes agent CLI settings
-      x-internal: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Hermes agent CLI configuration
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [CLI Tools]
-      summary: Apply Hermes agent CLI settings
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Hermes agent CLI settings applied
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/keys:
-    get:
-      tags: [CLI Tools]
-      summary: Get CLI tool API keys
-      x-internal: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: CLI tool API key configuration
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [CLI Tools]
-      summary: Set CLI tool API keys
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: CLI tool API keys updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/openclaw/auto-order:
-    get:
-      tags: [CLI Tools]
-      summary: Get OpenClaw auto-order configuration
-      x-internal: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: OpenClaw auto-order configuration
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [CLI Tools]
-      summary: Update OpenClaw auto-order configuration
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: OpenClaw auto-order configuration updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/qwen-settings:
-    get:
-      tags: [CLI Tools]
-      summary: Get Qwen CLI settings
-      x-internal: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Qwen CLI configuration
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [CLI Tools]
-      summary: Apply Qwen CLI settings
-      x-internal: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Qwen CLI settings applied
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/cli-tools/status:
-    get:
-      tags: [CLI Tools]
-      summary: CLI tools service status
-      description: Returns health and status of the CLI tools subsystem.
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: CLI tools status
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/upstream-proxy/{providerId}:
-    get:
-      tags: [Internal]
-      summary: Upstream proxy passthrough (GET)
-      description: Proxies GET requests to the upstream provider. Internal use only.
-      x-internal: true
-      parameters:
-        - name: providerId
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Proxied response from upstream provider
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Internal]
-      summary: Upstream proxy passthrough (POST)
-      x-internal: true
-      parameters:
-        - name: providerId
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Proxied response from upstream provider
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    put:
-      tags: [Internal]
-      summary: Upstream proxy passthrough (PUT)
-      x-internal: true
-      parameters:
-        - name: providerId
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Proxied response from upstream provider
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    delete:
-      tags: [Internal]
-      summary: Upstream proxy passthrough (DELETE)
-      x-internal: true
-      parameters:
-        - name: providerId
-          in: path
-          required: true
-          schema:
-            type: string
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Proxied response from upstream provider
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  # ─── MCP Server (LOCAL_ONLY — spawn-capable) ─────────────────────
-  # These routes start/control the MCP server subprocess. They are
-  # enforced as loopback-only by routeGuard.ts regardless of auth state.
-  # CVE class: GHSA-fhh6-4qxv-rpqj — never expose to non-loopback traffic.
-
-  /api/mcp/sse:
-    get:
-      tags: [MCP]
-      summary: MCP Server-Sent Events stream
+      tags: [Embedded Services]
+      summary: Install 9Router from npm
       description: >-
-        SSE transport for the MCP server. Streams tool call results and events.
-        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
+        Installs the `9router` npm package under DATA_DIR/services/9router/.
+        Uses execFile (no shell interpolation — hard rule #13).
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+                  description: npm version tag or semver to install
       responses:
         "200":
-          description: SSE event stream
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  path:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/9router/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start 9Router
+      description: >-
+        Spawns the 9Router process. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started (or already running)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: 9Router is not installed
+        "503":
+          description: Start failed
+
+  /api/services/9router/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop 9Router
+      description: >-
+        Gracefully stops 9Router (SIGTERM → 15 s → SIGKILL). Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "503":
+          description: Stop failed
+
+  /api/services/9router/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart 9Router
+      description: >-
+        Equivalent to stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/9router/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update 9Router to a newer npm version
+      description: >-
+        Stops the service (if running), installs the newer npm version, then restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  previousVersion:
+                    type: string
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
+  /api/services/9router/rotate-key:
+    post:
+      tags: [Embedded Services]
+      summary: Rotate the 9Router API key
+      description: >-
+        Generates a new API key, encrypts it at-rest, and restarts the service to
+        apply it. The plaintext key is never returned.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Key rotated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keyRotated:
+                    type: boolean
+                  restarted:
+                    type: boolean
+        "500":
+          description: Rotation failed
+
+  /api/services/9router/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get 9Router status
+      description: >-
+        Returns combined live supervisor state and DB metadata.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatusExtended"
+        "500":
+          description: Status read failed
+
+  /api/services/9router/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle 9Router auto-start
+      description: >-
+        When enabled, 9Router starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/cliproxy/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install CLIProxyAPI from npm
+      description: >-
+        Installs the CLIProxyAPI package under DATA_DIR/services/cliproxy/.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Install succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "400":
+          description: Invalid request body
+        "500":
+          description: npm install failed
+
+  /api/services/cliproxy/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start CLIProxyAPI
+      description: >-
+        Spawns the CLIProxyAPI process. Idempotent if already running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "409":
+          description: CLIProxyAPI is not installed
+        "503":
+          description: Start failed
+
+  /api/services/cliproxy/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop CLIProxyAPI
+      description: >-
+        Gracefully stops CLIProxyAPI. Idempotent.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart CLIProxyAPI
+      description: >-
+        stop() then start() under the operation lock.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service restarted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update CLIProxyAPI to a newer npm version
+      description: >-
+        Stops, installs newer version, restarts.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Update succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+        "500":
+          description: Update failed
+
+  /api/services/cliproxy/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get CLIProxyAPI status
+      description: >-
+        Returns live supervisor state and DB metadata (no apiKeyMasked — CLIProxyAPI
+        does not use an injected API key).
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Status response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /api/services/cliproxy/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle CLIProxyAPI auto-start
+      description: >-
+        When enabled, CLIProxyAPI starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: Auto-start flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  autoStart:
+                    type: boolean
+        "400":
+          description: Invalid request body
+
+  /api/services/{name}/logs:
+    get:
+      tags: [Embedded Services]
+      summary: Stream service logs via SSE
+      description: >-
+        Returns a Server-Sent Events stream from the service's in-memory ring buffer
+        (5 MB, circular). Sends a `snapshot` event with historical lines first, then
+        live `log` events, plus a `heartbeat` every 15 s.
+        **LOCAL_ONLY** — loopback only.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [9router, cliproxy]
+        - name: tail
+          in: query
+          schema:
+            type: integer
+            default: 200
+            maximum: 1000
+          description: Number of historical lines to include in the initial snapshot
+        - name: filter
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          description: >-
+            Case-insensitive substring filter applied to log lines.
+            No regex — ReDoS-safe by design.
+      responses:
+        "200":
+          description: SSE log stream
           content:
             text/event-stream:
               schema:
                 type: string
-        "403":
-          description: Forbidden — request not from loopback
-
-  /api/mcp/stream:
-    get:
-      tags: [MCP]
-      summary: MCP HTTP streaming transport
-      description: >-
-        HTTP streaming (chunked) transport for the MCP server.
-        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Chunked stream
-        "403":
-          description: Forbidden — request not from loopback
-    post:
-      tags: [MCP]
-      summary: MCP HTTP streaming transport (POST)
-      description: >-
-        HTTP streaming (chunked) transport for the MCP server — POST variant.
-        LOCAL_ONLY — blocked unconditionally from non-loopback IPs.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: MCP response
-        "403":
-          description: Forbidden — request not from loopback
-
-  /api/mcp/status:
-    get:
-      tags: [MCP]
-      summary: MCP server status
-      description: Returns running/stopped state of the MCP server process. LOCAL_ONLY.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: MCP server status object
-        "403":
-          description: Forbidden — request not from loopback
-
-  /api/mcp/tools:
-    get:
-      tags: [MCP]
-      summary: List MCP tools
-      description: Returns the registered tool manifest. LOCAL_ONLY.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Tool list
-        "403":
-          description: Forbidden — request not from loopback
-
-  /api/mcp/audit:
-    get:
-      tags: [MCP]
-      summary: MCP audit log
-      description: Returns recent MCP tool invocation log entries. LOCAL_ONLY.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Audit log entries
-        "403":
-          description: Forbidden — request not from loopback
-
-  /api/mcp/audit/stats:
-    get:
-      tags: [MCP]
-      summary: MCP audit statistics
-      description: Returns aggregate MCP tool usage statistics. LOCAL_ONLY.
-      x-loopback-only: true
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Audit stats
-        "403":
-          description: Forbidden — request not from loopback
+                description: >-
+                  Events: `snapshot` (LogLine[]), `log` (LogLine), `heartbeat` ({})
+        "400":
+          description: filter parameter exceeds maximum length
+        "404":
+          description: Service not found
 
   # ─── OAuth ─────────────────────────────────────────────────────
 
@@ -2700,467 +2354,6 @@ paths:
         "200":
           description: Fallback chain deleted
 
-  # ─── Webhooks ─────────────────────────────────────────────────────
-
-  /api/webhooks:
-    get:
-      tags: [Webhooks]
-      summary: List webhooks
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Webhook list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Webhooks]
-      summary: Create webhook
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                url:
-                  type: string
-                  format: uri
-                events:
-                  type: array
-                  items:
-                    type: string
-                secret:
-                  type: string
-      responses:
-        "201":
-          description: Webhook created
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/webhooks/{id}:
-    get:
-      tags: [Webhooks]
-      summary: Get webhook
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Webhook details
-        "404":
-          description: Not found
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    patch:
-      tags: [Webhooks]
-      summary: Update webhook
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Webhook updated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    delete:
-      tags: [Webhooks]
-      summary: Delete webhook
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Webhook deleted
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/webhooks/{id}/test:
-    post:
-      tags: [Webhooks]
-      summary: Test webhook delivery
-      description: Sends a test event payload to the webhook URL.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Test delivery result
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/webhooks/{id}/deliveries:
-    get:
-      tags: [Webhooks]
-      summary: List webhook delivery history
-      description: Returns recent delivery attempts for a webhook, newest first.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        "200":
-          description: Delivery list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          description: Webhook not found
-
-  /api/webhooks/validate-url:
-    post:
-      tags: [Webhooks]
-      summary: Validate a webhook target URL
-      description: Checks if the URL passes the SSRF guard before saving a webhook.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [url]
-              properties:
-                url:
-                  type: string
-                  maxLength: 2000
-      responses:
-        "200":
-          description: Validation result (`valid` boolean, optional `reason`)
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  # ─── Tunnels ──────────────────────────────────────────────────────
-
-  /api/tunnels/ngrok:
-    get:
-      tags: [Tunnels]
-      summary: Get ngrok tunnel status
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: ngrok tunnel status
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Tunnels]
-      summary: Start/configure ngrok tunnel
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Tunnel started
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    delete:
-      tags: [Tunnels]
-      summary: Stop ngrok tunnel
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Tunnel stopped
-
-  /api/tunnels/cloudflared:
-    get:
-      tags: [Tunnels]
-      summary: Get Cloudflare Tunnel status
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Cloudflare tunnel status
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Tunnels]
-      summary: Start/configure Cloudflare Tunnel
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Tunnel started
-    delete:
-      tags: [Tunnels]
-      summary: Stop Cloudflare Tunnel
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Tunnel stopped
-
-  /api/tunnels/tailscale:
-    get:
-      tags: [Tunnels]
-      summary: Get Tailscale status
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Tailscale status
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/tunnels/tailscale/install:
-    post:
-      tags: [Tunnels]
-      summary: Install Tailscale
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Install initiated
-
-  /api/tunnels/tailscale/login:
-    post:
-      tags: [Tunnels]
-      summary: Tailscale login / auth key
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                authKey:
-                  type: string
-      responses:
-        "200":
-          description: Login result
-
-  /api/tunnels/tailscale/start-daemon:
-    post:
-      tags: [Tunnels]
-      summary: Start Tailscale daemon
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Daemon started
-
-  /api/tunnels/tailscale/enable:
-    post:
-      tags: [Tunnels]
-      summary: Enable Tailscale routing
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Routing enabled
-
-  /api/tunnels/tailscale/disable:
-    post:
-      tags: [Tunnels]
-      summary: Disable Tailscale routing
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Routing disabled
-
-  /api/tunnels/tailscale/check:
-    get:
-      tags: [Tunnels]
-      summary: Check Tailscale connectivity
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Connectivity check result
-
-  # ─── Skills ───────────────────────────────────────────────────────
-
-  /api/skills:
-    get:
-      tags: [Skills]
-      summary: List installed skills
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Skill list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/skills/{id}:
-    get:
-      tags: [Skills]
-      summary: Get skill details
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Skill details
-        "404":
-          description: Skill not found
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    delete:
-      tags: [Skills]
-      summary: Uninstall skill
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Skill uninstalled
-
-  /api/skills/install:
-    post:
-      tags: [Skills]
-      summary: Install skill from ZIP or URL
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                source:
-                  type: string
-                  description: URL or base64 ZIP
-      responses:
-        "201":
-          description: Skill installed
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/skills/marketplace:
-    get:
-      tags: [Skills]
-      summary: Browse skill marketplace
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Available skills
-
-  /api/skills/marketplace/install:
-    post:
-      tags: [Skills]
-      summary: Install skill from marketplace
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                skillId:
-                  type: string
-      responses:
-        "201":
-          description: Skill installed
-
-  /api/skills/executions:
-    get:
-      tags: [Skills]
-      summary: List skill execution history
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Execution history
-
   # ─── System ────────────────────────────────────────────────────
 
   /api/auth/login:
@@ -3210,19 +2403,10 @@ paths:
   /api/shutdown:
     post:
       tags: [System]
-      summary: Shutdown the OmniRoute service
-      description: >-
-        Initiates a graceful shutdown. Always requires authentication regardless of
-        the `requireLogin` setting — classified as ALWAYS_PROTECTED in routeGuard.ts.
-      x-always-protected: true
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
+      summary: Shutdown the application
       responses:
-        "202":
+        "200":
           description: Shutdown initiated
-        "401":
-          $ref: "#/components/responses/Unauthorized"
 
   /api/db-backups:
     get:
@@ -3237,59 +2421,6 @@ paths:
       responses:
         "200":
           description: Backup created
-
-  /api/db-backups/export:
-    post:
-      tags: [System]
-      summary: Export database to file
-      description: Creates a snapshot export of the SQLite database.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Export file path or download
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/db-backups/exportAll:
-    post:
-      tags: [System]
-      summary: Export all data to ZIP
-      description: Exports the full database including attachments to a ZIP archive.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: ZIP archive
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/db-backups/import:
-    post:
-      tags: [System]
-      summary: Import database from backup
-      description: >-
-        Restores database from a backup file. Destructive — overwrites current data.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        "200":
-          description: Import successful
-        "401":
-          $ref: "#/components/responses/Unauthorized"
 
   /api/storage/health:
     get:
@@ -3598,3272 +2729,6 @@ paths:
         "500":
           description: Failed to parse OpenAPI spec
 
-  # ─── Memory ───────────────────────────────────────────────────────
-
-  /api/memory:
-    get:
-      tags: [Memory]
-      summary: List memory entries
-      description: Returns conversational memory entries (FTS5 + Qdrant).
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Memory entries
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Memory]
-      summary: Create memory entry
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                content:
-                  type: string
-                tags:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        "201":
-          description: Memory entry created
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/memory/{id}:
-    get:
-      tags: [Memory]
-      summary: Get memory entry
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Memory entry
-        "404":
-          description: Not found
-    patch:
-      tags: [Memory]
-      summary: Update memory entry
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Memory entry updated
-    delete:
-      tags: [Memory]
-      summary: Delete memory entry
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Memory entry deleted
-
-  /api/memory/health:
-    get:
-      tags: [Memory]
-      summary: Memory system health
-      description: Returns health of FTS5 index and Qdrant vector store.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Memory health status
-
-  # ─── Logs ─────────────────────────────────────────────────────────
-
-  /api/logs/console:
-    get:
-      tags: [Logs]
-      summary: Get application console logs
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Console log entries
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-
-  /api/logs/active:
-    get:
-      tags: [Logs]
-      summary: Get active request logs
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Active request log entries
-
-  /api/logs/detail:
-    get:
-      tags: [Logs]
-      summary: Get detailed log entries
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: query
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Detailed log entry
-
-  /api/logs/export:
-    get:
-      tags: [Logs]
-      summary: Export logs as file
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Log file download
-
-  # ─── v1 Missing Routes ────────────────────────────────────────────
-
-  /api/v1/completions:
-    post:
-      tags: [Chat]
-      summary: Legacy completions (text)
-      description: OpenAI legacy text completions endpoint.
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Completion response
-
-  /api/v1/batches:
-    get:
-      tags: [Batches]
-      summary: List batch jobs
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Batch job list
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-    post:
-      tags: [Batches]
-      summary: Create batch job
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Batch job created
-
-  /api/v1/batches/{id}:
-    get:
-      tags: [Batches]
-      summary: Get batch job
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Batch job details
-    delete:
-      tags: [Batches]
-      summary: Cancel batch job
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Batch cancelled
-
-  /api/v1/batches/{id}/cancel:
-    post:
-      tags: [Batches]
-      summary: Cancel batch job (explicit)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Batch cancelled
-
-  /api/v1/files:
-    get:
-      tags: [Files]
-      summary: List uploaded files
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: File list
-    post:
-      tags: [Files]
-      summary: Upload file
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                purpose:
-                  type: string
-      responses:
-        "201":
-          description: File uploaded
-
-  /api/v1/files/{id}:
-    get:
-      tags: [Files]
-      summary: Get file metadata
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: File metadata
-    delete:
-      tags: [Files]
-      summary: Delete file
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: File deleted
-
-  /api/v1/files/{id}/content:
-    get:
-      tags: [Files]
-      summary: Get file content
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: File content
-
-  /api/v1/images/edits:
-    post:
-      tags: [Images]
-      summary: Edit image
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Edited image
-
-  /api/v1/music/generations:
-    post:
-      tags: [Audio]
-      summary: Generate music
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Generated music
-
-  /api/v1/videos/generations:
-    post:
-      tags: [Images]
-      summary: Generate video
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Generated video
-
-  /api/v1/quotas/check:
-    get:
-      tags: [API Keys]
-      summary: Check quota usage
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Quota status
-
-  /api/v1/registered-keys:
-    get:
-      tags: [API Keys]
-      summary: List registered API keys
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Registered keys
-    post:
-      tags: [API Keys]
-      summary: Register API key
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Key registered
-
-  /api/v1/registered-keys/{id}:
-    get:
-      tags: [API Keys]
-      summary: Get registered key
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Key details
-    delete:
-      tags: [API Keys]
-      summary: Delete registered key
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Key deleted
-
-  /api/v1/registered-keys/{id}/revoke:
-    post:
-      tags: [API Keys]
-      summary: Revoke registered key
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Key revoked
-
-  # ─── Usage Extensions ─────────────────────────────────────────────
-
-  /api/usage/quota:
-    get:
-      tags: [Usage]
-      summary: Get quota usage
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Quota usage stats
-
-  /api/usage/utilization:
-    get:
-      tags: [Usage]
-      summary: Get provider utilization metrics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Utilization data
-
-  /api/usage/combo-health:
-    get:
-      tags: [Usage]
-      summary: Get combo health metrics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Combo health metrics
-
-  /api/usage/provider-limits:
-    get:
-      tags: [Usage]
-      summary: Get provider rate limit status
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Provider limit status
-
-  /api/usage/budget/bulk:
-    patch:
-      tags: [Usage]
-      summary: Bulk update usage budgets
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Budgets updated
-
-  # ─── Provider Extensions ──────────────────────────────────────────
-
-  /api/providers/bulk:
-    post:
-      tags: [Providers]
-      summary: Bulk provider operations
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk operation result
-
-  /api/providers/{id}/refresh:
-    post:
-      tags: [Providers]
-      summary: Refresh provider connection
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Provider refreshed
-
-  /api/providers/{id}/sync-models:
-    post:
-      tags: [Providers]
-      summary: Sync provider models
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Models synced
-
-  /api/providers/expiration:
-    get:
-      tags: [Providers]
-      summary: Get provider credential expiration status
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Expiration status
-
-  /api/providers/quota-windows:
-    get:
-      tags: [Providers]
-      summary: Get provider quota windows
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Quota window data
-
-  # ─── Settings Extensions ──────────────────────────────────────────
-
-  /api/settings/feature-flags:
-    get:
-      tags: [Settings]
-      summary: Get feature flags
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Feature flags
-    patch:
-      tags: [Settings]
-      summary: Update feature flags
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Flags updated
-
-  /api/settings/memory:
-    get:
-      tags: [Settings]
-      summary: Get memory settings
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Memory settings
-    patch:
-      tags: [Settings]
-      summary: Update memory settings
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  /api/settings/model-aliases:
-    get:
-      tags: [Settings]
-      summary: Get model aliases
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Model alias map
-    post:
-      tags: [Settings]
-      summary: Create model alias
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Alias created
-    delete:
-      tags: [Settings]
-      summary: Delete model alias
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Alias deleted
-
-  /api/settings/export-json:
-    get:
-      tags: [Settings]
-      summary: Export settings as JSON
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Settings JSON export
-
-  /api/settings/import-json:
-    post:
-      tags: [Settings]
-      summary: Import settings from JSON
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings imported
-
-  /api/settings/purge-call-logs:
-    post:
-      tags: [Settings]
-      summary: Purge call logs
-      description: Deletes all call log records. Destructive.
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Logs purged
-
-  /api/settings/purge-logs:
-    post:
-      tags: [Settings]
-      summary: Purge all logs
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Logs purged
-
-  /api/settings/cache-config:
-    get:
-      tags: [Settings]
-      summary: Get cache configuration
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Cache config
-    patch:
-      tags: [Settings]
-      summary: Update cache configuration
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Config updated
-
-  /api/settings/task-routing:
-    get:
-      tags: [Settings]
-      summary: Get task routing settings
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Task routing config
-    patch:
-      tags: [Settings]
-      summary: Update task routing settings
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  # ─── Internal Routes (x-internal: true — hidden from dashboard by default) ─
-
-  /api/analytics/auto-routing:
-    get:
-      tags: [Analytics]
-      x-internal: true
-      summary: Auto-routing decision analytics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Auto-routing analytics
-
-  /api/analytics/compression:
-    get:
-      tags: [Analytics]
-      x-internal: true
-      summary: Compression analytics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Compression analytics
-
-  /api/analytics/diversity:
-    get:
-      tags: [Analytics]
-      x-internal: true
-      summary: Provider diversity analytics
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Diversity analytics
-
-  /api/assess:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Assess request (internal)
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Assessment result
-
-  /api/admin/concurrency:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Admin concurrency status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Concurrency info
-
-  /api/copilot/chat:
-    post:
-      tags: [Chat]
-      x-internal: true
-      summary: Copilot chat relay (internal)
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Chat response
-
-  /api/gamification/leaderboard:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Local gamification leaderboard
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Leaderboard
-
-  /api/gamification/federation/leaderboard:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Federated gamification leaderboard
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Federation leaderboard
-
-  /api/gamification/federation/score:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Submit federation score
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Score submitted
-
-  /api/gamification/anomalies:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Gamification anomaly detection
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Anomaly data
-
-  /api/gamification/invite:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Get invite code
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Invite code
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Create invite
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Invite created
-
-  /api/gamification/invite/redeem:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Redeem invite code
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Invite redeemed
-
-  /api/gamification/notifications:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Gamification notifications
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Notifications
-
-  /api/gamification/rotate:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Rotate gamification key
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Key rotated
-
-  /api/gamification/servers:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Gamification server list
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Server list
-
-  /api/gamification/stream:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Gamification event stream
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: SSE stream
-
-  /api/gamification/transfer:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Transfer gamification data
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Transfer result
-
-  /api/health/degradation:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Degradation health check
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Degradation status
-
-  /api/network/info:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Network info
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Network info
-
-  /api/playground/simulate-route:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Simulate routing decision (playground)
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Routing simulation result
-
-  /api/provider-metrics:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Raw provider performance metrics
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Metrics
-
-  /api/relay/tokens:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: List relay tokens
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Relay tokens
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Create relay token
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Token created
-
-  /api/relay/tokens/{id}:
-    delete:
-      tags: [System]
-      x-internal: true
-      summary: Delete relay token
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Token deleted
-
-  /api/search/providers:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Search providers (internal)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Search results
-
-  /api/search/stats:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Search subsystem stats
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Stats
-
-  /api/sync/bundle:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Get sync bundle
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Sync bundle
-
-  /api/sync/tokens:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: List sync tokens
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Sync tokens
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Create sync token
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Token created
-
-  /api/sync/tokens/{id}:
-    delete:
-      tags: [System]
-      x-internal: true
-      summary: Delete sync token
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Token deleted
-
-  /api/synced-available-models:
-    get:
-      tags: [Models]
-      x-internal: true
-      summary: Synced available models (internal cache)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Model list
-
-  /api/system/env/repair:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Repair environment configuration
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Repair result
-
-  /api/system/version:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Get system version info
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Version info
-
-  /api/v1/accounts/{id}/limits:
-    get:
-      tags: [API Keys]
-      x-internal: true
-      summary: Get account limits (internal)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Account limits
-
-  /api/v1/agents/credentials:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: Get agent credentials
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Agent credentials
-    post:
-      tags: [A2A]
-      x-internal: true
-      summary: Create agent credentials
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Credentials created
-
-  /api/v1/agents/health:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: Agent health check
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Agent health
-
-  /api/v1/agents/tasks:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: List agent tasks
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Agent tasks
-    post:
-      tags: [A2A]
-      x-internal: true
-      summary: Create agent task
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Task created
-
-  /api/v1/agents/tasks/{id}:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: Get agent task
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Task details
-    patch:
-      tags: [A2A]
-      x-internal: true
-      summary: Update agent task
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Task updated
-
-  /api/v1/batches/delete-completed:
-    post:
-      tags: [Batches]
-      x-internal: true
-      summary: Delete completed batch jobs
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Completed batches deleted
-
-  /api/v1/chatgpt-web/image/{id}:
-    get:
-      tags: [Images]
-      x-internal: true
-      summary: Retrieve ChatGPT web image (internal)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Image data
-
-  /api/v1/combos:
-    get:
-      tags: [Combos]
-      x-internal: true
-      summary: List combos (v1 proxy)
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Combo list
-
-  /api/v1/issues/report:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Submit issue report
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Issue reported
-
-  /api/v1/management/proxies:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Management proxy list
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Proxy list
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Create management proxy
-      security:
-        - BearerAuth: []
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Proxy created
-
-  /api/v1/management/proxies/assignments:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: List proxy assignments
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Assignments
-
-  /api/v1/management/proxies/bulk-assign:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Bulk assign proxies
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk assignment result
-
-  /api/v1/management/proxies/health:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Management proxy health
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Health status
-
-  /api/v1/providers/{provider}/limits:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Get provider-specific rate limits (v1)
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Rate limits
-
-  /api/v1/relay/chat/completions:
-    post:
-      tags: [Chat]
-      x-internal: true
-      summary: Relay chat completions (internal)
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Relay response
-
-  /api/v1/search:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Internal search endpoint
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Search results
-
-  /api/v1/search/analytics:
-    get:
-      tags: [Analytics]
-      x-internal: true
-      summary: Search analytics
-      security:
-        - BearerAuth: []
-      responses:
-        "200":
-          description: Search analytics
-
-  /api/v1/web/fetch:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Web fetch proxy (internal)
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Fetched content
-
-  /api/v1/ws:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: WebSocket upgrade endpoint
-      security:
-        - BearerAuth: []
-      responses:
-        "101":
-          description: WebSocket upgrade
-
-  /api/version-manager/status:
-    get:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Version manager status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Version manager state
-
-  /api/version-manager/check-update:
-    get:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Check for updates
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Update availability
-
-  /api/version-manager/install:
-    post:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Install update
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Install initiated
-
-  /api/version-manager/start:
-    post:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Start version manager
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Started
-
-  /api/version-manager/stop:
-    post:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Stop version manager
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Stopped
-
-  /api/version-manager/restart:
-    post:
-      tags: [Version Manager]
-      x-internal: true
-      summary: Restart version manager
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Restarted
-
-  /api/models/openrouter-catalog:
-    get:
-      tags: [Models]
-      x-internal: true
-      summary: OpenRouter model catalog (cached)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Model catalog
-
-  /api/models/test:
-    post:
-      tags: [Models]
-      x-internal: true
-      summary: Test model routing
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Test result
-
-  /api/cache/entries:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: List cache entries
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Cache entries
-
-  /api/cache/reasoning:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Reasoning cache entries
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Reasoning cache
-
-  /api/context/analytics:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Context analytics
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Context analytics
-
-  /api/context/caveman/config:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Caveman context config
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Config
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update caveman context config
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Config updated
-
-  /api/context/combos:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: List context combos
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Context combos
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Create context combo
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Combo created
-
-  /api/context/combos/{id}:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get context combo
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Context combo
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update context combo
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Combo updated
-    delete:
-      tags: [Settings]
-      x-internal: true
-      summary: Delete context combo
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Combo deleted
-
-  /api/context/combos/{id}/assignments:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get context combo assignments
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Assignments
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Update context combo assignments
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Assignments updated
-
-  /api/middleware/hooks:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: List middleware hooks
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Hook list
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Create middleware hook
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Hook created
-
-  /api/middleware/hooks/{name}:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get middleware hook
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Hook details
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update middleware hook
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Hook updated
-    delete:
-      tags: [Settings]
-      x-internal: true
-      summary: Delete middleware hook
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Hook deleted
-
-  /api/settings/auto-disable-accounts:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get auto-disable accounts settings
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Auto-disable settings
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update auto-disable accounts settings
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  /api/settings/background-degradation:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get background degradation settings
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Degradation settings
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update background degradation settings
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  /api/settings/authz-inventory:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get authorization inventory
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Authz inventory
-
-  /api/settings/cache-metrics:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get cache performance metrics
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Cache metrics
-
-  /api/settings/favicon:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get custom favicon setting
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Favicon config
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Update custom favicon
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Favicon updated
-
-  /api/settings/lkgp-cache:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get LKGP cache state
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: LKGP cache state
-    delete:
-      tags: [Settings]
-      x-internal: true
-      summary: Clear LKGP cache
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Cache cleared
-
-  /api/settings/mitm:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get MITM proxy settings
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: MITM settings
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update MITM proxy settings
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  /api/settings/models-dev:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get dev model overrides
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Dev model overrides
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update dev model overrides
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Overrides updated
-
-  /api/settings/oneproxy:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get OneProxy settings
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: OneProxy settings
-    patch:
-      tags: [Settings]
-      x-internal: true
-      summary: Update OneProxy settings
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Settings updated
-
-  /api/settings/oneproxy/rotate:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Rotate OneProxy credentials
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Credentials rotated
-
-  /api/settings/proxies:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: List proxy configurations
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Proxy configurations
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Create proxy configuration
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Proxy created
-
-  /api/settings/proxies/assignments:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: List proxy assignments
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Proxy assignments
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Update proxy assignments
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Assignments updated
-
-  /api/settings/proxies/bulk-assign:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Bulk assign proxies
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk assignment result
-
-  /api/settings/proxies/bulk-import:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Bulk import proxy configurations
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/settings/proxies/health:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Proxy configuration health check
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Health status
-
-  /api/settings/proxies/migrate:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Migrate proxy configurations
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Migration result
-
-  /api/settings/purge-detailed-logs:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Purge detailed logs
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Logs purged
-
-  /api/settings/purge-quota-snapshots:
-    post:
-      tags: [Settings]
-      x-internal: true
-      summary: Purge quota snapshots
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Snapshots purged
-
-  /api/settings/qdrant/embedding-models:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: List Qdrant embedding models
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Embedding model list
-
-  /api/settings/compression/rules:
-    get:
-      tags: [Settings]
-      x-internal: true
-      summary: Get compression rules (settings sub-path)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Compression rules
-
-  /api/keys/groups:
-    get:
-      tags: [API Keys]
-      x-internal: true
-      summary: List API key groups
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Key groups
-    post:
-      tags: [API Keys]
-      x-internal: true
-      summary: Create API key group
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Group created
-
-  /api/keys/groups/{id}:
-    get:
-      tags: [API Keys]
-      x-internal: true
-      summary: Get API key group
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Group details
-    patch:
-      tags: [API Keys]
-      x-internal: true
-      summary: Update API key group
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Group updated
-    delete:
-      tags: [API Keys]
-      x-internal: true
-      summary: Delete API key group
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Group deleted
-
-  /api/keys/groups/{id}/keys:
-    get:
-      tags: [API Keys]
-      x-internal: true
-      summary: List keys in group
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Keys in group
-    post:
-      tags: [API Keys]
-      x-internal: true
-      summary: Add key to group
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Key added
-
-  /api/keys/groups/{id}/permissions:
-    get:
-      tags: [API Keys]
-      x-internal: true
-      summary: Get group permissions
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Permissions
-    patch:
-      tags: [API Keys]
-      x-internal: true
-      summary: Update group permissions
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Permissions updated
-
-  /api/keys/{id}/regenerate:
-    post:
-      tags: [API Keys]
-      x-internal: true
-      summary: Regenerate API key secret
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: New key value
-
-  /api/keys/{id}/reveal:
-    post:
-      tags: [API Keys]
-      x-internal: true
-      summary: Reveal API key value
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Key value (one-time reveal)
-
-  /api/resilience/model-cooldowns:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: List model cooldown state
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Model cooldown entries
-
-  /api/a2a/status:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: A2A server status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: A2A status
-
-  /api/a2a/tasks:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: List A2A tasks
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: A2A task list
-    post:
-      tags: [A2A]
-      x-internal: true
-      summary: Create A2A task
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Task created
-
-  /api/a2a/tasks/{id}:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: Get A2A task
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Task details
-
-  /api/a2a/tasks/{id}/cancel:
-    post:
-      tags: [A2A]
-      x-internal: true
-      summary: Cancel A2A task
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Task cancelled
-
-  /api/acp/agents:
-    get:
-      tags: [A2A]
-      x-internal: true
-      summary: List ACP agents
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Agent list
-
-  /api/db/health:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Database health check
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: DB health
-
-  /api/evals/suites:
-    get:
-      tags: [Evals]
-      x-internal: true
-      summary: List eval suites
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Suite list
-    post:
-      tags: [Evals]
-      x-internal: true
-      summary: Create eval suite
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Suite created
-
-  /api/evals/suites/{suiteId}:
-    get:
-      tags: [Evals]
-      x-internal: true
-      summary: Get eval suite details
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: suiteId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Suite details
-    patch:
-      tags: [Evals]
-      x-internal: true
-      summary: Update eval suite
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: suiteId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Suite updated
-
-  /api/files:
-    get:
-      tags: [Files]
-      x-internal: true
-      summary: List files (management view)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: File list
-    post:
-      tags: [Files]
-      x-internal: true
-      summary: Upload file (management)
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: File uploaded
-
-  /api/files/{id}/content:
-    get:
-      tags: [Files]
-      x-internal: true
-      summary: Get file content (management)
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: File content
-
-  /api/batches:
-    get:
-      tags: [Batches]
-      x-internal: true
-      summary: List batch jobs (management)
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Batch list
-    post:
-      tags: [Batches]
-      x-internal: true
-      summary: Create batch job (management)
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Batch created
-
-  /api/batches/{id}:
-    get:
-      tags: [Batches]
-      x-internal: true
-      summary: Get batch job (management)
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Batch details
-    delete:
-      tags: [Batches]
-      x-internal: true
-      summary: Delete batch job (management)
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Batch deleted
-
-  /api/internal/codex-responses-ws:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Codex responses WebSocket (internal)
-      security:
-        - BearerAuth: []
-      responses:
-        "101":
-          description: WebSocket upgrade
-
-  /api/openapi/try:
-    post:
-      tags: [System]
-      x-internal: true
-      summary: Try It — execute an API request via proxy
-      description: Internal endpoint used by the API Explorer "Try It" feature.
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                method:
-                  type: string
-                path:
-                  type: string
-                body:
-                  type: object
-      responses:
-        "200":
-          description: Try result
-
-  /api/pricing/sync:
-    post:
-      tags: [Pricing]
-      x-internal: true
-      summary: Sync pricing data
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Pricing synced
-
-  /api/auth/status:
-    get:
-      tags: [System]
-      x-internal: true
-      summary: Auth session status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Auth status
-
-  /api/model-combo-mappings:
-    get:
-      tags: [Combos]
-      x-internal: true
-      summary: List model combo mappings
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Mappings
-    post:
-      tags: [Combos]
-      x-internal: true
-      summary: Create model combo mapping
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "201":
-          description: Mapping created
-
-  /api/model-combo-mappings/{id}:
-    patch:
-      tags: [Combos]
-      x-internal: true
-      summary: Update model combo mapping
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Mapping updated
-    delete:
-      tags: [Combos]
-      x-internal: true
-      summary: Delete model combo mapping
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Mapping deleted
-
-  /api/combos/builder/options:
-    get:
-      tags: [Combos]
-      x-internal: true
-      summary: Combo builder options
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: Builder options
-
-  /api/combos/reorder:
-    patch:
-      tags: [Combos]
-      x-internal: true
-      summary: Reorder combos
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Reordered
-
-  /api/providers/claude-auth/import:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Import Claude auth session
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/providers/claude-auth/import-bulk:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Bulk import Claude auth sessions
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk import result
-
-  /api/providers/claude-auth/zip-extract:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Extract Claude auth ZIP
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Extract result
-
-  /api/providers/codex-auth/import:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Import Codex auth session
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/providers/codex-auth/import-bulk:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Bulk import Codex auth sessions
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk import result
-
-  /api/providers/codex-auth/zip-extract:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Extract Codex auth ZIP
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Extract result
-
-  /api/providers/command-code/auth/start:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Start Command Code OAuth flow
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: OAuth flow started
-
-  /api/providers/command-code/auth/callback:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Command Code OAuth callback
-      responses:
-        "302":
-          description: OAuth redirect
-
-  /api/providers/command-code/auth/apply:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Apply Command Code OAuth token
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Token applied
-
-  /api/providers/command-code/auth/status:
-    get:
-      tags: [Providers]
-      x-internal: true
-      summary: Command Code OAuth status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: OAuth status
-
-  /api/providers/gemini-cli-auth/import:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Import Gemini CLI auth session
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/providers/gemini-cli-auth/import-bulk:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Bulk import Gemini CLI auth sessions
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Bulk import result
-
-  /api/providers/gemini-cli-auth/zip-extract:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Extract Gemini CLI auth ZIP
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Extract result
-
-  /api/providers/{id}/claude-auth/apply-local:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Apply local Claude auth to provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Auth applied
-
-  /api/providers/{id}/claude-auth/export:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Export Claude auth from provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Auth exported
-
-  /api/providers/{id}/codex-auth/apply-local:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Apply local Codex auth to provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Auth applied
-
-  /api/providers/{id}/codex-auth/export:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Export Codex auth from provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Auth exported
-
-  /api/providers/{id}/gemini-cli-auth/apply-local:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Apply local Gemini CLI auth to provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Auth applied
-
-  /api/providers/{id}/gemini-cli-auth/export:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Export Gemini CLI auth from provider
-      security:
-        - ManagementSessionAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Auth exported
-
-  /api/providers/zed/import:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Import Zed auth session
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/providers/zed/manual-import:
-    post:
-      tags: [Providers]
-      x-internal: true
-      summary: Manual Zed auth import
-      security:
-        - ManagementSessionAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Import result
-
-  /api/skills/skillssh:
-    get:
-      tags: [Skills]
-      x-internal: true
-      summary: SkillSSH status
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: SkillSSH status
-
-  /api/skills/skillssh/install:
-    post:
-      tags: [Skills]
-      x-internal: true
-      summary: Install SkillSSH
-      security:
-        - ManagementSessionAuth: []
-      responses:
-        "200":
-          description: SkillSSH installed
-
-  /api/translator/transform-stream:
-    post:
-      tags: [Translator]
-      x-internal: true
-      summary: Transform stream (internal)
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: Transform result
-
 components:
   securitySchemes:
     BearerAuth:
@@ -6925,6 +2790,62 @@ components:
             $ref: "#/components/schemas/ValidationErrorResponse"
 
   schemas:
+    ServiceStatus:
+      type: object
+      description: Live supervisor state for an embedded service
+      properties:
+        tool:
+          type: string
+          example: 9router
+        state:
+          type: string
+          enum: [not_installed, stopped, starting, running, stopping, error]
+        pid:
+          type: integer
+          nullable: true
+        port:
+          type: integer
+          example: 20130
+        health:
+          type: string
+          enum: [unknown, healthy, degraded]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastError:
+          type: string
+          nullable: true
+
+    ServiceStatusExtended:
+      allOf:
+        - $ref: "#/components/schemas/ServiceStatus"
+        - type: object
+          description: >-
+            Extended status including version metadata and (for 9Router) API key preview.
+          properties:
+            installedVersion:
+              type: string
+              nullable: true
+            latestVersion:
+              type: string
+              nullable: true
+            updateAvailable:
+              type: boolean
+            apiKeyMasked:
+              type: string
+              nullable: true
+              description: >-
+                Masked API key preview (e.g. "nr_****abcd").
+                Present only for services that use an injected API key (9Router).
+            autoStart:
+              type: boolean
+            providerExpose:
+              type: boolean
+              description: >-
+                Whether models from this service are exposed as a routing provider.
+                9Router only.
+
     ApiErrorResponse:
       type: object
       properties:

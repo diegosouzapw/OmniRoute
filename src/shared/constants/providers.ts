@@ -16,11 +16,12 @@ export type ServiceKind =
   | "video"
   | "music";
 
-export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated";
+export type RiskNoticeVariant = "oauth" | "webCookie" | "deprecated" | "embedded-service";
 
 export interface ProviderRiskNoticeFields {
   subscriptionRisk?: boolean;
   riskNoticeVariant?: RiskNoticeVariant;
+  isEmbeddedService?: boolean;
 }
 
 export const FREE_PROVIDERS = {};
@@ -2675,6 +2676,21 @@ export const UPSTREAM_PROXY_PROVIDERS = {
     configDir: "~/.cli-proxy-api",
     binaryName: "cli-proxy-api",
     githubRepo: "router-for-me/CLIProxyAPI",
+  },
+  "9router": {
+    id: "9router",
+    alias: "nr",
+    name: "9router",
+    icon: "router",
+    color: "#0EA5E9",
+    textIcon: "9R",
+    website: "https://www.npmjs.com/package/9router",
+    defaultPort: 20130,
+    healthEndpoint: "/api/health",
+    npmPackage: "9router",
+    embedded: true,
+    isEmbeddedService: true,
+    riskNoticeVariant: "embedded-service" as const,
   },
 };
 

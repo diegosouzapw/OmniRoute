@@ -309,6 +309,8 @@ export {
   updateToolHealth,
   updateToolVersion,
   setToolStatus,
+  getServiceRow,
+  updateServiceField,
 } from "./db/versionManager";
 
 export {
