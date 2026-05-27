@@ -489,6 +489,53 @@ test("toolCallHelper normalizes ids, links tool responses and inserts missing to
   assert.deepEqual(toolCallHelper.fixMissingToolResponses({ messages: null }), { messages: null });
 });
 
+test("fixMissingToolResponses inserts Claude tool_result block when assistant uses Claude shape", () => {
+  const fixed = toolCallHelper.fixMissingToolResponses({
+    messages: [
+      { role: "user", content: [{ type: "text", text: "do it" }] },
+      {
+        role: "assistant",
+        content: [
+          { type: "tool_use", id: "tool_a", name: "bash", input: { cmd: "ls" } },
+          { type: "tool_use", id: "tool_b", name: "bash", input: { cmd: "pwd" } },
+        ],
+      },
+      { role: "user", content: [{ type: "text", text: "continue" }] },
+    ],
+  });
+
+  assert.equal(fixed.messages.length, 4);
+  const inserted = fixed.messages[2];
+  assert.equal(inserted.role, "user");
+  assert.ok(Array.isArray(inserted.content));
+  assert.equal(inserted.content.length, 2);
+  assert.equal(inserted.content[0].type, "tool_result");
+  assert.equal(inserted.content[0].tool_use_id, "tool_a");
+  assert.equal(inserted.content[0].content, "");
+  assert.equal(inserted.content[1].tool_use_id, "tool_b");
+});
+
+test("fixMissingToolResponses keeps OpenAI role:tool when assistant uses OpenAI tool_calls", () => {
+  const fixed = toolCallHelper.fixMissingToolResponses({
+    messages: [
+      {
+        role: "assistant",
+        tool_calls: [
+          { id: "call_a", type: "function", function: { name: "lookup", arguments: "{}" } },
+          { id: "call_b", type: "function", function: { name: "search", arguments: "{}" } },
+        ],
+      },
+      { role: "user", content: "no tool result here" },
+    ],
+  });
+
+  assert.equal(fixed.messages.length, 4);
+  assert.equal(fixed.messages[1].role, "tool");
+  assert.equal(fixed.messages[1].tool_call_id, "call_a");
+  assert.equal(fixed.messages[2].role, "tool");
+  assert.equal(fixed.messages[2].tool_call_id, "call_b");
+});
+
 test("translateRequest replays cached DeepSeek reasoning messages without tool calls", () => {
   clearReasoningCacheAll();
   cacheReasoningByKey(
