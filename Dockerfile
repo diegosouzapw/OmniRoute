@@ -56,7 +56,7 @@ RUN apt-get update \
 RUN mkdir -p /app/data
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/docs/openapi.yaml ./docs/openapi.yaml
+COPY --from=builder /app/docs/reference/openapi.yaml ./docs/reference/openapi.yaml
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
 # Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
