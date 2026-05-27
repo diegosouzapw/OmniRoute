@@ -232,17 +232,6 @@ describe("OpencodeExecutor", () => {
     });
 
     it("routes opencode-go qwen models to claude messages endpoint", async () => {
-      registerModel("opencode-go", {
-        id: "qwen3.6-plus",
-        name: "Qwen3.6 Plus",
-        targetFormat: "claude",
-      });
-      registerModel("opencode-go", {
-        id: "qwen3.5-plus",
-        name: "Qwen3.5 Plus",
-        targetFormat: "claude",
-      });
-
       const qwen36 = await goExecutor.execute(
         createInput("qwen3.6-plus", true, { apiKey: "claude-key" })
       );
