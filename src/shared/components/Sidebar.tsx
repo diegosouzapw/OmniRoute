@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/shared/utils/cn";
@@ -15,6 +15,7 @@ import {
   HIDDEN_SIDEBAR_ITEMS_SETTING_KEY,
   SIDEBAR_SETTINGS_UPDATED_EVENT,
   SIDEBAR_SECTIONS,
+  getSidebarIconAccent,
   getSectionItems,
   normalizeHiddenSidebarItems,
 } from "@/shared/constants/sidebarVisibility";
@@ -26,6 +27,11 @@ type SidebarProps = {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   isMacElectron?: boolean;
+};
+
+type SidebarGlyphStyle = CSSProperties & {
+  "--sidebar-icon-accent": string;
+  color: string;
 };
 
 export default function Sidebar({
@@ -157,6 +163,13 @@ export default function Sidebar({
     )
   );
   const currentTab = searchParams.get("tab") || "users";
+  const getIconStyle = (itemId: string): SidebarGlyphStyle => {
+    const accent = getSidebarIconAccent(itemId);
+    return {
+      "--sidebar-icon-accent": accent,
+      color: accent,
+    };
+  };
 
   const renderNavLink = (item) => {
     const hasChildren = Array.isArray(item.children) && item.children.length > 0;
@@ -174,12 +187,14 @@ export default function Sidebar({
         : "text-text-muted hover:bg-surface/50 hover:text-text-main"
     );
     const iconClassName = cn(
-      "material-symbols-outlined text-[18px]",
+      "material-symbols-outlined sidebar-icon-glyph text-[18px]",
       active ? "fill-1" : "group-hover:text-primary transition-colors"
     );
     const content = (
       <>
-        <span className={iconClassName}>{item.icon}</span>
+        <span className={iconClassName} style={getIconStyle(item.id)}>
+          {item.icon}
+        </span>
         {!collapsed && <span className="text-sm font-medium flex-1">{item.label}</span>}
         {!collapsed && hasChildren && (
           <span
@@ -226,7 +241,12 @@ export default function Sidebar({
                     )}
                   >
                     {child.icon && (
-                      <span className="material-symbols-outlined text-[15px]">{child.icon}</span>
+                      <span
+                        className="material-symbols-outlined sidebar-icon-glyph text-[15px]"
+                        style={getIconStyle(child.id)}
+                      >
+                        {child.icon}
+                      </span>
                     )}
                     <span>{getItemLabel(child.i18nKey)}</span>
                   </Link>

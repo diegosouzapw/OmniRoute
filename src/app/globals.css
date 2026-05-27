@@ -309,6 +309,24 @@
   box-shadow: inset 2px 0 0 rgba(103, 232, 249, 0.95);
 }
 
+.sidebar-icon-glyph {
+  color: var(--sidebar-icon-accent);
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.18))
+    drop-shadow(0 2px 2px color-mix(in srgb, var(--sidebar-icon-accent) 34%, transparent));
+  transition:
+    color 180ms ease,
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.sidebar-link:hover .sidebar-icon-glyph,
+.sidebar-link.is-active .sidebar-icon-glyph {
+  color: var(--sidebar-icon-accent) !important;
+  transform: translateY(-1px);
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.24))
+    drop-shadow(0 3px 4px color-mix(in srgb, var(--sidebar-icon-accent) 48%, transparent));
+}
+
 /* Aurora visual theme */
 :root[data-ui-theme="aurora"] {
   --color-primary: #00c2a8;

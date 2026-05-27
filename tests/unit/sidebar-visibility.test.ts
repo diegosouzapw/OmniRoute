@@ -85,6 +85,22 @@ test("sidebar visibility drops stale entries from saved settings", () => {
   assert.deepEqual(sidebarVisibility.normalizeHiddenSidebarItems(["auto-combo", "logs"]), ["logs"]);
 });
 
+test("all sidebar items resolve visible icon accent colors", () => {
+  const allSidebarItems = sidebarVisibility.SIDEBAR_SECTIONS.flatMap((section) =>
+    sidebarVisibility.getSectionItems(section)
+  );
+
+  for (const item of allSidebarItems) {
+    assert.match(sidebarVisibility.getSidebarIconAccent(item.id), /^#[0-9A-F]{6}$/);
+  }
+
+  assert.notEqual(sidebarVisibility.getSidebarIconAccent("endpoints"), "#64748B");
+  assert.notEqual(
+    sidebarVisibility.getSidebarIconAccent("context-caveman"),
+    sidebarVisibility.getSidebarIconAccent("context-rtk")
+  );
+});
+
 test("help sidebar exposes changelog after docs and issues", () => {
   const helpSection = sidebarVisibility.SIDEBAR_SECTIONS.find((section) => section.id === "help");
 
