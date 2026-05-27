@@ -270,6 +270,5 @@
       "strip-ansi": "^6.0.1",
       "string-width": "^4.2.3"
     }
-  },
-  "private": true
+  }
 }
