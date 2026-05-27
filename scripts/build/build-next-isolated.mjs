@@ -147,6 +147,18 @@ export async function syncStandaloneNativeAssets(
       sourcePath: path.join(rootDir, "node_modules", "wreq-js", "rust"),
       destinationPath: path.join(rootDir, ".next", "standalone", "node_modules", "wreq-js", "rust"),
     },
+    {
+      label: "better-sqlite3 native binary",
+      sourcePath: path.join(rootDir, "node_modules", "better-sqlite3", "build"),
+      destinationPath: path.join(
+        rootDir,
+        ".next",
+        "standalone",
+        "node_modules",
+        "better-sqlite3",
+        "build"
+      ),
+    },
   ];
 
   let changed = false;
@@ -165,6 +177,90 @@ export async function syncStandaloneNativeAssets(
         entry.destinationPath
       )}`
     );
+    changed = true;
+  }
+
+  return changed;
+}
+
+export async function syncStandaloneExtraModules(
+  rootDir = projectRoot,
+  fsImpl = fs,
+  log = console
+) {
+  const entries = [
+    {
+      label: "@swc/helpers",
+      sourcePath: path.join(rootDir, "node_modules", "@swc", "helpers"),
+      destRelative: path.join("node_modules", "@swc", "helpers"),
+    },
+    {
+      label: "pino-abstract-transport",
+      sourcePath: path.join(rootDir, "node_modules", "pino-abstract-transport"),
+      destRelative: path.join("node_modules", "pino-abstract-transport"),
+    },
+    {
+      label: "pino-pretty",
+      sourcePath: path.join(rootDir, "node_modules", "pino-pretty"),
+      destRelative: path.join("node_modules", "pino-pretty"),
+    },
+    {
+      label: "split2",
+      sourcePath: path.join(rootDir, "node_modules", "split2"),
+      destRelative: path.join("node_modules", "split2"),
+    },
+    {
+      label: "migrations",
+      sourcePath: path.join(rootDir, "src", "lib", "db", "migrations"),
+      destRelative: "migrations",
+    },
+    {
+      label: "MITM server",
+      sourcePath: path.join(rootDir, "src", "mitm", "server.cjs"),
+      destRelative: path.join("src", "mitm", "server.cjs"),
+    },
+    {
+      label: "run-standalone script",
+      sourcePath: path.join(rootDir, "scripts", "dev", "run-standalone.mjs"),
+      destRelative: path.join("dev", "run-standalone.mjs"),
+    },
+    {
+      label: "runtime-env script",
+      sourcePath: path.join(rootDir, "scripts", "build", "runtime-env.mjs"),
+      destRelative: path.join("build", "runtime-env.mjs"),
+    },
+    {
+      label: "bootstrap-env script",
+      sourcePath: path.join(rootDir, "scripts", "build", "bootstrap-env.mjs"),
+      destRelative: path.join("build", "bootstrap-env.mjs"),
+    },
+    {
+      label: "healthcheck script",
+      sourcePath: path.join(rootDir, "scripts", "dev", "healthcheck.mjs"),
+      destRelative: "healthcheck.mjs",
+    },
+    {
+      label: "public directory",
+      sourcePath: path.join(rootDir, "public"),
+      destRelative: "public",
+    },
+    {
+      label: "playwright-core (dynamic import by gemini-web executor)",
+      sourcePath: path.join(rootDir, "node_modules", "playwright-core"),
+      destRelative: path.join("node_modules", "playwright-core"),
+    },
+  ];
+
+  let changed = false;
+  const standaloneRoot = path.join(rootDir, ".next", "standalone");
+
+  for (const entry of entries) {
+    if (!(await exists(entry.sourcePath))) continue;
+
+    const destPath = path.join(standaloneRoot, entry.destRelative);
+    await fsImpl.mkdir(path.dirname(destPath), { recursive: true });
+    await fsImpl.cp(entry.sourcePath, destPath, { recursive: true, force: true });
+    log.log(`[build-next-isolated] Synced standalone module: ${entry.label}`);
     changed = true;
   }
 
@@ -223,6 +319,15 @@ export async function main() {
         console.warn(
           "[build-next-isolated] Non-fatal error copying native standalone assets:",
           nativeAssetErr
+        );
+      }
+
+      try {
+        await syncStandaloneExtraModules(projectRoot);
+      } catch (extraModuleErr) {
+        console.warn(
+          "[build-next-isolated] Non-fatal error syncing extra modules:",
+          extraModuleErr
         );
       }
     }

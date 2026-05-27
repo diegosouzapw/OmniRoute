@@ -264,6 +264,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
   },
+  "mimo-v2-pro": {
+    maxOutputTokens: 131072,
+    contextWindow: 262144,
+    supportsTools: true,
+    supportsVision: true,
+  },
   "mimo-v2-omni": {
     maxOutputTokens: 131072,
     contextWindow: 262144,

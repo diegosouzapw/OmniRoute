@@ -438,6 +438,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     const checkModelAvailable = async (
       modelString: string,
       target?: {
+        allowRateLimitedConnection?: boolean;
         connectionId?: string | null;
         allowedConnectionIds?: string[] | null;
         executionKey?: string | null;
@@ -469,6 +470,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         resolvedModel,
         {
           sessionKey: sessionAffinityKey,
+          ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
         }
       );
@@ -496,6 +498,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         b: any,
         m: string,
         target?: {
+          allowRateLimitedConnection?: boolean;
           connectionId?: string | null;
           executionKey?: string | null;
           stepId?: string | null;
@@ -520,6 +523,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             preselectedCredentials: comboPreselectedCredentials.get(
               getComboCredentialCacheKey(m, target)
             ),
@@ -651,6 +655,7 @@ async function handleSingleModelChat(
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
     skipUpstreamRetry?: boolean;
+    allowRateLimitedConnection?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
   } = {},
@@ -811,6 +816,9 @@ async function handleSingleModelChat(
               {
                 sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
+                ...(runtimeOptions.allowRateLimitedConnection
+                  ? { allowRateLimitedConnections: true }
+                  : {}),
                 ...(forceLiveComboTest
                   ? {
                       allowSuppressedConnections: true,
@@ -1140,6 +1148,10 @@ async function handleSingleModelChat(
       // Daily quota lockout overrides subsequent rate_limited lockout, ensuring lockout until tomorrow 0:00
       let dailyQuotaExhausted = false;
       const errorStr = String(result.error || "");
+      const failureKind =
+        result.status === 429
+          ? classify429FromError({ status: result.status, message: errorStr })
+          : undefined;
       if (result.status === 429 && isDailyQuotaExhausted(errorStr)) {
         // Parse which model is quota-limited
         const match = errorStr.match(/today's quota for model ([^,]+)/);
@@ -1174,10 +1186,6 @@ async function handleSingleModelChat(
       // quotaCache as exhausted for 5 minutes while usage quota may still be available.
       if (!dailyQuotaExhausted) {
         const passthroughModels = credentials.providerSpecificData?.passthroughModels;
-        const failureKind =
-          result.status === 429
-            ? classify429FromError({ status: result.status, message: errorStr })
-            : undefined;
         if (
           result.status === 429 &&
           shouldMarkAccountExhaustedFrom429(provider, model, passthroughModels, failureKind)
@@ -1204,7 +1212,11 @@ async function handleSingleModelChat(
             result.error,
             provider,
             model,
-            providerProfile
+            providerProfile,
+            {
+              persistUnavailableState:
+                !(isCombo && result.status === 429 && (failureKind === "rate_limit" || failureKind === "transient")),
+            }
           );
 
       if (shouldFallback) {

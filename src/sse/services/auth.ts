@@ -94,6 +94,7 @@ interface RecoverableConnectionState {
 
 interface CredentialSelectionOptions {
   allowSuppressedConnections?: boolean;
+  allowRateLimitedConnections?: boolean;
   bypassQuotaPolicy?: boolean;
   forcedConnectionId?: string | null;
   excludeConnectionIds?: string[] | null;
@@ -846,6 +847,8 @@ export async function getProviderCredentials(
     }
 
     const allowSuppressedConnections = options.allowSuppressedConnections === true;
+    const allowRateLimitedConnections =
+      allowSuppressedConnections || options.allowRateLimitedConnections === true;
     const bypassQuotaPolicy = options.bypassQuotaPolicy === true;
     const forcedConnectionId =
       typeof options.forcedConnectionId === "string" && options.forcedConnectionId.trim().length > 0
@@ -973,7 +976,7 @@ export async function getProviderCredentials(
         return false;
       }
       if (!allowSuppressedConnections) {
-        if (isAccountUnavailable(c.rateLimitedUntil)) return false;
+        if (!allowRateLimitedConnections && isAccountUnavailable(c.rateLimitedUntil)) return false;
         if (isTerminalConnectionStatus(c)) return false;
         if (provider === "codex" && isCodexScopeUnavailable(c, requestedModel)) return false;
         // Per-model lockout: if this specific model is locked on this connection, skip it
@@ -1555,7 +1558,10 @@ export async function markAccountUnavailable(
   errorText: string,
   provider: string | null = null,
   model: string | null = null,
-  providerProfile = null
+  providerProfile = null,
+  options: {
+    persistUnavailableState?: boolean;
+  } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -1779,8 +1785,13 @@ export async function markAccountUnavailable(
       lastErrorAt: new Date().toISOString(),
       backoffLevel: newBackoffLevel ?? backoffLevel,
     };
+    const persistUnavailableState = options.persistUnavailableState !== false;
 
-    if (cooldownMs > 0) {
+    if (!persistUnavailableState) {
+      await updateProviderConnection(connectionId, {
+        ...baseUpdate,
+      });
+    } else if (cooldownMs > 0) {
       await updateProviderConnection(connectionId, {
         ...baseUpdate,
         rateLimitedUntil: getUnavailableUntil(cooldownMs),

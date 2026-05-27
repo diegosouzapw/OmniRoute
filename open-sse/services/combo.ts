@@ -190,7 +190,10 @@ type ComboLogger = {
 };
 
 export type SingleModelTarget =
-  | (ResolvedComboTarget & { modelAbortSignal?: AbortSignal | null })
+  | (ResolvedComboTarget & {
+      allowRateLimitedConnection?: boolean;
+      modelAbortSignal?: AbortSignal | null;
+    })
   | { modelAbortSignal: AbortSignal };
 
 type HandleSingleModel = (
@@ -201,7 +204,7 @@ type HandleSingleModel = (
 
 type IsModelAvailable = (
   modelStr: string,
-  target?: ResolvedComboTarget
+  target?: ResolvedComboTarget & { allowRateLimitedConnection?: boolean }
 ) => Promise<boolean> | boolean;
 
 type ComboRelayOptions = {
@@ -3098,6 +3101,7 @@ export async function handleComboChat({
     // #1731: Per-set-iteration set of providers whose quota is fully exhausted.
     // Reset each retry so providers excluded in a previous attempt get another chance.
     const exhaustedProviders = new Set<string>();
+    const transientRateLimitedProviders = new Set<string>();
     if (setTry > 0) {
       log.info("COMBO", `All targets failed — retrying set (${setTry}/${maxSetRetries})`);
       await new Promise((resolve) => {
@@ -3129,6 +3133,11 @@ export async function handleComboChat({
       const modelStr = target.modelStr;
       const provider = target.provider;
       const profile = await getRuntimeProviderProfile(provider);
+      const allowRateLimitedConnection =
+        Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
+      const targetForAttempt = allowRateLimitedConnection
+        ? { ...target, allowRateLimitedConnection: true }
+        : target;
 
       // #1731: Skip targets from a provider that already signaled full quota exhaustion this request.
       if (provider && exhaustedProviders.has(provider)) {
@@ -3142,7 +3151,7 @@ export async function handleComboChat({
 
       // Pre-check: skip models where no credentials are available (excluded, rate-limited, or unavailable)
       if (isModelAvailable) {
-        const available = await isModelAvailable(modelStr, target);
+        const available = await isModelAvailable(modelStr, targetForAttempt);
         if (!available) {
           log.info("COMBO", `Skipping ${modelStr} — no credentials available or model excluded`);
           if (i > 0) fallbackCount++;
@@ -3232,7 +3241,7 @@ export async function handleComboChat({
           }
         }
         const result = await handleSingleModelWithTimeout(attemptBody, modelStr, {
-          ...target,
+          ...targetForAttempt,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
 
@@ -3501,6 +3510,8 @@ export async function handleComboChat({
             "COMBO",
             `Provider ${provider} quota exhausted — marking for skip on remaining targets (#1731)`
           );
+        } else if (result.status === 429 && provider && provider !== "unknown") {
+          transientRateLimitedProviders.add(provider);
         }
 
         // Trigger shared provider circuit breaker for 5xx errors and connection failures.
@@ -3690,6 +3701,7 @@ async function handleRoundRobinCombo({
   // When a target returns a quota-exhausted 429, remaining targets from the same
   // provider are skipped to avoid the cascade through N same-provider targets.
   const exhaustedProviders = new Set<string>();
+  const transientRateLimitedProviders = new Set<string>();
 
   // Try each model starting from the round-robin target
   for (let offset = 0; offset < modelCount; offset++) {
@@ -3699,10 +3711,15 @@ async function handleRoundRobinCombo({
     const provider = target.provider;
     const profile = await getRuntimeProviderProfile(provider);
     const semaphoreKey = `combo:${combo.name}:${target.executionKey}`;
+    const allowRateLimitedConnection =
+      Boolean(provider && provider !== "unknown") && transientRateLimitedProviders.has(provider);
+    const targetForAttempt = allowRateLimitedConnection
+      ? { ...target, allowRateLimitedConnection: true }
+      : target;
 
     // Pre-check availability
     if (isModelAvailable) {
-      const available = await isModelAvailable(modelStr, target);
+      const available = await isModelAvailable(modelStr, targetForAttempt);
       if (!available) {
         log.info("COMBO-RR", `Skipping ${modelStr} — no credentials available or model excluded`);
         if (offset > 0) fallbackCount++;
@@ -3766,7 +3783,7 @@ async function handleRoundRobinCombo({
         );
 
         const result = await handleSingleModel(body, modelStr, {
-          ...target,
+          ...targetForAttempt,
           failoverBeforeRetry: config.failoverBeforeRetry,
         });
 
@@ -3932,6 +3949,8 @@ async function handleRoundRobinCombo({
         if (providerExhausted) {
           exhaustedProviders.add(provider);
           log.info("COMBO-RR", `Provider ${provider} quota exhausted — marking for skip (#1731)`);
+        } else if (result.status === 429 && provider && provider !== "unknown") {
+          transientRateLimitedProviders.add(provider);
         }
 
         // Transient errors → mark in semaphore so round-robin stops stampeding this target.

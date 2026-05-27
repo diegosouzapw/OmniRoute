@@ -14,7 +14,7 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
 import { useIsElectron, useOpenExternal } from "@/shared/hooks/useElectron";
 
 const ProviderTopology = dynamic(() => import("../home/ProviderTopology"), { ssr: false });
-const ProviderLimits = dynamic(() => import("./usage/components/ProviderLimits"), { ssr: false });
+const ProviderQuotaWidget = dynamic(() => import("../home/ProviderQuotaWidget"), { ssr: false });
 import type { NewsAnnouncement } from "@/shared/utils/releaseNotes";
 
 type UpdateStep = {
@@ -196,6 +196,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
   const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true); // default on
   const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true); // default on
+  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
+  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
 
   useEffect(() => {
     // Fetch the pin settings (lightweight)
@@ -211,6 +213,12 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
           }
           if (typeof data.showProviderTopologyOnHome === "boolean") {
             setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
+          }
+          if (typeof data.autoRefreshProviderQuota === "boolean") {
+            setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
+          }
+          if (typeof data.autoRefreshProviderQuotaInterval === "number") {
+            setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
           }
         }
       })
@@ -1066,7 +1074,11 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
       {/* Pinned Provider Quota Limits (compact, no filters) */}
       {pinProviderQuotaToHome && (
         <Suspense fallback={<CardSkeleton />}>
-          <ProviderLimits showFilters={false} />
+          <ProviderQuotaWidget
+            autoRefreshInterval={
+              autoRefreshProviderQuota ? autoRefreshProviderQuotaInterval : 0
+            }
+          />
         </Suspense>
       )}
 
