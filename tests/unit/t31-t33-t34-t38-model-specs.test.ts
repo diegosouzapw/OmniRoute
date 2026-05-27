@@ -84,9 +84,11 @@ test("T38: MiMo V2.5 and V2 Omni models support vision", () => {
 });
 
 test("opencode-go family: context/output caps match upstream provider docs", () => {
-  // Qwen3.x Plus: 1M context, 65K output (Bailian)
+  // Qwen3.x Plus / Max: 1M context, 65K output (Bailian)
+  assert.equal(getModelSpec("qwen3-max").contextWindow, 1000000);
+  assert.equal(getModelSpec("qwen3-max").maxOutputTokens, 65536);
   assert.equal(getModelSpec("qwen3.7-max").contextWindow, 1000000);
-  assert.equal(getModelSpec("qwen3.7-max").maxOutputTokens, 65536);
+  assert.equal(getModelSpec("qwen3-max-2026-01-23").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3.6-plus").contextWindow, 1000000);
   assert.equal(getModelSpec("qwen3.6-plus").maxOutputTokens, 65536);
   assert.equal(getModelSpec("qwen3.5-plus").contextWindow, 1000000);
@@ -105,6 +107,7 @@ test("opencode-go family: context/output caps match upstream provider docs", () 
   assert.equal(getModelSpec("minimax-m2.7").contextWindow, 204800);
   assert.equal(getModelSpec("minimax-m2.7").maxOutputTokens, 131072);
   assert.equal(getModelSpec("minimax-m2.5").contextWindow, 200000);
+  assert.equal(getModelSpec("MiniMax-M2.5").contextWindow, 200000);
 
   // DeepSeek V4: 1M context, 384K output
   assert.equal(getModelSpec("deepseek-v4-pro").contextWindow, 1000000);
@@ -119,10 +122,13 @@ test("opencode-go family: context/output caps match upstream provider docs", () 
 test("opencode-go family: capMaxOutputTokens grants full upstream budget", () => {
   // Without explicit specs these models would fall back to __default__ (8192).
   // Assert they now receive the real upstream cap.
+  assert.equal(capMaxOutputTokens("qwen3-max", 100000), 65536);
   assert.equal(capMaxOutputTokens("qwen3.7-max", 100000), 65536);
+  assert.equal(capMaxOutputTokens("qwen3-max-2026-01-23", 100000), 65536);
   assert.equal(capMaxOutputTokens("kimi-k2.5", 300000), 262144);
   assert.equal(capMaxOutputTokens("glm-5.1", 200000), 128000);
   assert.equal(capMaxOutputTokens("minimax-m2.7", 200000), 131072);
+  assert.equal(capMaxOutputTokens("MiniMax-M2.5", 200000), 131072);
   assert.equal(capMaxOutputTokens("deepseek-v4-pro", 500000), 384000);
   assert.equal(capMaxOutputTokens("hy3-preview", 300000), 262144);
 });

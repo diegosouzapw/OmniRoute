@@ -227,13 +227,14 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.5-thinking"],
   },
 
-  // ── Qwen3.x Plus (Bailian — multimodal text/image/video, 1M context) ────
-  "qwen3.7-max": {
+  // ── Qwen3.x Plus / Max (Bailian — multimodal text/image/video, 1M context) ─
+  "qwen3-max": {
     maxOutputTokens: 65536,
     contextWindow: 1000000,
     supportsThinking: true,
     supportsTools: true,
     supportsVision: true,
+    aliases: ["qwen3.7-max", "qwen3-max-2026-01-23"],
   },
   "qwen3.6-plus": {
     maxOutputTokens: 65536,
@@ -301,6 +302,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     contextWindow: 200000,
     supportsThinking: true,
     supportsTools: true,
+    aliases: ["MiniMax-M2.5"],
   },
 
   // ── DeepSeek V4 (1M context, 384K max output) ────────────────────
