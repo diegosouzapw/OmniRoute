@@ -16,9 +16,19 @@ type Connection = {
 
 type QuotaData = Record<string, any>;
 
-export default function ProviderQuotaWidget() {
+interface ProviderQuotaWidgetProps {
+  autoRefreshInterval?: number;
+}
+
+function formatAutoRefreshCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: ProviderQuotaWidgetProps) {
   const t = useTranslations("usage");
-  const tc = useTranslations("common");
 
   const [connections, setConnections] = useState<Connection[]>([]);
   const [quotaData, setQuotaData] = useState<QuotaData>({});
@@ -26,6 +36,9 @@ export default function ProviderQuotaWidget() {
   const [refreshingAll, setRefreshingAll] = useState(false);
 
   const refreshingAllRef = useRef(false);
+  const lastRefreshAllAtRef = useRef(Date.now());
+  const autoRefreshIntervalMs = autoRefreshInterval > 0 ? autoRefreshInterval * 1000 : 0;
+  const [autoRefreshClock, setAutoRefreshClock] = useState(() => Date.now());
 
   const fetchConnections = useCallback(async () => {
     try {
@@ -69,9 +82,30 @@ export default function ProviderQuotaWidget() {
     loadData();
   }, [loadData]);
 
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+
+    const tick = () => setAutoRefreshClock(Date.now());
+    tick();
+
+    const timer = window.setInterval(tick, 1000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [autoRefreshIntervalMs]);
+
   const refreshAll = useCallback(async () => {
     if (refreshingAllRef.current) return;
     refreshingAllRef.current = true;
+    const now = Date.now();
+    lastRefreshAllAtRef.current = now;
+    setAutoRefreshClock(now);
     setRefreshingAll(true);
 
     try {
@@ -97,6 +131,15 @@ export default function ProviderQuotaWidget() {
       setRefreshingAll(false);
     }
   }, [fetchConnections, fetchCached]);
+
+  useEffect(() => {
+    if (autoRefreshIntervalMs <= 0) return;
+    if (document.visibilityState !== "visible") return;
+    if (refreshingAllRef.current) return;
+    if (autoRefreshClock - lastRefreshAllAtRef.current >= autoRefreshIntervalMs) {
+      void refreshAll();
+    }
+  }, [autoRefreshClock, autoRefreshIntervalMs, refreshAll]);
 
   // Simple summary: group by provider for display
   const providerGroups = connections.reduce<Record<string, Connection[]>>((acc, conn) => {
@@ -127,14 +170,26 @@ export default function ProviderQuotaWidget() {
           onClick={refreshAll}
           disabled={refreshingAll || loading}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-bg-subtle text-xs font-medium text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface transition-colors"
-          title={t("refreshAll") || "Refresh All"}
+          title={
+            autoRefreshIntervalMs > 0
+              ? `Auto refresh every ${autoRefreshInterval}s`
+              : t("refreshAll") || "Refresh All"
+          }
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
           >
-            refresh
+            {autoRefreshIntervalMs > 0 ? "schedule" : "refresh"}
           </span>
-          <span>{t("refreshAll") || "Refresh All"}</span>
+          <span>
+            {refreshingAll
+              ? "Refreshing"
+              : autoRefreshIntervalMs > 0
+                ? `Refreshing in ${formatAutoRefreshCountdown(
+                    Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
+                  )}`
+                : t("refreshAll") || "Refresh All"}
+          </span>
         </button>
       </div>
 

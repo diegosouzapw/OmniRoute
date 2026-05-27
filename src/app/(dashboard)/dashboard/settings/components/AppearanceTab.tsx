@@ -31,6 +31,8 @@ export default function AppearanceTab() {
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
+  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
+  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
   );
@@ -67,6 +69,12 @@ export default function AppearanceTab() {
       })
       .then((data) => {
         setSettings(data);
+        if (typeof data.autoRefreshProviderQuota === "boolean") {
+          setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
+        }
+        if (typeof data.autoRefreshProviderQuotaInterval === "number") {
+          setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -122,6 +130,10 @@ export default function AppearanceTab() {
       ),
     },
   ];
+
+  const quotaRefreshInterval = Number.isFinite(autoRefreshProviderQuotaInterval)
+    ? Math.min(3600, Math.max(10, Math.floor(autoRefreshProviderQuotaInterval)))
+    : 180;
 
   return (
     <Card>
@@ -345,6 +357,81 @@ export default function AppearanceTab() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("providerQuotaAutoRefresh", "Provider Quota auto refresh")}
+            </p>
+            <p className="text-sm text-text-muted">
+              {getSettingsLabel(
+                "providerQuotaAutoRefreshDesc",
+                "Refresh the Provider Limits view automatically while it stays open."
+              )}
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface/40 divide-y divide-border/70">
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("providerQuotaAutoRefreshToggle", "Automatic refresh")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "providerQuotaAutoRefreshToggleDesc",
+                    "Refresh the quota view every few minutes while the page is visible."
+                  )}
+                </p>
+              </div>
+              <Toggle
+                checked={autoRefreshProviderQuota}
+                onChange={async (checked) => {
+                  setAutoRefreshProviderQuota(checked);
+                  if (checked && !settings.autoRefreshProviderQuotaInterval) {
+                    setAutoRefreshProviderQuotaInterval(180);
+                  }
+                  await updateSetting("autoRefreshProviderQuota", checked);
+                  if (checked && !settings.autoRefreshProviderQuotaInterval) {
+                    await updateSetting("autoRefreshProviderQuotaInterval", 180);
+                  }
+                }}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div>
+                <p className="font-medium">
+                  {getSettingsLabel("providerQuotaAutoRefreshInterval", "Refresh interval")}
+                </p>
+                <p className="text-sm text-text-muted">
+                  {getSettingsLabel(
+                    "providerQuotaAutoRefreshIntervalDesc",
+                    "How often the quota view should refresh, in seconds."
+                  )}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={10}
+                  max={3600}
+                  step={10}
+                  value={quotaRefreshInterval}
+                  onChange={async (e) => {
+                    const next = Math.min(3600, Math.max(10, Number(e.target.value) || 180));
+                    setAutoRefreshProviderQuotaInterval(next);
+                    await updateSetting("autoRefreshProviderQuotaInterval", next);
+                  }}
+                  disabled={loading || !autoRefreshProviderQuota}
+                  className="h-10 w-28 px-3 rounded-lg bg-surface border border-border text-sm text-text-main focus:outline-none focus:border-primary disabled:opacity-50"
+                />
+                <span className="text-xs text-text-muted">seconds</span>
+              </div>
+            </div>
           </div>
         </div>
 
