@@ -38,14 +38,11 @@ playwright-report
 blob-report
 
 # Documentation
-# Issue #2348: The Dashboard Docs viewer reads markdown from `/app/docs` at
-# runtime. The previous `docs/*` block hid every file except openapi.yaml,
-# so the in-product help screen failed with ENOENT for every page.
 # Translations (~51 MB) are excluded — the Docs viewer reads English sources.
-# v3.8.3+ (fumadocs-mdx): `npm run build` webpack-bundles docs — keep assets referenced
-# from English markdown (docs/diagrams/exported/*.svg, docs/screenshots/*.png).
+# Screenshots (~1.7 MB) and SVGs (~250 KB) are needed at build time for MDX
+# image resolution (fumadocs-mdx bundles them).
+# Raster sources under docs/diagrams/ only (exported SVGs are required).
 docs/i18n/**
-# Raster sources under docs/diagrams/ only (exported SVGs are required at build time).
 docs/diagrams/**/*.png
 docs/diagrams/**/*.jpg
 docs/diagrams/**/*.jpeg

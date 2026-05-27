@@ -30,9 +30,13 @@ permissions:
   packages: write
 
 jobs:
-  docker:
-    name: Build and Push Docker (multi-arch)
+  prepare:
+    name: Resolve Docker release metadata
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      promote_latest: ${{ steps.version.outputs.promote_latest }}
+      skip: ${{ steps.version.outputs.skip }}
     env:
       IMAGE_NAME: diegosouzapw/omniroute
     steps:
@@ -114,77 +118,174 @@ jobs:
 
           echo "Publishing diegosouzapw/omniroute:$VERSION (promote_latest=$PROMOTE, skip=$SKIP)"
 
-      - name: Set up QEMU (for multi-arch builds)
-        if: steps.version.outputs.skip != 'true'
-        uses: docker/setup-qemu-action@v4
+  build:
+    name: Build Docker (${{ matrix.platform }})
+    needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            arch: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            arch: arm64
+    env:
+      IMAGE_NAME: diegosouzapw/omniroute
+      GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
-        if: steps.version.outputs.skip != 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Login to Docker Hub
-        if: steps.version.outputs.skip != 'true'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
-        if: steps.version.outputs.skip != 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute image tags
-        id: tags
-        if: steps.version.outputs.skip != 'true'
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          PROMOTE_LATEST: ${{ steps.version.outputs.promote_latest }}
-        run: |
-          set -euo pipefail
-          TAGS="${IMAGE_NAME}:${VERSION}"
-          TAGS="${TAGS}"$'\n'"ghcr.io/diegosouzapw/omniroute:${VERSION}"
-          if [ "$PROMOTE_LATEST" = "true" ]; then
-            TAGS="${TAGS}"$'\n'"${IMAGE_NAME}:latest"
-            TAGS="${TAGS}"$'\n'"ghcr.io/diegosouzapw/omniroute:latest"
-          fi
-          {
-            echo "tags<<EOF"
-            echo "$TAGS"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          echo "Tags to push:"
-          echo "$TAGS"
-
-      - name: Build and push multi-arch image
-        if: steps.version.outputs.skip != 'true'
+      - name: Build and push platform image by digest
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
           target: runner-base
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.tags.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          tags: |
+            ${{ env.IMAGE_NAME }}
+            ${{ env.GHCR_IMAGE_NAME }}
+          cache-from: type=gha,scope=docker-${{ matrix.arch }}
+          cache-to: type=gha,scope=docker-${{ matrix.arch }},mode=max
           no-cache: false
         env:
           DOCKER_BUILDKIT_INLINE_CACHE: 1
 
-      - name: Inspect image
-        if: steps.version.outputs.skip != 'true' && steps.version.outputs.version != 'main'
+      - name: Export digest
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/digests
+          digest="${DIGEST#sha256:}"
+          touch "/tmp/digests/${digest}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Publish multi-arch manifests
+    needs:
+      - prepare
+      - build
+    if: needs.prepare.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: diegosouzapw/omniroute
+      GHCR_IMAGE_NAME: ghcr.io/diegosouzapw/omniroute
+      VERSION: ${{ needs.prepare.outputs.version }}
+      PROMOTE_LATEST: ${{ needs.prepare.outputs.promote_latest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/v{0}', inputs.version) || '' }}
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-*
+          path: /tmp/digests
+          merge-multiple: true
+
+      - name: Create Docker Hub manifest
+        run: |
+          set -euo pipefail
+
+          tags=(-t "${IMAGE_NAME}:${VERSION}")
+          if [ "$PROMOTE_LATEST" = "true" ]; then
+            tags+=(-t "${IMAGE_NAME}:latest")
+          fi
+
+          refs=()
+          while IFS= read -r digest_file; do
+            refs+=("${IMAGE_NAME}@sha256:$(basename "$digest_file")")
+          done < <(find /tmp/digests -type f | sort)
+
+          if [ "${#refs[@]}" -eq 0 ]; then
+            echo "No image digests were downloaded." >&2
+            exit 1
+          fi
+
+          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+
+      - name: Create GHCR manifest
+        run: |
+          set -euo pipefail
+
+          tags=(-t "${GHCR_IMAGE_NAME}:${VERSION}")
+          if [ "$PROMOTE_LATEST" = "true" ]; then
+            tags+=(-t "${GHCR_IMAGE_NAME}:latest")
+          fi
+
+          refs=()
+          while IFS= read -r digest_file; do
+            refs+=("${GHCR_IMAGE_NAME}@sha256:$(basename "$digest_file")")
+          done < <(find /tmp/digests -type f | sort)
+
+          if [ "${#refs[@]}" -eq 0 ]; then
+            echo "No image digests were downloaded." >&2
+            exit 1
+          fi
+
+          docker buildx imagetools create "${tags[@]}" "${refs[@]}"
+
+      - name: Inspect image
+        if: needs.prepare.outputs.version != 'main'
         run: |
           docker buildx imagetools inspect "${IMAGE_NAME}:${VERSION}"
 
       - name: Update Docker Hub description
         # Only refresh README/description when we actually promote :latest
         # (avoids overwriting from main pushes or back-fill builds).
-        if: steps.version.outputs.skip != 'true' && steps.version.outputs.promote_latest == 'true'
+        if: needs.prepare.outputs.promote_latest == 'true'
         uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}

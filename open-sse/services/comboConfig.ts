@@ -5,6 +5,8 @@
  * Most specific wins.
  */
 
+import { MAX_TIMER_TIMEOUT_MS } from "../../src/shared/utils/runtimeTimeouts.ts";
+
 const DEFAULT_COMBO_CONFIG = {
   strategy: "priority",
   maxRetries: 1,
@@ -77,6 +79,26 @@ type ComboSettingsLike =
 
 function isRecord(value: unknown): value is ComboConfigRecord {
   return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizePositiveTimeoutMs(value: unknown): number {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue) || numericValue <= 0) return 0;
+  return Math.min(Math.floor(numericValue), MAX_TIMER_TIMEOUT_MS);
+}
+
+export function resolveComboTargetTimeoutMs(
+  config: Record<string, unknown> | null | undefined,
+  upstreamTimeoutMs: number
+): number {
+  const inheritedTimeoutMs = normalizePositiveTimeoutMs(upstreamTimeoutMs);
+  const configuredTimeoutMs = isRecord(config)
+    ? normalizePositiveTimeoutMs(config.targetTimeoutMs)
+    : 0;
+
+  if (configuredTimeoutMs <= 0) return inheritedTimeoutMs;
+  if (inheritedTimeoutMs <= 0) return configuredTimeoutMs;
+  return Math.min(configuredTimeoutMs, inheritedTimeoutMs);
 }
 
 /**

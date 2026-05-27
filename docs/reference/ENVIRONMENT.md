@@ -549,6 +549,11 @@ REQUEST_TIMEOUT_MS (global override)
 | `OMNIROUTE_PPLX_TLS_TIMEOUT_MS`          | `30000`              | Wire-level timeout for the bogdanfinn/tls-client koffi binding (`perplexityTlsClient.ts`).  |
 | `OMNIROUTE_PPLX_TLS_GRACE_MS`            | `10000`              | JS-side grace added on top of the wire timeout when the native binding is wedged.           |
 
+Combo target attempts inherit the resolved upstream request timeout (`FETCH_TIMEOUT_MS`, or
+`REQUEST_TIMEOUT_MS` when it supplies the fetch default). Set `targetTimeoutMs` in a combo,
+combo defaults, or provider override only to make combo fallback faster; values above the
+current upstream timeout are capped to the upstream timeout.
+
 ### Circuit Breaker Thresholds
 
 Provider-level circuit breaker tuning. Defaults reflect the scaled values used since v3.6 for 500+ connections.

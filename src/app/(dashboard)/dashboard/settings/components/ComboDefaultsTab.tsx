@@ -27,9 +27,21 @@ function msToSeconds(value: unknown): number {
   return Math.round(ms / MS_PER_SECOND);
 }
 
+function msToOptionalSecondsInput(value: unknown): string {
+  const ms = Number(value);
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  return String(Math.round(ms / MS_PER_SECOND));
+}
+
 function secondsInputToMs(value: string, maxSeconds: number): number {
   const seconds = Number(value);
   if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
+}
+
+function secondsInputToOptionalMs(value: string, maxSeconds = 86400): number | undefined {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
   return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
 }
 
@@ -339,7 +351,30 @@ export default function ComboDefaultsTab() {
               className="text-sm"
             />
           ))}
+          <Input
+            label={translateOrFallback(t, "targetTimeout", "Target timeout (seconds)")}
+            type="number"
+            min={1}
+            max={86400}
+            step={1}
+            value={msToOptionalSecondsInput(comboDefaults.targetTimeoutMs)}
+            placeholder={translateOrFallback(t, "inheritRequestTimeout", "Inherit request timeout")}
+            onChange={(e) =>
+              setComboDefaults((prev) => ({
+                ...prev,
+                targetTimeoutMs: secondsInputToOptionalMs(e.target.value),
+              }))
+            }
+            className="text-sm"
+          />
         </div>
+        <p className="text-xs text-text-muted">
+          {translateOrFallback(
+            t,
+            "targetTimeoutHint",
+            "Combo targets inherit the current request timeout by default. Set a lower value here only when you want faster fallback."
+          )}
+        </p>
 
         <div className="grid grid-cols-1 gap-3 pt-3 border-t border-border/50">
           <div>

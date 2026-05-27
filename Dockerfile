@@ -12,19 +12,19 @@ COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
 COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
 COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-# --ignore-scripts blocks the install/postinstall hooks of dependencies,
-# closing the supply-chain attack surface where a transitive dep can run
-# arbitrary code at install time. OmniRoute's own postinstall (
-# better-sqlite3 binary touchups, @swc/helpers copy) is only needed when
-# a packaged app/node_modules is unpacked — inside the Docker builder we
-# are doing a fresh native-platform install, so dropping the scripts is safe.
+# --ignore-scripts blocks broad dependency install/postinstall hooks, closing
+# the supply-chain attack surface where a transitive dep can run arbitrary code
+# at install time. better-sqlite3 still needs a native binding for the target
+# platform, so rebuild and smoke-test only that known runtime dependency below.
 #
 # We REQUIRE a committed package-lock.json so resolved dependency versions
 # are reproducible.
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
 RUN --mount=type=cache,target=/root/.npm \
-  npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts
+  npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
+  && npm rebuild better-sqlite3 \
+  && node -e "require('better-sqlite3')(':memory:').close()"
 
 COPY . ./
 RUN --mount=type=cache,target=/app/.next/cache \
@@ -58,6 +58,9 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
 # Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
 COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
+# Explicitly copy better-sqlite3 — native bindings are not reliably traced by
+# Next.js standalone output, but bootstrap-env requires SQLite before startup.
+COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 # Explicitly copy pino transport dependencies — pino spawns a worker that requires
 # pino-abstract-transport at runtime; Next.js standalone trace does not capture it (#449)
 COPY --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
@@ -77,6 +80,8 @@ COPY --from=builder /app/scripts/dev/run-standalone.mjs ./dev/run-standalone.mjs
 COPY --from=builder /app/scripts/build/runtime-env.mjs ./build/runtime-env.mjs
 COPY --from=builder /app/scripts/build/bootstrap-env.mjs ./build/bootstrap-env.mjs
 COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
+
+RUN node -e "require('better-sqlite3')(':memory:').close()"
 
 # Hand /app over to the baked-in `node` non-root user (UID/GID 1000) so the
 # runtime process never holds root privileges. The chown happens after all

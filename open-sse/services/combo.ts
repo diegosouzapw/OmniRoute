@@ -14,7 +14,7 @@ import {
   isProviderFailureCode,
   isProviderExhaustedReason,
 } from "./accountFallback.ts";
-import { RateLimitReason } from "../config/constants.ts";
+import { FETCH_TIMEOUT_MS, RateLimitReason } from "../config/constants.ts";
 import { errorResponse, unavailableResponse } from "../utils/error.ts";
 import { clamp01 } from "../utils/number.ts";
 import {
@@ -23,7 +23,11 @@ import {
   recordComboShadowRequest,
   getComboMetrics,
 } from "./comboMetrics.ts";
-import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
+import {
+  resolveComboConfig,
+  getDefaultComboConfig,
+  resolveComboTargetTimeoutMs,
+} from "./comboConfig.ts";
 import {
   maybeGenerateHandoff,
   resolveContextRelayConfig,
@@ -106,7 +110,6 @@ function isAllAccountsRateLimitedResponse(
 const MAX_COMBO_DEPTH = 3;
 const MAX_FALLBACK_WAIT_MS = 5000;
 const MAX_GLOBAL_ATTEMPTS = 30;
-const COMBO_MODEL_TIMEOUT_MS = 30_000; // 30s per model attempt within a combo (default FETCH_TIMEOUT_MS=600s)
 
 function resolveDelayMs(value: unknown, fallback: number): number {
   const numericValue = Number(value);
@@ -2582,9 +2585,17 @@ export async function handleComboChat({
     : handleSingleModel;
   // ─────────────────────────────────────────────────────────────────────────
 
+  // Use config cascade before dispatch so all strategies, pinned context routes,
+  // and round-robin targets share the same timeout policy.
+  const config = settings
+    ? resolveComboConfig(combo, settings)
+    : { ...getDefaultComboConfig(), ...(combo.config || {}) };
+  const comboTargetTimeoutMs = resolveComboTargetTimeoutMs(config, FETCH_TIMEOUT_MS);
+
   // ── Per-model timeout wrapper ────────────────────────────────────────────
-  // Default FETCH_TIMEOUT_MS is 600s per model. For combos, we use a shorter
-  // per-model timeout so slow/hanging models don't block fallback.
+  // Combo target timeouts inherit FETCH_TIMEOUT_MS by default. Operators can
+  // configure targetTimeoutMs to shorten fallback latency, but never to extend
+  // beyond the current upstream request timeout.
   //
   // The timeoutController is forwarded to the inner caller via target.modelAbortSignal.
   // When the timeout fires we (a) resolve the race with a synthetic 524 and
@@ -2596,6 +2607,12 @@ export async function handleComboChat({
     modelStr: string,
     target?: SingleModelTarget
   ): Promise<Response> => {
+    if (comboTargetTimeoutMs <= 0) {
+      return handleSingleModelWrapped(b, modelStr, target).catch((err) =>
+        errorResponse(502, err?.message ?? "Upstream model error")
+      );
+    }
+
     const timeoutController = new AbortController();
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     let timedOut = false;
@@ -2604,7 +2621,7 @@ export async function handleComboChat({
         timedOut = true;
         log.warn(
           "COMBO",
-          `Model ${modelStr} exceeded ${COMBO_MODEL_TIMEOUT_MS}ms timeout — falling back`
+          `Model ${modelStr} exceeded ${comboTargetTimeoutMs}ms timeout — falling back`
         );
         // Abort the inner request so its upstream fetch is cancelled and
         // downstream cooldown/breaker/usage mutations don't continue mutating
@@ -2616,7 +2633,7 @@ export async function handleComboChat({
             headers: { "Content-Type": "application/json" },
           })
         );
-      }, COMBO_MODEL_TIMEOUT_MS);
+      }, comboTargetTimeoutMs);
     });
     const targetWithSignal = {
       ...(target ?? {}),
@@ -2663,10 +2680,6 @@ export async function handleComboChat({
     });
   }
 
-  // Use config cascade if settings provided
-  const config = settings
-    ? resolveComboConfig(combo, settings)
-    : { ...getDefaultComboConfig(), ...(combo.config || {}) };
   const maxRetries = config.maxRetries ?? 1;
   const retryDelayMs = resolveDelayMs(config.retryDelayMs, 2000);
   const fallbackDelayMs = resolveDelayMs(config.fallbackDelayMs, 0);

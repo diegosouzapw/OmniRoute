@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { resolveComboConfig, getDefaultComboConfig } =
+const { resolveComboConfig, getDefaultComboConfig, resolveComboTargetTimeoutMs } =
   await import("../../open-sse/services/comboConfig.ts");
 const { createComboSchema, updateComboDefaultsSchema } =
   await import("../../src/shared/validation/schemas.ts");
+const { MAX_TIMER_TIMEOUT_MS } = await import("../../src/shared/utils/runtimeTimeouts.ts");
 
 test("getDefaultComboConfig returns a fresh copy of the defaults", () => {
   const first = getDefaultComboConfig();
@@ -41,10 +42,12 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
       comboDefaults: {
         strategy: "round-robin",
         timeoutMs: 120000,
+        targetTimeoutMs: 90000,
       },
       providerOverrides: {
         openai: {
           timeoutMs: 60000,
+          targetTimeoutMs: 45000,
           retryDelayMs: 500,
           fallbackDelayMs: 100,
         },
@@ -57,6 +60,7 @@ test("resolveComboConfig applies the full cascade from defaults to combo overrid
   assert.equal(result.retryDelayMs, 500);
   assert.equal(result.fallbackDelayMs, 100);
   assert.equal(result.maxRetries, 4);
+  assert.equal(result.targetTimeoutMs, 45000);
   assert.ok(!("timeoutMs" in result));
   assert.ok(!("healthCheckEnabled" in result));
 });
@@ -122,16 +126,46 @@ test("updateComboDefaultsSchema accepts arbitrarily large timeout defaults and p
   const parsed = updateComboDefaultsSchema.parse({
     comboDefaults: {
       timeoutMs: 3600000,
+      targetTimeoutMs: 30000,
     },
     providerOverrides: {
       anthropic: {
         timeoutMs: 5400000,
+        targetTimeoutMs: 45000,
       },
     },
   });
 
   assert.equal(parsed.comboDefaults.timeoutMs, 3600000);
+  assert.equal(parsed.comboDefaults.targetTimeoutMs, 30000);
   assert.equal(parsed.providerOverrides.anthropic.timeoutMs, 5400000);
+  assert.equal(parsed.providerOverrides.anthropic.targetTimeoutMs, 45000);
+});
+
+test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shortens it", () => {
+  assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 600000), 30000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 0 }, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 0), 30000);
+  assert.equal(resolveComboTargetTimeoutMs({}, 0), 0);
+  assert.equal(
+    resolveComboTargetTimeoutMs({ targetTimeoutMs: 999999999999 }, 0),
+    MAX_TIMER_TIMEOUT_MS
+  );
+  assert.equal(resolveComboTargetTimeoutMs({}, 999999999999), MAX_TIMER_TIMEOUT_MS);
+});
+
+test("combo timeout schema rejects values beyond the safe timer limit", () => {
+  const result = createComboSchema.safeParse({
+    name: "unsafe-timeout",
+    models: ["openai/gpt-4"],
+    config: {
+      targetTimeoutMs: MAX_TIMER_TIMEOUT_MS + 1,
+    },
+  });
+
+  assert.equal(result.success, false);
 });
 
 test("resolveComboConfig preserves explicit empty handoffProviders overrides", () => {

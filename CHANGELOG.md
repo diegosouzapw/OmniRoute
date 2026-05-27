@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+---
+
+## [3.8.5] — 2026-05-27
+
+### ✨ New Features
+
+- **batch:** recover stale `in_progress` and `finalizing` batches back to `validating` state on startup, reset counters, and apply a configurable concurrency limit (`BATCH_MAX_CONCURRENT`) (#2755 — thanks @hartmark)
+
+### 🔧 Bug Fixes
+
+- **docker:** rebuild `better-sqlite3` native bindings after hardened install to resolve container startup crash (#2772 — thanks @thanet-s)
+- **combos:** make combo target timeout configurable, inheriting resolved request timeout by default and clamping values so they only shorten fallback latency (#2775 — thanks @rdself)
+
+### ⚡ Performance / CI
+
+- **ci:** build Docker platforms on native runners (linux/amd64 on ubuntu-24.04 and linux/arm64 on ubuntu-24.04-arm) instead of emulated QEMU, reducing build times significantly (#2774 — thanks @thanet-s)
+
+### 🏆 Hall of Contributors
+
+A special thanks to everyone who contributed code, reviews, and tests for this release:
+@hartmark, @rdself, @thanet-s
+
+---
+
 ## [3.8.4] — 2026-05-26
 
 ### 🔒 Security

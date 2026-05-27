@@ -159,6 +159,8 @@ const ADVANCED_FIELD_HELP_FALLBACK = {
     "How long a request can wait for a round-robin model slot before timing out. This queue is separate from any account-only concurrency cap.",
   failoverBeforeRetry:
     "When enabled, a 429 from the upstream triggers immediate target failover instead of retrying the same URL first.",
+  targetTimeoutMs:
+    "Optional combo target timeout. Empty inherits the current request timeout; larger values are capped to that timeout.",
   maxSetRetries:
     "Number of times to retry the full target set when every target fails. 0 = no set-level retry.",
   setRetryDelayMs:
@@ -170,6 +172,20 @@ const LEGACY_COMBO_RESILIENCE_KEYS = new Set([
   "healthCheckEnabled",
   "healthCheckTimeoutMs",
 ]);
+const MS_PER_SECOND = 1000;
+
+function msToOptionalSecondsInput(value) {
+  const ms = Number(value);
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  return String(Math.round(ms / MS_PER_SECOND));
+}
+
+function secondsInputToOptionalMs(value, maxSeconds = 86400) {
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return undefined;
+  return Math.min(maxSeconds, Math.round(seconds)) * MS_PER_SECOND;
+}
 
 function sanitizeComboRuntimeConfig(config) {
   if (!config || typeof config !== "object") return {};
@@ -1429,10 +1445,12 @@ function StrategyRecommendationsPanel({ strategy, onApply, showNudge }) {
   );
 }
 
-function FieldLabelWithHelp({ label, help, showHelp = true }) {
+function FieldLabelWithHelp({ label, help, showHelp = true, htmlFor = undefined }) {
   return (
     <div className="flex items-center gap-1 mb-0.5">
-      <label className="text-[10px] text-text-muted">{label}</label>
+      <label htmlFor={htmlFor} className="text-[10px] text-text-muted">
+        {label}
+      </label>
       {showHelp && (
         <Tooltip position="bottom" content={help}>
           <span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
@@ -2691,7 +2709,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
         configToSave.concurrencyPerModel = config.concurrencyPerModel;
       if (config.queueTimeoutMs !== undefined) configToSave.queueTimeoutMs = config.queueTimeoutMs;
     }
-    if (Object.keys(configToSave).length > 0) {
+    const hasConfigToSave = Object.keys(configToSave).length > 0;
+    const hadExistingConfig = Object.keys(sanitizeComboRuntimeConfig(combo?.config)).length > 0;
+    if (hasConfigToSave || (isEdit && hadExistingConfig)) {
       saveData.config = configToSave;
     }
 
@@ -3561,6 +3581,34 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
                           setConfig({
                             ...config,
                             retryDelayMs: e.target.value ? Number(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabelWithHelp
+                        label={getI18nOrFallback(t, "targetTimeout", "Target timeout (seconds)")}
+                        help={getI18nOrFallback(
+                          t,
+                          "advancedHelp.targetTimeoutMs",
+                          ADVANCED_FIELD_HELP_FALLBACK.targetTimeoutMs
+                        )}
+                        showHelp={!isExpertMode}
+                        htmlFor="combo-target-timeout-ms"
+                      />
+                      <input
+                        id="combo-target-timeout-ms"
+                        type="number"
+                        min="1"
+                        max="86400"
+                        step="1"
+                        value={msToOptionalSecondsInput(config.targetTimeoutMs)}
+                        placeholder={getI18nOrFallback(t, "inheritRequestTimeout", "inherit")}
+                        onChange={(e) =>
+                          setConfig({
+                            ...config,
+                            targetTimeoutMs: secondsInputToOptionalMs(e.target.value),
                           })
                         }
                         className="w-full text-xs py-1.5 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
