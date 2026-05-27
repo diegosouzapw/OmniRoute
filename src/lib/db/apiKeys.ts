@@ -59,6 +59,7 @@ interface ApiKeyMetadata {
   scopes: string[];
   isBanned: boolean;
   keyHash: string | null;
+  allowedEndpoints: string[];
 }
 
 interface ApiKeyRow extends JsonRecord {
@@ -119,6 +120,7 @@ interface ApiKeyView extends JsonRecord {
   scopes: string[];
   isBanned?: boolean;
   expiresAt?: string | null;
+  allowedEndpoints: string[];
 }
 
 // LRU cache for API key validation (valid keys only)
@@ -153,6 +155,7 @@ const API_KEY_COLUMN_FALLBACKS = [
   { name: "rate_limits", definition: "rate_limits TEXT" },
   { name: "is_banned", definition: "is_banned INTEGER NOT NULL DEFAULT 0" },
   { name: "key_hash", definition: "key_hash TEXT" },
+  { name: "allowed_endpoints", definition: "allowed_endpoints TEXT" },
 ] as const;
 
 // Cache for model permission checks
@@ -352,7 +355,7 @@ function getPreparedStatements(db: ApiKeysDbLike): ApiKeysStatements {
       "SELECT id, expires_at, revoked_at, is_active, is_banned FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtGetKeyMetadata = db.prepare<ApiKeyRow>(
-      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash FROM api_keys WHERE key = ? OR key_hash = ?"
+      "SELECT id, name, machine_id, allowed_models, allowed_combos, allowed_connections, no_log, auto_resolve, is_active, access_schedule, max_requests_per_day, max_requests_per_minute, throttle_delay_ms, max_sessions, revoked_at, expires_at, ip_allowlist, scopes, rate_limits, is_banned, key_hash, allowed_endpoints FROM api_keys WHERE key = ? OR key_hash = ?"
     );
     _stmtInsertKey = db.prepare(
       "INSERT INTO api_keys (id, name, key, machine_id, allowed_models, no_log, created_at, key_prefix, key_hash, scopes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -397,6 +400,7 @@ export async function getApiKeys() {
     camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
     camelRow.isBanned = parseIsBanned(camelRow.isBanned);
     camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
+    camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
     if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
       setNoLog(camelRow.id, camelRow.noLog === true);
     }
@@ -420,6 +424,7 @@ export async function getApiKeyById(id: string) {
   camelRow.rateLimits = parseRateLimits(camelRow.rateLimits);
   camelRow.isBanned = parseIsBanned(camelRow.isBanned);
   camelRow.scopes = parseStringList((camelRow as JsonRecord).scopes);
+  camelRow.allowedEndpoints = parseStringList((camelRow as JsonRecord).allowedEndpoints);
   if (typeof camelRow.id === "string" && camelRow.id.length > 0) {
     setNoLog(camelRow.id, camelRow.noLog === true);
   }
@@ -655,6 +660,7 @@ export async function updateApiKeyPermissions(
         // T08: max concurrent sessions for this key (0 = unlimited)
         maxSessions?: number | null;
         scopes?: string[] | null;
+        allowedEndpoints?: string[] | null;
       }
 ) {
   const db = getDbInstance() as ApiKeysDbLike;
@@ -680,6 +686,7 @@ export async function updateApiKeyPermissions(
           expiresAt: update.expiresAt,
           maxSessions: (update as { maxSessions?: number | null }).maxSessions,
           scopes: (update as { scopes?: string[] | null }).scopes,
+          allowedEndpoints: (update as { allowedEndpoints?: string[] | null }).allowedEndpoints,
         };
 
   if (
@@ -698,7 +705,8 @@ export async function updateApiKeyPermissions(
     normalized.isBanned === undefined &&
     normalized.expiresAt === undefined &&
     (normalized as Record<string, unknown>).maxSessions === undefined &&
-    (normalized as Record<string, unknown>).scopes === undefined
+    (normalized as Record<string, unknown>).scopes === undefined &&
+    (normalized as Record<string, unknown>).allowedEndpoints === undefined
   ) {
     return false;
   }
@@ -803,6 +811,17 @@ export async function updateApiKeyPermissions(
   if (maxSessionsUpdate !== undefined) {
     updates.push("max_sessions = @maxSessions");
     params.maxSessions = typeof maxSessionsUpdate === "number" ? Math.max(0, maxSessionsUpdate) : 0;
+  }
+
+  const allowedEndpointsUpdate = (normalized as Record<string, unknown>).allowedEndpoints;
+  if (allowedEndpointsUpdate !== undefined) {
+    updates.push("allowed_endpoints = @allowedEndpoints");
+    const nextEndpoints: string[] = Array.isArray(allowedEndpointsUpdate)
+      ? (allowedEndpointsUpdate as unknown[]).filter(
+          (s): s is string => typeof s === "string"
+        )
+      : [];
+    (params as Record<string, unknown>).allowedEndpoints = JSON.stringify(nextEndpoints);
   }
 
   const scopesUpdate = (normalized as Record<string, unknown>).scopes;
@@ -1151,6 +1170,7 @@ export async function getApiKeyMetadata(
       isBanned: false,
       keyHash: null,
       scopes: ["manage"],
+      allowedEndpoints: [],
     };
   }
 
@@ -1205,6 +1225,7 @@ export async function getApiKeyMetadata(
     scopes: parseStringList((record as JsonRecord).scopes),
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
+    allowedEndpoints: parseStringList((record as JsonRecord).allowedEndpoints),
   };
 
   if (!metadata.id) {

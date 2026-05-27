@@ -1756,6 +1756,7 @@ export const updateKeyPermissionsSchema = z
       ])
       .optional(),
     scopes: z.array(z.string().trim().min(1).max(64)).max(16).optional(),
+    allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -1772,7 +1773,8 @@ export const updateKeyPermissionsSchema = z
       value.maxSessions === undefined &&
       value.accessSchedule === undefined &&
       value.rateLimits === undefined &&
-      value.scopes === undefined
+      value.scopes === undefined &&
+      value.allowedEndpoints === undefined
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

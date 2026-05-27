@@ -16,6 +16,7 @@ import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { checkRateLimit, RateLimitRule } from "./rateLimiter";
+import { resolveEndpointCategory } from "@/shared/constants/endpointCategories";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Manager, while provider/account quota controls remain
@@ -74,6 +75,7 @@ export interface ApiKeyMetadata {
   throttleDelayMs?: number | null;
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
+  allowedEndpoints?: string[];
 }
 
 /**
@@ -291,6 +293,26 @@ export async function enforceApiKeyPolicy(
           `Access denied outside allowed hours (${from}–${until} ${tz})`
         ),
       };
+    }
+  }
+
+  // ── Check 2.5: Endpoint restriction ──
+  if (apiKeyInfo.allowedEndpoints && apiKeyInfo.allowedEndpoints.length > 0) {
+    try {
+      const url = new URL(request.url);
+      const category = resolveEndpointCategory(url.pathname);
+      if (category && !apiKeyInfo.allowedEndpoints.includes(category)) {
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: errorResponse(
+            HTTP_STATUS.FORBIDDEN,
+            `Endpoint category "${category}" is not allowed for this API key`
+          ),
+        };
+      }
+    } catch {
+      // URL parse failure — fail open, let other checks decide
     }
   }
 
