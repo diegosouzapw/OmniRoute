@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import ProviderIcon from "@/shared/components/ProviderIcon";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
+import { translateUsageOrFallback } from "../dashboard/usage/components/ProviderLimits/i18nFallback";
 
 type Connection = {
   id: string;
@@ -29,6 +30,10 @@ function formatAutoRefreshCountdown(ms: number): string {
 
 export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: ProviderQuotaWidgetProps) {
   const t = useTranslations("usage");
+  const tr = useCallback(
+    (key: string, fallback: string) => translateUsageOrFallback(t, key, fallback),
+    [t]
+  );
 
   const [connections, setConnections] = useState<Connection[]>([]);
   const [quotaData, setQuotaData] = useState<QuotaData>({});
@@ -159,9 +164,9 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
             account_balance
           </span>
           <div>
-            <h3 className="font-semibold text-base">{t("providerQuota") || "Provider Quota"}</h3>
+            <h3 className="font-semibold text-base">{tr("providerQuota", "Provider Quota")}</h3>
             <p className="text-[11px] text-text-muted -mt-0.5">
-              {t("providerQuotaHomeHint") || "Live status across connected accounts"}
+              {tr("providerQuotaHomeHint", "Live status across connected accounts")}
             </p>
           </div>
         </div>
@@ -170,11 +175,7 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
           onClick={refreshAll}
           disabled={refreshingAll || loading}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-bg-subtle text-xs font-medium text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-surface transition-colors"
-          title={
-            autoRefreshIntervalMs > 0
-              ? `Auto refresh every ${autoRefreshInterval}s`
-              : t("refreshAll") || "Refresh All"
-          }
+          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : tr("refreshAll", "Refresh All")}
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -183,12 +184,12 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
           </span>
           <span>
             {refreshingAll
-              ? "Refreshing"
+              ? tr("refreshing", "Refreshing")
               : autoRefreshIntervalMs > 0
-                ? `Refreshing in ${formatAutoRefreshCountdown(
+                ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
                     Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
                   )}`
-                : t("refreshAll") || "Refresh All"}
+                : tr("refreshAll", "Refresh All")}
           </span>
         </button>
       </div>
@@ -198,13 +199,16 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
         {loading ? (
           <div className="flex items-center justify-center py-8 text-text-muted text-sm">
             <span className="material-symbols-outlined animate-spin mr-2">progress_activity</span>
-            Loading quota information...
+            {tr("loadingQuotas", "Loading...")}
           </div>
         ) : providerEntries.length === 0 ? (
           <div className="text-center py-6 text-sm text-text-muted">
-            No quota-supported providers connected yet.
+            {tr("noProviders", "No Providers Connected")}
             <div className="mt-1 text-xs">
-              Add accounts on the Providers page to see quota status here.
+              {tr(
+                "connectProvidersForQuota",
+                "Connect to providers with OAuth to track your API quota limits and usage."
+              )}
             </div>
           </div>
         ) : (
@@ -224,19 +228,23 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
                     <span className="font-medium text-sm truncate">
                       {provider.charAt(0).toUpperCase() + provider.slice(1)}
                     </span>
-                    <span className="text-[10px] text-text-muted ml-auto">
-                      {conns.length} account{conns.length > 1 ? "s" : ""}
+                    <span className="text-[10px] text-text-muted ml-auto tabular-nums">
+                      {conns.length}
                     </span>
                   </div>
 
                   {hasQuota ? (
-                    <div className="text-xs text-text-muted">
-                      {Object.keys(cache.quotas).length} quota window(s) tracked
+                    <div className="text-xs text-text-muted" title={tr("details", "Details")}>
+                      {Object.keys(cache.quotas).length}
                     </div>
                   ) : (
-                    <div className="text-xs text-amber-600 dark:text-amber-500">
-                      No quota data yet — click Refresh All
-                    </div>
+                    <button
+                      type="button"
+                      onClick={refreshAll}
+                      className="text-left text-xs text-amber-600 dark:text-amber-500 hover:underline"
+                    >
+                      {tr("refreshAll", "Refresh All")}
+                    </button>
                   )}
 
                   {/* Future: embed small QuotaProgressBar for the primary window here */}
@@ -248,7 +256,8 @@ export default function ProviderQuotaWidget({ autoRefreshInterval = 0 }: Provide
 
         <div className="mt-3 text-[11px] text-right text-text-muted">
           <a href="/dashboard/usage?tab=limits" className="hover:text-primary hover:underline">
-            View full Provider Quota page →
+            {tr("viewDetails", "View details")}
+            <span aria-hidden="true"> &rarr;</span>
           </a>
         </div>
       </div>

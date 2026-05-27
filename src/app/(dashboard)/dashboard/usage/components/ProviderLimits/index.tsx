@@ -750,11 +750,7 @@ export default function ProviderLimits({
           onClick={refreshAll}
           disabled={refreshingAll}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          title={
-            autoRefreshIntervalMs > 0
-              ? `Auto refresh every ${autoRefreshInterval}s`
-              : t("refreshAll")
-          }
+          title={autoRefreshIntervalMs > 0 ? tr("autoRefreshing", "Auto-refreshing") : t("refreshAll")}
         >
           <span
             className={`material-symbols-outlined text-[16px] ${refreshingAll ? "animate-spin" : ""}`}
@@ -764,7 +760,7 @@ export default function ProviderLimits({
           {refreshingAll
             ? tr("refreshing", "Refreshing")
             : autoRefreshIntervalMs > 0
-              ? `${tr("refreshingIn", "Refreshing in")} ${formatAutoRefreshCountdown(
+              ? `${tr("autoRefreshing", "Auto-refreshing")} ${formatAutoRefreshCountdown(
                   Math.max(0, autoRefreshIntervalMs - (autoRefreshClock - lastRefreshAllAtRef.current))
                 )}`
               : t("refreshAll")}

@@ -32,14 +32,16 @@ export default function AppearanceTab() {
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
-  const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
-  const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true);
-  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true);
-  const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
-  const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
     customThemeColor.startsWith("#") ? customThemeColor : `#${customThemeColor}`
   );
+  const pinProviderQuotaToHome = settings.pinProviderQuotaToHome === true;
+  const showQuickStartOnHome = settings.showQuickStartOnHome !== false;
+  const showProviderTopologyOnHome = settings.showProviderTopologyOnHome !== false;
+  const autoRefreshProviderQuota = settings.autoRefreshProviderQuota === true;
+  const autoRefreshProviderQuotaInterval = Number.isFinite(settings.autoRefreshProviderQuotaInterval)
+    ? Number(settings.autoRefreshProviderQuotaInterval)
+    : 180;
   const comboConfigMode = normalizeComboConfigMode(settings[COMBO_CONFIG_MODE_SETTING_KEY]);
   const showCloudflaredTunnel = settings.hideEndpointCloudflaredTunnel !== true;
   const showTailscaleFunnel = settings.hideEndpointTailscaleFunnel !== true;
@@ -73,21 +75,6 @@ export default function AppearanceTab() {
       })
       .then((data) => {
         setSettings(data);
-        if (typeof data.pinProviderQuotaToHome === "boolean") {
-          setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
-        }
-        if (typeof data.showQuickStartOnHome === "boolean") {
-          setShowQuickStartOnHome(data.showQuickStartOnHome);
-        }
-        if (typeof data.showProviderTopologyOnHome === "boolean") {
-          setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
-        }
-        if (typeof data.autoRefreshProviderQuota === "boolean") {
-          setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
-        }
-        if (typeof data.autoRefreshProviderQuotaInterval === "number") {
-          setAutoRefreshProviderQuotaInterval(data.autoRefreshProviderQuotaInterval);
-        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -222,7 +209,6 @@ export default function AppearanceTab() {
                 <Toggle
                   checked={pinProviderQuotaToHome}
                   onChange={async (checked) => {
-                    setPinProviderQuotaToHome(checked);
                     await updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, checked);
                   }}
                   disabled={loading}
@@ -242,7 +228,6 @@ export default function AppearanceTab() {
                 <Toggle
                   checked={showQuickStartOnHome}
                   onChange={async (checked) => {
-                    setShowQuickStartOnHome(checked);
                     await updateSetting("showQuickStartOnHome", checked);
                   }}
                   disabled={loading}
@@ -264,7 +249,6 @@ export default function AppearanceTab() {
                 <Toggle
                   checked={showProviderTopologyOnHome}
                   onChange={async (checked) => {
-                    setShowProviderTopologyOnHome(checked);
                     await updateSetting("showProviderTopologyOnHome", checked);
                   }}
                   disabled={loading}
@@ -481,14 +465,10 @@ export default function AppearanceTab() {
               <Toggle
                 checked={autoRefreshProviderQuota}
                 onChange={async (checked) => {
-                  setAutoRefreshProviderQuota(checked);
-                  if (checked && !settings.autoRefreshProviderQuotaInterval) {
-                    setAutoRefreshProviderQuotaInterval(180);
-                  }
-                  await updateSetting("autoRefreshProviderQuota", checked);
                   if (checked && !settings.autoRefreshProviderQuotaInterval) {
                     await updateSetting("autoRefreshProviderQuotaInterval", 180);
                   }
+                  await updateSetting("autoRefreshProviderQuota", checked);
                 }}
                 disabled={loading}
               />
@@ -515,7 +495,6 @@ export default function AppearanceTab() {
                   value={quotaRefreshInterval}
                   onChange={async (e) => {
                     const next = Math.min(3600, Math.max(10, Number(e.target.value) || 180));
-                    setAutoRefreshProviderQuotaInterval(next);
                     await updateSetting("autoRefreshProviderQuotaInterval", next);
                   }}
                   disabled={loading || !autoRefreshProviderQuota}
