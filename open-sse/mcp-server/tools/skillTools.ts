@@ -57,16 +57,11 @@ export const skillTools = {
     description: "Enable or disable a specific skill by ID",
     inputSchema: SkillEnableSchema,
     handler: async (args: z.infer<typeof SkillEnableSchema>) => {
-      const skill = skillRegistry.getSkill(args.skillId, args.apiKeyId);
+      await skillRegistry.loadFromDatabase(args.apiKeyId);
+      const skill = await skillRegistry.setEnabledById(args.skillId, args.apiKeyId, args.enabled);
       if (!skill) {
         throw new Error(`Skill not found: ${args.skillId}`);
       }
-
-      await skillRegistry.register({
-        ...skill,
-        enabled: args.enabled,
-        apiKeyId: args.apiKeyId,
-      });
 
       return { success: true, skillId: args.skillId, enabled: args.enabled };
     },

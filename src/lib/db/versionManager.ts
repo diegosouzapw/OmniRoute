@@ -23,6 +23,9 @@ interface VersionManagerRow {
   error_message?: unknown;
   created_at?: unknown;
   updated_at?: unknown;
+  logs_buffer_path?: unknown;
+  provider_expose?: unknown;
+  last_sync_at?: unknown;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
@@ -69,6 +72,9 @@ interface VersionManagerTool {
   errorMessage: string | null;
   createdAt: string;
   updatedAt: string;
+  logsBufferPath: string | null;
+  providerExpose: boolean;
+  lastSyncAt: string | null;
 }
 
 function rowToVersionManager(row: VersionManagerRow): VersionManagerTool {
@@ -136,6 +142,22 @@ function rowToVersionManager(row: VersionManagerRow): VersionManagerTool {
           : null,
     createdAt: typeof record.created_at === "string" ? record.created_at : "",
     updatedAt: typeof record.updated_at === "string" ? record.updated_at : "",
+    logsBufferPath:
+      record.logs_buffer_path === null
+        ? null
+        : typeof record.logs_buffer_path === "string"
+          ? record.logs_buffer_path
+          : null,
+    providerExpose:
+      record.provider_expose === 1 ||
+      record.provider_expose === true ||
+      record.provider_expose === "1",
+    lastSyncAt:
+      record.last_sync_at === null
+        ? null
+        : typeof record.last_sync_at === "string"
+          ? record.last_sync_at
+          : null,
   };
 }
 
@@ -241,6 +263,9 @@ export async function updateVersionManagerTool(
     "healthStatus",
     "configOverrides",
     "errorMessage",
+    "logsBufferPath",
+    "providerExpose",
+    "lastSyncAt",
   ]);
 
   const sets: string[] = ["updated_at = datetime('now')"];
@@ -253,7 +278,7 @@ export async function updateVersionManagerTool(
     if (key === "configOverrides") {
       sets.push("config_overrides = @configOverrides");
       params.configOverrides = stringifyConfigOverrides(value as Record<string, unknown> | null);
-    } else if (key === "autoUpdate" || key === "autoStart") {
+    } else if (key === "autoUpdate" || key === "autoStart" || key === "providerExpose") {
       sets.push(`${dbKey} = @${key}`);
       params[key] = value === true ? 1 : 0;
     } else if (value === null) {
@@ -315,4 +340,38 @@ export async function setToolStatus(
         : [status, errorMessage ?? null, tool])
     );
   return result.changes > 0;
+}
+
+/** Typed alias for getVersionManagerTool — preferred entry point for embedded services. */
+export async function getServiceRow(tool: string): Promise<VersionManagerTool | null> {
+  return getVersionManagerTool(tool);
+}
+
+const SERVICE_FIELD_WHITELIST: Set<string> = new Set([
+  "logsBufferPath",
+  "providerExpose",
+  "lastSyncAt",
+  "status",
+  "pid",
+  "port",
+  "apiKey",
+  "autoStart",
+  "autoUpdate",
+  "healthStatus",
+  "errorMessage",
+  "currentVersion",
+  "installedVersion",
+  "binaryPath",
+]);
+
+/** Single-field update for embedded services; whitelisted to prevent SQL injection. */
+export async function updateServiceField(
+  tool: string,
+  field: string,
+  value: unknown
+): Promise<VersionManagerTool | null> {
+  if (!SERVICE_FIELD_WHITELIST.has(field)) {
+    throw new Error(`updateServiceField: field "${field}" is not in the allowed list`);
+  }
+  return updateVersionManagerTool(tool, { [field]: value });
 }

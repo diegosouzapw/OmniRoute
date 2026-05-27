@@ -8,6 +8,11 @@ import {
 } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
+import {
+  runWithOnPersist,
+  getRefreshLeadMs,
+  isUnrecoverableRefreshError,
+} from "../services/tokenRefresh.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { signRequestBody } from "../services/claudeCodeCCH.ts";
 import {
@@ -18,6 +23,7 @@ import {
 import { getClaudeCodeCompatibleRequestDefaults } from "@/lib/providers/requestDefaults";
 import { remapToolNamesInRequest } from "../services/claudeCodeToolRemapper.ts";
 import { obfuscateInBody } from "../services/claudeCodeObfuscation.ts";
+import { sanitizeResponsesInputItems } from "../services/responsesInputSanitizer.ts";
 import { applySystemTransformPipeline, PROVIDER_CLAUDE } from "../services/systemTransforms.ts";
 import {
   fixToolPairs,
@@ -107,8 +113,13 @@ export type ExecuteInput = {
   upstreamExtraHeaders?: Record<string, string> | null;
   /** Original client request headers (read-only). Executors may forward select headers upstream. */
   clientHeaders?: Record<string, string> | null;
-  /** Callback to persist tokens that are proactively refreshed during execution. */
-  onCredentialsRefreshed?: (newCredentials: ProviderCredentials) => Promise<void> | void;
+  /** Callback to persist tokens that are proactively refreshed during execution.
+   * Accepts a partial credentials patch (e.g. `{ accessToken, refreshToken }` or
+   * `{ testStatus: "expired", isActive: false }`); the caller merges into the
+   * stored connection row. */
+  onCredentialsRefreshed?: (
+    newCredentials: Partial<ProviderCredentials> & Record<string, unknown>
+  ) => Promise<void> | void;
   /** When true, skip the intra-URL 429 retry in execute() so the caller handles fallback. */
   skipUpstreamRetry?: boolean;
 };
@@ -223,6 +234,7 @@ export function sanitizeReasoningEffortForProvider(
     b.reasoning && typeof b.reasoning === "object" && !Array.isArray(b.reasoning)
       ? (b.reasoning as Record<string, unknown>)
       : null;
+  const hasTopLevelReasoningEffort = Object.prototype.hasOwnProperty.call(b, "reasoning_effort");
   const effort = b.reasoning_effort ?? reasoning?.effort;
   if (effort === undefined) return body;
   const effortStr = typeof effort === "string" ? effort.toLowerCase() : "";
@@ -233,7 +245,10 @@ export function sanitizeReasoningEffortForProvider(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: downgraded reasoning_effort xhigh → high`
     );
-    const next: Record<string, unknown> = { ...b, reasoning_effort: "high" };
+    const next: Record<string, unknown> = { ...b };
+    if (hasTopLevelReasoningEffort) {
+      next.reasoning_effort = "high";
+    }
     if (reasoning) {
       next.reasoning = { ...reasoning, effort: "high" };
     }
@@ -397,6 +412,10 @@ export class BaseExecutor {
     if (body && typeof body === "object" && !Array.isArray(body)) {
       const cloned = { ...body } as Record<string, unknown>;
 
+      if (Array.isArray(cloned.input)) {
+        cloned.input = sanitizeResponsesInputItems(cloned.input, false);
+      }
+
       if (Array.isArray(cloned.tools)) {
         cloned.tools = cloned.tools.map((tool: unknown) => {
           if (tool && typeof tool === "object" && !Array.isArray(tool)) {
@@ -453,7 +472,12 @@ export class BaseExecutor {
   needsRefresh(credentials?: ProviderCredentials | null) {
     if (!credentials?.expiresAt) return false;
     const expiresAtMs = new Date(credentials.expiresAt).getTime();
-    return expiresAtMs - Date.now() < 5 * 60 * 1000;
+    // Use the provider-specific lead time (REFRESH_LEAD_MS) so rotating-token
+    // providers like Codex refresh proactively far ahead of expiry. Keeping the
+    // refresh_token "warm" prevents Auth0 from marking it as stale and revoking
+    // the token family on first use after long idle.
+    const lead = getRefreshLeadMs(this.provider);
+    return expiresAtMs - Date.now() < lead;
   }
 
   parseError(response: Response, bodyText: string) {
@@ -530,18 +554,20 @@ export class BaseExecutor {
     }
   }
 
-  async execute({
-    model,
-    body,
-    stream,
-    credentials,
-    signal,
-    log,
-    extendedContext,
-    upstreamExtraHeaders,
-    clientHeaders,
-    skipUpstreamRetry = false,
-  }: ExecuteInput) {
+  async execute(input: ExecuteInput) {
+    const {
+      model,
+      body,
+      stream,
+      credentials,
+      signal,
+      log,
+      extendedContext,
+      upstreamExtraHeaders,
+      clientHeaders,
+      skipUpstreamRetry = false,
+      onCredentialsRefreshed,
+    } = input;
     const fallbackCount = this.getFallbackCount();
     let lastError: unknown = null;
     let lastStatus = 0;
@@ -551,20 +577,86 @@ export class BaseExecutor {
 
     if (this.needsRefresh(credentials)) {
       try {
-        const refreshed = await this.refreshCredentials(credentials, log || null);
-        if (refreshed) {
-          activeCredentials = {
-            ...credentials,
-            ...refreshed,
-          };
-          // Persist the proactively refreshed credentials to prevent consuming rotating tokens
-          // without updating the central database connection.
-          if (arguments[0].onCredentialsRefreshed) {
-            await arguments[0].onCredentialsRefreshed(refreshed);
+        // Fix A: wire onCredentialsRefreshed through runWithOnPersist so it runs
+        // INSIDE the per-connection mutex inside getAccessToken. Not every
+        // executor routes through getAccessToken (e.g. github.ts), so use a flag
+        // to detect whether the persist callback actually fired and fall back to
+        // post-refresh mutation when it didn't.
+        let proactivePersistRan = false;
+        const proactiveOnPersist = onCredentialsRefreshed
+          ? async (refreshResult: Record<string, unknown>) => {
+              proactivePersistRan = true;
+              activeCredentials = {
+                ...credentials,
+                ...(refreshResult as Partial<ProviderCredentials>),
+              };
+              await onCredentialsRefreshed(refreshResult as Partial<ProviderCredentials>);
+            }
+          : null;
+
+        const refreshed = await runWithOnPersist(proactiveOnPersist, () =>
+          this.refreshCredentials(credentials, log || null)
+        );
+
+        if (refreshed && !proactivePersistRan) {
+          // ─────────────────────────────────────────────────────────────────────
+          // ⚠️ SOURCE OF TRUTH — do not flip the proactive path back to
+          //    "persist expired+inactive". Ask the operator first.
+          //
+          // History (do not repeat past regressions):
+          //   - ad3d4b696 (#2718, 2026-05-25): per-connection mutex + onPersist
+          //     wiring so multi-account Codex (rotating refresh tokens) stops
+          //     hitting refresh_token_reused under concurrent load.
+          //   - 0c94c397d (#2743, 2026-05-26): a multi-agent review added a
+          //     `await onCredentialsRefreshed({ testStatus: "expired",
+          //     isActive: false })` here. That BROKE multi-account Codex —
+          //     transient sentinels (refresh_token_reused recoverable via
+          //     rotation map; generic invalid_request blips) were treated as
+          //     terminal, so the proactive path sequentially disabled
+          //     working accounts in the DB before any upstream call confirmed
+          //     the failure. Reverted intentionally.
+          //
+          // Contract for the PROACTIVE refresh path:
+          //   - Classify the sentinel ONLY to avoid spreading it into
+          //     activeCredentials (which would send a non-token upstream).
+          //   - DO NOT persist `{ testStatus: "expired", isActive: false }`
+          //     from here. That decision belongs to the REACTIVE path in
+          //     open-sse/handlers/chatCore.ts:~3912, which runs AFTER the
+          //     upstream confirmed the auth failure. By then the rotation
+          //     map (tokenRefresh.ts:~1541) and the DB-staleness check have
+          //     already had their chance to recover the request.
+          //
+          // If a future review/agent thinks the expired-flip is "missing"
+          // here, STOP — flipping it here re-introduces the multi-account
+          // Codex regression. Discuss with the operator before touching.
+          // ─────────────────────────────────────────────────────────────────────
+          if (isUnrecoverableRefreshError(refreshed)) {
+            const refreshCode = (refreshed as Record<string, unknown>).code;
+            log?.warn?.(
+              "TOKEN",
+              `${this.provider.toUpperCase()} | proactive refresh returned unrecoverable sentinel (code=${String(refreshCode ?? "unknown")}); keeping stale credentials, deferring to reactive path.`
+            );
+            // Intentionally NOT spreading the sentinel and NOT persisting
+            // expired status. The next upstream call either succeeds (rotation
+            // map / DB-staleness saved us) or fails — chatCore.ts then marks
+            // the account expired with confidence.
+          } else {
+            activeCredentials = {
+              ...credentials,
+              ...refreshed,
+            };
+            if (onCredentialsRefreshed) {
+              await onCredentialsRefreshed(refreshed);
+            }
           }
         }
       } catch (error) {
-        log?.warn?.(
+        // tokenRefresh.ts:1352 documents that onPersist throws are re-thrown so
+        // the caller is aware of the persistence failure. Honor that contract:
+        // log at error level (not warn), with sanitized message — and let the
+        // request continue with stale credentials so the user-visible error
+        // surfaces upstream rather than being silently absorbed here.
+        log?.error?.(
           "TOKEN",
           `Credential refresh failed for ${this.provider}: ${error instanceof Error ? error.message : String(error)}`
         );

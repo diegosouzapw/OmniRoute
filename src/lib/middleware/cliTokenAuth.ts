@@ -1,8 +1,14 @@
 import crypto from "node:crypto";
 import { headers } from "next/headers";
 
-const SALT = "omniroute-cli-auth-v1";
+import { getLegacyCliTokenSync, getMachineTokenSync } from "@/lib/machineToken";
+
 const HEADER_NAME = "x-omniroute-cli-token";
+
+type RequestWithPeer = Request & {
+  ip?: string;
+  socket?: { remoteAddress?: string };
+};
 
 export function isLoopback(ip: string): boolean {
   const normalized = ip.replace(/^::ffff:/, "");
@@ -28,6 +34,31 @@ async function readHeader(request: Request, name: string): Promise<string | null
   }
 }
 
+function firstHeaderIp(value: string | null): string | null {
+  return value?.split(",")[0]?.trim() || null;
+}
+
+function requestPeerAddress(request: RequestWithPeer): string | null {
+  return request.ip || request.socket?.remoteAddress || null;
+}
+
+async function isLocalCliRequest(request: RequestWithPeer): Promise<boolean> {
+  const peerAddress = requestPeerAddress(request);
+  if (peerAddress) return isLoopback(peerAddress);
+
+  const forwardedPeer =
+    firstHeaderIp(await readHeader(request, "cf-connecting-ip")) ||
+    firstHeaderIp(await readHeader(request, "x-forwarded-for")) ||
+    firstHeaderIp(await readHeader(request, "x-real-ip"));
+  if (forwardedPeer) return false;
+
+  try {
+    return isLoopback(new URL(request.url).hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Validates the CLI machine-id token sent by the local omniroute CLI.
  * Only accepted from loopback IPs. Disabled via OMNIROUTE_DISABLE_CLI_TOKEN=true.
@@ -36,30 +67,17 @@ export async function isCliTokenAuthValid(request: Request): Promise<boolean> {
   if (process.env.OMNIROUTE_DISABLE_CLI_TOKEN === "true") return false;
 
   const token = await readHeader(request, HEADER_NAME);
-  if (!token || token.length !== 32) return false;
+  if (!token) return false;
 
-  // Only allow loopback origin — check forwarded-for, real-ip, then host header.
-  const forwardedFor = (await readHeader(request, "x-forwarded-for")) ?? "";
-  const realIp = (await readHeader(request, "x-real-ip")) ?? "";
-  const ip = forwardedFor.split(",")[0].trim() || realIp;
-  if (ip && !isLoopback(ip)) return false;
+  if (!(await isLocalCliRequest(request as RequestWithPeer))) return false;
 
-  let expected: string;
-  try {
-    const { machineIdSync } = await import("node-machine-id");
-    const mid = machineIdSync();
-    expected = crypto
-      .createHash("sha256")
-      .update(mid + SALT)
-      .digest("hex")
-      .substring(0, 32);
-  } catch {
-    return false;
-  }
-
-  try {
-    return crypto.timingSafeEqual(Buffer.from(token, "utf8"), Buffer.from(expected, "utf8"));
-  } catch {
-    return false;
-  }
+  const expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()].filter(Boolean);
+  return expectedTokens.some((expected) => {
+    if (token.length !== expected.length) return false;
+    try {
+      return crypto.timingSafeEqual(Buffer.from(token, "utf8"), Buffer.from(expected, "utf8"));
+    } catch {
+      return false;
+    }
+  });
 }

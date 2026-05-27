@@ -4,11 +4,38 @@
 
 ---
 
+## [3.8.5] — 2026-05-26
+
+### 🔒 Security
+
+- **authz:** redirect `/home` and `/home/:path*` to `/login` when unauthenticated (#2712)
+
+### 🔧 Bug Fixes
+
+- **mcp:** break callLogs ↔ compliance ESM cycle that deadlocks the bundled MCP server on Node.js 24 (#2650)
+- **deepseek:** guard PoW solver Web Worker handler under Node strict mode (#2724)
+- **combos:** include no-auth providers in the combo builder picker (#2737)
+- **translator:** allow the `web_search` server-tool family in the Responses API translator (#2695)
+- **oauth:** register the missing `trae` provider with `import_token` flow (#2658)
+- **model:** merge settings-based aliases with the legacy DB alias namespace (#2618, #2208)
+- **kiro:** clipboard fallback for HTTP / non-secure contexts (#2689)
+- **cli:** raise `omniroute serve` ready timeout to 60s with TCP fallback for Windows cold start (#2460)
+
+---
+
 ## [Unreleased]
 
 ### ✨ New Features
 
 ### 🔧 Bug Fixes
+
+---
+
+## [3.8.4] — 2026-05-25
+
+### Added
+
+- Embedded services (work in progress — 9Router, CLIProxyAPI; see T-15 for full entry).
 
 ---
 

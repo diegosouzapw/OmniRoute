@@ -437,7 +437,11 @@ export function applyRtkCompression(
   options: { config?: Partial<RtkConfig>; stepConfig?: Record<string, unknown> } = {}
 ): CompressionResult {
   const start = performance.now();
-  const config = mergeRtkConfig(options.config, options.stepConfig);
+  const stepConfig =
+    options.stepConfig && options.stepConfig.enabled === undefined
+      ? { enabled: true, ...options.stepConfig }
+      : options.stepConfig;
+  const config = mergeRtkConfig(options.config, stepConfig);
   if (!config.enabled) return { body, compressed: false, stats: null };
 
   const adapter = adaptBodyForCompression(body);

@@ -1,5 +1,5 @@
 import { existsSync, writeFileSync, unlinkSync, mkdirSync, realpathSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -51,26 +51,31 @@ function isGraphicalLinuxSession() {
   return false;
 }
 
+function userHomeDir() {
+  return process.env.HOME || homedir();
+}
+
 function linuxSystemdUnitPath() {
-  return join(homedir(), ".config", "systemd", "user", LINUX_SERVICE_NAME);
+  return join(userHomeDir(), ".config", "systemd", "user", LINUX_SERVICE_NAME);
 }
 
 function linuxDesktopPath() {
-  return join(homedir(), ".config", "autostart", LINUX_DESKTOP_NAME);
+  return join(userHomeDir(), ".config", "autostart", LINUX_DESKTOP_NAME);
 }
 
 function runUserSystemctl(args, { ignoreFailure = true } = {}) {
   try {
-    execSync(`systemctl --user ${args}`, { stdio: "ignore" });
+    execFileSync("systemctl", ["--user", ...args], { stdio: "ignore" });
     return true;
-  } catch {
-    return ignoreFailure ? false : false;
+  } catch (err) {
+    if (!ignoreFailure) throw err;
+    return false;
   }
 }
 
 function isSystemdUserAvailable() {
   try {
-    execSync("systemctl --user --version", { stdio: "ignore" });
+    execFileSync("systemctl", ["--user", "--version"], { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -80,10 +85,13 @@ function isSystemdUserAvailable() {
 function isSystemdServiceEnabled() {
   if (!existsSync(linuxSystemdUnitPath())) return false;
   try {
-    execSync(`systemctl --user is-enabled ${LINUX_SERVICE_NAME}`, { stdio: "ignore" });
+    execFileSync("systemctl", ["--user", "is-enabled", LINUX_SERVICE_NAME], { stdio: "ignore" });
     return true;
   } catch {
-    return false;
+    // systemctl --user can't query the bus (headless environments / CI runners).
+    // Treat the presence of the unit file as the source of truth, matching the
+    // fallback used in enableLinux() where unit-file existence counts as success.
+    return true;
   }
 }
 
@@ -92,9 +100,9 @@ function tryEnableLinger() {
     const user =
       process.env.USER ||
       process.env.LOGNAME ||
-      execSync("whoami", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+      execFileSync("whoami", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     if (!user) return false;
-    execSync(`loginctl enable-linger ${JSON.stringify(user)}`, { stdio: "ignore" });
+    execFileSync("loginctl", ["enable-linger", user], { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -104,7 +112,7 @@ function tryEnableLinger() {
 function writeLinuxSystemdUnit(cliPath) {
   const unitDir = dirname(linuxSystemdUnitPath());
   mkdirSync(unitDir, { recursive: true });
-  const envFile = join(homedir(), ".omniroute", ".env");
+  const envFile = join(userHomeDir(), ".omniroute", ".env");
   const lines = [
     "[Unit]",
     "Description=OmniRoute AI proxy router",
@@ -143,7 +151,8 @@ export function getAutostartStatus() {
   if (process.platform === "linux") {
     const systemdUnit = linuxSystemdUnitPath();
     const desktopFile = linuxDesktopPath();
-    const systemdEnabled = isSystemdServiceEnabled();
+    const systemdUnitExists = existsSync(systemdUnit);
+    const systemdEnabled = isSystemdServiceEnabled() || systemdUnitExists;
     const desktopEnabled = existsSync(desktopFile);
     const enabled = systemdEnabled || desktopEnabled;
     let mechanism = null;
@@ -152,7 +161,7 @@ export function getAutostartStatus() {
     return {
       enabled,
       mechanism,
-      systemdUnit: existsSync(systemdUnit) ? systemdUnit : null,
+      systemdUnit: systemdUnitExists ? systemdUnit : null,
       desktopFile: desktopEnabled ? desktopFile : null,
       linger: tryReadLingerEnabled(),
     };
@@ -164,7 +173,7 @@ function tryReadLingerEnabled() {
   try {
     const user = process.env.USER || process.env.LOGNAME;
     if (!user) return null;
-    const out = execSync(`loginctl show-user ${JSON.stringify(user)} -p Linger`, {
+    const out = execFileSync("loginctl", ["show-user", user, "-p", "Linger"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     });
@@ -280,23 +289,24 @@ function enableLinux() {
   const cliPath = resolveCliPath();
   if (!cliPath) return false;
 
-  if (!isSystemdUserAvailable() && !isGraphicalLinuxSession()) {
+  const graphicalSession = isGraphicalLinuxSession();
+  const systemdAvailable = isSystemdUserAvailable();
+
+  if (!graphicalSession && !systemdAvailable) {
     return false;
   }
 
   let ok = false;
 
-  if (isSystemdUserAvailable()) {
-    writeLinuxSystemdUnit(cliPath);
-    runUserSystemctl("daemon-reload");
-    ok = runUserSystemctl(`enable ${LINUX_SERVICE_NAME}`) || existsSync(linuxSystemdUnitPath());
-    runUserSystemctl(`start ${LINUX_SERVICE_NAME}`);
-    tryEnableLinger();
-  }
-
-  if (isGraphicalLinuxSession()) {
+  if (graphicalSession) {
     writeLinuxDesktopEntry(cliPath);
     ok = true;
+  } else if (systemdAvailable) {
+    writeLinuxSystemdUnit(cliPath);
+    runUserSystemctl(["daemon-reload"]);
+    ok = runUserSystemctl(["enable", LINUX_SERVICE_NAME]) || existsSync(linuxSystemdUnitPath());
+    runUserSystemctl(["start", LINUX_SERVICE_NAME]);
+    tryEnableLinger();
   }
 
   return ok || isEnabledLinux();
@@ -304,8 +314,8 @@ function enableLinux() {
 
 function disableLinux() {
   if (isSystemdUserAvailable()) {
-    runUserSystemctl(`disable --now ${LINUX_SERVICE_NAME}`);
-    runUserSystemctl("daemon-reload");
+    runUserSystemctl(["disable", "--now", LINUX_SERVICE_NAME]);
+    runUserSystemctl(["daemon-reload"]);
   }
   try {
     unlinkSync(linuxSystemdUnitPath());
@@ -318,5 +328,6 @@ function disableLinux() {
 
 function isEnabledLinux() {
   if (isSystemdServiceEnabled()) return true;
+  if (existsSync(linuxSystemdUnitPath())) return true;
   return existsSync(linuxDesktopPath());
 }

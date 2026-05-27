@@ -195,6 +195,10 @@ function resolveVisionCapability(
     return true;
   }
 
+  if (allModalities.length > 0) {
+    return false;
+  }
+
   if (typeof registryModel?.supportsVision === "boolean") return registryModel.supportsVision;
   if (typeof spec?.supportsVision === "boolean") return spec.supportsVision;
 

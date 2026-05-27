@@ -973,6 +973,9 @@ Configure per-combo balancing in **Dashboard → Combos → Create/Edit → Stra
 | **Cost-Optimized** | Routes to the cheapest available model (uses pricing table)              |
 
 Global combo defaults can be set in **Dashboard → Settings → Routing → Combo Defaults**.
+Combo target timeouts inherit the current request timeout by default. Use **Target timeout
+(seconds)** on combo defaults or an individual combo only when a shorter per-target limit should
+trigger faster fallback.
 
 ---
 

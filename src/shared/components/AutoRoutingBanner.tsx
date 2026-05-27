@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const AUTO_ROUTING_DISMISSED_KEY = "auto-routing-banner-dismissed";
@@ -48,12 +49,12 @@ export default function AutoRoutingBanner() {
           OmniRoute is automatically routing requests using combo-based strategies.
           <span className="block sm:inline sm:ml-1">
             View or change your routing configuration on the{" "}
-            <a
+            <Link
               href="/dashboard/combos"
               className="text-blue-600 hover:text-blue-800 underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               Combos page
-            </a>
+            </Link>
             .
           </span>
         </div>

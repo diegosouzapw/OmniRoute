@@ -14,6 +14,7 @@ const ORIGINAL_CALL_LOG_PIPELINE_MAX_SIZE_KB = process.env.CALL_LOG_PIPELINE_MAX
 const core = await import("../../src/lib/db/core.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const detailedLogs = await import("../../src/lib/db/detailedLogs.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
 
 async function resetStorage() {
   core.resetDbInstance();
@@ -168,6 +169,36 @@ test("saveCallLog stores only summary metadata in SQLite and writes detailed art
   assert.equal(artifact.summary.comboExecutionKey, "combo-a:0:step-openai-a");
 });
 
+test("getCallLogs resolves raw account labels from provider connections", async () => {
+  const connection = await providersDb.createProviderConnection({
+    provider: "codex",
+    authType: "oauth",
+    name: "logs.user@example.com",
+    email: "logs.user@example.com",
+    accessToken: "token",
+  });
+
+  insertCallLog({
+    id: "masked-account-log",
+    timestamp: "2026-03-30T12:34:56.789Z",
+    method: "POST",
+    path: "/v1/responses",
+    status: 200,
+    model: "gpt-5.5",
+    requested_model: "codex/gpt-5.5",
+    provider: "codex",
+    account: "log******@********com",
+    connection_id: connection.id,
+  });
+
+  const logs = await callLogs.getCallLogs({ account: "logs.user@example.com", limit: 10 });
+  assert.equal(logs.length, 1);
+  assert.equal(logs[0].account, "logs.user@example.com");
+
+  const detail = await callLogs.getCallLogById("masked-account-log");
+  assert.equal(detail?.account, "logs.user@example.com");
+});
+
 test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh referenced artifacts", async () => {
   process.env.CALL_LOG_RETENTION_DAYS = "1";
   const oldRelPath = "2026-03-10/2026-03-10T00-00-00.000Z_old.json";
@@ -206,8 +237,6 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
     .get("fresh-log");
   const freshAbsPath = path.join(TEST_DATA_DIR, "call_logs", (freshRow as any).artifact_relpath);
 
-  callLogs.rotateCallLogs();
-
   assert.equal(
     (
       core
@@ -215,12 +244,20 @@ test("rotateCallLogs removes expired rows and orphaned artifacts but keeps fresh
         .prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?")
         .get("expired-log") as any
     ).cnt,
+    1
+  );
+  assert.equal(fs.existsSync(oldAbsPath), true);
+  assert.equal(fs.existsSync(freshAbsPath), true);
+
+  callLogs.rotateCallLogs();
+
+  const db = core.getDbInstance();
+  assert.equal(
+    (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("expired-log") as any)
+      .cnt,
     0
   );
   assert.equal(fs.existsSync(oldAbsPath), false);
-  assert.equal(fs.existsSync(freshAbsPath), true);
-
-  const db = core.getDbInstance();
   assert.equal(
     (db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("fresh-log") as any).cnt,
     1

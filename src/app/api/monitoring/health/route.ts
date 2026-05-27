@@ -12,30 +12,127 @@ import { isAuthenticated } from "@/shared/utils/apiAuth";
  * rate limit status, and database stats.
  */
 export async function GET() {
-  try {
-    const { getAllCircuitBreakerStatuses } = await import("@/shared/utils/circuitBreaker");
-    const { getAllRateLimitStatus, getLearnedLimits } =
-      await import("@omniroute/open-sse/services/rateLimitManager");
-    const { getAllModelLockouts } = await import("@omniroute/open-sse/services/accountFallback");
-    const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
-    const { getQuotaMonitorSummary, getQuotaMonitorSnapshots } =
-      await import("@omniroute/open-sse/services/quotaMonitor.ts");
-    const { getActiveSessions, getAllActiveSessionCountsByKey } =
-      await import("@omniroute/open-sse/services/sessionManager.ts");
+  const readHealthValue = <T>(label: string, reader: () => T, fallback: T): T => {
+    try {
+      return reader();
+    } catch (error) {
+      console.warn(
+        `[API] GET /api/monitoring/health ${label} unavailable:`,
+        error instanceof Error ? error.message : error
+      );
+      return fallback;
+    }
+  };
 
-    const { getCredentialHealthSummary } = await import("@/lib/credentialHealth/cache");
-    const settings = await getSettings();
-    const connections = await getProviderConnections();
-    const circuitBreakers = getAllCircuitBreakerStatuses();
-    const rateLimitStatus = getAllRateLimitStatus();
-    const learnedLimits = getLearnedLimits();
-    const lockouts = getAllModelLockouts();
-    const quotaMonitorSummary = getQuotaMonitorSummary();
-    const quotaMonitorMonitors = getQuotaMonitorSnapshots();
-    const activeSessions = getActiveSessions();
-    const activeSessionsByKey = getAllActiveSessionCountsByKey();
-    const credentialHealth = getCredentialHealthSummary();
-    const { getAllHealthStatuses } = await import("@/lib/localHealthCheck");
+  const fallbackQuotaMonitorSummary = {
+    active: 0,
+    alerting: 0,
+    exhausted: 0,
+    errors: 0,
+    statusCounts: { starting: 0, idle: 0, healthy: 0, warning: 0, exhausted: 0, error: 0 },
+    byProvider: {},
+  };
+
+  try {
+    const [
+      circuitBreakerModule,
+      rateLimitModule,
+      accountFallbackModule,
+      requestDedupModule,
+      quotaMonitorModule,
+      sessionManagerModule,
+      credentialHealthModule,
+      localHealthModule,
+      settingsResult,
+      connectionsResult,
+    ] = await Promise.allSettled([
+      import("@/shared/utils/circuitBreaker"),
+      import("@omniroute/open-sse/services/rateLimitManager"),
+      import("@omniroute/open-sse/services/accountFallback"),
+      import("@omniroute/open-sse/services/requestDedup.ts"),
+      import("@omniroute/open-sse/services/quotaMonitor.ts"),
+      import("@omniroute/open-sse/services/sessionManager.ts"),
+      import("@/lib/credentialHealth/cache"),
+      import("@/lib/localHealthCheck"),
+      getSettings(),
+      getProviderConnections(),
+    ]);
+
+    const circuitBreakers =
+      circuitBreakerModule.status === "fulfilled"
+        ? readHealthValue(
+            "circuit breakers",
+            () => circuitBreakerModule.value.getAllCircuitBreakerStatuses(),
+            []
+          )
+        : [];
+    const rateLimitStatus =
+      rateLimitModule.status === "fulfilled"
+        ? readHealthValue("rate limits", () => rateLimitModule.value.getAllRateLimitStatus(), {})
+        : {};
+    const learnedLimits =
+      rateLimitModule.status === "fulfilled"
+        ? readHealthValue("learned limits", () => rateLimitModule.value.getLearnedLimits(), {})
+        : {};
+    const lockouts =
+      accountFallbackModule.status === "fulfilled"
+        ? readHealthValue(
+            "model lockouts",
+            () => accountFallbackModule.value.getAllModelLockouts(),
+            []
+          )
+        : [];
+    const quotaMonitorSummary =
+      quotaMonitorModule.status === "fulfilled"
+        ? readHealthValue(
+            "quota monitor summary",
+            () => quotaMonitorModule.value.getQuotaMonitorSummary(),
+            fallbackQuotaMonitorSummary
+          )
+        : fallbackQuotaMonitorSummary;
+    const quotaMonitorMonitors =
+      quotaMonitorModule.status === "fulfilled"
+        ? readHealthValue(
+            "quota monitor snapshots",
+            () => quotaMonitorModule.value.getQuotaMonitorSnapshots(),
+            []
+          )
+        : [];
+    const activeSessions =
+      sessionManagerModule.status === "fulfilled"
+        ? readHealthValue(
+            "active sessions",
+            () => sessionManagerModule.value.getActiveSessions(),
+            []
+          )
+        : [];
+    const activeSessionsByKey =
+      sessionManagerModule.status === "fulfilled"
+        ? readHealthValue(
+            "active sessions by key",
+            () => sessionManagerModule.value.getAllActiveSessionCountsByKey(),
+            {}
+          )
+        : {};
+    const credentialHealth =
+      credentialHealthModule.status === "fulfilled"
+        ? readHealthValue(
+            "credential health",
+            () => credentialHealthModule.value.getCredentialHealthSummary(),
+            undefined
+          )
+        : undefined;
+    const localProviders =
+      localHealthModule.status === "fulfilled"
+        ? readHealthValue(
+            "local providers",
+            () => localHealthModule.value.getAllHealthStatuses(),
+            {}
+          )
+        : {};
+    const settings = settingsResult.status === "fulfilled" ? settingsResult.value : {};
+    const connections = connectionsResult.status === "fulfilled" ? connectionsResult.value : [];
+
     const payload = buildHealthPayload({
       appVersion: APP_CONFIG.version,
       catalogCount: Object.keys(AI_PROVIDERS).length,
@@ -45,8 +142,15 @@ export async function GET() {
       rateLimitStatus,
       learnedLimits,
       lockouts,
-      localProviders: getAllHealthStatuses(),
-      inflightRequests: getInflightCount(),
+      localProviders,
+      inflightRequests:
+        requestDedupModule.status === "fulfilled"
+          ? readHealthValue(
+              "inflight requests",
+              () => requestDedupModule.value.getInflightCount(),
+              0
+            )
+          : 0,
       quotaMonitorSummary,
       quotaMonitorMonitors,
       activeSessions,
@@ -57,7 +161,19 @@ export async function GET() {
     return NextResponse.json(payload);
   } catch (error) {
     console.error("[API] GET /api/monitoring/health error:", error);
-    return NextResponse.json({ status: "error", error: "Health check failed" }, { status: 500 });
+    return NextResponse.json({
+      status: "degraded",
+      error: "Health check partially unavailable",
+      timestamp: new Date().toISOString(),
+      providerBreakers: [],
+      providerHealth: {},
+      rateLimitStatus: {},
+      learnedLimits: {},
+      lockouts: [],
+      quotaMonitor: { ...fallbackQuotaMonitorSummary, monitors: [] },
+      sessions: { activeCount: 0, stickyBoundCount: 0, byApiKey: {}, top: [] },
+      dedup: { inflightRequests: 0 },
+    });
   }
 }
 

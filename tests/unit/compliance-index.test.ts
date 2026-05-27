@@ -157,7 +157,7 @@ test("compliance noLog helpers cover missing ids, in-memory overrides and persis
   assert.deepEqual(compliance.getRetentionDays(), { app: 10, call: 5 });
 });
 
-test("cleanupExpiredLogs removes stale rows across all log tables and records an audit entry", () => {
+test("cleanupExpiredLogs removes stale rows across all log tables and records an audit entry", async () => {
   compliance.initAuditLog();
   const db = core.getDbInstance();
 
@@ -232,7 +232,7 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
     "admin.cleanup.seed"
   );
 
-  const result = compliance.cleanupExpiredLogs();
+  const result = await compliance.cleanupExpiredLogs();
   const usageCount = (db.prepare("SELECT COUNT(*) as count FROM usage_history").get() as any).count;
   const callCount = (db.prepare("SELECT COUNT(*) as count FROM call_logs").get() as any).count;
   const proxyCount = (db.prepare("SELECT COUNT(*) as count FROM proxy_logs").get() as any).count;
@@ -270,7 +270,7 @@ test("cleanupExpiredLogs removes stale rows across all log tables and records an
   assert.equal(cleanupEntry.target, "log-retention");
 });
 
-test("cleanupExpiredLogs tolerates missing tables and logAuditEvent failures without breaking", () => {
+test("cleanupExpiredLogs tolerates missing tables and logAuditEvent failures without breaking", async () => {
   compliance.initAuditLog();
   const db = core.getDbInstance();
 
@@ -288,7 +288,7 @@ test("cleanupExpiredLogs tolerates missing tables and logAuditEvent failures wit
     details: { reason: "table dropped" },
   });
 
-  const result = compliance.cleanupExpiredLogs();
+  const result = await compliance.cleanupExpiredLogs();
 
   assert.deepEqual(result, {
     deletedUsage: 0,

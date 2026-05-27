@@ -1466,65 +1466,92 @@ test("specialty validators accept watsonx, OCI and SAP enterprise gateways", asy
   assert.equal(sap.method, "sap_models");
 });
 
-test("specialty validator accepts Bedrock mantle discovery and runtime chat fallback", async () => {
-  let runtimeChatProbed = false;
+test("specialty validator accepts native Bedrock model discovery with a configured region", async () => {
+  const seenUrls: string[] = [];
 
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
+    seenUrls.push(target);
+    assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
 
-    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
-      return new Response(JSON.stringify({ data: [] }), { status: 200 });
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      return new Response(
+        JSON.stringify({
+          modelSummaries: [
+            {
+              modelId: "anthropic.claude-sonnet-4-6",
+              modelName: "Claude Sonnet 4.6",
+              providerName: "Anthropic",
+              inputModalities: ["TEXT", "IMAGE"],
+              outputModalities: ["TEXT"],
+              responseStreamingSupported: true,
+            },
+          ],
+        }),
+        { status: 200 }
+      );
     }
 
-    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
-      return new Response(JSON.stringify({ error: "not found" }), { status: 404 });
+    if (
+      target ===
+      "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED"
+    ) {
+      return new Response(
+        JSON.stringify({
+          inferenceProfileSummaries: [
+            {
+              inferenceProfileId: "eu.anthropic.claude-sonnet-4-6",
+              inferenceProfileName: "EU Claude Sonnet 4.6",
+              models: [
+                {
+                  modelArn:
+                    "arn:aws:bedrock:eu-west-2::foundation-model/anthropic.claude-sonnet-4-6",
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200 }
+      );
     }
 
-    if (target === "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1/chat/completions") {
-      runtimeChatProbed = true;
-      const body = JSON.parse(String(init.body || "{}"));
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer runtime-key");
-      assert.equal(body.model, "openai.gpt-oss-120b-1:0");
-      return new Response(JSON.stringify({ error: "bad request" }), { status: 400 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
-  };
-
-  const mantle = await validateProviderApiKey({
-    provider: "bedrock",
-    apiKey: "bedrock-key",
-  });
-  const runtime = await validateProviderApiKey({
-    provider: "bedrock",
-    apiKey: "runtime-key",
-    providerSpecificData: {
-      baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
-    },
-  });
-
-  assert.equal(mantle.valid, true);
-  assert.equal(runtime.valid, true);
-  assert.equal(runtimeChatProbed, true);
-});
-
-test("specialty validator rejects invalid Bedrock credentials", async () => {
-  globalThis.fetch = async (url, init = {}) => {
-    const target = String(url);
-
-    if (target === "https://bedrock-mantle.us-east-1.api.aws/v1/models") {
-      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
-      return new Response(JSON.stringify({ error: "forbidden" }), { status: 403 });
-    }
-
-    throw new Error(`unexpected fetch: ${target}`);
+    throw new Error("unexpected fetch: " + target);
   };
 
   const bedrock = await validateProviderApiKey({
     provider: "bedrock",
     apiKey: "bedrock-key",
+    providerSpecificData: { region: "eu-west-2" },
+  });
+
+  assert.equal(bedrock.valid, true);
+  assert.equal(bedrock.method, "bedrock_native_models");
+  assert.deepEqual(seenUrls, [
+    "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT",
+    "https://bedrock.eu-west-2.amazonaws.com/inference-profiles?maxResults=100&typeEquals=SYSTEM_DEFINED",
+  ]);
+});
+
+test("specialty validator rejects invalid native Bedrock credentials", async () => {
+  globalThis.fetch = async (url, init = {}) => {
+    const target = String(url);
+
+    if (
+      target === "https://bedrock.eu-west-2.amazonaws.com/foundation-models?byOutputModality=TEXT"
+    ) {
+      assert.equal((init.headers as Record<string, string>).Authorization, "Bearer bedrock-key");
+      return new Response(JSON.stringify({ message: "forbidden" }), { status: 403 });
+    }
+
+    throw new Error("unexpected fetch: " + target);
+  };
+
+  const bedrock = await validateProviderApiKey({
+    provider: "bedrock",
+    apiKey: "bedrock-key",
+    providerSpecificData: { region: "eu-west-2" },
   });
 
   assert.equal(bedrock.error, "Invalid API key");

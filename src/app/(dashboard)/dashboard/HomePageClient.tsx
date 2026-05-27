@@ -58,6 +58,15 @@ type ProviderMetricSummary = {
   totalSuccesses?: number;
   successRate?: number;
   avgLatencyMs?: number;
+  lastRequestAt?: string | null;
+  lastErrorAt?: string | null;
+  lastStatus?: number | null;
+  lastErrorStatus?: number | null;
+};
+
+type ActiveRequestSummary = {
+  provider?: string;
+  model?: string;
 };
 
 type ProviderModelSummary = {
@@ -65,6 +74,20 @@ type ProviderModelSummary = {
   alias?: string;
   model?: string;
 };
+
+const PROVIDER_ALIAS_TO_ID = new Map(
+  Object.entries(AI_PROVIDERS)
+    .flatMap(([providerId, providerInfo]) =>
+      providerInfo.alias ? [[providerInfo.alias.toLowerCase(), providerId]] : []
+    )
+    .filter((entry): entry is [string, string] => entry.length === 2)
+);
+
+function normalizeProviderId(providerId?: string | null): string {
+  const normalized = typeof providerId === "string" ? providerId.trim().toLowerCase() : "";
+  if (!normalized) return "";
+  return AI_PROVIDERS[normalized] ? normalized : PROVIDER_ALIAS_TO_ID.get(normalized) || normalized;
+}
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -92,7 +115,8 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
   const [loading, setLoading] = useState(true);
   const [baseUrl, setBaseUrl] = useState("/v1");
   const [selectedProvider, setSelectedProvider] = useState(null);
-  const [providerMetrics, setProviderMetrics] = useState({});
+  const [providerMetrics, setProviderMetrics] = useState<Record<string, ProviderMetricSummary>>({});
+  const [activeRequests, setActiveRequests] = useState<ActiveRequestSummary[]>([]);
 
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -236,6 +260,56 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let controller: AbortController | null = null;
+
+    const loadTopologyActivity = async () => {
+      const currentController = new AbortController();
+      controller = currentController;
+      try {
+        const [activeRes, metricsRes] = await Promise.all([
+          fetch("/api/logs/active", { cache: "no-store", signal: currentController.signal }),
+          fetch("/api/provider-metrics", { cache: "no-store", signal: currentController.signal }),
+        ]);
+
+        if (activeRes.ok) {
+          const data = await activeRes.json();
+          if (!cancelled) {
+            setActiveRequests(Array.isArray(data.activeRequests) ? data.activeRequests : []);
+          }
+        }
+
+        if (metricsRes.ok) {
+          const data = await metricsRes.json();
+          if (!cancelled) {
+            setProviderMetrics(data.metrics || {});
+          }
+        }
+      } catch (error) {
+        const isAbortError = error instanceof DOMException && error.name === "AbortError";
+        if (!cancelled && !isAbortError) {
+          console.error("Failed to load topology activity:", error);
+        }
+      } finally {
+        if (controller === currentController) {
+          controller = null;
+        }
+        if (!cancelled) {
+          timeoutId = setTimeout(loadTopologyActivity, 3000);
+        }
+      }
+    };
+
+    loadTopologyActivity();
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      controller?.abort();
+    };
+  }, []);
+
   // T07: Check for unhealthy API keys and show notification (once per session)
   const notifiedUnhealthyKeys = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -370,6 +444,65 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
     );
     return models.filter((m) => providerKeys.has(m.provider));
   }, [selectedProvider, models]);
+
+  const topologyProviders = useMemo(() => {
+    const byProvider = new Map<string, { id: string; provider: string; name?: string }>();
+    const providerConfig = AI_PROVIDERS as Record<string, { name?: string }>;
+
+    const addProvider = (providerId?: string | null, name?: string) => {
+      const rawProviderId = typeof providerId === "string" ? providerId.trim() : "";
+      if (!rawProviderId) return;
+
+      const canonicalProviderId = normalizeProviderId(rawProviderId);
+      if (!canonicalProviderId || byProvider.has(canonicalProviderId)) return;
+
+      byProvider.set(canonicalProviderId, {
+        id: canonicalProviderId,
+        provider: canonicalProviderId,
+        name: name || providerConfig[canonicalProviderId]?.name || rawProviderId,
+      });
+    };
+
+    providerStats
+      .filter((provider) => provider.total > 0)
+      .forEach((provider) => addProvider(provider.id, provider.provider.name));
+    Object.keys(providerMetrics).forEach((provider) => addProvider(provider));
+    activeRequests.forEach((request) => addProvider(request.provider));
+
+    return Array.from(byProvider.values());
+  }, [providerStats, providerMetrics, activeRequests]);
+
+  const topologyActiveRequests = useMemo(
+    () =>
+      activeRequests.map((request) => ({
+        ...request,
+        provider: normalizeProviderId(request.provider),
+      })),
+    [activeRequests]
+  );
+
+  const { lastProvider, errorProvider } = useMemo(() => {
+    let recentProvider = "";
+    let recentTimestamp = 0;
+    let recentErrorProvider = "";
+    let recentErrorTimestamp = 0;
+
+    for (const [provider, metrics] of Object.entries(providerMetrics)) {
+      const requestTimestamp = metrics.lastRequestAt ? Date.parse(metrics.lastRequestAt) : 0;
+      if (Number.isFinite(requestTimestamp) && requestTimestamp > recentTimestamp) {
+        recentProvider = normalizeProviderId(provider);
+        recentTimestamp = requestTimestamp;
+      }
+
+      const errorTimestamp = metrics.lastErrorAt ? Date.parse(metrics.lastErrorAt) : 0;
+      if (Number.isFinite(errorTimestamp) && errorTimestamp > recentErrorTimestamp) {
+        recentErrorProvider = normalizeProviderId(provider);
+        recentErrorTimestamp = errorTimestamp;
+      }
+    }
+
+    return { lastProvider: recentProvider, errorProvider: recentErrorProvider };
+  }, [providerMetrics]);
 
   const pollBackgroundUpdate = useCallback(
     async ({
@@ -1051,9 +1184,10 @@ export default function HomePageClient({ machineId }: HomePageClientProps) {
             </div>
           </div>
           <ProviderTopology
-            providers={providerStats
-              .filter((p) => p.total > 0)
-              .map((p) => ({ id: p.id, provider: p.id, name: p.provider.name }))}
+            providers={topologyProviders}
+            activeRequests={topologyActiveRequests}
+            lastProvider={lastProvider}
+            errorProvider={errorProvider}
           />
         </Card>
       )}

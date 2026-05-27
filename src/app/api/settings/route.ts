@@ -4,7 +4,11 @@ import { getRuntimePorts } from "@/lib/runtime/ports";
 import { updateSettingsSchema } from "@/shared/validation/settingsSchemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { validateProxyUrl, upsertUpstreamProxyConfig } from "@/lib/db/upstreamProxy";
+import {
+  validateProxyUrl,
+  upsertUpstreamProxyConfig,
+  getUpstreamProxyConfig,
+} from "@/lib/db/upstreamProxy";
 import {
   ensurePersistentManagementPasswordHash,
   getStoredManagementPassword,
@@ -144,6 +148,17 @@ export async function GET(request: Request) {
     const cloudUrl = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || null;
     const machineId = await getConsistentMachineId();
 
+    // Include cliproxyapi_model_mapping from upstream_proxy_config table
+    let cliproxyapiModelMapping: Record<string, string> | null = null;
+    try {
+      const proxyConfig = await getUpstreamProxyConfig("cliproxyapi");
+      if (proxyConfig?.cliproxyapiModelMapping) {
+        cliproxyapiModelMapping = proxyConfig.cliproxyapiModelMapping as Record<string, string>;
+      }
+    } catch {
+      // best effort — don't fail GET /api/settings if this lookup fails
+    }
+
     return NextResponse.json({
       ...safeSettings,
       hasPassword: hasManagementPasswordConfigured(settings),
@@ -153,6 +168,9 @@ export async function GET(request: Request) {
       cloudConfigured: Boolean(cloudUrl),
       cloudUrl,
       machineId,
+      ...(cliproxyapiModelMapping !== null
+        ? { cliproxyapi_model_mapping: cliproxyapiModelMapping }
+        : {}),
     });
   } catch (error) {
     console.log("Error getting settings:", error);
@@ -279,7 +297,9 @@ export async function PATCH(request: Request) {
       }
     }
 
-    if (cpaFallback !== undefined || cpaUrl !== undefined) {
+    const cpaModelMapping = rawBody.cliproxyapi_model_mapping as Record<string, string> | undefined;
+
+    if (cpaFallback !== undefined || cpaUrl !== undefined || cpaModelMapping !== undefined) {
       const enabled =
         cpaFallback ?? (settings as Record<string, unknown>).cliproxyapi_fallback_enabled;
       const mode = enabled ? "fallback" : "native";
@@ -287,6 +307,7 @@ export async function PATCH(request: Request) {
         providerId: "cliproxyapi",
         mode,
         enabled: !!enabled,
+        ...(cpaModelMapping !== undefined ? { cliproxyapiModelMapping: cpaModelMapping } : {}),
       });
     }
 

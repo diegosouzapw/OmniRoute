@@ -73,16 +73,24 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import {
   getClaudeCodeCompatibleRequestDefaults as _getClaudeCodeCompatibleRequestDefaults,
   getCodexRequestDefaults as _getCodexRequestDefaults,
+  type CodexServiceTier,
 } from "@/lib/providers/requestDefaults";
 import {
-  getCodexEffectiveFastServiceTier,
-  isCodexGlobalFastServiceTierEnabled,
+  CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  getCodexEffectiveServiceTier,
+  getCodexGlobalServiceMode,
+  resolveCodexGlobalFastServiceTier,
+  type CodexGlobalServiceMode,
 } from "@/lib/providers/codexFastTier";
 import { isClaudeExtraUsageBlockEnabled } from "@/lib/providers/claudeExtraUsage";
 import { parseExtraApiKeys } from "@/shared/utils/parseApiKeys";
 import RiskNoticeModal from "../components/RiskNoticeModal";
 import { isRiskAcknowledged, useRiskAcknowledged } from "../hooks/useRiskAcknowledged";
 import { resolveDashboardProviderInfo } from "../providerPageUtils";
+import {
+  getWebSessionCredentialRequirement,
+  type WebSessionCredentialRequirement,
+} from "./webSessionCredentials";
 
 type CompatByProtocolMap = Partial<
   Record<
@@ -154,10 +162,12 @@ function isModelHidden(
   return false;
 }
 
+type ProviderMessageTranslator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has?: (key: string) => boolean;
+};
+
 function providerText(
-  t: ((key: string, values?: Record<string, unknown>) => string) & {
-    has?: (key: string) => boolean;
-  },
+  t: ProviderMessageTranslator,
   key: string,
   fallback: string,
   values?: Record<string, unknown>
@@ -172,6 +182,194 @@ function providerText(
     );
   }
   return fallback;
+}
+
+function getWebSessionCredentialLabel(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement,
+  optional: boolean
+): string {
+  if (requirement.kind === "none") {
+    return providerText(t, "webNoAuthCredentialLabel", "No credential required");
+  }
+  const baseLabel =
+    requirement.kind === "token"
+      ? providerText(t, "webTokenCredentialLabel", "Web session token")
+      : t("sessionCookieLabel");
+  return optional ? `${baseLabel} (${t("optional").toLowerCase()})` : baseLabel;
+}
+
+function getWebSessionCredentialHint(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement,
+  providerName: string,
+  editing: boolean
+): string | undefined {
+  if (requirement.kind === "none") return undefined;
+
+  const values = { provider: providerName, credential: requirement.credentialName };
+  if (editing) {
+    return requirement.kind === "token"
+      ? providerText(
+          t,
+          "webTokenEditHint",
+          "Leave blank to keep the current web session token. Credential: {credential}.",
+          values
+        )
+      : providerText(
+          t,
+          "webCookieEditHint",
+          "Leave blank to keep the current session cookie. Required cookie: {credential}.",
+          values
+        );
+  }
+
+  return requirement.kind === "token"
+    ? providerText(
+        t,
+        "webTokenCredentialHint",
+        "Credential: {credential}. Paste the token value from your own signed-in {provider} web session, or a DevTools HAR export if the provider supports it.",
+        values
+      )
+    : providerText(
+        t,
+        "webCookieCredentialHint",
+        "Required cookie: {credential}. Paste the Cookie header value from your own signed-in {provider} web session. Do not include the Cookie: prefix.",
+        values
+      );
+}
+
+function getWebSessionCredentialCheckLabel(
+  t: ProviderMessageTranslator,
+  requirement: WebSessionCredentialRequirement
+): string {
+  if (requirement.kind === "token") return providerText(t, "checkWebToken", "Check token");
+  return providerText(t, "checkCookie", "Check cookie");
+}
+
+function getAddCredentialModalTitle(
+  t: ProviderMessageTranslator,
+  providerName: string,
+  requirement: WebSessionCredentialRequirement | null
+): string {
+  if (!requirement) return t("addProviderApiKeyTitle", { provider: providerName });
+  if (requirement.kind === "none") {
+    return providerText(t, "addProviderConnectionTitle", "Add {provider} connection", {
+      provider: providerName,
+    });
+  }
+  if (requirement.kind === "token") {
+    return providerText(t, "addProviderWebTokenTitle", "Add {provider} web token", {
+      provider: providerName,
+    });
+  }
+  return providerText(t, "addProviderSessionCookieTitle", "Add {provider} session cookie", {
+    provider: providerName,
+  });
+}
+
+function WebSessionCredentialGuide({
+  requirement,
+  providerName,
+  t,
+}: {
+  requirement: WebSessionCredentialRequirement;
+  providerName: string;
+  t: ProviderMessageTranslator;
+}) {
+  if (requirement.kind === "none") {
+    return (
+      <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-3 text-sm text-text-muted">
+        <div className="flex items-start gap-2">
+          <span className="material-symbols-outlined mt-0.5 text-[18px] text-emerald-500">
+            check_circle
+          </span>
+          <div>
+            <p className="font-medium text-text-main">
+              {providerText(t, "webNoAuthGuideTitle", "No credential required")}
+            </p>
+            <p className="mt-1">
+              {providerText(
+                t,
+                "webNoAuthGuideBody",
+                "{provider} does not need an API key or cookie. Save the connection to use its free web endpoint.",
+                { provider: providerName }
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const requiredCredentialKey =
+    requirement.kind === "token" ? "webTokenRequiredCredential" : "webCookieRequiredCredential";
+  const requiredCredentialFallback =
+    requirement.kind === "token" ? "Required token: {credential}" : "Required cookie: {credential}";
+
+  return (
+    <div className="rounded-lg border border-purple-500/25 bg-purple-500/10 px-3 py-3 text-sm text-text-muted">
+      <div className="flex items-start gap-2">
+        <span className="material-symbols-outlined mt-0.5 text-[18px] text-purple-500">cookie</span>
+        <div className="space-y-2">
+          <div>
+            <p className="font-medium text-text-main">
+              {providerText(t, "webSessionGuideTitle", "How to get the session credential")}
+            </p>
+            <p className="mt-1">
+              {providerText(
+                t,
+                "webSessionGuideIntro",
+                "{provider} uses a browser web session instead of an API key.",
+                { provider: providerName }
+              )}
+            </p>
+          </div>
+          <p className="font-medium text-text-main">
+            {providerText(t, requiredCredentialKey, requiredCredentialFallback, {
+              credential: requirement.credentialName,
+            })}
+          </p>
+          <ol className="list-decimal space-y-1 pl-5">
+            <li>
+              {providerText(t, "webSessionGuideStep1", "Sign in to {provider} in your browser.", {
+                provider: providerName,
+              })}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep2",
+                "Open the browser developer tools and inspect a request made by the web app."
+              )}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep3",
+                "Copy the required credential from the provider's own domain. For cookies, copy only the Cookie header value and omit Cookie:.",
+                { credential: requirement.credentialName }
+              )}
+            </li>
+            <li>
+              {providerText(
+                t,
+                "webSessionGuideStep4",
+                "Paste it here and check the connection. If it stops working, sign in again and replace it with a fresh value."
+              )}
+            </li>
+          </ol>
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            {providerText(
+              t,
+              "webSessionSecurityHint",
+              "Treat this like a password: it may access your signed-in web account until it expires or is revoked."
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function effectiveNormalizeForProtocol(
@@ -405,6 +603,9 @@ interface PassthroughModelsSectionProps {
   modelAliases: Record<string, string>;
   availableModels?: CompatModelRow[];
   customModels?: CompatModelRow[];
+  description: string;
+  inputLabel: string;
+  inputPlaceholder: string;
   copied?: string;
   onCopy: (text: string, key: string) => void;
   onSetAlias: (modelId: string, alias: string) => Promise<void>;
@@ -543,7 +744,7 @@ interface ConnectionRowProps {
   isClaude?: boolean;
   isCodex?: boolean;
   isGeminiCli?: boolean;
-  codexFastGlobalEnabled?: boolean;
+  codexGlobalServiceMode?: CodexGlobalServiceMode;
   isFirst: boolean;
   isLast: boolean;
   isSelected?: boolean;
@@ -684,6 +885,24 @@ const CODEX_REASONING_STRENGTH_OPTIONS = [
   { value: "xhigh", label: "XHigh" },
 ];
 
+const CODEX_ACCOUNT_SERVICE_TIER_VALUES: CodexServiceTier[] = ["default", "priority", "flex"];
+const CODEX_GLOBAL_SERVICE_MODE_VALUES: CodexGlobalServiceMode[] = [
+  "none",
+  ...CODEX_ACCOUNT_SERVICE_TIER_VALUES,
+];
+
+function getCodexServiceTierLabel(
+  t: ProviderMessageTranslator,
+  value: CodexGlobalServiceMode
+): string {
+  if (value === "none") {
+    return providerText(t, "codexServiceModeNone", "No global setting");
+  }
+  if (value === "default") return providerText(t, "codexServiceTierDefault", "Default");
+  if (value === "priority") return providerText(t, "codexServiceTierPriority", "Priority");
+  return providerText(t, "codexServiceTierFlex", "Flex");
+}
+
 function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly: boolean } {
   const record =
     policy && typeof policy === "object" && !Array.isArray(policy)
@@ -701,7 +920,7 @@ function normalizeCodexLimitPolicy(policy: unknown): { use5h: boolean; useWeekly
  */
 function getCodexRequestDefaults(providerSpecificData: unknown): {
   reasoningEffort: string;
-  serviceTier?: "priority";
+  serviceTier?: CodexServiceTier;
 } {
   const defaults = _getCodexRequestDefaults(providerSpecificData);
   return {
@@ -1215,8 +1434,14 @@ export default function ProviderDetailPage() {
   );
   const [exportingGeminiAuthId, setExportingGeminiAuthId] = useState<string | null>(null);
   const [importGeminiModalOpen, setImportGeminiModalOpen] = useState(false);
-  const [codexGlobalFastServiceTier, setCodexGlobalFastServiceTier] = useState(false);
-  const [savingCodexGlobalFastServiceTier, setSavingCodexGlobalFastServiceTier] = useState(false);
+  const [codexGlobalServiceMode, setCodexGlobalServiceMode] =
+    useState<CodexGlobalServiceMode>("none");
+  const [codexGlobalSupportedModels, setCodexGlobalSupportedModels] = useState<string[]>([
+    ...CODEX_FAST_TIER_DEFAULT_SUPPORTED_MODELS,
+  ]);
+  const [codexSettingsLoaded, setCodexSettingsLoaded] = useState(false);
+  const [codexSettingsLoadError, setCodexSettingsLoadError] = useState<string | null>(null);
+  const [savingCodexGlobalServiceMode, setSavingCodexGlobalServiceMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
   const commandCodeAuthWindowRef = useRef<Window | null>(null);
@@ -1224,6 +1449,7 @@ export default function ProviderDetailPage() {
   const pendingRiskActionRef = useRef<(() => void) | null>(null);
   const { acknowledged: riskAcknowledged, acknowledge: acknowledgeRisk } =
     useRiskAcknowledged(providerId);
+  const codexSettingsRequestSeqRef = useRef(0);
   const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
   const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
   const isCommandCode = providerId === "command-code";
@@ -1236,6 +1462,15 @@ export default function ProviderDetailPage() {
     _setShowOAuthModal(show);
     setReauthConnection(show && connectionRow ? connectionRow : null);
   };
+
+  const codexGlobalServiceModeOptions = useMemo(
+    () =>
+      CODEX_GLOBAL_SERVICE_MODE_VALUES.map((value) => ({
+        value,
+        label: getCodexServiceTierLabel(t, value),
+      })),
+    [t]
+  );
 
   const providerInfo = resolveDashboardProviderInfo(providerId, {
     providerNode,
@@ -1508,15 +1743,44 @@ export default function ProviderDetailPage() {
     }
   }, [importingZedManual, zedManualProvider, zedManualToken, notify, fetchConnections]);
 
-  useEffect(() => {
-    if (providerId !== "codex") return;
-    fetch("/api/settings", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        setCodexGlobalFastServiceTier(isCodexGlobalFastServiceTierEnabled(data));
-      })
-      .catch(() => {});
+  const loadCodexSettings = useCallback(async () => {
+    const requestSeq = codexSettingsRequestSeqRef.current + 1;
+    codexSettingsRequestSeqRef.current = requestSeq;
+    const isCurrentRequest = () => codexSettingsRequestSeqRef.current === requestSeq;
+
+    if (providerId !== "codex") {
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(null);
+      return;
+    }
+
+    setCodexSettingsLoaded(false);
+    setCodexSettingsLoadError(null);
+
+    try {
+      const response = await fetch("/api/settings", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Settings request failed with HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      if (!data || typeof data !== "object") {
+        throw new Error("Settings response was empty");
+      }
+      if (!isCurrentRequest()) return;
+      const resolvedCodexServiceTier = resolveCodexGlobalFastServiceTier(data);
+      setCodexGlobalServiceMode(getCodexGlobalServiceMode(data));
+      setCodexGlobalSupportedModels([...resolvedCodexServiceTier.supportedModels]);
+      setCodexSettingsLoaded(true);
+    } catch (error) {
+      if (!isCurrentRequest()) return;
+      setCodexSettingsLoaded(false);
+      setCodexSettingsLoadError(error instanceof Error ? error.message : "Failed to load settings");
+    }
   }, [providerId]);
+
+  useEffect(() => {
+    void loadCodexSettings();
+  }, [loadCodexSettings]);
 
   const loadConnProxies = useCallback(async (conns: { id?: string }[]) => {
     if (!conns.length) return;
@@ -2287,29 +2551,39 @@ export default function ProviderDetailPage() {
     }
   };
 
-  const handleToggleCodexGlobalFastServiceTier = async (enabled: boolean) => {
-    if (savingCodexGlobalFastServiceTier) return;
-    setSavingCodexGlobalFastServiceTier(true);
+  const handleChangeCodexGlobalServiceMode = async (mode: CodexGlobalServiceMode) => {
+    if (savingCodexGlobalServiceMode || !codexSettingsLoaded) return;
+    setSavingCodexGlobalServiceMode(true);
+    const previousMode = codexGlobalServiceMode;
+    setCodexGlobalServiceMode(mode);
     try {
+      const tier = mode === "none" ? (previousMode !== "none" ? previousMode : undefined) : mode;
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codexServiceTier: { enabled } }),
+        body: JSON.stringify({
+          codexServiceTier: {
+            enabled: mode !== "none",
+            ...(tier ? { tier } : {}),
+            supportedModels: codexGlobalSupportedModels,
+          },
+        }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        notify.error(data.error || "Failed to update Codex Fast setting");
+        setCodexGlobalServiceMode(previousMode);
+        notify.error(data.error || "Failed to update Codex service mode");
         return;
       }
 
-      setCodexGlobalFastServiceTier(enabled);
-      notify.success(enabled ? "Codex Fast enabled globally" : "Codex Fast disabled globally");
+      notify.success("Codex service mode updated");
     } catch (error) {
-      console.error("Error toggling Codex Fast setting:", error);
-      notify.error("Failed to update Codex Fast setting");
+      setCodexGlobalServiceMode(previousMode);
+      console.error("Error updating Codex service mode:", error);
+      notify.error("Failed to update Codex service mode");
     } finally {
-      setSavingCodexGlobalFastServiceTier(false);
+      setSavingCodexGlobalServiceMode(false);
     }
   };
 
@@ -3270,6 +3544,21 @@ export default function ProviderDetailPage() {
     }
 
     if (providerInfo.passthroughModels) {
+      const passthroughDescription =
+        providerId === "openrouter"
+          ? t("openRouterAnyModelHint")
+          : providerId === "bedrock"
+            ? t("bedrockModelsDescription")
+            : t("passthroughModelsDescription", { provider: providerInfo?.name || providerId });
+      const passthroughInputLabel =
+        providerId === "openrouter" ? t("modelIdFromOpenRouter") : t("modelId");
+      const passthroughInputPlaceholder =
+        providerId === "openrouter"
+          ? t("openRouterModelPlaceholder")
+          : providerId === "bedrock"
+            ? t("bedrockModelPlaceholder")
+            : t("openaiCompatibleModelPlaceholder");
+
       return (
         <div>
           <div className="flex items-center gap-2 mb-4">
@@ -3293,6 +3582,9 @@ export default function ProviderDetailPage() {
             modelAliases={modelAliases}
             availableModels={syncedAvailableModels}
             customModels={modelMeta.customModels}
+            description={passthroughDescription}
+            inputLabel={passthroughInputLabel}
+            inputPlaceholder={passthroughInputPlaceholder}
             copied={copied}
             onCopy={copy}
             onSetAlias={handleSetAlias}
@@ -3682,16 +3974,44 @@ export default function ProviderDetailPage() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold">{t("connections")}</h2>
               {providerId === "codex" && (
-                <div title={t("providerDetailFastTierTooltip")}>
-                  <Toggle
-                    size="sm"
-                    checked={codexGlobalFastServiceTier}
-                    onChange={handleToggleCodexGlobalFastServiceTier}
-                    disabled={savingCodexGlobalFastServiceTier}
-                    label={t("providerDetailFastDefaultLabel")}
-                    ariaLabel="Toggle Codex Fast default"
-                    className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1"
-                  />
+                <div
+                  className="inline-flex items-center gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1 text-xs font-medium text-text-muted"
+                  title={providerText(
+                    t,
+                    "providerDetailServiceModeTooltip",
+                    "Set a global Codex service mode, or leave accounts on their individual service-tier setting."
+                  )}
+                >
+                  <span>
+                    {providerText(t, "providerDetailServiceModeLabel", "Global service mode:")}
+                  </span>
+                  <select
+                    value={codexGlobalServiceMode}
+                    onChange={(event) =>
+                      handleChangeCodexGlobalServiceMode(
+                        event.target.value as CodexGlobalServiceMode
+                      )
+                    }
+                    disabled={savingCodexGlobalServiceMode || !codexSettingsLoaded}
+                    aria-label="Global Codex service mode"
+                    className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
+                  >
+                    {codexGlobalServiceModeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {codexSettingsLoadError ? (
+                    <button
+                      type="button"
+                      onClick={() => void loadCodexSettings()}
+                      className="rounded border border-sky-500/30 px-2 py-0.5 text-[11px] font-medium text-sky-600 hover:bg-sky-500/10 dark:text-sky-300"
+                      title={codexSettingsLoadError}
+                    >
+                      {providerText(t, "retry", "Retry")}
+                    </button>
+                  ) : null}
                 </div>
               )}
               {/* Provider-level proxy indicator/button */}
@@ -3957,7 +4277,7 @@ export default function ProviderDetailPage() {
                           connection={conn}
                           isOAuth={conn.authType === "oauth"}
                           isClaude={providerId === "claude"}
-                          codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                          codexGlobalServiceMode={codexGlobalServiceMode}
                           isFirst={index === 0}
                           isLast={index === sorted.length - 1}
                           isSelected={selectedIds.has(conn.id)}
@@ -4139,7 +4459,7 @@ export default function ProviderDetailPage() {
                                 connection={conn}
                                 isOAuth={conn.authType === "oauth"}
                                 isClaude={providerId === "claude"}
-                                codexFastGlobalEnabled={codexGlobalFastServiceTier}
+                                codexGlobalServiceMode={codexGlobalServiceMode}
                                 isFirst={gi === 0 && index === 0}
                                 isLast={
                                   gi === groupKeys.length - 1 && index === groupConns.length - 1
@@ -4991,6 +5311,9 @@ function PassthroughModelsSection({
   modelAliases,
   availableModels = [],
   customModels = [],
+  description,
+  inputLabel,
+  inputPlaceholder,
   copied,
   onCopy,
   onSetAlias,
@@ -5136,13 +5459,13 @@ function PassthroughModelsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-text-muted">{t("openRouterAnyModelHint")}</p>
+      <p className="text-sm text-text-muted">{description}</p>
 
       {/* Add new model */}
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label htmlFor="new-model-input" className="text-xs text-text-muted mb-1 block">
-            {t("modelIdFromOpenRouter")}
+            {inputLabel}
           </label>
           <input
             id="new-model-input"
@@ -5150,7 +5473,7 @@ function PassthroughModelsSection({
             value={newModel}
             onChange={(e) => setNewModel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={t("openRouterModelPlaceholder")}
+            placeholder={inputPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
           />
         </div>
@@ -6420,7 +6743,7 @@ function ConnectionRow({
   isClaude,
   isCodex,
   isGeminiCli,
-  codexFastGlobalEnabled,
+  codexGlobalServiceMode,
   isCcCompatible,
   cliproxyapiEnabled,
   isFirst,
@@ -6550,12 +6873,50 @@ function ConnectionRow({
   const normalizedCodexPolicy = normalizeCodexLimitPolicy(codexPolicy);
   const codex5hEnabled = normalizedCodexPolicy.use5h;
   const codexWeeklyEnabled = normalizedCodexPolicy.useWeekly;
-  const codexFastEnabled = isCodex
-    ? getCodexEffectiveFastServiceTier(
+  const codexServiceTier = isCodex
+    ? getCodexEffectiveServiceTier(
         connection.providerSpecificData,
-        codexFastGlobalEnabled === true
+        codexGlobalServiceMode ?? "none"
       )
-    : false;
+    : "default";
+  const codexServiceTierIsGlobal =
+    isCodex && codexGlobalServiceMode !== undefined && codexGlobalServiceMode !== "none";
+  const codexServiceTierBadge =
+    codexServiceTier === "priority"
+      ? {
+          label: providerText(t, "codexTierFastLabel", "Fast"),
+          icon: "bolt",
+          className: "bg-sky-500/15 text-sky-500",
+          title: codexServiceTierIsGlobal
+            ? providerText(
+                t,
+                "providerDetailGlobalPriorityActive",
+                "Global Codex priority service tier is active"
+              )
+            : providerText(
+                t,
+                "providerDetailConnectionPriorityActive",
+                "Codex priority service tier is active for this connection"
+              ),
+        }
+      : codexServiceTier === "flex"
+        ? {
+            label: providerText(t, "codexTierFlexLabel", "Flex"),
+            icon: "speed",
+            className: "bg-cyan-500/15 text-cyan-500",
+            title: codexServiceTierIsGlobal
+              ? providerText(
+                  t,
+                  "providerDetailGlobalFlexActive",
+                  "Global Codex flex service tier is active"
+                )
+              : providerText(
+                  t,
+                  "providerDetailConnectionFlexActive",
+                  "Codex flex service tier is active for this connection"
+                ),
+          }
+        : null;
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
@@ -6704,17 +7065,15 @@ function ConnectionRow({
             {isCodex && (
               <>
                 <span className="text-text-muted/30 select-none">|</span>
-                {codexFastEnabled && (
+                {codexServiceTierBadge && (
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-sky-500/15 text-sky-500"
-                    title={
-                      codexFastGlobalEnabled
-                        ? "Global Codex fast tier is active"
-                        : "Codex fast tier is active for this connection"
-                    }
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium ${codexServiceTierBadge.className}`}
+                    title={codexServiceTierBadge.title}
                   >
-                    <span className="material-symbols-outlined text-[13px]">bolt</span>
-                    Fast
+                    <span className="material-symbols-outlined text-[13px]">
+                      {codexServiceTierBadge.icon}
+                    </span>
+                    {codexServiceTierBadge.label}
                   </span>
                 )}
                 <button
@@ -7133,20 +7492,21 @@ function AddApiKeyModal({
   const usesBaseUrl = isBaseUrlConfigurableProvider(provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(provider);
   const isVertex = provider === "vertex" || provider === "vertex-partner";
-  const defaultRegion = "us-central1";
+  const isBedrock = provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
   const isGlm = isGlmProvider(provider);
   const isQoder = provider === "qoder";
   const isCloudflare = provider === "cloudflare-ai";
   const localProviderMetadata = getLocalProviderMetadata(provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = provider === "google-pse-search";
-  const isGrokWeb = provider === "grok-web";
-  const isPerplexityWeb = provider === "perplexity-web";
-  const isBlackboxWeb = provider === "blackbox-web";
-  const isMuseSparkWeb = provider === "muse-spark-web";
-  const isDeepSeekWeb = provider === "deepseek-web";
-  const isWebSessionProvider = isGrokWeb || isPerplexityWeb || isBlackboxWeb || isMuseSparkWeb;
-  const apiKeyOptional = providerAllowsOptionalApiKey(provider);
+  const webSessionCredential = getWebSessionCredentialRequirement(provider);
+  const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
+  const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  const providerDisplayName = providerName || provider || "";
+  const apiKeyOptional =
+    providerAllowsOptionalApiKey(provider) || Boolean(isNoAuthWebSessionCredential);
   const commandCodeAuthPhaseLabel = commandCodeAuthState
     ? {
         idle: "Ready",
@@ -7166,7 +7526,7 @@ function AddApiKeyModal({
     priority: 1,
     baseUrl: defaultBaseUrl,
     cx: "",
-    region: isVertex ? defaultRegion : "",
+    region: showsRegion ? defaultRegion : "",
     apiRegion: "international",
     validationModelId: "",
     routingTags: "",
@@ -7197,49 +7557,38 @@ function AddApiKeyModal({
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([]);
   const apiCredentialLabel = isQoder
     ? t("personalAccessTokenLabel")
-    : isDeepSeekWeb
-      ? "User Token"
-      : isWebSessionProvider
-        ? t("sessionCookieLabel")
-        : apiKeyOptional
-          ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
-          : t("apiKeyLabel");
+    : webSessionCredential
+      ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
+      : apiKeyOptional
+        ? `${t("apiKeyLabel")} (${t("optional").toLowerCase()})`
+        : t("apiKeyLabel");
   const apiCredentialPlaceholder = isVertex
     ? t("vertexServiceAccountPlaceholder")
-    : isDeepSeekWeb
-      ? "Paste userToken value from localStorage"
-      : isGrokWeb
-        ? t("grokWebCookiePlaceholder")
-        : isPerplexityWeb
-          ? t("perplexityWebCookiePlaceholder")
-          : isBlackboxWeb
-            ? t("blackboxWebCookiePlaceholder")
-            : isMuseSparkWeb
-              ? t("museSparkWebCookiePlaceholder")
-              : isQoder
-                ? t("qoderPatPlaceholder")
-                : apiKeyOptional
-                  ? t("optional")
-                  : undefined;
+    : isWebSessionCredential
+      ? webSessionCredential.placeholder
+      : isQoder
+        ? t("qoderPatPlaceholder")
+        : apiKeyOptional
+          ? t("optional")
+          : undefined;
   const apiCredentialHint = isQoder
     ? t("qoderPatHint")
-    : isDeepSeekWeb
-      ? "Found in browser DevTools → Application → Local Storage → chat.deepseek.com → userToken"
-      : isGrokWeb
-        ? t("grokWebCookieHint")
-        : isPerplexityWeb
-          ? t("perplexityWebCookieHint")
-          : isBlackboxWeb
-            ? t("blackboxWebCookieHint")
-            : isMuseSparkWeb
-              ? t("museSparkWebCookieHint")
-              : isLocalSelfHostedProvider
-                ? t("localProviderApiKeyOptionalHint", {
-                    provider: localProviderMetadata?.name || providerName || provider || "",
-                  })
-                : apiKeyOptional
-                  ? t("apiKeyOptionalHint")
-                  : undefined;
+    : isWebSessionCredential
+      ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, false)
+      : isLocalSelfHostedProvider
+        ? t("localProviderApiKeyOptionalHint", {
+            provider: localProviderMetadata?.name || providerName || provider || "",
+          })
+        : apiKeyOptional
+          ? t("apiKeyOptionalHint")
+          : undefined;
+  const credentialValidationFailedMessage = isWebSessionCredential
+    ? providerText(
+        t,
+        "webSessionCredentialValidationFailed",
+        "Session credential validation failed. Sign in again, copy a fresh credential, and try again."
+      )
+    : t("apiKeyValidationFailed");
 
   const handleValidate = async () => {
     setValidating(true);
@@ -7257,6 +7606,7 @@ function AddApiKeyModal({
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -7304,33 +7654,36 @@ function AddApiKeyModal({
         validatedBaseUrl = checked.value;
       }
 
-      let isValid = false;
+      let isValid = Boolean(isNoAuthWebSessionCredential && !credentialInput);
       let validationError: string | null = null;
-      try {
-        setValidating(true);
-        setValidationResult(null);
-        const res = await fetch("/api/providers/validate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider,
-            apiKey: credentialInput,
-            validationModelId: formData.validationModelId || undefined,
-            customUserAgent: formData.customUserAgent.trim() || undefined,
-            baseUrl: formData.baseUrl.trim() || undefined,
-            cx: formData.cx.trim() || undefined,
-          }),
-        });
-        const data = await res.json();
-        isValid = !!data.valid;
-        if (!isValid && data.error) {
-          validationError = data.error;
+      if (!isValid) {
+        try {
+          setValidating(true);
+          setValidationResult(null);
+          const res = await fetch("/api/providers/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider,
+              apiKey: credentialInput,
+              validationModelId: formData.validationModelId || undefined,
+              customUserAgent: formData.customUserAgent.trim() || undefined,
+              baseUrl: formData.baseUrl.trim() || undefined,
+              region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
+              cx: formData.cx.trim() || undefined,
+            }),
+          });
+          const data = await res.json();
+          isValid = !!data.valid;
+          if (!isValid && data.error) {
+            validationError = data.error;
+          }
+          setValidationResult(isValid ? "success" : "failed");
+        } catch {
+          setValidationResult("failed");
+        } finally {
+          setValidating(false);
         }
-        setValidationResult(isValid ? "success" : "failed");
-      } catch {
-        setValidationResult("failed");
-      } finally {
-        setValidating(false);
       }
 
       if (!isValid) {
@@ -7338,7 +7691,7 @@ function AddApiKeyModal({
           // Bypass validation block for local/optional providers when no key is provided
           console.debug("Validation failed but apiKey is optional; proceeding to save.");
         } else {
-          setSaveError(validationError || t("apiKeyValidationFailed"));
+          setSaveError(validationError || credentialValidationFailedMessage);
           return;
         }
       }
@@ -7364,8 +7717,8 @@ function AddApiKeyModal({
       }
       if (usesBaseUrl) {
         providerSpecificData.baseUrl = validatedBaseUrl;
-      } else if (isVertex) {
-        providerSpecificData.region = formData.region;
+      } else if (showsRegion) {
+        providerSpecificData.region = formData.region.trim() || defaultRegion;
       } else if (isGlm) {
         providerSpecificData.apiRegion = formData.apiRegion;
       } else if (isCloudflare && formData.accountId.trim()) {
@@ -7437,7 +7790,7 @@ function AddApiKeyModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={t("addProviderApiKeyTitle", { provider: providerName || provider })}
+      title={getAddCredentialModalTitle(t, providerDisplayName, webSessionCredential)}
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
@@ -7661,31 +8014,47 @@ function AddApiKeyModal({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder={isQoder ? t("personalAccessTokenLabel") : t("productionKey")}
             />
-            <div className="flex gap-2">
-              <Input
-                label={apiCredentialLabel}
-                type="password"
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                className="flex-1"
-                placeholder={apiCredentialPlaceholder}
-                hint={apiCredentialHint}
+            {webSessionCredential && (
+              <WebSessionCredentialGuide
+                requirement={webSessionCredential}
+                providerName={providerDisplayName}
+                t={t}
               />
-              <div className="pt-6">
-                <Button
-                  onClick={handleValidate}
-                  disabled={
-                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                    (isGooglePse && !formData.cx.trim()) ||
-                    validating ||
-                    saving
-                  }
-                  variant="secondary"
-                >
-                  {validating ? t("checking") : t("check")}
-                </Button>
+            )}
+            {!isNoAuthWebSessionCredential && (
+              <div className="flex gap-2">
+                <Input
+                  label={apiCredentialLabel}
+                  type="password"
+                  value={formData.apiKey}
+                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                  className="flex-1"
+                  placeholder={apiCredentialPlaceholder}
+                  hint={apiCredentialHint}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <div className="pt-6">
+                  <Button
+                    onClick={handleValidate}
+                    disabled={
+                      (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                      (isGooglePse && !formData.cx.trim()) ||
+                      validating ||
+                      saving
+                    }
+                    variant="secondary"
+                  >
+                    {validating
+                      ? t("checking")
+                      : webSessionCredential
+                        ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                        : t("check")}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             {isGooglePse && (
               <Input
                 label={t("searchEngineIdLabel")}
@@ -7812,7 +8181,7 @@ function AddApiKeyModal({
                 hint={getProviderBaseUrlHint(provider, t)}
               />
             )}
-            {isVertex && (
+            {showsRegion && (
               <Input
                 label={t("regionLabel")}
                 value={formData.region}
@@ -9371,7 +9740,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
     customUserAgent: "",
     accountId: "",
     codexReasoningEffort: "medium",
-    codexFastServiceTier: false,
+    codexServiceTier: "default" as CodexServiceTier,
     codexOpenaiStoreEnabled: false,
     consoleApiKey: "",
     ccCompatibleContext1m: false,
@@ -9410,6 +9779,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const usesBaseUrl = isBaseUrlConfigurableProvider(connection?.provider);
   const defaultBaseUrl = getProviderBaseUrlDefault(connection?.provider);
   const isVertex = connection?.provider === "vertex" || connection?.provider === "vertex-partner";
+  const isBedrock = connection?.provider === "bedrock";
+  const showsRegion = isVertex || isBedrock;
   const isGlm = isGlmProvider(connection?.provider);
   const isCloudflare = connection?.provider === "cloudflare-ai";
   const isCodex = connection?.provider === "codex";
@@ -9420,16 +9791,44 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   const localProviderMetadata = getLocalProviderMetadata(connection?.provider);
   const isLocalSelfHostedProvider = !!localProviderMetadata;
   const isGooglePse = connection?.provider === "google-pse-search";
-  const apiKeyOptional = providerAllowsOptionalApiKey(connection?.provider);
+  const webSessionCredential = getWebSessionCredentialRequirement(connection?.provider);
+  const isNoAuthWebSessionCredential = webSessionCredential?.kind === "none";
+  const isWebSessionCredential = !!webSessionCredential && webSessionCredential.kind !== "none";
+  const providerDisplayName =
+    (connection?.provider ? resolveDashboardProviderInfo(connection.provider)?.name : null) ||
+    connection?.provider ||
+    "";
+  const apiKeyOptional =
+    providerAllowsOptionalApiKey(connection?.provider) || Boolean(isNoAuthWebSessionCredential);
   const isCcCompatible = isClaudeCodeCompatibleProvider(connection?.provider);
-  const defaultRegion = "us-central1";
-  const apiCredentialHint = isLocalSelfHostedProvider
-    ? t("localProviderApiKeyOptionalHint", {
-        provider: localProviderMetadata?.name || connection?.provider || "",
-      })
+  const defaultRegion = isBedrock ? "eu-west-2" : "us-central1";
+  const apiCredentialLabel = webSessionCredential
+    ? getWebSessionCredentialLabel(t, webSessionCredential, apiKeyOptional)
     : apiKeyOptional
-      ? t("apiKeyOptionalHint")
-      : t("leaveBlankKeepCurrentApiKey");
+      ? t("apiKeyOptionalLabel")
+      : t("apiKeyLabel");
+  const apiCredentialPlaceholder = isWebSessionCredential
+    ? webSessionCredential.placeholder
+    : isVertex
+      ? t("vertexServiceAccountPlaceholder")
+      : t("enterNewApiKey");
+  const apiCredentialHint = isWebSessionCredential
+    ? getWebSessionCredentialHint(t, webSessionCredential, providerDisplayName, true)
+    : isLocalSelfHostedProvider
+      ? t("localProviderApiKeyOptionalHint", {
+          provider: localProviderMetadata?.name || connection?.provider || "",
+        })
+      : apiKeyOptional
+        ? t("apiKeyOptionalHint")
+        : t("leaveBlankKeepCurrentApiKey");
+  const codexAccountServiceTierOptions = useMemo(
+    () =>
+      CODEX_ACCOUNT_SERVICE_TIER_VALUES.map((value) => ({
+        value,
+        label: getCodexServiceTierLabel(t, value),
+      })),
+    [t]
+  );
 
   useEffect(() => {
     if (isOpen && connection) {
@@ -9461,7 +9860,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         healthCheckInterval: connection.healthCheckInterval ?? 60,
         baseUrl: existingBaseUrl || defaultBaseUrl,
         cx: existingCx,
-        region: existingRegion || (isVertex ? defaultRegion : ""),
+        region: existingRegion || (showsRegion ? defaultRegion : ""),
         apiRegion: (connection.providerSpecificData?.apiRegion as string) || "international",
         validationModelId: (connection.providerSpecificData?.validationModelId as string) || "",
         tag: (connection.providerSpecificData?.tag as string) || "",
@@ -9473,7 +9872,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         customUserAgent: existingCustomUserAgent,
         accountId: existingAccountId,
         codexReasoningEffort: codexRequestDefaults.reasoningEffort,
-        codexFastServiceTier: codexRequestDefaults.serviceTier === "priority",
+        codexServiceTier: codexRequestDefaults.serviceTier ?? "default",
         codexOpenaiStoreEnabled: connection.providerSpecificData?.openaiStoreEnabled === true,
         consoleApiKey: existingConsoleApiKey,
         ccCompatibleContext1m: ccRequestDefaults.context1m,
@@ -9512,7 +9911,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
       setValidationResult(null);
       setSaveError(null);
     }
-  }, [isOpen, connection, defaultBaseUrl, isVertex]);
+  }, [isOpen, connection, defaultBaseUrl, showsRegion, defaultRegion]);
 
   const handleTest = async () => {
     if (!connection?.provider) return;
@@ -9544,7 +9943,13 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
   };
 
   const handleValidate = async () => {
-    if (!connection?.provider || (!isCompatible && !apiKeyOptional && !formData.apiKey)) return;
+    if (
+      !connection?.provider ||
+      isNoAuthWebSessionCredential ||
+      (!isCompatible && !apiKeyOptional && !formData.apiKey)
+    ) {
+      return;
+    }
     setValidating(true);
     setValidationResult(null);
     try {
@@ -9557,6 +9962,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           validationModelId: formData.validationModelId || undefined,
           customUserAgent: formData.customUserAgent.trim() || undefined,
           baseUrl: formData.baseUrl.trim() || undefined,
+          region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
           cx: formData.cx.trim() || undefined,
         }),
       });
@@ -9638,6 +10044,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
                 validationModelId: formData.validationModelId || undefined,
                 customUserAgent: formData.customUserAgent.trim() || undefined,
                 baseUrl: formData.baseUrl.trim() || undefined,
+                region: showsRegion ? formData.region.trim() || defaultRegion : undefined,
                 cx: formData.cx.trim() || undefined,
               }),
             });
@@ -9687,8 +10094,8 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         }
         if (usesBaseUrl) {
           updates.providerSpecificData.baseUrl = validatedBaseUrl;
-        } else if (isVertex) {
-          updates.providerSpecificData.region = formData.region;
+        } else if (showsRegion) {
+          updates.providerSpecificData.region = formData.region.trim() || defaultRegion;
         } else if (isGlm) {
           updates.providerSpecificData.apiRegion = formData.apiRegion;
         } else if (isCloudflare && formData.accountId.trim()) {
@@ -9726,7 +10133,9 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         if (isCodex) {
           updates.providerSpecificData.requestDefaults = {
             reasoningEffort: formData.codexReasoningEffort,
-            ...(formData.codexFastServiceTier ? { serviceTier: "priority" } : {}),
+            ...(formData.codexServiceTier !== "default"
+              ? { serviceTier: formData.codexServiceTier }
+              : {}),
           };
           updates.providerSpecificData.openaiStoreEnabled =
             formData.codexOpenaiStoreEnabled === true;
@@ -9803,11 +10212,21 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
               onChange={(e) => setFormData({ ...formData, codexReasoningEffort: e.target.value })}
               hint={t("defaultThinkingStrengthHint")}
             />
-            <Toggle
-              checked={formData.codexFastServiceTier}
-              onChange={(checked) => setFormData({ ...formData, codexFastServiceTier: checked })}
-              label={t("codexFastServiceTierLabel")}
-              description={t("codexFastServiceTierDescription")}
+            <Select
+              label={providerText(t, "codexServiceTierLabel", "Codex service tier")}
+              value={formData.codexServiceTier}
+              options={codexAccountServiceTierOptions}
+              onChange={(event) =>
+                setFormData({
+                  ...formData,
+                  codexServiceTier: event.target.value as CodexServiceTier,
+                })
+              }
+              hint={providerText(
+                t,
+                "codexServiceTierDescription",
+                "Default uses the normal Codex tier. Priority shows as Fast; Flex uses the flex service tier when available."
+              )}
             />
             <Toggle
               checked={formData.codexOpenaiStoreEnabled}
@@ -9935,31 +10354,47 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
         )}
         {!isOAuth && (
           <>
-            <div className="flex gap-2">
-              <Input
-                label={apiKeyOptional ? t("apiKeyOptionalLabel") : t("apiKeyLabel")}
-                type="password"
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder={isVertex ? t("vertexServiceAccountPlaceholder") : t("enterNewApiKey")}
-                hint={apiCredentialHint}
-                className="flex-1"
+            {webSessionCredential && (
+              <WebSessionCredentialGuide
+                requirement={webSessionCredential}
+                providerName={providerDisplayName}
+                t={t}
               />
-              <div className="pt-6">
-                <Button
-                  onClick={handleValidate}
-                  disabled={
-                    (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
-                    (isGooglePse && !formData.cx.trim()) ||
-                    validating ||
-                    saving
-                  }
-                  variant="secondary"
-                >
-                  {validating ? t("checking") : t("check")}
-                </Button>
+            )}
+            {!isNoAuthWebSessionCredential && (
+              <div className="flex gap-2">
+                <Input
+                  label={apiCredentialLabel}
+                  type="password"
+                  value={formData.apiKey}
+                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                  placeholder={apiCredentialPlaceholder}
+                  hint={apiCredentialHint}
+                  className="flex-1"
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoCapitalize="off"
+                />
+                <div className="pt-6">
+                  <Button
+                    onClick={handleValidate}
+                    disabled={
+                      (!isCompatible && !apiKeyOptional && !formData.apiKey) ||
+                      (isGooglePse && !formData.cx.trim()) ||
+                      validating ||
+                      saving
+                    }
+                    variant="secondary"
+                  >
+                    {validating
+                      ? t("checking")
+                      : webSessionCredential
+                        ? getWebSessionCredentialCheckLabel(t, webSessionCredential)
+                        : t("check")}
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
             {isGooglePse && (
               <Input
                 label={t("searchEngineIdLabel")}
@@ -10040,7 +10475,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
           />
         )}
 
-        {isVertex && (
+        {showsRegion && (
           <Input
             label={t("regionLabel")}
             value={formData.region}

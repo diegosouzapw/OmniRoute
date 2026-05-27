@@ -13,6 +13,12 @@ import {
   parseCodexQuotaHeaders,
 } from "../../open-sse/executors/codex.ts";
 import {
+  clearRememberedResponseFunctionCallsForTesting,
+  rememberResponseConversationState,
+  rememberResponseFunctionCalls,
+} from "../../open-sse/services/responsesToolCallState.ts";
+import { sanitizeReasoningEffortForProvider } from "../../open-sse/executors/base.ts";
+import {
   DEFAULT_THINKING_CONFIG,
   setThinkingBudgetConfig,
   ThinkingMode,
@@ -358,7 +364,19 @@ test("CodexExecutor.transformRequest preserves compact requests and native passt
   assert.equal(result.instructions, "keep this");
 });
 
-test("CodexExecutor.transformRequest preserves previous_response_id without local handling", () => {
+test("CodexExecutor.transformRequest applies flex request default service tier", () => {
+  const executor = new CodexExecutor();
+  const result = executor.transformRequest("gpt-5.5", { input: "hello" }, false, {
+    requestEndpointPath: "/responses",
+    providerSpecificData: {
+      requestDefaults: { serviceTier: "flex" },
+    },
+  });
+
+  assert.equal(result.service_tier, "flex");
+});
+
+test("CodexExecutor.transformRequest preserves store-enabled responses state when explicitly enabled", () => {
   const executor = new CodexExecutor();
   const body = {
     _nativeCodexPassthrough: true,
@@ -633,6 +651,61 @@ test("CodexExecutor.transformRequest keeps gpt-5.5 as the model and applies xhig
 
   assert.equal(result.model, "gpt-5.5");
   assert.equal(result.reasoning.effort, "xhigh");
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.3 Codex reasoning in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.3-codex",
+    {
+      model: "gpt-5.3-codex",
+      input: [],
+      reasoning_effort: "high",
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.3-codex",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.3-codex");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(sanitized.reasoning_effort, undefined);
+});
+
+test("CodexExecutor.transformRequest keeps GPT 5.4 Mini reasoning downgrade in Responses shape", () => {
+  const executor = new CodexExecutor();
+  const transformed = executor.transformRequest(
+    "gpt-5.4-mini",
+    {
+      model: "gpt-5.4-mini",
+      input: [],
+      reasoning: { effort: "xhigh", summary: "auto" },
+    },
+    true,
+    {
+      requestEndpointPath: "/responses",
+    }
+  );
+  const sanitized = sanitizeReasoningEffortForProvider(
+    transformed,
+    "codex",
+    "gpt-5.4-mini",
+    null
+  ) as Record<string, unknown>;
+  const reasoning = getRecord(sanitized.reasoning);
+
+  assert.equal(sanitized.model, "gpt-5.4-mini");
+  assert.equal(reasoning.effort, "high");
+  assert.equal(reasoning.summary, "auto");
+  assert.equal(sanitized.reasoning_effort, undefined);
 });
 
 test("CodexExecutor.transformRequest merges Codex installation metadata", () => {

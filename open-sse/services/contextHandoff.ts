@@ -68,7 +68,7 @@ export interface UniversalHandoffConfig {
 }
 
 export const DEFAULT_UNIVERSAL_HANDOFF_CONFIG: UniversalHandoffConfig = {
-  enabled: false,
+  enabled: true,
   trigger: "on-switch",
   providerAllowlist: [],
   maxMessagesForSummary: 30,

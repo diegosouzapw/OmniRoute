@@ -40,6 +40,11 @@ type ComputeCostFromPricing = (
   tokens: Record<string, number | undefined> | null | undefined,
   options?: Record<string, unknown>
 ) => number;
+type GetCodexFastCostMultiplier = (
+  provider: string | null | undefined,
+  model: string | null | undefined,
+  serviceTier: string | null | undefined
+) => number;
 
 function toNumber(value: unknown): number {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -58,13 +63,15 @@ function roundCost(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
-function normalizeServiceTier(value: unknown): "standard" | "priority" {
+function normalizeServiceTier(value: unknown): "standard" | "priority" | "flex" {
   const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  return tier === "priority" || tier === "fast" ? "priority" : "standard";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
 }
 
-function getServiceTierLabel(serviceTier: string): string {
-  return normalizeServiceTier(serviceTier) === "priority" ? "Fast" : "Standard";
+function getServiceTierLabelId(serviceTier: string): string {
+  return normalizeServiceTier(serviceTier);
 }
 
 function appendWhereCondition(whereClause: string, condition: string): string {
@@ -245,6 +252,40 @@ function computeUsageRowCost(
   );
 }
 
+function computeUsageRowStandardCost(
+  row: Record<string, unknown>,
+  pricingByProvider: PricingByProvider,
+  providerAliasMap: Record<string, string>,
+  normalizeModelName: (model: string) => string,
+  computeCostFromPricing: ComputeCostFromPricing
+): number {
+  return computeUsageRowCost(
+    { ...row, serviceTier: "standard", service_tier: "standard" },
+    pricingByProvider,
+    providerAliasMap,
+    normalizeModelName,
+    computeCostFromPricing
+  );
+}
+
+function computeUsageSavingsTokens(
+  row: Record<string, unknown>,
+  serviceTier: string,
+  getCodexFastCostMultiplier: GetCodexFastCostMultiplier
+): number {
+  const provider = toStringValue(row.provider);
+  const model = toStringValue(row.model);
+  const totalTokens = toNumber(row.totalTokens);
+  if (!provider || !model || totalTokens <= 0) return 0;
+
+  const standardMultiplier = getCodexFastCostMultiplier(provider, model, "standard");
+  if (standardMultiplier <= 0) return 0;
+
+  const actualMultiplier = getCodexFastCostMultiplier(provider, model, serviceTier);
+  const savingsRatio = Math.max(0, (standardMultiplier - actualMultiplier) / standardMultiplier);
+  return totalTokens * savingsRatio;
+}
+
 function formatUtcDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -323,7 +364,7 @@ export async function GET(request: Request) {
       }
       pricingByProvider[providerKey.toLowerCase()] = lowerProvider;
     }
-    const { computeCostFromPricing, normalizeModelName } =
+    const { computeCostFromPricing, getCodexFastCostMultiplier, normalizeModelName } =
       await import("@/lib/usage/costCalculator");
     const { PROVIDER_ID_TO_ALIAS } = await import("@omniroute/open-sse/config/providerModels");
 
@@ -685,8 +726,12 @@ export async function GET(request: Request) {
       fallbackCount: Number(fallbackRow?.fallbacks || 0),
       fastRequests: 0,
       standardRequests: 0,
+      flexRequests: 0,
       fastCost: 0,
       standardCost: 0,
+      flexCost: 0,
+      flexSavings: 0,
+      flexUsageSavingsTokens: 0,
       fastRequestSharePct: 0,
       fallbackRatePct:
         Number(fallbackRow?.fallback_eligible || 0) > 0
@@ -930,46 +975,79 @@ export async function GET(request: Request) {
     const serviceTierMap = new Map<
       string,
       {
-        serviceTier: "standard" | "priority";
+        serviceTier: "standard" | "priority" | "flex";
         label: string;
         requests: number;
         promptTokens: number;
         completionTokens: number;
         totalTokens: number;
         cost: number;
+        savings: number;
+        usageSavingsTokens: number;
       }
     >();
     for (const row of serviceTierRows) {
       const serviceTier = normalizeServiceTier(row.serviceTier);
       const existing = serviceTierMap.get(serviceTier) || {
         serviceTier,
-        label: getServiceTierLabel(serviceTier),
+        label: getServiceTierLabelId(serviceTier),
         requests: 0,
         promptTokens: 0,
         completionTokens: 0,
         totalTokens: 0,
         cost: 0,
+        savings: 0,
+        usageSavingsTokens: 0,
       };
       existing.requests += Number(row.requests || 0);
       existing.promptTokens += Number(row.promptTokens || 0);
       existing.completionTokens += Number(row.completionTokens || 0);
       existing.totalTokens += Number(row.totalTokens || 0);
-      existing.cost += computeUsageRowCost(
+      const actualCost = computeUsageRowCost(
         row,
         pricingByProvider,
         PROVIDER_ID_TO_ALIAS,
         normalizeModelName,
         computeCostFromPricing
       );
+      existing.cost += actualCost;
+      if (serviceTier === "flex") {
+        const standardCost = computeUsageRowStandardCost(
+          row,
+          pricingByProvider,
+          PROVIDER_ID_TO_ALIAS,
+          normalizeModelName,
+          computeCostFromPricing
+        );
+        existing.savings += Math.max(0, standardCost - actualCost);
+        existing.usageSavingsTokens += computeUsageSavingsTokens(
+          row,
+          serviceTier,
+          getCodexFastCostMultiplier
+        );
+      }
       serviceTierMap.set(serviceTier, existing);
     }
     const byServiceTier = Array.from(serviceTierMap.values())
-      .map((row) => ({ ...row, cost: roundCost(row.cost) }))
-      .sort((left, right) => (left.serviceTier === "priority" ? -1 : 1));
+      .map((row) => ({
+        ...row,
+        cost: roundCost(row.cost),
+        savings: roundCost(row.savings),
+        usageSavingsTokens: Math.round(row.usageSavingsTokens),
+      }))
+      .sort((left, right) => {
+        const order = { priority: 0, flex: 1, standard: 2 } as const;
+        return order[left.serviceTier] - order[right.serviceTier];
+      });
     const fastTier = serviceTierMap.get("priority");
+    const flexTier = serviceTierMap.get("flex");
     const standardTier = serviceTierMap.get("standard");
     summary.fastRequests = fastTier?.requests || 0;
     summary.fastCost = roundCost(fastTier?.cost || 0);
+    summary.flexRequests = flexTier?.requests || 0;
+    summary.flexCost = roundCost(flexTier?.cost || 0);
+    summary.flexSavings = roundCost(flexTier?.savings || 0);
+    summary.flexUsageSavingsTokens = Math.round(flexTier?.usageSavingsTokens || 0);
     summary.standardRequests = standardTier?.requests || 0;
     summary.standardCost = roundCost(standardTier?.cost || 0);
     summary.fastRequestSharePct =
@@ -1058,6 +1136,7 @@ export async function GET(request: Request) {
             SELECT
               LOWER(model) as model,
               LOWER(provider) as provider,
+              COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
               COALESCE(SUM(tokens_input), 0) as promptTokens,
               COALESCE(SUM(tokens_output), 0) as completionTokens,
               COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
@@ -1065,7 +1144,7 @@ export async function GET(request: Request) {
               COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
             FROM usage_history
             ${presetWhere}
-            GROUP BY LOWER(model), LOWER(provider)
+            GROUP BY LOWER(model), LOWER(provider), serviceTier
           `
           )
           .all(presetParams) as Array<Record<string, unknown>>;

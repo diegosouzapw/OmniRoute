@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { queryAuditEntries } from "@omniroute/open-sse/mcp-server/audit";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 function parseBooleanParam(value: string | null): boolean | undefined {
   if (value === "true" || value === "1") return true;
@@ -15,6 +16,8 @@ function parseNumberParam(value: string | null, fallback: number): number {
 }
 
 export async function GET(request: Request) {
+  const authError = await requireManagementAuth(request);
+  if (authError) return authError;
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseNumberParam(searchParams.get("limit"), 50);

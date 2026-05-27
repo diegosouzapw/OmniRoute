@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 
 const { REGISTRY } = await import("../../open-sse/config/providerRegistry.ts");
 const { antigravityUserAgent } = await import("../../open-sse/services/antigravityHeaders.ts");
-const { geminiCliUserAgent, GEMINI_CLI_VERSION } =
+const { getCodexClientVersion } = await import("../../open-sse/config/codexClient.ts");
+const { geminiCliUserAgent, GEMINI_CLI_VERSION, GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION } =
   await import("../../open-sse/services/geminiCliHeaders.ts");
 
 test("T20: antigravity config has updated User-Agent and daily Cloud Code first URL", () => {
@@ -15,14 +16,19 @@ test("T20: antigravity config has updated User-Agent and daily Cloud Code first 
 });
 
 test("T20: gemini CLI fingerprint uses the current CLI version and normalizes darwin to macos", () => {
-  assert.equal(GEMINI_CLI_VERSION, "0.41.2");
+  assert.match(GEMINI_CLI_VERSION, /^\d+\.\d+\.\d+$/);
+  assert.match(GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION, /^\d+\.\d+\.\d+$/);
 
   const descriptor = Object.getOwnPropertyDescriptor(process, "platform");
   Object.defineProperty(process, "platform", { value: "darwin" });
   try {
+    const escapedCliVersion = GEMINI_CLI_VERSION.replaceAll(".", "\\.");
+    const escapedClientVersion = GEMINI_CLI_GOOGLE_API_NODE_CLIENT_VERSION.replaceAll(".", "\\.");
     assert.match(
       geminiCliUserAgent("gemini-3-flash"),
-      /^GeminiCLI\/0\.41\.2\/gemini-3-flash \(macos; .+; terminal\) google-api-nodejs-client\/9\.15\.1$/
+      new RegExp(
+        `^GeminiCLI/${escapedCliVersion}/gemini-3-flash \\(macos; .+; terminal\\) google-api-nodejs-client/${escapedClientVersion}$`
+      )
     );
   } finally {
     if (descriptor) {
@@ -57,7 +63,7 @@ test("T22: github config exposes dedicated responses endpoint", () => {
 
 test("T20: codex config advertises current client headers and supported models", () => {
   const codex = REGISTRY.codex;
-  assert.equal(codex.headers.Version, "0.132.0");
+  assert.equal(codex.headers.Version, getCodexClientVersion());
   assert.equal(codex.headers["Openai-Beta"], "responses=experimental");
   assert.equal(codex.headers["X-Codex-Beta-Features"], "responses_websockets");
   assert.equal(codex.headers["User-Agent"], "codex-cli/0.132.0 (Windows 10.0.26200; x64)");

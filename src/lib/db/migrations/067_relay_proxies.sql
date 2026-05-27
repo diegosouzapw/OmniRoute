@@ -1,4 +1,4 @@
--- Migration 066: Serverless Relay Proxies
+-- Migration 067: Serverless Relay Proxies
 -- Creates tables for relay tokens, rate limits, and usage tracking.
 
 -- Relay tokens: map external API consumers to internal OmniRoute configuration

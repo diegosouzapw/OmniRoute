@@ -18,12 +18,15 @@ const { invalidateCacheControlSettingsCache } =
 const { clearCache, getCachedResponse, generateSignature } =
   await import("../../src/lib/semanticCache.ts");
 const { clearIdempotency } = await import("../../src/lib/idempotencyLayer.ts");
+const { getPendingRequests, clearPendingRequests } =
+  await import("../../src/lib/usage/usageHistory.ts");
 const { clearInflight } = await import("../../open-sse/services/requestDedup.ts");
 const {
   buildAccountSemaphoreKey,
   getStats: getAccountSemaphoreStats,
   resetAll: resetAccountSemaphores,
 } = await import("../../open-sse/services/accountSemaphore.ts");
+const { getExecutor } = await import("../../open-sse/executors/index.ts");
 const { clearModelLock, isModelLocked } =
   await import("../../open-sse/services/accountFallback.ts");
 const { saveModelsDevCapabilities, clearModelsDevCapabilities } =
@@ -368,6 +371,7 @@ async function invokeChatCore({
 test.afterEach(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
@@ -376,10 +380,69 @@ test.afterEach(async () => {
 test.after(async () => {
   globalThis.fetch = originalFetch;
   restorePipelineCaptureEnv();
+  clearPendingRequests();
   resetAccountSemaphores();
   await waitForAsyncSideEffects();
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
+
+test("chatCore times out upstream execution before provider response headers", async () => {
+  const executor = getExecutor("openai");
+  const originalGetTimeoutMs = executor.getTimeoutMs?.bind(executor);
+  executor.getTimeoutMs = () => 200;
+
+  const connectionId = "upstream-start-timeout";
+  const body = {
+    model: "gpt-4o-mini",
+    stream: false,
+    messages: [{ role: "user", content: "never returns" }],
+  };
+  const fetchSignals: AbortSignal[] = [];
+  globalThis.fetch = async (_url, init = {}) => {
+    if (init.signal instanceof AbortSignal) fetchSignals.push(init.signal);
+    return new Promise(() => {});
+  };
+
+  try {
+    const invocation = handleChatCore({
+      body: structuredClone(body),
+      modelInfo: { provider: "openai", model: "gpt-4o-mini", extendedContext: false },
+      credentials: {
+        apiKey: "sk-test",
+        providerSpecificData: {},
+      },
+      log: noopLog(),
+      clientRawRequest: {
+        endpoint: "/v1/chat/completions",
+        body: structuredClone(body),
+        headers: new Headers({ accept: "application/json" }),
+      },
+      connectionId,
+      userAgent: "unit-test",
+    } as any);
+
+    const pendingDetail = (await waitFor(
+      () =>
+        Object.values(getPendingRequests().details[connectionId] || {}).find(
+          (detail: any) => detail?.providerRequest
+        ),
+      150
+    )) as any;
+    assert.equal(pendingDetail?.providerRequest?.model, "gpt-4o-mini");
+    assert.deepEqual(pendingDetail?.providerRequest?.messages, body.messages);
+
+    const result = await invocation;
+    await waitForAsyncSideEffects();
+
+    assert.equal(result.success, false);
+    assert.equal(result.status, 504);
+    assert.equal(fetchSignals[0]?.aborted, true);
+    assert.equal(getPendingRequests().details[connectionId], undefined);
+  } finally {
+    if (originalGetTimeoutMs) executor.getTimeoutMs = originalGetTimeoutMs;
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("chatCore can disable pipeline stream chunk capture through environment", async () => {

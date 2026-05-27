@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { isModelSyncInternalRequest } from "../../../shared/services/modelSyncScheduler";
 import { isAuthRequired, isDashboardSessionAuthenticated } from "../../../shared/utils/apiAuth";
-import { getMachineTokenSync } from "../../../lib/machineToken";
+import { getLegacyCliTokenSync, getMachineTokenSync } from "../../../lib/machineToken";
 import type { AuthOutcome, PolicyContext, RoutePolicy } from "../context";
 import { allow, reject } from "../context";
 import { extractApiKey, isValidApiKey } from "../../../sse/services/auth";
@@ -17,17 +17,25 @@ import {
 
 const MODEL_SYNC_MANAGEMENT_PATH = /^\/api\/providers\/[^/]+\/(sync-models|models)$/;
 
-function isLoopbackRequest(headers: Headers): boolean {
-  return isLoopbackHost(headers.get("host"));
+function requestPeerAddress(ctx: PolicyContext): string | null {
+  return ctx.request.ip || ctx.request.socket?.remoteAddress || null;
 }
 
-function hasValidCliToken(headers: Headers): boolean {
-  if (!isLoopbackRequest(headers)) return false;
+function isLoopbackRequest(ctx: PolicyContext): boolean {
+  const peerAddress = requestPeerAddress(ctx);
+  return peerAddress ? isLoopbackHost(peerAddress) : false;
+}
+
+function hasValidCliToken(ctx: PolicyContext): boolean {
+  if (!isLoopbackRequest(ctx)) return false;
+  const headers = ctx.request.headers;
   const provided = headers.get(CLI_TOKEN_HEADER);
   if (!provided) return false;
-  const expected = getMachineTokenSync();
-  if (expected === "" || provided.length !== expected.length) return false;
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  const expectedTokens = [getMachineTokenSync(), getLegacyCliTokenSync()].filter(Boolean);
+  return expectedTokens.some((expected) => {
+    if (provided.length !== expected.length) return false;
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  });
 }
 
 function hasBearerToken(headers: Headers): boolean {
@@ -62,7 +70,7 @@ export const managementPolicy: RoutePolicy = {
     //
     // Anonymous (no Bearer / invalid key / wrong scope / no session) requests
     // still hit the same 403 LOCAL_ONLY they did before.
-    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx.request.headers)) {
+    if (isLocalOnlyPath(path) && !isLoopbackRequest(ctx)) {
       if (isLocalOnlyBypassableByManageScope(path)) {
         const apiKey = extractApiKey(ctx.request as unknown as Request);
         if (apiKey) {
@@ -118,7 +126,7 @@ export const managementPolicy: RoutePolicy = {
       return allow({ kind: "management_key", id: "model-sync", label: "internal-model-sync" });
     }
 
-    if (hasValidCliToken(ctx.request.headers)) {
+    if (hasValidCliToken(ctx)) {
       return allow({ kind: "management_key", id: "cli", label: "local-cli-token" });
     }
 

@@ -109,6 +109,23 @@ function getLogger(options: PromptInjectionGuardrailOptions, context: GuardrailC
   return options.logger || context.log || console;
 }
 
+function emitGuardrailLog(
+  logger: GuardrailContext["log"] | Console,
+  level: "debug" | "info" | "warn",
+  message: string,
+  meta?: Record<string, unknown>
+) {
+  const target = logger?.[level];
+  if (typeof target !== "function") return;
+
+  if (logger === console) {
+    target.call(logger, message, meta || "");
+    return;
+  }
+
+  target.call(logger, "GUARDRAIL", message, meta);
+}
+
 function getMode(options: PromptInjectionGuardrailOptions) {
   return (options.mode ||
     process.env.INJECTION_GUARD_MODE ||
@@ -147,7 +164,10 @@ export function evaluatePromptInjection(
     .map(normalizePatternEntry)
     .filter(Boolean);
 
-  const sanitizerResult = sanitizeRequest(body, logger as Console);
+  const sanitizerResult = sanitizeRequest(body, {
+    info() {},
+    warn() {},
+  } as Console);
   const contents = extractMessageContents(body);
   const customDetections = detectWithPatterns(contents.join("\n"), patterns);
   const existingDetections = new Set(
@@ -172,7 +192,7 @@ export function evaluatePromptInjection(
   }
 
   if (mode === "block" && shouldBlock(result.detections, threshold)) {
-    logger.warn?.("[InjectionGuard] Blocked request with prompt injection:", {
+    emitGuardrailLog(logger, "warn", "Request blocked by prompt injection guard", {
       detections: result.detections.map((detection) => ({
         pattern: detection.pattern,
         severity: detection.severity,
@@ -182,16 +202,19 @@ export function evaluatePromptInjection(
   }
 
   if (mode === "warn" || mode === "log") {
-    logger[mode === "warn" ? "warn" : "info"]?.(
-      "[InjectionGuard] Detected potential injection patterns:",
-      {
-        detections: result.detections.map((detection) => ({
-          pattern: detection.pattern,
-          severity: detection.severity,
-        })),
-        pii: result.piiDetections.length,
-      }
-    );
+    const hasHighSeverity = result.detections.some((detection) => detection.severity === "high");
+    if (mode === "warn" && !hasHighSeverity) {
+      return { blocked: false, result };
+    }
+
+    const level = mode === "log" ? "info" : "warn";
+    emitGuardrailLog(logger, level, "Prompt injection guard flagged request", {
+      detections: result.detections.map((detection) => ({
+        pattern: detection.pattern,
+        severity: detection.severity,
+      })),
+      pii: result.piiDetections.length,
+    });
   }
 
   return { blocked: false, result };

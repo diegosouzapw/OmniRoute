@@ -204,8 +204,7 @@ test("updateProviderConnectionSchema accepts http protocol", () => {
 // ============================================================================
 
 // Import the exported helper function from the route
-const { getStaticModelsForProvider } =
-  await import("../../src/app/api/providers/[id]/models/route.ts");
+const { getStaticModelsForProvider } = await import("../../src/lib/providers/staticModels.ts");
 
 test("getStaticModelsForProvider returns 6 models for bailian-coding-plan", () => {
   const models = getStaticModelsForProvider("bailian-coding-plan");

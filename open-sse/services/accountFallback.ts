@@ -107,6 +107,7 @@ export const CREDITS_EXHAUSTED_SIGNALS = [
   "insufficient_quota",
   "billing_hard_limit_reached",
   "exceeded your current quota",
+  "exceeded your current usage quota",
   "credit_balance_too_low",
   "your credit balance is too low",
   "credits exhausted",
@@ -593,13 +594,15 @@ export function getModelLockoutInfo(
   };
 }
 
-type ModelLockoutInfo = {
+export type ModelLockoutInfo = {
   provider: string;
   connectionId: string;
   model: string;
   reason: string;
   remainingMs: number;
   failureCount: number;
+  lockedAt: string;
+  until: number;
 };
 
 /**
@@ -612,7 +615,8 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
     cleanupModelLockKey(key, now);
   }
   for (const [key, entry] of modelLockouts) {
-    const [provider, connectionId, model] = key.split(":");
+    const [provider, connectionId, ...modelParts] = key.split(":");
+    const model = modelParts.join(":");
     active.push({
       provider,
       connectionId,
@@ -620,6 +624,8 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
       reason: entry.reason,
       remainingMs: entry.until - now,
       failureCount: entry.failureCount,
+      lockedAt: new Date(entry.lockedAt).toISOString(),
+      until: entry.until,
     });
   }
   return active;
@@ -913,6 +919,16 @@ function computeDurationMs(match: RegExpMatchArray): number | null {
   return totalMs > 0 ? totalMs : null;
 }
 
+function isSubscriptionQuotaText(lower: string): boolean {
+  return (
+    lower.includes("usage limit reached") ||
+    lower.includes("usage limit has been") ||
+    lower.includes("claude pro usage limit") ||
+    lower.includes("you've reached your usage limit") ||
+    lower.includes("you have reached your usage limit")
+  );
+}
+
 // ─── Error Classification ───────────────────────────────────────────────────
 
 /**
@@ -935,11 +951,7 @@ export function classifyErrorText(errorText: unknown): RateLimitReasonValue {
     // "billing". Without these patterns the error was classified as a
     // transient RATE_LIMIT_EXCEEDED (~5s base cooldown), which cascades all
     // Pro accounts into a tight retry loop until the 5h window resets.
-    lower.includes("usage limit reached") ||
-    lower.includes("usage limit has been") ||
-    lower.includes("claude pro usage limit") ||
-    lower.includes("you've reached your usage limit") ||
-    lower.includes("you have reached your usage limit")
+    isSubscriptionQuotaText(lower)
   ) {
     return RateLimitReason.QUOTA_EXHAUSTED;
   }
@@ -1082,7 +1094,32 @@ export function checkFallbackError(
   permanent?: boolean;
   creditsExhausted?: boolean;
   dailyQuotaExhausted?: boolean;
+  /** G-02: true when the error originates from an embedded service supervisor (not the upstream AI
+   * provider itself). Callers should apply connection cooldown only — do NOT record a provider
+   * circuit-breaker failure when this flag is set. */
+  skipProviderBreaker?: boolean;
 } {
+  // G-02: detect embedded service supervisor failures (X-Omni-Fallback-Hint: connection_cooldown).
+  // These are NOT upstream AI provider failures — they are local supervisor state changes.
+  // Apply a short 5s connection cooldown without tripping the provider circuit breaker.
+  if (status === 503 && headers) {
+    const hintValue =
+      typeof (headers as Headers).get === "function"
+        ? (headers as Headers).get("x-omni-fallback-hint")
+        : (headers as Record<string, string>)["x-omni-fallback-hint"] ||
+          (headers as Record<string, string>)["X-Omni-Fallback-Hint"];
+    if (typeof hintValue === "string" && hintValue.toLowerCase() === "connection_cooldown") {
+      return {
+        shouldFallback: true,
+        cooldownMs: 5_000,
+        baseCooldownMs: 5_000,
+        newBackoffLevel: 0,
+        reason: "service_not_running",
+        skipProviderBreaker: true,
+      };
+    }
+  }
+
   const errorStr = (errorText || "").toString();
   const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
   const maxBackoffSteps = profile?.maxBackoffSteps ?? BACKOFF_CONFIG.maxLevel;
@@ -1229,20 +1266,24 @@ export function checkFallbackError(
     // upstream retry hint (Retry-After header or ISO timestamp in the
     // body) when present, otherwise apply a 1h cooldown so all Pro
     // accounts on the same subscription tier stop cycling through tight
-    // retries until the window genuinely resets. (We deliberately do not
-    // use COOLDOWN_MS.paymentRequired here — that constant is 2 minutes,
-    // which is shorter than the recovery time of a subscription quota.)
+    // retries until the window genuinely resets. Generic quota-reset text
+    // still follows the provider profile's upstream-hint policy; this
+    // branch is only for known Claude subscription quota messages. (We
+    // deliberately do not use COOLDOWN_MS.paymentRequired here — that
+    // constant is 2 minutes, which is shorter than the recovery time of a
+    // subscription quota.)
     if (
       shouldUseQuotaSignal &&
       !isCreditsExhausted(errorStr) &&
       !isDailyQuotaExhausted(errorStr) &&
-      classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
+      isSubscriptionQuotaText(errorStr.toLowerCase())
     ) {
-      // For a quota error the upstream reset hint (Retry-After header or
-      // ISO timestamp embedded in the body) is the most accurate wait.
-      // We honor it even when the resilience profile does not opt-in to
-      // generic upstream retry hints — a subscription quota has a
-      // definite recovery time, not a best-effort transient backoff.
+      // For a subscription quota error an upstream reset hint is the most
+      // accurate wait. Header hints follow the profile policy via
+      // getUpstreamRetryHintMs(); precise body timestamps remain safe for
+      // this dedicated branch because it only handles known subscription
+      // quota messages. When no hint is available, keep the dedicated 1h
+      // cooldown instead of falling through to the generic short 429 backoff.
       const hintMs = getUpstreamRetryHintMs() ?? parseRetryFromErrorText(errorStr) ?? null;
       const SUBSCRIPTION_QUOTA_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
       return {
@@ -1250,6 +1291,22 @@ export function checkFallbackError(
         cooldownMs: hintMs ?? SUBSCRIPTION_QUOTA_COOLDOWN_MS,
         reason: RateLimitReason.QUOTA_EXHAUSTED,
         usedUpstreamRetryHint: Boolean(hintMs),
+      };
+    }
+
+    const quotaResetHintMs = parseRetryFromErrorText(errorStr);
+    if (
+      shouldUseQuotaSignal &&
+      quotaResetHintMs &&
+      classifyErrorText(errorStr) === RateLimitReason.QUOTA_EXHAUSTED
+    ) {
+      return {
+        shouldFallback: true,
+        cooldownMs: quotaResetHintMs,
+        baseCooldownMs: quotaResetHintMs,
+        newBackoffLevel: 0,
+        reason: RateLimitReason.QUOTA_EXHAUSTED,
+        usedUpstreamRetryHint: true,
       };
     }
 

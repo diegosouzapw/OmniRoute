@@ -32,6 +32,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const { autoUpdater } = require("electron-updater");
+const { hasEncryptedCredentials } = require("./sqlite-inspection");
 
 // ── Single Instance Lock ───────────────────────────────────
 const gotTheLock = app.requestSingleInstanceLock();
@@ -68,6 +69,32 @@ const getServerUrl = () => `http://localhost:${serverPort}`;
 function resolveNodeExecutable(env = process.env) {
   // #1081: Ensure Next.js standalone runs using Electron's Node runtime
   // instead of a randomly found system Node to prevent ABI architecture mismatches.
+  //
+  // On macOS packaged builds, process.execPath is the main Electron binary
+  // (e.g. OmniRoute.app/Contents/MacOS/OmniRoute). Spawning it with
+  // ELECTRON_RUN_AS_NODE causes macOS to show a second dock icon and/or
+  // flash a shell window. Use the Helper binary instead — macOS treats
+  // Helper processes as background tasks with no visible UI artifacts.
+  if (process.platform === "darwin" && !isDev) {
+    const helperPath = path.join(path.dirname(process.execPath), `${app.getName()} Helper`);
+    if (fs.existsSync(helperPath)) {
+      return helperPath;
+    }
+    // Electron \u003e= 20 may use "(Renderer)" / "(GPU)" / "(Plugin)" suffixed helpers.
+    // The unsuffixed Helper is the one suitable for ELECTRON_RUN_AS_NODE.
+    const frameworkHelper = path.join(
+      path.dirname(process.execPath),
+      "..",
+      "Frameworks",
+      `${app.getName()} Helper.app`,
+      "Contents",
+      "MacOS",
+      `${app.getName()} Helper`
+    );
+    if (fs.existsSync(frameworkHelper)) {
+      return frameworkHelper;
+    }
+  }
   return process.execPath;
 }
 
@@ -130,34 +157,6 @@ function getPreferredEnvFilePath(env = process.env) {
   candidates.push(path.join(process.cwd(), ".env"));
 
   return candidates.find((filePath) => fs.existsSync(filePath)) || null;
-}
-
-function hasEncryptedCredentials(dbPath) {
-  if (!fs.existsSync(dbPath)) return false;
-
-  try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
-    try {
-      const row = db
-        .prepare(
-          `SELECT 1
-             FROM provider_connections
-            WHERE access_token LIKE 'enc:v1:%'
-               OR refresh_token LIKE 'enc:v1:%'
-               OR api_key LIKE 'enc:v1:%'
-               OR id_token LIKE 'enc:v1:%'
-            LIMIT 1`
-        )
-        .get();
-      return !!row;
-    } finally {
-      db.close();
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unable to inspect existing database at ${dbPath}: ${message}`);
-  }
 }
 
 // ── Auto-Updater Configuration ──────────────────────────────
@@ -594,6 +593,8 @@ function startNextServer() {
   sendToRenderer("server-status", { status: "starting", port: serverPort });
 
   // Fix #10: Use pipe instead of inherit for logging & readiness detection
+  // windowsHide prevents a visible console window from spawning alongside the GUI app.
+  // shell: false avoids launching via a shell wrapper which can flash a terminal on macOS.
   nextServer = spawn(nodeExecutable, [serverScript], {
     cwd: NEXT_SERVER_PATH,
     env: {
@@ -605,6 +606,8 @@ function startNextServer() {
       NODE_PATH: resolveServerNodePath(serverEnv),
     },
     stdio: "pipe",
+    windowsHide: true,
+    shell: false,
   });
 
   // Capture server output for logging

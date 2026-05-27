@@ -818,3 +818,10 @@ export function resetCachedHeaders(): void {
   prevHeaders = null;
   prevHeadersTimestamp = 0;
 }
+export function resetBatchProcessorState(): void {
+  activeBatches.clear();
+  activeProcesses.clear();
+  isProcessing = false;
+  prevHeaders = null;
+  prevHeadersTimestamp = 0;
+}

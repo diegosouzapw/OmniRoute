@@ -15,6 +15,7 @@ const core = await import("../../../src/lib/db/core.ts");
 const ORIGINAL_OMNIROUTE_API_KEY = process.env.OMNIROUTE_API_KEY;
 const ORIGINAL_ROUTER_API_KEY = process.env.ROUTER_API_KEY;
 const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
+const ORIGINAL_REQUIRE_API_KEY = process.env.REQUIRE_API_KEY;
 
 function resetStorage() {
   core.resetDbInstance();
@@ -24,6 +25,7 @@ function resetStorage() {
   delete process.env.OMNIROUTE_API_KEY;
   delete process.env.ROUTER_API_KEY;
   delete process.env.JWT_SECRET;
+  process.env.REQUIRE_API_KEY = "true";
 }
 
 test.beforeEach(() => {
@@ -38,6 +40,8 @@ test.after(() => {
   else process.env.ROUTER_API_KEY = ORIGINAL_ROUTER_API_KEY;
   if (ORIGINAL_JWT_SECRET === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+  if (ORIGINAL_REQUIRE_API_KEY === undefined) delete process.env.REQUIRE_API_KEY;
+  else process.env.REQUIRE_API_KEY = ORIGINAL_REQUIRE_API_KEY;
 });
 
 async function loadPolicy() {
@@ -90,16 +94,16 @@ test("clientApiPolicy: dashboard session can read the model catalog without bear
   }
 });
 
-test("clientApiPolicy: dashboard session does not bypass non-catalog client API auth", async () => {
+test("clientApiPolicy: dashboard session is accepted for client API routes without bearer", async () => {
   const policy = await loadPolicy();
   const out = await policy.evaluate(
     ctx(new Headers({ cookie: await dashboardCookie() }), "POST", "/api/v1/chat/completions")
   );
 
-  assert.equal(out.allow, false);
-  if (!out.allow) {
-    assert.equal(out.status, 401);
-    assert.equal(out.code, "AUTH_002");
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "dashboard_session");
+    assert.equal(out.subject.id, "dashboard");
   }
 });
 
@@ -163,5 +167,19 @@ test("clientApiPolicy: x-api-key header is accepted as client_api_key subject", 
   if (out.allow) {
     assert.equal(out.subject.kind, "client_api_key");
     assert.match(out.subject.id, /^key_/);
+  }
+});
+
+test("clientApiPolicy: ROUTER_API_KEY remains accepted for client API routes", async () => {
+  process.env.ROUTER_API_KEY = "sk-router-policy-test";
+
+  const policy = await loadPolicy();
+  const out = await policy.evaluate(
+    ctx(new Headers({ authorization: "Bearer sk-router-policy-test" }))
+  );
+
+  assert.equal(out.allow, true);
+  if (out.allow) {
+    assert.equal(out.subject.kind, "client_api_key");
   }
 });

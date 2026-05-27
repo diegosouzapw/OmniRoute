@@ -16,7 +16,7 @@ function ensureBackup(configPath) {
 }
 
 async function runConfigListCommand(opts = {}) {
-  const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.js");
+  const { detectAllTools } = await import("../../../src/lib/cli-helper/tool-detector.ts");
   const tools = await detectAllTools();
 
   if (opts.json) {
@@ -42,7 +42,7 @@ async function runConfigGetCommand(toolId, opts = {}) {
     printError("Tool ID required. Usage: omniroute config get <tool>");
     return 1;
   }
-  const { detectTool } = await import("../../../src/lib/cli-helper/tool-detector.js");
+  const { detectTool } = await import("../../../src/lib/cli-helper/tool-detector.ts");
   const tool = await detectTool(toolId);
   if (!tool) {
     printError(`Unknown tool: ${toolId}`);

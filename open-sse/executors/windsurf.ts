@@ -442,28 +442,6 @@ function openAIMessagesToWs(messages: OpenAIMessage[]): WsChatMessage[] {
   return out;
 }
 
-// ─── gRPC-web response stream parser ─────────────────────────────────────────
-//
-// gRPC-web frame layout:
-//   byte 0:    flag (0x00 = data, 0x80 = trailers)
-//   bytes 1-4: message length (big-endian uint32)
-//   bytes 5…:  protobuf payload
-//
-// The response body is a concatenated sequence of these frames.
-
-function* parseGrpcWebFrames(buf: Uint8Array): Generator<{ flag: number; payload: Uint8Array }> {
-  let offset = 0;
-  while (offset + 5 <= buf.length) {
-    const flag = buf[offset];
-    const len =
-      (buf[offset + 1] << 24) | (buf[offset + 2] << 16) | (buf[offset + 3] << 8) | buf[offset + 4];
-    offset += 5;
-    if (len < 0 || offset + len > buf.length) break;
-    yield { flag, payload: buf.slice(offset, offset + len) };
-    offset += len;
-  }
-}
-
 // ─── WindsurfExecutor ─────────────────────────────────────────────────────────
 
 export class WindsurfExecutor extends BaseExecutor {
@@ -550,19 +528,6 @@ export class WindsurfExecutor extends BaseExecutor {
     const responseId = `chatcmpl-ws-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
 
-    const transformStream = new TransformStream<Uint8Array, Uint8Array>({
-      async transform(chunk, controller) {
-        // Accumulate — gRPC-web frames may arrive split across fetch chunks.
-        // For simplicity we buffer the entire message set in flush().
-        controller.enqueue(chunk);
-      },
-    });
-
-    // We need to buffer the full response to parse gRPC frames.
-    // Use a ReadableStream that:
-    //   1. reads the entire upstream body
-    //   2. parses gRPC-web frames
-    //   3. emits SSE events
     const sseStream = new ReadableStream<Uint8Array>({
       async start(controller) {
         const enc = new TextEncoder();
@@ -577,9 +542,10 @@ export class WindsurfExecutor extends BaseExecutor {
         }
 
         try {
-          const bodyBytes = upstream.body ? await readStream(upstream.body) : new Uint8Array(0);
+          let pending = new Uint8Array(0);
+          const reader = upstream.body?.getReader();
 
-          for (const { flag, payload } of parseGrpcWebFrames(bodyBytes)) {
+          const handleFrame = (flag: number, payload: Uint8Array) => {
             if (flag === 0x80) {
               // Trailer frame — contains grpc-status, grpc-message
               const trailer = TEXT_DEC.decode(payload);
@@ -590,10 +556,10 @@ export class WindsurfExecutor extends BaseExecutor {
                   ? decodeURIComponent(msgMatch[1].trim())
                   : `gRPC status ${statusMatch[1]}`;
               }
-              continue;
+              return;
             }
 
-            if (flag !== 0x00) continue; // skip unknown flags
+            if (flag !== 0x00) return; // skip unknown flags
 
             const chunk = decodeCompletionChunk(payload);
 
@@ -628,7 +594,38 @@ export class WindsurfExecutor extends BaseExecutor {
             } else if (chunk.kind === "error") {
               hadError = chunk.message;
             }
+          };
+
+          const drainFrames = () => {
+            let offset = 0;
+            while (offset + 5 <= pending.length) {
+              const flag = pending[offset];
+              const len =
+                (pending[offset + 1] << 24) |
+                (pending[offset + 2] << 16) |
+                (pending[offset + 3] << 8) |
+                pending[offset + 4];
+              if (len < 0 || offset + 5 + len > pending.length) break;
+              handleFrame(flag, pending.slice(offset + 5, offset + 5 + len));
+              offset += 5 + len;
+            }
+            if (offset > 0) pending = pending.slice(offset);
+          };
+
+          if (reader) {
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                if (!value) continue;
+                pending = pending.length === 0 ? value : concatBytes([pending, value]);
+                drainFrames();
+              }
+            } finally {
+              reader.releaseLock();
+            }
           }
+          drainFrames();
 
           if (hadError) {
             emit(
@@ -697,8 +694,6 @@ export class WindsurfExecutor extends BaseExecutor {
       },
     });
 
-    void transformStream; // unused — kept for reference
-
     return new Response(sseStream, {
       status: 200,
       headers: {
@@ -708,20 +703,4 @@ export class WindsurfExecutor extends BaseExecutor {
       },
     });
   }
-}
-
-/** Read an entire ReadableStream<Uint8Array> into a single Uint8Array. */
-async function readStream(readable: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  const chunks: Uint8Array[] = [];
-  const reader = readable.getReader();
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-  return concatBytes(chunks);
 }

@@ -13,6 +13,12 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 function raceDelays(firstMs, secondMs) {
   return new Promise((resolve) => {
@@ -353,5 +359,56 @@ describe("Platform-Conditional Window Options", () => {
         platform === "darwin" ? { titleBarStyle: "hiddenInset" } : { titleBarStyle: "default" };
       assert.equal(options.titleBarStyle, "default");
     }
+  });
+});
+
+// ─── SQLite Credential Inspection Tests ─────────────────────
+
+describe("Electron SQLite credential inspection", () => {
+  const {
+    hasEncryptedCredentials,
+    openNodeSqliteReadOnly,
+  } = require("../../electron/sqlite-inspection.js");
+  const { DatabaseSync } = require("node:sqlite");
+
+  function withTempDb(fn) {
+    const dir = mkdtempSync(join(tmpdir(), "omniroute-electron-db-"));
+    const dbPath = join(dir, "storage.sqlite");
+    const db = new DatabaseSync(dbPath);
+
+    try {
+      db.exec(`
+        CREATE TABLE provider_connections (
+          access_token TEXT,
+          refresh_token TEXT,
+          api_key TEXT,
+          id_token TEXT
+        )
+      `);
+      fn(dbPath, db);
+    } finally {
+      db.close();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it("should inspect encrypted credentials with node:sqlite fallback", () => {
+    withTempDb((dbPath, db) => {
+      db.prepare("INSERT INTO provider_connections (api_key) VALUES (?)").run("enc:v1:test");
+
+      assert.equal(hasEncryptedCredentials(dbPath, openNodeSqliteReadOnly), true);
+    });
+  });
+
+  it("should return false when credentials are not encrypted", () => {
+    withTempDb((dbPath, db) => {
+      db.prepare("INSERT INTO provider_connections (api_key) VALUES (?)").run("plain-text-key");
+
+      assert.equal(hasEncryptedCredentials(dbPath, openNodeSqliteReadOnly), false);
+    });
+  });
+
+  it("should return false when the database file does not exist", () => {
+    assert.equal(hasEncryptedCredentials(join(tmpdir(), "missing-omniroute.sqlite")), false);
   });
 });

@@ -16,8 +16,8 @@ function getPublicModel(id: string) {
 }
 
 test("resolveAntigravityModelId maps the documented Antigravity aliases to upstream IDs", () => {
-  assert.equal(resolveAntigravityModelId("gemini-3-pro-preview"), "gemini-3.1-pro-high");
-  assert.equal(resolveAntigravityModelId("gemini-3.5-flash-preview"), "gemini-3.5-flash-high");
+  assert.equal(resolveAntigravityModelId("gemini-3-pro-preview"), "gemini-3.1-pro");
+  assert.equal(resolveAntigravityModelId("gemini-3.5-flash-preview"), "gemini-3.5-flash");
   assert.equal(resolveAntigravityModelId("gemini-3-flash-preview"), "gemini-3-flash");
   assert.equal(resolveAntigravityModelId("gemini-3-pro-image-preview"), "gemini-3-pro-image");
   assert.equal(
@@ -34,7 +34,7 @@ test("resolveAntigravityModelId maps the documented Antigravity aliases to upstr
 });
 
 test("toClientAntigravityModelId exposes client-visible aliases for known upstream IDs", () => {
-  assert.equal(toClientAntigravityModelId("gemini-3.1-pro-high"), "gemini-3-pro-preview");
+  assert.equal(toClientAntigravityModelId("gemini-3.1-pro"), "gemini-3-pro-preview");
   assert.equal(toClientAntigravityModelId("gemini-3-flash-agent"), "gemini-3.5-flash-preview");
   assert.equal(toClientAntigravityModelId("gemini-3-flash"), "gemini-3-flash-preview");
   assert.equal(toClientAntigravityModelId("gpt-oss-120b-medium"), "gpt-oss-120b-medium");
@@ -44,10 +44,9 @@ test("toClientAntigravityModelId exposes client-visible aliases for known upstre
 
 test("isUserCallableAntigravityModelId only allows public chat-capable model IDs", () => {
   assert.equal(isUserCallableAntigravityModelId("gemini-3-pro-preview"), true);
-  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro-high"), true);
+  assert.equal(isUserCallableAntigravityModelId("gemini-3.1-pro"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-preview"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3-flash-agent"), true);
-  assert.equal(isUserCallableAntigravityModelId("gemini-3.5-flash-low"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-3.1-flash-lite"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-2.5-pro"), true);
   assert.equal(isUserCallableAntigravityModelId("gemini-2.5-flash"), true);
@@ -67,7 +66,7 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
   assert.equal(getPublicModel("claude-opus-4-6-thinking"), undefined);
   assert.deepEqual(getPublicModel("gemini-3.5-flash-preview"), {
     id: "gemini-3.5-flash-preview",
-    name: "Gemini 3.5 Flash (High)",
+    name: "Gemini 3.5 Flash",
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
@@ -75,8 +74,8 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes captured Antigravity 2.0.1 names and cap
     toolCalling: true,
   });
   assert.equal(
-    getClientVisibleAntigravityModelName("gemini-3.5-flash-low"),
-    "Gemini 3.5 Flash (Low)"
+    getClientVisibleAntigravityModelName("gemini-3.5-flash-preview"),
+    "Gemini 3.5 Flash"
   );
   assert.equal(getClientVisibleAntigravityModelName("gemini-2.5-flash"), "Gemini 2.5 Flash");
   assert.equal(
@@ -136,7 +135,7 @@ test("AntigravityExecutor.transformRequest resolves alias models before dispatch
   );
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
-  assert.equal(result.model, "gemini-3.1-pro-high");
+  assert.equal(result.model, "gemini-3.1-pro");
 });
 
 test("AntigravityExecutor.transformRequest resolves Gemini 3.5 Flash alias upstream", async () => {
@@ -153,7 +152,7 @@ test("AntigravityExecutor.transformRequest resolves Gemini 3.5 Flash alias upstr
   );
 
   if (result instanceof Response) throw new Error("Unexpected Response from transformRequest");
-  assert.equal(result.model, "gemini-3.5-flash-high");
+  assert.equal(result.model, "gemini-3.5-flash");
 });
 
 test("AntigravityExecutor.transformRequest sends Claude through Gemini-compatible Cloud Code schema", async () => {

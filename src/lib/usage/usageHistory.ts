@@ -24,6 +24,8 @@ type PendingRequestMetadata = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  stage?: string | null;
+  stageUpdatedAt?: number | null;
 };
 type PendingRequestDetail = {
   model: string;
@@ -34,6 +36,8 @@ type PendingRequestDetail = {
   clientRequest?: unknown;
   providerRequest?: unknown;
   providerUrl?: string | null;
+  stage?: string | null;
+  stageUpdatedAt?: number | null;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -46,7 +50,9 @@ function toStringOrNull(value: unknown): string | null {
 
 function normalizeServiceTier(value: unknown): string {
   const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
-  return tier === "priority" || tier === "fast" ? "priority" : "standard";
+  if (tier === "priority" || tier === "fast") return "priority";
+  if (tier === "flex") return "flex";
+  return "standard";
 }
 
 function toNumber(value: unknown): number {
@@ -123,6 +129,16 @@ function normalizePendingMetadata(metadata?: PendingRequestMetadata): PendingReq
   }
   if (metadata.providerUrl !== undefined) {
     normalized.providerUrl = toStringOrNull(metadata.providerUrl) || null;
+  }
+  if (metadata.stage !== undefined) {
+    normalized.stage = toStringOrNull(metadata.stage) || null;
+    normalized.stageUpdatedAt = Date.now();
+  }
+  if (metadata.stageUpdatedAt !== undefined) {
+    normalized.stageUpdatedAt =
+      typeof metadata.stageUpdatedAt === "number" && Number.isFinite(metadata.stageUpdatedAt)
+        ? metadata.stageUpdatedAt
+        : null;
   }
   if (metadata.clientRequest !== undefined) {
     normalized.clientRequest = truncatePendingPreview(protectPayloadForLog(metadata.clientRequest));

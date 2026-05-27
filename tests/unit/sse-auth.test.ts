@@ -104,6 +104,59 @@ test("getProviderCredentials reports rate limiting when only inactive suppressed
   assert.match(String(result.retryAfterHuman), /reset after/i);
 });
 
+test("codex session account affinity is opt-in and honors TTL", async () => {
+  const affinityDb = await import("../../src/lib/db/sessionAccountAffinity.ts");
+  await settingsDb.updateSettings({ fallbackStrategy: "least-used" });
+  await seedConnection("codex", { name: "codex-affinity-a", priority: 1 });
+  await seedConnection("codex", { name: "codex-affinity-b", priority: 2 });
+
+  const withoutAffinityA = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-without-affinity",
+  });
+  const withoutAffinityB = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-without-affinity",
+  });
+
+  assert.equal(typeof withoutAffinityA.connectionId, "string");
+  assert.equal(typeof withoutAffinityB.connectionId, "string");
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("session-without-affinity", "codex", 60_000),
+    null
+  );
+
+  await settingsDb.updateSettings({ codexSessionAffinityTtlMs: 60_000 });
+
+  const withAffinityA = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-with-affinity",
+  });
+  const withAffinityB = await auth.getProviderCredentials("codex", null, null, "gpt-5", {
+    sessionKey: "session-with-affinity",
+  });
+
+  assert.equal(withAffinityB.connectionId, withAffinityA.connectionId);
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("session-with-affinity", "codex", 60_000)?.connectionId,
+    withAffinityA.connectionId
+  );
+});
+
+test("session account affinity expires when TTL has passed", async () => {
+  const affinityDb = await import("../../src/lib/db/sessionAccountAffinity.ts");
+  const now = Date.now();
+
+  affinityDb.upsertSessionAccountAffinity("expiring-session", "codex", "conn-a", now, 1000);
+
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("expiring-session", "codex", 1000, now + 500)
+      ?.connectionId,
+    "conn-a"
+  );
+  assert.equal(
+    affinityDb.getSessionAccountAffinity("expiring-session", "codex", 1000, now + 1001),
+    null
+  );
+});
+
 test("getProviderCredentials returns last error metadata when active accounts are all rate limited", async () => {
   const retryAfter = futureIso();
   await seedConnection("openai", {
@@ -312,7 +365,11 @@ test("getProviderCredentialsWithQuotaPreflight invokes the fetcher when an overr
 });
 
 test("getProviderCredentials keeps separate codex affinity per session", async () => {
-  await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 10 });
+  await settingsDb.updateSettings({
+    fallbackStrategy: "round-robin",
+    stickyRoundRobinLimit: 10,
+    codexSessionAffinityTtlMs: 60_000,
+  });
   const first = await seedConnection("codex", {
     name: "codex-affinity-a",
     lastUsedAt: new Date(Date.now() - 20_000).toISOString(),
@@ -342,7 +399,11 @@ test("getProviderCredentials keeps separate codex affinity per session", async (
 });
 
 test("getProviderCredentials rebinds codex session when affinity connection is excluded", async () => {
-  await settingsDb.updateSettings({ fallbackStrategy: "round-robin", stickyRoundRobinLimit: 10 });
+  await settingsDb.updateSettings({
+    fallbackStrategy: "round-robin",
+    stickyRoundRobinLimit: 10,
+    codexSessionAffinityTtlMs: 60_000,
+  });
   const first = await seedConnection("codex", {
     name: "codex-affinity-excluded-a",
     lastUsedAt: new Date(Date.now() - 20_000).toISOString(),

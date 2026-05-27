@@ -9,16 +9,33 @@
  * windows are typically short-lived).
  */
 
-/**
- * @typedef {Object} ModelGate
- * @property {number} running - Currently running requests
- * @property {number} max - Max concurrent requests
- * @property {Array<{resolve: Function, reject: Function, timer: NodeJS.Timeout}>} queue - FIFO wait queue
- * @property {number|null} rateLimitedUntil - Timestamp when rate-limit expires (null = not limited)
- */
+interface QueueItem {
+  resolve: (release: () => void) => void;
+  reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+}
+
+interface ModelGate {
+  running: number;
+  max: number;
+  queue: QueueItem[];
+  rateLimitedUntil: number | null;
+}
+
+interface AcquireOptions {
+  maxConcurrency?: number;
+  timeoutMs?: number;
+}
+
+interface RateLimitStatsEntry {
+  running: number;
+  queued: number;
+  max: number;
+  rateLimitedUntil: string | null;
+}
 
 /** @type {Map<string, ModelGate>} */
-const gates = new Map();
+const gates = new Map<string, ModelGate>();
 
 /**
  * Get or create gate for a model
@@ -26,7 +43,7 @@ const gates = new Map();
  * @param {number} maxConcurrency
  * @returns {ModelGate}
  */
-function getGate(modelStr, maxConcurrency = 3) {
+function getGate(modelStr: string, maxConcurrency = 3): ModelGate {
   if (!gates.has(modelStr)) {
     gates.set(modelStr, {
       running: 0,
@@ -35,7 +52,7 @@ function getGate(modelStr, maxConcurrency = 3) {
       rateLimitedUntil: null,
     });
   }
-  const gate = gates.get(modelStr);
+  const gate = gates.get(modelStr)!;
   // Update max if config changed
   gate.max = maxConcurrency;
   return gate;
@@ -46,7 +63,7 @@ function getGate(modelStr, maxConcurrency = 3) {
  * @param {ModelGate} gate
  * @returns {boolean}
  */
-function isRateLimited(gate) {
+function isRateLimited(gate: ModelGate): boolean {
   if (!gate.rateLimitedUntil) return false;
   if (Date.now() >= gate.rateLimitedUntil) {
     gate.rateLimitedUntil = null;
@@ -59,12 +76,13 @@ function isRateLimited(gate) {
  * Try to drain queued requests when slots become available
  * @param {string} modelStr
  */
-function drainQueue(modelStr) {
+function drainQueue(modelStr: string): void {
   const gate = gates.get(modelStr);
   if (!gate) return;
 
   while (gate.queue.length > 0 && gate.running < gate.max && !isRateLimited(gate)) {
     const next = gate.queue.shift();
+    if (!next) break;
     clearTimeout(next.timer);
     gate.running++;
     next.resolve(createReleaseFn(modelStr));
@@ -76,7 +94,7 @@ function drainQueue(modelStr) {
  * @param {string} modelStr
  * @returns {Function}
  */
-function createReleaseFn(modelStr) {
+function createReleaseFn(modelStr: string): () => void {
   let released = false;
   return () => {
     if (released) return;
@@ -101,7 +119,10 @@ function createReleaseFn(modelStr) {
  * @returns {Promise<Function>} Release function — MUST be called when done
  * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT")
  */
-export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}) {
+export function acquire(
+  modelStr: string,
+  { maxConcurrency = 3, timeoutMs = 30000 }: AcquireOptions = {}
+): Promise<() => void> {
   const gate = getGate(modelStr, maxConcurrency);
 
   // Fast path: slot available and not rate-limited
@@ -135,7 +156,7 @@ export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}
  * @param {string} modelStr - The model identifier
  * @param {number} cooldownMs - How long to block (milliseconds)
  */
-export function markRateLimited(modelStr, cooldownMs) {
+export function markRateLimited(modelStr: string, cooldownMs: number): void {
   const gate = getGate(modelStr);
   gate.rateLimitedUntil = Date.now() + cooldownMs;
 
@@ -152,8 +173,8 @@ export function markRateLimited(modelStr, cooldownMs) {
  * Get stats for all tracked models (for monitoring/UI)
  * @returns {Object} Map of modelStr → { running, queued, max, rateLimitedUntil }
  */
-export function getStats() {
-  const stats = {};
+export function getStats(): Record<string, RateLimitStatsEntry> {
+  const stats: Record<string, RateLimitStatsEntry> = {};
   for (const [model, gate] of gates) {
     stats[model] = {
       running: gate.running,
@@ -170,7 +191,7 @@ export function getStats() {
 /**
  * Reset all gates (for testing)
  */
-export function resetAll() {
+export function resetAll(): void {
   for (const [, gate] of gates) {
     for (const item of gate.queue) {
       clearTimeout(item.timer);

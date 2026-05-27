@@ -348,9 +348,13 @@ async function getAntigravityUsage(
       if (info.isInternal) continue;
       const quotaInfo = (info.quotaInfo as Record<string, unknown>) ?? {};
 
-      if ("remainingFraction" in quotaInfo) {
+      // Process models with any quota metadata (exhausted models may have only resetTime, active models have remainingFraction, credit-based models have empty quotaInfo)
+      if (Object.keys(quotaInfo).length > 0) {
+        // Default to 0 when remainingFraction is undefined/null/invalid, clamp to valid range [0, 1]
         const fraction =
-          typeof quotaInfo.remainingFraction === "number" ? quotaInfo.remainingFraction : 1;
+          typeof quotaInfo.remainingFraction === "number"
+            ? Math.max(0, Math.min(1, quotaInfo.remainingFraction))
+            : 0;
         const resetTime = typeof quotaInfo.resetTime === "string" ? quotaInfo.resetTime : null;
         modelQuotas[modelId] = {
           remaining: Math.round(fraction * 100),
@@ -360,7 +364,7 @@ async function getAntigravityUsage(
         quotaModelsTotal++;
         if (fraction > 0) quotaModelsAvailable++;
       }
-      // Credit-based models have no remainingFraction — their availability is
+      // Credit-based models have empty quotaInfo — their availability is
       // tracked via the GOOGLE_ONE_AI credit balance cached from SSE responses.
     }
 

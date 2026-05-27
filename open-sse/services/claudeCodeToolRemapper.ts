@@ -38,13 +38,28 @@ for (const [k, v] of Object.entries(TOOL_RENAME_MAP)) {
   REVERSE_MAP[v] = k;
 }
 
+function getRequestToolNameMap(body: Record<string, unknown>): Map<string, string> {
+  const existing = body._toolNameMap instanceof Map ? body._toolNameMap : new Map<string, string>();
+  Object.defineProperty(body, "_toolNameMap", {
+    value: existing,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
+  return existing;
+}
+
+function trackToolName(
+  body: Record<string, unknown>,
+  titleCaseName: string,
+  originalName: string
+): void {
+  getRequestToolNameMap(body).set(titleCaseName, originalName);
+}
+
 export function remapToolNamesInRequest(body: Record<string, unknown>): boolean {
   let hasLowercase = false;
   let hasTitleCase = false;
-  const toolNameMap =
-    body._toolNameMap instanceof Map
-      ? (body._toolNameMap as Map<string, string>)
-      : new Map<string, string>();
 
   // Remap tool definitions
   const tools = body.tools as Array<Record<string, unknown>> | undefined;
@@ -54,7 +69,7 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
       if (TOOL_RENAME_MAP[name]) {
         const mapped = TOOL_RENAME_MAP[name];
         tool.name = mapped;
-        toolNameMap.set(mapped, name);
+        trackToolName(body, mapped, name);
         hasLowercase = true;
       } else if (REVERSE_MAP[name]) {
         hasTitleCase = true;
@@ -72,8 +87,9 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
         if (block.type === "tool_use" && typeof block.name === "string") {
           const mapped = TOOL_RENAME_MAP[block.name];
           if (mapped) {
-            toolNameMap.set(mapped, block.name);
+            const originalName = block.name;
             block.name = mapped;
+            trackToolName(body, mapped, originalName);
             hasLowercase = true;
           } else if (REVERSE_MAP[block.name]) {
             hasTitleCase = true;
@@ -88,8 +104,9 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   if (toolChoice?.type === "tool" && typeof toolChoice.name === "string") {
     const mapped = TOOL_RENAME_MAP[toolChoice.name];
     if (mapped) {
-      toolNameMap.set(mapped, toolChoice.name);
+      const originalName = toolChoice.name;
       toolChoice.name = mapped;
+      trackToolName(body, mapped, originalName);
       hasLowercase = true;
     } else if (REVERSE_MAP[toolChoice.name]) {
       hasTitleCase = true;
@@ -100,15 +117,6 @@ export function remapToolNamesInRequest(body: Record<string, unknown>): boolean 
   // The flag has no readers and would leak into the outgoing Anthropic
   // request body, causing HTTP 400 (Extra inputs are not permitted).
   // The response-side remap is unconditional via remapToolNamesInResponse.
-
-  if (toolNameMap.size > 0) {
-    Object.defineProperty(body, "_toolNameMap", {
-      value: toolNameMap,
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    });
-  }
 
   return hasLowercase && !hasTitleCase;
 }

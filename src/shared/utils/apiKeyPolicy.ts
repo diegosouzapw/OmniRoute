@@ -9,7 +9,8 @@
  */
 
 import { extractApiKey } from "@/sse/services/auth";
-import { getApiKeyMetadata, isModelAllowedForKey } from "@/lib/localDb";
+import { getApiKeyMetadata, getComboByName, isModelAllowedForKey } from "@/lib/localDb";
+import { resolveComboForModel } from "@/lib/db/modelComboMappings";
 import { checkBudget } from "@/domain/costRules";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
@@ -21,6 +22,29 @@ import { checkRateLimit, RateLimitRule } from "./rateLimiter";
 // responsible for upstream 429 handling and fallback.
 // Exported so tests can lock in the "no implicit caps" contract from #2289.
 export const DEFAULT_RATE_LIMITS: RateLimitRule[] = [];
+
+const LEGACY_DEFAULT_RATE_LIMIT_PER_DAY = 1000;
+
+export function buildDefaultRateLimits(rawValue?: string): RateLimitRule[] {
+  const normalized = rawValue?.trim();
+  if (normalized === undefined || normalized === "") return [];
+
+  const limitPerDay = /^\d+$/.test(normalized)
+    ? Number(normalized)
+    : LEGACY_DEFAULT_RATE_LIMIT_PER_DAY;
+
+  if (limitPerDay === 0) return [];
+
+  return [
+    { limit: limitPerDay, window: 86400 },
+    { limit: limitPerDay * 5, window: 604800 },
+    { limit: limitPerDay * 20, window: 2592000 },
+  ];
+}
+
+const ENV_DEFAULT_RATE_LIMITS: RateLimitRule[] = buildDefaultRateLimits(
+  process.env.DEFAULT_RATE_LIMIT_PER_DAY
+);
 
 interface AccessSchedule {
   enabled: boolean;
@@ -35,6 +59,7 @@ export interface ApiKeyMetadata {
   id: string;
   name?: string;
   allowedModels?: string[];
+  allowedCombos?: string[];
   allowedConnections?: string[];
   noLog?: boolean;
   autoResolve?: boolean;
@@ -46,6 +71,7 @@ export interface ApiKeyMetadata {
   accessSchedule?: AccessSchedule | null;
   maxRequestsPerDay?: number | null;
   maxRequestsPerMinute?: number | null;
+  throttleDelayMs?: number | null;
   maxSessions?: number | null;
   rateLimits?: RateLimitRule[] | null;
 }
@@ -117,6 +143,53 @@ function isWithinSchedule(schedule: AccessSchedule): boolean {
 }
 
 // Legacy in-memory request counter has been replaced by Redis-backed multi-window rate limiter
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeComboAccessName(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.startsWith("combo/") ? trimmed.slice(6).trim() || trimmed : trimmed;
+}
+
+function matchesComboAccessRule(comboName: string, requestedModel: string, rule: string): boolean {
+  const normalizedRule = normalizeComboAccessName(rule);
+  if (!normalizedRule) return false;
+  return (
+    normalizedRule === comboName ||
+    rule === requestedModel ||
+    `combo/${normalizedRule}` === requestedModel
+  );
+}
+
+async function resolveRequestedComboName(modelStr: string): Promise<string | null> {
+  const exact = await getComboByName(modelStr);
+  if (exact && typeof exact.name === "string") return exact.name;
+
+  if (modelStr.startsWith("combo/")) {
+    const withoutPrefix = modelStr.slice(6);
+    const prefixed = await getComboByName(withoutPrefix);
+    if (prefixed && typeof prefixed.name === "string") return prefixed.name;
+  }
+
+  const mapped = await resolveComboForModel(modelStr);
+  const mappedName = normalizeComboAccessName(mapped?.name);
+  return mappedName;
+}
+
+async function isComboAllowedForKey(
+  allowedCombos: string[],
+  modelStr: string
+): Promise<{ allowed: boolean; comboName: string | null }> {
+  const comboName = await resolveRequestedComboName(modelStr);
+  if (!comboName) return { allowed: true, comboName: null };
+
+  const allowed = allowedCombos.some((rule) => matchesComboAccessRule(comboName, modelStr, rule));
+  return { allowed, comboName };
+}
 
 export interface ApiKeyPolicyResult {
   /** API key string (null if no key provided) */
@@ -222,7 +295,45 @@ export async function enforceApiKeyPolicy(
   }
 
   // ── Check 3: Model restriction ──
-  if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
+  let requestedComboName: string | null = null;
+  if (modelStr && apiKeyInfo.allowedCombos && apiKeyInfo.allowedCombos.length > 0) {
+    try {
+      const comboAccess = await isComboAllowedForKey(apiKeyInfo.allowedCombos, modelStr);
+      requestedComboName = comboAccess.comboName;
+      if (!comboAccess.allowed) {
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: errorResponse(
+            HTTP_STATUS.FORBIDDEN,
+            `Combo "${comboAccess.comboName || modelStr}" is not allowed for this API key`
+          ),
+        };
+      }
+    } catch (error) {
+      log.error("API_POLICY", "Combo access check failed. Request blocked.", { error });
+      return {
+        apiKey,
+        apiKeyInfo,
+        rejection: errorResponse(
+          HTTP_STATUS.SERVICE_UNAVAILABLE,
+          "API key combo policy unavailable"
+        ),
+      };
+    }
+  }
+
+  const hasModelRestrictions = apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0;
+
+  if (!requestedComboName && modelStr && hasModelRestrictions) {
+    try {
+      requestedComboName = await resolveRequestedComboName(modelStr);
+    } catch {
+      requestedComboName = null;
+    }
+  }
+
+  if (modelStr && !requestedComboName && hasModelRestrictions) {
     const allowed = await isModelAllowedForKey(apiKey, modelStr);
     if (!allowed) {
       return {
@@ -263,13 +374,13 @@ export async function enforceApiKeyPolicy(
 
   // ── Check 5: Generic Multi-Window Rate Limits ──
   if (apiKeyInfo.id) {
-    const rulesToApply =
-      apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0
-        ? [...apiKeyInfo.rateLimits]
-        : [...DEFAULT_RATE_LIMITS];
+    const hasCustomRateLimits = Boolean(apiKeyInfo.rateLimits && apiKeyInfo.rateLimits.length > 0);
+    const rulesToApply = hasCustomRateLimits
+      ? [...(apiKeyInfo.rateLimits as RateLimitRule[])]
+      : [...DEFAULT_RATE_LIMITS, ...ENV_DEFAULT_RATE_LIMITS];
 
     // Combine with legacy limits if they exist and custom rate limits aren't set
-    if (!apiKeyInfo.rateLimits || apiKeyInfo.rateLimits.length === 0) {
+    if (!hasCustomRateLimits) {
       if (apiKeyInfo.maxRequestsPerDay) {
         rulesToApply.push({ limit: apiKeyInfo.maxRequestsPerDay, window: 86400 });
       }
@@ -278,20 +389,27 @@ export async function enforceApiKeyPolicy(
       }
     }
 
-    const rateLimitResult = await checkRateLimit(apiKeyInfo.id, rulesToApply);
-    if (!rateLimitResult.allowed) {
-      const failedWindowStr = rateLimitResult.failedWindow
-        ? ` (${rateLimitResult.failedWindow}s window)`
-        : "";
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.RATE_LIMITED,
-          `Request limit exceeded${failedWindowStr}. Please try again later.`
-        ),
-      };
+    if (rulesToApply.length > 0) {
+      const rateLimitResult = await checkRateLimit(apiKeyInfo.id, rulesToApply);
+      if (!rateLimitResult.allowed) {
+        const failedWindowStr = rateLimitResult.failedWindow
+          ? ` (${rateLimitResult.failedWindow}s window)`
+          : "";
+        return {
+          apiKey,
+          apiKeyInfo,
+          rejection: errorResponse(
+            HTTP_STATUS.RATE_LIMITED,
+            `Request limit exceeded${failedWindowStr}. Please try again later.`
+          ),
+        };
+      }
     }
+  }
+
+  // ── Check 6: Soft throttle / slowdown ──
+  if (apiKeyInfo.throttleDelayMs && apiKeyInfo.throttleDelayMs > 0) {
+    await delay(Math.min(apiKeyInfo.throttleDelayMs, 300_000));
   }
 
   return { apiKey, apiKeyInfo, rejection: null };

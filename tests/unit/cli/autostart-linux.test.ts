@@ -50,3 +50,23 @@ test("resolveCliPath finds omniroute.mjs from argv", async () => {
   disable();
   assert.equal(getAutostartStatus().enabled, false);
 });
+
+test("Linux autostart invokes loginctl/systemctl without shell interpolation", () => {
+  const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
+
+  assert.match(source, /execFileSync\("systemctl", \["--user", \.\.\.args\]/);
+  assert.match(source, /execFileSync\("loginctl", \["enable-linger", user\]/);
+  assert.match(source, /execFileSync\("loginctl", \["show-user", user, "-p", "Linger"\]/);
+  assert.doesNotMatch(source, /ignoreFailure\s*\?\s*false\s*:\s*false/);
+  assert.doesNotMatch(source, /execSync\(`(?:loginctl|systemctl)\b/);
+});
+
+test("Linux enable path prefers graphical desktop autostart over systemd", () => {
+  const source = readFileSync(join(process.cwd(), "bin/cli/tray/autostart.mjs"), "utf8");
+  const graphicalBranch = source.indexOf("if (graphicalSession)");
+  const systemdBranch = source.indexOf("} else if (systemdAvailable)");
+
+  assert.ok(graphicalBranch > -1, "expected a graphical-session branch");
+  assert.ok(systemdBranch > -1, "expected a systemd fallback branch");
+  assert.ok(graphicalBranch < systemdBranch, "graphical autostart should be preferred");
+});

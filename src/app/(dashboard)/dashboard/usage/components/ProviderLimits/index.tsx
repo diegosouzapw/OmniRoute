@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   parseQuotaData,
   formatQuotaLabel,
+  formatCountdown,
   normalizePlanTier,
   resolvePlanValue,
   calculatePercentage,
@@ -119,6 +120,25 @@ function getSoonestResetMs(quotas: any[] | undefined): number {
   }
   return soonest;
 }
+
+const getQuotaBarWidthClass = (pct: number) => {
+  if (pct <= 10) return "w-[10%]";
+  if (pct <= 20) return "w-1/5";
+  if (pct <= 30) return "w-[30%]";
+  if (pct <= 40) return "w-2/5";
+  if (pct <= 50) return "w-1/2";
+  if (pct <= 60) return "w-3/5";
+  if (pct <= 70) return "w-[70%]";
+  if (pct <= 80) return "w-4/5";
+  if (pct <= 90) return "w-[90%]";
+  return "w-full";
+};
+
+const getQuotaToneClasses = (pct: number) => {
+  if (pct <= QUOTA_BAR_YELLOW_THRESHOLD) return "bg-red-500 text-red-500";
+  if (pct <= QUOTA_BAR_GREEN_THRESHOLD) return "bg-yellow-500 text-yellow-500";
+  return "bg-green-500 text-green-500";
+};
 
 const STATUS_TONE: Record<
   StatusKey,
@@ -607,6 +627,40 @@ export default function ProviderLimits() {
     }
   }, []);
 
+  const renderInlineQuotaSummary = (quotas: any[]) => {
+    if (!quotas || quotas.length === 0) return null;
+    return (
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-text-muted">
+        {quotas.slice(0, 3).map((q, index) => {
+          const pct = q.unlimited
+            ? 100
+            : Math.round(q.remainingPercentage ?? calculatePercentage(q.used, q.total));
+          const cd = formatCountdown(q.resetAt);
+          const tone = getQuotaToneClasses(pct);
+          return (
+            <span
+              key={`${q.name || "quota"}-${q.modelKey || ""}-${index}`}
+              className="inline-flex items-center gap-1"
+              title={q.displayName || formatQuotaLabel(q.name)}
+            >
+              <span className={`tabular-nums ${tone.split(" ")[1]}`}>
+                {q.unlimited ? "∞" : `${pct}%`}
+              </span>
+              {!q.unlimited && (
+                <span className="h-1 w-14 rounded-sm bg-border/60 overflow-hidden">
+                  <span
+                    className={`block h-full ${tone.split(" ")[0]} ${getQuotaBarWidthClass(pct)}`}
+                  />
+                </span>
+              )}
+              {cd ? <span>{`⏱ ${cd}`}</span> : null}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (initialLoading) {
     return (
       <div className="flex flex-col gap-4">
@@ -815,6 +869,7 @@ export default function ProviderLimits() {
           lastRefreshedAt={lastRefreshedAt}
           emailsVisible={emailsVisible}
           providerLabels={PROVIDER_LABEL}
+          renderInlineQuotaSummary={(quota) => renderInlineQuotaSummary(quota.quotas)}
           onRefresh={refreshProvider}
           onOpenCutoff={(conn) => {
             const windows = (quotaData[conn.id]?.quotas || []).filter(

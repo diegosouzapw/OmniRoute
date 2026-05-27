@@ -223,6 +223,14 @@ test("quota reset text is honored when upstream retry hints are enabled", () => 
   assert.equal(result.usedUpstreamRetryHint, true);
 });
 
+test("subscription quota uses long cooldown when upstream retry hints are disabled", () => {
+  const result = checkFallbackError(429, "Usage Limit Reached", 0, null, "antigravity", null);
+  assert.equal(result.shouldFallback, true);
+  assert.equal(result.cooldownMs, 60 * 60 * 1000);
+  assert.equal(result.reason, RateLimitReason.QUOTA_EXHAUSTED);
+  assert.equal(result.usedUpstreamRetryHint, false);
+});
+
 test("high transient backoff levels clamp to the configured maxBackoffSteps", () => {
   const result = checkFallbackError(502, "", BACKOFF_CONFIG.maxLevel + 5, null, null);
   assert.equal(result.newBackoffLevel, BACKOFF_CONFIG.maxLevel);

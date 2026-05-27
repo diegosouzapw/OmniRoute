@@ -85,8 +85,13 @@ export interface BatchRecord {
 export function createBatch(
   batch: Omit<
     BatchRecord,
-    "id" | "createdAt" | "requestCountsTotal" | "requestCountsCompleted" | "requestCountsFailed"
-  >
+    | "id"
+    | "createdAt"
+    | "requestCountsTotal"
+    | "requestCountsCompleted"
+    | "requestCountsFailed"
+    | "status"
+  > & { status?: BatchRecord["status"] }
 ): BatchRecord {
   const db = getDbInstance();
   const id = "batch_" + uuidv4().replaceAll("-", "").substring(0, 24);

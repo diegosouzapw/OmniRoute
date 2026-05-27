@@ -98,6 +98,7 @@ interface CredentialSelectionOptions {
   forcedConnectionId?: string | null;
   excludeConnectionIds?: string[] | null;
   sessionKey?: string | null;
+  sessionAffinityTtlMs?: number | null;
 }
 
 interface CooldownInspectionState {
@@ -644,15 +645,16 @@ function compareLruConnections(a: ProviderConnectionView, b: ProviderConnectionV
 async function selectSessionAffinityConnection(
   provider: string,
   sessionKey: string | null | undefined,
-  connections: ProviderConnectionView[]
+  connections: ProviderConnectionView[],
+  ttlMs = 0
 ): Promise<ProviderConnectionView | null> {
-  if (!sessionKey || connections.length === 0) return null;
+  if (!sessionKey || connections.length === 0 || ttlMs <= 0) return null;
 
-  const existing = getSessionAccountAffinity(sessionKey, provider);
+  const existing = getSessionAccountAffinity(sessionKey, provider, ttlMs);
   if (existing) {
     const connection = connections.find((candidate) => candidate.id === existing.connectionId);
     if (connection) {
-      touchSessionAccountAffinity(sessionKey, provider);
+      touchSessionAccountAffinity(sessionKey, provider, Date.now(), ttlMs);
       await updateProviderConnection(connection.id, {
         lastUsedAt: new Date().toISOString(),
         consecutiveUseCount: (connection.consecutiveUseCount || 0) + 1,
@@ -677,7 +679,7 @@ async function selectSessionAffinityConnection(
   const connection = [...connections].sort(compareLruConnections)[0] ?? null;
   if (!connection) return null;
 
-  upsertSessionAccountAffinity(sessionKey, provider, connection.id);
+  upsertSessionAccountAffinity(sessionKey, provider, connection.id, Date.now(), ttlMs);
   await updateProviderConnection(connection.id, {
     lastUsedAt: new Date().toISOString(),
     consecutiveUseCount: 1,
@@ -743,8 +745,35 @@ function buildQuotaPreflightRateLimitedResult(
   };
 }
 
-// Mutex to prevent race conditions during account selection
-let selectionMutex = Promise.resolve();
+// Provider-scoped mutexes prevent race conditions during account selection without
+// serializing unrelated providers behind a single global lock.
+const selectionMutexes = new Map<string, Promise<void>>();
+
+function getSelectionMutexKey(provider: string, options: CredentialSelectionOptions): string {
+  return [
+    resolveProviderId(provider) || provider,
+    options.forcedConnectionId ? `forced:${options.forcedConnectionId}` : "pool",
+  ].join(":");
+}
+
+function createSelectionLock(key: string) {
+  const currentMutex = selectionMutexes.get(key) || Promise.resolve();
+  let resolveMutex: (() => void) | undefined;
+  const nextMutex = new Promise<void>((resolve) => {
+    resolveMutex = resolve;
+  });
+  selectionMutexes.set(key, nextMutex);
+
+  return {
+    wait: currentMutex,
+    release: () => {
+      resolveMutex?.();
+      if (selectionMutexes.get(key) === nextMutex) {
+        selectionMutexes.delete(key);
+      }
+    },
+  };
+}
 
 // ─── Anti-Thundering Herd: per-connection mutex for markAccountUnavailable ───
 // Prevents multiple concurrent requests from marking the same connection
@@ -752,7 +781,7 @@ let selectionMutex = Promise.resolve();
 const markMutexes = new Map<string, Promise<void>>();
 
 // Strict-Random shuffle deck moved to src/shared/utils/shuffleDeck.ts
-// auth.ts uses getNextFromDeckSync (already inside selectionMutex).
+// auth.ts uses getNextFromDeckSync inside the provider-scoped selection mutex.
 // Re-export for backwards compat with existing test imports.
 export { fisherYatesShuffle, getNextFromDeckSync as getNextFromDeck };
 
@@ -786,15 +815,10 @@ export async function getProviderCredentials(
   requestedModel: string | null = null,
   options: CredentialSelectionOptions = {}
 ) {
-  // Acquire mutex to prevent race conditions
-  const currentMutex = selectionMutex;
-  let resolveMutex: (() => void) | undefined;
-  selectionMutex = new Promise((resolve) => {
-    resolveMutex = resolve;
-  });
+  const selectionLock = createSelectionLock(getSelectionMutexKey(provider, options));
 
   try {
-    await currentMutex;
+    await selectionLock.wait;
 
     // No-auth providers (e.g. opencode) need no DB connection — return synthetic credentials
     // so the executor receives a valid credentials object without auth headers being added.
@@ -1174,12 +1198,23 @@ export async function getProviderCredentials(
 
     const settings = await getSettings();
     const strategy = settings.fallbackStrategy || "fill-first";
+    const sessionAffinityTtlMs =
+      provider === "codex"
+        ? Number.isFinite(Number(options.sessionAffinityTtlMs)) &&
+          Number(options.sessionAffinityTtlMs) > 0
+          ? Number(options.sessionAffinityTtlMs)
+          : Number.isFinite(Number(settings.codexSessionAffinityTtlMs)) &&
+              Number(settings.codexSessionAffinityTtlMs) > 0
+            ? Number(settings.codexSessionAffinityTtlMs)
+            : 0
+        : 0;
 
     let connection;
     const affinityConnection = await selectSessionAffinityConnection(
       provider,
       options.sessionKey,
-      orderedConnections
+      orderedConnections,
+      sessionAffinityTtlMs
     );
     if (affinityConnection) {
       connection = affinityConnection;
@@ -1363,7 +1398,7 @@ export async function getProviderCredentials(
       quotaWindowThresholds: connection.quotaWindowThresholds ?? null,
     };
   } finally {
-    if (resolveMutex) resolveMutex();
+    selectionLock.release();
   }
 }
 
@@ -1603,14 +1638,8 @@ export async function markAccountUnavailable(
       | undefined;
 
     const isPerModelQuotaProvider = hasPerModelQuota(provider, model, connectionPassthroughModels);
-    if (
-      isPerModelQuotaProvider &&
-      provider &&
-      model &&
-      (status === 404 || status === 429 || status >= 500)
-    ) {
-      const reason =
-        status === 404 ? "not_found" : status === 429 ? "rate_limited" : "server_error";
+    if (isPerModelQuotaProvider && provider && model && (status === 404 || status === 429)) {
+      const reason = status === 404 ? "not_found" : "rate_limited";
       const lockout = recordModelLockoutFailure(
         provider,
         connectionId,

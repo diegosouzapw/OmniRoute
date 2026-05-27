@@ -33,6 +33,14 @@ test("slashful canonical model ids are treated as exact model ids when provider 
   }
 });
 
+test("explicit OpenAI provider routes can preserve catalog-lagging OpenAI model ids", async () => {
+  assert.deepEqual(await getModelInfoCore("openai/gpt-4o-mini", {}), {
+    provider: "openai",
+    model: "gpt-4o-mini",
+    extendedContext: false,
+  });
+});
+
 test("explicit provider routes can still normalize cross-proxy model dialects", async () => {
   const explicitProviderCompat = await getModelInfoCore("nvidia/gpt-oss:120b", {});
   assert.deepEqual(explicitProviderCompat, {

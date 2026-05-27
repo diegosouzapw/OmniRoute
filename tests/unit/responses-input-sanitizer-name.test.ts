@@ -47,3 +47,28 @@ test("handles name that is both too long and has illegal chars", () => {
   assert.ok(name.length <= 128);
   assert.match(name, /^[a-zA-Z0-9_-]+$/);
 });
+
+test("strips invalid synthetic reasoning item ids", () => {
+  const items = [
+    {
+      id: "thinking_0",
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "cached reasoning" }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.equal(result[0].id, undefined);
+  assert.equal(result[0].type, "reasoning");
+});
+
+test("keeps valid server reasoning item ids", () => {
+  const items = [
+    {
+      id: "rs_123",
+      type: "reasoning",
+      summary: [{ type: "summary_text", text: "stored reasoning" }],
+    },
+  ];
+  const result = sanitizeResponsesInputItems(items) as Array<Record<string, unknown>>;
+  assert.equal(result[0].id, "rs_123");
+});

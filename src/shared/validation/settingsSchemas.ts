@@ -61,6 +61,7 @@ export const updateSettingsSchema = z.object({
       supportedModels: z.array(z.string().max(200)).max(200).optional(),
     })
     .optional(),
+  codexSessionAffinityTtlMs: z.number().int().min(0).max(86_400_000).optional(),
   // Routing settings (#134)
   fallbackStrategy: z.enum(ACCOUNT_FALLBACK_STRATEGY_VALUES).optional(),
   wildcardAliases: z.array(z.object({ pattern: z.string(), target: z.string() })).optional(),
@@ -259,6 +260,12 @@ export const updateSettingsSchema = z.object({
   autoRoutingDefaultVariant: z
     .enum(["lkgp", "coding", "fast", "cheap", "offline", "smart"])
     .optional(),
+  // CLIProxyAPI connection settings
+  cliproxyapi_fallback_enabled: z.boolean().optional(),
+  cliproxyapi_url: z.string().url().max(500).optional(),
+  cliproxyapi_fallback_codes: z.string().max(200).optional(),
+  // CLIProxyAPI model mapping (Record<string, string>)
+  cliproxyapi_model_mapping: z.record(z.string(), z.string()).optional(),
 });
 
 export const databaseSettingsSchema = z.object(
