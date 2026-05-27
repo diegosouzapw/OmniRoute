@@ -32,7 +32,7 @@ x-common: &common
   volumes:
     - ./data:/app/data
   healthcheck:
-    test: ["CMD", "node", "healthcheck.mjs"]
+    test: ["CMD", "node", "scripts/dev/healthcheck.mjs"]
     interval: 30s
     timeout: 5s
     retries: 3
