@@ -70,6 +70,18 @@ function getUploadedFileName(file: Blob & { name?: unknown }): string {
 }
 
 /**
+ * Re-buffer a Blob/File into a standalone File to avoid cross-realm
+ * serialisation issues (Next.js 16 Server Action workaround — Blobs
+ * obtained from a cached FormData may not serialise to a new FormData).
+ */
+async function ensureSafeFile(file: Blob & { name?: unknown }): Promise<File> {
+  const buf = await file.arrayBuffer();
+  return new File([buf], getUploadedFileName(file), {
+    type: typeof file.type === "string" && file.type.length > 0 ? file.type : "audio/wav",
+  });
+}
+
+/**
  * Infer a suitable Content-Type for Deepgram from the browser-provided MIME
  * type and the original filename.  Deepgram accepts `audio/*` and many raw
  * formats, but `video/*` causes it to silently fail with "no speech detected".
@@ -231,8 +243,9 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
  * Multipart POST, transform response to { text }
  */
 async function handleNvidiaTranscription(providerConfig, file, modelId, token) {
+  const safeFile = await ensureSafeFile(file);
   const upstreamForm = new FormData();
-  upstreamForm.append("file", file, getUploadedFileName(file));
+  upstreamForm.append("file", safeFile, getUploadedFileName(file));
   upstreamForm.append("model", modelId);
 
   const res = await fetch(providerConfig.baseUrl, {
@@ -349,11 +362,12 @@ async function pollKieTranscriptionResult(baseUrl, modelId, taskId, token) {
     });
 
     if (state === "success") {
+      const d = data as { data?: { response?: { text?: string }; resultText?: string; text?: string }; text?: string } | undefined;
       const text =
-        data?.data?.response?.text ||
-        data?.data?.resultText ||
-        data?.data?.text ||
-        data?.text ||
+        d?.data?.response?.text ||
+        d?.data?.resultText ||
+        d?.data?.text ||
+        d?.text ||
         "";
       return Response.json({ text }, { headers: { ...CORS_HEADERS } });
     }
@@ -446,8 +460,9 @@ export async function handleAudioTranscription({
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy
+  const safeFile = await ensureSafeFile(file);
   const upstreamForm = new FormData();
-  upstreamForm.append("file", file, getUploadedFileName(file));
+  upstreamForm.append("file", safeFile, getUploadedFileName(file));
   upstreamForm.append("model", modelId);
 
   // Forward optional parameters
