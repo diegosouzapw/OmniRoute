@@ -704,7 +704,7 @@ export function openaiToAntigravityRequest(model, body, stream, credentials = nu
 register(
   FORMATS.OPENAI,
   FORMATS.GEMINI,
-  (model, body, stream, credentials) =>
+  (model, body, stream = false, credentials = null) =>
     openaiToGeminiRequest(model, body, stream, credentials, {
       signaturelessToolCallMode: "text",
     }),
