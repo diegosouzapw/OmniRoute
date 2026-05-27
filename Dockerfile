@@ -17,8 +17,9 @@ RUN apt-get update \
 COPY package*.json ./
 COPY open-sse/package*.json ./open-sse/
 COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
-COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
+COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
+COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
+COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
 RUN --mount=type=cache,target=/root/.npm \
   if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
