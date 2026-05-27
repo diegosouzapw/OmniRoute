@@ -13,6 +13,7 @@ import {
   normalizeComboConfigMode,
   type ComboConfigMode,
 } from "@/shared/constants/comboConfigMode";
+import { PIN_PROVIDER_QUOTA_TO_HOME_KEY } from "@/shared/constants/homeWidgets";
 
 export default function AppearanceTab() {
   const { theme, setTheme, isDark } = useTheme();
@@ -31,6 +32,9 @@ export default function AppearanceTab() {
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [customThemeColor, setCustomThemeColor] = useState(customColor || "#3b82f6");
+  const [pinProviderQuotaToHome, setPinProviderQuotaToHome] = useState(false);
+  const [showQuickStartOnHome, setShowQuickStartOnHome] = useState(true);
+  const [showProviderTopologyOnHome, setShowProviderTopologyOnHome] = useState(true);
   const [autoRefreshProviderQuota, setAutoRefreshProviderQuota] = useState(false);
   const [autoRefreshProviderQuotaInterval, setAutoRefreshProviderQuotaInterval] = useState(180);
   const isValidHex = /^#([0-9a-fA-F]{6})$/.test(
@@ -69,6 +73,15 @@ export default function AppearanceTab() {
       })
       .then((data) => {
         setSettings(data);
+        if (typeof data.pinProviderQuotaToHome === "boolean") {
+          setPinProviderQuotaToHome(data.pinProviderQuotaToHome);
+        }
+        if (typeof data.showQuickStartOnHome === "boolean") {
+          setShowQuickStartOnHome(data.showQuickStartOnHome);
+        }
+        if (typeof data.showProviderTopologyOnHome === "boolean") {
+          setShowProviderTopologyOnHome(data.showProviderTopologyOnHome);
+        }
         if (typeof data.autoRefreshProviderQuota === "boolean") {
           setAutoRefreshProviderQuota(data.autoRefreshProviderQuota);
         }
@@ -179,6 +192,85 @@ export default function AppearanceTab() {
                 <span>{themeOptionLabels[option] || option}</span>
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-border">
+          <div className="mb-3">
+            <p className="font-medium">
+              {getSettingsLabel("homePinProviderQuotaToHome", "Pin Information to Home Page")}
+            </p>
+            <p className="text-sm text-text-muted">
+              Choose which sections to pin to the top of the Home page.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface/40 overflow-hidden">
+            <div className="divide-y divide-border/70">
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("homeProviderQuotaLimits", "Provider Quota Limits")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeProviderQuotaLimitsDesc",
+                      "Pin the Provider Quota status container (with Refresh All button) to the top of the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={pinProviderQuotaToHome}
+                  onChange={async (checked) => {
+                    setPinProviderQuotaToHome(checked);
+                    await updateSetting(PIN_PROVIDER_QUOTA_TO_HOME_KEY, checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">{getSettingsLabel("homeQuickStart", "Quick Start")}</p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeQuickStartDesc",
+                      "Show the Quick Start panel on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showQuickStartOnHome}
+                  onChange={async (checked) => {
+                    setShowQuickStartOnHome(checked);
+                    await updateSetting("showQuickStartOnHome", checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex items-start justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="font-medium">
+                    {getSettingsLabel("homeProviderTopology", "Provider Topology")}
+                  </p>
+                  <p className="text-sm text-text-muted">
+                    {getSettingsLabel(
+                      "homeProviderTopologyDesc",
+                      "Show the Provider Topology on the Home page."
+                    )}
+                  </p>
+                </div>
+                <Toggle
+                  checked={showProviderTopologyOnHome}
+                  onChange={async (checked) => {
+                    setShowProviderTopologyOnHome(checked);
+                    await updateSetting("showProviderTopologyOnHome", checked);
+                  }}
+                  disabled={loading}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
