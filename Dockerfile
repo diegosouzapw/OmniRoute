@@ -71,17 +71,17 @@ COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
 
-COPY --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
-COPY --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
-COPY --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
-COPY --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs
+COPY --from=builder /app/scripts/dev/run-standalone.mjs ./scripts/dev/run-standalone.mjs
+COPY --from=builder /app/scripts/dev/healthcheck.mjs ./scripts/dev/healthcheck.mjs
+COPY --from=builder /app/scripts/build/runtime-env.mjs ./scripts/build/runtime-env.mjs
+COPY --from=builder /app/scripts/build/bootstrap-env.mjs ./scripts/build/bootstrap-env.mjs
 
 EXPOSE 20128
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD ["node", "healthcheck.mjs"]
+  CMD ["node", "scripts/dev/healthcheck.mjs"]
 
-CMD ["node", "run-standalone.mjs"]
+CMD ["node", "scripts/dev/run-standalone.mjs"]
 
 FROM runner-base AS runner-cli
 
