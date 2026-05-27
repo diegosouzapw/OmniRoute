@@ -213,8 +213,6 @@ describe("OpencodeExecutor", () => {
       registerModel("opencode-go", { id: "kimi-k2.6", name: "Kimi K2.6" });
       registerModel("opencode-go", { id: "mimo-v2-pro", name: "MiMo V2 Pro" });
       registerModel("opencode-go", { id: "mimo-v2-omni", name: "MiMo V2 Omni" });
-      registerModel("opencode-go", { id: "qwen3.6-plus", name: "Qwen 3.6 Plus" });
-      registerModel("opencode-go", { id: "qwen3.5-plus", name: "Qwen 3.5 Plus" });
 
       // glm-5.1
       const glm51 = await goExecutor.execute(createInput("glm-5.1"));
@@ -231,14 +229,31 @@ describe("OpencodeExecutor", () => {
       // mimo-v2-omni
       const mimoOmni = await goExecutor.execute(createInput("mimo-v2-omni"));
       assert.equal(mimoOmni.url, "https://opencode.ai/zen/go/v1/chat/completions");
+    });
 
-      // qwen3.6-plus
-      const qwen36 = await goExecutor.execute(createInput("qwen3.6-plus"));
-      assert.equal(qwen36.url, "https://opencode.ai/zen/go/v1/chat/completions");
+    it("routes opencode-go qwen models to claude messages endpoint", async () => {
+      registerModel("opencode-go", {
+        id: "qwen3.6-plus",
+        name: "Qwen3.6 Plus",
+        targetFormat: "claude",
+      });
+      registerModel("opencode-go", {
+        id: "qwen3.5-plus",
+        name: "Qwen3.5 Plus",
+        targetFormat: "claude",
+      });
 
-      // qwen3.5-plus
-      const qwen35 = await goExecutor.execute(createInput("qwen3.5-plus"));
-      assert.equal(qwen35.url, "https://opencode.ai/zen/go/v1/chat/completions");
+      const qwen36 = await goExecutor.execute(
+        createInput("qwen3.6-plus", true, { apiKey: "claude-key" })
+      );
+      assert.equal(qwen36.url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(qwen36.headers["anthropic-version"], "2023-06-01");
+
+      const qwen35 = await goExecutor.execute(
+        createInput("qwen3.5-plus", true, { apiKey: "claude-key" })
+      );
+      assert.equal(qwen35.url, "https://opencode.ai/zen/go/v1/messages");
+      assert.equal(qwen35.headers["anthropic-version"], "2023-06-01");
     });
 
     it("builds bearer auth headers for opencode-go openai models", async () => {
