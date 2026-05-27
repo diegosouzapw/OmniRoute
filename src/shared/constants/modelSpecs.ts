@@ -217,6 +217,39 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
   },
 
+  // ── Kimi K2.5 (Moonshot — 262K native, parity with K2.6) ────────
+  "kimi-k2.5": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    aliases: ["kimi-k2.5-thinking"],
+  },
+
+  // ── Qwen3.x Plus (Bailian — multimodal text/image/video, 1M context) ────
+  "qwen3.7-max": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "qwen3.6-plus": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "qwen3.5-plus": {
+    maxOutputTokens: 65536,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
   // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
   "mimo-v2.5-pro": {
     maxOutputTokens: 131072,
@@ -239,6 +272,56 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "mimo-v2-flash": {
     maxOutputTokens: 65536,
     contextWindow: 262144,
+    supportsTools: true,
+  },
+
+  // ── Z.AI GLM-5.x (200K context, 128K max output) ─────────────────
+  "glm-5.1": {
+    maxOutputTokens: 128000,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "glm-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+
+  // ── MiniMax M2.x (200K context family) ───────────────────────────
+  "minimax-m2.7": {
+    maxOutputTokens: 131072,
+    contextWindow: 204800,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "minimax-m2.5": {
+    maxOutputTokens: 131072,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+
+  // ── DeepSeek V4 (1M context, 384K max output) ────────────────────
+  "deepseek-v4-pro": {
+    maxOutputTokens: 384000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+  "deepseek-v4-flash": {
+    maxOutputTokens: 384000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+  },
+
+  // ── Tencent Hunyuan 3 Preview ────────────────────────────────────
+  "hy3-preview": {
+    maxOutputTokens: 262144,
+    contextWindow: 262144,
+    supportsThinking: true,
     supportsTools: true,
   },
 
