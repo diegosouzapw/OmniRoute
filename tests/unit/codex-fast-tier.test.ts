@@ -106,15 +106,17 @@ test("Codex global service tier injects selected mode and can override connectio
 });
 
 test("Codex global service tier matches provider-prefixed combo model ids", () => {
+  const body: Record<string, unknown> = {};
   assert.deepEqual(
     applyCodexGlobalFastServiceTier(
       "codex",
       { providerSpecificData: {} },
       { codexServiceTier: { enabled: true, tier: "priority" } },
-      { model: "codex/gpt-5.5" }
+      { model: "codex/gpt-5.5", body }
     ),
     { providerSpecificData: { requestDefaults: { serviceTier: "priority" } } }
   );
+  assert.equal(body.service_tier, "priority");
 
   const unsupported = { providerSpecificData: {} };
   assert.equal(
@@ -155,7 +157,7 @@ test("Codex global service tier only short-circuits on valid body service_tier",
   assert.deepEqual(injected, {
     providerSpecificData: { requestDefaults: { serviceTier: "priority" } },
   });
-  assert.equal(invalidBody.service_tier, "invalid");
+  assert.equal(invalidBody.service_tier, "priority");
 
   const validBody: Record<string, unknown> = { service_tier: " Flex " };
   const unchanged = { providerSpecificData: {} };

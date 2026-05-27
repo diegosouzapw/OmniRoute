@@ -1,10 +1,22 @@
-FROM node:24-trixie-slim AS builder
+# ── Common base with runtime deps ──────────────────────────────────────────
+FROM node:24-trixie-slim AS base
 WORKDIR /app
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
   apt-get update \
-  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates python3 make g++ \
+  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# ── Builder ────────────────────────────────────────────────────────────────
+FROM base AS builder
+
+# Build tools for native module compilation
+# apt-get update needed here because base's rm -rf clears the shared cache
+RUN --mount=type=cache,target=/var/cache/apt,sharing=shared \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=shared \
+  apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
@@ -26,12 +38,15 @@ RUN --mount=type=cache,target=/root/.npm \
   && npm rebuild better-sqlite3 \
   && node -e "require('better-sqlite3')(':memory:').close()"
 
+# Use Turbopack for significant build speedup
+ENV OMNIROUTE_USE_TURBOPACK=1
+
 COPY . ./
 RUN --mount=type=cache,target=/app/.next/cache \
-  mkdir -p /app/data && npm run build -- --webpack
+  mkdir -p /app/data && npm run build
 
-FROM node:24-trixie-slim AS runner-base
-WORKDIR /app
+# ── Runner base ────────────────────────────────────────────────────────────
+FROM base AS runner-base
 
 LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.description="Unified AI proxy — route any LLM through one endpoint" \
@@ -46,15 +61,11 @@ ENV NODE_OPTIONS="--max-old-space-size=256"
 
 # Data directory inside Docker — must match the volume mount in docker-compose.yml
 ENV DATA_DIR=/app/data
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-  apt-get update \
-  && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/data
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/static ./.next/static
+# The standalone build + syncStandaloneExtraModules bundles all runtime files
+# (.next, node_modules, migrations, scripts, docs, etc.) into .next/standalone/.
+# Explicit overrides below cover modules that NFT tracing may miss.
 COPY --from=builder /app/.next/standalone ./
 # Explicitly copy @swc/helpers — not always traced by standalone output but needed at runtime
 COPY --from=builder /app/node_modules/@swc/helpers ./node_modules/@swc/helpers
@@ -70,18 +81,6 @@ COPY --from=builder /app/node_modules/split2 ./node_modules/split2
 # traced by Next.js standalone output — copy them explicitly.
 COPY --from=builder /app/src/lib/db/migrations ./migrations
 ENV OMNIROUTE_MIGRATIONS_DIR=/app/migrations
-# MITM server.cjs is spawned at runtime via child_process — not traced by nft
-COPY --from=builder /app/src/mitm/server.cjs ./src/mitm/server.cjs
-# Runtime docs are pruned by .dockerignore to English markdown + OpenAPI.
-# Next.js standalone tracing does not include docs read via fs.
-COPY --from=builder /app/.next/standalone/docs ./docs
-
-COPY --from=builder /app/scripts/dev/run-standalone.mjs ./dev/run-standalone.mjs
-COPY --from=builder /app/scripts/build/runtime-env.mjs ./build/runtime-env.mjs
-COPY --from=builder /app/scripts/build/bootstrap-env.mjs ./build/bootstrap-env.mjs
-COPY --from=builder /app/scripts/dev/healthcheck.mjs ./healthcheck.mjs
-
-RUN node -e "require('better-sqlite3')(':memory:').close()"
 
 # Hand /app over to the baked-in `node` non-root user (UID/GID 1000) so the
 # runtime process never holds root privileges. The chown happens after all

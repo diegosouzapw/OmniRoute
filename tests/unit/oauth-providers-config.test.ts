@@ -18,8 +18,10 @@ const providersModule = await import("../../src/lib/oauth/providers/index.ts");
 const oauthModule = await import("../../src/lib/oauth/constants/oauth.ts");
 const registryModule = await import("../../open-sse/config/providerRegistry.ts");
 const antigravityHeadersModule = await import("../../open-sse/services/antigravityHeaders.ts");
+const oauthHelpersModule = await import("../../src/lib/oauth/providers.ts");
 
 const PROVIDERS = providersModule.default;
+const { resolveBrowserOAuthRedirectUri } = oauthHelpersModule;
 const {
   ANTIGRAVITY_CONFIG,
   CLAUDE_CONFIG,
@@ -314,6 +316,44 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
   assert.equal(geminiUrl.searchParams.get("redirect_uri"), redirectUri);
   assert.equal(antigravityUrl.origin, "https://accounts.google.com");
   assert.equal(clineUrl.origin, "https://api.cline.bot");
+});
+
+test("custom Google OAuth credentials switch Antigravity remote callbacks to NEXT_PUBLIC_BASE_URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://localhost:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com/",
+      ANTIGRAVITY_OAUTH_CLIENT_ID: "custom-antigravity.apps.googleusercontent.com",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("custom Google OAuth credentials switch Gemini remote callbacks to OMNIROUTE_PUBLIC_BASE_URL", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "gemini-cli",
+    "http://127.0.0.1:20128/callback",
+    {
+      OMNIROUTE_PUBLIC_BASE_URL: "https://omniroute.example.com",
+      GEMINI_CLI_OAUTH_CLIENT_ID: "custom-gemini.apps.googleusercontent.com",
+    }
+  );
+
+  assert.equal(redirectUri, "https://omniroute.example.com/callback");
+});
+
+test("Google OAuth callbacks stay on localhost when no custom credentials are configured", () => {
+  const redirectUri = resolveBrowserOAuthRedirectUri(
+    "antigravity",
+    "http://localhost:20128/callback",
+    {
+      NEXT_PUBLIC_BASE_URL: "https://omniroute.example.com",
+    }
+  );
+
+  assert.equal(redirectUri, "http://localhost:20128/callback");
 });
 
 test("device and import-token providers expose the flow-specific fields expected by their configs", () => {

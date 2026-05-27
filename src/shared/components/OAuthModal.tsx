@@ -381,9 +381,9 @@ export default function OAuthModal({
       // - Codex/OpenAI: always port 1455 (registered in OAuth app)
       // - Windsurf/Devin CLI (remote fallback): use localhost with OmniRoute port + /auth/callback
       //   (on true localhost the callback server handles it; this is only reached on remote)
-      // - Google OAuth providers (antigravity, gemini-cli): always localhost, regardless of
-      //   where OmniRoute is hosted — Google only accepts pre-registered localhost URIs with
-      //   the built-in credentials. Remote users must configure their own credentials.
+      // - Google OAuth providers (antigravity, gemini-cli): default to localhost so the
+      //   bundled credentials keep working. The authorize route upgrades this to the public
+      //   callback when custom Google credentials + NEXT_PUBLIC_BASE_URL are configured.
       // - Other providers on remote: use actual origin (supports PUBLIC_URL env var)
       // - Localhost: use localhost:port
       let redirectUri: string;
@@ -433,7 +433,7 @@ export default function OAuthModal({
         );
       }
 
-      setAuthData({ ...data, redirectUri });
+      setAuthData({ ...data, redirectUri: data.redirectUri || redirectUri });
 
       // For non-true-localhost (LAN IPs, remote) or manual fallback: use manual input mode (user pastes callback URL)
       if (!isTrueLocalhost || forceManual) {

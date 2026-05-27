@@ -606,6 +606,47 @@ test("chat pipeline persists Codex responses cache and reasoning tokens to call 
   assert.equal(callLog.tokens.reasoning, 13);
 });
 
+test("chat pipeline applies global Codex priority service tier inside combos", async () => {
+  await seedConnection("codex", { apiKey: "sk-codex-combo-priority" });
+  await settingsDb.updateSettings({
+    codexServiceTier: { enabled: true, tier: "priority" },
+  });
+  await combosDb.createCombo({
+    name: "codex-priority-combo",
+    strategy: "priority",
+    config: { maxRetries: 0, retryDelayMs: 0 },
+    models: ["codex/gpt-5.5"],
+  });
+  const fetchCalls = [];
+
+  globalThis.fetch = async (url, init: RequestInit = {}) => {
+    fetchCalls.push({
+      url: String(url),
+      headers: toPlainHeaders(init.headers),
+      body: init.body ? JSON.parse(String(init.body)) : null,
+    });
+    return buildOpenAIResponsesSSE({ text: "combo priority ok", model: "gpt-5.5" });
+  };
+
+  const response = await handleChat(
+    buildRequest({
+      body: {
+        model: "codex-priority-combo",
+        stream: false,
+        messages: [{ role: "user", content: "Use Codex combo priority" }],
+      },
+    })
+  );
+
+  const json = (await response.json()) as any;
+  assert.equal(response.status, 200);
+  assert.equal(fetchCalls.length, 1);
+  assert.match(fetchCalls[0].url, /\/responses$/);
+  assert.equal(fetchCalls[0].headers.Authorization, "Bearer sk-codex-combo-priority");
+  assert.equal(fetchCalls[0].body.service_tier, "priority");
+  assert.equal(json.choices[0].message.content, "combo priority ok");
+});
+
 test("chat pipeline applies Codex CLI fingerprint to OAuth responses requests", async () => {
   setCliCompatProviders(["codex"]);
   await seedConnection("codex", {
@@ -950,12 +991,7 @@ test("chat pipeline sends Gemini CLI OAuth requests with native Cloud Code trans
   assert.equal(generateCall.body.requestId, undefined);
   assert.equal(generateCall.body.user_prompt_id, generateCall.body.request.session_id);
   const keys = Object.keys(generateCall.body).slice(0, 4);
-  assert.deepEqual(keys.sort(), [
-    "model",
-    "project",
-    "request",
-    "user_prompt_id",
-  ]);
+  assert.deepEqual(keys.sort(), ["model", "project", "request", "user_prompt_id"]);
   assert.equal(generateCall.body.request.sessionId, undefined);
   assert.match(generateCall.body.request.session_id, /^[0-9a-f-]{36}$/i);
   assert.equal(generateCall.body.request.contents.at(-1).parts[0].text, "Hello Gemini CLI");

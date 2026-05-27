@@ -15,15 +15,25 @@
 
 - **docker:** rebuild `better-sqlite3` native bindings after hardened install to resolve container startup crash (#2772 — thanks @thanet-s)
 - **combos:** make combo target timeout configurable, inheriting resolved request timeout by default and clamping values so they only shorten fallback latency (#2775 — thanks @rdself)
+- **oauth:** use public callbacks for remote Google OAuth with custom creds (#2787 — thanks @akarray)
+- **combos:** allow rate-limited provider connections after transient 429s (#2786 — thanks @JxnLexn)
+- **logs:** keep database log settings in sync with the pipeline toggle (#2785 — thanks @JxnLexn)
+- **docker:** speedup docker creation by reducing steps and bunch up copy operations (#2784 — thanks @hartmark)
+- **codex:** apply global service tiers to combo request bodies (#2783 — thanks @JxnLexn)
 
 ### ⚡ Performance / CI
 
 - **ci:** build Docker platforms on native runners (linux/amd64 on ubuntu-24.04 and linux/arm64 on ubuntu-24.04-arm) instead of emulated QEMU, reducing build times significantly (#2774 — thanks @thanet-s)
 
+### 📝 Documentation
+
+- **docs:** fix broken documentation links in README after Fumadocs migration (#2782 — thanks @kjhq)
+
 ### 🏆 Hall of Contributors
 
 A special thanks to everyone who contributed code, reviews, and tests for this release:
-@hartmark, @hijak, @rdself, @thanet-s
+@akarray, @hartmark, @hijak, @JxnLexn, @kjhq, @rdself, @thanet-s
+
 
 ---
 

@@ -217,6 +217,15 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     aliases: ["kimi-k2.6-thinking", "kimi-for-coding"],
   },
 
+  // ── Qwen3.7 Max (Bailian multimodal — text/image/video) ─────────
+  "qwen3.7-max": {
+    maxOutputTokens: 8192,
+    contextWindow: 200000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+  },
+
   // ── Xiaomi MiMo V2.5 (1M context, consensus across 7+ sync sources) ──
   "mimo-v2.5-pro": {
     maxOutputTokens: 131072,
@@ -227,6 +236,12 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
   "mimo-v2.5": {
     maxOutputTokens: 131072,
     contextWindow: 1048576,
+    supportsTools: true,
+    supportsVision: true,
+  },
+  "mimo-v2-pro": {
+    maxOutputTokens: 131072,
+    contextWindow: 262144,
     supportsTools: true,
     supportsVision: true,
   },

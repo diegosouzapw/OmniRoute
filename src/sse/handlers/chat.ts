@@ -438,6 +438,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
     const checkModelAvailable = async (
       modelString: string,
       target?: {
+        allowRateLimitedConnection?: boolean;
         connectionId?: string | null;
         allowedConnectionIds?: string[] | null;
         executionKey?: string | null;
@@ -469,6 +470,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         resolvedModel,
         {
           sessionKey: sessionAffinityKey,
+          ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
         }
       );
@@ -496,6 +498,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
         b: any,
         m: string,
         target?: {
+          allowRateLimitedConnection?: boolean;
           connectionId?: string | null;
           executionKey?: string | null;
           stepId?: string | null;
@@ -520,6 +523,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
             comboStepId: target?.stepId || null,
             comboExecutionKey: target?.executionKey || target?.stepId || null,
             skipUpstreamRetry: target?.failoverBeforeRetry ?? false,
+            allowRateLimitedConnection: target?.allowRateLimitedConnection === true,
             preselectedCredentials: comboPreselectedCredentials.get(
               getComboCredentialCacheKey(m, target)
             ),
@@ -651,6 +655,7 @@ async function handleSingleModelChat(
     comboStepId?: string | null;
     comboExecutionKey?: string | null;
     skipUpstreamRetry?: boolean;
+    allowRateLimitedConnection?: boolean;
     preselectedCredentials?: any;
     cachedSettings?: any;
   } = {},
@@ -811,6 +816,9 @@ async function handleSingleModelChat(
               {
                 sessionKey: runtimeOptions.sessionAffinityKey ?? runtimeOptions.sessionId ?? null,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
+                ...(runtimeOptions.allowRateLimitedConnection
+                  ? { allowRateLimitedConnections: true }
+                  : {}),
                 ...(forceLiveComboTest
                   ? {
                       allowSuppressedConnections: true,

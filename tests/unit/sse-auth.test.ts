@@ -608,6 +608,22 @@ test("getProviderCredentials retains rate-limited accounts when allowSuppressedC
   assert.equal(bypassed.connectionId, connection.id);
 });
 
+test("getProviderCredentials retains rate-limited accounts when allowRateLimitedConnections is enabled", async () => {
+  const connection = await seedConnection("openai", {
+    name: "allow-rate-limit-option",
+    rateLimitedUntil: futureIso(),
+  });
+
+  const blocked = await auth.getProviderCredentials("openai");
+  const bypassed = await auth.getProviderCredentials("openai", null, null, null, {
+    allowRateLimitedConnections: true,
+  });
+
+  assert.equal(blocked.allRateLimited, true);
+  assert.equal(bypassed.connectionId, connection.id);
+});
+
+
 test("getProviderCredentials retains terminal accounts for combo live tests", async () => {
   const connection = await seedConnection("openai", {
     name: "suppressed-terminal",

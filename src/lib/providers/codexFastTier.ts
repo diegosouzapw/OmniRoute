@@ -130,8 +130,8 @@ export interface ApplyCodexGlobalFastServiceTierOptions {
    */
   model?: string | null;
   /**
-   * Outbound request body. Per-request body.service_tier is left untouched if
-   * already set.
+   * Outbound request body. A valid per-request body.service_tier is left untouched
+   * when already set.
    */
   body?: Record<string, unknown> | null;
 }
@@ -188,12 +188,11 @@ export function applyCodexGlobalFastServiceTier<T extends JsonRecord | null | un
     } as T;
   }
 
-  if (resolved.tier === "flex") {
-    // Write the wire value directly to the outbound body when possible. The executor
-    // also accepts requestDefaults.serviceTier = "flex" for downstream accounting.
-    if (body && typeof body === "object" && !Array.isArray(body)) {
-      (body as JsonRecord).service_tier = "flex";
-    }
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    // Write the wire value directly to the outbound body when possible, so combo
+    // request previews and logs show the same effective tier that the executor sends.
+    // The executor also accepts requestDefaults.serviceTier for downstream accounting.
+    (body as JsonRecord).service_tier = resolved.tier;
   }
 
   // Intentional precedence: body service_tier > global mode > connection defaults.
