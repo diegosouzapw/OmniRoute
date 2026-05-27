@@ -12,19 +12,19 @@ COPY scripts/build/postinstall.mjs ./scripts/build/postinstall.mjs
 COPY scripts/build/postinstallSupport.mjs ./scripts/build/postinstallSupport.mjs
 COPY scripts/build/native-binary-compat.mjs ./scripts/build/native-binary-compat.mjs
 ENV NPM_CONFIG_LEGACY_PEER_DEPS=true
-# --ignore-scripts blocks the install/postinstall hooks of dependencies,
-# closing the supply-chain attack surface where a transitive dep can run
-# arbitrary code at install time. OmniRoute's own postinstall (
-# better-sqlite3 binary touchups, @swc/helpers copy) is only needed when
-# a packaged app/node_modules is unpacked — inside the Docker builder we
-# are doing a fresh native-platform install, so dropping the scripts is safe.
+# --ignore-scripts blocks broad dependency install/postinstall hooks, closing
+# the supply-chain attack surface where a transitive dep can run arbitrary code
+# at install time. better-sqlite3 still needs a native binding for the target
+# platform, so rebuild and smoke-test only that known runtime dependency below.
 #
 # We REQUIRE a committed package-lock.json so resolved dependency versions
 # are reproducible.
 RUN test -f package-lock.json \
   || (echo "package-lock.json is required for reproducible Docker builds" >&2 && exit 1)
 RUN --mount=type=cache,target=/root/.npm \
-  npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts
+  npm ci --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
+  && npm rebuild better-sqlite3 \
+  && node -e "require('better-sqlite3')(':memory:').close()"
 
 COPY . ./
 RUN --mount=type=cache,target=/app/.next/cache \
