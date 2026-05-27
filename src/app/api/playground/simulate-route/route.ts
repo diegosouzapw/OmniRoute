@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getAllCombos } from "@/lib/db/combos";
+import { getCombos } from "@/lib/db/combos";
 import { getProviderConnections } from "@/lib/db/providers";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
 
     // Resolve combo
     if (body.comboId) {
-      const combos = (await getAllCombos()) as any[];
+      const combos = (await getCombos()) as any[];
       const combo = combos.find((c) => c.id === body.comboId || c.name === body.comboId);
       if (!combo) {
         errors.push(`Combo "${body.comboId}" not found.`);
