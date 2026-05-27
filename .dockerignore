@@ -39,7 +39,8 @@ blob-report
 
 # Documentation (only the OpenAPI spec is needed at runtime)
 docs/*
-!docs/openapi.yaml
+!docs/reference/
+!docs/reference/openapi.yaml
 *.md
 !README.md
 
