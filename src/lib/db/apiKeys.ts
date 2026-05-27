@@ -1225,7 +1225,9 @@ export async function getApiKeyMetadata(
     scopes: parseStringList((record as JsonRecord).scopes),
     isBanned: parseIsBanned(record.is_banned ?? (record as JsonRecord).isBanned),
     keyHash: (record.key_hash ?? (record as JsonRecord).keyHash) as string | null,
-    allowedEndpoints: parseStringList((record as JsonRecord).allowedEndpoints),
+    allowedEndpoints: parseStringList(
+      (record as JsonRecord).allowed_endpoints ?? (record as JsonRecord).allowedEndpoints
+    ),
   };
 
   if (!metadata.id) {
